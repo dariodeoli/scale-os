@@ -28,6 +28,8 @@ await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migra
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20260921_platform_extend_idempotency.sql',import.meta.url),'utf8'));
 // La forma coherente de los cupones también se exige en la base.
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20260920_platform_coupon_shape.sql',import.meta.url),'utf8'));
+await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20261014_coupon_grace.sql',import.meta.url),'utf8'));
+await pg.exec(`create table platform_coupon_redemptions(id bigserial primary key,coupon_id bigint not null references platform_coupons(id) on delete restrict,organization_id bigint not null references organizations(id) on delete cascade,months_granted integer not null default 1 check(months_granted >= 0),redeemed_by_user_id bigint not null references users(id) on delete restrict,created_at timestamptz not null default now(),unique(coupon_id,organization_id))`);
 await pg.exec(`
   create table if not exists oauth_states(id bigint primary key,recent_auth_user_id bigint);
   create table if not exists destructive_action_previews(token_hash text primary key,user_id bigint,action text not null default 'account.delete',organization_id bigint,state_hash text not null default 'fixture',confirmation text not null default 'Eliminar',payload jsonb not null default '{}'::jsonb,expires_at timestamptz not null default now()+interval '5 minutes',consumed_at timestamptz,created_at timestamptz not null default now());

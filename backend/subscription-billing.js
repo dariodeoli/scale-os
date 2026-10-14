@@ -1,5 +1,6 @@
 import {createHmac,timingSafeEqual,randomUUID} from 'node:crypto';
 import {redactPiiText} from './pii-safety.js';
+import {redeemCoupon} from './coupon-redemption.js';
 
 const DAY=86400000,GRACE=2*DAY,VERSION='2025-03-31.basil';
 const plans={USD:{amount:10,minor:1000},PYG:{amount:50000,minor:50000}};
@@ -358,40 +359,9 @@ export async function subscriptionBilling({req,res,url,db,session,body,send,send
    try{
     await c.query('begin');
     await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket?.remoteAddress||'']);
-    const coupon=(await c.query(`select id,max_redemptions,discount_type,discount_value,(select count(*)::int from platform_coupon_redemptions r where r.coupon_id=platform_coupons.id) as used from platform_coupons where code=$1 and active for update`,[code])).rows[0];
-    if(!coupon)fail('Cupón inválido o desactivado',400);
-    if(coupon.max_redemptions!==null&&Number(coupon.used)>=Number(coupon.max_redemptions))fail('Este cupón ya alcanzó su límite de usos',400);
-    if((await c.query('select 1 from platform_coupon_redemptions where coupon_id=$1 and organization_id=$2',[coupon.id,user.organization_id])).rows[0])fail('Tu empresa ya canjeó este cupón',409);
-    let sub=(await c.query('select due_at,paid_through_at from organization_subscriptions where organization_id=$1 for update',[user.organization_id])).rows[0];
-    if(!sub){
-     // Coupons also work before any trial or payment: the granted period opens
-     // the subscription runway for companies that never enrolled.
-     await c.query(`insert into organization_subscriptions(organization_id,currency,binding_token) values($1,$2,$3) on conflict(organization_id) do nothing`,[user.organization_id,user.default_currency??'PYG',randomUUID()]);
-     sub=(await c.query('select due_at,paid_through_at from organization_subscriptions where organization_id=$1 for update',[user.organization_id])).rows[0];
-    }
-    if(coupon.discount_type==='days'){
-     const days=Number(coupon.discount_value);
-     const base=new Date(Math.max(Date.now(),sub.paid_through_at?new Date(sub.paid_through_at).getTime():new Date(sub.due_at).getTime()));
-     base.setDate(base.getDate()+days);
-     const due=new Date(Math.max(base.getTime(),new Date(sub.due_at).getTime()));
-     await c.query('update organization_subscriptions set paid_through_at=$2,due_at=$3,updated_at=now() where organization_id=$1',[user.organization_id,base.toISOString(),due.toISOString()]);
-     const internal=(await c.query('select expires_at from platform_subscription_states where organization_id=$1 for update',[user.organization_id])).rows[0];
-     if(internal&&internal.expires_at){
-      const extended=new Date(Math.max(Date.now(),new Date(internal.expires_at).getTime()));
-      extended.setDate(extended.getDate()+days);
-      await c.query('update platform_subscription_states set expires_at=$2,updated_at=now() where organization_id=$1',[user.organization_id,extended.toISOString()]);
-     }
-     await c.query('insert into platform_coupon_redemptions(coupon_id,organization_id,months_granted,redeemed_by_user_id) values($1,$2,0,$3)',[coupon.id,user.organization_id,user.id]);
-     await c.query('commit');c.release();c=null;
-     send(res,200,{ok:true,message:`Cupón canjeado: se agregaron ${days} día${days===1?'':'s'} gratis a tu suscripción.`,subscription:await subscriptionState(db,user)});return true;
-    }
-    const base=new Date(Math.max(Date.now(),sub.paid_through_at?new Date(sub.paid_through_at).getTime():new Date(sub.due_at).getTime()));
-    base.setMonth(base.getMonth()+1);
-    const due=new Date(Math.max(base.getTime(),new Date(sub.due_at).getTime()));
-    await c.query('update organization_subscriptions set paid_through_at=$2,due_at=$3,updated_at=now() where organization_id=$1',[user.organization_id,base.toISOString(),due.toISOString()]);
-    await c.query('insert into platform_coupon_redemptions(coupon_id,organization_id,months_granted,redeemed_by_user_id) values($1,$2,1,$3)',[coupon.id,user.organization_id,user.id]);
+    const redeemed=await redeemCoupon(c,{code,organizationId:user.organization_id,userId:user.id,defaultCurrency:user.default_currency});
     await c.query('commit');c.release();c=null;
-    send(res,200,{ok:true,message:'Cupón canjeado: se agregó un mes a tu suscripción.',subscription:await subscriptionState(db,user)});return true;
+    send(res,200,{ok:true,message:redeemed.message,subscription:await subscriptionState(db,user)});return true;
    }catch(error){if(c){await c.query('rollback');c.release();}throw error;}
   }
   if(req.method!=='POST')fail('Método no permitido',405);

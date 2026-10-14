@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import {inspectInternalSubscription,updateInternalSubscription,realOrganization} from './platform-subscription-service.js';
 import {optionalUpdate,createPlatformPreview,consumePlatformDeletionProof} from './account-security.js';
 import {redactPiiText} from './pii-safety.js';
+import {text as validText,optId,date as validDate} from './suite-validation.js';
+import {redeemCoupon} from './coupon-redemption.js';
 
 const currencies=['USD','PYG'];
 const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
@@ -21,6 +23,18 @@ const couponType=value=>{if(!['percent','fixed','days'].includes(value))fail('Ti
 const couponValue=value=>{const amount=Number(value);if(!Number.isFinite(amount)||amount<=0||amount>1000000000)fail('Valor de descuento inválido.');return amount;};
 const couponCurrency=value=>{if(value===null||value===undefined||value==='')return null;if(!currencies.includes(value))fail('Moneda de cupón inválida.');return value;};
 const couponLifetime=value=>{if(value===undefined)return false;if(typeof value!=='boolean')fail('La elegibilidad vitalicia debe ser booleana.');return value;};
+// Vencimiento: fecha (AAAA-MM-DD) válida hasta el final de ese día en Asunción; vacío = sin vencimiento.
+const couponExpiry=(value,create)=>{
+ if(value===null||value===undefined||value==='')return null;
+ let day;try{day=validDate(value);}catch{fail('La fecha de vencimiento no es válida.');}
+ const stamp=`${day}T23:59:59-03:00`;
+ if(create&&new Date(stamp).getTime()<=Date.now())fail('El vencimiento debe ser una fecha futura.');
+ return stamp;
+};
+const couponNote=value=>{if(value===null||value===undefined)return null;let note;try{note=validText(value,2000);}catch{fail('La nota admite hasta 2000 caracteres.');}return note||null;};
+const couponOrganization=value=>{try{return optId(value);}catch{fail('La empresa del cupón no es válida.');}};
+const COUPON_COLUMNS='c.id,c.code,c.discount_type,c.discount_value,c.currency,c.active,c.max_redemptions,c.lifetime_eligible,c.expires_at,c.organization_id,c.note,c.created_at,c.updated_at';
+const COUPON_DETAIL=`${COUPON_COLUMNS},o.name as organization_name,(select count(*)::int from platform_coupon_redemptions r where r.coupon_id=c.id) as redemptions,(c.expires_at is not null and c.expires_at<=now()) as expired`;
 const object=value=>{if(!value||typeof value!=='object'||Array.isArray(value))fail('Solicitud inválida.');return value;};
 const only=(value,keys)=>{if(Object.keys(value).some(key=>!keys.includes(key)))fail('La solicitud contiene campos no permitidos.');return value;};
 async function actor(db,session,req){
@@ -33,6 +47,14 @@ async function actor(db,session,req){
 const requireWrite=role=>{if(role!=='admin')fail('Solo un administrador global puede hacer cambios.',403);};
 async function audit(db,user,action,targetType,targetId,metadata={}){
  await db.query('insert into platform_audit_log(actor_user_id,action,target_type,target_id,metadata) values($1,$2,$3,$4,$5::jsonb)',[user.id,action,targetType,String(targetId),JSON.stringify(metadata)]);
+}
+async function couponDetail(db,id){
+ return (await db.query(`select ${COUPON_DETAIL} from platform_coupons c left join organizations o on o.id=c.organization_id where c.id=$1`,[id])).rows[0];
+}
+// La empresa destino debe existir y no ser una cuenta protegida/demo; solo se revalida si el campo cambió.
+async function assertCouponOrganization(db,input){
+ if(!input.organizationChanged||input.organizationId===null)return;
+ if(!(await db.query(`select 1 from organizations o where o.id=$1 and ${realOrganization('o')}`,[input.organizationId])).rows[0])fail('La empresa del cupón no existe.',404);
 }
 async function mutation(db,work){
  if(typeof db.connect!=='function')return work(db);
@@ -50,7 +72,7 @@ function idempotencyKey(input,req){
 function page(url){return {limit:limit(url.searchParams.get('limit')),offset:integer(url.searchParams.get('offset'))};}
 function search(url){return (url.searchParams.get('q')||'').trim().slice(0,100);}
 function couponConfiguration(input,current=null){
- const incoming=only(object(input),['code','discount_type','discount_value','currency','max_redemptions','lifetime_eligible','active']);
+ const incoming=only(object(input),['code','discount_type','discount_value','currency','max_redemptions','lifetime_eligible','active','expires_at','organization_id','note']);
  const type=incoming.discount_type===undefined?current?.discount_type:couponType(incoming.discount_type);
  const value=incoming.discount_value===undefined?Number(current?.discount_value):couponValue(incoming.discount_value);
  const currency=incoming.currency===undefined?current?.currency:couponCurrency(incoming.currency);
@@ -59,7 +81,10 @@ function couponConfiguration(input,current=null){
  const max=incoming.max_redemptions===undefined?current?.max_redemptions:incoming.max_redemptions===null||incoming.max_redemptions===''?null:integer(incoming.max_redemptions,-1);
  if(!type||typeof active!=='boolean'||(type==='percent'&&currency!==null)||(type==='fixed'&&currency===null)||(type==='days'&&currency!==null)||(type==='percent'&&value>100)||(type==='days'&&(!Number.isInteger(value)||value>3650)))fail('La configuración del cupón no es válida.');
  if(max!==null&&max<1)fail('El máximo de usos debe ser un entero positivo.');
- return {type,value,currency,active,lifetime,max,code:incoming.code===undefined?current?.code:couponCode(incoming.code)};
+ const expiresAt=incoming.expires_at===undefined?(current?.expires_at??null):couponExpiry(incoming.expires_at,!current);
+ const organizationId=incoming.organization_id===undefined?(current?.organization_id==null?null:String(current.organization_id)):couponOrganization(incoming.organization_id);
+ const note=incoming.note===undefined?(current?.note??null):couponNote(incoming.note);
+ return {type,value,currency,active,lifetime,max,expiresAt,organizationId,organizationChanged:incoming.organization_id!==undefined,note,code:incoming.code===undefined?current?.code:couponCode(incoming.code)};
 }
 export async function platformAdmin({req,res,url,db,session,body,send,bootstrapValue=''}){
  if(!url.pathname.startsWith('/api/platform/'))return false;
@@ -128,6 +153,28 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    });
    send(res,200,result);return true;
   }
+  const applyPath=url.pathname.match(/^\/api\/platform\/agencies\/(\d+)\/coupons\/apply$/);
+  if(applyPath&&req.method==='POST'){
+   requireWrite(role);
+   const input=only(object(await body(req)),['coupon_id','idempotency_key','idempotencyKey','reason']);
+   const couponId=Number(input.coupon_id);if(!Number.isSafeInteger(couponId)||couponId<1)fail('Elegí el cupón a aplicar.');
+   let reasonText=null;if(input.reason!==undefined&&input.reason!==null&&input.reason!==''){try{reasonText=validText(input.reason,500)||null;}catch{fail('El motivo admite hasta 500 caracteres.');}}
+   const idempotency=idempotencyKey({idempotencyKey:input.idempotency_key??input.idempotencyKey},req);
+   const result=await mutation(db,async client=>{
+    const id=routeId(applyPath[1]);
+    const org=(await client.query(`select o.id,coalesce((select s.default_currency from agency_settings s where s.organization_id=o.id),'PYG') as default_currency from organizations o where o.id=$1 and ${realOrganization('o')} for update`,[id])).rows[0];
+    if(!org)fail('Agencia no encontrada o protegida.',404);
+    // La clave se busca después de tomar el lock de la empresa: un reintento no vuelve a canjear.
+    if(idempotency&&(await client.query(`select 1 from platform_audit_log where actor_user_id=$1 and action='coupon.apply' and metadata->>'idempotencyKey'=$2 limit 1`,[user.id,idempotency])).rows.length){
+     return {ok:true,idempotent_replay:true,subscription:await inspectInternalSubscription(client,id)};
+    }
+    const redeemed=await redeemCoupon(client,{couponId,organizationId:id,userId:user.id,defaultCurrency:org.default_currency});
+    const granted=redeemed.days?`${redeemed.days} día${redeemed.days===1?'':'s'}`:'1 mes';
+    await audit(client,user,'coupon.apply','organization_subscription',id,{coupon_id:redeemed.coupon.id,code:redeemed.coupon.code,discount_type:redeemed.coupon.discount_type,discount_value:Number(redeemed.coupon.discount_value),days:redeemed.days,months:redeemed.months,reason:reasonText,...(idempotency?{idempotencyKey:idempotency}:{})});
+    return {ok:true,message:`Cupón ${redeemed.coupon.code} aplicado: se agregó${redeemed.days>1?'ron':''} ${granted} a la suscripción.`,coupon:{id:redeemed.coupon.id,code:redeemed.coupon.code,discount_type:redeemed.coupon.discount_type,discount_value:Number(redeemed.coupon.discount_value)},subscription:await inspectInternalSubscription(client,id)};
+   });
+   send(res,200,result);return true;
+  }
   if(subscriptionPath&&req.method==='PATCH'){
    requireWrite(role);
    const result=await mutation(db,async client=>{
@@ -175,19 +222,28 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    send(res,200,{users:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   if(url.pathname==='/api/platform/coupons'&&req.method==='GET'){
-   const {limit,offset}=page(url),q=search(url),where=q?'where c.code ilike $3':'';
+   const {limit,offset}=page(url),q=search(url);
+   // `organization=<id>`: solo los cupones aplicables a esa empresa (vigentes, con cupo,
+   // globales o dirigidos a ella y todavía no canjeados por ella).
+   const target=url.searchParams.get('organization'),orgId=target?routeId(target):null;
+   const clause=first=>{
+    const parts=[];if(q)parts.push(`c.code ilike $${first}`);
+    if(orgId!==null)parts.push(`c.active and (c.expires_at is null or c.expires_at>now()) and (c.organization_id is null or c.organization_id=${orgId}) and not exists(select 1 from platform_coupon_redemptions x where x.coupon_id=c.id and x.organization_id=${orgId}) and (c.max_redemptions is null or (select count(*) from platform_coupon_redemptions y where y.coupon_id=c.id)<c.max_redemptions)`);
+    return parts.length?'where '+parts.join(' and '):'';
+   };
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
-   const total=Number((await db.query(`select count(*)::int as n from platform_coupons c ${q?'where c.code ilike $1':''}`,q?['%'+q+'%']:[])).rows[0].n);
-   const result=await db.query(`select c.id,c.code,c.discount_type,c.discount_value,c.currency,c.active,c.max_redemptions,c.lifetime_eligible,c.created_at,c.updated_at,u.email as created_by
-     from platform_coupons c join users u on u.id=c.created_by_user_id ${where} order by c.created_at desc limit $1 offset $2`,values);
+   const total=Number((await db.query(`select count(*)::int as n from platform_coupons c ${clause(1)}`,q?['%'+q+'%']:[])).rows[0].n);
+   const result=await db.query(`select ${COUPON_DETAIL},u.email as created_by
+     from platform_coupons c join users u on u.id=c.created_by_user_id left join organizations o on o.id=c.organization_id ${clause(3)} order by c.created_at desc limit $1 offset $2`,values);
    send(res,200,{coupons:result.rows,limit,offset,total,hasMore:offset+result.rows.length<total});return true;
   }
   if(url.pathname==='/api/platform/coupons'&&req.method==='POST'){
    requireWrite(role);
    const input=couponConfiguration(await body(req));if(!input.code)fail('El código del cupón es obligatorio.');
    const coupon=await mutation(db,async client=>{
-    const result=await client.query('insert into platform_coupons(code,discount_type,discount_value,currency,max_redemptions,lifetime_eligible,created_by_user_id) values($1,$2,$3,$4,$5,$6,$7) returning id,code,discount_type,discount_value,currency,active,max_redemptions,lifetime_eligible,created_at,updated_at',[input.code,input.type,input.value,input.currency,input.max,input.lifetime,user.id]);
-    await audit(client,user,'coupon.create','coupon',result.rows[0].id,{lifetime_eligible:input.lifetime});return result.rows[0];
+    await assertCouponOrganization(client,input);
+    const result=await client.query('insert into platform_coupons(code,discount_type,discount_value,currency,max_redemptions,lifetime_eligible,expires_at,organization_id,note,created_by_user_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning id',[input.code,input.type,input.value,input.currency,input.max,input.lifetime,input.expiresAt,input.organizationId,input.note,user.id]);
+    await audit(client,user,'coupon.create','coupon',result.rows[0].id,{lifetime_eligible:input.lifetime,expires_at:input.expiresAt,organization_id:input.organizationId});return couponDetail(client,result.rows[0].id);
    });
    send(res,201,{coupon});return true;
   }
@@ -197,8 +253,9 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const coupon=await mutation(db,async client=>{
     const id=Number(couponPath[1]),current=(await client.query('select * from platform_coupons where id=$1 for update',[id])).rows[0];if(!current)fail('Cupón no encontrado',404);
     const input=couponConfiguration(await body(req),current);
-    const result=await client.query('update platform_coupons set discount_type=$1,discount_value=$2,currency=$3,active=$4,max_redemptions=$5,lifetime_eligible=$6,updated_at=now() where id=$7 returning id,code,discount_type,discount_value,currency,active,max_redemptions,lifetime_eligible,created_at,updated_at',[input.type,input.value,input.currency,input.active,input.max,input.lifetime,id]);
-    await audit(client,user,current.active&&!input.active?'coupon.deactivate':'coupon.update','coupon',id,{lifetime_eligible:input.lifetime,active:input.active});return result.rows[0];
+    await assertCouponOrganization(client,input);
+    await client.query('update platform_coupons set discount_type=$1,discount_value=$2,currency=$3,active=$4,max_redemptions=$5,lifetime_eligible=$6,expires_at=$8,organization_id=$9,note=$10,updated_at=now() where id=$7',[input.type,input.value,input.currency,input.active,input.max,input.lifetime,id,input.expiresAt,input.organizationId,input.note]);
+    await audit(client,user,current.active&&!input.active?'coupon.deactivate':'coupon.update','coupon',id,{lifetime_eligible:input.lifetime,active:input.active,expires_at:input.expiresAt,organization_id:input.organizationId});return couponDetail(client,id);
    });
    send(res,200,{coupon});return true;
   }
