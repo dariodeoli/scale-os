@@ -94,7 +94,10 @@ test("manual subscription management renders immediately after agency records", 
     new URL("../app/superadmin/agencies.tsx", import.meta.url),
     "utf8",
   );
-  order(superadmin, '<PlatformAgencies', '<SubscriptionDialog');
+  // Las vistas salen de la lista única (sections.tsx); page.tsx monta la sección activa y después los diálogos.
+  const sections = readFileSync(new URL("../app/superadmin/sections.tsx", import.meta.url), "utf8");
+  assert.ok(sections.includes('<PlatformAgencies'), 'Agencias se monta desde la lista de secciones');
+  order(superadmin, '<Section {...sectionProps}/>', '<SubscriptionDialog');
   // El panel ya no usa dos columnas: cada vista (resumen, agencias, cupones…) es una pestaña y los diálogos
   // de gestión (suscripción y confirmación) se montan después de las vistas.
   order(superadmin, '<SubscriptionDialog', '<PlatformConfirmDialog');
