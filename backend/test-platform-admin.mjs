@@ -82,6 +82,7 @@ assert(platformSource.includes('platform_administrators'),'the global guard must
 // #69: el arranque del servidor liga el correo configurado al bootstrap y a la
 // reafirmación idempotente del dueño como admin global activo.
 const serverSource=fs.readFileSync(new URL('./server.js',import.meta.url),'utf8');
+assert.match(serverSource,/previewAction\.startsWith\('platform\.'\)\?'\/superadmin':'\/configuracion'/,'#189: la vuelta de Google de una eliminación global regresa al superadmin');
 assert.match(serverSource,/const initialPlatformAdminEmail = process\.env\.SCALE_INITIAL_PLATFORM_ADMIN_EMAIL/,'el correo del admin inicial sale del entorno del servidor');
 assert.match(serverSource,/await bootstrapInitialPlatformAdmin\(db,initialPlatformAdminEmail\)/,'el arranque ejecuta el bootstrap del admin inicial');
 assert.match(serverSource,/await ensurePlatformOwnerAdmin\(db,initialPlatformAdminEmail\)/,'el arranque reafirma al dueño configurado como admin activo');
