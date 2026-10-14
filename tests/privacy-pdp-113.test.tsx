@@ -101,11 +101,11 @@ test('consentimiento: la aceptación se registra por API o en el puente local, n
  assert.equal(bridge.requests.length, 0, 'sin API no se inventan solicitudes');
  await assert.rejects(() => privacyData.requestPrivacyAction('supresion', 'prueba'), {name: 'PrivacyApiUnavailableError'}, 'sin API no se simula la solicitud');
 
- (globalThis as {fetch: unknown}).fetch = async () => new Response(JSON.stringify({consents: [{finalidad: 'cuenta-y-prestacion', aceptado: true, version: 'v1', fecha: '2026-09-30T12:00:00.000Z', canal: 'api'}], requests: [{id: '1', tipo: 'acceso', estado: 'recibida', created_at: '2026-09-30T12:00:00.000Z', due_at: '2026-10-30T12:00:00.000Z'}]}), {status: 200, headers: {'Content-Type': 'application/json'}});
+ (globalThis as {fetch: unknown}).fetch = async () => new Response(JSON.stringify({consents: [{id: '1', purpose: 'account', notice_version: 'v1', source: 'registration', granted_at: '2026-09-30T12:00:00.000Z', revoked_at: null}], requests: [{id: 1, request_type: 'access', status: 'received', received_at: '2026-09-30T12:00:00.000Z', due_at: '2026-10-30T12:00:00.000Z'}], export: {path: '/api/privacy/me/export'}}), {status: 200, headers: {'Content-Type': 'application/json'}});
  const viaApi = await privacyData.loadPrivacyData();
  assert.equal(viaApi.source, 'api', 'con la base de #112 «Mis datos» usa la respuesta del servidor');
  assert.equal(viaApi.requests.length, 1, 'las solicitudes reales se muestran con su estado');
- assert.equal(PRIVACY_API_PATHS.myData, '/api/privacy/my-data', 'el contrato de #112 queda declarado en un solo módulo');
+ assert.equal(PRIVACY_API_PATHS.myData, '/api/privacy/me', 'el contrato de #112 queda declarado en un solo módulo y coincide con el API');
 });
 
 /* --------------------------------------------------------------- Permisos */

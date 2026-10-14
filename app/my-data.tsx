@@ -17,7 +17,8 @@ import {PrivacyApiUnavailableError,loadPrivacyData,pendingPrivacyConsents,reques
  * los pedidos de derechos (acceso, rectificación, supresión, oposición) con su
  * estado y SLA, y la revocación de consentimientos.
  *
- * Sin la base del API (#112) la vista cae al puente local documentado: muestra
+ * Usa el API del titular (`/api/privacy/me…`, #112). Si no respondiera, la
+ * vista cae al puente local documentado: muestra
  * sólo registros reales (los guardados en este dispositivo) y el canal de
  * derechos; nunca simula pedidos, estados ni exportaciones.
  */
@@ -33,8 +34,8 @@ const REQUEST_TYPES:Array<{value:PrivacyRequestKind;label:string}>=[
  {value:'supresion',label:'Supresión de datos'},
  {value:'oposicion',label:'Oposición a un tratamiento'},
 ];
-const STATUS_LABEL:Record<PrivacyRequestStatus,string>={recibida:'Recibida',identidad:'Verificando identidad',resuelta:'Resuelta',rechazada:'Rechazada'};
-const STATUS_TONE:Record<PrivacyRequestStatus,'ok'|'warn'|'mute'|'bad'|'info'>={recibida:'info',identidad:'warn',resuelta:'ok',rechazada:'bad'};
+const STATUS_LABEL:Record<PrivacyRequestStatus,string>={recibida:'Recibida',identidad:'Identidad verificada',en_revision:'En revisión',resuelta:'Resuelta',rechazada:'Rechazada',cancelada:'Cancelada'};
+const STATUS_TONE:Record<PrivacyRequestStatus,'ok'|'warn'|'mute'|'bad'|'info'>={recibida:'info',identidad:'warn',en_revision:'warn',resuelta:'ok',rechazada:'bad',cancelada:'mute'};
 const TYPE_LABEL:Record<PrivacyRequestKind,string>={acceso:'Acceso',rectificacion:'Rectificación',supresion:'Supresión',oposicion:'Oposición',portabilidad:'Portabilidad'};
 
 /** Días de calendario (America/Asuncion) hasta el vencimiento del SLA (≤30 días). */
@@ -110,7 +111,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
      {REQUEST_TYPES.map(type=><button key={type.value} type="button" className={`secondary ${ACTION}`} onClick={()=>setRequestType(type.value)}>{type.label}</button>)}
     </div>}
     {bridge?<p className="text-[11.5px] leading-5 text-mute">Mientras la base técnica esté pendiente, estos pedidos se registran por el canal alternativo de arriba: el equipo los carga y podés seguirlos con tu referencia.</p>:null}
-    {data?.exportPath?<a className={`secondary w-fit ${ACTION}`} href={`/core-api${data.exportPath}`}><Download size={15} aria-hidden="true"/>Descargar copia de mis datos</a>:<p className="text-[11.5px] text-mute">{bridge?'La descarga en autoservicio se habilita con la base del API; pedila por el canal alternativo y el equipo la prepara.':'Sin descarga disponible por ahora.'}</p>}
+    {data?.exportPath?<a className={`secondary w-fit ${ACTION}`} href={`/core-api${data.exportPath}`} download="mis-datos.json"><Download size={15} aria-hidden="true"/>Descargar copia de mis datos</a>:<p className="text-[11.5px] text-mute">{bridge?'La descarga en autoservicio se habilita con la base del API; pedila por el canal alternativo y el equipo la prepara.':'Sin descarga disponible por ahora.'}</p>}
     {data&&data.requests.length?<ul className="grid gap-2" aria-label="Solicitudes registradas">
      {data.requests.map(request=>{const sla=slaLabel(request.due_at);return <li key={request.id} className="grid gap-1 rounded-lg border border-ink-600 px-3 py-2">
       <div className="flex flex-wrap items-center justify-between gap-2"><strong className="text-[13px] text-fore">{TYPE_LABEL[request.tipo]}</strong><StateChip tone={STATUS_TONE[request.estado]}>{STATUS_LABEL[request.estado]}</StateChip></div>
