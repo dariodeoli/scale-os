@@ -3,7 +3,7 @@
 // Rediseño #80: panel del sistema, formulario de alta y lista densa v2.
 import {useRef} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
-import {FilterToolbar, ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
+import {ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, MoneyText, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, money, type CollectionPage, type Coupon, type CouponDraft, type State} from "./model";
 import {PlatformMore} from "./states";
 import {SelectCustom} from "../profile-controls";
@@ -22,20 +22,30 @@ type PlatformCatalogProps = {
   createCoupon: (event: import("react").FormEvent) => Promise<void>;
 };
 
-const TEMPLATE = "grid-cols-[minmax(10rem,1fr)_6.5rem_8rem]";
+const TEMPLATE = "grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]";
 const COLUMNS: Column[] = [
   {key: "coupon", label: "Cupón"},
+  {key: "discount", label: "Descuento", align: "end"},
+  {key: "uses", label: "Usos máximos", align: "end"},
   {key: "status", label: "Estado"},
-  {key: "actions", label: "Acciones"},
+  {key: "actions", label: "Acciones", align: "end"},
 ];
-const MIN_WIDTH = denseTableMinWidth(23.5, 3);
+const MIN_WIDTH = denseTableMinWidth(10 + 9 + 8 + 6.5 + 8, 5);
+// Sin permiso de escritura no hay acciones: la columna (y su encabezado) no se dibuja.
+const TEMPLATE_READONLY = "grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem]";
+const COLUMNS_READONLY = COLUMNS.slice(0, -1);
+const MIN_WIDTH_READONLY = denseTableMinWidth(10 + 9 + 8 + 6.5, 4);
 
 const FIELD = "grid gap-1.5 text-[11px] font-semibold text-mute";
 
 export function PlatformCatalog({busy, state, page, onMore, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
   // El vacío de cupones lleva al formulario de creación que vive arriba.
   const codeRef=useRef<HTMLInputElement|null>(null);
-  const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
+  const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
+  const usesLabel = (item: Coupon) => item.max_redemptions === null ? "Sin límite" : formatPlatformMetric(item.max_redemptions);
+  const discountCell = (item: Coupon) => item.discount_type === "fixed"
+    ? <MoneyText valor={item.discount_value} currency={item.currency || undefined} className="text-fore"/>
+    : <span className="list-amount text-fore">{item.discount_type === "percent" ? `${formatPlatformMetric(item.discount_value)}%` : `${formatPlatformMetric(item.discount_value)} días`}</span>;
   const detail = (item: Coupon) => `${item.discount_type === "percent" ? `${formatPlatformMetric(item.discount_value)}%` : item.discount_type === "days" ? `${formatPlatformMetric(item.discount_value)} días gratis` : money(item.discount_value, item.currency)} · ${item.max_redemptions === null ? "Sin límite de usos" : `${formatPlatformMetric(item.max_redemptions)} usos máximos`}`;
   return (
     <section className="panel h-full" aria-labelledby="platform-catalog-title">
@@ -94,13 +104,14 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
       )}
       <div ref={listRef} className="mt-4 min-w-0">
         {state.coupons.length ? (listFits ? (
-          <ListGrid label="Cupones" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[25rem]" pinnedActions>
+          <ListGrid label="Cupones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[44rem]" : "min-w-[35.5rem]"} pinnedActions={writable}>
             {state.coupons.map((item) => (
-              <ListRow key={item.id} template={TEMPLATE}>
+              <ListRow key={item.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
                 <div role="cell" className="min-w-0">
                   <b className="list-identity text-fore" title={item.code || "Cupón sin código"}>{item.code || "Cupón sin código"}</b>
-                  <small className="list-secondary" title={detail(item)}>{detail(item)}</small>
                 </div>
+                <span role="cell" className="text-right">{discountCell(item)}</span>
+                <span role="cell" className="text-right text-[12.5px] font-semibold tabular-nums text-fore whitespace-nowrap">{usesLabel(item)}</span>
                 <span role="cell"><StateChip tone={item.active ? "ok" : "mute"}>{item.active ? "Activo" : "Pausado"}</StateChip></span>
                 {writable ? <ListActions>
                   <button

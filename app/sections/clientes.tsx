@@ -8,7 +8,7 @@ import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
 import {clientSince, moneyKpi} from '../client-format';
 import {ClientIdentity} from '../client-identity';
-import {Dialog} from '../dialog';
+import {ConfirmDialog} from '../dialog';
 import {notify} from '../feedback';
 import {LIST_WINDOW,useFilasVisibles,windowSlice} from '../list-window';
 import {WhatsAppButton} from '../whatsapp-button';
@@ -279,17 +279,12 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       </div>
     </div> : null}
 
-    {confirmArchive ? <Dialog title="Archivar clientes" close={() => {if (!bulkBusy) {setConfirmArchive(false); setBulkError('');}}}>
+    {confirmArchive ? <ConfirmDialog open variant="danger" title="Archivar clientes" confirmLabel="Confirmar: archivar" busy={bulkBusy} error={bulkError} onCancel={() => {if (!bulkBusy) {setConfirmArchive(false); setBulkError('');}}} onConfirm={() => void runBatch(true)} description={<>
       <p><strong>{selectedClients.length === 1 ? selectedClients.map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean)[0] || '1 cliente' : `${selectedClients.length} clientes`}</strong></p>
       {selectedClients.length > 1 ? <p>{selectedClients.slice(0, 3).map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean).join(' · ')}{selectedClients.length > 3 ? ` y ${selectedClients.length - 3} más` : ''}</p> : null}
       <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés reactivarlos después.</p>
       <p className="form-note">Mientras estén archivados, sus proyectos y piezas vinculados también quedan ocultos. Reactivar el cliente no los reactiva por sí solo.</p>
-      {bulkError ? <Aviso tono="error" role="alert">{bulkError}</Aviso> : null}
-      <div className="inline-actions">
-        <button className="secondary" disabled={bulkBusy} onClick={() => setConfirmArchive(false)}>Cancelar</button>
-        <button className="secondary danger" disabled={bulkBusy} onClick={() => void runBatch(true)}>{bulkBusy ? 'Procesando…' : 'Confirmar: archivar'}</button>
-      </div>
-    </Dialog> : null}
+    </>}/> : null}
 
     {clients.length > 0 && dataState === 'error' ? (
       <Aviso tono="error" como="div" role="alert">No se pudieron actualizar los clientes. Se muestra la última lista cargada.{' '}
@@ -301,7 +296,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       // `overflow-x-visible` (Refs #140): la tabla sólo se monta cuando entra
       // completa, y el menú ⋯ necesita salir del contenedor; se retira cuando
       // #138 publique el patrón con portal/popover (hoy el ⋯ vive adentro).
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[64.5rem]" pinnedActions>
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[67.5rem]" pinnedActions>
         {filasVisibles.inicio > 0 ? <div role="row" aria-hidden="true" style={{height: filasVisibles.inicio * filasVisibles.altoFila}}/> : null}
         {renderClients(mountedLive.slice(filasVisibles.inicio, filasVisibles.fin), false)}
         {filasVisibles.fin < mountedLive.length ? <div role="row" aria-hidden="true" style={{height: (mountedLive.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
@@ -331,7 +326,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
-          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[64.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[67.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
           : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(windowSlice(archivedClients, visible), true)}</div>}
       </details>
     ) : null}

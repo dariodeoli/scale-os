@@ -3,7 +3,7 @@ import {useEffect,useState,type ReactNode} from 'react';
 import {BadgeCheck,CircleX,Download,Landmark,Plus,RefreshCw,ShieldCheck,ShieldOff} from 'lucide-react';
 import {api,Dialog,Editor,type Field} from './operations';
 import {dueTone,listDateFull,listDateShort} from './list-format';
-import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,StateChip} from './ui-v2';
 import {roleCan} from './capabilities';
 import {notify} from './feedback';
 import type {User} from './workspace-types';
@@ -67,7 +67,7 @@ const slaLabel=(request:PrivacyRequest)=>{
 };
 const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación.';
 
-const QUEUE_TEMPLATE='grid-cols-[minmax(13rem,1.5fr)_minmax(9rem,0.9fr)_minmax(8.5rem,0.8fr)_minmax(7.5rem,0.7fr)_minmax(9.5rem,1fr)]';
+const QUEUE_TEMPLATE='grid-cols-[minmax(13rem,1.5fr)_minmax(9rem,0.9fr)_minmax(8.5rem,0.8fr)_minmax(7.5rem,0.7fr)_13rem]';
 const QUEUE_COLUMNS=[{key:'titular',label:'Titular'},{key:'tipo',label:'Solicitud'},{key:'estado',label:'Estado'},{key:'sla',label:'Plazo'},{key:'actions',label:'Acciones',align:'end' as const}];
 const CONSENT_TEMPLATE='grid-cols-[minmax(11rem,1.2fr)_minmax(9rem,0.9fr)_minmax(7rem,0.7fr)_minmax(9rem,0.9fr)_minmax(7.5rem,0.7fr)_minmax(6.5rem,0.6fr)]';
 const CONSENT_COLUMNS=[{key:'titular',label:'Titular'},{key:'finalidad',label:'Finalidad'},{key:'version',label:'Aviso'},{key:'origen',label:'Origen'},{key:'fecha',label:'Otorgado'},{key:'actions',label:'Acciones',align:'end' as const}];
@@ -191,14 +191,14 @@ export function PrivacyPanel({user}:{user:User|null}){
       <div className="min-w-0"><span className="block truncate text-[12.5px] text-fore" title={typeLabel(request.request_type)}>{typeShort(request.request_type)}</span><small className="text-[11px] text-mute">#{request.id}</small></div>
       <div className="flex min-w-0 items-center"><StateChip tone={STATUS_TONES[request.status]||'mute'} title={statusLabel(request.status)}>{statusLabel(request.status)}</StateChip></div>
       <div className="min-w-0 whitespace-nowrap text-[12px] tabular-nums text-mute" title={`Recibida el ${listDateFull(request.received_at)||''}${request.resolved_at?` · Resuelta el ${listDateFull(request.resolved_at)||''}`:''}`} data-tone={!['resolved','rejected','cancelled'].includes(request.status)&&dueTone(request.due_at,3)?'warn':undefined}>{slaLabel(request)}<small className="mt-0.5 block text-[10.5px]">Recibida {listDateShort(request.received_at)}</small></div>
-      <div className="flex min-w-0 items-center justify-end gap-1 whitespace-nowrap">
+      <ListActions>
        {request.subject_kind!=='other'&&request.subject_id?<a className="icon-button" href={`/core-api/api/privacy/requests/${request.id}/export`} target="_blank" rel="noreferrer" title="Descargar copia del titular" aria-label={`Descargar copia del titular de la solicitud #${request.id}`}><Download size={16}/></a>:null}
        {request.status==='received'?<button type="button" className="icon-button" disabled={busy} title="Verificar identidad" aria-label={`Verificar identidad de la solicitud #${request.id}`} onClick={()=>void mutate(`/api/privacy/requests/${request.id}`,{action:'verify'},'PATCH','Identidad verificada.')}><BadgeCheck size={16}/></button>:null}
        {['received','identity_verified','in_review'].includes(request.status)?<>
         <button type="button" className="text-button" disabled={busy} onClick={()=>setResolving(request)}><ShieldCheck size={15}/>Resolver</button>
         <button type="button" className="icon-button" disabled={busy} title="Rechazar con motivo" aria-label={`Rechazar la solicitud #${request.id}`} onClick={()=>setRejecting(request)}><CircleX size={16}/></button>
        </>:null}
-      </div>
+      </ListActions>
      </ListRow>)}
     </ListGrid>:<EmptyBlock compact title="No hay solicitudes en esta vista" description="Cuando un titular pida acceso, rectificación, supresión, oposición o portabilidad, aparece acá con su plazo."/>}
    </>}

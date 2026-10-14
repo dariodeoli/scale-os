@@ -70,7 +70,8 @@ objetivo del baseline, no un error del fixture.
 
 - Fila de lista: 44–52 px, plantilla compartida con su encabezado, celdas alineadas.
 - Cuadrícula: tarjetas ≥200 px, contenido distribuido, acciones al pie.
-- Nada de bleed fuera de tarjeta/panel; scroll horizontal silencioso solo donde es intencional.
+- Las clases semánticas de un fixture deben existir en `app/` (selector CSS o literal en `.tsx`): `tests/harness-fixtures-classes.test.mjs` (fragmento `45-dsn-harness-178.list`) falla si no; las clases dinámicas o de la biblioteca se declaran en su `ALLOWLIST`. Los fixtures `admin*`/`superadmin*` quedan fuera mientras se rediseñan.
+- Nada de bleed fuera de tarjeta/panel ni de su padre directo (`bleed` con `vs: 'parent'`); scroll horizontal silencioso solo donde es intencional.
 - Textos cortados: con `title` o sin recorte; montos/fechas/códigos nunca se cortan.
 - Superposiciones: ningún par de nodos visibles se pisa.
 

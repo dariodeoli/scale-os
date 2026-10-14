@@ -87,7 +87,7 @@ test('aviso contract: short title, one-line detail, formatted date, tone and rea
  assert(mapping.fecha.length>0&&!mapping.fecha.includes('T'),'la fecha ya llega formateada');
  const resolved=avisoDeNotificacion({id:8,title:'Ya atendido',body:'ok',work_order_id:null,project_id:null,read_at:'now',resolved_at:'now',created_at:'2026-09-11T12:00:00Z'});
  assert.equal(resolved.tono,'ok');assert.equal(resolved.leido,true);assert.equal(resolved.icono,'check');
- assert(avisoDeNotificacion({id:9,title:'x'.repeat(120),body:'y'.repeat(300),work_order_id:null,project_id:null,read_at:null,resolved_at:null,created_at:'2026-09-11T12:00:00Z'}).titulo.length<=90,'el título se acota');
+ assert(avisoDeNotificacion({id:9,title:'x'.repeat(120),body:'y'.repeat(300),work_order_id:null,project_id:null,read_at:null,resolved_at:null,created_at:'2026-09-11T12:00:00Z'}).titulo.length===120,'el título llega completo: el objeto lo recorta con elipsis según el ancho (#166)');
 });
 
 test('server filters, pending totals, resolve/reopen and global read-all stay distinct',async t=>{

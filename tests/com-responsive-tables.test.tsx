@@ -16,6 +16,7 @@ const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{
  Dialog:({title,children}:{title?:string;children:React.ReactNode})=><section role="dialog" aria-label={title}>{children}</section>,
  FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
+ ConfirmDialog:({open=true,title,description,children,confirmLabel,cancelLabel='Cancelar',onCancel,onConfirm}:{open?:boolean;title?:string;description?:React.ReactNode;children?:React.ReactNode;confirmLabel?:string;cancelLabel?:string;onCancel:()=>void;onConfirm:()=>void})=>open?<section role="dialog" aria-label={title}>{description}{children}<button type="button" onClick={onCancel}>{cancelLabel}</button><button type="button" onClick={onConfirm}>{confirmLabel||'Confirmar'}</button></section>:null,
  useDialogClose:()=>undefined,
  useDialogPending:()=>undefined,
 }} as NodeModule;
@@ -366,7 +367,7 @@ test('pipeline: el indicador de columnas ocultas y la tarjeta corta (#140)',()=>
  // La tarjeta queda corta: la descripción sale y la acción pasa a icono.
  const card=pipeline.split('function LeadCard')[1].split('function LeadColumn')[0];
  assert.doesNotMatch(card,/notes/,'la descripción no alarga la tarjeta');
- assert.match(card,/<IconAction icon="eye" label=\{`Ver oportunidad: \$\{str\(row,'name'\)\}`\}/,'la acción rápida es un icono con nombre accesible');
+ assert.match(card,/<CompactCard[\s\S]*openLabel=\{`Ver oportunidad: \$\{facts\.name\}`\}/,'la tarjeta es CompactCard y el título abre la oportunidad con nombre accesible');
 });
 
 test('el menú ⋯ del registro reemplaza a los botones sueltos cuando se pide (#140)',async()=>{

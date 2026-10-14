@@ -44,13 +44,13 @@
 .blog-page .blog-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;color:var(--text-muted);font-size:12px;font-variant-numeric:tabular-nums}
 .blog-page .blog-empty{max-width:1100px;margin-inline:auto;color:var(--text-muted);font-size:14px}
 
-.blog-page .blog-article{display:grid;gap:18px}
-.blog-page .blog-breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--text-muted);font-size:12.5px}
+.blog-page .blog-article{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.blog-page .blog-breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--text-muted);font-size:12.5px;overflow-wrap:anywhere}
 .blog-page .blog-breadcrumb a{color:var(--text-muted);text-decoration:underline;text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}
-.blog-page .blog-article-head{display:grid;gap:12px}
+.blog-page .blog-article-head{display:grid;gap:12px;overflow-wrap:anywhere}
 .blog-page .blog-article-head h1{margin:0;font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-height:1.08}
 .blog-page .blog-article-cover{overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--surface-subtle,var(--violet-soft))}
-.blog-page .blog-tags{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.blog-page .blog-tags{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none;overflow-wrap:anywhere}
 
 .blog-page .blog-prose{width:100%;max-width:70ch;margin-inline:auto;font-size:17px;line-height:1.72;color:var(--text)}
 .blog-page .blog-prose :is(h2,h3,h4){margin:1.7em 0 .55em;font-weight:750;letter-spacing:-.02em;line-height:1.2}
@@ -65,7 +65,7 @@
 .blog-page .blog-prose pre code{background:none;padding:0;font-size:inherit}
 .blog-page .blog-prose :is(img,video){max-width:100%;height:auto;border-radius:12px}
 .blog-page .blog-prose a{color:var(--blog-accent);font-weight:600;text-underline-offset:3px}
-.blog-page .blog-prose table{width:100%;border-collapse:collapse;font-size:14px}
+.blog-page .blog-prose table{display:block;max-width:100%;overflow-x:auto;width:100%;border-collapse:collapse;font-size:14px}
 .blog-page .blog-prose :is(th,td){border-bottom:1px solid var(--line);padding:8px 10px;text-align:left}
 .blog-page .blog-prose hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 

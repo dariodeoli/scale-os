@@ -14,6 +14,7 @@ const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{
  Dialog:({title,children}:{title?:string;children:React.ReactNode})=><section role="dialog" aria-label={title}>{children}</section>,
  FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
+ ConfirmDialog:({open=true,title,description,children,error,confirmLabel='Confirmar',onConfirm,onCancel}:{open?:boolean;title?:string;description?:React.ReactNode;children?:React.ReactNode;error?:React.ReactNode;confirmLabel?:string;onConfirm?:()=>void;onCancel?:()=>void})=>open?<section role="dialog" aria-label={title}>{description}{children}{error?<p role="alert">{error}</p>:null}<button type="button" onClick={onCancel}>Cancelar</button><button type="button" onClick={onConfirm}>{confirmLabel}</button></section>:null,
  useDialogClose:()=>undefined,
  useDialogPending:()=>undefined,
 }} as NodeModule;
@@ -129,7 +130,8 @@ test('pipeline: KPIs, totales por etapa, tablero y mover a ganado',async()=>{
  const reload=pending();
  assert.equal(reload.url,`/core-api/api/agency/leads?limit=300&fields=${LEAD_LIST_FIELDS}`,'el movimiento recarga la lista proyectada');
  await act(async()=>{reload.resolve(new Response(JSON.stringify({records:[]}),{status:200}));});
- assert.match(text(renderer.root),/Todavía no hay oportunidades/);
+ assert.match(text(renderer.root),/Sin oportunidades\./,'sin oportunidades el tablero conserva sus etapas (#182)');
+ assert.doesNotMatch(text(renderer.root),/Todavía no hay oportunidades/,'el vacío global solo aparece sin etapas');
  act(()=>renderer.unmount());
 
  // viewer: sin alta, sin etapas y sin manija de arrastre.

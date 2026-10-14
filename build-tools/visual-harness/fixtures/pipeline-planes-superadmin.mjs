@@ -86,95 +86,6 @@ const removeRecordButton = (kind, name) => {
   return `<button class="icon-button record-remove" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: ${name}">${svg(I.trash, 16)}</button>`;
 };
 
-/* ============================================================ 1. PIPELINE ==
- * app/suite.tsx LeadCard line 39 / LeadColumn line 40 / CatalogWorkspace 41-73.
- * The board shows the six fixed stages plus one loose/deactivated stage (the
- * `looseSlugs` + `readOnly` path), each with its own `.lead-card` footer.
- *
- * The board is a kanban: per the 17-09 decision it keeps its own cards, so this
- * fixture declares no list/grid. Its two real defects are not expressible as a
- * harness declaration and were measured with a CDP probe against audit.html at
- * 1440 (2026-09-20, current main):
- *  - `.suite-column` widths (`.suite-board` at 1440): 590/549/387/414/280/280/319
- *    px although the CSS pins `flex-basis: 280px` (the column `min-width: auto`
- *    gives in to the nowrap opportunity name/email).
- *  - `.suite-column > .lead-card` takes `height: 100%` from the shared capsule
- *    rule (app/ui-system.css lines 294-300): every card measures 511 px, the
- *    first card's bottom (947) falls below the column bottom (920) and the second
- *    starts at y 957; `.suite-board` clips the overflow (clientHeight 551 /
- *    scrollHeight 1125).
- * ========================================================================= */
-const leadCard = ({name, amount, currency, probability, email, level}) => `
-  <article class="ops-card lead-card" style="opacity:1">
-   <header class="lead-card-head"><b title="${name}">${name}</b><button class="icon-button" type="button" title="Mover ${name}" aria-label="Mover ${name}">${svg(I.grip, 16)}</button></header>
-   <strong class="lead-card-amount">${money(amount, currency)}</strong>
-   <div class="lead-card-chips"><span class="lead-prob" data-level="${level}">${probability}%</span>${email ? `<span class="lead-contact" title="${email}">${email}</span>` : ''}</div>
-   <footer class="inline-actions"><button class="text-button" type="button">${svg(I.eye, 14)}Ver oportunidad</button>${removeRecordButton('leads', name)}</footer>
-  </article>`;
-
-const leadColumn = ({stage, label, readOnly = false, cards, pondered = []}) => `
-  <section class="suite-column" data-stage="${stage}">
-   <h3>${label}${readOnly ? ' · desactivada' : ''} · ${cards.length}</h3>
-   ${pondered.map((value) => `<small>${value} ponderado</small>`).join('')}
-   ${cards.join('')}
-  </section>`;
-
-const pipelineColumns = [
-  leadColumn({
-    stage: 'lead',
-    label: 'Nuevo lead',
-    cards: [
-      leadCard({
-        name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada · Sucursal Asunción',
-        amount: 1234567890,
-        currency: 'PYG',
-        probability: 10,
-        email: 'licitaciones.compras.institucionales@coopservicios.com.py',
-        level: 'low',
-      }),
-      leadCard({name: 'Fundación Niñez y Comunidad', amount: 0, currency: 'PYG', probability: 10, email: '', level: 'low'}),
-    ],
-  }),
-  leadColumn({
-    stage: 'contacted',
-    label: 'Contactado',
-    cards: [
-      leadCard({
-        name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.',
-        amount: 12500000,
-        currency: 'PYG',
-        probability: 25,
-        email: 'produccion@estudiocomunicacionparaguay.com.py',
-        level: 'low',
-      }),
-    ],
-  }),
-  leadColumn({
-    stage: 'proposal',
-    label: 'Propuesta',
-    pondered: [money(89750000, 'PYG'), money(12345.67, 'USD')],
-    cards: [
-      leadCard({name: 'Cervecería del Este · Campaña verano 2027', amount: 89750000, currency: 'PYG', probability: 55, email: 'marketing@cervezadeldeste.com.py', level: 'mid'}),
-      leadCard({name: 'Agencia Digital Global LLC', amount: 12345.67, currency: 'USD', probability: 55, email: 'proposals@digital-global-international.example.com', level: 'mid'}),
-    ],
-  }),
-  leadColumn({
-    stage: 'negotiation',
-    label: 'Negociación',
-    cards: [
-      leadCard({name: 'Gobierno Departamental · Licitación 4521/2026', amount: 999999999, currency: 'PYG', probability: 75, email: 'compras@gobernacion.example.gov.py', level: 'high'}),
-    ],
-  }),
-  leadColumn({stage: 'won', label: 'Ganado', cards: [leadCard({name: 'Textil Paraguaya S.A.', amount: 45000000, currency: 'PYG', probability: 100, email: 'gerencia@textilparaguaya.com.py', level: 'high'})]}),
-  leadColumn({stage: 'lost', label: 'Perdido', cards: [leadCard({name: 'Importadora Ñandú S.R.L.', amount: 8000000, currency: 'PYG', probability: 0, email: '', level: 'low'})]}),
-  leadColumn({
-    stage: 'propuesta-2025',
-    label: 'Propuesta 2025',
-    readOnly: true,
-    cards: [leadCard({name: 'Hotel Guaraní · Rebranding 2025', amount: 25000000, currency: 'PYG', probability: 40, email: 'reservas@hotelguarani.com.py', level: 'mid'})],
-  }),
-].join('');
-
 /* ===================================================== 2. VISITANTES WEB ==
  * app/live-visitors.tsx lines 41-46 (counts state). `peopleContainer` mirrors
  * app/person-container.tsx lines 14-27 (title on name and secondary) and is
@@ -700,68 +611,8 @@ const mobileDrawer = `
 </div>`;
 
 /* ================================================ 10. NOTIFICACIONES ======
- * app/notification-inbox.tsx lines 66-83 (bell + Dialog content) and
- * app/notification-center.tsx lines 12/18 (toast stack).
+ * La bandeja vive en plt-helpers-v2.mjs (v2-notificaciones), que renderiza el componente real.
  * ========================================================================= */
-const notices = [
-  {
-    unread: true,
-    title: 'Campaña de lanzamiento regional · pieza 148 en revisión',
-    kind: 'Mención o comentario',
-    body: 'Sofía Benítez te mencionó: “@Lucía revisá el corte final con la música licenciada antes del viernes; el cliente pidió bajar 2 segundos el cierre con logo.”',
-    time: '18 sept 26 · 17:42',
-    state: 'Sin leer · Pendiente',
-    actions: true,
-  },
-  {
-    unread: false,
-    title: 'Entrega pendiente: Cobertura de evento institucional con transmisión en vivo y postproducción',
-    kind: 'Entrega pendiente',
-    body: 'La pieza vence hoy a las 18:00 (hora de Asunción). El proyecto tiene 24 piezas activas y dos responsables asignados.',
-    time: '17 sept 26 · 09:05',
-    state: 'Leída · Resuelta',
-    actions: false,
-  },
-  {
-    unread: true,
-    title: 'Asignación',
-    kind: 'Asignación',
-    body: 'Marcos Rojas te asignó la orden #14823 del proyecto “Rebranding Hotel Guaraní 2026”, con 3 niveles de aprobación.',
-    time: '16 sept 26 · 21:30',
-    state: 'Sin leer · Pendiente',
-    actions: true,
-  },
-];
-
-const noticeArticle = (notice) => `
- <article class="${notice.unread ? 'grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-4' : 'grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4'}">
-  <div class="flex min-w-0 flex-wrap items-baseline gap-2"><h3 class="min-w-0 whitespace-pre-wrap text-sm font-semibold leading-[1.3] text-fore [overflow-wrap:anywhere]">${notice.title}</h3><span class="state-chip uppercase tracking-[.05em]">${notice.kind}</span></div>
-  <p class="min-w-0 whitespace-pre-wrap text-[12.5px] leading-[1.45] text-mute [overflow-wrap:anywhere]">${notice.body}</p>
-  <time class="whitespace-nowrap text-[11px] tabular-nums text-mute" datetime="2026-09-18T17:42:00-03:00">${notice.time}</time>
-  <p class="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.075em] text-mute">${notice.state}</p>
-  <div class="flex flex-wrap items-center gap-1 border-t border-ink-600 pt-2">
-   ${notice.actions ? `<button type="button" class="icon-button !h-11 !w-11" title="Ver pieza" aria-label="Ver pieza: ${notice.title}">${svg(I.externalLink, 17)}</button>` : ''}
-   ${notice.unread ? `<button type="button" class="icon-button !h-11 !w-11 notification-action-icon is-confirm" title="Marcar como leída" aria-label="Marcar como leída: ${notice.title}">${svg(I.check, 18)}</button>` : ''}
-   <button type="button" class="icon-button notification-action-icon is-confirm" title="Resolver aviso" aria-label="Resolver aviso: ${notice.title}">${svg(I.circleCheck, 18)}</button>
-  </div>
- </article>`;
-
-const notificationInbox = `
-<div class="ops-overlay">
- <section class="ops-dialog unified-dialog" data-dialog-size="compact" role="dialog" aria-modal="true" aria-labelledby="notif-title" tabindex="-1">
-  <div class="dialog-heading"><h2 id="notif-title">Notificaciones</h2><button class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">${svg(I.x, 18)}</button></div>
-  <div class="dialog-body">
-   <div class="notification-inbox">
-    <div class="notification-toolbar"><p role="status">12 sin leer · 4 pendientes</p><div class="notification-actions" aria-label="Acciones de notificaciones"><button type="button" class="icon-button" title="Preferencias" aria-label="Abrir preferencias de notificaciones">${svg(I.settings, 17)}</button><button type="button" class="icon-button notification-action-icon is-confirm" title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas">${svg(I.checkCheck, 18)}</button><button type="button" class="icon-button" title="Actualizar" aria-label="Actualizar notificaciones">${svg(I.refresh, 17)}</button></div></div>
-    <p class="form-note">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
-    <div class="notification-filters" role="group" aria-label="Filtrar notificaciones"><button type="button" class="choice active" aria-pressed="true">Todas</button><button type="button" class="choice" aria-pressed="false">Sin leer</button><button type="button" class="choice" aria-pressed="false">Pendientes</button><button type="button" class="choice" aria-pressed="false">Resueltas</button></div>
-    <div aria-busy="false"><div class="notification-list">${notices.map(noticeArticle).join('')}</div></div>
-    <button type="button" class="secondary">Ver avisos anteriores</button>
-   </div>
-  </div>
-  <div class="dialog-footer"></div>
- </section>
-</div>`;
 
 const toastStack = `
 <div class="feedback-stack" role="status" aria-live="polite" aria-relevant="additions" aria-label="Notificaciones de guardado">
@@ -781,27 +632,6 @@ const workspaceFooter = `
 
 /* ======================================================== export default == */
 export default [
-  {
-    id: 'pipeline-tablero',
-    section: 'Pipeline',
-    surface: 'Tablero de oportunidades (kanban)',
-    kind: 'workspace',
-    body: `
-<div class="ops-stack">
-<section class="panel">
- <div class="panel-heading"><h2>Oportunidades</h2><button class="secondary">${svg(I.settings, 16)}Etapas</button><button class="primary">${svg(I.plus, 16)}Agregar</button></div>
- <div class="pipeline-overview">
-  <div class="pipeline-overview-counts">
-   <article><span>${svg(I.target, 16)}Abiertas</span><strong>${whole(128)}</strong></article>
-   <article><span>${svg(I.checkCircle, 16)}Ganadas</span><strong>${whole(1204)}</strong></article>
-   <article><span>${svg(I.globe, 16)}Consultas web</span><strong>${whole(37)}</strong></article>
-  </div>
-  <div class="pipeline-overview-values"><span>Valor abierto · sin convertir monedas</span><b>${money(1234567890, 'PYG')}</b><b>${money(12345.67, 'USD')}</b></div>
- </div>
- <div class="suite-board">${pipelineColumns}</div>
-</section>
-</div>`,
-  },
   {
     id: 'pipeline-visitantes',
     section: 'Pipeline',
@@ -851,13 +681,6 @@ export default [
     surface: 'Menú mobile (drawer abierto)',
     kind: 'plain',
     body: mobileDrawer,
-  },
-  {
-    id: 'shell-notificaciones',
-    section: 'Shell',
-    surface: 'Centro de notificaciones (bandeja)',
-    kind: 'plain',
-    body: notificationInbox,
   },
   {
     id: 'shell-toasts',

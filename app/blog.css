@@ -30,7 +30,7 @@
 .blog-prose code{padding:2px 6px;border-radius:6px;background:var(--surface-sunken);font-size:13px}
 .blog-prose pre{padding:14px;border-radius:10px;background:var(--surface-sunken);overflow-x:auto}
 .blog-prose blockquote{margin:0 0 14px;padding:8px 14px;border-left:3px solid var(--brand-600);background:var(--surface-subtle);color:var(--text-muted)}
-.blog-prose table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:14px}
+.blog-prose table{display:block;max-width:100%;overflow-x:auto;width:100%;border-collapse:collapse;margin:0 0 14px;font-size:14px}
 .blog-prose th,.blog-prose td{padding:8px 10px;border-bottom:1px solid var(--border-subtle,var(--line));text-align:left}
 .blog-image{max-width:100%;height:auto;border-radius:10px}
 .blog-empty{color:var(--text-muted);font-size:14px}

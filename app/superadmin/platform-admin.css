@@ -47,9 +47,6 @@
   color: var(--text);
 }
 .platform-admin-brand { display: inline-flex; align-items: center; min-width: 0; padding: 4px 6px; border-radius: var(--ui-radius-control, 10px); color: inherit; text-decoration: none }
-.platform-admin-title { display: grid; min-width: 0; gap: 0 }
-.platform-admin-title .eyebrow { margin: 0; color: var(--brand-600); font-size: 10px; font-weight: 800; letter-spacing: .12em; line-height: 1.2; text-transform: uppercase }
-.platform-admin-title h1 { margin: 0; color: var(--text); font-size: clamp(17px, 1.4vw, 20px); font-weight: 750; letter-spacing: -.03em; line-height: 1.15 }
 .platform-admin-identity { display: flex; min-width: 0; flex-wrap: wrap; align-items: baseline; gap: 2px var(--ui-control-gap-lg, 12px) }
 .platform-admin-meta { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 6px var(--ui-control-gap, 8px) }
 .platform-admin-updated { color: var(--text-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap }
@@ -95,13 +92,14 @@
 
 /* ── Listas densas en la superficie del panel ───────────────────────────── */
 @media(min-width:761px){
-  .platform-admin-page .list-actions :is(button, a),
-  .platform-admin-agency-cards .text-button { min-height: 32px }
+  .platform-admin-page .list-actions :is(button, a) { min-height: 32px }
 }
 .platform-admin-page .list-row { padding-block: 4px }
 .platform-admin-page .list-actions { justify-content: safe flex-end; overflow-x: auto; scrollbar-width: none }
 .platform-admin-page .list-actions > * { flex: none }
 .platform-admin-page .list-actions::-webkit-scrollbar { display: none }
+/* Con un menú ⋯ abierto la celda no recorta el desplegable (overflow-x:auto lo cortaba). */
+.platform-admin-page .list-actions:has([role="menu"]) { overflow: visible }
 
 /* El fondo de la columna fija toma la superficie del panel (no el canvas). */
 .platform-admin-page .panel .list-actions-head,
@@ -136,8 +134,3 @@
  * legible sobre superficie oscura es `--brand-700`). */
 html[data-theme="dark"] .platform-admin-page .eyebrow { color: var(--brand-700) }
 
-/* Audit cards retain the full record on containers too narrow for the table. */
-.platform-admin-audit-cards article { min-width: 0 }
-.platform-admin-audit-cards :is(dt, dd) { overflow-wrap: anywhere }
-.platform-admin-audit-cards dt { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em }
-.platform-admin-audit-cards dd { margin: 2px 0 0; color: var(--text); font-size: 12.5px; line-height: 1.5 }

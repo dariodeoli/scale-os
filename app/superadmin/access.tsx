@@ -26,12 +26,15 @@ const TEMPLATE = "grid-cols-[minmax(11rem,1fr)_7rem_25rem]";
 const COLUMNS: Column[] = [
   {key: "user", label: "Usuario"},
   {key: "access", label: "Acceso"},
-  {key: "actions", label: "Acciones"},
+  {key: "actions", label: "Acciones", align: "end"},
 ];
 const MIN_WIDTH = denseTableMinWidth(43, 3);
+const TEMPLATE_READONLY = "grid-cols-[minmax(11rem,1fr)_7rem]";
+const COLUMNS_READONLY = COLUMNS.slice(0, -1);
+const MIN_WIDTH_READONLY = denseTableMinWidth(18, 2);
 
 export function PlatformAccess({busy, state, page, onMore, writable, setConfirming, setTyped, selfRow, setPlatformAccess}: PlatformAccessProps){
-  const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
+  const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
   const [query, setQuery] = useState("");
   const visible = useMemo(() => {
     const text = query.trim().toLowerCase();
@@ -125,11 +128,11 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       )}
       <div ref={listRef} className="min-w-0">
         {visible.length ? (listFits ? (
-          <ListGrid label="Accesos entre agencias" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[45rem]" pinnedActions>
+          <ListGrid label="Accesos entre agencias" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[45rem]" : "min-w-[20rem]"} pinnedActions={writable}>
             {visible.map((person) => {
               const rowActions = actions(person);
               return (
-                <ListRow key={person.id} template={TEMPLATE}>
+                <ListRow key={person.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
                   <div role="cell" className="min-w-0">{identity(person)}</div>
                   <span role="cell">{accessChip(person)}</span>
                   {rowActions ? <ListActions>{rowActions}</ListActions> : null}

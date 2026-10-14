@@ -16,6 +16,7 @@ export type {RecordMenuItem} from './ui-v2';
 import {activityEvent} from './activity-format';
 import {Building2,ChartNoAxesCombined,CircleDollarSign,Copy,Eye,Link2,Link2Off,Pencil,Ticket} from 'lucide-react';
 import {api,Dialog,Editor,Field} from './operations';
+import {ConfirmDialog} from './dialog';
 import {roleCan} from './capabilities';
 import {Aviso,AvisoPrivacidad,normalizarNombre} from 'owncoding-ui';
 import {PHONE_HELP} from './field-rules';
@@ -97,17 +98,18 @@ function BudgetConsult({record}:{record:Row}){
  </section>;
 }
 export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:{id:string;refresh:()=>Promise<void>;role?:string;canInvoice?:boolean;variant?:'text'|'icon';label?:string}){
- const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[publicUrl,setPublicUrl]=useState(''),[confirming,setConfirming]=useState<'revoke'|'invoice'|'share'|''>(''),[editing,setEditing]=useState(false);
+ const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[publicUrl,setPublicUrl]=useState(''),[confirming,setConfirming]=useState<'revoke'|'invoice'|'share'|''>(''),[editing,setEditing]=useState(false),[confirmBusy,setConfirmBusy]=useState(false);
  const invoiceAllowed=canInvoice??roleCan(role,'invoices.manage');
  const shared=Boolean(publicUrl)||record?.share_enabled===true;
  const valid=String(record?.valid_until||'').slice(0,10);
  const accepted=record?.status==='accepted';
  const open=async()=>{setError('');setNotice('');setEditing(false);setConfirming('');try{const d=await api<{budget:Row;items:unknown[]}>(`/api/agency/budgets/${id}`);setRecord({...d.budget,items:d.items});}catch(e){setError(err(e));}};
- const updateShare=async(enabled:boolean)=>{setError('');setNotice('');try{
+ const createInvoice=async()=>{setError('');setConfirmBusy(true);try{await api(`/api/agency/budgets/${id}/invoice`,{});setConfirming('');setNotice('Factura creada o recuperada. La encontrás en Finanzas.');}catch(e){setError(err(e));}finally{setConfirmBusy(false);}};
+ const updateShare=async(enabled:boolean)=>{setError('');setNotice('');setConfirmBusy(true);try{
   if(enabled){setPublicUrl((await api<{url:string}>(`/api/agency/budgets/${id}/share`,{})).url);setRecord(current=>current?{...current,share_enabled:true,status:current.status==='draft'?'sent':current.status}:current);}
   else{await api(`/api/agency/budgets/${id}/revoke`,{});setPublicUrl('');setRecord(current=>current?{...current,share_enabled:false}:current);}
   setConfirming('');await refresh();
- }catch(e){setError(err(e));}};
+ }catch(e){setError(err(e));}finally{setConfirmBusy(false);}};
  const copyLink=async()=>{if(!publicUrl)return;try{await navigator.clipboard?.writeText(publicUrl);setNotice('Enlace copiado.');}catch{setNotice('No se pudo copiar; seleccioná el enlace y copialo a mano.');}};
  return <>{variant==='icon'?<button className="icon-button" type="button" title={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} aria-label={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} onClick={()=>void open()}><Eye size={16}/></button>:<button className="text-button" onClick={()=>void open()}><Eye size={14}/>Abrir presupuesto</button>}
  {!record&&error&&<Aviso tono="error" role="alert" compact>{error}</Aviso>}
@@ -123,25 +125,13 @@ export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:
      :<button className="secondary" onClick={()=>{setConfirming('share');setNotice('');}}><Link2 size={14}/>Habilitar enlace público</button>}
    </div>
    {publicUrl&&<p className="m-0 flex flex-wrap items-center gap-2 text-xs [overflow-wrap:anywhere]"><a href={publicUrl} target="_blank" rel="noreferrer" className="text-button">{publicUrl}</a><button type="button" className="text-button" onClick={()=>void copyLink()}><Copy size={12}/>Copiar enlace</button></p>}
-   {confirming==='share'&&<div className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 text-xs leading-5 text-mute" role="group" aria-label="Condiciones del enlace público">
+   {confirming==='share'&&<ConfirmDialog open title="Habilitar enlace público" confirmLabel="Habilitar enlace" busy={confirmBusy} error={error} onCancel={()=>{if(!confirmBusy)setConfirming('');}} onConfirm={()=>void updateShare(true)} description={<div className="grid gap-2 text-xs leading-5" role="group" aria-label="Condiciones del enlace público">
     <p className="m-0"><b className="text-fore">Alcance.</b> Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta.</p>
     <p className="m-0"><b className="text-fore">Vencimiento.</b> {valid?`La vigencia cargada llega hasta el ${listDateShort(valid)}; desde esa fecha el enlace deja de aceptar respuestas.`:'No hay vigencia cargada: el enlace sigue activo hasta que lo desactives.'}</p>
     <p className="m-0"><b className="text-fore">Revocación.</b> Podés desactivarlo cuando quieras desde este diálogo; el enlace deja de funcionar al instante.</p>
-    <div className="inline-actions">
-     <button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button>
-     <button className="primary" onClick={()=>void updateShare(true)}>Habilitar enlace</button>
-    </div>
-   </div>}
-   {confirming==='revoke'&&<div className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 text-xs leading-5 text-mute" role="group" aria-label="Revocar enlace público">
-    <p className="m-0"><b className="text-fore">¿Desactivar el enlace público?</b> El enlace deja de funcionar al instante; el presupuesto queda guardado y podés volver a habilitarlo cuando quieras.</p>
-    <div className="inline-actions">
-     <button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button>
-     <button className="secondary danger" onClick={()=>void updateShare(false)}>Confirmar</button>
-    </div>
-   </div>}
-   {accepted&&<><p className="m-0 text-sm text-fore">{str(record,'accepted_by')?`Aceptado por ${str(record,'accepted_by')}. El contenido está protegido.`:'Aceptado. El contenido está protegido.'}</p>{invoiceAllowed&&(confirming==='invoice'
-    ?<div className="inline-actions"><span role="alert" className="text-xs font-semibold text-warn">¿Crear la factura de este presupuesto?</span><button className="primary" onClick={async()=>{setError('');try{await api(`/api/agency/budgets/${id}/invoice`,{});setConfirming('');setNotice('Factura creada o recuperada. La encontrás en Finanzas.');}catch(e){setError(err(e));}}}>Confirmar</button><button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button></div>
-    :<div className="inline-actions"><button className="primary" onClick={()=>setConfirming('invoice')}>Crear factura</button></div>)}</>}
+   </div>}/>}
+   {confirming==='revoke'&&<ConfirmDialog open variant="danger" title="Desactivar enlace público" confirmLabel="Confirmar" busy={confirmBusy} error={error} onCancel={()=>{if(!confirmBusy)setConfirming('');}} onConfirm={()=>void updateShare(false)} description={<p className="m-0"><b className="text-fore">¿Desactivar el enlace público?</b> El enlace deja de funcionar al instante; el presupuesto queda guardado y podés volver a habilitarlo cuando quieras.</p>}/>}
+   {accepted&&<><p className="m-0 text-sm text-fore">{str(record,'accepted_by')?`Aceptado por ${str(record,'accepted_by')}. El contenido está protegido.`:'Aceptado. El contenido está protegido.'}</p>{invoiceAllowed&&<div className="inline-actions"><button className="primary" onClick={()=>setConfirming('invoice')}>Crear factura</button></div>}{confirming==='invoice'&&<ConfirmDialog open title="Crear factura" confirmLabel="Confirmar" busy={confirmBusy} error={error} onCancel={()=>{if(!confirmBusy)setConfirming('');}} onConfirm={()=>void createInvoice()} description="¿Crear la factura de este presupuesto?"/>}</>}
    {editing&&!accepted?<QuoteComposer mode="budget" record={record} done={async()=>{await completeSave(()=>setRecord(null),refresh);}}/>:<BudgetConsult record={record}/>}
    {notice&&<Aviso tono="ok" role="status" compact>{notice}</Aviso>}
   </div>
@@ -166,7 +156,7 @@ export function ActivityWorkspace(){
  }
  const groups:Row[][]=[];
  for(const row of rows){const day=str(row,'created_at').slice(0,10);const last=groups[groups.length-1];if(last&&str(last[0],'created_at').slice(0,10)===day)last.push(row);else groups.push([row]);}
- const dayLabel=(value:string)=>{const [y,m,d]=value.split('-').map(Number);if(!Number.isInteger(y))return value;return new Intl.DateTimeFormat('es-PY',{weekday:'short',day:'numeric',month:'short'}).format(new Date(Date.UTC(y,m-1,d,12)));};
+ const dayLabel=(value:string)=>{const [y,m,d]=value.split('-').map(Number);if(!Number.isInteger(y))return value;return new Intl.DateTimeFormat('es-PY',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d,12)));};
  return <section className="panel activity-feed"><p className="mb-3 text-xs tabular-nums text-mute" role="status">{total===null?`Mostrando ${rows.length} cambios registrados por el servidor`:`Mostrando ${rows.length} de ${total} cambios registrados por el servidor en esta empresa`}</p>{error&&<p className="error">{error}</p>}{groups.map(group=><section className="activity-day" key={str(group[0],'created_at').slice(0,10)}><h3 className="activity-day-title">{dayLabel(str(group[0],'created_at').slice(0,10))} <span>{group.length}</span></h3><div className="activity-day-rows">{group.map(r=>{const event=activityEvent(r);const context=[event.client,event.subject].filter(Boolean).join(' · ');return <div className="activity-feed-row" key={r.id}><ActorIdentity name={str(r,'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} timestamp={str(r,'created_at')}/><div className="activity-feed-event" title={[event.label,context,event.amount?`${event.amount} ${event.currency}`:'',event.reference,event.technical].filter(Boolean).join(' · ')}><p><b>{event.label}</b>{context?<span className="activity-feed-context"> · {context}</span>:null}{event.amount&&event.currency?<><span className="activity-feed-context"> · </span><MoneyText valor={event.amount} currency={event.currency}/></>:null}{event.reference?<span className="activity-feed-context"> · {event.reference}</span>:null}</p><small className="activity-feed-tech">{event.technical}</small></div><small className="activity-feed-record" title="Identificador técnico del registro">Registro {event.record||'—'}</small></div>;})}</div></section>)}{hasMore?<div className="inline-actions activity-more"><button className="secondary" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando…':'Cargar 20 más'}</button></div>:null}{!rows.length&&!error?(loaded?<EmptyBlock title="Sin actividad registrada" description="Los cambios de esta empresa aparecen acá a medida que el equipo opera."/>:<LoadingBlock label="Cargando registros…" lines={4}/>):null}</section>;}
 const validPygRate=(value:unknown)=>{const rate=Number(value);return Number.isSafeInteger(rate)&&rate>=1000&&rate<=100000;};
 const formatPygRate=(value:unknown)=>new Intl.NumberFormat('es-PY',{maximumFractionDigits:0}).format(Number(value));
@@ -219,10 +209,12 @@ export function ExchangeRateSettings(){ const [rates,setRates]=useState<Row[]>([
 // Las integraciones son estado informativo y acompañan al lateral (#139).
 export function IntegrationSettings(){ return <section className="panel settings-card" aria-labelledby="integration-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Link2Off size={18}/></span><div><h2 id="integration-settings-title">Integraciones</h2><p>Estado actual de los servicios que pueden complementar tu flujo de trabajo.</p></div></div>
-   <div className="settings-integration-list" role="list" aria-label="Estado de integraciones">
-    <div className="settings-integration-head" role="presentation"><span>Integración</span><span>Estado</span></div>
+   <div className="settings-integration-list">
+    <div className="settings-integration-head" aria-hidden="true"><span>Integración</span><span>Estado</span></div>
+    <div role="list" aria-label="Estado de integraciones">
     <article role="listitem"><div><strong>Google y Drive</strong><p title="Usá tu correo invitado para entrar y agregá enlaces de Drive en cada registro.">Usá tu correo invitado para entrar y agregá enlaces de Drive en cada registro.</p></div><span className="settings-status">No configurado</span></article>
     <article role="listitem"><div><strong>WhatsApp, Instagram y Meta</strong><p title="Requieren una conexión y permisos de Meta antes de poder usarse.">Requieren una conexión y permisos de Meta antes de poder usarse.</p></div><span className="settings-status">No configurado</span></article>
+    </div>
    </div>
    <details className="settings-disclosure"><summary>Qué está disponible hoy</summary><p>Este panel no conecta cuentas ni envía mensajes. Los enlaces de Drive se gestionan desde los registros que los usan.</p></details>
   </section>;

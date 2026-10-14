@@ -72,57 +72,6 @@ const financeAccountCard = ({name, type, currency, balance, number, holder, cust
  <footer class="finance-card-actions">${removeRecord(name)}</footer>
 </article>`;
 
-/* Fila de transferencia: app/scale-workspace.tsx 1573-1589. */
-const transferRow = ({from, to, date, actor, initials, reference, amount, received}) => `
-<div class="payment-row finance-transfer-row">
- <div>
-  <b>${from} → ${to}</b>
-  <small>${date} · ${actorIdentity(initials, actor)}${reference ? ` · ${reference}` : ''}</small>
-  ${received ? `<small>Recibido: ${received}</small>` : ''}
- </div>
- <strong>${amount}</strong>
-</div>`;
-
-/* Fila de cobro pendiente: app/scale-workspace.tsx 1624-1638. */
-const invoiceRow = ({number, client, status, statusLabel, pending, total}) => `
-<div class="payment-row finance-invoice-row">
- <div>
-  <b>${number} · ${client}</b>
-  <small><span class="finance-state" data-status="${status}">${statusLabel}</span> · pendiente ${pending}</small>
- </div>
- <strong>${total}</strong>
-</div>`;
-
-/* Fila de cobro registrado: app/scale-workspace.tsx 1657-1673 (+ ReceiptReversal). */
-const paymentRow = ({client, invoice, date, account, accountType, actor, initials, reference, amount, reversed}) => `
-<div class="payment-row finance-payment-row">
- <div>
-  <b>${client} · ${invoice}</b>
-  <small>${date} · ${account} (${accountType}) · recibió ${actorIdentity(initials, actor)}${reference ? ` · ${reference}` : ''}</small>
-  ${reversed ? `<small>Revertido · ${reversed}</small>` : `<button class="text-button warn" type="button">${undoIcon(14)}Revertir cobro</button>`}
- </div>
- <strong>${amount}</strong>
-</div>`;
-
-const financePanelHeading = (eyebrow, title, actions = '') => `
-<div class="panel-heading">
- <div><p class="eyebrow">${eyebrow}</p><h2>${title}</h2></div>
- ${actions}
-</div>`;
-
-/* ------------------------------------------------------------------------ Mora */
-
-/* Fila de mora: app/scale-workspace.tsx 1252-1283 + app/client-directory.css 51-58. */
-const moraRow = ({initial, tone, name, statusText, chip, invoices, amount}) => `
-<div class="client-row">
- <div class="client-avatar ${tone}">${initial}</div>
- <div>
-  <b>${name}</b>
-  <small>${statusText}${chip}${invoices}</small>
- </div>
- <span class="client-row-amount">${amount}</span>
-</div>`;
-
 /* ------------------------------------------------- Sistema v2 (Tailwind + owncoding-ui)
    Previsión (app/financial-forecast.tsx), Informes (app/reports-workspace.tsx),
    conciliación (app/daily-controls.tsx) y producción semanal (app/weekly-automatic.tsx):
@@ -205,26 +154,26 @@ const finanzasCuentas = {
     <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Banco Regional — Operativa">Banco Regional — Operativa</b>${chipMute('Bancaria · PYG')}</header>
     <strong class="text-xl font-semibold tabular-nums text-fore">Gs. 1.100.000.000</strong>
     <dl class="grid gap-1 text-[11.5px]">
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd class="min-w-0 text-right text-fore" title="Banco Regional S.A.">Banco Regional S.A.</dd></div>
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="0012-3456789-00">0012-3456789-00</dd></div>
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd class="min-w-0 text-right text-fore">Estudio Scale S.A.</dd></div>
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 text-right text-fore">finanzas@estudio.com.py</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd class="min-w-0 truncate text-right text-fore" title="Banco Regional S.A.">Banco Regional S.A.</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="0012-3456789-00">0012-3456789-00</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd class="min-w-0 truncate text-right text-fore" title="Estudio Scale S.A.">Estudio Scale S.A.</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 truncate text-right text-fore" title="finanzas@estudio.com.py">finanzas@estudio.com.py</dd></div>
     </dl>
     <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Banco Regional — Operativa">${trashIcon(16)}</button></footer>
    </article>
    <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Caja Chica Estudio">Caja Chica Estudio</b>${chipMute('Efectivo · PYG')}</header>
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="Caja Chica Estudio">Caja Chica Estudio</b>${chipMute('Efectivo · PYG')}</header>
     <strong class="text-xl font-semibold tabular-nums text-fore">Gs. 134.567.890</strong>
     <dl class="grid gap-1 text-[11.5px]">
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 text-right text-fore">caja@estudio.com.py</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd class="min-w-0 truncate text-right text-fore" title="caja@estudio.com.py">caja@estudio.com.py</dd></div>
     </dl>
     <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Caja Chica Estudio">${trashIcon(16)}</button></footer>
    </article>
    <article class="flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4">
-    <header class="flex items-start justify-between gap-2"><b class="min-w-0 text-[13.5px] font-semibold text-fore" title="Tarjeta corporativa USD">Tarjeta corporativa USD</b>${chipMute('Digital · USD')}</header>
+    <header class="flex items-start justify-between gap-2"><b class="min-w-0 truncate text-[13.5px] font-semibold text-fore" title="Tarjeta corporativa USD">Tarjeta corporativa USD</b>${chipMute('Digital · USD')}</header>
     <strong class="text-xl font-semibold tabular-nums text-fore">USD 45.678</strong>
     <dl class="grid gap-1 text-[11.5px]">
-     <div class="flex items-baseline justify-between gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="**** 4821">**** 4821</dd></div>
+     <div class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt class="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd class="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title="**** 4821">**** 4821</dd></div>
     </dl>
     <footer class="mt-auto flex items-center justify-end gap-1 border-t border-ink-600 pt-3"><button class="icon-button" type="button" title="Mover a la papelera" aria-label="Mover a la papelera: Tarjeta corporativa USD">${trashIcon(16)}</button></footer>
    </article>

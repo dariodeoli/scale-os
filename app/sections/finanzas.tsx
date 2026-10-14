@@ -49,7 +49,7 @@ const INVOICE_FILTERS: [string, string][] = [['all', 'Todas'], ['open', 'Con sal
 /** Plantillas únicas: encabezado y filas comparten una grilla por lista. */
 // Fila finita: la ruta manda y el actor/referencia viajan inline (con el detalle
 // en el title); así la lista entra en media pantalla sin scroll permanente (#101).
-const TRANSFER_TEMPLATE = 'grid-cols-[minmax(12rem,1fr)_6.5rem_minmax(9rem,1fr)]';
+const TRANSFER_TEMPLATE = 'grid-cols-[minmax(12rem,1fr)_6.5rem_minmax(15rem,1fr)]';
 const TRANSFER_COLUMNS: Column[] = [{key: 'route', label: 'Transferencia'}, {key: 'date', label: 'Fecha'}, {key: 'amount', label: 'Monto', align: 'end'}];
 const INVOICE_TEMPLATE = 'grid-cols-[minmax(18rem,1.6fr)_7rem_6.5rem_8.5rem_8.5rem_9rem]';
 const INVOICE_COLUMNS: Column[] = [{key: 'invoice', label: 'Factura'}, {key: 'state', label: 'Estado'}, {key: 'due', label: 'Vence'}, {key: 'pending', label: 'Pendiente', align: 'end'}, {key: 'total', label: 'Total', align: 'end'}, {key: 'actions', label: 'Acciones'}];
@@ -243,7 +243,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         <SearchField className="w-full sm:w-64 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar factura o cliente" value={invoiceSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setInvoiceSearch(event.target.value)} placeholder="Número o cliente…"/>
       </FilterToolbar>
       {visibleInvoices.length
-        ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[60rem]">
+        ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[60.5rem]">
           {visibleInvoices.map(invoice => <ListRow key={invoice.id} template={INVOICE_TEMPLATE}>
             <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${invoice.number} · ${invoice.client_name}`}>{invoice.number} · {invoice.client_name}</b></div>
             <div className="min-w-0"><StateChip tone={INVOICE_TONE[invoice.status] || 'mute'} title={INVOICE_STATES[invoice.status] || invoice.status}>{INVOICE_STATES[invoice.status] || invoice.status}</StateChip></div>
@@ -268,7 +268,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           <span className="whitespace-nowrap text-xs tabular-nums text-mute">{transfers.length} movimiento{transfers.length === 1 ? '' : 's'}</span>
         </div>
         {transfers.length
-          ? <ListGrid label="Transferencias entre cuentas" template={TRANSFER_TEMPLATE} columns={TRANSFER_COLUMNS} minWidthClass="min-w-[30rem]">
+          ? <ListGrid label="Transferencias entre cuentas" template={TRANSFER_TEMPLATE} columns={TRANSFER_COLUMNS} minWidthClass="min-w-[35rem]">
             {transfers.map(transfer => {
               const row = transfer as TransferRow;
               const fromCurrency = row.from_currency || accounts.find(account => account.id === row.from_account_id)?.currency || 'PYG';
@@ -281,7 +281,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
                   <small className="block truncate text-[11px] text-mute" title={`${detail} · ${listDateFull(row.transferred_on) || 'sin fecha'}`}>{detail}</small>
                 </div>
                 <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(row.transferred_on) || undefined}>{listDateShort(row.transferred_on) || '—'}</span></div>
-                <div className="min-w-0 text-right">
+                <div className="min-w-0 whitespace-nowrap text-right">
                   <MoneyText valor={row.amount} currency={fromCurrency}/>
                   {received !== null && row.to_currency ? <span className="ml-2 inline-flex items-baseline gap-1 text-mute">→ <MoneyText valor={received} currency={row.to_currency}/></span> : null}
                 </div>
@@ -294,7 +294,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
       <div hidden={historyTab !== 'cobros'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-payments-title">
         <div className="min-w-0"><h3 id="finance-payments-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.">Quién cobró y dónde quedó</h3></div>
         {payments.length
-          ? <ListGrid label="Cobros registrados" template={PAYMENT_TEMPLATE} columns={PAYMENT_COLUMNS} minWidthClass="min-w-[68rem]">
+          ? <ListGrid label="Cobros registrados" template={PAYMENT_TEMPLATE} columns={PAYMENT_COLUMNS} minWidthClass="min-w-[70.5rem]">
             {payments.map(payment => <ListRow key={payment.id} template={PAYMENT_TEMPLATE}>
               <div className="flex min-w-0 items-center gap-2"><b className="truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${payment.client_name} · ${payment.invoice_number}`}>{payment.client_name} · {payment.invoice_number}</b>{payment.reversal_id ? <StateChip tone="warn" title={payment.reversal_reason || 'Cobro revertido'}>Revertido</StateChip> : null}</div>
               <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(payment.received_on) || undefined}>{listDateShort(payment.received_on) || '—'}</span></div>

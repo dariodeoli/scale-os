@@ -7,46 +7,21 @@
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {Badge, Button} from 'owncoding-ui';
+import {Badge} from 'owncoding-ui';
 
 const h = React.createElement;
 const CHIP = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
 const StateChip = ({tone = 'mute', className = '', children}) => h(Badge, {color: CHIP[tone], className: `whitespace-nowrap ${className}`.trim()}, children);
-const ICON_ACTION = 'icon-button !h-11 !w-11';
-const CARD = 'grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4';
-const CARD_UNREAD = 'grid min-w-0 gap-2 rounded-xl border border-ink-600 border-l-4 border-l-fono bg-ink-700 p-4';
-const title = (text, tag = 'h3', className = 'min-w-0 whitespace-pre-wrap text-sm font-semibold leading-[1.3] text-fore [overflow-wrap:anywhere]') => h(tag, {className}, text);
 
 /* ── Bandeja de notificaciones (app/notification-inbox.tsx) ───────────────── */
 const NOTICES = [
-  {title: 'Asignación propia de proyecto con un nombre largo para medir el ajuste', body: 'Te asignaron una pieza con un comentario extenso que debe envolver sin recortarse en ningún ancho de pantalla.', kind: 'Asignación', time: '23 sept 26 · 14:32', state: 'Sin leer · Pendiente', unread: true},
-  {title: 'Mención en un comentario', body: 'Aviso resuelto con su estado.', kind: 'Mención o comentario', time: '22 sept 26 · 09:05', state: 'Leída · Resuelta', unread: false},
+  {title: 'Asignación propia de proyecto con un nombre largo para medir el ajuste en la bandeja', detalle: 'Te asignaron una pieza con un comentario extenso que debe envolver sin recortarse en ningún ancho de pantalla y sin desbordar el panel…', fecha: '23 sept 26 · 14:32', tono: 'bg-fono/15 text-fono-light', leido: false},
+  {title: 'Mención en un comentario', detalle: 'Aviso resuelto con su estado.', fecha: '22 sept 26 · 09:05', tono: 'bg-ok/15 text-ok-text', leido: true},
 ];
 
-const noticeCard = (notice) => h('article', {key: notice.title, className: notice.unread ? CARD_UNREAD : CARD},
-  h('div', {className: 'flex min-w-0 flex-wrap items-baseline gap-2'},
-    title(notice.title),
-    h(StateChip, {tone: 'mute', className: 'uppercase tracking-[.05em]'}, notice.kind)),
-  h('p', {className: 'min-w-0 whitespace-pre-wrap text-[12.5px] leading-[1.45] text-mute [overflow-wrap:anywhere]'}, notice.body),
-  h('time', {className: 'whitespace-nowrap text-[11px] tabular-nums text-mute'}, notice.time),
-  h('p', {className: 'whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.075em] text-mute'}, notice.state),
-  h('div', {className: 'flex flex-wrap items-center gap-1 border-t border-ink-600 pt-2'},
-    h('button', {key: 'open', type: 'button', className: ICON_ACTION, title: 'Ver pieza', 'aria-label': `Ver pieza: ${notice.title}`}, '↗'),
-    notice.unread ? h('button', {key: 'read', type: 'button', className: `${ICON_ACTION} notification-action-icon is-confirm`, title: 'Marcar como leída', 'aria-label': `Marcar como leída: ${notice.title}`}, '✓') : null,
-    h('button', {key: 'resolve', type: 'button', className: `${ICON_ACTION} notification-action-icon ${notice.unread ? 'is-confirm' : ''}`, title: notice.unread ? 'Resolver aviso' : 'Reabrir aviso', 'aria-label': `${notice.unread ? 'Resolver aviso' : 'Reabrir aviso'}: ${notice.title}`}, notice.unread ? '◉' : '↺')));
-
-const bandeja = h('div', {className: 'grid min-w-0 max-w-full gap-3 [overflow-wrap:anywhere]'},
-  h('div', {className: 'flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-600 bg-ink-700 px-3 py-2'},
-    h('p', {role: 'status', className: 'text-[13px] tabular-nums text-mute'}, '2 sin leer · 3 pendientes'),
-    h('div', {className: 'flex flex-wrap items-center gap-1', 'aria-label': 'Acciones de notificaciones'},
-      h('button', {key: 'prefs', type: 'button', className: ICON_ACTION, title: 'Preferencias'}, '⚙'),
-      h('button', {key: 'all', type: 'button', className: `${ICON_ACTION} notification-action-icon is-confirm`, title: 'Marcar todas como leídas'}, '✓✓'),
-      h('button', {key: 'refresh', type: 'button', className: ICON_ACTION, title: 'Actualizar'}, '↻'))),
-  h('p', {className: 'whitespace-pre-wrap text-[12px] leading-[1.45] text-mute'}, 'Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.'),
-  h('div', {role: 'group', 'aria-label': 'Filtrar notificaciones', className: 'flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1'},
-    ['Todas', 'Sin leer', 'Pendientes', 'Resueltas'].map((label, index) => h('button', {key: label, type: 'button', 'aria-pressed': index === 0, title: label, className: `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${index === 0 ? 'bg-fono/15 text-fono-light' : 'text-mute'}`}, label))),
-  h('div', {className: 'grid gap-2'}, NOTICES.map(noticeCard)),
-  h(Button, {variant: 'outline'}, 'Ver avisos anteriores'));
+/* Panel abierto de CampanaAvisos (owncoding-ui) + pie de app/notification-inbox.tsx; estático, sin posición absoluta. */
+const avisoItem = (aviso) => `<button type="button" class="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition hover:bg-ink-700/60"><span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${aviso.tono}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></span><span class="min-w-0 flex-1"><span class="block truncate text-sm ${aviso.leido ? 'font-medium' : 'font-semibold'} text-fore">${aviso.title}</span><span class="mt-0.5 block text-xs leading-5 text-mute">${aviso.detalle}</span><span class="mt-1 block text-[10px] uppercase tracking-wide text-mute">${aviso.fecha}</span></span></button>`;
+const bandeja = h('div', {dangerouslySetInnerHTML: {__html: `<div class="relative"><div role="dialog" aria-label="Notificaciones" class="w-80 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-ink-500 bg-ink shadow-float"><header class="flex items-center justify-between gap-2 border-b border-ink-600 px-3 py-2"><p class="text-sm font-semibold text-fore">Avisos</p><span class="text-xs tabular-nums text-mute">1 sin leer</span></header><div class="max-h-80 overflow-y-auto p-1">${NOTICES.map(avisoItem).join('')}</div><div class="border-t border-ink-600 p-2"><div class="grid gap-2"><p role="status" class="px-1 text-[11px] tabular-nums text-mute">3 pendientes</p><div role="group" aria-label="Filtrar notificaciones" class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1">${['Todas', 'Sin leer', 'Pendientes', 'Resueltas'].map((label, index) => `<button type="button" aria-pressed="${index === 0}" class="min-h-11 flex-1 rounded-lg px-2 text-[11px] font-semibold text-mute">${label}</button>`).join('')}</div><div class="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">${['Marcar todas como leídas', 'Actualizar', 'Preferencias'].map((label) => `<button type="button" class="icon-button !h-11 !w-11" title="${label}" aria-label="${label}">·</button>`).join('')}</div><button type="button" class="secondary">Ver avisos anteriores</button></div></div></div></div>`}});
 
 /* ── Suscripción (app/subscription-panel.tsx) ─────────────────────────────── */
 const SUB_STATUS = 'subscription-status subscription-status--trialing grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-lg border border-l-[3px] border-fono/30 bg-fono/10 p-4 text-fono-light max-md:grid-cols-1';
@@ -159,7 +134,6 @@ const confirmacion = DIALOG('confirm-title', 'Eliminar agencia', h('div', {class
   h('label', {className: 'grid gap-2 rounded-xl border border-ink-600 bg-ink-700/40 p-4 text-[12px] font-semibold text-mute'}, 'Confirmá tu identidad con tu contraseña actual', h('input', {type: 'password', className: 'h-11 rounded-lg border border-ink-500 bg-ink-800 px-3', readOnly: true, value: 'secreto'})),
   h('button', {type: 'button', className: 'text-button'}, 'No tengo contraseña (usar código por correo)')));
 
-const bandejaDialogo = DIALOG('inbox-title', 'Notificaciones', bandeja);
 
 export default [
   {
@@ -168,13 +142,6 @@ export default [
     surface: 'Bandeja de notificaciones v2',
     kind: 'plain',
     body: renderToStaticMarkup(bandeja),
-  },
-  {
-    id: 'v2-notificaciones-dialogo',
-    section: 'Notificaciones',
-    surface: 'Bandeja dentro del diálogo v2',
-    kind: 'plain',
-    body: renderToStaticMarkup(bandejaDialogo),
   },
   {
     id: 'v2-superadmin-confirmar',

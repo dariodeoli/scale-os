@@ -5,9 +5,9 @@ import {useMemo, useState} from "react";
 import {SearchField, Select} from "owncoding-ui";
 import {dueTone, listDateShort} from "../list-format";
 import {
-  ActionMenu,
   EmptyBlock,
   FilterToolbar,
+  ActionMenu,
   ListActions,
   ListGrid,
   ListRow,
@@ -28,6 +28,7 @@ import {
   type State,
 } from "./model";
 import {PlatformMore} from "./states";
+import {EdgeAwareMenu} from "./edge-menu";
 
 type PlatformAgenciesProps = {
   busy: boolean;
@@ -47,13 +48,17 @@ const COLUMNS: Column[] = [
   {key: "plan", label: "Plan", align: "end"},
   {key: "users", label: "Usuarios", align: "end"},
   {key: "expiry", label: "Prueba / vencimiento"},
-  {key: "actions", label: "Acciones"},
+  {key: "actions", label: "Acciones", align: "end"},
 ];
 const MIN_WIDTH = denseTableMinWidth(70.5, 6);
+// Sin permiso de escritura no hay acciones: la columna (y su encabezado) no se dibuja.
+const TEMPLATE_READONLY = "grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)]";
+const COLUMNS_READONLY = COLUMNS.slice(0, -1);
+const MIN_WIDTH_READONLY = denseTableMinWidth(50, 5);
 
 export function PlatformAgencies({busy, state, page, onMore, writable, setConfirming, setTyped, manageSubscription}: PlatformAgenciesProps) {
   // La tabla densa solo entra con ancho suficiente; si no, tarjetas (#62/#63).
-  const {ref: tableRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(MIN_WIDTH);
+  const {ref: tableRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const visible = useMemo(() => {
@@ -90,7 +95,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
       </button>
     )}
     {writable && (
-      <ActionMenu
+      <EdgeAwareMenu><ActionMenu
         label={`Acciones de la agencia: ${agency.name || "Agencia sin nombre"}`}
         items={[{
           id: "delete",
@@ -102,7 +107,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             setTyped("");
           },
         }]}
-      />
+      /></EdgeAwareMenu>
     )}
   </>;
   return (
@@ -138,11 +143,11 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             action={<button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button>}
           />
         ) : tableFits ? (
-          <ListGrid label="Agencias y suscripciones" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[73.5rem]" pinnedActions className="platform-admin-table-wrap">
+          <ListGrid label="Agencias y suscripciones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[73.5rem]" : "min-w-[53rem]"} pinnedActions={writable} className="platform-admin-table-wrap">
             {visible.map((agency) => {
               const expiry = agencyExpiry(agency);
               return (
-                <ListRow key={agency.id} template={TEMPLATE}>
+                <ListRow key={agency.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
                   <div role="cell" className="min-w-0">
                     <b className="list-identity text-fore" title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
                     <small className="list-secondary" title={agency.slug || "Sin identificador"}>{agency.slug || "Sin identificador"}</small>

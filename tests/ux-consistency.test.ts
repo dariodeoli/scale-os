@@ -88,7 +88,7 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   assert.match(invites,/REQUESTS_COLUMNS=\[\{key:'person',label:'Persona'\}/,'invite requests show their column header');
   assert.match(invites,/LINKS_COLUMNS=\[\{key:'link',label:'Enlace'\}/,'invite links show their column header');
   assert.match(invites,/REQUESTS_TEMPLATE='grid-cols-\[minmax\(11rem,1\.5fr\)_minmax\(12rem,1\.5fr\)_6\.5rem_7\.5rem_5\.5rem_14rem\]'/,'invite requests share the v2 template literal with their header');
-  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(12rem,1\.6fr\)_8rem_minmax\(11rem,1\.2fr\)_minmax\(10rem,1\.2fr\)_12rem\]'/,'invite links share the v2 template literal with their header');
+  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(12rem,1\.6fr\)_8rem_minmax\(11rem,1\.2fr\)_minmax\(10rem,1\.2fr\)_14rem\]'/,'invite links share the v2 template literal with their header');
   assert.match(invites,/ListGrid label="Solicitudes de acceso"[\s\S]*?ListGrid label="Enlaces de invitación"/,'both lists use the shared v2 ListGrid');
 });
 
@@ -118,12 +118,8 @@ test('finance panels use column headers and the shared money formatter',()=>{
   const mora=sectionSource('mora.tsx');
   assert.match(mora,/ListGrid label="Cobranza por cliente"/,'la lista de cobranza trae su encabezado');
   assert.match(mora,/const MORA_TEMPLATE\s*=\s*'grid-cols-\[/,'la cobranza declara su plantilla');
-  const styles=read('app/operations.css');
-  assert.match(styles,/\.finance-row-head\{display:grid/);
-  assert.match(styles,/\.finance-grid :is\(\.finance-transfer-row,.finance-invoice-row,.finance-payment-row\)\{display:grid/);
   const operations=read('app/operations.tsx');
   assert.doesNotMatch(operations,/finance-row-head|ReferralDiscounts/,'los pagos y descuentos a colaboradores viven en Finanzas, no en Equipo');
-  assert.match(styles,/\.control-shell :is\(\.finance-payout-row,.finance-referral-row\)\{display:grid/);
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const EXPENSE_COLS='grid-cols-\[minmax\(0,1fr\)_8\.5rem_5rem\]'/,'real expenses declare one shared template');
   assert.match(forecast,/LIST_HEAD,EXPENSE_COLS\)[^>]*><span role="columnheader">Gasto<\/span><span role="columnheader" className="text-right">Monto<\/span>/,'real expenses show their header');
@@ -200,6 +196,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(productivity,/drawer-list-head[\s\S]*?Proyecto[\s\S]*?Pieza[\s\S]*?Presupuesto[\s\S]*?Factura/,'the client drawer lists show their headers');
   const productivityCss=read('app/productivity.css');
   assert.match(productivityCss,/\.drawer-list\{--drawer-cols:[\s\S]*?\.drawer-list \.activity-line\{display:grid;grid-template-columns:var\(--drawer-cols\)[\s\S]*?min-height:44px/,'drawer rows use thin shared templates');
+  assert.match(productivityCss,/\.drawer-list\{--drawer-cols:minmax\(0,1fr\) 10rem\}/,'la columna de importes del drawer es fija (10rem), sin pistas auto (#174)');
+  assert.doesNotMatch(productivityCss,/--(?:drawer|work)-cols:[^;}]*\bauto\b/,'las plantillas del drawer no usan pistas auto');
 });
 
 test('dense list templates keep a silent horizontal escape hatch',()=>{

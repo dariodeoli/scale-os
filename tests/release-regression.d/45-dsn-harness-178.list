@@ -1,0 +1,2 @@
+# #178: clases de fixtures del harness existen en app/
+node tests/harness-fixtures-classes.test.mjs

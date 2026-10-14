@@ -23,7 +23,8 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso,ConfirmDialog,Subtabs} from 'owncoding-ui';
+import {Aviso,Subtabs} from 'owncoding-ui';
+import {ConfirmDialog} from '../dialog';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, PageHeader, StateChip, type ChipTone, type Column} from '../ui-v2';
 import type {User} from '../workspace-types';
 
@@ -39,9 +40,9 @@ const STATUS_TONE: Record<Commission['status'], ChipTone> = {pending: 'warn', ap
 const DISCOUNT_TONE: Record<ReferralDiscount['status'], ChipTone> = {applied: 'ok', reversed: 'mute'};
 
 /** Plantillas únicas por lista (encabezado y filas comparten la grilla). */
-const SETTLEMENT_TEMPLATE = 'grid-cols-[minmax(12rem,1.6fr)_9rem_9rem_9rem_9rem_9rem]';
+const SETTLEMENT_TEMPLATE = 'grid-cols-[minmax(12rem,1.6fr)_8rem_8rem_8rem_8rem_8rem]';
 const SETTLEMENT_COLUMNS: Column[] = [{key: 'person', label: 'Colaborador'}, {key: 'expected', label: 'Esperado', align: 'end'}, {key: 'recorded', label: 'Registrado', align: 'end'}, {key: 'approved', label: 'Aprobado', align: 'end'}, {key: 'paid', label: 'Pagado', align: 'end'}, {key: 'pending', label: 'Pendiente', align: 'end'}];
-const COMMISSION_TEMPLATE = 'grid-cols-[minmax(26rem,1.5fr)_7rem_20rem_minmax(17rem,1.2fr)_14rem]';
+const COMMISSION_TEMPLATE = 'grid-cols-[minmax(18rem,1.5fr)_7rem_8rem_minmax(17rem,1.2fr)_14rem]';
 const COMMISSION_COLUMNS: Column[] = [{key: 'beneficiary', label: 'Beneficiario'}, {key: 'status', label: 'Estado'}, {key: 'amount', label: 'Importe', align: 'end'}, {key: 'reference', label: 'Factura y vencimiento'}, {key: 'actions', label: 'Acciones'}];
 const DISCOUNT_TEMPLATE = 'grid-cols-[minmax(16rem,1.4fr)_minmax(22rem,1.5fr)_7rem_9rem_9rem]';
 const DISCOUNT_COLUMNS: Column[] = [{key: 'referrer', label: 'Referido'}, {key: 'invoice', label: 'Factura y cliente'}, {key: 'amount', label: 'Monto', align: 'end'}, {key: 'status', label: 'Estado'}, {key: 'actions', label: 'Acciones'}];
@@ -214,9 +215,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           <label className="grid gap-1.5"><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mes</span><input type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={event => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></label>
         </div>
         {monthly.length
-          ? <ListGrid label="Comisiones del mes por colaborador" template={SETTLEMENT_TEMPLATE} columns={SETTLEMENT_COLUMNS} minWidthClass="min-w-[62rem]">
+          ? <ListGrid label="Comisiones del mes por colaborador" template={SETTLEMENT_TEMPLATE} columns={SETTLEMENT_COLUMNS} minWidthClass="min-w-[55rem]">
             {monthly.map(row => <ListRow key={`${row.recipient_id ?? `unlinked-${row.name ?? ''}`}-${row.currency}`} template={SETTLEMENT_TEMPLATE}>
-              <div className="min-w-0"><b className="block text-[13.5px] font-semibold leading-snug text-fore" title={row.name || 'Sin colaborador vinculado'}>{row.name || 'Sin colaborador vinculado'}</b><small className="block text-[11px] text-mute">{row.currency}</small></div>
+              <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={row.name || 'Sin colaborador vinculado'}>{row.name || 'Sin colaborador vinculado'}</b><small className="block text-[11px] text-mute">{row.currency}</small></div>
               <div className="min-w-0 text-right"><MoneyText valor={row.expected_amount} currency={row.currency}/></div>
               <div className="min-w-0 text-right"><MoneyText valor={row.recorded_amount} currency={row.currency}/></div>
               <div className="min-w-0 text-right"><MoneyText valor={row.approved_amount} currency={row.currency}/></div>
@@ -233,7 +234,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
         </div>
         {visible.length
-          ? <ListGrid label="Comisiones y referidos" template={COMMISSION_TEMPLATE} columns={COMMISSION_COLUMNS} minWidthClass="min-w-[78rem]">
+          ? <ListGrid label="Comisiones y referidos" template={COMMISSION_TEMPLATE} columns={COMMISSION_COLUMNS} minWidthClass="min-w-[66.5rem]">
             {visible.map(commission => {
               const actions = commissionActions(commission.status);
               return <ListRow key={commission.id} template={COMMISSION_TEMPLATE}>
@@ -250,7 +251,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
                   <span className="truncate text-fore" title={`${commission.invoice_number || 'Sin factura vinculada'}${commission.notes ? ` · ${commission.notes}` : ''}`}>{commission.invoice_number || 'Sin factura vinculada'}</span>
                   {commission.due_on ? <span className={`whitespace-nowrap tabular-nums ${dueTone(commission.due_on) ? 'font-semibold text-warn' : ''}`} title={listDateFull(commission.due_on) || undefined}>Vence {listDateShort(commission.due_on)}</span> : null}
                 </div>
-                <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
+                <div className="flex min-w-0 flex-nowrap items-center justify-end gap-1 whitespace-nowrap">
                   {actions.approve ? <button className="text-button positive" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'approved'}, 'PATCH'); }, 'Comisión aprobada.')}>Aprobar</button> : null}
                   {actions.pay ? <button className="text-button" disabled={busy} onClick={() => { setPay(commission); void ensureCatalog('accounts'); }}>Registrar pago</button> : null}
                   {actions.cancel ? <button className="text-button danger" disabled={busy} onClick={() => setCancelTarget(commission)}>Cancelar</button> : null}
@@ -267,9 +268,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
           {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
         </div>
         {discounts.length
-          ? <ListGrid label="Descuentos por referido" template={DISCOUNT_TEMPLATE} columns={DISCOUNT_COLUMNS} minWidthClass="min-w-[64rem]">
+          ? <ListGrid label="Descuentos por referido" template={DISCOUNT_TEMPLATE} columns={DISCOUNT_COLUMNS} minWidthClass="min-w-[65.5rem]">
             {discounts.map(discount => <ListRow key={discount.id} template={DISCOUNT_TEMPLATE}>
-              <div className="min-w-0"><b className="block text-[13.5px] font-semibold leading-snug text-fore">{discount.referrer}</b><small className="block text-[11px] text-mute">{discount.created_at ? `Alta ${listDateShort(discount.created_at)}` : 'Sin fecha de alta'}</small></div>
+              <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={discount.referrer}>{discount.referrer}</b><small className="block text-[11px] text-mute">{discount.created_at ? `Alta ${listDateShort(discount.created_at)}` : 'Sin fecha de alta'}</small></div>
               <div className="min-w-0 truncate text-[11.5px] text-mute" title={`${discount.invoice_number} · ${discount.client_name} · ${discount.reason}`}><span className="text-fore">{discount.invoice_number}</span><span> · {discount.client_name} · {discount.reason}</span></div>
               <div className="min-w-0 text-right"><MoneyText valor={discount.amount} currency={discount.currency}/></div>
               <div className="min-w-0"><StateChip tone={DISCOUNT_TONE[discount.status]}>{referralDiscountStatusLabel(discount.status)}</StateChip></div>
@@ -287,12 +288,12 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
         {payoutsState === 'loading' ? <LoadingBlock label="Cargando egresos…" lines={3}/>
         : payoutsState === 'error' ? <ErrorBlock title="No se pudieron cargar los egresos" description={`${payoutsError || 'No se pudieron cargar los egresos.'} Reintentá para ver los pagos registrados a colaboradores y referidos.`} onRetry={() => void loadPayouts()}/>
         : payouts.length
-          ? <ListGrid label="Pagos registrados" template={PAYOUT_TEMPLATE} columns={PAYOUT_COLUMNS} minWidthClass="min-w-[70rem]">
+          ? <ListGrid label="Pagos registrados" template={PAYOUT_TEMPLATE} columns={PAYOUT_COLUMNS} minWidthClass="min-w-[61.5rem]">
             {payouts.map(payout => <ListRow key={payout.id} template={PAYOUT_TEMPLATE}>
               <div className="min-w-0"><b className="block truncate text-[13.5px] font-semibold leading-snug text-fore" title={payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}>{payout.collaborator_name || payout.beneficiary_name || 'Sin beneficiario'}</b>{payout.reference ? <small className="block truncate text-[11px] text-mute" title={payout.reference}>{payout.reference}</small> : null}</div>
               <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(payout.paid_on) || undefined}>{listDateShort(payout.paid_on) || '—'}</span></div>
-              <div className="min-w-0 text-[11.5px] text-fore">{payout.account_name}</div>
-              <div className="min-w-0 text-[11.5px] text-mute">{payout.created_by_email || 'Sin registrar'}</div>
+              <div className="min-w-0 truncate text-[11.5px] text-fore" title={payout.account_name}>{payout.account_name}</div>
+              <div className="min-w-0 truncate text-[11.5px] text-mute" title={payout.created_by_email || 'Sin registrar'}>{payout.created_by_email || 'Sin registrar'}</div>
               <div className="min-w-0 text-right"><MoneyText valor={payout.amount} currency={payout.currency}/></div>
             </ListRow>)}
           </ListGrid>

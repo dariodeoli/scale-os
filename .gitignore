@@ -10,3 +10,18 @@ coverage/
 .env*
 .release.env
 work/
+
+# Evidencias de QA: capturas, HAR y paquetes no se commitean (inflan el contexto
+# de build de Coolify). Los informes de texto (.md/.txt/.json) de docs/qa sí.
+# Guardas: scripts/verificar-contexto-build.mjs y tests/build-context.test.mjs.
+docs/qa/**/*.png
+docs/qa/**/*.jpg
+docs/qa/**/*.jpeg
+docs/qa/**/*.webp
+docs/qa/**/*.gif
+docs/qa/**/*.log
+*.har
+*.har.gz
+*.zip
+playwright-report/
+test-results/

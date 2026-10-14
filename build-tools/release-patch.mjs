@@ -24,6 +24,8 @@ if(!existsSync(path.join(backendRoot,'package.json')))fail(`No se encontró el A
 const apiWebhook=process.env.SCALE_API_DEPLOY_WEBHOOK,webWebhook=process.env.SCALE_WEB_DEPLOY_WEBHOOK;
 if(Boolean(apiWebhook)!==Boolean(webWebhook))fail('Configurá ambos deploy webhooks o ninguno. Con ambos vacíos se usa el webhook GitHub → Coolify ya configurado.');
 assertCleanTracked('el repositorio');
+// Contexto de build acotado antes de bumpear y buildear (web en la raíz, API con base backend/).
+run('node',['scripts/verificar-contexto-build.mjs']);run('node',['scripts/verificar-contexto-build.mjs','--context','backend']);
 const releasePath=path.join(root,'release/version.json'),release=readJson(releasePath),next=bumpPatch(release.version);release.version=next;writeJson(releasePath,release);run('node',['build-tools/sync-release-version.mjs']);
 run('npm',['run','footer:sync']);run('npm',['run','footer:check']);run('npm',['run','test:release-regression']);run('npm',['run','build']);run('npm',['--prefix','backend','run','test:release']);
 run('git',['add','.gitignore','.release.env.example','release/version.json','app/app-version.ts','app/access-layout.tsx','app/brand-metadata.ts','app/google-sign-in.tsx','app/layout.tsx','app/registro/page.tsx','app/cliente/ingresar/page.tsx','app/scale-workspace.tsx','app/robots.ts','next.config.mjs','build-tools/sync-release-version.mjs','build-tools/release-smoke.mjs','build-tools/release-patch.mjs','tests/release-version.test.mjs','tests/web-presence.test.mjs','package.json','package-lock.json','public/app.webmanifest','public/robots.txt','public/sitemap.xml','public/scale-os.html','backend/release-version.json','backend/package.json','backend/package-lock.json'],root);

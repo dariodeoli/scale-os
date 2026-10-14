@@ -195,6 +195,46 @@
         rawOverflow.push(entry);
       }
     }
+    /* ---- bleed vs. parent (#178): a child poking out of a plain parent --- */
+    // Un hijo visible cuyo rect excede al del padre en >1px (izq. o der.) cuando el
+    // padre es una caja de bloque con overflow visible y no es scroller: es el
+    // patrón de #165 (.finance-compare con pista fija de 340px): el chequeo contra
+    // el root no lo ve mientras el desborde quede dentro del ancho del raíz.
+    const alreadyBled = new Set(rawOverflow.map((entry) => entry.el));
+    for (const el of all) {
+      if (alreadyBled.has(el) || !visible(el)) continue;
+      if (isScreenReaderOnly(el) || el.closest('svg')) continue;
+      const parent = el.parentElement;
+      if (!parent || parent === root || !root.contains(parent)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.position === 'fixed' || cs.position === 'absolute') continue;
+      const ps = getComputedStyle(parent);
+      if (['inline', 'contents', 'none', 'table-cell', 'table-row'].includes(ps.display)) continue;
+      if (ps.overflowX !== 'visible' || ps.overflowY === 'auto' || ps.overflowY === 'scroll') continue;
+      if (scrollableAncestor(el, root)) continue;
+      const pr = parent.getBoundingClientRect();
+      if (pr.width < 20) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width <= 2 || r.height <= 2) continue;
+      const bleedRight = r.right - pr.right;
+      const bleedLeft = pr.left - r.left;
+      if (bleedRight <= 1 && bleedLeft <= 1) continue;
+      let depth = 0;
+      for (let node = el; node && node !== root; node = node.parentElement) depth += 1;
+      rawOverflow.push({
+        selector: pathOf(el),
+        tag: el.tagName.toLowerCase(),
+        text: deepText(el).slice(0, 80),
+        bleedRight: Math.round(bleedRight * 10) / 10,
+        bleedLeft: Math.round(bleedLeft * 10) / 10,
+        width: Math.round(r.width * 10) / 10,
+        depth,
+        el,
+        kind: 'bleed',
+        container: pathOf(parent),
+        vs: 'parent',
+      });
+    }
     for (const entry of rawOverflow) {
       if (entry.kind === 'scrollable') continue;
       const dominated = rawOverflow.some((other) => other !== entry && other.depth < entry.depth && other.el.contains(entry.el));

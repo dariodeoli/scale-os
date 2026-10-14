@@ -61,7 +61,7 @@ import {filterProductionOrders} from './production-filter';
 import type {Status} from './production-board';
 import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
-import {clientPortfolioStats,currentAsuncionMonth} from './client-format';
+import {clientPortfolioStats,currentAsuncionMonth,dueWithinDays} from './client-format';
 import type {Account,AccountTransfer,Budget,Client,ClientPaymentStatus,Invoice,Member,MetricEvent,ModalKind,PaymentRecord,Project,Summary,User,WorkOrder} from './workspace-types';
 import {technicalEmail} from './field-rules';
 import {moraDsoDays,moraKpis} from './mora-data';
@@ -172,17 +172,6 @@ const assignableRoles = [
 
 const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return <Dialog title={title} close={onClose}>{children}</Dialog>;
-}
 // Datos compartidos del shell: qué recursos necesita cada sección y cuánto vale
 // Datos compartidos del shell: qué pide cada sección, con qué recorte y cuánto
 // vale lo ya cargado. Navegar entre secciones no vuelve a pedir lo que está en
@@ -455,13 +444,11 @@ export default function Home() {
     const active = clients.filter(client => client.active).length;
     const paused = clients.length - active;
     const activeProjects = projects.filter(project => project.status === "active").length;
-    const today = new Date(), week = new Date(Date.now() + 7 * 86400000);
     // El total de entregas próximas sale del agregado del API (exacto también
     // cuando la sección pide una ventana de órdenes); la lista es el respaldo.
     const deliveries = summary.upcoming_deliveries ?? orders.filter(order => {
       if (!order.due_date || ["approved", "published"].includes(order.status)) return false;
-      const due = new Date(order.due_date);
-      return !Number.isNaN(due.getTime()) && due >= today && due <= week;
+      return dueWithinDays(order.due_date, 7);
     }).length;
     return { active, paused, activeProjects, deliveries };
   }, [clients, projects, orders, summary.upcoming_deliveries]);
@@ -1064,12 +1051,12 @@ export default function Home() {
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
         <div className="workspace-topbar sticky top-0 z-20 flex min-h-14 items-center justify-between gap-3 border-b border-ink-600 bg-ink-800/95 py-2 shadow-[0_1px_0_rgb(37_28_41_/_4%)] backdrop-blur motion-reduce:[&_*]:transition-none max-md:z-30 max-md:flex-wrap max-md:gap-2" role="toolbar" aria-label="Controles del espacio de trabajo">
-          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-[12.5rem]">
+          <div className="topbar-primary flex min-w-0 flex-1 items-center gap-3 max-md:min-w-[12.5rem] md:min-w-[9rem]">
             <div className="topbar-identity flex min-w-0 items-center gap-2 max-md:gap-2">
               <MobileNavigation>{sidebarContent('light')}</MobileNavigation>
             </div>
             <div className="topbar-workspace-context flex min-w-0 flex-1 items-center gap-3">
-              <div className="topbar-company min-w-0 max-md:min-w-[9rem] [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
+              <div className="topbar-company min-w-0 max-md:min-w-[9rem] md:min-w-[9rem] [&_.company-name]:truncate [&_.workspace]:!m-0 [&_.workspace]:min-w-0 [&_.workspace]:overflow-hidden max-md:[&_.workspace]:min-h-11">
                 <CompanySelector name={companyLabel}/>
               </div>
               <div className="topbar-presence min-w-0 shrink-0 max-[520px]:hidden" role="group" aria-label="Personas activas en el espacio">
@@ -1083,7 +1070,7 @@ export default function Home() {
               {user?.demo_owner_user_id&&<DemoToolbar role={user.role}/>}
               <VersionNotice/>
             </div>
-            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11">
+            <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">
               <ThemeToggle/>
               <WorkspaceGuide {...guideProps} active={active} helpOpen={helpOpen} onHelpOpen={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}
@@ -1173,7 +1160,7 @@ export default function Home() {
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
-        <Modal title="Nuevo cliente" onClose={close}>
+        <Dialog title="Nuevo cliente" close={close}>
           {/* Finalidad declarada donde la agencia carga datos de un tercero (#114):
               cubre tanto la consulta por RUC como la carga manual. */}
           <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
@@ -1196,10 +1183,10 @@ export default function Home() {
               }}
             />
           )}
-        </Modal>
+        </Dialog>
       )}
       {modal === "project" && (
-        <Modal title="Nuevo proyecto" onClose={close}>
+        <Dialog title="Nuevo proyecto" close={close}>
           <ProjectForm
             request={request}
             clients={clients}
@@ -1208,10 +1195,10 @@ export default function Home() {
               await completeSave(close,load);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "order" && (
-        <Modal title="Nueva orden de trabajo" onClose={close}>
+        <Dialog title="Nueva orden de trabajo" close={close}>
           <OrderForm
             request={request}
             projects={projects}
@@ -1219,15 +1206,15 @@ export default function Home() {
               await completeSave(close,load);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "budget" && (
-        <Modal title="Nuevo presupuesto" onClose={close}>
+        <Dialog title="Nuevo presupuesto" close={close}>
           <QuoteComposer mode="create" done={()=>completeSave(close,async()=>{setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);})}/>
-        </Modal>
+        </Dialog>
       )}
       {modal === "account" && (
-        <Modal title="Nueva cuenta" onClose={close}>
+        <Dialog title="Nueva cuenta" close={close}>
           <AccountForm
             request={request}
             custodians={custodians}
@@ -1236,10 +1223,10 @@ export default function Home() {
               close();
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "invoice" && (
-        <Modal title="Nueva factura" onClose={close}>
+        <Dialog title="Nueva factura" close={close}>
           <InvoiceForm
             request={request}
             clients={clients}
@@ -1248,10 +1235,10 @@ export default function Home() {
               close();
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "payment" && (
-        <Modal title="Registrar cobro" onClose={close}>
+        <Dialog title="Registrar cobro" close={close}>
           <PaymentForm
             key={paymentInvoice||'payment'}
             request={request}
@@ -1263,17 +1250,17 @@ export default function Home() {
               await completeSave(close,loadFinance);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "transfer" && (
-        <Modal title="Transferir entre cuentas" onClose={close}>
+        <Dialog title="Transferir entre cuentas" close={close}>
           <FXTransferForm
             accounts={accounts}
             done={async () => {
               await completeSave(close,loadFinance);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
     </main></CompanyCurrencyProvider>
   );

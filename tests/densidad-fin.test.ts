@@ -13,8 +13,8 @@ const informes=read('app/reports-workspace.tsx');
 const controls=read('app/daily-controls.tsx');
 
 // ── Finanzas: transferencias finitas sin scroll permanente y ayudas en tooltip.
-assert.match(finanzas,/const TRANSFER_TEMPLATE = 'grid-cols-\[minmax\(12rem,1fr\)_6\.5rem_minmax\(9rem,1fr\)\]'/,'la transferencia declara 3 columnas');
-assert.match(finanzas,/minWidthClass="min-w-\[30rem\]"/,'la lista de transferencias entra en media pantalla');
+assert.match(finanzas,/const TRANSFER_TEMPLATE = 'grid-cols-\[minmax\(12rem,1fr\)_6\.5rem_minmax\(15rem,1fr\)\]'/,'la transferencia declara 3 columnas');
+assert.match(finanzas,/minWidthClass="min-w-\[35rem\]"/,'la lista de transferencias entra en media pantalla');
 assert.doesNotMatch(finanzas,/min-w-\[64rem\]/,'sin scroll horizontal permanente en transferencias');
 assert.match(finanzas,/const detail = \[row\.reference \|\| 'Sin referencia', actor, row\.notes\]/,'actor y referencia viajan inline con el detalle en el title');
 for(const id of ['finance-accounts-title','finance-transfers-title','finance-invoices-title','finance-payments-title']){

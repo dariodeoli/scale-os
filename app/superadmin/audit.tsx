@@ -11,6 +11,9 @@ import {PlatformMore} from "./states";
 
 const TEMPLATE = "grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]";
 const MIN_WIDTH = denseTableMinWidth(47.5, 4);
+const auditTarget = (entry: AuditAction) => `${entry.target_type}${entry.target_id ? ` #${formatPlatformMetric(entry.target_id)}` : ""}`;
+/** Metadatos reales del registro en una línea (vacío si no hay). */
+const auditMeta = (entry: AuditAction) => entry.metadata && typeof entry.metadata === "object" && !Array.isArray(entry.metadata) && Object.keys(entry.metadata as object).length ? JSON.stringify(entry.metadata) : "";
 const COLUMNS: Column[] = [{key: "date", label: "Fecha"}, {key: "actor", label: "Actor"}, {key: "action", label: "Acción"}, {key: "target", label: "Destino"}];
 
 export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]; page: CollectionPage; busy: boolean; onMore: () => void}) {
@@ -49,25 +52,26 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
     <div ref={tableRef} className="min-w-0">
     {visible.length ? (tableFits ? (
       <ListGrid label="Actividad de administración global" template={TEMPLATE} columns={COLUMNS} minWidthClass="min-w-[49.5rem]">
-        {visible.map((entry) => <ListRow key={entry.id} template={TEMPLATE}>
-          <span role="cell" className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{listDateFull(entry.created_at) || "—"}</span>
-          <span role="cell" className="min-w-0 truncate text-[12.5px] text-fore" title={entry.actor_email || "Sistema"}>{entry.actor_email || "Sistema"}</span>
-          <span role="cell" className="min-w-0"><StateChip tone="info" title={entry.action}>{entry.action}</StateChip></span>
-          <div role="cell" className="min-w-0">
-            <span className="block break-words text-[12.5px] text-fore">{entry.target_type}{entry.target_id ? ` #${formatPlatformMetric(entry.target_id)}` : ""}</span>
-            {entry.metadata && typeof entry.metadata === "object" && !Array.isArray(entry.metadata) && Object.keys(entry.metadata as object).length ? <small className="mt-1 block truncate text-[11px] text-mute" title={JSON.stringify(entry.metadata)}>{JSON.stringify(entry.metadata).slice(0, 160)}</small> : null}
-          </div>
-        </ListRow>)}
+        {visible.map((entry) => {
+          const target = auditTarget(entry);
+          const meta = auditMeta(entry);
+          return <ListRow key={entry.id} template={TEMPLATE}>
+            <span role="cell" className="list-date" title={listDateFull(entry.created_at) || undefined}>{listDateFull(entry.created_at) || "—"}</span>
+            <span role="cell" className="list-identity text-fore" title={entry.actor_email || "Sistema"}>{entry.actor_email || "Sistema"}</span>
+            <span role="cell" className="min-w-0"><StateChip tone="info" title={entry.action}>{entry.action}</StateChip></span>
+            <span role="cell" className="list-secondary text-[12.5px] text-fore" title={meta ? `${target} · ${meta}` : target}>{target}{meta ? <span className="text-mute"> · {meta.slice(0, 160)}</span> : null}</span>
+          </ListRow>;
+        })}
       </ListGrid>
     ) : (
       <div className="platform-admin-audit-cards grid gap-3 sm:grid-cols-2">
-        {visible.map((entry) => <article key={entry.id} className="rounded-xl border border-ink-600 bg-ink-800 p-4">
-          <dl className="grid gap-3">
+        {visible.map((entry) => <article key={entry.id} className="min-w-0 rounded-xl border border-ink-600 bg-ink-800 p-4">
+          <dl className="grid gap-3 [&_dd]:mt-0.5 [&_dd]:text-[12.5px] [&_dd]:leading-normal [&_dd]:text-fore [&_dd]:[overflow-wrap:anywhere] [&_dt]:text-[10px] [&_dt]:font-bold [&_dt]:uppercase [&_dt]:tracking-[.06em] [&_dt]:text-mute">
             <div><dt>Fecha</dt><dd>{listDateFull(entry.created_at) || "—"}</dd></div>
             <div><dt>Actor</dt><dd>{entry.actor_email || "Sistema"}</dd></div>
             <div><dt>Acción</dt><dd>{entry.action}</dd></div>
-            <div><dt>Destino</dt><dd>{entry.target_type}{entry.target_id ? ` #${formatPlatformMetric(entry.target_id)}` : ""}</dd></div>
-            {entry.metadata && typeof entry.metadata === "object" && !Array.isArray(entry.metadata) && Object.keys(entry.metadata as object).length ? <div><dt>Metadatos</dt><dd>{JSON.stringify(entry.metadata)}</dd></div> : null}
+            <div><dt>Destino</dt><dd>{auditTarget(entry)}</dd></div>
+            {auditMeta(entry) ? <div><dt>Metadatos</dt><dd>{auditMeta(entry)}</dd></div> : null}
           </dl>
         </article>)}
       </div>

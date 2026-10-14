@@ -33,6 +33,7 @@ export function CompanySettings(){
   <p className="form-note company-settings-intro">Tus empresas y accesos. Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p>
   {!data&&!error&&<LoadingBlock label="Cargando tus empresas…" lines={2}/>}
   {data?.organizations.length===0&&<EmptyBlock title="No hay empresas disponibles" description="Pedile a la administración de Scale OS que revise tus accesos."/>}
+  {data&&data.organizations.length>0&&<div className="company-settings-head" aria-hidden="true"><span/><span>Empresa</span><span>Acciones</span></div>}
   {data?.organizations.map(company=>{
    const current=String(company.id)===String(data.currentOrganizationId),preferred=String(company.id)===String(data.defaultOrganizationId);
    return <article className={`company-settings-row${current?' is-current':''}${preferred?' is-default':''}`} key={company.id}>

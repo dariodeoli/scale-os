@@ -172,16 +172,19 @@ const PHONE_HELP = 'Elegí el país y escribí solo dígitos, sin el 0 inicial. 
 /* El perfil laboral reserva las tres filas (Correo, Acceso, Ingreso); el miembro
    sin ficha solo muestra Correo y Acceso (operations.tsx 572-605). */
 const personFacts = ({email, accessRole, accessState, startedOn}, member = false) => `<dl class="person-hub-facts">
- <div class="person-hub-fact-wide"><dt>Correo</dt><dd title="${email}">${email}</dd></div>
+ <div><dt>Correo</dt><dd title="${email}">${email}</dd></div>
  <div><dt>Acceso</dt><dd title="${accessRole} · ${accessState}">${accessRole} · ${accessState}</dd></div>
  ${member ? '' : `<div><dt>Ingreso</dt><dd class="list-date">${startedOn || 'Sin fecha'}</dd></div>`}
 </dl>`;
+/* Lista: markup real de Equipo (correo y datos como celdas propias de la plantilla). */
+const personListFacts = ({email, accessRole, startedOn}, member = false) => `<p class="person-hub-mail" title="${email}">${email}</p>
+ <div class="person-hub-meta"><span class="hub-chip" title="Rol en el panel: ${accessRole}">${accessRole}</span>${member || !startedOn ? '' : `<span class="hub-chip"><span class="person-hub-meta-label">Ingreso </span>${startedOn}</span>`}</div>`;
 /* ChipEstado de owncoding-ui v0.39: mismo markup y tonos que el objeto. */
 const CHIP_TONES = {ok:'border-ok/30 bg-ok/10 text-ok-text',warn:'border-warn/30 bg-warn/10 text-warn-text',bad:'border-bad/30 bg-bad/10 text-bad-text',mute:'border-ink-600 bg-ink-800/40 text-mute'};
 const chipEstado = ({estado = 'pendiente', etiqueta, tono = 'mute', icono = 'circleX'}) => `<span data-estado="${estado}" title="${etiqueta}" class="inline-flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold ${CHIP_TONES[tono]}">${svg(ICON[icono] || ICON.circleX, 12)}${etiqueta}</span>`;
 const ACCESS_CHIP = {'is-active':{estado:'activo',tono:'ok',icono:'badgeCheck'},'is-suspended':{estado:'suspendido',tono:'bad',icono:'triangle'},'is-none':{estado:'pendiente',tono:'mute',icono:'refresh'},'is-removed':{estado:'anulado',tono:'mute',icono:'x'}};
 const teamAccess = ({statusLabel, statusClass, action}) => `<section class="team-access" aria-label="Acceso al panel">
- <header class="team-access-header"><h3>Acceso al panel</h3>${chipEstado({...(ACCESS_CHIP[statusClass] || ACCESS_CHIP['is-none']), etiqueta: statusLabel})}</header>
+ ${chipEstado({...(ACCESS_CHIP[statusClass] || ACCESS_CHIP['is-none']), etiqueta: statusLabel})}
  ${action ? `<div class="team-access-actions"><button type="button" class="secondary">${action}</button></div>` : ''}
 </section>`;
 const personActions = (person) => `<footer class="person-hub-actions">
@@ -272,7 +275,7 @@ const personCard = (person, list = false) => {
   ${avatar}
   <span class="person-hub-state" data-state="${stateAttr}">${stateLabel}</span>
  </header>
- ${personFacts(person.facts, isMember)}
+ ${list ? personListFacts(person.facts, isMember) : personFacts(person.facts, isMember)}
  ${chips}
  ${note}
  ${tail}
@@ -342,7 +345,7 @@ export default [
       label: 'Equipo · lista',
       template: '--person-cols',
       rowHeight: [44, 52],
-      exemptBelow: 860,
+      exemptBelow: 767,
     }],
     body: `
 <section class="panel">
@@ -350,7 +353,7 @@ export default [
  ${teamToolbar()}
  <div class="ops-grid ops-grid-list">
   <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>2</b> seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button">Seleccionar visibles</button><button type="button" class="secondary">Suspender acceso</button><button type="button" class="secondary">Reactivar acceso</button><button type="button" class="text-button">Limpiar</button></div></div>
-  <div class="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>
+  <div class="person-hub-head-row" aria-hidden="true"><span>Persona</span><span>Correo</span><span>Datos</span><span>Estado</span><span>Ficha</span><span>Acceso</span><span>Acciones</span></div>
   ${people.map((person) => personCard(person, true)).join('')}
  </div>
 </section>`,
@@ -489,12 +492,15 @@ export default [
     section: 'Actividad',
     surface: 'Uso del equipo',
     kind: 'workspace',
-    grids: [{container: '.usage-grid', card: '.ops-card', label: 'Actividad · uso del equipo', minHeight: 180}],
+    lists: [{container: '.usage-panel [role="table"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Actividad · uso del equipo', exemptBelow: 760}],
     body: `
 <section class="panel usage-panel">
  <div class="mb-4 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Uso del equipo</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Solo para dueños · Últimos 30 días. Se registra desde la activación de esta función; no reconstruye accesos anteriores.</p></div>
  <p class="form-note">Tiempo activo estimado: ventana visible e interacción reciente. No equivale a horas trabajadas. Una sesión puede abarcar varios días; recargar no cuenta como otro ingreso.</p>
- <div class="usage-grid">${usageCards.map((card) => `<article class="ops-card"><div class="panel-heading">${actorIdentity({name: card.name, photo: card.photo})}<span class="client-status" data-status="${card.state}">${card.status}</span></div><small>Última conexión: ${card.last}</small><p>${card.summary}</p><button class="text-button">${svg(ICON.eye, 14)}Ver accesos</button></article>`).join('')}</div>
+ <div role="table" aria-label="Uso del equipo" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[46rem]">
+  <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(11rem,1.6fr)_6.5rem_9rem_minmax(12rem,1.2fr)_8rem]">${['Persona', 'Estado', 'Última conexión', 'Actividad (30 días)', 'Acciones'].map((label, index) => `<span role="columnheader" class="${index === 4 ? 'text-right' : ''} whitespace-nowrap">${label}</span>`).join('')}</div>
+  <div role="rowgroup">${usageCards.map((card) => `<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(11rem,1.6fr)_6.5rem_9rem_minmax(12rem,1.2fr)_8rem]"><span class="min-w-0">${actorIdentity({name: card.name, photo: card.photo})}</span><span><span class="client-status" data-status="${card.state}">${card.status}</span></span><span class="list-date whitespace-nowrap text-[11.5px] text-mute" title="Última conexión">${card.last}</span><span class="whitespace-nowrap text-[11.5px] tabular-nums text-mute">${card.summary}</span><span class="flex min-w-0 items-center justify-end"><button type="button" class="text-button" title="Ver accesos: ${card.name}">${svg(ICON.eye, 14)}Ver accesos</button></span></div>`).join('')}</div>
+ </div></div>
 </section>`,
   },
 

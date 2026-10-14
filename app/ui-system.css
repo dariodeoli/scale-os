@@ -406,14 +406,6 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .bulk-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
 .bulk-actions::-webkit-scrollbar{display:none}
 @media(max-width:760px){.bulk-bar{min-height:44px}.bulk-actions :is(button,a){min-height:44px}}
-:root{--finance-cols:minmax(0,1fr) auto;--statement-cols:minmax(0,1fr) auto auto}
-.statement-row-head{display:grid;grid-template-columns:var(--statement-cols);gap:8px;align-items:center;padding:2px 2px 6px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
-.statement-row-head span:last-child{justify-self:end}
-.control-shell .statement-row{display:grid;grid-template-columns:var(--statement-cols);gap:8px;align-items:center}
-.control-shell .statement-row>div:first-child{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-.control-shell .statement-row>div:first-child>small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.control-shell .statement-row>:is(b,button){justify-self:end;white-space:nowrap;font-variant-numeric:tabular-nums}
-@media(max-width:560px){.statement-row-head{display:none}}
 
 
 /* Cápsulas en cuadrícula (fuente única): identidad · hechos por columnas ·
@@ -514,3 +506,5 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
    (REGLAS §15.4, mismo contrato que `.toque-44`). No se toca el objeto. */
 [data-testid="campana-avisos"]{position:relative}
 [data-testid="campana-avisos"]::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
+/* KPI v2 en grilla de 2 columnas (tablet): el importe baja de tamaño en lugar de salirse de la tarjeta. */
+@media(min-width:640px) and (max-width:1023px){.control-shell .ui-kpi>div:nth-child(2){font-size:clamp(18px,3vw,28px)}}

@@ -8,6 +8,7 @@ const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{
  Dialog:({title,children}:{title?:string;children:React.ReactNode})=><section role="dialog" aria-label={title}>{children}</section>,
  FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
+ ConfirmDialog:({open=true,title,description,children,error,confirmLabel='Confirmar',onConfirm,onCancel}:{open?:boolean;title?:string;description?:React.ReactNode;children?:React.ReactNode;error?:React.ReactNode;confirmLabel?:string;onConfirm?:()=>void;onCancel?:()=>void})=>open?<section role="dialog" aria-label={title}>{description}{children}{error?<p role="alert">{error}</p>:null}<button type="button" onClick={onCancel}>Cancelar</button><button type="button" onClick={onConfirm}>{confirmLabel}</button></section>:null,
  useDialogClose:()=>undefined,
  useDialogPending:()=>undefined,
 }} as NodeModule;
@@ -74,12 +75,18 @@ async function run(){
  await act(async()=>{board.props.onDragEnd({active:{id:'10'},over:{id:'stage-cierre'}});});
  assert.deepEqual(JSON.parse(String(requests[0].init.body)),{stage:'cierre',probability:100});
  await flush({record:{}});await flush(rowsIn('cierre'));
+ // Entrar a una etapa ganada ofrece convertir a cliente; aceptar llama al contrato de conversion.
+ assert.match(text(renderer.root),/¿Convertir a Cliente activo en cliente\?/);
+ await act(async()=>{renderer.root.findAllByProps({role:'dialog'})[0].findByType('form').props.onSubmit({preventDefault(){}});});
+ assert.equal(requests[0].url,'/core-api/api/agency/leads/10/convert');assert.equal(requests[0].init.method,'POST');
+ await flush({record:{}});await flush(rowsIn('cierre'));
+ assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0,'convertir cierra la oferta');
  const before=requests.length;
  await act(async()=>{board.props.onDragEnd({active:{id:'10'},over:{id:'stage-propuesta'}});});
  assert.equal(requests.length,before,'read-only stage columns reject drops');
  act(()=>renderer.root.findAllByType('button').find(node=>text(node).includes('Etapas'))!.props.onClick());
  const createForm=renderer.root.findAll(node=>node.findAllByType('button').some(button=>text(button).includes('Crear etapa')))[0];
- act(()=>createForm.findAllByType('input')[0].props.onChange({target:{value:'Visita técnica'}}));
+ act(()=>createForm.findByProps({id:'stage-name'}).props.onChange({target:{value:'Visita técnica'}}));
  act(()=>{createForm.findAllByType('form')[0].props.onSubmit({preventDefault(){}});});
  assert.equal(requests[0].url,'/core-api/api/agency/pipeline-stages');assert.equal(requests[0].init.method,'POST');
  assert.deepEqual(JSON.parse(String(requests[0].init.body)),{label:'Visita técnica',kind:'open'});

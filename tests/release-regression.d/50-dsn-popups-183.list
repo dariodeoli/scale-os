@@ -1,0 +1,2 @@
+# Popups #183: Dialog con tamaños, ConfirmDialog único y secciones del Editor
+tsx tests/dsn-popups-183.test.tsx

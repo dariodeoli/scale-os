@@ -15,6 +15,21 @@ export function todayAsuncion(now: Date = new Date()): string {
   return ['year', 'month', 'day'].map((type) => parts.find((part) => part.type === type)!.value).join('-');
 }
 
+/** Suma días a un día calendario YYYY-MM-DD sin pasar por zonas horarias. */
+export function addCivilDays(day: string, days: number): string {
+  const base = new Date(`${day}T12:00:00Z`);
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+/** ¿La fecha (YYYY-MM-DD) cae entre hoy y hoy + `days`, ambos días civiles de Asunción? */
+export function dueWithinDays(dueDate: unknown, days: number, now: Date = new Date()): boolean {
+  const due = String(dueDate ?? '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return false;
+  const today = todayAsuncion(now);
+  return due >= today && due <= addCivilDays(today, days);
+}
+
 /** Mes calendario de Asunción (YYYY-MM) para hoy; fuente única del dominio. */
 export function currentAsuncionMonth(now: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat('en', { timeZone: 'America/Asuncion', year: 'numeric', month: '2-digit' }).formatToParts(now);

@@ -12,7 +12,7 @@ import {GET as landingGet} from '../app/public-landing/route';
 
 const hosts=Object.keys(ANALYTICS_HOSTS);
 const ids=['12345678-1234-4234-8234-123456789001','12345678-1234-4234-8234-123456789002','12345678-1234-4234-8234-123456789003'];
-const env:NodeJS.ProcessEnv={UMAMI_ORIGIN:'https://stats.example.com'};
+const env={UMAMI_ORIGIN:'https://stats.example.com'} as unknown as NodeJS.ProcessEnv;
 hosts.forEach((host,i)=>env[ANALYTICS_HOSTS[host as keyof typeof ANALYTICS_HOSTS]]=ids[i]);
 const keys=Object.keys(env);
 const originalEnv=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
