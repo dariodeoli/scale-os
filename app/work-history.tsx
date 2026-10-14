@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {api,Editor} from './operations';
 import {listDateShort,hasDueWarning} from './list-format';
 import {Aviso,Button,Nota} from 'owncoding-ui';
-import {CardGridSkeleton,CompactCard,EmptyBlock,EmptyCompact,ErrorBlock,FilterToolbar,LoadingBlock,StateChip} from './ui-v2';
+import {CardGridSkeleton,CompactCard,EmptyBlock,EmptyCompact,ErrorBlock,FilterToolbar,ListGrid,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {ActorIdentity} from './actor-identity';
@@ -26,6 +26,9 @@ const historyStatusLabel=(table:string,status:string)=>{
  if(table==='agency_internal_tasks')return internalTaskStatuses[status]||status;
  return status;
 };
+// Una sola plantilla para el encabezado y las filas del historial (lista finita v2).
+const HISTORY_TEMPLATE='grid-cols-[minmax(12rem,1.1fr)_minmax(14rem,2fr)_minmax(10rem,1fr)]';
+const HISTORY_COLUMNS:Column[]=[{key:'person',label:'Persona'},{key:'record',label:'Registro'},{key:'change',label:'Cambio'}];
 /** Tope de la lista de pendientes internos (el API no pagina): el resto se avisa. */
 export const INTERNAL_TASKS_WINDOW=50;
 export function WorkHistory({role,navigate}:{role:string;navigate?:(module:string)=>void}){
@@ -51,11 +54,11 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
   </FilterToolbar>
   {error?<ErrorBlock title="No se pudo cargar el historial." description={error} onRetry={()=>setIdentityVersion(v=>v+1)}/>:null}
   {loading&&!error?<LoadingBlock label="Cargando actividad…" lines={4}/>:null}
-  {!loading&&!error&&rows.length?<ol className="grid min-w-0 gap-1.5">{rows.map(r=><li className="grid min-w-0 gap-0.5 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-2" key={r.id}>
-   <ActorIdentity name={str(r,source?'source_author':'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} imported={source} timestamp={str(r,source?'occurred_at':'created_at')}/>
-   <p className="truncate text-[13px] text-fore" title={str(r,source?'body':'title')}>{str(r,source?'body':'title')}</p>
-   {!source?<p className="text-xs text-mute">{str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó'}{r.previous_status!==r.next_status?<> · {historyStatusLabel(str(r,'table_name'),str(r,'previous_status'))||'Nueva'} → <b className="text-fore">{historyStatusLabel(str(r,'table_name'),str(r,'next_status'))}</b></>:null}</p>:null}
-  </li>)}</ol>:null}
+  {!loading&&!error&&rows.length?<ListGrid label={source?'Historial importado':'Historial de trabajo'} template={HISTORY_TEMPLATE} columns={HISTORY_COLUMNS} minWidthClass="min-w-[40rem]">{rows.map(r=>{const text=str(r,source?'body':'title');const verb=str(r,'action')==='INSERT'?'Creó':str(r,'action')==='DELETE'?'Eliminó':'Actualizó';const moved=!source&&r.previous_status!==r.next_status;const from=historyStatusLabel(str(r,'table_name'),str(r,'previous_status'))||'Nueva',to=historyStatusLabel(str(r,'table_name'),str(r,'next_status'));return <ListRow key={r.id} template={HISTORY_TEMPLATE} className="work-history-row">
+   <div role="cell" className="min-w-0"><ActorIdentity name={str(r,source?'source_author':'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} imported={source} timestamp={str(r,source?'occurred_at':'created_at')}/></div>
+   <p role="cell" className="m-0 truncate text-[13px] font-semibold text-fore" title={text}>{text||'—'}</p>
+   <p role="cell" className="m-0 truncate text-xs text-mute" title={source?undefined:`${verb}${moved?` · ${from} → ${to}`:''}`}>{source?'—':<>{verb}{moved?<> · {from} → <b className="text-fore">{to}</b></>:null}</>}</p>
+  </ListRow>;})}</ListGrid>:null}
   {!loading&&!error&&!rows.length?<EmptyBlock title="Sin actividad registrada." description={source?'No hay historial importado para mostrar.':'Los cambios operativos del equipo van a aparecer acá.'} action={!source&&navigate?<Button type="button" variant="outline" onClick={()=>navigate('Producción')}>Abrir Producción</Button>:undefined}/>:null}
   <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
    <span className="mr-auto text-xs tabular-nums text-mute" role="status">{range?`${range}${total!==null?` de ${total}`:''}`:total!==null?`0 de ${total}`:''}</span>

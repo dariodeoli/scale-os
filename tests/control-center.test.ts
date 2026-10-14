@@ -9,7 +9,7 @@ const snapshot=JSON.stringify(records),groups=groupDueAlerts(records);
 assert.equal(groups.length,2);assert.equal(groups[0].name,'DEMO-PRO-3');assert.equal(groups[1].items.length,4);
 assert.equal(groups.reduce((n,g)=>n+g.items.length,0),5);assert.equal(JSON.stringify(records),snapshot);
 assert.equal(groupDueAlerts([...records,{...records[1],id:'8',due:'2026-09-06'},{...records[1],id:'9',type:'invoice'}]).length,4,'different date and type are not merged');
-assert.equal(groupDueAlerts([]).length,0);assert.equal(normalizeSearch(' ÓRBITA '),'orbita');assert.equal(shortDate('invalid'),'Sin fecha');assert(shortDate('2026-09-07').startsWith('7'),'date-only retains calendar day');
+assert.equal(groupDueAlerts([]).length,0);assert.equal(normalizeSearch(' ÓRBITA '),'orbita');assert.equal(shortDate('invalid'),'Sin fecha');assert.equal(shortDate('2026-09-07'),'07-sept','date-only retains calendar day en el formato corto de lista');
 // Issue #65: avisos incompletos del API (sin name/due/type, o null) no pueden
 // voltear la pantalla; se agrupan con fallbacks y el orden sigue determinista.
 const malformed=[null,undefined,{id:'10',type:'invoice'},{id:'11'},{id:'12',type:'invoice',name:null,due:null},{id:'13',type:'invoice',name:'',due:''},{id:'14',type:'work_order',name:'Reel',due:'2026-09-07'}] as unknown as DueAlert[];

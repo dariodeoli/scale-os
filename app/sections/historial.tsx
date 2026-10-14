@@ -1,6 +1,6 @@
 "use client";
 import dynamic from 'next/dynamic';
-import {SectionLoading} from '../ui-v2';
+import {ListPage,SectionLoading} from '../ui-v2';
 import type {User} from '../workspace-types';
 const WorkHistory=dynamic(()=>import('../work-history').then(m=>m.WorkHistory),{loading:()=> <SectionLoading label="Cargando el historial…"/>});
 
@@ -13,6 +13,8 @@ type HistorialSectionProps = {
 };
 export function HistorialSection({user,navigate}: HistorialSectionProps){
   return (
-    <WorkHistory role={user?.role||'viewer'} navigate={navigate}/>
+    <ListPage aria-label="Historial de trabajo">
+      <WorkHistory role={user?.role||'viewer'} navigate={navigate}/>
+    </ListPage>
   );
 }

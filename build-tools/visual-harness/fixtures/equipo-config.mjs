@@ -257,16 +257,15 @@ const teamCard = (person) => `<article data-compact-card class="flex min-w-0 fle
 const bulkBar = (count) => `<div role="status" aria-live="polite" data-bulk-bar class="bulk-bar"><span class="bulk-count"><b>${count}</b> de 50 seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button min-h-11 md:min-h-8">Seleccionar visibles</button><button type="button" class="secondary min-h-11 md:min-h-10">Suspender acceso</button><button type="button" class="secondary min-h-11 md:min-h-10">Reactivar acceso</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button></div></div>`;
 
 /* ---------------------------------------------------- historial / actividad */
-const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<li class="grid min-w-0 gap-1 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3">
- ${actorIdentity({name: actor, photo, timestamp})}
- <p class="break-words text-[13px] text-fore" title="${title}">${title}</p>
- <p class="text-xs text-mute">${meta}</p>
-</li>`;
+/* app/work-history.tsx (HISTORY_TEMPLATE) + ListGrid/ListRow de app/ui-v2.tsx. */
+const HISTORY_TEMPLATE = 'grid-cols-[minmax(12rem,1.1fr)_minmax(14rem,2fr)_minmax(10rem,1fr)]';
+const listGridV2 = ({label, template, columns, rows, minWidth = 'min-w-[40rem]', aligns = []}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${aligns[index] === 'end' ? 'text-right' : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${rows.join('')}</div></div></div>`;
+const listRowV2 = (template, cells, extra = '') => `<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${extra}">${cells}</div>`;
+const historyLine = ({actor, photo = '', timestamp, title, meta}) => listRowV2(HISTORY_TEMPLATE, `<div role="cell" class="min-w-0">${actorIdentity({name: actor, photo, timestamp})}</div><p role="cell" class="m-0 truncate text-[13px] font-semibold text-fore" title="${title}">${title}</p><p role="cell" class="m-0 truncate text-xs text-mute" title="${meta}">${meta}</p>`, 'work-history-row');
 
-const activityDay = ({label, count, rows}) => `<section class="activity-day">
- <h3 class="activity-day-title">${label} <span>${count}</span></h3>
- <div class="activity-day-rows">${rows.map((row) => `<div class="activity-feed-row">${actorIdentity({name: row.actor, photo: row.photo || '', timestamp: row.timestamp})}<p title="${row.table} · ${row.operation}"><b>${row.table}</b> · ${row.operation}</p><small>Registro ${row.record}</small></div>`).join('')}</div>
-</section>`;
+/* app/suite.tsx (ACTIVITY_TEMPLATE) + ListGrid/ListRow. */
+const ACTIVITY_TEMPLATE = 'grid-cols-[minmax(12rem,1.1fr)_minmax(16rem,2fr)_7rem]';
+const activityDay = ({label, count, rows}) => `<div role="row" class="activity-day-row"><h3 role="cell" class="activity-day-title">${label} <span>${count}</span></h3></div>${rows.map((row) => listRowV2(ACTIVITY_TEMPLATE, `<div role="cell" class="min-w-0">${actorIdentity({name: row.actor, photo: row.photo || '', timestamp: row.timestamp})}</div><div role="cell" class="activity-feed-event" title="${row.table} · ${row.operation}"><p><b>${row.table}</b> · ${row.operation}</p><small class="activity-feed-tech">${row.table}.${row.operation.toLowerCase()}</small></div><small role="cell" class="activity-feed-record" title="Identificador técnico del registro">Registro ${row.record}</small>`, 'activity-list-row')).join('')}`;
 
 const usageCards = [
   {name: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', status: 'En línea', state: 'active', last: '20 sept 26 · 15:42', summary: '148 sesiones · 312 h 40 min activos aprox.'},
@@ -298,11 +297,10 @@ const companySettingsRows = [
   {name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', role: 'Administración', current: false, preferred: false},
   {name: 'Fundación Niñez y Comunidad', role: 'Lectura', current: false, preferred: false},
 ];
-const companySettingsRow = (company) => `<article class="company-settings-row${company.current ? ' is-current' : ''}${company.preferred ? ' is-default' : ''}">
- <span class="company-settings-icon">${svg(ICON.building, 20)}</span>
- <div class="company-settings-name"><strong>${company.name}</strong><div class="company-settings-meta"><span>${company.role}</span>${company.current ? '<span class="company-settings-state">Empresa abierta</span>' : ''}</div></div>
- <div class="company-settings-actions">${company.current ? '' : '<button class="secondary company-settings-open">Abrir</button>'}<button class="secondary company-settings-default" aria-label="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}" aria-pressed="${company.preferred}" title="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${company.preferred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.star}</svg><span class="company-settings-sr-only">${company.preferred ? 'Predeterminada' : 'Usar al iniciar sesión'}</span></button></div>
-</article>`;
+/* app/company-settings.tsx (COMPANY_TEMPLATE) + ListGrid/ListRow + StateChip. */
+const COMPANY_TEMPLATE = 'grid-cols-[minmax(12rem,2fr)_8rem_9rem_9rem]';
+const stateChip = (tone, text) => `<span class="inline-flex whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${tone === 'ok' ? 'border-ok/30 bg-ok/10 text-ok' : 'border-info/30 bg-info/10 text-info'}">${text}</span>`;
+const companySettingsRow = (company) => listRowV2(COMPANY_TEMPLATE, `<div role="cell" class="company-settings-name"><span class="company-settings-icon">${svg(ICON.building, 18)}</span><strong title="${company.name}">${company.name}</strong></div><span role="cell" class="company-settings-role">${company.role}</span><div role="cell">${company.current ? stateChip('ok', 'Empresa abierta') : company.preferred ? stateChip('info', 'Predeterminada') : '<span class="company-settings-role" aria-hidden="true">—</span>'}</div><div role="cell" class="company-settings-actions">${company.current ? '' : '<button class="secondary company-settings-open">Abrir</button>'}<button class="secondary company-settings-default" aria-label="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}" aria-pressed="${company.preferred}" title="${company.preferred ? 'Empresa predeterminada' : 'Usar al iniciar sesión'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="${company.preferred ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.star}</svg><span class="company-settings-sr-only">${company.preferred ? 'Predeterminada' : 'Usar al iniciar sesión'}</span></button></div>`, `company-settings-row${company.current ? ' is-current' : ''}${company.preferred ? ' is-default' : ''}`);
 
 /* -------------------------------------------------------------- export */
 export default [
@@ -402,14 +400,12 @@ export default [
     surface: 'Auditoría operativa',
     kind: 'workspace',
     lists: [{
-      container: '[aria-label="Historial de trabajo"]',
-      head: null,
-      row: 'li',
+      container: '[role="table"]',
+      head: '[role="row"]',
+      row: '[role="rowgroup"] [role="row"]',
       label: 'Historial · actividad',
       template: null,
-      // El historial es un feed de bloques apilados (excepción de AGENTS.md),
-      // no una lista de filas finitas: se mide el rango del bloque.
-      rowHeight: [120, 260],
+      rowHeight: [44, 56],
       exemptBelow: 0,
     }],
     body: `
@@ -424,12 +420,12 @@ export default [
   <div class="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap">${selectCustom({label: 'Registros por página', value: '100'})}</div>
   <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">1–4</p>
  </div>
- <ol class="grid min-w-0 gap-2">
-  ${historyLine({actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-18T16:20:00-03:00', title: 'Rodaje campaña Primavera 2026 · Banco Atlas (estudio y exteriores)', meta: 'Creó ·  → reservado'})}
-  ${historyLine({actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T09:48:00-03:00', title: 'Cámara Sony FX6 Full Frame con montura E, visor OLED y tarjeta CFexpress de 512 GB', meta: 'Actualizó · disponible → en uso'})}
-  ${historyLine({actor: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', timestamp: '2026-09-16T15:10:00-03:00', title: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', meta: 'Actualizó · en uso → disponible'})}
-  ${historyLine({actor: 'Carlos Ramón Ovelar Giménez', timestamp: '2026-09-15T11:02:00-03:00', title: 'Presupuesto N.º 2026-0148 · Producción audiovisual integral y difusión en vía pública', meta: 'Eliminó'})}
- </ol>
+ ${listGridV2({label: 'Historial de trabajo', template: HISTORY_TEMPLATE, columns: ['Persona', 'Registro', 'Cambio'], rows: [
+  historyLine({actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-18T16:20:00-03:00', title: 'Rodaje campaña Primavera 2026 · Banco Atlas (estudio y exteriores)', meta: 'Creó ·  → reservado'}),
+  historyLine({actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T09:48:00-03:00', title: 'Cámara Sony FX6 Full Frame con montura E, visor OLED y tarjeta CFexpress de 512 GB', meta: 'Actualizó · disponible → en uso'}),
+  historyLine({actor: 'Ana Paula Benítez de la Cruz', photo: '/brand/icon-192.png', timestamp: '2026-09-16T15:10:00-03:00', title: 'Memoria SD UHS-II de 128 GB para cámaras de cine (kit de 2 tarjetas con estuche rígido)', meta: 'Actualizó · en uso → disponible'}),
+  historyLine({actor: 'Carlos Ramón Ovelar Giménez', timestamp: '2026-09-15T11:02:00-03:00', title: 'Presupuesto N.º 2026-0148 · Producción audiovisual integral y difusión en vía pública', meta: 'Eliminó'})
+ ]})}
  <div class="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3"><span class="mr-auto text-xs tabular-nums text-mute" role="status">1–4</span><button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore md:h-9" disabled>Anterior</button><button type="button" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-ink-500 bg-transparent px-4 text-sm font-semibold text-fore md:h-9">Siguiente</button></div>
 </section>`,
   },
@@ -462,9 +458,9 @@ export default [
     surface: 'Feed de actividad',
     kind: 'workspace',
     lists: [{
-      container: '.activity-feed',
-      head: null,
-      row: '.activity-feed-row',
+      container: '.activity-feed [role="table"]',
+      head: '[role="row"]',
+      row: '.activity-list-row',
       label: 'Actividad · feed',
       template: null,
       rowHeight: [44, 52],
@@ -473,16 +469,16 @@ export default [
     body: `
 <section class="panel activity-feed">
  <div class="mb-4 min-w-0"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Actividad del equipo</h2><p class="mt-1 text-[13px] leading-[1.5] text-mute">Últimos 6 cambios registrados por el servidor en esta empresa. Se muestran 6.</p></div>
- ${activityDay({label: 'jue, 17 sept.', count: 3, rows: [
+ ${listGridV2({label: 'Actividad de la empresa', template: ACTIVITY_TEMPLATE, columns: ['Persona', 'Evento', 'Registro'], aligns: [, , 'end'], rows: [activityDay({label: 'jue, 17 sept.', count: 3, rows: [
    {actor: 'María José Fernández de la Vega y Rivarola', photo: '/brand/icon-192.png', timestamp: '2026-09-17T14:30:00-03:00', table: 'inventory_reservations', operation: 'INSERT', record: '4821'},
    {actor: 'Fabrizio Dellacasa Reyes', timestamp: '2026-09-17T11:12:00-03:00', table: 'inventory', operation: 'UPDATE', record: '341'},
    {actor: 'Ana Paula Benítez de la Cruz', timestamp: '2026-09-17T09:05:00-03:00', table: 'clients', operation: 'UPDATE', record: '88'},
- ]})}
- ${activityDay({label: 'mié, 16 sept.', count: 3, rows: [
+ ]}),
+ activityDay({label: 'mié, 16 sept.', count: 3, rows: [
    {actor: 'Carlos Ramón Ovelar Giménez', timestamp: '2026-09-16T18:44:00-03:00', table: 'work_orders', operation: 'UPDATE', record: '1502'},
    {actor: 'Lucía Fernanda Centurión Aquino', timestamp: '2026-09-16T10:20:00-03:00', table: 'studio_reservations_cancelled', operation: 'DELETE', record: '212'},
    {actor: 'Sistema', timestamp: '2026-09-16T03:00:00-03:00', table: 'exchange_rates', operation: 'INSERT', record: '59'},
- ]})}
+ ]})]})}
  <div class="inline-actions activity-more"><button class="secondary">Cargar 50 más</button></div>
 </section>`,
   },
@@ -526,8 +522,10 @@ export default [
    <section class="panel settings-card settings-company-card" aria-labelledby="company-settings-title">
     <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.building, 18)}</span><div><h2 id="company-settings-title">Empresa</h2><p>Datos que identifican a esta empresa y valores predeterminados para nuevos formularios.</p></div></div>
     <form class="form-stack ops-form-grid" novalidate aria-busy="false">
-     ${settingsField({label: 'Nombre de la empresa', value: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima'})}
-     ${settingsField({label: 'Moneda predeterminada', value: 'Guaraníes (PYG)', control: 'select'})}
+     <details class="ops-profile-section ops-wide" open><summary>Identidad y valores predeterminados</summary><div class="ops-form-grid">
+      ${settingsField({label: 'Nombre de la empresa', value: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima'})}
+      ${settingsField({label: 'Moneda predeterminada', value: 'Guaraníes (PYG)', control: 'select', help: 'Se aplicará a los nuevos formularios.'})}
+     </div></details>
      <details class="ops-profile-section ops-wide" open><summary>Datos fiscales y contacto</summary><div class="ops-form-grid">
       ${settingsField({label: 'Razón social', value: 'Estudio de Comunicación y Producción Audiovisual del Paraguay S.A.', optional: true, wide: true})}
       ${settingsField({label: 'RUC', value: '80012345-6', optional: true})}
@@ -561,14 +559,14 @@ export default [
   <section class="panel settings-card workspace-company-card" aria-labelledby="workspace-company-title"><div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.building, 18)}</span><div><h2 id="workspace-company-title">Empresas</h2><p>Cambiá de empresa o creá un espacio separado para otra operación.</p></div></div>
    <div class="company-settings" aria-busy="false">
     <p class="form-note company-settings-intro">Tus empresas y accesos. Elegí cuál abrir al iniciar sesión; esto no cambia tus permisos ni mezcla los datos.</p>
-    ${companySettingsRows.map(companySettingsRow).join('')}
+    ${listGridV2({label: 'Empresas y accesos', template: COMPANY_TEMPLATE, columns: ['Empresa', 'Rol', 'Estado', 'Acciones'], aligns: [, , , 'end'], minWidth: 'min-w-[36rem]', rows: companySettingsRows.map(companySettingsRow)})}
    </div>
    <details class="settings-disclosure"><summary>Cómo funciona una empresa adicional</summary><div><p>Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p><p>Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p><p><strong>Precio de lanzamiento.</strong> El precio de lanzamiento puede cambiar en el futuro. Como cliente fundador, conservarás siempre una tarifa preferencial frente a los nuevos clientes, aunque el importe inicial se actualice.</p></div></details>
    <div class="settings-card-actions"><button class="secondary">Crear otra empresa</button></div>
   </section>
   <section class="panel settings-card" aria-labelledby="coupon-redeem-title">
    <div class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">${svg(ICON.ticket, 18)}</span><div><h2 id="coupon-redeem-title">Cupones</h2><p>Canjeá un código de la administración global para sumar un mes gratis a tu suscripción.</p></div></div>
-   <form class="form-stack" novalidate aria-busy="false"><label>Código del cupón<input value="" placeholder="SCALE10" maxlength="40"></label><button class="primary" type="submit" disabled>Canjear cupón</button></form>
+   <form class="form-stack" novalidate aria-busy="false">${settingsField({label: 'Código del cupón', value: '', help: 'Ejemplo: SCALE10.'})}<div class="dialog-actions"><button type="submit" class="primary">Canjear cupón</button></div></form>
    <p class="form-note">Cada cupón se puede canjear una sola vez por empresa. No cobra ni guarda datos de pago.</p>
   </section>
  </div>

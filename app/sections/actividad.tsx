@@ -1,6 +1,6 @@
 "use client";
 import dynamic from 'next/dynamic';
-import {SectionLoading} from '../ui-v2';
+import {ListPage,SectionLoading} from '../ui-v2';
 import {ActivityWorkspace} from '../suite';
 import type {User} from '../workspace-types';
 const UsagePanel=dynamic(()=>import('../presence').then(m=>m.UsagePanel),{loading:()=> <SectionLoading label="Cargando la actividad…"/>});
@@ -12,9 +12,9 @@ type ActividadSectionProps = {
 };
 export function ActividadSection({user}: ActividadSectionProps){
   return (
-    <>
+    <ListPage aria-label="Actividad">
       {user?.role==='owner'&&<UsagePanel/>}
       <ActivityWorkspace/>
-    </>
+    </ListPage>
   );
 }
