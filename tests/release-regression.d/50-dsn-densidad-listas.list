@@ -1,0 +1,2 @@
+# Densidad de listas: Clientes, Proyectos e Inventario (KpiStrip dense, AssignedPeople compact, fila fina)
+tsx tests/densidad-listas.test.tsx

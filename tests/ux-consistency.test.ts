@@ -37,7 +37,7 @@ test('icon-only actions explain themselves on hover',()=>{
 
 test('every list view carries the same column-header and alignment contract',()=>{
   const workspace=workspaceSource();
-  assert.match(workspace,/CLIENT_COLUMNS: Column\[\] = \[[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Cobros[\s\S]*?Actividad[\s\S]*?Acciones/,'the client list declares its column header');
+  assert.match(workspace,/CLIENT_COLUMNS: Column\[\] = \[[\s\S]*?Cliente[\s\S]*?Estado[\s\S]*?Cobros[\s\S]*?Actividad[\s\S]*?Datos[\s\S]*?Acciones/,'the client list declares its column header (identidad → estado → cobros → actividad → datos → acciones)');
   assert.match(workspace,/ListGrid label="Clientes" template=\{CLIENT_TEMPLATE\}/,'header and rows share one client template');
   assert.match(workspace,/PROJECT_COLUMNS: Column\[\] = \[[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables[\s\S]*?Acciones/,'the project list declares its column header');
   assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
@@ -54,7 +54,7 @@ test('every list view carries the same column-header and alignment contract',()=
 
 test('the client directory keeps one template, ordered row actions and shared date formats',()=>{
   const clientes=sectionSource('clientes.tsx');
-  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(11rem,1\.35fr\)_minmax\(9\.5rem,1\.15fr\)_6rem_minmax\(15rem,1\.15fr\)_minmax\(9rem,\.95fr\)_14rem\]'/,'la lista de clientes declara una sola plantilla (pistas afinadas en #77)');
+  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(10\.5rem,1fr\)_5\.5rem_minmax\(15\.5rem,1fr\)_minmax\(9\.5rem,\.85fr\)_minmax\(12\.5rem,1\.55fr\)_9\.5rem\]'/,'la lista de clientes declara una sola plantilla (pistas del pase de densidad)');
   assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'la fila finita usa la plantilla del encabezado y no viste la clase de tarjeta');
   assert.match(clientes,/<ListActions className="client-row-actions silent-scroll">/,'la celda de acciones usa la primitiva fija de ui-v2');
   assert.match(clientes,/IconAction icon="eye"[\s\S]*?client-record-actions/,'la fila conserva el orden de acciones compartido');
@@ -283,7 +283,7 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(uiSystem,/@media\(min-width:768px\)\{[\s\S]{0,160}?\.control-shell \.ui-kpi>div:nth-child\(2\)\{font-size:28px;line-height:1\.15\}/,'el KPI compacta su valor en escritorio');
  assert.doesNotMatch(controlCenter,/\.control-shell \.section-tabs\{/,'las reglas legadas de tabs se retiraron: fuente única en ui-system.css');
  assert.match(read('app/ui-v2.tsx'),/data-toolbar="filtros" className=\{`mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap/,'la toolbar declara su hook y una fila desde xl');
- assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/,'el strip de KPIs conserva su grilla 1/2/4');
+ assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid \$\{dense \? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'\} sm:grid-cols-2 xl:grid-cols-4/,'el strip de KPIs conserva su grilla 1/2/4 (la variante densa va 2/2/4)');
  // FOUT (#76): las fuentes críticas del marco se precargan y no hacen swap.
  const layoutSource=read('app/layout.tsx');
  assert.match(layoutSource,/rel="preload" href="\/fonts\/s\/outfit\/v15\/QGYvz_MVcBeNP4NJtEtqUYLknw\.woff2" as="font" type="font\/woff2" crossOrigin="anonymous"/,'Outfit latin se precarga como fuente');

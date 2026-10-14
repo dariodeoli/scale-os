@@ -186,17 +186,23 @@ export function CurrencyField({id, label, value, onChange, disabled = false, cla
  * `compact` (#138) apila los KPIs del borde como filas de 44–64 px en mobile
  * (rótulo + valor en una línea, hint debajo); en escritorio no cambia nada.
  */
-export function KpiStrip({compact = false, className, children, ...props}: {compact?: boolean; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${compact ? 'ui-kpi-strip-compact' : ''} ${className ?? ''}`}>{children}</div>;
+/**
+ * `dense` (pase de densidad de listas): tira baja para las pantallas de lista
+ * (Clientes, Proyectos, Inventario). Cada KPI mide ~60 px en escritorio
+ * (rótulo arriba; valor y hint en la misma línea) y en mobile la tira va en
+ * 2×2 en vez de cuatro tarjetas apiladas: la lista queda arriba del pliegue.
+ */
+export function KpiStrip({compact = false, dense = false, className, children, ...props}: {compact?: boolean; dense?: boolean; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} className={`ui-kpi-strip grid ${dense ? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'} sm:grid-cols-2 xl:grid-cols-4 ${compact ? 'ui-kpi-strip-compact' : ''} ${className ?? ''}`}>{children}</div>;
 }
 
 /**
  * Esqueleto de una tira de KPIs (#109): mismos lugares y alto que las cards
  * reales, sin números inventados mientras el shell carga sus datos.
  */
-export function KpiStripSkeleton({count = 4, label = 'Cargando indicadores…', className}: {count?: number; label?: string; className?: string}) {
-  return <div role="status" aria-busy="true" aria-label={label} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>
-    {Array.from({length: Math.max(1, count)}, (_, index) => <Skeleton key={index} className="h-[110px] w-full rounded-xl"/>)}
+export function KpiStripSkeleton({count = 4, label = 'Cargando indicadores…', dense = false, className}: {count?: number; label?: string; dense?: boolean; className?: string}) {
+  return <div role="status" aria-busy="true" aria-label={label} className={`ui-kpi-strip grid ${dense ? 'grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'} sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>
+    {Array.from({length: Math.max(1, count)}, (_, index) => <Skeleton key={index} className={`${dense ? 'h-[60px]' : 'h-[110px]'} w-full rounded-xl`}/>)}
   </div>;
 }
 

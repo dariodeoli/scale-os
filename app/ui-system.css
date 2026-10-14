@@ -121,6 +121,33 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
  .control-shell .ui-kpi-strip-compact .ui-kpi>div:nth-child(3){grid-column:1/-1;margin:0;min-height:0}
 }
 
+/* ── KPIs densos de las pantallas de lista (`KpiStrip dense`) ──────────────
+   Rótulo arriba; valor y hint comparten la línea (el hint recorta con title).
+   ~60 px en escritorio; en mobile la tira va 2×2 y el hint baja a su línea.
+   Opt-in: el resto de las tiras conserva el contrato #89/#138. */
+.control-shell .ui-kpi-strip-dense .ui-kpi{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"label label" "value sub";align-items:baseline;column-gap:10px;row-gap:2px;padding:10px 14px;border-radius:var(--radius-sm,10px)}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(1){grid-area:label;margin:0;font-size:10px;line-height:14px;letter-spacing:.06em}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2){grid-area:value;margin:0;font-size:22px;line-height:1.15;white-space:nowrap}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(3){grid-area:sub;margin:0;min-width:0;overflow:hidden;font-size:11.5px;line-height:16px}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2) *{font-size:inherit;line-height:inherit}
+@media(max-width:767px){
+ .control-shell .ui-kpi-strip-dense .ui-kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"label" "value" "sub";padding:8px 10px}
+ .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2){font-size:17px;white-space:normal}
+ .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(3){flex-wrap:wrap;font-size:11px}
+}
+
+/* ── Acciones de ícono en filas finas (contrato de listas: 32 px) ───────────
+   Los íconos legados `.icon-button` (40 px) inflaban la fila a 56 px dentro de
+   `ListActions`. En escritorio bajan al botón de acción de lista (32 px); en
+   mobile conservan el target táctil. `:where` deja ganar a los ajustes propios
+   de cada lista (p. ej. Clientes, 28 px). */
+@media(min-width:768px){
+ .control-shell .list-row .list-actions :where(button.icon-button){width:32px;min-width:32px;height:32px;min-height:32px}
+ /* Disparador del menú ⋯ (`MenuDesplegable`, min-h-11 de la librería): en la
+    fila fina mide lo que su ícono (28–32 px), no 44. */
+ .control-shell :is(.list-row,[data-list-row]) button[aria-haspopup="menu"]{min-height:0}
+}
+
 /* ── Tabs de sección (#89) ──────────────────────────────────────────────────
    Una sola barra horizontal compacta (píldoras sobre el tinte hundido): en
    escritorio mide ≤48 px de alto; en móvil scrollea en horizontal sin apilarse
