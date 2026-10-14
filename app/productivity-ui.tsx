@@ -57,8 +57,8 @@ export const workStatusLabel=(value:string)=>statuses.find(state=>state.id===val
 const workTypeLabels:Record<string,string>={video:'Video',reedicion:'Reedición',foto:'Foto',produccion:'Producción',entregable:'Entregable'};
 const workTypeChoices=[{value:'',label:'Sin clasificar'},...Object.entries(workTypeLabels).map(([value,label])=>({value,label}))];
 // Plantilla única del planificador: el encabezado y las filas comparten grilla.
-const PLANNER_COLUMNS:Column[]=[{key:'piece',label:'Pieza'},{key:'due',label:'Vence'},{key:'status',label:'Estado'},{key:'type',label:'Tipo'},{key:'people',label:'Responsables'},{key:'checklist',label:'Pasos',align:'end'},{key:'hours',label:'Horas'}];
-const PLANNER_TEMPLATE='grid-cols-[minmax(13rem,1.6fr)_minmax(11rem,1.1fr)_7rem_7rem_minmax(9rem,1fr)_6rem_9rem]';
+const PLANNER_COLUMNS:Column[]=[{key:'piece',label:'Pieza'},{key:'due',label:'Vence'},{key:'status',label:'Estado'},{key:'type',label:'Tipo'},{key:'people',label:'Responsables'},{key:'checklist',label:'Pasos',align:'end'},{key:'hours',label:'Horas',align:'end'}];
+const PLANNER_TEMPLATE='grid-cols-[minmax(13rem,1.6fr)_6rem_7rem_7rem_minmax(9rem,1fr)_6rem_9rem]';
 const managers=['owner','admin','management','production','collaborator'];
 const makers=[...managers,'editor'];
 const localDay=todayAsuncion;
@@ -197,8 +197,8 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
     <span className="min-w-0"><StateChip tone={o.status==='approved'||o.status==='published'?'ok':o.status==='review'?'warn':o.status==='blocked'?'bad':'info'}>{workStatusLabel(o.status)}</StateChip></span>
     <span className="min-w-0">{workTypeLabels[String(o.work_type||'')]?<StateChip tone="info">{workTypeLabels[String(o.work_type||'')]}</StateChip>:<span className="text-mute">—</span>}</span>
     <span className="min-w-0 truncate text-[11.5px] text-mute" title={assigneeNames(o).join(', ')||undefined}>{assigneeNames(o).join(', ')||'Sin responsables'}</span>
-    <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{o.checklist_total?`☑ ${o.checklist_completed||0}/${o.checklist_total}`:'—'}</span>
-    <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{hoursSummary(o.estimated_hours,o.actual_hours)||'—'}</span>
+    <span className="whitespace-nowrap text-right text-[11.5px] tabular-nums text-mute">{o.checklist_total?`☑ ${o.checklist_completed||0}/${o.checklist_total}`:'—'}</span>
+    <span className="whitespace-nowrap text-right text-[11.5px] tabular-nums text-mute">{hoursSummary(o.estimated_hours,o.actual_hours)||'—'}</span>
    </ListRow>)}
   </ListGrid>
   {!visible.length?<EmptyCompact message={view==='Mi día'?'No tenés piezas pendientes asignadas.':'No hay piezas para esta vista. Probá con otro mes.'} action={<button type="button" className="secondary min-h-9" onClick={()=>navigate('Producción')}>Abrir Producción</button>}/>:null}
