@@ -2,10 +2,10 @@
 // Gráficos del panel de uso (#191): SVG en línea, una sola escala por gráfico,
 // rejilla recesiva, sin números sobre cada punto y tooltip al pasar el cursor.
 // Los colores salen de los tokens de `usage.css` (paleta dataviz validada).
-import {ReactNode, useState} from "react";
+import {ReactNode, useEffect, useRef, useState} from "react";
 import "./usage.css";
 
-const W = 640, H = 220, PAD = {l: 34, r: 8, t: 10, b: 24};
+const H = 220, PAD = {l: 34, r: 8, t: 10, b: 24};
 const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"];
 
 /** `2026-10-14` a `14-oct` sin pasar por Date local (los días del API ya son de Asunción). */
@@ -25,9 +25,26 @@ export function niceScale(max: number) {
   return {ceil, ticks};
 }
 
+/** Ancho real del contenedor: el viewBox sigue al ancho y las marcas del eje
+ * quedan a 10 px en todos los gráficos (sin escalar el texto con el SVG). */
+function useChartWidth() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(640);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof ResizeObserver === "undefined") return;
+    const sync = () => { const next = Math.round(node.clientWidth); if (next > 0) setWidth(next); };
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return {ref, W: Math.max(240, width)};
+}
+
 const fmt = (value: number) => new Intl.NumberFormat("es-PY").format(value);
 
-function Frame({scale, children}: {scale: {ceil: number; ticks: number[]}; children: ReactNode}) {
+function Frame({W, scale, children}: {W: number; scale: {ceil: number; ticks: number[]}; children: ReactNode}) {
   const y = (value: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - value / scale.ceil);
   return <>
     {scale.ticks.map((tick) => <g key={tick}>
@@ -63,17 +80,18 @@ export type LinePoint = {label: string; value: number; prevLabel: string; prev: 
 /** Línea del período actual contra el anterior (punteada), misma escala. */
 export function UsageLineChart({title, points, valueLabel, prevName}: {title: string; points: LinePoint[]; valueLabel: string; prevName: string}) {
   const [hover, setHover] = useState<number | null>(null);
+  const {ref, W} = useChartWidth();
   const scale = niceScale(Math.max(0, ...points.map((p) => Math.max(p.value, p.prev))));
   const n = points.length, inner = W - PAD.l - PAD.r, step = inner / Math.max(1, n - 1);
   const x = (i: number) => PAD.l + (n <= 1 ? inner / 2 : step * i);
   const y = (v: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - v / scale.ceil);
   const path = (pick: (p: LinePoint) => number) => points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(pick(p)).toFixed(1)}`).join("");
-  const every = Math.max(1, Math.ceil(n / 6));
+  const every = Math.max(1, Math.ceil(n / Math.max(3, Math.floor(W / 90))));
   const active = hover !== null ? points[hover] : null;
-  return <div className="usage-chart">
+  return <div className="usage-chart" ref={ref}>
     <ul className="usage-legend" aria-label="Leyenda"><li><span className="usage-swatch"/>Período actual</li><li><span className="usage-swatch is-prev"/>{prevName}</li></ul>
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}: ${valueLabel} por día contra el período anterior. Los datos están en la tabla debajo.`} onPointerLeave={() => setHover(null)}>
-      <Frame scale={scale}>
+      <Frame W={W} scale={scale}>
         {points.map((p, i) => i % every === 0 ? <text key={i} className="viz-tick" x={x(i)} y={H - 6} textAnchor="middle">{p.label}</text> : null)}
         <path className="viz-line is-prev" d={path((p) => p.prev)}/>
         <path className="viz-line" style={{stroke: "var(--viz-series-1)"}} d={path((p) => p.value)}/>
@@ -94,16 +112,17 @@ export type BarGroup = {label: string; values: number[]};
 /** Barras agrupadas (1 o 2 series) con extremo redondeado anclado a la base. */
 export function UsageBarChart({title, groups, series, tickEvery}: {title: string; groups: BarGroup[]; series: string[]; tickEvery?: number}) {
   const [hover, setHover] = useState<number | null>(null);
+  const {ref, W} = useChartWidth();
   const scale = niceScale(Math.max(0, ...groups.flatMap((g) => g.values)));
   const n = groups.length, inner = W - PAD.l - PAD.r, slot = inner / Math.max(1, n);
   const barW = Math.max(2, Math.min(18, (slot - 4) / series.length - 2));
   const y = (v: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - v / scale.ceil);
   const base = H - PAD.b, every = tickEvery || Math.max(1, Math.ceil(n / 8));
   const active = hover !== null ? groups[hover] : null;
-  return <div className="usage-chart">
+  return <div className="usage-chart" ref={ref}>
     {series.length > 1 ? <ul className="usage-legend" aria-label="Leyenda">{series.map((name, i) => <li key={name}><span className={`usage-swatch is-box${i ? " s2" : ""}`}/>{name}</li>)}</ul> : null}
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${title}. Los datos están en la tabla debajo.`} onPointerLeave={() => setHover(null)}>
-      <Frame scale={scale}>
+      <Frame W={W} scale={scale}>
         {groups.map((g, i) => {
           const start = PAD.l + slot * i + (slot - (barW + 2) * series.length + 2) / 2;
           return <g key={i}>

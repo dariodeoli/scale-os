@@ -17,7 +17,7 @@ const AGENCY_TEMPLATE = "grid-cols-[minmax(9rem,1.4fr)_minmax(11rem,1.3fr)_5.5re
 const AGENCY_COLUMNS: Column[] = [{key: "agency", label: "Agencia"}, {key: "owner", label: "Responsable"}, {key: "a7", label: "Activos 7 d", align: "end"}, {key: "a30", label: "Activos 30 d", align: "end"}, {key: "sessions", label: "Sesiones", align: "end"}, {key: "last", label: "Último acceso"}];
 const USER_TEMPLATE = "grid-cols-[minmax(12rem,1.6fr)_minmax(8rem,1fr)_9.5rem_5rem]";
 const USER_COLUMNS: Column[] = [{key: "person", label: "Persona"}, {key: "agency", label: "Agencia"}, {key: "last", label: "Último acceso"}, {key: "sessions", label: "Sesiones", align: "end"}];
-const MONTH_TEMPLATE = "grid-cols-[minmax(6rem,1fr)_6rem_8rem]";
+const MONTH_TEMPLATE = "grid-cols-[minmax(5rem,1fr)_4.5rem_7rem]";
 const MONTH_COLUMNS: Column[] = [{key: "month", label: "Mes"}, {key: "signups", label: "Altas", align: "end"}, {key: "active", label: "Usuarios activos", align: "end"}];
 const MONTH_NAMES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"];
 
@@ -84,7 +84,7 @@ export function UsageBody({data}: {data: UsagePayload}) {
     </div>}
     <div className="min-w-0">
       <h3 className="mb-2 text-[13px] font-semibold text-fore">Últimos 4 meses</h3>
-      <ListGrid label="Últimos 4 meses" template={MONTH_TEMPLATE} columns={MONTH_COLUMNS} minWidthClass="min-w-[20rem]">
+      <ListGrid label="Últimos 4 meses" template={MONTH_TEMPLATE} columns={MONTH_COLUMNS} minWidthClass="min-w-[18rem]">
         {data.monthly.map((row) => <ListRow key={row.month} template={MONTH_TEMPLATE}>
           <span role="cell" className="list-identity text-fore">{monthLabel(row.month)}</span>
           <span role="cell" className="list-amount">{formatPlatformMetric(row.signups)}</span>
@@ -109,7 +109,7 @@ function UsageAgencies({agencies}: {agencies: UsagePayload["agencies"]}) {
   return <div className="min-w-0">
     <div className="mb-2 flex min-w-0 items-center gap-2"><h3 className="text-[13px] font-semibold text-fore">Uso por agencia</h3><StateChip tone="mute" title="Agencias reales">{formatPlatformMetric(agencies.length)}</StateChip></div>
     <FilterToolbar summary={`${visible.length} de ${agencies.length}`}>
-      <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar agencias en el uso" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Agencia o responsable"/>
+      <SearchField className="min-w-[12rem] flex-1 sm:max-w-72 [&>input]:!pl-9" type="search" ariaLabel="Buscar agencias en el uso" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Agencia o responsable"/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">Ordenar por
         <Select aria-label="Ordenar agencias" value={sort} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSort(event.target.value)} className="min-w-[11rem]">
           <option value="active30">Activos 30 días</option>
