@@ -112,6 +112,7 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       photoUrl={person.photo_url}
       secondary={person.full_name ? `${person.email}${selfRow(person) ? " · Vos" : ""}` : selfRow(person) ? "Vos" : null}
       size="sm"
+      verified
     />
   );
   const agencyNames = (person: Person) => {

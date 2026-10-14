@@ -119,8 +119,8 @@ function UsageAgencies({agencies}: {agencies: UsagePayload["agencies"]}) {
     </FilterToolbar>
     {visible.length ? <ListGrid label="Uso por agencia" template={AGENCY_TEMPLATE} columns={AGENCY_COLUMNS} minWidthClass="min-w-[46rem]">
       {visible.map((row) => <ListRow key={row.id} template={AGENCY_TEMPLATE}>
-        <span role="cell" className="list-identity text-fore" title={row.name}>{row.name}</span>
-        <span role="cell" className="min-w-0">{row.owner ? <PersonContainer size="sm" name={row.owner.name} photoUrl={row.owner.avatar_url} secondary={row.owner.email}/> : <span className="list-secondary">Sin responsable</span>}</span>
+        <span role="cell" className="min-w-0"><PersonContainer size="sm" variante="logo" name={row.name} photoUrl={row.logo_url} verified/></span>
+        <span role="cell" className="min-w-0">{row.owner ? <PersonContainer size="sm" name={row.owner.name} photoUrl={row.owner.avatar_url} secondary={row.owner.email} verified/> : <span className="list-secondary">Sin responsable</span>}</span>
         <span role="cell" className="list-amount">{formatPlatformMetric(row.active7)}</span>
         <span role="cell" className="list-amount">{formatPlatformMetric(row.active30)}</span>
         <span role="cell" className="list-amount">{formatPlatformMetric(row.sessions)}</span>
@@ -135,7 +135,7 @@ function UsageUsers({users}: {users: UsagePayload["users"]}) {
     <div className="mb-2 flex min-w-0 items-center gap-2"><h3 className="text-[13px] font-semibold text-fore">Usuarios recientes</h3><StateChip tone="mute" title="Los 50 con acceso más reciente">{formatPlatformMetric(users.length)}</StateChip></div>
     {users.length ? <ListGrid label="Usuarios recientes" template={USER_TEMPLATE} columns={USER_COLUMNS} minWidthClass="min-w-[36rem]">
       {users.map((row) => <ListRow key={row.id} template={USER_TEMPLATE}>
-        <span role="cell" className="min-w-0"><PersonContainer size="sm" name={row.name} photoUrl={row.avatar_url} secondary={row.email}/></span>
+        <span role="cell" className="min-w-0"><PersonContainer size="sm" name={row.name} photoUrl={row.avatar_url} secondary={row.email} verified/></span>
         <span role="cell" className="list-secondary text-[12.5px] text-fore" title={row.agency}>{row.agency}</span>
         <span role="cell" className="list-date" title={listDateFull(row.last_seen_at) || undefined}>{listDateFull(row.last_seen_at) || "—"}</span>
         <span role="cell" className="list-amount">{formatPlatformMetric(row.sessions)}</span>

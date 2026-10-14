@@ -1,0 +1,2 @@
+# Logo de la agencia (TopBar y panel global) y fotos verificadas del superadmin
+tsx tests/organization-logo.test.tsx

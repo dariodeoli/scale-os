@@ -14,7 +14,8 @@ import {budgetState} from './budget-status';
 export type {RecordMenuItem} from './ui-v2';
 import {activityEvent} from './activity-format';
 import {Building2,ChartNoAxesCombined,CircleDollarSign,Copy,Eye,Link2,Link2Off,Pencil,Ticket} from 'lucide-react';
-import {api,Dialog,Editor,Field} from './operations';
+import {api,Dialog,Editor,Field,COMPANY_LOGO_EVENT} from './operations';
+import {ProfilePhoto} from './profile-photo';
 import {ConfirmDialog} from './dialog';
 import {roleCan} from './capabilities';
 import {Aviso} from 'owncoding-ui';
@@ -170,6 +171,12 @@ export function SettingsWorkspace(){ const {setCurrency}=useCompanyCurrency();co
    {loadError&&<ErrorBlock title="No se pudo cargar la empresa." description={loadError} onRetry={()=>setAttempt(value=>value+1)}/>}
    {!settings&&!loadError&&<LoadingBlock label="Cargando la empresa…" lines={3}/>}
    {settings&&<Editor columns fields={[{key:'name',label:'Nombre de la empresa',section:'Identidad y valores predeterminados'},{key:'default_currency',label:'Moneda predeterminada',choices:currencies,section:'Identidad y valores predeterminados',help:'Se aplicará a los nuevos formularios.'},{key:'legal_name',label:'Razón social',optional:true,section:'Datos fiscales y contacto'},{key:'tax_id',label:'RUC',optional:true,section:'Datos fiscales y contacto'},{key:'phone',label:'Teléfono',type:'phone',optional:true,section:'Datos fiscales y contacto',help:PHONE_HELP},{key:'address',label:'Dirección',optional:true,wide:true,section:'Datos fiscales y contacto'}]} defaults={Object.fromEntries(['name','legal_name','tax_id','phone','address','default_currency'].map(k=>[k,str(settings,k)]))} save={async v=>{const result=await api<{default_currency:typeof currencies[number]['value']}>('/api/agency/settings',{...v,onboarding_completed:true},'PATCH');setCurrency(result.default_currency);setSettings({...settings,...v,default_currency:result.default_currency});}}/>}
+   {settings&&<ProfilePhoto logo label="Logo de la empresa" name={str(settings,'name')||'Empresa'} photo={str(settings,'logo_url')||null} save={async photo=>{
+    // El servidor valida y normaliza (WebP ≤180 KB); vacío quita el logo.
+    const result=await api<{logo_url:string|null}>('/api/agency/settings',{logo_url:photo||null},'PATCH');
+    setSettings(current=>current?{...current,logo_url:result.logo_url}:current);
+    window.dispatchEvent(new CustomEvent(COMPANY_LOGO_EVENT,{detail:{logo:result.logo_url}}));
+   }}/>}
   </section>
  </div>;
 }
