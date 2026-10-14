@@ -64,7 +64,7 @@ export function PlatformAdminSkeleton() {
     <p className="sr-only" role="status">Cargando el control global…</p>
     <div className="platform-admin-top" aria-hidden="true">
       <Skeleton className="h-9 w-9 rounded-xl"/>
-      <div className="ui-page-header flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-3">
+      <div className="ui-page-header flex min-w-0 flex-[1_1_20rem] flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div className="grid min-w-0 gap-1">
           <Skeleton className="h-3 w-28"/>
           <Skeleton className="h-5 w-44"/>

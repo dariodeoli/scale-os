@@ -60,7 +60,7 @@ const COUPONS = [
 const header = (writable = true, updated = '18:12') => `
 <div class="platform-admin-top">
  <a class="platform-admin-brand" href="#" aria-label="Scale OS">${brand}</a>
- <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-1 !mb-0">
+ <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-[1_1_20rem] !mb-0">
   <div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
    <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">Administración global</p>
    <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">Control de Scale OS</h1>
@@ -381,7 +381,7 @@ const menuOpen2 = `
 const skeleton2 = `
 <div class="platform-admin-top" aria-hidden="true">
  <span class="block h-9 w-9 animate-pulse rounded-xl bg-fore/5"></span>
- <div class="ui-page-header flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-3">
+ <div class="ui-page-header flex min-w-0 flex-[1_1_20rem] flex-wrap items-center justify-between gap-x-4 gap-y-3">
   <div class="grid min-w-0 gap-1"><span class="block h-3 w-28 animate-pulse rounded-lg bg-fore/5"></span><span class="block h-5 w-44 animate-pulse rounded-lg bg-fore/5"></span><span class="platform-admin-meta"><span class="block h-6 w-24 animate-pulse rounded-full bg-fore/5"></span><span class="block h-3 w-24 animate-pulse rounded-lg bg-fore/5"></span></span></div>
   <div class="platform-admin-actions"><span class="block h-11 w-28 animate-pulse rounded-lg bg-fore/5 md:h-9"></span><span class="block h-11 w-24 animate-pulse rounded-lg bg-fore/5 md:h-9"></span></div>
  </div>

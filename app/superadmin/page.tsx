@@ -580,7 +580,7 @@ export default function PlatformAdmin() {
         {/* Encabezado único de la app (`PageHeader`): marca aparte, rótulo + título,
             permiso real y «actualizado» como meta, y las acciones a la derecha. */}
         <PageHeader
-          className="min-w-0 flex-1 !mb-0"
+          className="min-w-0 flex-[1_1_20rem] !mb-0"
           eyebrow="Administración global"
           title="Control de Scale OS"
           subtitle={<span className="platform-admin-meta">
