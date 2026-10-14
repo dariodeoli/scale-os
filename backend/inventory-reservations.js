@@ -35,6 +35,16 @@ function identifiers(values,label,max=50){
  const ids=values.map(identifier);if(new Set(ids).size!==ids.length)fail(`No repitas ${label}`);
  return ids.sort((a,b)=>BigInt(a)<BigInt(b)?-1:1);
 }
+// Categorías iniciales de inventario (mismo set que sembró
+// 20260910_inventory_reservations.sql para las empresas de ese momento). El alta
+// de equipos exige una categoría activa: una empresa nueva sin ellas no podía
+// cargar su primer equipo («Identificador inválido» con el selector vacío).
+export const DEFAULT_INVENTORY_CATEGORIES=['Cámara','Lente','Audio','Iluminación','Computación','Accesorio','Otro'];
+/** Siembra las categorías iniciales solo si la empresa no tiene ninguna (guard por conteo, idempotente). */
+export async function ensureInventoryCategories(c,org){
+ if((await c.query('select 1 from agency_inventory_categories where organization_id=$1 limit 1',[org])).rows.length)return;
+ await c.query('insert into agency_inventory_categories(organization_id,name) select $1,name from unnest($2::text[]) as defaults(name) on conflict do nothing',[org,DEFAULT_INVENTORY_CATEGORIES]);
+}
 export function inventoryTimestamp(value){
  if(typeof value!=='string'||!/^\d{4}-\d\d-\d\dT([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?(Z|[+-]\d\d:\d\d)$/.test(value))fail('Ingresá fecha y hora con zona horaria');
  const parsed=new Date(value);if(!Number.isFinite(parsed.getTime()))fail('Fecha u hora inválida');
