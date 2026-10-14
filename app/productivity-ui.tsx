@@ -175,15 +175,17 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
  const openPiece=(id:string)=>()=>openOrder(id);
  return <section className="grid min-w-0 gap-4" aria-label="Planificador de producción">
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-   <h2 className="text-[17px] font-semibold tracking-tight text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
+   <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
    {!initialView?<TabScroller className="mb-0 min-w-0" label="vistas"><Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9 max-lg:flex-nowrap"/></TabScroller>:null}
   </div>
   {view==='Mi día'?<>
-   <KpiStrip className="sm:grid-cols-2 xl:grid-cols-2">
+   <KpiStrip>
+    {/* Reorganización IA: los accesos a cobros y efectivo ocupan la otra mitad
+        de la fila de KPIs en vez de una fila propia. */}
     <Kpi label="Entregas para hoy o vencidas" valor={dueToday} hint="Piezas asignadas con entrega hasta hoy"/>
     <Kpi label="Piezas asignadas pendientes" valor={mine.length} hint="Sin aprobar ni publicar"/>
+    {['owner','admin','finance'].includes(role)?<div className="flex flex-wrap items-center gap-2 sm:col-span-2 xl:col-span-2 xl:flex-col xl:items-start xl:justify-center"><button type="button" className="text-button" onClick={()=>navigate('Mora')}>Revisar cobros pendientes<ArrowUpRight size={14}/></button><button type="button" className="text-button" onClick={()=>navigate('Pagos')}>Disponibilidad y efectivo<ArrowUpRight size={14}/></button></div>:null}
    </KpiStrip>
-   {['owner','admin','finance'].includes(role)?<div className="flex flex-wrap items-center gap-2"><button type="button" className="text-button" onClick={()=>navigate('Mora')}>Revisar cobros pendientes<ArrowUpRight size={14}/></button><button type="button" className="text-button" onClick={()=>navigate('Pagos')}>Disponibilidad y efectivo<ArrowUpRight size={14}/></button></div>:null}
   </>:null}
   {view==='Calendario'?<label className="grid w-52 gap-1.5"><span className="text-[12px] font-semibold text-mute">Mes de entrega</span><input type="month" value={month} onChange={e=>setMonth(e.target.value)} className="min-h-11"/></label>:null}
   {view==='Calendario'?<div className="grid gap-2" aria-label="Calendario de entregas del mes">
