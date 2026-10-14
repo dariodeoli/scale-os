@@ -50,7 +50,7 @@ import {
   cn,
 } from 'owncoding-ui';
 import {ConfirmDialog} from './dialog';
-import {CurrencyField,LoadingBlock,PageHeader,StateChip,denseTableMinWidth,useDenseTableFit} from './ui-v2';
+import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 // Compactas a propósito (#101): entran en media pantalla a 1440 para las
@@ -59,13 +59,10 @@ const PERSON_COLS='grid-cols-[minmax(8.5rem,1fr)_6.5rem_minmax(9rem,1.2fr)_6.5re
 const CONTRACT_COLS='grid-cols-[minmax(11rem,1fr)_7rem_7rem_6rem]';
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
 const PLANNED_COLS='grid-cols-[minmax(0,1fr)_7rem_8.5rem_5rem]';
-// El umbral suma el padding de la card (la medida es el wrapper, la tabla vive adentro).
-const PERSONNEL_MIN_WIDTH=denseTableMinWidth(30.5,4)+32;
-const CONTRACTS_MIN_WIDTH=denseTableMinWidth(31,4)+24;
-const PLANNED_MIN_WIDTH=480;
-const REAL_MIN_WIDTH=440;
-const LIST_HEAD='grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[.06em] text-mute';
-const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:py-2';
+const PERSON_COLUMNS:Column[]=[{key:'person',label:'Persona'},{key:'base',label:'Salario base',align:'end'},{key:'total',label:'Cierre del mes',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
+const CONTRACT_COLUMNS:Column[]=[{key:'client',label:'Cliente'},{key:'contracted',label:'Contratado',align:'end'},{key:'invoiced',label:'Facturado',align:'end'},{key:'state',label:'Estado',align:'end'}];
+const PLANNED_COLUMNS:Column[]=[{key:'expense',label:'Gasto'},{key:'cadence',label:'Cadencia'},{key:'amount',label:'Monto',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
+const EXPENSE_COLUMNS:Column[]=[{key:'expense',label:'Gasto'},{key:'amount',label:'Monto',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
 
 const moneyNowrap=(text:string,tono?:'bad')=><span className={cn('whitespace-nowrap tabular-nums',tono==='bad'&&'text-bad')}>{text}</span>;
 
@@ -106,12 +103,6 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  async function openAdjustment(member:PersonnelMember){setAdjustPerson(member);setAdjustSign('extra');setAdjustAmount('');setAdjustNote('');setAdjustError('');setAdjustExisting(false);setConfirmRemove(false);setAdjustLoading(true);try{const result:unknown=await api(`/api/agency/collaborators/${member.collaborator_id}/salary-overrides?month=${encodeURIComponent(month)}`);if(isRecord(result)&&isRecord(result.override)&&isSignedWhole(result.override.amount)){const amount=Number(result.override.amount);setAdjustSign(amount<0?'descuento':'extra');setAdjustAmount(String(Math.abs(amount)));if(typeof result.override.note==='string')setAdjustNote(result.override.note);setAdjustExisting(true);}}catch(error){setAdjustError(error instanceof Error?error.message:'No se pudo cargar el ajuste del mes.');}finally{setAdjustLoading(false);}}
  async function saveAdjustment(event:FormEvent<HTMLFormElement>){event.preventDefault();if(adjustSaving||!adjustPerson)return;if(!isPositiveInput(adjustAmount)){setAdjustError('Ingresá un importe entero positivo y seguro, sin separadores ni decimales.');return;}setAdjustSaving(true);setAdjustError('');try{const amount=adjustSign==='descuento'?`-${adjustAmount}`:adjustAmount;await api(`/api/agency/collaborators/${adjustPerson.collaborator_id}/salary-overrides`,{month,amount,note:adjustNote.trim()||null},'PATCH');setAdjustPerson(null);reload();}catch(error){setAdjustError(error instanceof Error?error.message:'No se pudo guardar el ajuste del mes.');}finally{setAdjustSaving(false);}}
  async function removeOverride(member:PersonnelMember,inDialog=false){if(removingOverride)return;setRemovingOverride(String(member.collaborator_id));if(inDialog)setAdjustError('');else setForecastError('');try{await api(`/api/agency/collaborators/${member.collaborator_id}/salary-overrides?month=${encodeURIComponent(month)}`,{},'DELETE');if(inDialog){setConfirmRemove(false);setAdjustPerson(null);}reload();}catch(error){const message=error instanceof Error?error.message:'No se pudo quitar el ajuste del mes.';if(inDialog)setAdjustError(message);else setForecastError(message);}finally{setRemovingOverride('');}}
- // El umbral cambia cuando llegan los datos: el hook re-mide al montarse la lista
- // (usa el ancho real para elegir una sola rama, nunca las dos).
- const {ref:personnelRef,fits:personnelDense}=useDenseTableFit<HTMLDivElement>(data?PERSONNEL_MIN_WIDTH:0);
- const {ref:contractsRef,fits:contractsDense}=useDenseTableFit<HTMLDivElement>(data?CONTRACTS_MIN_WIDTH:0);
- const {ref:plannedRef,fits:plannedDense}=useDenseTableFit<HTMLDivElement>(plannedExpenses?.records.length?PLANNED_MIN_WIDTH:0);
- const {ref:realRef,fits:realDense}=useDenseTableFit<HTMLDivElement>(realExpenses.length?REAL_MIN_WIDTH:0);
  const contractedRows=data?.contracted_clients?.records??[];
  const openingBalance=data?.opening_balance?.records??[];
  const plannedFor=(currency:MoneyCurrency)=>plannedExpenseCounts(data!.planned_expenses).find(item=>item.currency===currency);
@@ -120,19 +111,18 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  const plannedReady=plannedExpenses?.month===month;
  const plannedTotals=aggregates?.expenses.length??0;
 
- return <section className="grid gap-4" aria-label="Previsión financiera">
-  <PageHeader
-   eyebrow="Finanzas"
-   title="Previsión financiera"
-   subtitle={<span title="Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.">Planificación mensual por moneda; no convierte ni mezcla monedas.</span>}
-   actions={<>
-    <div className="grid min-w-0 gap-1">
-     <Label htmlFor="forecast-month" className="sr-only">Mes</Label>
-     <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/>
-    </div>
-    <SegmentedField className="[&>button]:min-h-11 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
-   </>}
-  />
+ return <ListPage aria-label="Previsión financiera"
+  eyebrow="Finanzas"
+  title="Previsión financiera"
+  subtitle={<span title="Planificación mensual por moneda. No mezcla monedas ni convierte planes, facturas, cobros o gastos en hechos contables.">Planificación mensual por moneda; no convierte ni mezcla monedas.</span>}
+  toolbar={<FilterToolbar className="mb-0">
+   <div className="grid min-w-0 gap-1">
+    <Label htmlFor="forecast-month" className="sr-only">Mes</Label>
+    <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/>
+   </div>
+   <SegmentedField className="[&>button]:min-h-11 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
+  </FilterToolbar>}
+ >
   {error?<ErrorState title="No se pudo cargar la previsión" description={error} onRetry={()=>reload()}/>
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
@@ -204,36 +194,29 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
    </Card>}
    </div>
   <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-2 min-[1440px]:items-start':'grid gap-4'}>
-  <div ref={contractsRef} className="min-w-0">{data.contracted_clients?<Card className="grid gap-3 p-3 sm:p-4">
+  <div className="min-w-0">{data.contracted_clients?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3"><h3 className="text-[17px] font-semibold tracking-tight text-fore" title={data.definition.contracted_clients}>Contratos vs facturación</h3><p className="text-xs text-mute">Controlá lo contratado, lo facturado y lo que todavía requiere emisión.</p></div>
     <div className="grid gap-2">
     {contractedRows.length?<>
-    {contractsDense?null:<div className="grid gap-2" aria-label="Contratos vigentes contra facturación">
-     {contractedRows.map(row=><article className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3" key={`${row.client_id}-${row.currency}`}>
-      <div className="flex items-start justify-between gap-3"><div className="min-w-0"><b className="block truncate text-sm font-semibold text-fore" title={row.client_name}>{row.client_name}</b><small className="text-xs text-mute">{row.currency}{row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}</small></div>{row.missing_invoice?<StateChip tone="bad" title="Contrato con facturación requerida y sin factura emitida en el mes">Sin factura</StateChip>:<StateChip tone="ok" title={row.invoice_required?'Factura emitida en el mes':'El contrato no requiere factura'}>{row.invoice_required?'Facturado':'No requiere'}</StateChip>}</div>
-      <div className="grid grid-cols-2 gap-3 border-t border-ink-600 pt-2"><div><span className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Contratado</span><strong className="whitespace-nowrap text-sm tabular-nums text-fore">{formatWholeMoney(row.contracted_amount,row.currency)}</strong></div><div className="text-right"><span className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Facturado</span><strong className="whitespace-nowrap text-sm tabular-nums text-fore">{formatWholeMoney(row.invoiced_amount,row.currency)}</strong></div></div>
-     </article>)}
-    </div>}
-    {contractsDense?<div className="min-w-0" role="table" aria-label="Contratos vigentes contra facturación">
-     <div role="row" className={cn(LIST_HEAD,CONTRACT_COLS)}><span role="columnheader">Cliente</span><span role="columnheader" className="text-right">Contratado</span><span role="columnheader" className="text-right">Facturado</span><span role="columnheader" className="text-right">Estado</span></div>
-     <div role="rowgroup">{contractedRows.map(row=><div role="row" className={cn(LIST_ROW,CONTRACT_COLS)} key={`${row.client_id}-${row.currency}`}>
+    <ListGrid label="Contratos vigentes contra facturación" template={CONTRACT_COLS} columns={CONTRACT_COLUMNS} minWidthClass="min-w-[31rem]">
+     {contractedRows.map(row=><ListRow template={CONTRACT_COLS} key={`${row.client_id}-${row.currency}`}>
       <span className="min-w-0 truncate text-sm leading-snug" title={`${row.client_name} · ${row.currency}${row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}${row.invoice_required?' · factura requerida':' · sin factura requerida'}`}><b className="font-semibold text-fore">{row.client_name}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{row.currency}{row.ends_on?` · hasta ${listDateFull(row.ends_on)}`:''}</small></span>
-      <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.contracted_amount,row.currency)}</span></span>
-      <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.invoiced_amount,row.currency)}</span></span>
-      <span className={cn('min-w-0','flex justify-end')}>{row.missing_invoice?<StateChip tone="bad" title="Contrato con facturación requerida y sin factura emitida en el mes">Sin factura</StateChip>:<StateChip tone="ok" title={row.invoice_required?'Factura emitida en el mes':'El contrato no requiere factura'}>{row.invoice_required?'Facturado':'No requiere'}</StateChip>}</span>
-     </div>)}</div>
-    </div>:null}
+      <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.contracted_amount,row.currency)}</span></span>
+      <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.invoiced_amount,row.currency)}</span></span>
+      <span className="min-w-0 flex justify-end">{row.missing_invoice?<StateChip tone="bad" title="Contrato con facturación requerida y sin factura emitida en el mes">Sin factura</StateChip>:<StateChip tone="ok" title={row.invoice_required?'Factura emitida en el mes':'El contrato no requiere factura'}>{row.invoice_required?'Facturado':'No requiere'}</StateChip>}</span>
+     </ListRow>)}
+    </ListGrid>
     </>:
     <EmptyState compact title="Sin contratos vigentes para este mes." description="No hay contratos activos que contrastar contra la facturación. Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual." action={navigate?<button className="secondary" onClick={()=>navigate('Clientes')}>Ver clientes</button>:undefined}/>}
     </div>
    </Card>:null}</div>
-   <div ref={personnelRef} className="min-w-0">{data&&horizon==='1'?<Card className="grid gap-3 p-4">
+   <div className="min-w-0">{data&&horizon==='1'?<Card className="grid gap-3 p-4">
     <div className="grid gap-1">
      <h3 className="text-[17px] font-semibold tracking-tight text-fore" title={data.definition.personnel}>Salarios</h3>
      <p className="text-xs text-mute">Gasto esperado al cierre de {dateLabel(data.personnel.month)}, sin pagos ni comisiones registrados.</p>
     </div>
     {data.personnel.records.length?<>
-     <p role="status" className="text-xs text-mute">{count(data.personnel.included_headcount)} colaborador(es) activo(s) incluido(s).</p>
+     <p className="text-xs text-mute">{count(data.personnel.included_headcount)} colaborador(es) activo(s) incluido(s).</p>
      <div className="grid gap-4">
       {data.personnel.records.map(row=><div className="forecast-personnel-card grid gap-2" key={row.currency}>
        <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -244,26 +227,18 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
         <span>Salario base ({count(row.base_count)}): <b className="font-semibold tabular-nums text-fore">{formatWholeMoney(row.base_amount,row.currency)}</b></span>
         {count(row.override_count)>0?<span>Ajustes del mes ({count(row.override_count)}): <b className="font-semibold tabular-nums text-fore">{formatSignedMoney(row.override_amount,row.currency)}</b></span>:null}
        </div>
-       {personnelDense?null:<div className="grid gap-2" aria-label="Salarios">
-        {row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <article className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3" key={String(member.collaborator_id)}>
-         <div className="flex items-center gap-2"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/><div className="min-w-0"><b className="block truncate text-sm font-semibold text-fore" title={member.name}>{member.name}</b>{member.base_amount===0?<small className="text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</div></div>
-         <div className="grid grid-cols-2 gap-3 border-y border-ink-600 py-2"><div><span className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Salario base</span><strong className="whitespace-nowrap text-sm tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></div><div className="text-right"><span className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Cierre del mes</span><strong className={cn('whitespace-nowrap text-sm tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong></div></div>
-         <div className="flex items-center justify-between gap-3"><span className={cn('text-xs tabular-nums',adjustment!==null&&adjustment!==0?'text-warn':'text-mute')}>{adjustment!==null&&adjustment!==0?`Ajuste: ${formatSignedMoney(member.override_amount,member.currency)}`:'Sin ajuste del mes'}</span>{member.base_amount!==null?<span className="flex gap-1.5"><span className={ICON_TARGETS}><IconAction icon="edit" label={`Editar salario: ${member.name}`} onClick={()=>openSalary(member)}/></span><span className={ICON_TARGETS}><IconAction icon="sliders" label={`Ajuste del mes: ${member.name}`} onClick={()=>void openAdjustment(member)}/></span>{adjustment!==null&&adjustment!==0?<span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label={`Quitar ajuste del mes: ${member.name}`} disabled={removingOverride===String(member.collaborator_id)} onClick={()=>void removeOverride(member)}/></span>:null}</span>:null}</div>
-        </article>;})}
-       </div>}
-       {personnelDense?<div className="forecast-person-list min-w-0" role="table" aria-label="Salarios">
-        <div role="row" className={cn(LIST_HEAD,PERSON_COLS)}><span role="columnheader">Persona</span><span role="columnheader" className="text-right">Salario base</span><span role="columnheader" className="text-right">Cierre del mes</span><span role="columnheader" className="text-right">Acciones</span></div>
-        <div role="rowgroup">{row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <div role="row" className={cn(LIST_ROW,PERSON_COLS,'forecast-person-row')} key={String(member.collaborator_id)}>
+       <ListGrid label="Salarios" template={PERSON_COLS} columns={PERSON_COLUMNS} minWidthClass="min-w-[30.5rem]" className="forecast-person-list">
+        {row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <ListRow template={PERSON_COLS} className="forecast-person-row" key={String(member.collaborator_id)}>
          <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/><span className="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title={member.name}>{member.name}</span>{member.base_amount===0?<small className="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</span></span>
-         <span className={cn('min-w-0 text-right','forecast-person-base')}><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
-         <span className={cn('min-w-0 text-right','forecast-person-total')}><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong>{adjustment!==null&&adjustment!==0?<small className="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title={`Ajuste del mes: ${formatSignedMoney(member.override_amount,member.currency)}`}>{formatSignedMoney(member.override_amount,member.currency)}</small>:null}</span>
+         <span className="forecast-person-base min-w-0 text-right"><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
+         <span className="forecast-person-total min-w-0 text-right"><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong>{adjustment!==null&&adjustment!==0?<small className="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title={`Ajuste del mes: ${formatSignedMoney(member.override_amount,member.currency)}`}>{formatSignedMoney(member.override_amount,member.currency)}</small>:null}</span>
          {member.base_amount!==null?<span className="forecast-person-actions flex justify-end gap-1.5">
           <span className={ICON_TARGETS}><IconAction icon="edit" label={`Editar salario: ${member.name}`} onClick={()=>openSalary(member)}/></span>
           <span className={ICON_TARGETS}><IconAction icon="sliders" label={`Ajuste del mes: ${member.name}`} onClick={()=>void openAdjustment(member)}/></span>
           {adjustment!==null&&adjustment!==0?<span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label={`Quitar ajuste del mes: ${member.name}`} disabled={removingOverride===String(member.collaborator_id)} onClick={()=>void removeOverride(member)}/></span>:null}
          </span>:<span aria-hidden="true"/>}
-        </div>;})}</div>
-       </div>:null}
+        </ListRow>;})}
+       </ListGrid>
       </div>)}
      </div>
     </>:<EmptyState compact title="Sin salarios fijos mensuales incluidos para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo." action={navigate?<button className="secondary" onClick={()=>navigate('Equipo')}>Ver equipo</button>:undefined}/>}
@@ -280,7 +255,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <SelectCustom label="Frecuencia" choices={[{value:'monthly',label:'Solo este mes'},{value:'recurring',label:'Recurrente mensual'}]} value={expense.cadence} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,cadence:value==='recurring'?'recurring':'monthly'}))}/>
       <SelectCustom label="Categoría" choices={['Operación','Herramientas','Marketing','Administración','Otro'].map(category=>({value:category,label:category}))} value={expense.category} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,category:value}))}/>
       <SelectCustom label="Tipo" choices={[{value:'variable',label:'Variable'},{value:'fixed',label:'Fijo'}]} value={expense.kind} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,kind:value==='fixed'?'fixed':'variable'}))}/>
-      <FormField label="Monto entero" htmlFor="forecast-expense-amount" error={expense.amount!==''&&!isPositiveInput(expense.amount)?'El monto debe ser mayor a cero.':undefined}><Input id="forecast-expense-amount" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={16} value={expense.amount} disabled={expenseSaving} placeholder="Sin separadores" onChange={(event:FormEvent<HTMLInputElement>)=>setExpense(current=>({...current,amount:soloDigitos((event.target as HTMLInputElement).value)}))}/></FormField>
+      <FormField label="Monto entero" htmlFor="forecast-expense-amount" error={expense.amount!==''&&!isPositiveInput(expense.amount)?'El monto debe ser mayor a cero.':undefined}><AmountInput id="forecast-expense-amount" integerOnly value={expense.amount} currency={expense.currency} disabled={expenseSaving} invalid={expense.amount!==''&&!isPositiveInput(expense.amount)} onChange={value=>setExpense(current=>({...current,amount:soloDigitos(value)}))}/></FormField>
       <CurrencyField id="forecast-expense-currency" label="Moneda" value={expense.currency} disabled={expenseSaving} onChange={value=>setExpense(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
       <FormField label="Nota opcional" htmlFor="forecast-expense-note"><Input id="forecast-expense-note" type="text" maxLength={280} value={expense.note} disabled={expenseSaving} onChange={(event:FormEvent<HTMLInputElement>)=>setExpense(current=>({...current,note:(event.target as HTMLInputElement).value}))}/></FormField>
       <Button type="submit" disabled={expenseSaving||!isPositiveInput(expense.amount)} className="w-full sm:w-auto">{expenseSaving?'Guardando…':'Agregar gasto planificado'}</Button>
@@ -297,22 +272,15 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     {plannedError?<ErrorState title="No se pudieron cargar los gastos planificados" description={plannedError} onRetry={()=>reloadPlanned()}/>:null}
     {!plannedError&&!plannedReady?<LoadingBlock label="Cargando gastos planificados…" lines={2}/>:null}
     {!plannedError&&plannedReady&&plannedExpenses.records.length?<>
-    <div ref={plannedRef} className="min-w-0">
-    {plannedDense?null:<div className="grid gap-2" aria-label="Gastos planificados del mes">
-     {plannedExpenses.records.map(record=><article className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3" key={record.id}>
-      <div className="flex items-start justify-between gap-3"><div className="min-w-0"><b className="block truncate text-sm font-semibold text-fore" title={`${record.category}${record.note?` · ${record.note}`:''}`}>{record.category}</b><small className="block truncate text-xs text-mute" title={record.note||'Sin nota'}>{record.note||'Sin nota'}</small></div><span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label={`Quitar gasto planificado: ${record.category}`} disabled={plannedDeleting===record.id} onClick={()=>setPlannedTarget({id:record.id,category:record.category,amount:String(record.amount),currency:record.currency})}/></span></div>
-      <div className="grid grid-cols-2 gap-3 border-t border-ink-600 pt-2"><div><span className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Tipo</span><span className="text-sm text-fore">{record.kind==='fixed'?'Fijo':'Variable'} · {record.cadence==='recurring'?'Recurrente':'Este mes'}</span></div><div className="text-right"><span className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Monto</span><strong className="whitespace-nowrap text-sm tabular-nums text-fore">{formatWholeMoney(record.amount,record.currency)}</strong></div></div>
-     </article>)}
-    </div>}
-    {plannedDense?<div className="min-w-0" role="table" aria-label="Gastos planificados del mes">
-     <div role="row" className={cn(LIST_HEAD,PLANNED_COLS)}><span role="columnheader">Gasto</span><span role="columnheader">Cadencia</span><span role="columnheader" className="text-right">Monto</span><span role="columnheader" className="text-right">Acciones</span></div>
-     <div role="rowgroup">{plannedExpenses.records.map(record=><div role="row" className={cn(LIST_ROW,PLANNED_COLS)} key={record.id}>
+    <div className="min-w-0">
+    <ListGrid label="Gastos planificados del mes" template={PLANNED_COLS} columns={PLANNED_COLUMNS} minWidthClass="min-w-[30rem]">
+     {plannedExpenses.records.map(record=><ListRow template={PLANNED_COLS} key={record.id}>
       <span className="min-w-0 truncate text-sm leading-snug" title={`${record.category}${record.note?` · ${record.note}`:''}`}><b className="font-semibold text-fore">{record.category}</b>{record.kind?<span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-mute">{record.kind==='fixed'?'Fijo':'Variable'}</span>:null}<small className="ml-2 text-xs text-mute">{record.note||'Sin nota'}</small></span>
       <span className="min-w-0"><span className="text-sm text-fore">{record.cadence==='recurring'?'Recurrente':'Solo este mes'}</span></span>
-      <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(record.amount,record.currency)}</span></span>
-      <span className={cn('min-w-0','flex justify-end')}><span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label={`Quitar gasto planificado: ${record.category}`} disabled={plannedDeleting===record.id} onClick={()=>setPlannedTarget({id:record.id,category:record.category,amount:String(record.amount),currency:record.currency})}/></span></span>
-     </div>)}</div>
-    </div>:null}
+      <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(record.amount,record.currency)}</span></span>
+      <span className="min-w-0 flex justify-end"><span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label={`Quitar gasto planificado: ${record.category}`} disabled={plannedDeleting===record.id} onClick={()=>setPlannedTarget({id:record.id,category:record.category,amount:String(record.amount),currency:record.currency})}/></span></span>
+     </ListRow>)}
+    </ListGrid>
     </div>
     </>:null}
     {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals===0?<EmptyState compact title={`Sin gastos planificados para ${dateLabel(month)}.`} description="Agregá un gasto para que se incorpore al resultado estimado, sin registrar un pago real."/>:null}
@@ -328,28 +296,21 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <SelectCustom label="Cuenta" choices={[{value:'',label:'Elegí una cuenta'},...accounts.filter(account=>account.active).map(account=>({value:String(account.id),label:`${account.name} · ${account.currency}`}))]} value={realExpense.accountId} disabled={realSaving} onChange={value=>setRealExpense(current=>({...current,accountId:value}))}/>
       <SelectCustom label="Categoría" choices={['Operación','Herramientas','Marketing','Administración','Otro'].map(category=>({value:category,label:category}))} value={realExpense.category} disabled={realSaving} onChange={value=>setRealExpense(current=>({...current,category:value}))}/>
       <SelectCustom label="Tipo" choices={[{value:'variable',label:'Variable'},{value:'fixed',label:'Fijo'}]} value={realExpense.kind} disabled={realSaving} onChange={value=>setRealExpense(current=>({...current,kind:value==='fixed'?'fixed':'variable'}))}/>
-      <FormField label="Monto entero" hint="Sin separadores" htmlFor="forecast-real-amount" error={realExpense.amount!==''&&!isPositiveInput(realExpense.amount)?'El monto debe ser mayor a cero.':undefined}><Input id="forecast-real-amount" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={16} value={realExpense.amount} disabled={realSaving} placeholder="Sin separadores" onChange={(event:FormEvent<HTMLInputElement>)=>setRealExpense(current=>({...current,amount:soloDigitos((event.target as HTMLInputElement).value)}))}/></FormField>
+      <FormField label="Monto entero" htmlFor="forecast-real-amount" error={realExpense.amount!==''&&!isPositiveInput(realExpense.amount)?'El monto debe ser mayor a cero.':undefined}><AmountInput id="forecast-real-amount" integerOnly value={realExpense.amount} currency={accounts.find(item=>String(item.id)===realExpense.accountId)?.currency||'PYG'} disabled={realSaving} invalid={realExpense.amount!==''&&!isPositiveInput(realExpense.amount)} onChange={value=>setRealExpense(current=>({...current,amount:soloDigitos(value)}))}/></FormField>
       <FormField label="Fecha" htmlFor="forecast-real-date"><Input id="forecast-real-date" type="date" className="w-full" value={realExpense.paidOn} disabled={realSaving} onChange={(event:FormEvent<HTMLInputElement>)=>setRealExpense(current=>({...current,paidOn:(event.target as HTMLInputElement).value}))}/></FormField>
       <FormField label="Referencia" htmlFor="forecast-real-reference"><Input id="forecast-real-reference" type="text" maxLength={180} value={realExpense.reference} disabled={realSaving} onChange={(event:FormEvent<HTMLInputElement>)=>setRealExpense(current=>({...current,reference:(event.target as HTMLInputElement).value}))}/></FormField>
       <Button type="submit" disabled={realSaving||!realExpense.accountId||!isPositiveInput(realExpense.amount)} className="w-full sm:w-auto xl:col-span-6 xl:justify-self-end">{realSaving?'Guardando…':'Registrar gasto real'}</Button>
      </form>
     </div>
     {realExpenses.length?<>
-    <div ref={realRef} className="min-w-0">
-    {realDense?null:<div className="grid gap-2" aria-label="Gastos reales del mes">
-     {realExpenses.map(row=><article className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3" key={String(row.id)}>
-      <div className="flex items-start justify-between gap-3"><div className="min-w-0"><b className="block truncate text-sm font-semibold text-fore" title={`${row.category}${row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}`}>{row.category}{row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}</b><small className="block truncate text-xs text-mute" title={`${listDateShort(row.paid_on)} · ${row.account_name}${row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}`}>{listDateShort(row.paid_on)} · {row.account_name}</small></div><span className={ICON_TARGETS}><IconAction icon="refresh" tone="bad" label={`Revertir gasto real: ${row.category}`} disabled={realDeleting===String(row.id)} onClick={()=>setRealTarget({id:row.id,category:row.category,amount:String(row.amount),currency:row.currency})}/></span></div>
-      <div className="flex items-end justify-between gap-3 border-t border-ink-600 pt-2"><span className="text-xs text-mute">Pago registrado</span><strong className="whitespace-nowrap text-sm tabular-nums text-fore">{formatWholeMoney(row.amount,row.currency)}</strong></div>
-     </article>)}
-    </div>}
-    {realDense?<div className="min-w-0" role="table" aria-label="Gastos reales del mes">
-     <div role="row" className={cn(LIST_HEAD,EXPENSE_COLS)}><span role="columnheader">Gasto</span><span role="columnheader" className="text-right">Monto</span><span role="columnheader" className="text-right">Acciones</span></div>
-     <div role="rowgroup">{realExpenses.map(row=><div role="row" className={cn(LIST_ROW,EXPENSE_COLS)} key={String(row.id)}>
-      <span className="min-w-0 truncate text-sm leading-snug" title={`${row.category}${row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''} · ${listDateShort(row.paid_on)} · ${row.account_name}${row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}`}><b className="font-semibold text-fore">{row.category}{row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{listDateShort(row.paid_on)} · {row.account_name}{row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}</small></span>
-      <span className={cn('min-w-0','text-right')}><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.amount,row.currency)}</span></span>
-      <span className={cn('min-w-0','flex justify-end')}><span className={ICON_TARGETS}><IconAction icon="refresh" tone="bad" label={`Revertir gasto real: ${row.category}`} disabled={realDeleting===String(row.id)} onClick={()=>setRealTarget({id:row.id,category:row.category,amount:String(row.amount),currency:row.currency})}/></span></span>
-     </div>)}</div>
-    </div>:null}
+    <div className="min-w-0">
+    <ListGrid label="Gastos reales del mes" template={EXPENSE_COLS} columns={EXPENSE_COLUMNS} minWidthClass="min-w-[27.5rem]">
+     {realExpenses.map(row=><ListRow template={EXPENSE_COLS} key={String(row.id)}>
+      <span className="min-w-0 truncate text-sm leading-snug" title={`${row.category}${row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''} · ${listDateShort(row.paid_on)} · ${row.account_name}${row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}`}><b className="font-semibold text-fore">{row.category}{row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{listDateShort(row.paid_on)} · {row.account_name}{row.reference?` · ${row.reference}`:''}{row.created_by_email?` · registró ${row.created_by_email}`:''}</small></span>
+      <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.amount,row.currency)}</span></span>
+      <span className="min-w-0 flex justify-end"><span className={ICON_TARGETS}><IconAction icon="refresh" tone="bad" label={`Revertir gasto real: ${row.category}`} disabled={realDeleting===String(row.id)} onClick={()=>setRealTarget({id:row.id,category:row.category,amount:String(row.amount),currency:row.currency})}/></span></span>
+     </ListRow>)}
+    </ListGrid>
     </div>
     </>:<EmptyState compact title={`Sin gastos reales registrados para ${dateLabel(month)}.`} description="Cuando registres un pago contra una cuenta activa, aparecerá acá y se descontará del saldo."/>}
     {realError?<Aviso tono="error">{realError}</Aviso>:null}
@@ -369,5 +330,5 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
 
    {realTarget?<ConfirmDialog open busy={realDeleting===String(realTarget.id)} variant="danger" title="Revertir gasto real" confirmLabel="Revertir gasto real" description={<>{`Se revertirá ${realTarget.category} por ${formatWholeMoney(realTarget.amount,realTarget.currency)}: el importe se acredita de nuevo en la cuenta y el pago sale del mes. El movimiento permanece en el historial.`}{realError?<span role="alert" className="mt-2 block font-semibold text-bad">{realError}</span>:null}</>} onCancel={()=>{if(!realDeleting)setRealTarget(null);}} onConfirm={()=>void removeRealExpense(realTarget.id).then(ok=>{if(ok)setRealTarget(null);})}/>:null}
   </>}
- </section>;
+ </ListPage>;
 }
