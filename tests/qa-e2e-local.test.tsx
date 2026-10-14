@@ -9,7 +9,7 @@ Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
 const source=(file:string)=>readFileSync(new URL(`../${file}`,import.meta.url),'utf8');
 const {budgetKpisOf}=require('../app/budget-status') as typeof import('../app/budget-status');
-const {paymentCurrency}=require('../app/workspace-forms') as typeof import('../app/workspace-forms');
+const {paymentCurrency}=require('../app/treasury-data') as typeof import('../app/treasury-data');
 const {platformAttention}=require('../app/superadmin/overview') as typeof import('../app/superadmin/overview');
 
 test('Presupuestos: el KPI «Total sin IVA» suma subtotales, no el total con IVA',()=>{

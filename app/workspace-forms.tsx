@@ -17,6 +17,7 @@ import {isPositiveInput} from './forecast-data';
 import {listDateShort} from './list-format';
 import {money} from './money-format';
 import {teamRoleLabels} from './team-directory';
+import {paymentCurrency} from './treasury-data';
 
 
 type WorkspaceRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
@@ -505,12 +506,6 @@ const paymentSchema = z.object({
   receivedByUserId: z.string().optional(),
 });
 type PaymentValues = z.infer<typeof paymentSchema>;
-/** Moneda del importe cobrado: la de la cuenta elegida; antes de elegirla, la de la factura (nunca «Gs» para una factura en USD). */
-export function paymentCurrency(accounts: Pick<Account,'id'|'currency'>[], invoices: Pick<Invoice,'id'|'currency'>[], accountId?: string, invoiceId?: string) {
-  return accounts.find(account=>String(account.id)===String(accountId))?.currency
-    || invoices.find(invoice=>String(invoice.id)===String(invoiceId))?.currency
-    || 'PYG';
-}
 export function PaymentForm({
   invoices,
   accounts,
