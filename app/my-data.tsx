@@ -77,7 +77,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
   <div className="grid gap-4">
    <section className={CARD} aria-labelledby="my-data-summary">
     <p id="my-data-summary" className={KICKER}>Resumen y finalidades</p>
-    <p className="text-[13px] leading-relaxed text-mute">Estos son los datos de tu cuenta y las finalidades con las que los tratamos. El detalle completo, con conservación y destinatarios, está en el <a className="text-fono-dark hover:underline" href="/privacidad">Aviso de Privacidad {PRIVACY_NOTICE.version}</a> ({PRIVACY_NOTICE.fechaLabel}).</p>
+    <p className="text-[13px] leading-relaxed text-mute">Estos son los datos de tu cuenta y las finalidades con las que los tratamos. El detalle completo, con conservación y destinatarios, está en el <a className="text-fono-dark underline underline-offset-2" href="/privacidad">Aviso de Privacidad {PRIVACY_NOTICE.version}</a> ({PRIVACY_NOTICE.fechaLabel}).</p>
     <dl className="grid gap-1 text-[13px]">
      <div className="flex flex-wrap items-center gap-x-2"><dt className="font-semibold text-fore">Correo de la cuenta</dt><dd className="break-all text-mute">{technicalEmail(profile.email)?'Cuenta de demostración · sin correo real':profile.email}</dd></div>
      {profile.full_name?<div className="flex flex-wrap items-center gap-x-2"><dt className="font-semibold text-fore">Nombre</dt><dd className="text-mute">{profile.full_name}</dd></div>:null}
@@ -129,9 +129,9 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
 
 function RightsLinks({inline=false}:{inline?:boolean}){
  return <span className={inline?'':'flex flex-wrap gap-2'}>
-  <a className={inline?'text-fono-dark hover:underline':`secondary ${ACTION}`} href={PRIVACY_RIGHTS_CHANNEL.whatsappUrl} target="_blank" rel="noopener noreferrer">{PRIVACY_RIGHTS_CHANNEL.whatsappLabel}</a>
+  <a className={inline?'text-fono-dark underline underline-offset-2':`secondary ${ACTION}`} href={PRIVACY_RIGHTS_CHANNEL.whatsappUrl} target="_blank" rel="noopener noreferrer">{PRIVACY_RIGHTS_CHANNEL.whatsappLabel}</a>
   {inline?<span aria-hidden="true"> · </span>:null}
-  <a className={inline?'text-fono-dark hover:underline':`secondary ${ACTION}`} href={PRIVACY_RIGHTS_CHANNEL.contactFormUrl} target="_blank" rel="noopener noreferrer">{PRIVACY_RIGHTS_CHANNEL.contactFormLabel}</a>
+  <a className={inline?'text-fono-dark underline underline-offset-2':`secondary ${ACTION}`} href={PRIVACY_RIGHTS_CHANNEL.contactFormUrl} target="_blank" rel="noopener noreferrer">{PRIVACY_RIGHTS_CHANNEL.contactFormLabel}</a>
  </span>;
 }
 

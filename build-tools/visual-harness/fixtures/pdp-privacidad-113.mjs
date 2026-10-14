@@ -20,7 +20,7 @@ import {AvisoPrivacidad, ConsentimientoDatos, Badge} from 'owncoding-ui';
 
 const VERSION = 'v1';
 const icon = (node) => renderToStaticMarkup(node);
-const brand = `<span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
+const brand = `<span class="workspace-brand" role="img" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""/><span class="workspace-wordmark">scale<span>OS</span></span></span>`;
 
 const avisoPrivacidad = (props) => renderToStaticMarkup(React.createElement(AvisoPrivacidad, props));
 const consentimiento = (props) => renderToStaticMarkup(React.createElement(ConsentimientoDatos, props));
@@ -97,7 +97,7 @@ const misDatos = `
 <div class="grid gap-4">
  <section class="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3" aria-labelledby="my-data-summary">
   <p id="my-data-summary" class="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Resumen y finalidades</p>
-  <p class="text-[13px] leading-relaxed text-mute">Estos son los datos de tu cuenta y las finalidades con las que los tratamos. El detalle completo está en el <a class="text-fono-dark hover:underline" href="/privacidad">Aviso de Privacidad ${VERSION}</a> (30 de septiembre de 2026).</p>
+  <p class="text-[13px] leading-relaxed text-mute">Estos son los datos de tu cuenta y las finalidades con las que los tratamos. El detalle completo está en el <a class="text-fono-dark underline underline-offset-2" href="/privacidad">Aviso de Privacidad ${VERSION}</a> (30 de septiembre de 2026).</p>
   <dl class="grid gap-1 text-[13px]">
    <div class="flex flex-wrap items-center gap-x-2"><dt class="font-semibold text-fore">Correo de la cuenta</dt><dd class="break-all text-mute">persona@agencia-ejemplo.com.py</dd></div>
    <div class="flex flex-wrap items-center gap-x-2"><dt class="font-semibold text-fore">Nombre</dt><dd class="text-mute">María Fernanda González</dd></div>
@@ -129,7 +129,7 @@ const misDatos = `
    ${solicitud('Supresión', chip('ok', 'Resuelta'), '2 sept 26 · 08:05', {label: 'Resuelta en 12 días', tone: ''}, 'Historial fiscal conservado, resto anonimizado')}
   </ul>
  </section>
- <p class="text-[11.5px] leading-5 text-mute">¿No podés entrar a tu cuenta o preferís otro medio? <a class="text-fono-dark hover:underline" href="https://wa.me/595993391354">WhatsApp +595 993 391 354</a> · <a class="text-fono-dark hover:underline" href="https://sistema.scaleparaguay.com/#contacto">Formulario de contacto</a>. Este pedido lo atiende Scale Strategy Group.</p>
+ <p class="text-[11.5px] leading-5 text-mute">¿No podés entrar a tu cuenta o preferís otro medio? <a class="text-fono-dark underline underline-offset-2" href="https://wa.me/595993391354">WhatsApp +595 993 391 354</a> · <a class="text-fono-dark hover:underline" href="https://sistema.scaleparaguay.com/#contacto">Formulario de contacto</a>. Este pedido lo atiende Scale Strategy Group.</p>
 </div>`;
 
 const supresionBody = `

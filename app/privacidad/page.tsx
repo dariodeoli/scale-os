@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage(){
    </section>)}
   </div>
   <p className="border-t border-ink-600 pt-4 text-[11.5px] text-mute">
-   Ruta pública permanente: <a className="text-fono-dark hover:underline" href={PRIVACY_NOTICE_PATH}>{PRIVACY_NOTICE_PATH}</a>. La versión vigente y su fecha se muestran arriba; las versiones anteriores se conservan y se entregan por el canal de derechos.
+   Ruta pública permanente: <a className="text-fono-dark underline underline-offset-2" href={PRIVACY_NOTICE_PATH}>{PRIVACY_NOTICE_PATH}</a>. La versión vigente y su fecha se muestran arriba; las versiones anteriores se conservan y se entregan por el canal de derechos.
   </p>
  </AccessLayout>;
 }
