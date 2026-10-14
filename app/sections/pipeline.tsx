@@ -1,4 +1,5 @@
 "use client";
+import {OptionalMark} from '../field-label';
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
@@ -15,8 +16,10 @@ import {filterLeads,leadCurrencies,leadFiltersActive,NO_LEAD_FILTERS,type LeadFi
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
-import {ActionMenu,BulkBar,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
+import {ActionMenu,BulkBar,ListPage,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
 import {SelectCustom} from '../profile-controls';
+import {currencyChoices} from '../currencies';
+import {useCompanyCurrency} from '../currency-provider';
 import {SaveActions} from '../save-actions';
 import {PHONE_HELP} from '../field-rules';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
@@ -40,6 +43,8 @@ type PipelineSectionProps = {
   onRetryMetrics?: () => void;
   /** Navegación del shell (misma vía que los tabs). */
   navigate?: (label: string) => void;
+  /** Abre la ficha del cliente vinculado (la misma del directorio de Clientes). */
+  openClient?: (id: string) => void;
 };
 type Row=LeadOpportunity;
 type RawRow=Record<string,unknown>;
@@ -59,7 +64,7 @@ const stageKindChoices=[{value:'open',label:'Abierta (oportunidad en curso)'},{v
 // no tiene puntero, cae al rectángulo que se cruza.
 const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
-type LeadActions={moveTo:(row:Row)=>void;convert:(row:Row)=>void};
+type LeadActions={moveTo:(row:Row)=>void;convert:(row:Row)=>void;openClient?:(row:Row)=>void};
 // Dato ausente = vacío explícito: no se inventa un monto 0 ni una probabilidad 0.
 // Una sola lectura del dato para la tarjeta y la fila de la lista.
 function leadFacts(row:Row){
@@ -97,6 +102,7 @@ function useLeadMenu({row,role,canMove,actions,edit,refresh}:{row:Row;role:strin
   const items:RecordMenuItem[]=[
     ...(canMove&&actions?[{id:'move',label:'Mover a etapa…',onClick:()=>actions.moveTo(row)}]:[]),
     ...(convertible?[{id:'convert',label:'Convertir a cliente',onClick:()=>actions!.convert(row)}]:[]),
+    ...(row.client_id&&actions?.openClient?[{id:'client',label:'Ver cliente',onClick:()=>actions.openClient!(row)}]:[]),
     ...(mayEdit?[{id:'edit',label:'Editar oportunidad',onClick:edit}]:[]),
     ...(canRemoveLead(role)?[{id:'delete',label:'Mover a la papelera',peligro:true,onClick:()=>setRemoving(true)}]:[]),
   ];
@@ -205,7 +211,8 @@ function LeadListRow({row,stageLabel,editable,selected,onSelect,edit,role,canMov
   </ListRow>;
 }
 
-export function PipelineSection({user, metricsState='ready', onRetryMetrics, navigate}: PipelineSectionProps){
+export function PipelineSection({user, metricsState='ready', onRetryMetrics, navigate, openClient}: PipelineSectionProps){
+  const companyCurrency=useCompanyCurrency().currency;
   const [rows,setRows]=useState<Row[]>([]);
   const [stages,setStages]=useState<Stage[]>(fallbackStages);
   const [state,setState]=useState<LeadsState>('loading');
@@ -340,7 +347,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     {key:'phone',label:'Teléfono',type:'phone',optional:true,help:PHONE_HELP},
     {key:'stage',label:'Etapa',choices:stageChoices},
     {key:'amount',label:'Valor de la oportunidad',type:'money'},
-    {key:'currency',label:'Moneda',choices:[{value:'PYG',label:'PYG · Guaraníes'},{value:'USD',label:'USD · Dólares'},{value:'EUR',label:'EUR · Euros'},{value:'BRL',label:'BRL · Reales'},{value:'ARS',label:'ARS · Pesos argentinos'},{value:'MXN',label:'MXN · Pesos mexicanos'}]},
+    {key:'currency',label:'Moneda',choices:currencyChoices},
     {key:'probability',label:'Probabilidad (%)',type:'number',integer:true},
     {key:'notes',label:'Próximo paso y notas',type:'textarea',optional:true},
     // Oposicion al contacto (#114): campo del Editor (Si/No), viaja en el mismo guardado.
@@ -348,7 +355,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   ];
   const newDefaultStage=activeStages.find(stage=>stage.value===newStage);
   const newProbability=newDefaultStage?.kind==='won'?'100':newDefaultStage?.kind==='lost'?'0':'10';
-  const defaults:Record<string,string>=row?{...Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])),do_not_contact:row.do_not_contact===true?'yes':'no'}:{currency:'PYG',stage:newDefaultStage?newDefaultStage.value:defaultStage,amount:'0',probability:newProbability,name:'',email:'',phone:'',notes:'',do_not_contact:'no'};
+  const defaults:Record<string,string>=row?{...Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])),do_not_contact:row.do_not_contact===true?'yes':'no'}:{currency:companyCurrency,stage:newDefaultStage?newDefaultStage.value:defaultStage,amount:'0',probability:newProbability,name:'',email:'',phone:'',notes:'',do_not_contact:'no'};
 
   // Solo las etapas activas aceptan drops: ganar fija 100% y perder 0%; el resto
   // conserva la probabilidad cargada. El movimiento es optimista: la tarjeta
@@ -387,7 +394,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     catch(reason){setError(err(reason));setConvertOffer(null);}
     finally{setBusy(false);}
   }
-  const leadActions:LeadActions={moveTo:setMoveTarget,convert:setConvertOffer};
+  const leadActions:LeadActions={moveTo:setMoveTarget,convert:setConvertOffer,...(openClient?{openClient:(target:Row)=>openClient(String(target.client_id))}:{})};
   const openCreate=(stage:string)=>{setNewStage(stage);setEdit('new');};
 
   // Filtros, vista y lote (#182). La etapa elegida deja solo su columna en el
@@ -456,17 +463,17 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   }
 
   return (
-    <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4" aria-label="Pipeline">
-      <PageHeader
-        title="Pipeline"
-        actions={canEdit?<>
-          <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
-          <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
-        </>:undefined}
-      />
+    // Encabezado propio (ownsHeader): título del shell + acciones primarias en
+    // la misma fila; la toolbar queda para filtros, vista y contador.
+    <ListPage aria-label="Pipeline" primaryAction={canEdit?<>
+      <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
+      <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
+    </>:undefined}>
       {/* Filtros (#182): buscador + etapa + moneda, válidos para el tablero y la
           lista. No hay «responsable» en las oportunidades del API: no se ofrece. */}
-      <FilterToolbar summary={state==='ready'||rows.length?(filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`):undefined}>
+      {/* Reorganización IA: el título y las acciones primarias comparten la fila
+          del encabezado (ListPage); acá quedan filtros, vista y contador. */}
+      <FilterToolbar>
         <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar oportunidades" value={filters.query} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setFilter({query:event.target.value})} placeholder="Buscar por nombre, contacto o notas…"/>
         <div className="min-w-0">
           <Label htmlFor="pipeline-etapa" className="sr-only">Etapa</Label>
@@ -485,6 +492,9 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         <div role="group" aria-label="Vista del pipeline"><ViewSwitch value={view} onChange={changeView}/></div>
         {filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:null}
         {view==='list'&&canEdit&&listRows.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>:null}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {state==='ready'||rows.length?<p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute">{filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`}</p>:null}
+        </div>
       </FilterToolbar>
       {view==='list'&&canEdit&&selected.length?<BulkBar count={selected.length} busy={bulkBusy} onClear={()=>setSelected([])}>
         <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)}><Move size={14} aria-hidden="true"/>Mover a etapa</button>
@@ -533,7 +543,10 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       </div>:<div className="grid min-w-0 gap-2">
         {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
             flechas para recorrer el tablero sin adivinar que hay más etapas. */}
-        {boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
+        {/* Una sola fila: la ayuda de arrastre y el recorrido de etapas. */}
+        {canMove||boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        {canMove?<span className="flex min-w-0 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>:null}
+        {boardWindow.hiddenTotal>0?<div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
           <StateChip tone="info" title={`Hay ${boardWindow.hiddenTotal} ${boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista: usá las flechas o desplazá el tablero.`}>{boardWindow.hiddenTotal} {boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista</StateChip>
           <span className="tabular-nums">Mostrando etapas {boardWindow.from+1}–{boardWindow.to+1} de {boardWindow.total}</span>
           <div className="inline-actions gap-1">
@@ -541,7 +554,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
             <button type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></button>
           </div>
         </div>:null}
-        {canMove?<span className="flex min-w-0 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>:null}
+        </div>:null}
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div ref={boardRef} className="flex gap-3 overflow-x-auto pb-2">
             {activeStages.filter(stage=>!filters.stage||stage.value===filters.stage).map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label,kind:stage.kind}} actions={leadActions} create={openCreate} rows={filtered.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
@@ -572,6 +585,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
           </details>
         </div>
         {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={()=>void convertLead(row)}>Ganado: convertir a cliente</Button></div>:null}
+        {row&&row.client_id&&openClient?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={()=>{const id=String(row.client_id);setEdit(null);openClient(id);}}>Ver cliente vinculado</Button></div>:null}
       </Dialog>:null}
 
       {bulkMove&&canEdit?<Dialog title={`Mover ${selected.length} oportunidad${selected.length===1?'':'es'} a etapa`} busy={bulkBusy} close={()=>{if(!bulkBusy)setBulkMove(false);}}>
@@ -598,7 +612,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {stagePanel&&canEdit?<Dialog title="Etapas del pipeline" close={()=>setStagePanel(false)}>
         <StageManager stages={stages} reload={async()=>{await Promise.all([loadStages(),load()]);}}/>
       </Dialog>:null}
-    </section>
+    </ListPage>
   );
 }
 
@@ -631,7 +645,7 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={event=>{event.preventDefault();if(busy)return;const name=label.trim();const order=validOrder(position);if(name.length<2){setError('Ingresá el nombre de la etapa.');return;}if(Number.isNaN(order)){setError('Orden de etapa inválido.');return;}void run(async()=>{await api('/api/agency/pipeline-stages',{label:name,kind,...(order===null?{}:{position:order})},'POST');setLabel('');setPosition('');setKind('open');return 'Etapa creada.';});}}>
       <div className="grid gap-1"><Label htmlFor="stage-name">Nombre de la etapa</Label><Input id="stage-name" value={label} disabled={busy} maxLength={60} placeholder="Ej.: Visita técnica" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setLabel(event.target.value)}/></div>
       <div className="grid gap-1"><Label htmlFor="stage-kind">Tipo</Label><Select id="stage-kind" value={kind} disabled={busy} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setKind(event.target.value as Stage['kind'])}>{stageKindChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></div>
-      <div className="grid gap-1"><Label htmlFor="stage-position">Orden · Opcional</Label><Input id="stage-position" type="number" min={0} max={9999} value={position} disabled={busy} placeholder="Al final" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setPosition(event.target.value)}/></div>
+      <div className="grid gap-1"><Label htmlFor="stage-position">Orden<OptionalMark/></Label><Input id="stage-position" type="number" min={0} max={9999} value={position} disabled={busy} placeholder="Al final" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setPosition(event.target.value)}/></div>
       <div className="sm:col-span-3"><Button type="submit" disabled={busy||label.trim().length<2}>{busy?'Guardando…':'Crear etapa'}</Button></div>
     </form>
     <ul className="grid gap-2">

@@ -147,7 +147,7 @@ assert.match(activityFormat, /agency_invoices: \{INSERT: 'Factura emitida'/, 'la
 assert.match(activityFormat, /agency_payments: \{INSERT: 'Pago recibido'/, 'los pagos se leen como eventos de negocio');
 assert.match(activityFormat, /agency_projects: \{[^}]*DELETE: 'Proyecto archivado'/, 'los proyectos archivados se leen como eventos de negocio');
 assert.match(read('app/suite.tsx'), /activityEvent\(r\)/, 'el feed usa la fuente única de eventos');
-assert.match(read('app/sections/preferencias.tsx'), /<KpiStrip compact>/, 'Preferencias usa la franja compacta de KPIs (#143)');
+assert.doesNotMatch(read('app/sections/preferencias.tsx'), /<KpiStrip/, 'Preferencias no repite en KPIs lo que dicen sus tarjetas (reorganización IA)');
 
 console.log(
   'PASS: retirados con reinvitación y lote resiliente, portal con invitaciones y reenvío de verificación, rutas/componentes muertos eliminados, cobro preseleccionado, /status desde la ayuda y correo comprobado contra el API',

@@ -2,11 +2,11 @@
 // Diálogo de suscripción manual (estado, gracia en un clic y opciones avanzadas).
 // #189: arriba el estado actual y las gracias rápidas (+7 días, +1 mes, +3 meses);
 // el override manual y el pago manual siguen debajo, plegados.
+import {OptionalMark} from '../field-label';
 import {useRef, useState, type FormEvent, type MutableRefObject} from "react";
 import {Dialog, ConfirmDialog} from "../dialog";
 import {agencyExpiry, newExtendKey, platformDate, type Agency, type Subscription} from "./model";
 import {listDateFull} from "../list-format";
-import {SaveActions} from "../save-actions";
 import {SelectCustom} from "../profile-controls";
 import {LoadingBlock, StateChip} from '../ui-v2';
 
@@ -132,6 +132,8 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
               </button>
             </div>
           </section>
+          {/* Las acciones de las opciones avanzadas viven junto a su formulario: en el
+              pie del diálogo quedaban visibles con la sección cerrada. */}
           <details className="ops-profile-section">
             <summary>Opciones avanzadas</summary>
           {subscription === null ? (
@@ -169,7 +171,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                     />
                   </label>
                   <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
-                    Vence (opcional)
+                    Vence<OptionalMark/>
                     <input
                       type="datetime-local"
                       value={subscriptionExpiryValue}
@@ -181,8 +183,9 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   </label>
                 </>
               ) : null}
-              <SaveActions pending={busy} cancelLabel={false}>
+              <div className="inline-actions justify-end">
                 <button
+                  type="submit"
                   className="secondary"
                   disabled={
                     busy ||
@@ -192,7 +195,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 >
                   {busy ? "Guardando…" : "Guardar estado manual"}
                 </button>
-              </SaveActions>
+              </div>
             </form>
           )}
             <form
@@ -218,14 +221,15 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   placeholder="Ej.: Transferencia bancaria"
                 />
               </label>
-              <SaveActions pending={busy} cancelLabel={false}>
+              <div className="inline-actions justify-end">
                 <button
+                  type="submit"
                   className="secondary"
                   disabled={busy || extendReason.trim().length < 3}
                 >
                   {busy ? "Guardando…" : "Marcar pago manual"}
                 </button>
-              </SaveActions>
+              </div>
             </form>
           </details>
             </>

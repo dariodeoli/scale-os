@@ -221,3 +221,12 @@ test('proyección optimista de listas: cae al payload completo si el API no la s
  await assert.rejects(()=>projectedList('test-error','/api/agency/budgets',BUDGET_LIST_FIELDS,async()=>{throw new Error('No se pudieron cargar los presupuestos.');}),/No se pudieron cargar los presupuestos/);
  assert.equal(listProjectionEnabled('test-error'),true,'un fallo real no apaga la proyección');
 });
+
+test('convertir una oportunidad en cliente vence la cartera del shell (Clientes no queda con la lista vieja)',async()=>{
+ const {mutationStalesShellIdentity}=await import('../app/shell-data');
+ for(const url of ['/core-api/api/agency/clients','/core-api/api/agency/clients/4','/core-api/api/agency/projects/2','/core-api/api/agency/work-orders/9','/core-api/api/agency/leads/12/convert'])
+  assert.equal(mutationStalesShellIdentity(url),true,url);
+ for(const url of ['/core-api/api/agency/leads','/core-api/api/agency/leads/12','/core-api/api/agency/budgets/3','/core-api/api/agency/leads/12/converted'])
+  assert.equal(mutationStalesShellIdentity(url),false,url);
+ assert.match(workspaceSource(),/if\(!mutationStalesShellIdentity\(url\)\)return;/,'el shell usa la regla compartida');
+});

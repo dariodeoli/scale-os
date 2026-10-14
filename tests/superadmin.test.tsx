@@ -81,6 +81,10 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
     /subscription\/extend/,
   );
   assert.match(page, /Marcar pago manual/);
+  // Las acciones de «Opciones avanzadas» no se portan al pie: con la sección cerrada
+  // quedaban visibles y apuntaban a un formulario oculto.
+  const dialog = readFileSync(new URL("../app/superadmin/subscription-dialog.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(dialog, /<SaveActions|<FormActions/, "el estado manual no porta acciones del <details> al pie");
   assert.match(page, /Días a sumar/);
   assert.match(page, /Number\.isFinite\(number\)[\s\S]*?: fallback;/);
   assert.match(page, /const total = formatPlatformMetric\(item\.total, ""\);/);

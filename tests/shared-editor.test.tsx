@@ -4,13 +4,13 @@ import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
-let insideDialog=true,closes=0,pending=false;
-const close=()=>{assert.equal(pending,false,'do not close before the save settles');closes++;};
+let insideDialog=true,closes=0,pending=false,dirty=false;const closeOptions:unknown[]=[];
+const close=(options?:unknown)=>{assert.equal(pending,false,'do not close before the save settles');closeOptions.push(options);closes++;};
 function Actions({children}:{children:React.ReactNode}){return <div>{children}</div>;}
 function SelectStub(props:Record<string,unknown>){return <button type="button" disabled={Boolean(props.disabled)} aria-invalid={props.invalid?true:undefined} aria-describedby={String(props.describedBy||'')}>{String(props.label)}</button>;}
 function AmountStub(props:Record<string,unknown>){return <input id={String(props.id)} disabled={Boolean(props.disabled)} aria-invalid={props.invalid?true:undefined} aria-describedby={String(props.describedBy||'')}/>;}
 function mock(path:string,exports:unknown){const id=require.resolve(path);require.cache[id]={id,filename:id,loaded:true,exports} as NodeModule;}
-mock('../app/dialog',{Dialog:Actions,FormActions:Actions,useDialogClose:()=>insideDialog?close:undefined,useDialogPending:(value:boolean)=>{pending=value;}});
+mock('../app/dialog',{Dialog:Actions,FormActions:Actions,useDialogClose:()=>insideDialog?close:undefined,useDialogPending:(value:boolean,isDirty?:boolean)=>{pending=value;dirty=Boolean(isDirty);}});
 mock('../app/profile-controls',{SelectCustom:SelectStub,AmountInput:AmountStub});
 const {Editor}=require('../app/operations') as typeof import('../app/operations');
 const event=()=>({preventDefault(){},persist(){}});
@@ -132,6 +132,20 @@ async function main(){
   await act(async()=>{r!.root.findByType('input').props.onChange({target:{value:'ana@ejemplo.com'}});});
   await act(async()=>{await submit(r!);});
   assert.equal(emailWrites.at(-1)!.email,'ana@ejemplo.com');
+  await act(async()=>r!.unmount());
+  // Cambios sin guardar: el Editor avisa al Dialog solo después de que la persona tocó el formulario,
+  // el guardado exitoso deja la base limpia y el cierre posterior al guardado no pregunta.
+  insideDialog=true;
+  await act(async()=>{r=create(<Editor closeOnSave fields={[{key:'name',label:'Nombre'}]} defaults={{name:'Inicial'}} save={async()=>{}}/>);});
+  assert.equal(dirty,false,'abrir el formulario no lo ensucia');
+  const form=r!.root.findByType('form');
+  await act(async()=>{form.props.onKeyDownCapture();});
+  await act(async()=>{await r!.root.findByType('input').props.onChange({target:{name:'name',value:'Editado'},type:'change'});});
+  assert.equal(dirty,true,'lo tipeado queda protegido ante Escape o Cancelar');
+  await act(async()=>{await submit(r!);});
+  await act(async()=>{});
+  assert.equal(dirty,false,'lo guardado ya no cuenta como cambio pendiente');
+  assert.deepEqual(closeOptions.at(-1),{afterSave:true},'el cierre tras guardar no pide descartar');
   await act(async()=>r!.unmount());
   console.log('PASS shared editor: linked labels/help/errors, optional fields, required validation, single-flight save, disabled controls, error retry/draft preservation, deferred close only on success, cancel and inline detail opt-out, inline lookups that query and apply returned values, phone fields that normalize and validate, integer fields that keep the numeric keypad, email fields with safe domain suggestions');
 }

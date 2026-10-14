@@ -121,6 +121,41 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
  .control-shell .ui-kpi-strip-compact .ui-kpi>div:nth-child(3){grid-column:1/-1;margin:0;min-height:0}
 }
 
+/* ── KPIs densos de las pantallas de lista (`KpiStrip dense`) ──────────────
+   Rótulo arriba; valor y hint comparten la línea (el hint recorta con title).
+   ~60 px en escritorio; en mobile la tira va 2×2 y el hint baja a su línea.
+   Opt-in: el resto de las tiras conserva el contrato #89/#138. */
+.control-shell .ui-kpi-strip-dense .ui-kpi{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"label label" "value sub";align-items:baseline;column-gap:10px;row-gap:2px;padding:10px 14px;border-radius:var(--radius-sm,10px)}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(1){grid-area:label;margin:0;font-size:10px;line-height:14px;letter-spacing:.06em}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2){grid-area:value;margin:0;font-size:22px;line-height:1.15;white-space:nowrap}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(3){grid-area:sub;margin:0;min-width:0;overflow:hidden;font-size:11.5px;line-height:16px}
+.control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2) *{font-size:inherit;line-height:inherit}
+@media(max-width:767px){
+ .control-shell .ui-kpi-strip-dense .ui-kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"label" "value" "sub";row-gap:0;padding:6px 10px}
+ .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(2){font-size:17px;white-space:normal}
+ .control-shell .ui-kpi-strip-dense .ui-kpi>div:nth-child(3){flex-wrap:wrap;font-size:11px}
+}
+
+/* ── Acciones de ícono en filas finas (contrato de listas: 32 px) ───────────
+   Los íconos legados `.icon-button` (40 px) inflaban la fila a 56 px dentro de
+   `ListActions`. En escritorio bajan al botón de acción de lista (32 px); en
+   mobile conservan el target táctil. `:where` deja ganar a los ajustes propios
+   de cada lista (p. ej. Clientes, 28 px). */
+@media(min-width:768px){
+ .control-shell .list-row .list-actions :where(button.icon-button){width:32px;min-width:32px;height:32px;min-height:32px}
+}
+
+/* ── Disparador del menú ⋯ (`MenuDesplegable`) ─────────────────────────────
+   La librería le pone `toque-44 min-h-11` en todos los anchos: en filas finas y
+   tarjetas estiraba la línea a 44–56 px. En escritorio mide 32 px (botón de
+   acción de lista); en mobile y con puntero táctil conserva el target de 44. */
+@media(min-width:768px){
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:32px;min-height:32px;justify-content:center}
+}
+@media(min-width:768px) and (pointer:coarse){
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:44px;min-height:44px}
+}
+
 /* ── Tabs de sección (#89) ──────────────────────────────────────────────────
    Una sola barra horizontal compacta (píldoras sobre el tinte hundido): en
    escritorio mide ≤48 px de alto; en móvil scrollea en horizontal sin apilarse
@@ -237,6 +272,9 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
    superficie del panel). El hairline izquierdo marca la columna fija. */
 .list-actions-head,
 .list-actions{position:sticky;right:0;z-index:2;background:var(--list-actions-bg,rgb(var(--c-paper)));box-shadow:inset 1px 0 0 rgb(var(--c-ink-600) / .6)}
+/* Cada celda fija crea su propio contexto de apilado: con el menú ⋯ abierto la fila
+   siguiente tapaba la primera opción («Editar…»). La celda con el menú abierto sube. */
+.list-actions:has([aria-expanded="true"]){z-index:6}
 .list-actions-head{z-index:3;display:inline-flex;align-items:center;justify-content:flex-end;padding-left:10px}
 .list-actions{display:flex;min-width:0;align-items:center;justify-content:flex-end;gap:6px;padding-left:10px}
 .list-row:hover .list-actions{background:color-mix(in srgb,rgb(var(--c-ink-700)) 40%,var(--list-actions-bg,rgb(var(--c-paper))))}

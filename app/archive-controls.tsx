@@ -8,7 +8,7 @@ import {notify} from './feedback';
 import {listDateFull} from './list-format';
 import {RotateCcw,Trash2} from 'lucide-react';
 import {ARCHIVE_KIND_CAPABILITIES,roleCan,type Capability} from './capabilities';
-import {BulkBar,EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,useBulkSelection} from './ui-v2';
+import {BulkBar,EmptyBlock,ErrorBlock,FilterToolbar,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,useBulkSelection} from './ui-v2';
 
 // Fuente única con la papelera del API: el NAV usa el mismo mapa.
 const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>;
@@ -107,18 +107,16 @@ export function TrashWorkspace({refresh,role}:{refresh:()=>Promise<void>;role?:s
  }
  useEffect(()=>{void load().catch(e=>setError(errorMessage(e))).finally(()=>setLoading(false));},[]);
  return <ListPage aria-label="Papelera de esta empresa"
-  toolbar={records.length?<FilterToolbar className="mb-0" summary={`${shown.length} de ${total} registros`}>
+  /* Reorganización IA: el total y los tipos viajan en el contador de la toolbar
+     (la tira de dos KPIs dejaba media fila vacía y repetía el aviso de alcance). */
+  toolbar={records.length?<FilterToolbar className="mb-0" summary={`${shown.length} de ${total} registros · ${kindsCount} tipo${kindsCount===1?'':'s'}`}>
    <SearchField className="w-full sm:w-72" ariaLabel="Buscar en la papelera" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Nombre, tipo o quién lo movió…"/>
    <div className="w-full sm:w-52"><SelectCustom label="Tipo" choices={kindChoices} value={kindFilter} onChange={setKindFilter}/></div>
   </FilterToolbar>:undefined}
-  kpis={<KpiStrip>
-   <Kpi label="Registros en papelera" valor={total} hint="Recuperables con tu permiso actual" destacado/>
-   <Kpi label="Tipos de registro" valor={kindsCount} hint="Clasificación del API"/>
-  </KpiStrip>}
   bulk={<BulkBar count={bulk.count} label="seleccionado" role={role} busy={bulkBusy} onSelectVisible={()=>bulk.selectVisible(shown.map(keyOf))} onClear={bulk.clear}>
    <button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button>
   </BulkBar>}>
-  <p className="text-xs text-mute" title="No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.">Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva.</p>
+  <p className="m-0 text-xs text-mute" title="No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.">Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva.</p>
   {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load().catch(e=>setError(errorMessage(e)))}/>:null}
    {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:!shown.length?<EmptyBlock compact title="Ningún registro coincide" description="Probá con otra búsqueda o con todos los tipos." action={<button type="button" className="secondary" onClick={()=>{setQuery('');setKindFilter('');}}>Limpiar filtros</button>}/>:
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]" pinnedActions>

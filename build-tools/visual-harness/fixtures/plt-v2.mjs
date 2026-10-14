@@ -187,20 +187,16 @@ const trashRow = (record) => {
 
 const papeleraPage = h('section', {className: 'grid gap-4'},
   h(Header, {eyebrow: 'Configuración', title: 'Papelera de esta empresa', subtitle: 'Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.'}),
-  h(KpiStrip, null,
-    h(Kpi, {key: 'total', label: 'Registros en papelera', valor: 3, hint: 'Recuperables con tu permiso actual', destacado: true}),
-    h(Kpi, {key: 'kinds', label: 'Tipos de registro', valor: 3, hint: 'Clasificación del API'})),
-  h(Toolbar, {placeholder: 'Nombre, tipo o quién lo movió…', summary: '3 de 3 registros'}, h('select', {'aria-label': 'Tipo', className: 'w-full sm:w-52'}, h('option', null, 'Todos los tipos'))),
+  /* Reorganización IA: total y tipos en el contador de la toolbar (sin tira de dos KPIs). */
+  h(Toolbar, {placeholder: 'Nombre, tipo o quién lo movió…', summary: '3 de 3 registros · 3 tipos'}, h('select', {'aria-label': 'Tipo', className: 'w-full sm:w-52'}, h('option', null, 'Todos los tipos'))),
   h(SectionCard, {title: 'Registros recuperables', subtitle: 'Seleccioná varios para restaurar en lote.', meta: '3 registros'},
     h(Grid, {label: 'Papelera', template: TRASH_TEMPLATE, columns: TRASH_COLUMNS, minWidthClass: 'min-w-[40rem]'}, TRASHED.map(trashRow))));
 
 /* ── Preferencias (app/sections/preferencias.tsx) ─────────────────────────── */
 const preferenciasPage = h('section', {className: 'grid gap-4'},
   h(Header, {eyebrow: 'Configuración', title: 'Preferencias del espacio', subtitle: 'Se guardan solo para vos en Estudio de Comunicación y Producción, en este navegador.'}),
-  h(KpiStrip, null,
-    h(Kpi, {key: 'start', label: 'Inicio configurado', valor: 'Resumen', hint: 'Solo se aplica al entrar a la raíz'}),
-    h(Kpi, {key: 'filters', label: 'Filtros del tablero', valor: 2, hint: 'Se editan desde Producción'}),
-    h(Kpi, {key: 'scope', label: 'Alcance', valor: 'Este navegador', hint: 'No se sincroniza entre dispositivos'})),
+  /* Reorganización IA: sin KPIs que repetían las tarjetas; las dos tarjetas van lado a lado en escritorio. */
+  h('div', {className: 'grid gap-4 lg:grid-cols-2 lg:items-start'},
   /* SelectCustom (app/profile-controls.tsx): etiqueta + disparador, el mismo objeto que usa la sección. */
   h(SectionCard, {title: 'Inicio del espacio', subtitle: 'Elegí qué ves al entrar a Scale OS. Los enlaces explícitos, los retornos de autenticación y la facturación siempre ganan.'},
     h('div', {className: 'w-full max-w-md'},
@@ -212,7 +208,7 @@ const preferenciasPage = h('section', {className: 'grid gap-4'},
     h('div', {className: 'flex flex-wrap items-center gap-2'},
       h(StateChip, {key: 'mine', tone: 'info'}, 'Solo mis órdenes'),
       h(StateChip, {key: 'week', tone: 'info'}, 'Semana actual'),
-      h(StateChip, {key: 'client', tone: 'mute'}, 'Todos los clientes'))));
+      h(StateChip, {key: 'client', tone: 'mute'}, 'Todos los clientes')))));
 
 /* ── Estados v2 de PLT ────────────────────────────────────────────────────── */
 const statesPage = h('section', {className: 'grid gap-4'},

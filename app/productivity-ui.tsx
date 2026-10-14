@@ -16,7 +16,8 @@ import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
 import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
-import {ClientIdentity} from './client-identity';
+import {ClientIdentity,identityColor} from './client-identity';
+import {FotoPerfil} from './foto-perfil';
 import {ClientEditorDialog} from './client-editor';
 import './productivity.css';
 
@@ -123,8 +124,8 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
  </Dialog>;
 }
 
-export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>;createProject:(id:string)=>void;openOrder:(id:string)=>void}){
- const [data,setData]=useState<{client:Row;projects:Row[];orders:Row[];invoices?:Row[];payments?:Row[];budgets?:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Producción');
+export function ClientDetail({id,role,close,refresh,createProject,openOrder,openProjects}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>;createProject:(id:string)=>void;openOrder:(id:string)=>void;openProjects?:(id:string)=>void}){
+ const [data,setData]=useState<{client:Row;projects:Row[];orders:Row[];invoices?:Row[];payments?:Row[];budgets?:Row[];leads?:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Producción');
  const [payStatus,setPayStatus]=useState<{payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
  const [summary,setSummary]=useState<ClientSummary|null>(null),[editing,setEditing]=useState(false);
  async function reload(){setData(await api(`/api/agency/productivity/clients/${id}`));await refresh();}
@@ -144,15 +145,28 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder}:{id
  },[id,role]);
  const canSeeContact=canSeeClientContact(role);
  return <Dialog variant="drawer" title={data?s(data.client,'name'):'Ficha de cliente'} close={close}>{error&&<p className="error" role="alert">{error}</p>}{data?<>
-  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/>{['owner','admin','management','sales','finance','collaborator'].includes(role)&&<button type="button" className="secondary min-h-11 md:min-h-10" title={`Editar cliente: ${s(data.client,'name')}`} aria-label={`Editar cliente: ${s(data.client,'name')}`} onClick={()=>setEditing(true)}><Pencil size={14}/>Editar</button>}</div>
+  {/* Encabezado de la ficha en una fila (pase de densidad): el nombre ya es
+      el título del panel, así que acá va solo el logo + contacto en línea +
+      WhatsApp (ícono) + Editar; las notas siguen debajo, sin márgenes sueltos. */}
+  <header className="client-detail-head mb-3 grid min-w-0 gap-2">
+   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+    <span className={`client-identity identity-${identityColor(s(data.client,'color_key'))} inline-flex shrink-0`}><FotoPerfil nombre={s(data.client,'name')} foto={s(data.client,'logo_url')} tamano="xl" variante="logo" className="identity-avatar"/></span>
+    {data.client.contact_restricted===true
+     ? <p className="m-0 min-w-0 flex-1 text-[13px] text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
+     : <p className="m-0 min-w-0 flex-1 text-[13px] text-fore [overflow-wrap:anywhere]"><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/><span className="text-mute"> · </span><PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>}
+    <span className="flex shrink-0 items-center gap-2">
+     {data.client.contact_restricted!==true&&canSeeContact?<WhatsAppButton compact className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))} label={`WhatsApp: ${s(data.client,'name')}`}/>:null}
+     {['owner','admin','management','sales','finance','collaborator'].includes(role)&&<button type="button" className="secondary min-h-11 md:min-h-9" title={`Editar cliente: ${s(data.client,'name')}`} aria-label={`Editar cliente: ${s(data.client,'name')}`} onClick={()=>setEditing(true)}><Pencil size={14}/>Editar</button>}
+    </span>
+   </div>
+   {data.client.contact_restricted!==true&&s(data.client,'notes')?<p className="m-0 whitespace-pre-line text-[13px] leading-5 text-mute">{s(data.client,'notes')}</p>:null}
+  </header>
   {editing&&<ClientEditorDialog mode="edit" clientId={id} role={role} close={()=>setEditing(false)} refresh={reload}/>}
-  {data.client.contact_restricted===true
-   ? <p className="text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
-   : <><p><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/> · <PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>{canSeeContact?<WhatsAppButton className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))}/>:null}<p>{s(data.client,'notes')}</p></>}
   <ClientCommercialSummary id={id} client={data.client} payStatus={payStatus} summary={summary} role={role} reload={reload}/>
   {managers.includes(role)&&<div className="quick-actions"><button className="primary min-h-11 md:min-h-10" onClick={()=>createProject(id)}>Nuevo proyecto para este cliente</button>{roleCan(role,'portal-access.manage')&&<ClientPortalAccess clientId={id}/>}</div>}
-  <div className="choice-list">{['Producción',...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={`${tab===t?'choice active':'choice'} min-h-11 md:min-h-10`} onClick={()=>setTab(t)}>{t}</button>)}</div>
-  {tab==='Producción'&&<><h3>Proyectos ({data.projects.length})</h3><div className="drawer-list">{data.projects.length?<div className="drawer-list-head" aria-hidden="true"><span>Proyecto</span><span>Enlaces</span></div>:null}{data.projects.map(p=><article className="activity-line" key={p.id}><b title={s(p,'name')}>{s(p,'name')}</b><DriveLinks value={p.drive_links} legacy={s(p,'drive_url')} compact/></article>)}</div><h3>Piezas recientes</h3><div className="drawer-list">{data.orders.length?<div className="drawer-list-head" aria-hidden="true"><span>Pieza</span><span>Estado</span></div>:null}{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b title={s(o,'title')}>{s(o,'title')}</b><span>{workStatusLabel(s(o,'status'))}</span></button>)}</div>{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}
+  <div className="choice-list">{['Producción',...(data.leads?.length?['Oportunidades']:[]),...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={`${tab===t?'choice active':'choice'} min-h-11 md:min-h-10`} onClick={()=>setTab(t)}>{t}</button>)}</div>
+  {tab==='Producción'&&<><div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><h3>Proyectos ({data.projects.length})</h3>{openProjects&&data.projects.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>openProjects(id)}>Ver en Proyectos<ArrowUpRight size={14} aria-hidden="true"/></button>:null}</div><div className="drawer-list">{data.projects.length?<div className="drawer-list-head" aria-hidden="true"><span>Proyecto</span><span>Enlaces</span></div>:null}{data.projects.map(p=><article className="activity-line" key={p.id}><b title={s(p,'name')}>{s(p,'name')}</b><DriveLinks value={p.drive_links} legacy={s(p,'drive_url')} compact/></article>)}</div><h3>Piezas recientes</h3><div className="drawer-list">{data.orders.length?<div className="drawer-list-head" aria-hidden="true"><span>Pieza</span><span>Estado</span></div>:null}{data.orders.map(o=><button className="work-list-row" key={o.id} onClick={()=>openOrder(String(o.id))}><b title={s(o,'title')}>{s(o,'title')}</b><span>{workStatusLabel(s(o,'status'))}</span></button>)}</div>{!data.projects.length&&<p className="empty-copy">Este cliente aún no tiene proyectos.</p>}</>}
+  {tab==='Oportunidades'&&<div className="drawer-list"><div className="drawer-list-head" aria-hidden="true"><span>Oportunidad de origen</span><span>Etapa y valor</span></div>{data.leads?.map(l=><article className="activity-line" key={l.id}><b title={s(l,'name')}>{s(l,'name')}</b><span className="drawer-amounts" title={`${s(l,'stage_label')} · ${money(s(l,'amount'),s(l,'currency'))}`}><small>{s(l,'stage_label')}</small><b className="list-amount">{money(s(l,'amount'),s(l,'currency'))}</b></span></article>)}</div>}
   {tab==='Presupuestos'&&<div className="drawer-list"><div className="drawer-list-head" aria-hidden="true"><span>Presupuesto</span><span>Estado y total</span></div>{data.budgets?.map(b=><article className="activity-line" key={b.id}><b title={`${s(b,'number')} · ${s(b,'title')}`}>{s(b,'number')} · {s(b,'title')}</b><span className="drawer-amounts" title={`${budgetState(s(b,'status')).label} · ${money(s(b,'total'),s(b,'currency'))}`}><small>{budgetState(s(b,'status')).label}</small><b className="list-amount">{money(s(b,'total'),s(b,'currency'))}</b></span></article>)}</div>}
   {tab==='Cobros'&&<><h3>Facturas y pendientes</h3><div className="drawer-list">{data.invoices?.length?<div className="drawer-list-head" aria-hidden="true"><span>Factura</span><span>Cobrado y pendiente</span></div>:null}{data.invoices?.map(i=>{const detail=`Cobrado ${money(s(i,'paid_amount'),s(i,'currency'))} · Pendiente ${money(Math.max(0,Number(i.total)-Number(i.paid_amount)),s(i,'currency'))}`;return <article className="activity-line" key={i.id}><b title={s(i,'number')}>{s(i,'number')}</b><span className="drawer-amounts" title={detail}><small>Cobrado {money(s(i,'paid_amount'),s(i,'currency'))}</small><small>Pendiente {money(Math.max(0,Number(i.total)-Number(i.paid_amount)),s(i,'currency'))}</small></span></article>;})}</div><h3>Quién recibió y dónde</h3>{data.payments?.length?<div className="drawer-list"><div className="drawer-list-head" aria-hidden="true"><span>Cobro</span><span>Quién recibió</span></div>{data.payments.slice(0,10).map(p=><article className="activity-line" key={p.id}><b title={`${money(s(p,'amount'),s(p,'currency'))} · ${s(p,'account_name')}`}>{money(s(p,'amount'),s(p,'currency'))} · {s(p,'account_name')}</b><div className="payment-cell"><ActorIdentity name={s(p,'actor_name')||s(p,'received_by_email')||'Sin persona registrada'} photoUrl={s(p,'actor_photo_url')} verified={p.actor_verified===true}/><small title={s(p,'received_on')||undefined}>{fechaListaCorta(s(p,'received_on'),'')}</small></div></article>)}</div>:null}{data.payments&&data.payments.length>10?<p className="form-note">Mostrando los últimos 10 de {data.payments.length} cobros registrados.</p>:null}</>}
   <ClientReporting key={id} id={id} role={role} onSaved={reload}/>
@@ -175,15 +189,17 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
  const openPiece=(id:string)=>()=>openOrder(id);
  return <section className="grid min-w-0 gap-4" aria-label="Planificador de producción">
   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-   <h2 className="text-[17px] font-semibold tracking-tight text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
+   <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">{view==='Mi día'?'Trabajo diario':view}</h2>
    {!initialView?<TabScroller className="mb-0 min-w-0" label="vistas"><Subtabs value={view} onChange={setView} items={[['Mi día','Mi día'],['Calendario','Calendario'],['Lista y lotes','Lista y lotes']]} className="mb-0 [&>button]:min-h-11 md:[&>button]:min-h-9 max-lg:flex-nowrap"/></TabScroller>:null}
   </div>
   {view==='Mi día'?<>
-   <KpiStrip className="sm:grid-cols-2 xl:grid-cols-2">
+   <KpiStrip columns={['owner','admin','finance'].includes(role)?4:2}>
+    {/* Reorganización IA: los accesos a cobros y efectivo ocupan la otra mitad
+        de la fila de KPIs en vez de una fila propia. */}
     <Kpi label="Entregas para hoy o vencidas" valor={dueToday} hint="Piezas asignadas con entrega hasta hoy"/>
     <Kpi label="Piezas asignadas pendientes" valor={mine.length} hint="Sin aprobar ni publicar"/>
+    {['owner','admin','finance'].includes(role)?<div className="flex flex-wrap items-center gap-2 sm:col-span-2 xl:col-span-2 xl:flex-col xl:items-start xl:justify-center"><button type="button" className="text-button" onClick={()=>navigate('Mora')}>Revisar cobros pendientes<ArrowUpRight size={14}/></button><button type="button" className="text-button" onClick={()=>navigate('Pagos')}>Disponibilidad y efectivo<ArrowUpRight size={14}/></button></div>:null}
    </KpiStrip>
-   {['owner','admin','finance'].includes(role)?<div className="flex flex-wrap items-center gap-2"><button type="button" className="text-button" onClick={()=>navigate('Mora')}>Revisar cobros pendientes<ArrowUpRight size={14}/></button><button type="button" className="text-button" onClick={()=>navigate('Pagos')}>Disponibilidad y efectivo<ArrowUpRight size={14}/></button></div>:null}
   </>:null}
   {view==='Calendario'?<label className="grid w-52 gap-1.5"><span className="text-[12px] font-semibold text-mute">Mes de entrega</span><input type="month" value={month} onChange={e=>setMonth(e.target.value)} className="min-h-11"/></label>:null}
   {view==='Calendario'?<div className="grid gap-2" aria-label="Calendario de entregas del mes">

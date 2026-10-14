@@ -195,7 +195,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
     {loading ? <LoadingBlock label="Cargando comisiones…" lines={4}/> : <>
       {errorScope === 'load' && !commissions.length && !monthly.length && !discounts.length ? null : <>
-      <KpiStrip>
+      <KpiStrip className="xl:!grid-cols-3">
         <Kpi label={`Esperado · ${monthLabel}`} valor={totalFor('expected')} hint="Acuerdos comerciales vigentes con comisión asignada"/>
         <Kpi label={`Pagado · ${monthLabel}`} valor={totalFor('paid')} hint="Comisiones pagadas del mes"/>
         <Kpi label={`Pendiente · ${monthLabel}`} valor={totalFor('pending')} hint="Registradas o aprobadas sin pagar" destacado={totals.some(row => row.pending > 0)}/>
@@ -208,7 +208,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       />
 
       <div hidden={section!=='liquidacion'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Liquidación del mes">
-        <p className="min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p>
+        <p className="m-0 min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p>
         <FilterToolbar className="mb-0">
           <FormField label="Mes" htmlFor="commissions-month"><Input id="commissions-month" type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event: React.ChangeEvent<HTMLInputElement>) => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></FormField>
         </FilterToolbar>
@@ -227,7 +227,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       </section></div>
 
       <div hidden={section!=='comisiones'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Comisiones registradas">
-        <p className="min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p>
+        <p className="m-0 min-w-0 truncate text-xs text-mute" title="Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.">Los porcentajes se calculan al registrar la comisión; los cobros posteriores no modifican acuerdos ya registrados.</p>
         <FilterToolbar className="mb-0" summary={`${visible.length} de ${commissions.length}`}>
           <div className="flex flex-wrap gap-1">{COMMISSION_FILTERS.map(value => <button key={value} type="button" className={filter === value ? 'choice active' : 'choice'} onClick={() => setFilter(value)}>{value === 'all' ? 'Todas' : commissionStatusLabel(value)}</button>)}</div>
         </FilterToolbar>
@@ -262,7 +262,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
       <div hidden={section!=='descuentos'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Descuentos por referido">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
+          <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="m-0 min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
           {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
         </div>
         {discounts.length
@@ -282,7 +282,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       </>}
 
       {canSeePayouts ? <div hidden={section!=='pagos'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Pagos registrados">
-        <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="min-w-0 truncate text-xs text-mute" title="Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
+        <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="m-0 min-w-0 truncate text-xs text-mute" title="Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.">Cada pago descuenta el saldo de la cuenta elegida y conserva quién lo registró.</p></div>
         {payoutsState === 'loading' ? <LoadingBlock label="Cargando egresos…" lines={3}/>
         : payoutsState === 'error' ? <ErrorBlock title="No se pudieron cargar los egresos" description={`${payoutsError || 'No se pudieron cargar los egresos.'} Reintentá para ver los pagos registrados a colaboradores y referidos.`} onRetry={() => void loadPayouts()}/>
         : payouts.length
@@ -301,7 +301,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
     {newCommission ? <Dialog title="Nueva comisión o referido" close={() => setNewCommission(false)}>
       {catalogNotice('invoices', 'collaborators')}
-      <p className="field-help">{financePurposeNotice('commissions')} · <a href={financeNoticeHref('commissions')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
+      <p className="m-0 field-help">{financePurposeNotice('commissions')} · <a href={financeNoticeHref('commissions')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <Editor columns fields={[
         {key: 'beneficiary_name', label: 'Beneficiario'},
         {key: 'kind', label: 'Origen', section: 'Qué se comisiona', choices: [{value: 'sales', label: 'Venta'}, {value: 'referral', label: 'Referido'}]},
@@ -318,7 +318,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
     {pay ? <Dialog title={`Registrar pago · ${pay.beneficiary_name}`} close={() => setPay(null)}>
       {catalogNotice('accounts')}
-      <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
+      <p className="m-0 field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       {!payAccounts.length && !catalogError ? <Aviso tono="warn">No hay cuentas activas en {pay.currency}. Elegí otra moneda en la comisión o activá una cuenta de esa moneda.</Aviso> : null}
       <Editor columns fields={[
         {key: 'account_id', label: 'Cuenta de salida', choices: payAccounts.map(account => ({value: String(account.id), label: `${account.name} · ${money(Number(account.balance), account.currency)}`}))},
@@ -330,7 +330,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
 
     {newDiscount ? <Dialog title="Descuento por referido" close={() => setNewDiscount(false)}>
       {catalogNotice('invoices')}
-      <p className="field-help">{financePurposeNotice('commissions')} · <a href={financeNoticeHref('commissions')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
+      <p className="m-0 field-help">{financePurposeNotice('commissions')} · <a href={financeNoticeHref('commissions')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <Editor columns fields={[
         {key: 'invoice_id', label: 'Factura', choices: invoiceChoices(true)},
         {key: 'referrer', label: 'Quién refirió al cliente'},

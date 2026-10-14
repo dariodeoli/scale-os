@@ -13,13 +13,15 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 
 test('pipeline: la toolbar va en una fila, los KPIs no se estiran y los totales son una franja',()=>{
  const pipeline=read('app/sections/pipeline.tsx');
- // PageHeader v2 (#182): el título y las acciones (Etapas, Nueva oportunidad) van en el encabezado; los filtros en su toolbar.
+ // Reorganización IA: el shell ya dibuja el título «Pipeline»; las acciones
+ // (Etapas, Nueva oportunidad) cierran la fila de filtros en vez de ocupar una
+ // fila propia sin título.
+ assert.doesNotMatch(pipeline, /<PageHeader/, 'sin una segunda fila de encabezado');
  assert.match(
   pipeline,
-  /<PageHeader\s+title="Pipeline"\s+actions=\{canEdit\?<>[\s\S]{0,700}?Nueva oportunidad<\/Button>/,
-  'las acciones del pipeline viven en el PageHeader',
+  /<ListPage aria-label="Pipeline" primaryAction=\{canEdit\?<>[\s\S]{0,600}?Nueva oportunidad<\/Button>[\s\S]{0,40}?<\/>:undefined\}>/,
+  'las acciones del pipeline comparten la fila del título (ownsHeader)',
  );
- assert.match(pipeline, /<FilterToolbar summary=/, 'los filtros comparten la toolbar canónica');
  assert.doesNotMatch(pipeline, /flex flex-wrap items-center justify-end gap-2">\s*<Button type="button" variant="ghost" onClick=\{\(\)=>setStagePanel\(true\)\}/, 'las acciones no vuelven a su fila propia');
  // La ayuda de arrastre es una etiqueta corta con la explicación en tooltip.
  assert.match(pipeline, /title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%\."><Move size=\{13\}/, 'la explicación del arrastre vive en el tooltip (#100)');
@@ -54,7 +56,7 @@ test('resumen y métricas: títulos sin márgenes por defecto y gráfico al alto
 test('resumen comercial: la expectativa contratada usa la derivación compartida y el chip chico',()=>{
  const control=read('app/control-center.tsx');
  assert.match(control, /const billingEstado=allowed\?billingExpectationState\(commercial,commercialError\?'error':'loading'\):null;/, 'el estado sale de la derivación de control-center-data');
- assert.match(control, /billingEstado==='sin-contratos'\?<span className="flex flex-wrap items-center gap-2"><span className=\{KPI_NOTE\}>—<\/span><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip><\/span>/, 'sin contratos es `—` + chip secundario');
+ assert.match(control, /billingEstado==='sin-contratos'\?<span className="flex flex-wrap items-center gap-2"><span className=\{kpiNote\(true\)\}>—<\/span><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos<\/StateChip><\/span>/, 'sin contratos es `—` + chip secundario');
  assert.doesNotMatch(control, /Sin contratos activos<\/strong>/, 'no vuelve el titular largo');
  const css=read('app/control-center.css');
  assert.match(css, /\.finance-compare\{display:grid;gap:10px;grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,340px\),1fr\)\);margin:10px 2px 0\}/, 'la comparativa financiera usa grilla auto-fit: dos monedas caben al lado');
@@ -113,7 +115,8 @@ test('planes: ítems en una línea con el detalle en tooltip y sin KPI redundant
  assert.match(comparison, /title=\{`Cantidad del ítem: \$\{item\.quantity===null\?'No disponible':numberLabel\(item\.quantity\)\} · Precio unitario/, 'el detalle etiquetado queda en el tooltip del ítem');
  assert.match(comparison, /min-w-\[9rem\] flex-1 \[overflow-wrap:anywhere\]/, 'la descripción conserva su ancho legible y no se recorta');
  const planes=read('app/sections/planes.tsx');
- assert.match(planes, /<Kpi label="Valor de ítems"/, 'el valor de ítems es un KPI propio');
+ assert.match(planes, /· Valor de ítems <b/, 'el valor de ítems viaja en la fila del buscador (reorganización IA)');
+ assert.doesNotMatch(planes, /<KpiStrip/, 'sin tira de KPIs a media fila');
  assert.doesNotMatch(planes, /label="Monedas"/, 'sin KPI redundante de monedas');
 });
 
@@ -121,5 +124,7 @@ test('resumen: sin métricas duplicadas de los módulos y un solo CTA (#100)',()
  const resumen=read('app/sections/resumen.tsx');
  assert.doesNotMatch(resumen, /aria-label="Métricas operativas"|label="Proyectos activos"/, 'no repite Producción/Proyectos');
  assert.doesNotMatch(resumen, /href="\/produccion"/, 'un solo camino a Producción (el del panel de piezas)');
- assert.match(resumen, /<ControlCenter role=\{user\?\.role\|\|'viewer'\} orders=\{orders\} refresh=\{load\} navigate=\{setActive\} signals=\{summary\}\/>/, 'las señales siguen enlazando al módulo');
+ assert.match(resumen, /<ControlCenter role=\{user\?\.role\|\|'viewer'\} orders=\{orders\} refresh=\{load\} navigate=\{setActive\} signals=\{summary\} work=\{/, 'las señales siguen enlazando al módulo');
+ // Reorganización IA: el trabajo del día va antes de los resúmenes de consulta.
+ assert(resumen.indexOf('aria-label="Piezas por etapa"')<resumen.indexOf('<InternalTasks'), 'piezas por etapa y planificador dentro del bloque de trabajo');
 });

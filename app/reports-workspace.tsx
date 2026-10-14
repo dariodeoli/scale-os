@@ -87,7 +87,7 @@ function ReportsChart({months,currency}:{months:ReportMonth[];currency:string}){
 }
 function Distribution({title,rows,total}:{title:string;rows:{name:string;count:number}[];total:number|null}){
  return <div className="grid gap-2">
-  <h4 className="text-[15px] font-semibold tracking-tight text-fore" title="Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.">{title}</h4>
+  <h4 className="m-0 text-[15px] font-semibold tracking-tight text-fore" title="Porcentaje sobre todos los clientes activos, incluidos los no clasificados y sin plan.">{title}</h4>
   {rows.length?<ul className="grid gap-2">{rows.map((row,index)=>{const share=distributionShare(row.count,total);return <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-xs" key={`${row.name}-${index}`}>
    <span className="min-w-0 text-fore">{row.name}</span>
    <strong className="whitespace-nowrap tabular-nums text-fore">{row.count} · {share===null?'Sin porcentaje':`${share.toFixed(1).replace('.',',')} %`}</strong>
@@ -99,7 +99,7 @@ function Distribution({title,rows,total}:{title:string;rows:{name:string;count:n
 // unmount the authorized view; no GET is issued for an unauthorized role.
 // `onCreateInvoice` es la salida de los estados vacíos: navega a Finanzas y abre
 // el alta de factura en el shell, que es el único dueño del modal.
-export function ReportsWorkspace({role,organizationName,onCreateInvoice}:{role:string;organizationName:string;onCreateInvoice?:()=>void}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role} organizationName={organizationName} onCreateInvoice={onCreateInvoice}/><WeeklyAutomatic role={role}/></>:<p className="text-sm text-mute">No tenés permiso para consultar reportes.</p>;}
+export function ReportsWorkspace({role,organizationName,onCreateInvoice}:{role:string;organizationName:string;onCreateInvoice?:()=>void}){return ['owner','admin','finance','sales'].includes(role)?<><ReportsPanel key={role} organizationName={organizationName} onCreateInvoice={onCreateInvoice}/><WeeklyAutomatic role={role}/></>:<p className="m-0 text-sm text-mute">No tenés permiso para consultar reportes.</p>;}
 function LiveVisitorsWidget(){
  const [visitors,setVisitors]=useState<number|null>(null),[prior,setPrior]=useState<number|null>(null),[trend,setTrend]=useState<'up'|'down'|null>(null),[failed,setFailed]=useState(false);
  useEffect(()=>{
@@ -123,8 +123,8 @@ function LiveVisitorsWidget(){
  const changePercent=prior&&visitors&&prior!==0?Math.round(((visitors-prior)/prior)*100):null;
  return <Card className="flex flex-wrap items-center justify-between gap-4" role="region" aria-label="Visitantes en vivo del landing">
   <div className="grid gap-1">
-   <h3 className="text-[17px] font-semibold tracking-tight text-fore">Visitantes en vivo</h3>
-   <p className="text-xs text-mute">Personas actualmente en el landing de Scale OS</p>
+   <h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Visitantes en vivo</h3>
+   <p className="m-0 text-xs text-mute">Personas actualmente en el landing de Scale OS</p>
   </div>
   <div className="text-right">
    <strong className="block text-2xl font-semibold tabular-nums text-ok">{failed&&visitors===null?'No disponible':visitors===null?'—':visitors}</strong>
@@ -170,7 +170,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
      try{printReportsPdf({data:data!,previousData,currency:selectedCurrency,organizationName});}catch{setExportError('No se pudo exportar el PDF. Intentá nuevamente.');}
     }}>PDF{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
 </>}
-  toolbar={  <FilterToolbar summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
+  toolbar={  <FilterToolbar className="mb-0" summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
    <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
    <div className="grid gap-1">
     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
@@ -184,10 +184,23 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
   :<>
    {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:null}
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
-   {partial?<Nota tono="warn">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
+   {partial?<Nota tono="warn" className="m-0">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
+   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
+    <Card className="grid gap-4 p-3 sm:p-4">
+     <div className="flex flex-wrap items-end justify-between gap-2"><div><h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Resumen del período</h3><p className="m-0 text-xs text-mute">{monthTitle(month)} · {selectedCurrency}</p></div><div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute"><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fono-light" aria-hidden="true"/>Facturado</span><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" aria-hidden="true"/>Cobrado</span></div></div>
+     <KpiStrip>{tiles.map(tile=><Kpi key={tile.label} label={tile.label} valor={tile.value} hint={tile.change}/>)}</KpiStrip>
+     <div className="grid gap-2"><ReportsChart months={chartMonths} currency={selectedCurrency}/><p className="m-0 min-w-0 truncate text-xs text-mute" title={`Comparación mensual en ${selectedCurrency}. Meses parciales atenuados; escala relativa al valor máximo, sin mezclar monedas.`}>Meses parciales atenuados; escala relativa al máximo.</p></div>
+    </Card>
+    <div className="grid gap-4 lg:grid-cols-2">
+     <Card className="p-4"><Distribution title="Tipos de clientes activos" total={selected.clients.active} rows={selected.clients.types.map(row=>({name:reportKindLabel(row.kind),count:row.count}))}/></Card>
+     <Card className="p-4"><Distribution title="Planes por cantidad de clientes activos" total={selected.clients.active} rows={selected.clients.plans.map(row=>({name:row.planId===null?'Sin plan registrado':row.name||'Plan sin nombre',count:row.count}))}/></Card>
+    </div>
+   </>}
+   {/* Reorganización IA: el resumen del mes (lo que se viene a leer) va
+       primero; la comparativa contra el período anterior, después. */}
    {rows.length?(comparison!.available?<Card className="grid grid-cols-1 gap-2 p-3 sm:p-4">
-    <h3 className="text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
-    <p className="text-xs text-mute">Período visible: {monthRangeLabel(comparison!.currentStart, comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?monthRangeLabel(comparison!.previousStart, comparison!.previousEnd):'sin período anterior disponible'} ({months} meses por período).</p>
+    <h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Comparativa del período visible contra el anterior</h3>
+    <p className="m-0 text-xs text-mute">Período visible: {monthRangeLabel(comparison!.currentStart, comparison!.currentEnd)} · período anterior: {comparison!.previousStart&&comparison!.previousEnd?monthRangeLabel(comparison!.previousStart, comparison!.previousEnd):'sin período anterior disponible'} ({months} meses por período).</p>
     <DataTable
      columns={[{key:'label',label:'Métrica'},{key:'current',label:'Período visible'},{key:'previous',label:'Período anterior'},{key:'change',label:'Variación'}]}
      rows={comparison!.rows.map((row,index)=>({id:String(index),label:row.label,current:row.current,previous:row.previous,change:row.change}))}
@@ -201,20 +214,9 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    </Card>
    // #142: sin comparación no se dibuja la tarjeta gigante; un aviso de una
    // línea con la salida para comparar (reintentar o ampliar el histórico).
-   :<Nota tono={previousError?'warn':'neutro'} className="whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<button className="text-button" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:months<24?<button className="text-button" type="button" onClick={()=>setMonths(24)}>Ampliar histórico a 24 meses</button>:null}</Nota>):null}
-   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
-    <Card className="grid gap-4 p-3 sm:p-4">
-     <div className="flex flex-wrap items-end justify-between gap-2"><div><h3 className="text-[17px] font-semibold tracking-tight text-fore">Resumen del período</h3><p className="text-xs text-mute">{monthTitle(month)} · {selectedCurrency}</p></div><div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute"><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fono-light" aria-hidden="true"/>Facturado</span><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" aria-hidden="true"/>Cobrado</span></div></div>
-     <KpiStrip>{tiles.map(tile=><Kpi key={tile.label} label={tile.label} valor={tile.value} hint={tile.change}/>)}</KpiStrip>
-     <div className="grid gap-2"><ReportsChart months={chartMonths} currency={selectedCurrency}/><p className="min-w-0 truncate text-xs text-mute" title={`Comparación mensual en ${selectedCurrency}. Meses parciales atenuados; escala relativa al valor máximo, sin mezclar monedas.`}>Meses parciales atenuados; escala relativa al máximo.</p></div>
-    </Card>
-    <div className="grid gap-4 lg:grid-cols-2">
-     <Card className="p-4"><Distribution title="Tipos de clientes activos" total={selected.clients.active} rows={selected.clients.types.map(row=>({name:reportKindLabel(row.kind),count:row.count}))}/></Card>
-     <Card className="p-4"><Distribution title="Planes por cantidad de clientes activos" total={selected.clients.active} rows={selected.clients.plans.map(row=>({name:row.planId===null?'Sin plan registrado':row.name||'Plan sin nombre',count:row.count}))}/></Card>
-    </div>
-   </>}
+   :<Nota tono={previousError?'warn':'neutro'} className="m-0 whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<button className="text-button" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:months<24?<button className="text-button" type="button" onClick={()=>setMonths(24)}>Ampliar histórico a 24 meses</button>:null}</Nota>):null}
    <Card className="grid grid-cols-1 gap-3 p-3 sm:p-4">
-    <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="text-xs text-mute">“Sin datos” no significa cero.</p></div>
+    <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="m-0 text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="m-0 text-xs text-mute">“Sin datos” no significa cero.</p></div>
     {rows.length?<ListGrid label="Evolución mensual por mes" template={EVOLUTION_TEMPLATE} columns={EVOLUTION_COLUMNS} minWidthClass="min-w-[78rem]">
      {rows.map(row=>{const money=row.financial.find(item=>item.currency===selectedCurrency);return <ListRow template={EVOLUTION_TEMPLATE} key={row.month}>
       <span className="min-w-0 whitespace-nowrap tabular-nums text-fore">{row.month+(row.isPartial?' · parcial':'')}</span>

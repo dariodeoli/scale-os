@@ -57,7 +57,7 @@ assert.match(history,/<div className="flex min-w-0 flex-wrap items-center gap-x-
 
 // ── Nada de mega-cards para una fila de controles.
 assert.match(inventory,/data-inventory-toolbar/,'el toolbar del inventario sigue fuera de una card');
-assert.match(projects,/<FilterToolbar className="mb-0"/,'la toolbar de proyectos no agrega margen propio');
+assert.match(projects,/primaryAction=\{<>\s*<div className="project-client-filter /,'la toolbar de proyectos comparte la fila del título (sin card ni fila propia)');
 assert.match(planner,/label:'Pasos'/,'el planificador conserva el microcopy es-PY');
 
 console.log('PASS: densidad #99 en Operaciones — tablero sin redundancias, tarjetas sin altura artificial, responsables compactos y selección contextual.');

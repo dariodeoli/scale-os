@@ -4,7 +4,7 @@ import {Settings,SlidersHorizontal} from 'lucide-react';
 import {startupChoices} from '../workspace-preferences';
 import type {StartupPreference,WorkspacePreferences} from '../workspace-preferences';
 import type {User} from '../workspace-types';
-import {Kpi,KpiStrip,ListPage,LoadingBlock,StateChip} from '../ui-v2';
+import {ListPage,LoadingBlock,StateChip} from '../ui-v2';
 import {SelectCustom} from '../profile-controls';
 
 // Preferencias del espacio (locales por usuario y empresa).
@@ -26,18 +26,17 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
  const startupLabel=choices.find(choice=>choice.value===startup)?.label||'Resumen';
  const filters=preferences.production;
  const filterCount=[filters.clientId?1:0,filters.mine?1:0,filters.week?1:0].reduce((total,value)=>total+value,0);
- return <ListPage aria-label="Preferencias del espacio" kpis={<KpiStrip compact>
-   <Kpi label="Inicio configurado" valor={startupLabel} hint="Solo se aplica al entrar a la raíz"/>
-   <Kpi label="Filtros del tablero" valor={filterCount} hint="Se editan desde Producción"/>
-   <Kpi label="Alcance" valor="Este navegador" hint="No se sincroniza entre dispositivos"/>
-  </KpiStrip>}>
+ // Reorganización IA: sin tira de KPIs que repetía lo que dicen las dos
+ // tarjetas (inicio elegido, filtros y alcance); las tarjetas van lado a lado.
+ return <ListPage aria-label="Preferencias del espacio">
   {preferenceWarning?<Aviso tono="warn">{preferenceWarning}</Aviso>:null}
+  <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
   <div className={`${CARD} grid gap-4`}>
    <div className="flex items-start gap-3">
     <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute" aria-hidden="true"><Settings size={18}/></span>
     <div className="min-w-0">
-     <h2 id="workspace-preferences-title" className="text-[17px] font-semibold tracking-tight text-fore">Inicio del espacio</h2>
-     <p className="mt-1 text-xs text-mute">Elegí qué ves al entrar a Scale OS. Los enlaces explícitos, los retornos de autenticación y la facturación siempre ganan.</p>
+     <h2 id="workspace-preferences-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore">Inicio del espacio</h2>
+     <p className="m-0 mt-1 text-xs text-mute">Elegí qué ves al entrar a Scale OS. Los enlaces explícitos, los retornos de autenticación y la facturación siempre ganan.</p>
     </div>
    </div>
    {preferencesReady?
@@ -45,14 +44,14 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
      <SelectCustom label="Al entrar a Scale OS" value={startup} choices={choices.map(choice=>({value:choice.value,label:choice.label}))} onChange={value=>updatePreferences({startup:value as StartupPreference})}/>
     </div>
    :<LoadingBlock label="Cargando preferencias…" lines={1}/>}
-   <p className="text-[11.5px] text-mute">La preferencia se guarda por usuario y empresa en el almacenamiento local del navegador. Si el almacenamiento falla, el cambio es temporal y el panel sigue funcionando.</p>
+   <p className="m-0 text-[11.5px] text-mute">Inicio actual: <b className="font-semibold text-fore">{startupLabel}</b> (solo al entrar a la raíz). La preferencia se guarda por usuario y empresa en el almacenamiento local de este navegador y no se sincroniza entre dispositivos. Si el almacenamiento falla, el cambio es temporal y el panel sigue funcionando.</p>
   </div>
   <div className={`${CARD} grid gap-3`}>
    <div className="flex items-start gap-3">
     <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute" aria-hidden="true"><SlidersHorizontal size={18}/></span>
     <div className="min-w-0">
-     <h2 className="text-[17px] font-semibold tracking-tight text-fore">Filtros guardados del tablero</h2>
-     <p className="mt-1 text-xs text-mute">Se aplican a Producción con la semana de lunes a domingo según la hora local de tu dispositivo. Se editan desde el tablero.</p>
+     <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Filtros guardados del tablero <span className="text-xs font-medium tabular-nums text-mute">· {filterCount} activo{filterCount===1?'':'s'}</span></h2>
+     <p className="m-0 mt-1 text-xs text-mute">Se aplican a Producción con la semana de lunes a domingo según la hora local de tu dispositivo. Se editan desde el tablero.</p>
     </div>
    </div>
    <div className="flex flex-wrap items-center gap-2">
@@ -60,7 +59,8 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
     <StateChip tone={filters.week?'info':'mute'}>{filters.week?'Semana actual':'Todas las fechas'}</StateChip>
     <StateChip tone={filters.clientId?'info':'mute'} title={filters.clientId?`Cliente guardado ${filters.clientId}`:'Sin cliente guardado'}>{filters.clientId?'Con cliente guardado':'Todos los clientes'}</StateChip>
    </div>
-   {filters.clientId?<p className="text-[11.5px] text-mute">Hay un cliente guardado en los filtros. Si ya no existe, el tablero te lo indica para que lo restablezcas.</p>:null}
+   {filters.clientId?<p className="m-0 text-[11.5px] text-mute">Hay un cliente guardado en los filtros. Si ya no existe, el tablero te lo indica para que lo restablezcas.</p>:null}
+  </div>
   </div>
  </ListPage>;
 }

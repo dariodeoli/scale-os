@@ -233,6 +233,8 @@ y esta sección se actualiza.
 | `LoadingBlock` | `Skeleton` con `role="status"` y `aria-busy`; reemplaza los “Cargando…” sueltos de las páginas nuevas. |
 | `SectionLoading` | Fallback de una sección lazy (`next/dynamic`): el esqueleto del sistema sobre el panel. `variant` (`cards`/`table`/`dashboard`) dibuja la estructura de lo que llega. |
 | `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
+| `KpiStrip dense` | Tira baja de las pantallas de lista (Clientes, Proyectos, Inventario): ~60 px por KPI en escritorio (rótulo arriba; valor y hint en la misma línea, hint con `title`) y 2×2 en mobile en vez de cuatro tarjetas apiladas. Opt-in: el resto conserva el contrato #89/#138. |
+| `AssignedPeople compact` | Responsables en la fila fina: avatares apilados + primer nombre (el principal primero) + «+N» en una línea; el detalle completo va en el `title`. Las tarjetas y el detalle conservan los chips con rótulo. |
 | `ActionMenu` + `RecordMenuItem` | Menú ⋯ único de filas y tarjetas: disparador rotulado (44/32 px), confirmación por ítem y teclado (flechas/Home/End; Escape vuelve al disparador). Envuelve `MenuDesplegable`; no hay variante paralela. |
 | `CompactCard` + `CompactQuickAction` | Tarjeta compacta estándar: título, contexto, vencimiento, responsable y avance; una acción rápida visible y el resto en el ⋯. La descripción vive en el detalle. |
 | `CardSkeleton` / `CardGridSkeleton` / `TableSkeleton` / `DashboardSkeleton` | Esqueletos con la forma real del bloque (tarjeta, tabla, dashboard) para el arranque y las lecturas; nunca dibujan cifras. |
@@ -240,6 +242,43 @@ y esta sección se actualiza.
 | `useBulkSelection` + `BulkBar` | Selección múltiple única (#185, `app/bulk-selection.tsx` + `ui-v2`). El hook guarda el `Set` elegido y ofrece `toggle` (con tope y aviso «El lote admite hasta N …»), `selectVisible(ids)` (suma hasta el tope; si ya estaban todos, los quita), `clear`, `replace` y `prune` (poda contra la lista viva). `BulkBar` dibuja el contador «N seleccionados» (con «de <tope>» si se pasa `total`), «Seleccionar visibles», «Limpiar» y el slot de acciones del lote; es **pegajosa** (`bulk-bar-sticky`), aparece solo con selección y el `viewer` nunca la ve. Las pantallas conservan su llamada de lote al API. Adoptan: Presupuestos, Proyectos, Inventario, Producción (planificador) y Estudio. |
 | `ListPage` + `PageChromeContext` | Plantilla de pantalla de lista (#185): `PageHeader` con el título del shell + `primaryAction` siempre visible + apartados + `toolbar` + `kpis` + `bulk` + contenido. El shell no repite el encabezado de las secciones que la adoptan (hoy Presupuestos, Planes, Producción e Inventario) y le cede los apartados por contexto. |
 | `ViewTabs` | Única barra de pestañas de **vista** (#185): `TabScroller` + selector segmentado con targets de 44 px. Reemplaza las variantes sueltas de Producción e Inventario; el cambio de vista no cambia la información. |
+
+### Densidad de listas: Clientes, Proyectos e Inventario — 14-10-2026
+
+Pedido del dueño: «muchos espacios desperdiciados». Medición con la app real
+(demo sembrada) a 1440×900, antes → después:
+
+| Pantalla | Filas/tarjetas completas en pantalla | Alto de fila / tarjeta | Primer registro (top) |
+| --- | --- | --- | --- |
+| Clientes · lista | 12 → 13 | 48 px | 315 → 259 px |
+| Clientes · cuadrícula | 3 → 6 | 356 → 302 px | 291 → 235 px |
+| Proyectos · lista | 4 → 12 | 107 → 48 px | 413 → 266 px |
+| Proyectos · cuadrícula | 3 → 6 | 387 → 247 px | 389 → 242 px |
+| Inventario · lista | 6 → 6 (todo el catálogo) | 54 → 44 px | 433 → 359 px |
+| Inventario · cuadrícula | 6 → 6 | 220 px | 408 → 336 px |
+
+Reglas que deja el pase (todas en primitivas compartidas):
+
+- **KPIs de las listas** con `KpiStrip dense` (ver tabla de patrones).
+- **Toolbar en la fila del título** cuando entra (Proyectos: cliente con rótulo
+  en línea · Seleccionar visibles · contador · vista · acción primaria).
+- **Orden por importancia** en las columnas: identidad → estado → dinero →
+  fechas → personas/contacto → acciones (Clientes: Cliente · Estado · Cobros ·
+  Actividad · Datos · Acciones).
+- **Acciones de ícono en filas finas = 32 px** en escritorio (`.list-row
+  .list-actions :where(button.icon-button)`) y el disparador ⋯ de
+  `MenuDesplegable` mide 32 px en escritorio (44 con puntero táctil), en todo el shell y
+  los diálogos (la librería le pone `min-h-11`, que estiraba filas y tarjetas a
+  54–56 px). En mobile/táctil se conservan los 44 px.
+- **Sin márgenes del navegador en el contenido**: `:where(.workspace-content)`
+  reinicia `h2`/`h3`/`p`/`dl`/`dd` (especificidad cero; cualquier clase manda).
+- **KpiStrip** deriva sus columnas de escritorio de la cantidad de KPIs (1–4; 5
+  o más envuelven en filas de 4).
+- **Ranuras de acción reservadas**: si falta WhatsApp o el aviso de precio, su
+  lugar queda vacío y el resto no se corre (Clientes).
+- **Sin card contenedora** alrededor de KPIs + lista en Inventario.
+- La auditoría «Actualizado …» sale de la tarjeta de proyecto (vive en el
+  detalle, como en Producción #99).
 
 ### Tarjetas compactas + menú ⋯ (#138)
 

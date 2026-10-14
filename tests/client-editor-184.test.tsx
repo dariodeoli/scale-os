@@ -19,7 +19,7 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
   useOverlay:()=>({requestClose:()=>{}}),
 }} as NodeModule;
 
-const {ClientEditor,ClientEditorDialog}=require('../app/client-editor') as typeof import('../app/client-editor');
+const {ClientEditor,ClientEditorDialog,clientEditorTitle}=require('../app/client-editor') as typeof import('../app/client-editor');
 const {clientFields,clientPatchPayload,clientEditDefaults}=require('../app/client-editor-data') as typeof import('../app/client-editor-data');
 const {clientsCsv,clientCsvColumns,assignServicePlan}=require('../app/client-bulk') as typeof import('../app/client-bulk');
 const {ClientesSection}=require('../app/sections/clientes') as typeof import('../app/sections/clientes');
@@ -250,4 +250,12 @@ test('asignar plan: un GET+PATCH por cliente con la versión vigente y los fallo
   assert.deepEqual(result.failed,[{id:'2',message:'El cliente cambió.'}]);
   assert.ok(seen.includes('PATCH /api/agency/clients/1/reporting {"expectedVersion":"5","servicePlanId":"8"}'));
   assert.equal(seen.filter(entry=>entry.startsWith('PATCH')).length,3);
+});
+
+test('«Cargar plan y pago» abre el editor con su propio título, no «Editar cliente»',()=>{
+  assert.equal(clientEditorTitle('create',false,''),'Nuevo cliente');
+  assert.equal(clientEditorTitle('edit',false,'Acme'),'Editar cliente');
+  assert.equal(clientEditorTitle('edit',true,'Acme'),'Plan y pago · Acme');
+  assert.equal(clientEditorTitle('edit',true,''),'Plan y pago del cliente','mientras carga no muestra un nombre vacío');
+  assert.match(read('app/client-editor.tsx'),/planMode\?<p className="form-note mb-3">\{CLIENT_PLAN_DESCRIPTION\}/,'el modo plan explica qué se carga');
 });

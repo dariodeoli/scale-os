@@ -36,24 +36,23 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
   if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <ListPage aria-label="Centro de control" primaryAction={primaryAction}><DashboardSkeleton label="Cargando el panel…" kpis={4} cards={3}/></ListPage>;
   return <ListPage aria-label="Centro de control" primaryAction={primaryAction} className="[&>*]:min-w-0">
     <WorkspaceGuide {...guideProps} variant="card"/>
-    <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary}/>
-    <section className="rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Piezas por etapa">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-ink-600 pb-2">
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Producción</p>
-          <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Piezas por etapa</h2>
+    {/* Reorganización IA: lo que se viene a hacer va primero (señales y
+        vencidos → piezas por etapa → trabajo del día) y los resúmenes comercial
+        y financiero quedan debajo, como consulta. */}
+    <ControlCenter role={user?.role||'viewer'} orders={orders} refresh={load} navigate={setActive} signals={summary} work={<>
+      <section className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3" aria-label="Piezas por etapa">
+        <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Piezas por etapa</h2>
+        <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+          {statuses.map(status => (
+            <StateChip key={status.id} tone={STAGE_TONE[status.tone] ?? 'mute'} title={`${status.label}: ${stageCounts.get(status.id) || 0} pieza(s)`}>
+              {status.label} · <b className="tabular-nums">{stageCounts.get(status.id) || 0}</b>
+            </StateChip>
+          ))}
         </div>
         <button type="button" className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></button>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {statuses.map(status => (
-          <StateChip key={status.id} tone={STAGE_TONE[status.tone] ?? 'mute'} title={`${status.label}: ${stageCounts.get(status.id) || 0} pieza(s)`}>
-            {status.label} · <b className="tabular-nums">{stageCounts.get(status.id) || 0}</b>
-          </StateChip>
-        ))}
-      </div>
-    </section>
-    <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
+      </section>
+      <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
+    </>}/>
     <InternalTasks role={user?.role||'viewer'}/>
     {/* #100: sin «Métricas operativas» (repetían Producción/Proyectos) y sin un
         segundo CTA a Producción: el panel de piezas ya enlaza al módulo. */}

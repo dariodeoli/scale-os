@@ -84,7 +84,7 @@ test('cupones: columnas Vence, Empresa, Usos y Estado con vigente, vencido y pau
   // El alta suma Vence (date), Empresa (selector) y Nota (textarea).
   assert.ok(root.findAllByType('input').some((node) => node.props.type === 'date'), 'Vence es type=date');
   assert.ok(root.findAllByType('textarea').length === 1, 'Nota es un textarea');
-  assert.ok(root.findAllByType(SelectCustom).some((node) => node.props.label === 'Empresa (opcional)'), 'Empresa es un SelectCustom');
+  assert.ok(root.findAllByType(SelectCustom).some((node) => node.props.label === 'Empresa · Opcional'), 'Empresa es un SelectCustom');
   await unmount();
 });
 

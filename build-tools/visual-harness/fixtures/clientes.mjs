@@ -32,15 +32,22 @@ const MONEY_TONE = {ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', mute: 'te
 const MoneyText = ({valor, currency = 'PYG', tono = '', className = ''}) => h('span', {className: `inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className}`.trim()}, money(valor, currency));
 
 /* ── Réplica de app/ui-v2.tsx (ListGrid/ListRow/ListActions: mismas clases) ── */
-const CLIENT_TEMPLATE = 'grid-cols-[minmax(11rem,1.35fr)_minmax(9.5rem,1.15fr)_6rem_minmax(15rem,1.15fr)_minmax(9rem,.95fr)_14rem]';
+/* Pase de densidad: identidad → estado → cobros → actividad → datos → acciones. */
+const CLIENT_TEMPLATE = 'grid-cols-[minmax(10.5rem,1fr)_5.5rem_minmax(15.5rem,1fr)_minmax(9.5rem,.85fr)_minmax(12.5rem,1.55fr)_9.5rem]';
 const CLIENT_COLUMNS = [
   {key: 'client', label: 'Cliente'},
-  {key: 'facts', label: 'Datos'},
   {key: 'status', label: 'Estado'},
   {key: 'billing', label: 'Cobros'},
   {key: 'activity', label: 'Actividad'},
+  {key: 'facts', label: 'Datos'},
   {key: 'actions', label: 'Acciones'},
 ];
+/* app/ui-v2.tsx KpiStrip dense + Kpi (Stat con el hook ui-kpi). */
+const kpiStrip = h('div', {className: 'ui-kpi-strip grid ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3 sm:grid-cols-2 xl:grid-cols-4'},
+  h(Stat, {label: 'Clientes activos', valor: 38, sub: h('span', {className: 'min-w-0 flex-1 truncate', title: 'Con servicio en curso'}, 'Con servicio en curso'), destacado: true, className: 'ui-kpi'}),
+  h(Stat, {label: 'Cobros al día', valor: 31, sub: h('span', {className: 'min-w-0 flex-1 truncate', title: '3 en mora · 2 por vencer · 1 sin factura'}, '3 en mora · 2 por vencer · 1 sin factura'), className: 'ui-kpi'}),
+  h(Stat, {label: 'Facturación contratada', valor: h('span', null, 'Gs. 12.345.678 ', h('span', {className: 'text-[0.55em] font-medium text-mute'}, '/ mes')), sub: h('span', {className: 'min-w-0 flex-1 truncate', title: 'USD 1.200,00 / mes · Expectativa vigente por mes'}, 'USD 1.200,00 / mes · Expectativa vigente por mes'), className: 'ui-kpi'}),
+  h(Stat, {label: 'Entregas próximas', valor: 9, sub: h('span', {className: 'min-w-0 flex-1 truncate', title: 'Piezas con vencimiento en 7 días'}, 'Piezas con vencimiento en 7 días'), className: 'ui-kpi'}));
 
 const ListGrid = ({label, template, columns, minWidthClass = 'min-w-[48rem]', className = '', children}) => h('div', {role: 'table', 'aria-label': label, className: `silent-scroll min-w-0 overflow-x-auto ${className}`.trim()},
   h('div', {className: minWidthClass},
@@ -85,6 +92,16 @@ const recordActions = (name, planCta = 'none') => h('span', {className: 'client-
     planCta === 'text' ? 'Cargar plan' : null) : null,
   h('button', {type: 'button', className: 'icon-button', title: 'Editar', 'aria-label': `Editar ${name}`}, Pencil),
   h('button', {type: 'button', className: 'icon-button record-remove', title: 'Mover a la papelera', 'aria-label': `Mover a la papelera: ${name}`}, Trash));
+
+/* RecordEditor con `menu`: CTA de plan opcional + disparador ⋯ (ActionMenu). */
+const recordMenu = (name, planCta = 'none') => h('span', {className: 'client-record-actions'},
+  planCta !== 'none' ? h('button', {type: 'button', className: 'icon-button', title: `Cargar plan y pago: ${name}`, 'aria-label': `Cargar plan y pago: ${name}`},
+    h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true'}, h('circle', {cx: 12, cy: 12, r: 10}))) : null,
+  h('div', {className: 'relative'},
+    h('div', {className: 'relative'},
+      h('button', {type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false', className: 'toque-44 inline-flex min-h-11 items-center gap-2 rounded-lg transition'},
+        h('span', {className: 'inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7', role: 'img', 'aria-hidden': 'true'}, '⋮'),
+        h('span', {className: 'sr-only'}, `Acciones: ${name}`)))));
 
 const clients = [
   {
@@ -160,53 +177,55 @@ const clientRow = (client) => h('div', {
     h('label', {className: 'select-check', title: 'Seleccionar cliente'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${client.name}`})),
     h('button', {type: 'button', className: 'min-h-11 min-w-0 text-left md:min-h-0', 'aria-label': `Abrir ficha de ${client.name}`},
       h(Identity, {name: client.name, initials: client.initials}))),
-  h('div', {role: 'cell', className: 'min-w-0 text-[11px] leading-tight text-mute'},
-    h('span', {className: 'block truncate', title: client.email || 'Sin email registrado'}, client.email || 'Sin email registrado'),
-    h('span', {className: 'block truncate', title: `${client.phone || 'Sin teléfono'} · RUC ${client.tax || 'sin registrar'} · Cliente desde ${client.since || 'sin fecha de alta'}`}, `${client.phone || 'Sin teléfono'} · RUC ${client.tax || 'sin registrar'} · desde ${client.since || 'sin fecha'}`)),
   h('div', {role: 'cell', className: 'min-w-0'}, h(StateChip, {tone: client.status[0], title: client.status[1]}, client.status[1])),
-  h('div', {role: 'cell', className: 'flex min-w-0 flex-wrap items-center justify-between gap-2'},
+  h('div', {role: 'cell', className: 'flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-0.5'},
     client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : h('span', {className: 'text-[11px] text-mute'}, 'Sin datos de cobro'),
-    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone, className: 'ml-auto'}) : h('span', {className: 'whitespace-nowrap text-[11px] text-mute'}, 'Sin saldo')),
+    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'whitespace-nowrap text-[11px] text-mute'}, 'Sin saldo')),
   h('div', {role: 'cell', className: 'min-w-0 text-[11px] leading-tight text-mute'},
     h('span', {className: 'block truncate', title: `${client.projects} proyectos activos · ${client.pieces} piezas en curso`},
       client.projects || client.pieces
         ? [h('b', {key: 'projects', className: 'tabular-nums text-fore'}, client.projects), ' proyectos · ', h('b', {key: 'pieces', className: 'tabular-nums text-fore'}, client.pieces), ' piezas']
         : 'Sin proyectos activos'),
     client.due ? h('span', {className: 'block whitespace-nowrap'}, 'Próxima entrega ', h('b', {className: 'tabular-nums text-fore'}, client.due)) : null),
+  h('div', {role: 'cell', className: 'min-w-0 text-[11px] leading-tight text-mute'},
+    h('span', {className: 'block truncate', title: client.email || 'Sin correo registrado'}, client.email || 'Sin correo registrado'),
+    h('span', {className: 'block truncate', title: `${client.phone || 'Sin teléfono'} · RUC ${client.tax || 'sin registrar'} · Cliente desde ${client.since || 'sin fecha de alta'}`}, `${client.phone || 'Sin teléfono'} · RUC ${client.tax || 'sin registrar'} · desde ${client.since || 'sin fecha'}`)),
+  /* Ranuras fijas: ficha · WhatsApp (reservada aunque falte) · (plan + ⋯). */
   h('div', {role: 'cell', className: 'list-actions client-row-actions silent-scroll'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
-    client.phone ? h('a', {className: 'icon-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer', title: 'WhatsApp', 'aria-label': 'WhatsApp'}, WhatsAppIcon) : null,
-    h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
-    recordActions(client.name, client.missingPrice ? 'icon' : 'none')));
+    h('span', {className: 'client-action-slot'}, client.phone ? h('a', {className: 'icon-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer', title: `WhatsApp: ${client.name}`, 'aria-label': `WhatsApp: ${client.name}`}, WhatsAppIcon) : null),
+    recordMenu(client.name, client.missingPrice ? 'icon' : 'none')));
 
 /* ── app/sections/clientes.tsx · ClientTile (tarjeta grande) ────────────────── */
-const clientTile = (client) => h('article', {
+const dtClass = 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute';
+const clientTile = (client) => {
+  const activity = client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos';
+  return h('article', {
   key: client.name,
   'data-archived': client.archived ? 'true' : undefined,
-  className: 'client-hub-card flex min-h-[200px] min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4',
+  className: 'client-hub-card flex min-h-[200px] min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-4 max-md:p-3',
 },
-  h('header', {className: 'flex items-start justify-between gap-3'},
-    h('div', {className: 'flex min-w-0 items-start gap-2'},
+  h('header', {className: 'flex min-w-0 items-center justify-between gap-3'},
+    h('div', {className: 'flex min-w-0 items-center gap-2'},
       h('label', {className: 'select-check', title: 'Seleccionar cliente'}, h('input', {type: 'checkbox', 'aria-label': `Seleccionar ${client.name}`})),
       h('button', {type: 'button', className: 'min-h-11 min-w-0 text-left md:min-h-0', 'aria-label': `Abrir ficha de ${client.name}`},
         h(Identity, {name: client.name, initials: client.initials}))),
     h(StateChip, {tone: client.status[0], title: client.status[1]}, client.status[1])),
-  h('dl', {className: 'grid grid-cols-2 gap-2 text-[11.5px]'},
-    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Correo'), h('dd', {className: 'mt-0.5 truncate text-fore', title: client.email || 'Sin email registrado'}, client.email || 'Sin email registrado')),
-    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Teléfono'), h('dd', {className: 'mt-0.5 text-fore'}, client.phone || 'Sin teléfono')),
-    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'RUC'), h('dd', {className: 'mt-0.5 text-fore'}, client.tax || 'Sin RUC registrado')),
-    h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cliente desde'), h('dd', {className: 'mt-0.5 text-fore'}, client.since || 'Sin fecha de alta')),
-    h('div', {className: 'col-span-2'}, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Actividad'), h('dd', {className: 'mt-0.5 text-fore'}, client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos'))),
-  h('div', {className: 'grid gap-0.5'},
-    h('span', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cobros'),
-    h('div', {className: 'flex flex-wrap items-center gap-2'},
-      client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : h('span', {className: 'text-[11px] text-mute'}, 'Sin datos de cobro'),
+  h('div', {className: 'flex min-h-7 min-w-0 items-center justify-between gap-2 rounded-lg bg-ink-700/40 px-2.5 py-1', 'aria-label': 'Cobros'},
+    client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : h('span', {className: 'text-[11px] text-mute'}, 'Sin datos de cobro'),
+    h('span', {className: 'flex items-center gap-1.5'},
       client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente'))),
-  h('footer', {className: 'client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]'},
+  h('dl', {className: 'm-0 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11.5px] leading-4'},
+    h('div', {className: 'min-w-0'}, h('dt', {className: dtClass}, 'Correo'), h('dd', {className: 'm-0 truncate text-fore', title: client.email || 'Sin correo registrado'}, client.email || 'Sin correo registrado')),
+    h('div', {className: 'min-w-0'}, h('dt', {className: dtClass}, 'Teléfono'), h('dd', {className: 'm-0 whitespace-nowrap text-fore'}, client.phone || 'Sin teléfono')),
+    h('div', {className: 'min-w-0'}, h('dt', {className: dtClass}, 'RUC'), h('dd', {className: 'm-0 whitespace-nowrap text-fore'}, client.tax || 'Sin RUC registrado')),
+    h('div', {className: 'min-w-0'}, h('dt', {className: dtClass}, 'Cliente desde'), h('dd', {className: 'm-0 whitespace-nowrap text-fore'}, client.since || 'Sin fecha de alta')),
+    h('div', {className: 'col-span-2 min-w-0'}, h('dt', {className: dtClass}, 'Actividad'), h('dd', {className: 'm-0 truncate text-fore', title: activity}, activity))),
+  h('footer', {className: 'client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-2 [justify-content:safe_flex-end]'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
-    client.phone ? h('a', {className: 'icon-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer', title: 'WhatsApp', 'aria-label': 'WhatsApp'}, WhatsAppIcon) : null,
-    h('button', {type: 'button', className: 'text-button'}, client.archived ? 'Reactivar' : 'Archivar'),
+    client.phone ? h('a', {className: 'text-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer'}, WhatsAppIcon, 'WhatsApp') : null,
     recordActions(client.name, client.missingPrice ? 'text' : 'none')));
+};
 
 /* ── app/client-directory-toolbar.tsx (barra del directorio en el shell) ────── */
 const toolbar = h('div', {className: 'client-directory-toolbar flex flex-wrap items-end gap-3', 'aria-label': 'Controles del directorio de clientes'},
@@ -230,11 +249,7 @@ const directoryHeader = h('header', {className: 'workspace-page-header mb-5 flex
 
 const listPage = h('div', {className: 'grid gap-4'},
   directoryHeader,
-  h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'},
-    h(Stat, {label: 'Clientes activos', valor: 38, sub: 'Con servicio en curso', destacado: true}),
-    h(Stat, {label: 'Cobros al día', valor: 31, sub: '3 en mora · 2 por vencer · 1 sin factura'}),
-    h(Stat, {label: 'Facturación contratada', valor: h('span', {className: 'flex flex-wrap items-baseline gap-2'}, h('span', null, 'Gs. 12.345.678 / mes'), h('span', null, 'USD 1.200,00 / mes')), sub: 'Expectativa comercial vigente por moneda'}),
-    h(Stat, {label: 'Entregas esta semana', valor: 9, sub: 'Piezas con vencimiento en 7 días'})),
+  kpiStrip,
   h('div', {className: 'bulk-bar', role: 'status', 'aria-live': 'polite'},
     h('span', {className: 'bulk-count'}, h('span', {className: 'bulk-hint'}, 'Seleccioná varios para operar en lote · máximo 50')),
     h('div', {className: 'inline-actions bulk-actions'},
@@ -248,11 +263,7 @@ const gridPage = h('div', {className: 'grid gap-3 md:grid-cols-2 xl:grid-cols-3'
 
 const compactListPage = h('div', {className: 'grid gap-4'},
   directoryHeader,
-  h('div', {className: 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'},
-    h(Stat, {label: 'Clientes activos', valor: 38, sub: 'Con servicio en curso', destacado: true}),
-    h(Stat, {label: 'Cobros al día', valor: 31, sub: '3 en mora · 2 por vencer · 1 sin factura'}),
-    h(Stat, {label: 'Facturación contratada', valor: h('span', {className: 'flex flex-wrap items-baseline gap-2'}, h('span', null, 'Gs. 12.345.678 / mes'), h('span', null, 'USD 1.200,00 / mes')), sub: 'Expectativa comercial vigente por moneda'}),
-    h(Stat, {label: 'Entregas esta semana', valor: 9, sub: 'Piezas con vencimiento en 7 días'})),
+  kpiStrip,
   h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[67.5rem]', className: 'client-directory-table'}, clients.filter(client => !client.archived).map(clientRow)));
 
 export default [

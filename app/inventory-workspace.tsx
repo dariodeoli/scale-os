@@ -55,7 +55,7 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 // gap-x y el padding. La variable se declara en el contenedor una sola vez.
 // Identidad con el mayor `fr` y un mínimo amplio (#151): el nombre del equipo
 // no se recorta antes de tiempo; el código sigue sin cortarse.
-const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(11rem,1.8fr)_minmax(7rem,1fr)_7rem_6.5rem_minmax(6.5rem,0.9fr)_minmax(9.5rem,1.1fr)_12rem]';
+const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(11rem,1.8fr)_minmax(10rem,1.2fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(9.5rem,1.1fr)_5rem]';
 const EQUIPMENT_GRID='grid grid-cols-[var(--eq-cols)] items-center gap-x-2';
 const RESERVATION_COLS='[--rsv-cols:minmax(9.5rem,1.3fr)_minmax(6.5rem,1fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(7.5rem,1fr)_minmax(7rem,1fr)_9rem]';
 const RESERVATION_GRID='grid grid-cols-[var(--rsv-cols)] items-center gap-x-2';
@@ -316,7 +316,7 @@ function InventorySummary({items,onAddValue}:{items:InventoryItem[];onAddValue?:
  const {currencyTotals,inUse,maintenance,available}=inventoryTotals(items);
  const missingValue=items.filter(item=>!(Number(item.value)>0)).length;
  const equipmentLabel=`${items.length} equipo${items.length===1?'':'s'}`;
- return <section aria-label="Métricas de inventario"><KpiStrip>
+ return <section aria-label="Métricas de inventario"><KpiStrip dense>
   <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1" title={currencyTotals.map(({currency,total})=>money(total,currency)).join(' · ')}>{currencyTotals.map(({currency,total})=><span key={currency} className="whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.875rem)] font-semibold leading-tight tabular-nums"><CeldaMoneda valor={total} currency={currency}/></span>)}</span>:<span className="text-base font-semibold text-mute">Sin valor</span>} hint={currencyTotals.length?<span className="min-w-0 flex-1 truncate" title={`${equipmentLabel}${missingValue?` · ${missingValue} sin valor`:''}`}>{equipmentLabel}{missingValue?` · ${missingValue} sin valor`:''}</span>:items.length?<span className="flex min-w-0 flex-wrap items-center gap-x-2"><span className="min-w-0 truncate" title={`${missingValue} equipo${missingValue===1?'':'s'} sin valor registrado`}>{missingValue?`${missingValue} sin valor`:'Sin datos monetarios'}</span>{missingValue&&onAddValue?<button type="button" className="min-h-11 shrink-0 text-[11px] font-semibold text-fono-light underline-offset-2 hover:underline focus-visible:underline md:min-h-0" onClick={onAddValue} title="Completar el valor de un equipo del inventario">Agregar valor</button>:null}</span>:equipmentLabel}/>
   <Kpi label="En uso" valor={inUse} hint="Retirados o en rodaje"/>
   <Kpi label="Mantenimiento" valor={maintenance} hint="No asignables a rodaje"/>
@@ -332,7 +332,7 @@ function InventoryPanel(){
  const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
  const bulk=useBulkSelection({limit:BATCH_LIMITS.inventory,noun:'equipos'});
  const selectedItems=bulk.ids;
- const [actionError,setError]=useState(''),[notice,setNotice]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
+ const [actionError,setError]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
  const {context,items,categories,storageTemplates,reservations,loading,error:loadError,refreshError,lastUpdated,addStorageTemplate,moveItemLocally,reorderLocations}=useInventoryCatalog(month,refresh);
  // El error del catálogo sólo existe cuando nunca hubo datos y bloquea la vista; el de una
  // acción se avisa aparte y NUNCA esconde el catálogo que ya está en pantalla.
@@ -369,11 +369,12 @@ function InventoryPanel(){
   const data=await api<{moved:number}>('/api/agency/inventory/batch',{ids,change:{location}},'POST');
   setBatchLocation(null);bulk.clear();refreshed(`Ubicación actualizada en ${data.moved??ids.length} equipo${(data.moved??ids.length)===1?'':'s'}.`);
  }
- function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);bulk.clear();setReserveIds([]);setNotice(message);setRefresh(n=>n+1);}
+ function saved(message='Cambios guardados.'){setEditItem(null);setEditReservation(null);setEditCategory(null);setEditStorageTemplate(null);setVerification(null);setAction(null);setArchive(null);bulk.clear();setReserveIds([]);notify({tone:'success',message});setRefresh(n=>n+1);}
  // Editors own their successful close so their footer form association is
  // released before the same dialog can be opened again. This only refreshes
  // the workspace after a persisted inventory/category mutation.
- function refreshed(message:string){setNotice(message);setRefresh(n=>n+1);}
+ // Éxito: solo el toast (`notify`, reemplaza al genérico del guardado); sin banner en línea.
+ function refreshed(message:string){notify({tone:'success',message});setRefresh(n=>n+1);}
  const filteredItems=useMemo(()=>filterInventoryItems(items,{search,categoryId:categoryFilter}),[items,search,categoryFilter]);
  // Local attention signals mirror the 30-day operational control window and
  // deliberately leave the catalog/API contract unchanged.
@@ -397,25 +398,27 @@ function InventoryPanel(){
     <ViewTabs ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
     {view!=='reservations'?<>
      <SearchField className="min-w-[8rem] flex-1 lg:max-w-72" ariaLabel="Buscar equipo o ubicación" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Memoria, DJI Mic, estante…"/>
-     <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div>
+     <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap max-lg:[&>div]:!flex max-lg:[&>div]:items-center max-lg:[&>div]:gap-2 max-lg:[&_.ops-label]:mb-0"><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div>
      <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">
       <p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title={`Mostrando ${visible.length} de ${items.length} equipos${attentionFilterLabel?` con filtro de ${attentionFilterLabel}`:''}. Sincroniza cada 30 s mientras esta pestaña esté visible.${updatedAt?` Actualizado ${updatedAt}.`:''}`}>{visible.length} de {items.length}{updatedAt?` · ${updatedAt}`:''}</p>
-      {context?.can_manage?<Button type="button" variant="outline" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
-      {context?.can_reserve&&!selectedItems.length?<Button type="button" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
+      {context?.can_manage?<Button type="button" variant="outline" className="max-md:px-3" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:null}
+      {context?.can_reserve&&!selectedItems.length?<Button type="button" className="max-md:px-3" onClick={()=>{setReserveIds([]);setEditReservation('new');}}>Reservar equipos</Button>:null}
      </div>
     </>:null}
    </div>
    {view!=='reservations'?<div className="flex min-w-0 flex-wrap items-center gap-2" aria-label="Filtros locales de atención del inventario">
-    <span className="text-[11px] font-bold uppercase tracking-wider text-mute">Atención</span>
+    <span className="text-[11px] font-bold uppercase tracking-wider text-mute max-md:sr-only">Atención</span>
     <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='missing_value'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con valor faltante: ${attention.missingValue}`} aria-pressed={attentionFilter==='missing_value'} title={`Filtrar ${attention.missingValue} equipo${attention.missingValue===1?'':'s'} con valor faltante`} onClick={()=>setAttentionFilter(current=>current==='missing_value'?'':'missing_value')}><span>Valor faltante</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.missingValue}</span></button>
     <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='physical_verification'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con control físico vencido o sin registro: ${attention.physicalVerification}`} aria-pressed={attentionFilter==='physical_verification'} title={`Control pendiente: vencido hace más de ${PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.`} onClick={()=>setAttentionFilter(current=>current==='physical_verification'?'':'physical_verification')}><span>Control físico pendiente</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.physicalVerification}</span></button>
     {attentionFilter?<Button type="button" variant="ghost" className="min-h-11 md:min-h-8" onClick={()=>setAttentionFilter('')}>Limpiar atención</Button>:null}
-    <button type="button" className="text-button" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</button>
-    <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">
-     <ViewTabs ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
+    <button type="button" className="text-button max-md:order-2" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</button>
+    {/* Mobile (pase de densidad): la vista va solo con íconos (el nombre queda en
+        aria-label/title) y comparte la línea con «Seleccionar visibles» y «¿Qué es?». */}
+    <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto max-md:order-1">
+     <ViewTabs className="max-sm:[&_button>span.min-w-0]:hidden" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
      {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
     </div>
-    {attentionHelp?<Nota tono="info" compact className="basis-full">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
+    {attentionHelp?<Nota tono="info" compact className="basis-full max-md:order-3">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
    </div>:null}
    {view!=='reservations'&&selectionEnabled?<BulkBar count={bulk.count} total={BATCH_LIMITS.inventory} onClear={bulk.clear}>
      {context?.can_reserve?<Button type="button" variant="outline" disabled={!reservableSelected.length} onClick={()=>{setReserveIds(reservableSelected);setEditReservation('new');}}>Reservar</Button>:null}
@@ -427,7 +430,6 @@ function InventoryPanel(){
   {/* Estados de la pantalla, compartidos por equipos y calendario: un fallo de
       acción no reemplaza el contenido ya cargado. */}
   {refreshError?<Aviso tono="warn">No se pudo actualizar: {refreshError}. Se muestra la última información recibida.</Aviso>:null}
-  {notice?<Aviso tono="ok">{notice}</Aviso>:null}
   {actionError?<Aviso tono="error">{actionError}</Aviso>:null}
   {error?<ErrorState title="No se pudo cargar el inventario." description={error} onRetry={()=>setRefresh(n=>n+1)}/>:null}
   {loading&&!error?<LoadingBlock label="Cargando inventario…" lines={6}/>:null}
@@ -473,12 +475,14 @@ function InventoryPanel(){
    </div>
   </Card>:null}
 
-  {view!=='reservations'&&!loading&&!error?<Card className="grid min-w-0 gap-4">
+  {/* Equipos sin card contenedora (pase de densidad): KPIs y lista/cuadrícula
+      van directo sobre el lienzo; se ganan el borde y el padding del panel. */}
+  {view!=='reservations'&&!loading&&!error?<section className="grid min-w-0 gap-3" aria-label="Equipos">
    {equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onReorder={context?.can_manage?reorderLocations:undefined} onDetail={setDetail} onAdd={context?.can_manage?()=>setEditItem('new'):undefined} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
    {equipmentView!=='pipeline'?<>
     <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
     {equipmentView==='list'?<div data-list="equipment" className="silent-scroll min-w-0 overflow-x-auto">
-     <div className={`${EQUIPMENT_COLS} grid min-w-[69.5rem] gap-2`}>
+     <div className={`${EQUIPMENT_COLS} grid min-w-[66.5rem] gap-1.5`}>
      <div data-list-head="equipment" className={`${EQUIPMENT_GRID} border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
       <span/><span>Foto</span><span>Artículo</span><span>Detalles</span><span className="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span className="text-right">Acciones</span>
      </div>
@@ -489,7 +493,7 @@ function InventoryPanel(){
     </div>}
     {!visible.length?<EmptyState icon="box" title={items.length?'No hay equipos que coincidan con la búsqueda.':'Todavía no hay equipos en el inventario.'} description={items.length?'Probá otra búsqueda o categoría.':'Registrá el primer equipo para reservarlo, verificarlo y etiquetarlo.'} action={items.length?<Button type="button" variant="ghost" onClick={()=>{setSearch('');setCategoryFilter('');}}>Limpiar búsqueda</Button>:context?.can_manage?<Button type="button" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:undefined}/>:null}
    </>:null}
-  </Card>:null}
+  </section>:null}
 
   {context?.can_manage?<Card className="grid min-w-0 gap-4">
    <details className="grid gap-3">
@@ -520,7 +524,7 @@ function InventoryPanel(){
    </details>
   </Card>:null}
 
-  {editItem&&context?.can_manage?<Dialog size="amplio" title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');addStorageTemplate(result.location);setRefresh(current=>current+1);return result.location;}} done={(count=1,keepOpen=false)=>{if(keepOpen){setNotice('');setRefresh(current=>current+1);return;}saved(count>1?`${count} equipos guardados.`:'Equipo guardado.');}}/></Dialog>:null}
+  {editItem&&context?.can_manage?<Dialog size="amplio" title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');addStorageTemplate(result.location);setRefresh(current=>current+1);return result.location;}} done={(count=1,keepOpen=false)=>{if(keepOpen){setRefresh(current=>current+1);return;}saved(count>1?`${count} equipos guardados.`:'Equipo guardado.');}}/></Dialog>:null}
   {editStorageTemplate&&context?.can_manage?<Dialog title={editStorageTemplate==='new'?'Nueva ubicación':'Editar ubicación'} close={()=>setEditStorageTemplate(null)}><StorageTemplateForm template={editStorageTemplate==='new'?null:editStorageTemplate} members={context.members} done={message=>saved(message)}/></Dialog>:null}
   {verification&&context?.can_manage?<Dialog title={`Verificar con detalle · ${verification.name}`} close={()=>setVerification(null)}><InventoryVerificationForm item={verification} done={()=>saved('Verificación física registrada.')}/></Dialog>:null}
   {batchLocation?<Dialog title={`Mover ${batchLocation.length} equipo${batchLocation.length===1?'':'s'} de ubicación`} close={()=>setBatchLocation(null)}>{storageTemplates.some(template=>template.active)?<Editor columns fields={[{key:'location',label:'Ubicación',choices:storageTemplates.filter(template=>template.active).map(template=>({value:String(template.id),label:template.name}))},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{location:String(storageTemplates.find(template=>template.active)?.id||''),storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation(values.location,values.storage_row);}}/>:<Editor columns fields={[{key:'storage_shelf',label:'Ubicación',help:'Sin lugares configurados: escribí dónde se guardan.'},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{storage_shelf:'',storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation('',values.storage_row,values.storage_shelf);}}/>}</Dialog>:null}

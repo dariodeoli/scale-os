@@ -35,7 +35,7 @@ const WorkDetail=dynamic(()=>import('./productivity-ui').then(m=>m.WorkDetail));
 const ClientDetail=dynamic(()=>import('./productivity-ui').then(m=>m.ClientDetail));
 import {setDataScope, clearDataCache, dataFetch} from './data-cache';
 import {request} from './workspace-request';
-import {sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
+import {mutationStalesShellIdentity,sectionScope,scopeResources,shellDataUrl,shellSignature,shellContract,learnShellContract,stageCountsFrom,projectedList,BUDGET_LIST_FIELDS,type ShellResource,type ShellScope} from './shell-data';
 import {LIST_WINDOW,appendPage,readPage,windowStateOf,type ListWindowState} from './list-window';
 import {budgetKpisOf} from './budget-status';
 import {prefetchSectionData} from './data-prefetch';
@@ -49,7 +49,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {PageChromeContext,PageTitleContext,StateChip,useBulkSelection} from './ui-v2';
+import {ListActions,PageChromeContext,PageTitleContext,StateChip,useBulkSelection} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
@@ -307,7 +307,7 @@ export default function Home() {
   useEffect(()=>{
     // Editar un cliente o proyecto invalida la identidad en memoria: la próxima
     // activación de sección la relee antes de decorar (issue #81).
-    const onMutated=(event:Event)=>{const url=String((event as CustomEvent<{url?:string}>).detail?.url||'');if(!/\/clients(?:\/|$)|\/projects(?:\/|$)|\/work-orders(?:\/|$)/.test(url))return;const next={...dataFreshness.current};for(const key of Object.keys(next))if(/^(clients|projects):/.test(key))delete next[key];dataFreshness.current=next;};
+    const onMutated=(event:Event)=>{const url=String((event as CustomEvent<{url?:string}>).detail?.url||'');if(!mutationStalesShellIdentity(url))return;const next={...dataFreshness.current};for(const key of Object.keys(next))if(/^(clients|projects):/.test(key))delete next[key];dataFreshness.current=next;};
     window.addEventListener('scale:data-mutated',onMutated);
     return()=>window.removeEventListener('scale:data-mutated',onMutated);
   },[]);
@@ -727,21 +727,22 @@ export default function Home() {
     const statusTone=archived?'mute':project.status==='active'?'ok':project.status==='paused'?'warn':project.status==='completed'?'info':'bad';
     const statusText=archived?'Archivado':project.status==='active'?'Activo':project.status==='paused'?'Pausado':project.status==='completed'?'Completado':'Cancelado';
     const pieces=Number(project.work_order_count||0);
+    const dueText=listDateShort(project.due_date)||'Sin entrega';
     return <>
       <span className="flex min-w-0 items-center gap-2">
         {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
-          <small className="min-w-0 truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
+          <small className="min-w-0 shrink-[2] truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
         </span>
       </span>
       <span className="flex items-center"><StateChip tone={statusTone}>{statusText}</StateChip></span>
-      <span className="min-w-0 truncate text-[11.5px] text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} · <span data-tone={dueTone(project.due_date)}>{listDateShort(project.due_date)||'Sin entrega'}</span> · <b className="tabular-nums">{pieces}</b> pieza{pieces===1?'':'s'}</span>
-      <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees}/></span>
-      <span className="flex items-center justify-end gap-1">
+      <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} → <span className="list-date" data-tone={dueTone(project.due_date)}>{dueText}</span> · <b className="tabular-nums text-fore">{pieces}</b> pieza{pieces===1?'':'s'}</span>
+      <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees} compact/></span>
+      <ListActions className="flex items-center justify-end gap-1">
         {canManageProjects?<button type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} aria-label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)}>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</button>:null}
         <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
-      </span>
+      </ListActions>
     </>;
   }
   async function loadAllInvoices(){
@@ -929,7 +930,7 @@ export default function Home() {
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
   // primaria) y los apartados, así que el shell no repite ninguno de los dos.
-  const ownsHeader = ['Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
+  const ownsHeader = ['Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
@@ -1107,7 +1108,7 @@ export default function Home() {
         {active==='Historial de trabajo'&&<HistorialSection user={user} navigate={setActive}/>}
         {active==='Invitaciones'&&<InvitacionesSection user={user}/>}
         {active==='Comisiones'&&<ComisionesSection user={user}/>}
-        {active==='Pipeline'&&<PipelineSection user={user} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()} navigate={setActive}/>}
+        {active==='Pipeline'&&<PipelineSection user={user} metricsState={metricsState} onRetryMetrics={()=>void loadMetrics()} navigate={setActive} openClient={id=>setDetail({kind:'client',id})}/>}
         {active==='Métricas'&&<MetricasSection user={user} metrics={metrics} state={metricsState} error={metricsError} onRetry={()=>void loadMetrics()}/>}
         {active==='Planes'&&<PlanesSection user={user}/>}
         {active==='Inventario'&&<InventarioSection user={user}/>}
@@ -1133,7 +1134,7 @@ export default function Home() {
       {myProfile&&user&&<MyProfile profile={user} close={()=>setMyProfile(false)} refresh={async()=>{clearDataCache();const d=await request<{user:User}>('/api/auth/me');setUser(d.user);}}/>}
       {iaCarga&&user&&<IaCargaDialog role={user.role||'viewer'} close={()=>setIaCarga(false)} onCreated={()=>reloadWithBoard()}/>}
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={reloadWithBoard}/>}
-      {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
+      {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})} openProjects={id=>{setProjectClientFilter(id);setDetail(null);setActive('Proyectos');}}/>}
       {modal === "client" && (
         <ClientEditorDialog
           mode="create"

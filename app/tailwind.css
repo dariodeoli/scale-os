@@ -313,6 +313,15 @@ html[data-theme="dark"] {
 .control-shell.production-mode .header-actions>.secondary{display:none}
 }
 
+/* ── Contenido del shell: sin márgenes del navegador ────────────────────────
+   Preflight está apagado: `h2`/`h3`/`p`/`dl`/`dd` traían márgenes por defecto
+   (1em, 40 px de sangría en `dd`) que se sumaban al `gap` de tarjetas y filas.
+   `:where()` deja la especificidad en cero: cualquier clase (`mt-2`, `.work-card p`)
+   sigue mandando. Los diálogos viven en un portal fuera de `.workspace-content`. */
+:where(.workspace-content) :is(h2, h3, p, dl, dd) {
+  margin: 0;
+}
+
 /* ── Superficies de acceso (ronda visual 2, #190) ───────────────────────────
    Sin preflight, `h1`/`p`/`ol` conservan los márgenes y el relleno del
    navegador y se sumaban al `gap` de la tarjeta (huecos de ~25 px entre título

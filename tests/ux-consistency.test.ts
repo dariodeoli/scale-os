@@ -37,7 +37,7 @@ test('icon-only actions explain themselves on hover',()=>{
 
 test('every list view carries the same column-header and alignment contract',()=>{
   const workspace=workspaceSource();
-  assert.match(workspace,/CLIENT_COLUMNS: Column\[\] = \[[\s\S]*?Cliente[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Cobros[\s\S]*?Actividad[\s\S]*?Acciones/,'the client list declares its column header');
+  assert.match(workspace,/CLIENT_COLUMNS: Column\[\] = \[[\s\S]*?Cliente[\s\S]*?Estado[\s\S]*?Cobros[\s\S]*?Actividad[\s\S]*?Datos[\s\S]*?Acciones/,'the client list declares its column header (identidad → estado → cobros → actividad → datos → acciones)');
   assert.match(workspace,/ListGrid label="Clientes" template=\{CLIENT_TEMPLATE\}/,'header and rows share one client template');
   assert.match(workspace,/PROJECT_COLUMNS: Column\[\] = \[[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables[\s\S]*?Acciones/,'the project list declares its column header');
   assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
@@ -54,7 +54,7 @@ test('every list view carries the same column-header and alignment contract',()=
 
 test('the client directory keeps one template, ordered row actions and shared date formats',()=>{
   const clientes=sectionSource('clientes.tsx');
-  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(11rem,1\.35fr\)_minmax\(9\.5rem,1\.15fr\)_6rem_minmax\(15rem,1\.15fr\)_minmax\(9rem,\.95fr\)_14rem\]'/,'la lista de clientes declara una sola plantilla (pistas afinadas en #77)');
+  assert.match(clientes,/const CLIENT_TEMPLATE = 'grid-cols-\[minmax\(10\.5rem,1fr\)_5\.5rem_minmax\(15\.5rem,1fr\)_minmax\(9\.5rem,\.85fr\)_minmax\(12\.5rem,1\.55fr\)_9\.5rem\]'/,'la lista de clientes declara una sola plantilla (pistas del pase de densidad)');
   assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'la fila finita usa la plantilla del encabezado y no viste la clase de tarjeta');
   assert.match(clientes,/<ListActions className="client-row-actions silent-scroll">/,'la celda de acciones usa la primitiva fija de ui-v2');
   assert.match(clientes,/IconAction icon="eye"[\s\S]*?client-record-actions/,'la fila conserva el orden de acciones compartido');
@@ -283,7 +283,8 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(uiSystem,/@media\(min-width:768px\)\{[\s\S]{0,160}?\.control-shell \.ui-kpi>div:nth-child\(2\)\{font-size:28px;line-height:1\.15\}/,'el KPI compacta su valor en escritorio');
  assert.doesNotMatch(controlCenter,/\.control-shell \.section-tabs\{/,'las reglas legadas de tabs se retiraron: fuente única en ui-system.css');
  assert.match(read('app/ui-v2.tsx'),/data-toolbar="filtros" className=\{`mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap/,'la toolbar declara su hook y una fila desde xl');
- assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4/,'el strip de KPIs conserva su grilla 1/2/4');
+ assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid \$\{dense \? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'\} \$\{kpiStripColumns\(count\)\}/,'el strip de KPIs deriva sus columnas de la cantidad (1/2/4 con cuatro; la variante densa va 2/2/4)');
+ assert.match(read('app/ui-v2.tsx'),/return 'sm:grid-cols-2 xl:grid-cols-4';/,'cuatro o más KPIs van en filas de 4');
  // FOUT (#76): las fuentes críticas del marco se precargan y no hacen swap.
  const layoutSource=read('app/layout.tsx');
  assert.match(layoutSource,/rel="preload" href="\/fonts\/s\/outfit\/v15\/QGYvz_MVcBeNP4NJtEtqUYLknw\.woff2" as="font" type="font\/woff2" crossOrigin="anonymous"/,'Outfit latin se precarga como fuente');
@@ -300,3 +301,39 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
 }
 console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
+
+test('los formularios del shell anuncian sus errores (role=alert) y el enlace inválido de una orden no bloquea en silencio',()=>{
+  const forms=read('app/workspace-forms.tsx');
+  const errors=[...forms.matchAll(/<(small|p) className="error"[^>]*>/g)].map(match=>match[0]);
+  assert.ok(errors.length>=8,'los formularios tienen sus mensajes de error');
+  for(const tag of errors)assert.match(tag,/role="alert"/,`${tag} se anuncia a lectores de pantalla`);
+  assert.match(forms,/id="order-drive-error"/,'la orden muestra por qué un enlace de Drive no se acepta');
+  assert.match(forms,/<SelectCustom label="Cliente"/,'el proyecto elige cliente con el desplegable con buscador, no un botón por cliente');
+});
+
+test('convención única de campos: «· Opcional» en el opcional y sin marca en el obligatorio',async()=>{
+  const {readdirSync,statSync}=await import('node:fs');
+  const files:string[]=[];
+  const walk=(dir:string)=>{for(const name of readdirSync(new URL(`../${dir}`,import.meta.url))){const path=`${dir}/${name}`;if(statSync(new URL(`../${path}`,import.meta.url)).isDirectory()){if(!['blog'].includes(name))walk(path);}else if(path.endsWith('.tsx'))files.push(path);}};
+  walk('app');
+  for(const file of files){
+    const source=read(file);
+    assert.doesNotMatch(source,/\(opcional\)/i,`${file} usa OptionalMark/optionalLabel en vez de «(opcional)»`);
+    assert.doesNotMatch(source,/>Obligatorio</,`${file} no marca obligatorios`);
+  }
+  const editor=read('app/operations.tsx');
+  assert.match(editor,/optionalLabel\(f\.label,Boolean\(f\.optional\)\)/,'el Editor usa la marca compartida en desplegables');
+  assert.match(editor,/\{f\.optional&&<OptionalMark\/>\}/,'y en campos de texto');
+  const {optionalLabel}=await import('../app/field-label');
+  assert.equal(optionalLabel('Empresa'),'Empresa · Opcional');assert.equal(optionalLabel('Nombre',false),'Nombre');
+});
+
+test('Resumen: las tarjetas destacadas leen en AA (ambos temas) y las ayudas envuelven en vez de cortarse',()=>{
+  const center=read('app/control-center.tsx'),css=read('app/control-center.css');
+  assert.doesNotMatch(center,/destacado[^>]*className=\{KPI_NOTE\}|<span className=\{KPI_NOTE\}>Sin movimientos/,'el gris muted no se usa sobre el violeta');
+  assert.match(center,/<span className=\{kpiNote\(key==='cash'\)\}>Sin movimientos<\/span>/);
+  assert.equal((center.match(/className=\{KPI_HIGHLIGHT\}|className=\{key==='cash'\?KPI_HIGHLIGHT:undefined\}/g)||[]).length,3,'las tres tarjetas destacadas usan el contraste AA');
+  assert.match(center,/whitespace-normal break-words/,'la ayuda envuelve');assert.doesNotMatch(center,/<Kpi[^>]*hint="/,'ninguna ayuda pasa como texto (el Kpi la truncaría)');
+  assert.match(css,/\.kpi-highlight-aa>div,\.kpi-highlight-aa>div>span\{color:rgb\(var\(--c-onbrand\)\)\}/,'tinta de marca plena, no al 75 %');
+  assert.match(css,/html\[data-theme="dark"\] \.kpi-highlight-aa\{background-image:linear-gradient\(to bottom right,rgb\(var\(--c-fono\)\),rgb\(var\(--c-fono\)\)\)\}/,'en oscuro el fondo no arranca en fono-dark');
+});

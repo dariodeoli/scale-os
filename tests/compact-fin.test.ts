@@ -17,16 +17,19 @@ const urgentIndex=finanzas.indexOf('id="finance-urgent-title"');
 const projectionIndex=finanzas.indexOf('<SalariosPanel navigate={navigate}/>');
 assert(balancesIndex>0&&urgentIndex>0&&projectionIndex>0,'el primer pliegue separa balances, cobros urgentes y proyección');
 assert(balancesIndex<urgentIndex&&urgentIndex<projectionIndex,'los tres bloques del pliegue van en orden');
-assert.match(finanzas,/xl:grid-cols-3/,'los tres bloques comparten la franja del pliegue');
+assert.match(finanzas,/xl:grid-cols-\[minmax\(0,1\.5fr\)_minmax\(0,1fr\)_minmax\(0,1fr\)\]/,'los tres bloques comparten la franja del pliegue; Balances, más ancho, entra en filas de cuenta');
 assert.equal((finanzas.match(/grid content-start gap-3/g)||[]).length,3,'los tres bloques del pliegue fijan su contenido arriba; no se reparten cuando otra columna es más alta');
 assert.match(finanzas,/<Subtabs value=\{historyTab\} onChange=\{setHistoryTab\} items=\{\[\['transferencias'/,'el historial vive en tabs (transferencias, cobros, movimientos)');
 assert.match(finanzas,/hidden=\{historyTab !== 'movimientos'\}><ReconciliationWorkspace/,'los movimientos de conciliación viven en su tab');
 assert.doesNotMatch(finanzas,/min-h-\[200px\]/,'las cuentas ya no reservan 200 px de alto');
-assert.match(finanzas,/grid-cols-\[auto_minmax\(0,1fr\)\] items-baseline/,'las filas de la cuenta acotan la columna del valor');
-assert.match(finanzas,/min-w-0 flex-1 truncate text-right text-fore/,'los datos secundarios de la cuenta recortan con tooltip');
+// Reorganización IA: la cuenta es una fila de dos líneas (identidad, tipo y
+// saldo; institución · N.º · titular, custodia y papelera) con los mismos datos.
+assert.match(finanzas,/<b className="min-w-0 flex-1 truncate text-\[13\.5px\][^"]*" title=\{account\.name\}>/,'el nombre de la cuenta recorta con tooltip y deja lugar al saldo');
+assert.match(finanzas,/<span className="whitespace-nowrap tabular-nums">\{account\.institution \? '· ' : ''\}N\.º \{account\.account_number\}/,'el número de cuenta nunca se corta; el resto envuelve');
+assert.match(finanzas,/<span className="sr-only">Custodia:<\/span><PersonContainer size="sm"/,'la custodia conserva su rótulo para lectores');
 
 // ── Mora: header con título completo + toolbar compacta en su fila (#89).
-assert.match(mora,/<FilterToolbar summary=\{`\$\{visible\.length\} de \$\{paymentStatuses\.length\}`\}>/,'la toolbar de cobranza vive en su fila compacta');
+assert.match(mora,/<FilterToolbar className="mb-0" summary=\{`\$\{visible\.length\} de \$\{paymentStatuses\.length\}`\}>/,'la toolbar de cobranza vive en su fila compacta');
 assert.doesNotMatch(mora,/<PageHeader[\s\S]{0,400}<SegmentedField/,'los filtros no recortan el título del header');
 
 // ── Previsión: mes y horizonte en el header; sin caja de toolbar ni nota suelta.

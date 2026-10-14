@@ -186,17 +186,36 @@ export function CurrencyField({id, label, value, onChange, disabled = false, cla
  * `compact` (#138) apila los KPIs del borde como filas de 44–64 px en mobile
  * (rótulo + valor en una línea, hint debajo); en escritorio no cambia nada.
  */
-export function KpiStrip({compact = false, className, children, ...props}: {compact?: boolean; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${compact ? 'ui-kpi-strip-compact' : ''} ${className ?? ''}`}>{children}</div>;
+/**
+ * `dense` (pase de densidad de listas): tira baja para las pantallas de lista
+ * (Clientes, Proyectos, Inventario). Cada KPI mide ~60 px en escritorio
+ * (rótulo arriba; valor y hint en la misma línea) y en mobile la tira va en
+ * 2×2 en vez de cuatro tarjetas apiladas: la lista queda arriba del pliegue.
+ */
+/**
+ * Columnas de escritorio según la cantidad de KPIs (1–4; 5 o más envuelven en
+ * filas de 4): una tira de 2 o 3 indicadores no deja media fila vacía.
+ * Las clases son literales para que Tailwind las publique.
+ */
+export function kpiStripColumns(count: number) {
+  if (count <= 1) return 'sm:grid-cols-1 xl:grid-cols-1';
+  if (count === 2) return 'sm:grid-cols-2 xl:grid-cols-2';
+  if (count === 3) return 'sm:grid-cols-2 xl:grid-cols-3';
+  return 'sm:grid-cols-2 xl:grid-cols-4';
+}
+
+export function KpiStrip({compact = false, dense = false, columns, className, children, ...props}: {compact?: boolean; dense?: boolean; /** Pistas de escritorio explícitas cuando un hijo ocupa varias (`col-span`). */ columns?: number; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
+  const count = columns ?? Children.toArray(children).filter(isValidElement).length;
+  return <div {...props} className={`ui-kpi-strip grid ${dense ? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'} ${kpiStripColumns(count)} ${compact ? 'ui-kpi-strip-compact' : ''} ${className ?? ''}`}>{children}</div>;
 }
 
 /**
  * Esqueleto de una tira de KPIs (#109): mismos lugares y alto que las cards
  * reales, sin números inventados mientras el shell carga sus datos.
  */
-export function KpiStripSkeleton({count = 4, label = 'Cargando indicadores…', className}: {count?: number; label?: string; className?: string}) {
-  return <div role="status" aria-busy="true" aria-label={label} className={`ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 ${className ?? ''}`}>
-    {Array.from({length: Math.max(1, count)}, (_, index) => <Skeleton key={index} className="h-[110px] w-full rounded-xl"/>)}
+export function KpiStripSkeleton({count = 4, label = 'Cargando indicadores…', dense = false, className}: {count?: number; label?: string; dense?: boolean; className?: string}) {
+  return <div role="status" aria-busy="true" aria-label={label} className={`ui-kpi-strip grid ${dense ? 'grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'} ${kpiStripColumns(Math.max(1, count))} ${className ?? ''}`}>
+    {Array.from({length: Math.max(1, count)}, (_, index) => <Skeleton key={index} className={`${dense ? 'h-[60px]' : 'h-[110px]'} w-full rounded-xl`}/>)}
   </div>;
 }
 

@@ -108,7 +108,9 @@ const photoBox = (item, size = 'row') => {
 const verificationStamp = (item, empty = 'Sin verificación') => item.verification
  ? `<span class="flex min-w-0 items-center gap-1.5">${avatar(item.verification.verifier)}<span class="min-w-0 truncate text-xs text-mute" title="${item.verification.verifier}">${item.verification.verifier.split(' ')[0]}</span><time class="whitespace-nowrap text-[11px] tabular-nums text-mute">${item.verification.time}</time></span>`
  : `<span class="text-[11px] text-mute">${empty}</span>`;
-const itemActions = (item, dense = false) => `<span class="flex flex-nowrap items-center justify-end gap-1 ${dense ? 'shrink-0' : 'silent-scroll min-w-0 max-w-full overflow-x-auto'}">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Verificar con detalle: ${item.name}`, dense})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense})}</span>`;
+/* app/inventory-workspace.tsx InventoryItemActions (#141): acción rápida
+   (verificar) + menú ⋮ (`MenuDesplegable`) con el resto. */
+const itemActions = (item, dense = false) => `<span class="flex flex-nowrap items-center justify-end gap-1 ${dense ? 'shrink-0 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7' : 'silent-scroll min-w-0 max-w-full overflow-x-auto'}">${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}<div class="relative"><button type="button" aria-haspopup="menu" aria-expanded="false" class="toque-44 inline-flex min-h-11 items-center gap-2 rounded-lg transition"><span class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label="Acciones del equipo: ${item.name}" title="Acciones del equipo: ${item.name}">⋮</span></button></div></span>`;
 
 const equipmentRow = (item) => `
 <article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[44px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1 transition-colors hover:bg-ink-700/40">
@@ -141,12 +143,12 @@ const equipmentCard = (item) => `
   ${itemActions(item)}
  </div>
 </article>`;
-const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[69.5rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
+const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[66.5rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
 // Fila "Atención" del inventario: chips de conteo + explicación a ancho completo
 // (antes del pase de compactación #90, espejo de `app/inventory-workspace.tsx`).
 const attentionChip = (label, count, active = false) => `<button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${active ? 'border-warn bg-warn/15 text-fore' : 'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}" aria-pressed="${active}"><span>${label}</span><span class="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">${count}</span></button>`;
 const attentionRow = `<div class="flex min-w-0 flex-wrap items-center gap-2" aria-label="Filtros locales de atención del inventario">
-  <span class="text-[11px] font-bold uppercase tracking-wider text-mute">Atención</span>
+  <span class="text-[11px] font-bold uppercase tracking-wider text-mute max-md:sr-only">Atención</span>
   ${attentionChip('Valor faltante', 1)}${attentionChip('Control físico pendiente', 2)}
   <button type="button" class="text-button" aria-expanded="false" title="Qué cuenta cada chip de atención">¿Qué es?</button>
   <div class="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">${segmented('Vista de inventario', [['grid', 'Cuadrícula', 'grid'], ['list', 'Lista', 'list'], ['pipeline', 'Ubicaciones', 'store']], 'list', 'silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0')}<button type="button" class="text-button">Seleccionar visibles</button></div>
@@ -178,13 +180,19 @@ const inventoryToolbar = `
  <div class="flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap">
   ${segmented('Vistas de inventario', [['equipment', 'Equipos', 'box'], ['reservations', 'Calendario y reservas', 'calendar']], 'equipment', 'silent-scroll max-lg:max-w-full max-lg:overflow-x-auto lg:shrink-0')}
   <div class="min-w-[8rem] flex-1 lg:max-w-72">${searchField('Buscar equipo o ubicación', 'Memoria, DJI Mic, estante…')}</div>
-  <div class="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap">${selectCustom('Categoría', 'Todas')}</div>
+  <div class="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap max-lg:[&>div]:!flex max-lg:[&>div]:items-center max-lg:[&>div]:gap-2 max-lg:[&_.ops-label]:mb-0">${selectCustom('Categoría', 'Todas')}</div>
   <div class="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto"><p class="whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite" title="Mostrando 6 de 6 equipos. Sincroniza cada 30 s mientras esta pestaña esté visible. Actualizado 15:42.">6 de 6 · 15:42</p>${button('Agregar equipo', 'outline')}${button('Reservar equipos')}</div>
  </div>
  ${attentionRow}
  ${selectionBar}
 </div>`;
 const kpiStrip = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Valor total', '<span class="whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.875rem)] font-semibold leading-tight tabular-nums">Gs 1.249.167.890</span>', '6 equipos', true)}${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
+/* Pase de densidad: `KpiStrip dense` (ui-kpi-strip-dense + hook ui-kpi). */
+const kpiStripDense = kpiStrip
+ .replace('<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">', '<div class="ui-kpi-strip grid ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3 sm:grid-cols-2 xl:grid-cols-4">')
+ .replaceAll('rounded-xl border border-ink-600 bg-ink-800 p-4"', 'rounded-xl border border-ink-600 bg-ink-800 p-4 ui-kpi"');
+/* Plantilla vigente de la lista de equipos (acciones de 5rem: ✓ + ⋮). */
+const EQ_COLS = '[--eq-cols:2rem_2.25rem_minmax(11rem,1.8fr)_minmax(10rem,1.2fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(9.5rem,1.1fr)_5rem]';
 // Valor total sin datos monetarios (#62/#103): el KPI dice «Sin valor», el
 // contador va como dato secundario y «Agregar valor» es un enlace chico.
 const kpiValueEmpty = `<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"><div class="relative overflow-hidden rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="text-[11px] font-medium uppercase tracking-wider text-mute">Valor total</div><div class="v2-numero mt-1.5 text-2xl font-semibold text-mute md:text-3xl">Sin valor</div><div class="mt-1.5 flex items-center gap-2 text-xs"><span class="min-w-0 truncate text-mute">17 sin valor</span><button type="button" class="min-h-11 shrink-0 text-[11px] font-semibold text-fono-light underline-offset-2 hover:underline md:min-h-0" title="Completar el valor de un equipo del inventario">Agregar valor</button></div></div>${kpi('En uso', '2', 'Retirados o en rodaje')}${kpi('Mantenimiento', '1', 'No asignables a rodaje')}${kpi('Disponibles', '2', 'Listos para reservar')}</div>`;
@@ -285,15 +293,15 @@ export default [
     body: `
 <div class="grid min-w-0 gap-4">
  <div class="grid min-w-0 gap-3">${inventoryToolbar}</div>
- <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
-  ${kpiStrip}
-  <div data-list="equipment" class="silent-scroll mt-4 min-w-0 overflow-x-auto">
-   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[69.5rem] gap-2">
+ <section class="grid min-w-0 gap-3" aria-label="Equipos">
+  ${kpiStripDense}
+  <div data-list="equipment" class="silent-scroll min-w-0 overflow-x-auto">
+   <div class="${EQ_COLS} grid min-w-[66.5rem] gap-1.5">
    ${equipmentHead}
    ${equipment.map(equipmentRow).join('')}
    </div>
   </div>
- </div>
+ </section>
 </div>`,
   },
   {
@@ -322,11 +330,13 @@ export default [
     section: 'Inventario',
     surface: 'Equipos en cuadrícula',
     kind: 'workspace',
-    grids: [{container: '[data-grid="equipment"]', card: '[data-grid-card="equipment"]', label: 'Inventario · cuadrícula', minHeight: 200}],
+    grids: [{container: '[data-grid="equipment"]', card: '[data-grid-card="equipment"]', label: 'Inventario · cuadrícula', minHeight: 120}],
+    // #99 + reinicio de márgenes del shell: la altura la define el contenido;
+    // el piso es --ui-card-min-height (120 px), no los 200 que daban los márgenes del navegador.,
     body: `
 <div class="grid min-w-0 gap-4">
  <div class="grid min-w-0 gap-3">${inventoryToolbar}</div>
- <div class="grid min-w-0 gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">${kpiStrip}<div data-grid="equipment" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">${equipment.map(equipmentCard).join('')}</div></div>
+ <section class="grid min-w-0 gap-3" aria-label="Equipos">${kpiStripDense}<div data-grid="equipment" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">${equipment.map(equipmentCard).join('')}</div></section>
 </div>`,
   },
   {
@@ -429,7 +439,9 @@ export default [
     section: 'Estudio',
     surface: 'Espacios del estudio',
     kind: 'workspace',
-    grids: [{container: '[data-grid="studio-spaces"]', card: '[data-grid-card="studio-spaces"]', label: 'Estudio · espacios', minHeight: 200}],
+    grids: [{container: '[data-grid="studio-spaces"]', card: '[data-grid-card="studio-spaces"]', label: 'Estudio · espacios', minHeight: 120}],
+    // #99 + reinicio de márgenes del shell: la altura la define el contenido;
+    // el piso es --ui-card-min-height (120 px), no los 200 que daban los márgenes del navegador.,
     body: `
 <div class="grid min-w-0 gap-4 p-4"><div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
  <div class="flex flex-wrap items-center justify-between gap-2"><p class="text-xs text-mute">Los espacios disponibles se reservan por franja horaria; cada reserva bloquea solo su espacio.</p><div class="flex flex-wrap items-center gap-2">${button('Agregar espacio', 'outline')}${button('Nueva reserva')}</div></div>

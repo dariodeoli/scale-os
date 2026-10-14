@@ -131,6 +131,8 @@ export async function productivity({req,res,url,db,session,body,send}){
     result.invoices=(await c.query('select id,number,currency,total,paid_amount,due_on from agency_invoices where organization_id=$1 and client_id=$2 order by id desc limit 100',[org,key])).rows;
     result.payments=(await c.query('select p.id,p.amount,p.received_on,p.received_by_user_id,a.name as account_name,a.currency,u.email as received_by_email from agency_payments p join agency_invoices i on i.id=p.invoice_id join bank_accounts a on a.id=p.account_id left join users u on u.id=p.received_by_user_id where p.organization_id=$1 and i.client_id=$2 order by p.id desc limit 100',[org,key])).rows;
    }
+   // Oportunidades de origen (Pipeline → cliente): mismo permiso que el Pipeline.
+   if(roleCan(user,'commercial.manage'))result.leads=(await c.query(`select l.id,l.name,l.stage,coalesce(s.label,l.stage) as stage_label,coalesce(s.kind,case l.stage when 'won' then 'won' when 'lost' then 'lost' else 'open' end) as stage_kind,l.amount,l.currency,l.probability,l.updated_at from agency_leads l left join agency_pipeline_stages s on s.organization_id=l.organization_id and s.slug=l.stage where l.organization_id=$1 and l.client_id=$2 and ${visibleRecord('l','leads')} order by l.id desc limit 100`,[org,key])).rows;
    if(roleCan(user,'billing.view'))result.budgets=(await c.query(`select b.id,b.title,b.number,b.status,b.currency,b.total from agency_budgets b where b.organization_id=$1 and b.client_id=$2 and ${visibleRecord('b','budgets')} order by b.id desc limit 100`,[org,key])).rows;
   }else fail('Método no permitido',405);
   await enrichWorkOrderAssignees(c,org,result.orders||result.order);

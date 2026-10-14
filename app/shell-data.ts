@@ -62,6 +62,16 @@ export function shellDataUrl(resource: ShellResource, request: ShellResourceRequ
   return `/core-api/api/agency${PATHS[resource]}${query.length ? `?${query.join('&')}` : ''}`;
 }
 
+/**
+ * Mutaciones que cambian la cartera o los proyectos del shell: editar/crear
+ * clientes, proyectos u órdenes y convertir una oportunidad en cliente (el
+ * convert crea el cliente desde Pipeline). Sin esto, Clientes mostraba la lista
+ * vieja hasta que vencía la frescura.
+ */
+export function mutationStalesShellIdentity(url: string) {
+  return /\/clients(?:\/|$|\?)|\/projects(?:\/|$|\?)|\/work-orders(?:\/|$|\?)|\/leads\/\d+\/convert(?:$|\?)/.test(url);
+}
+
 /** El mismo recurso con distinto recorte es otra lectura: la frescura va por firma. */
 export function shellSignature(resource: ShellResource, request: ShellResourceRequest = {}) {
   return `${resource}:${request.limit ?? 'all'}:${request.fields ?? 'full'}`;

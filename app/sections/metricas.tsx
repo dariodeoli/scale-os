@@ -28,15 +28,14 @@ export function MetricasSection({user, metrics, state = 'ready', error = '', onR
   const loaded=metrics.length>0;
   const loading=(state==='loading'||state==='idle')&&!loaded;
   const {metrics:totals}=growthSeries(metrics,days);
-  const periodLabel=GROWTH_PERIODS.find(period=>period.value===String(days))?.label||`Últimos ${days} días`;
   return (
     <ListPage
       aria-label="Métricas y crecimiento"
       eyebrow="Captación digital"
-      toolbar={loaded ? <FilterToolbar className="mb-0" summary={periodLabel}>
+      toolbar={loaded ? <FilterToolbar className="mb-0">
         <div className="w-full sm:w-52"><SelectCustom label="Período" choices={GROWTH_PERIODS} value={String(days)} onChange={value=>setDays(Number(value))}/></div>
       </FilterToolbar> : undefined}
-      kpis={loaded ? <KpiStrip aria-label="Métricas de crecimiento">
+      kpis={loaded ? <KpiStrip aria-label="Métricas de crecimiento" className="xl:!grid-cols-3">
         {totals.map(({name,label,current,variation},index)=><Kpi key={name} label={label} valor={formatoNumero(current)} destacado={index===0} hint={variation===null?'Sin base anterior':`${variation>0?'+':''}${formatoNumero(variation,{decimales:1})} % vs. período anterior`}/>)}
       </KpiStrip> : undefined}
     >

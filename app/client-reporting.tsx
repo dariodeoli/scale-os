@@ -2,6 +2,7 @@
 // Rediseño v2 (campaña #41 / spec #43 §1.4): ficha de reportes y términos
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
+import {OptionalMark} from './field-label';
 import {Button,EmptyState,FilaDato,FormField,Input,MoneyInput,Nota,Select,Aviso} from 'owncoding-ui';
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {soloDigitos} from 'owncoding-ui';
@@ -56,7 +57,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
       {data.plans.map(plan=><option key={plan.id} value={String(plan.id)}>{plan.name}</option>)}
      </Select>
     </FormField>
-    <FormField label="Inicio de relación (opcional)" htmlFor="client-reporting-relationship">
+    <FormField label={<>Inicio de relación<OptionalMark/></>} htmlFor="client-reporting-relationship">
      <Input id="client-reporting-relationship" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.relationshipStartedOn} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDraft(current=>({...current,relationshipStartedOn:event.target.value}))}/>
     </FormField>
     {financial&&termData?<>
@@ -73,7 +74,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
      <FormField label="Inicio comercial" htmlFor="client-reporting-starts">
       <Input id="client-reporting-starts" type="date" className="w-40" min="1900-01-01" value={terms.startsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,startsOn:event.target.value}))}/>
      </FormField>
-     <FormField label="Fin del plan (opcional)" htmlFor="client-reporting-ends">
+     <FormField label={<>Fin del plan<OptionalMark/></>} htmlFor="client-reporting-ends">
       <Input id="client-reporting-ends" type="date" className="w-40" min="1900-01-01" value={terms.endsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,endsOn:event.target.value}))}/>
      </FormField>
      <FormField label="Factura comercial del cliente" htmlFor="client-reporting-invoice">

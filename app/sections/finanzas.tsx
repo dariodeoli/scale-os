@@ -74,8 +74,8 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
   return <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-salaries-title">
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
       <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <h3 id="finance-salaries-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Caja y resultado esperados del mes y gasto del personal al cierre, por moneda; no incluye pagos ni comisiones registrados.">Proyección</h3>
-        <p className="min-w-0 text-xs text-mute">Cierre del mes, por moneda.</p>
+        <h3 id="finance-salaries-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Caja y resultado esperados del mes y gasto del personal al cierre, por moneda; no incluye pagos ni comisiones registrados.">Proyección</h3>
+        <p className="m-0 min-w-0 text-xs text-mute">Cierre del mes, por moneda.</p>
       </div>
       {navigate ? <button className="text-button" onClick={() => navigate('Previsión')}>Ver más</button> : null}
     </div>
@@ -88,8 +88,8 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
         <FilaDato etiqueta="Resultado estimado" valor={<MoneyText valor={row.projected_result} currency={row.currency} tono={Number(row.projected_result) < 0 ? 'bad' : Number(row.projected_result) > 0 ? 'ok' : ''} className="text-base"/>}/>
       </article>)}</div> : null}
       {rows.length ? <div className="grid gap-2">
-        <p className="font-mono text-[10px] uppercase tracking-[.14em] text-mute">Personal esperado al cierre</p>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <p className="m-0 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Personal esperado al cierre</p>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
           {rows.map(row => <article className="grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-3" key={row.currency}>
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{row.currency}</span>
@@ -159,51 +159,55 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
   }
 
   const multiCurrency = (totals: Map<string, number>) => totals.size
-    ? <span className="flex flex-wrap items-baseline gap-2">{Array.from(totals).map(([currency, total]) => <span key={currency}>{moneyKpi(total, currency)}</span>)}</span>
+    ? <span className="inline-flex flex-wrap items-baseline gap-x-2">{Array.from(totals).map(([currency, total]) => <span key={currency}>{moneyKpi(total, currency)}</span>)}</span>
     : null;
 
   return <ListPage aria-label="Finanzas" primaryAction={<button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>}>
     {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Aviso> : null}
 
     {/* Primer pliegue (#142): balances, cobros urgentes y proyección, sin mezclar todo en una vista. */}
-    <div className="grid gap-4 xl:grid-cols-3">
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-accounts-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="finance-accounts-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Disponibilidad por cuenta y custodia.">Balances</h3></div>
+          <div className="min-w-0"><h3 id="finance-accounts-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Disponibilidad por cuenta y custodia.">Balances</h3></div>
           <div className="flex flex-wrap items-center gap-1">
             <button className="text-button" onClick={() => setModal('account')}><Plus size={14} aria-hidden="true"/>Cuenta</button>
             <button className="text-button" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button>
           </div>
         </div>
-        {availability.size ? <p className="min-w-0 truncate text-xs text-mute" title="Saldo actual de cuentas activas por moneda.">Disponible: <span className="font-semibold text-fore">{multiCurrency(availability)}</span></p> : null}
+        {availability.size ? <p className="m-0 min-w-0 truncate text-xs text-mute" title="Saldo actual de cuentas activas por moneda.">Disponible: <span className="font-semibold text-fore">{multiCurrency(availability)}</span></p> : null}
         {accounts.length ? <div className="grid gap-2">
-          {accounts.map(account => <article key={account.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-900 p-4 transition-colors hover:border-ink-500 data-[archived]:opacity-70" data-archived={account.active === false || undefined}>
-            <header className="flex items-start justify-between gap-2">
-              <b className="min-w-0 truncate text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
+          {/* Cuenta en dos líneas (reorganización IA): identidad, tipo y saldo
+              arriba; institución, número, titular, custodia y papelera abajo.
+              Mismos datos que la tarjeta alta, sin la columna de rótulos. */}
+          {accounts.map(account => <article key={account.id} className="grid min-w-0 gap-1 rounded-xl border border-ink-600 bg-ink-900 px-3 py-2 transition-colors hover:border-ink-500 data-[archived]:opacity-70" data-archived={account.active === false || undefined}>
+            <header className="flex min-w-0 items-center gap-2">
+              <b className="min-w-0 flex-1 truncate text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
+              <MoneyText valor={account.balance} currency={account.currency} tono={Number(account.balance) < 0 ? 'bad' : ''} className="text-base leading-tight"/>
             </header>
-            <MoneyText valor={account.balance} currency={account.currency} tono={Number(account.balance) < 0 ? 'bad' : ''} className="text-xl leading-tight"/>
-            <dl className="grid gap-0.5 text-[11px]">
-              {account.institution ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Institución</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.institution}>{account.institution}</dd></div> : null}
-              {account.account_number ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">N.º</dt><dd className="min-w-0 whitespace-nowrap text-right tabular-nums text-fore" title={account.account_number}>{account.account_number}</dd></div> : null}
-              {account.holder_name ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Titular</dt><dd className="min-w-0 flex-1 truncate text-right text-fore" title={account.holder_name}>{account.holder_name}</dd></div> : null}
-              {account.custodian_name||account.custodian_email ? <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Custodia</dt><dd className="flex min-w-0 justify-end" title={account.custodian_name||account.custodian_email||undefined}><PersonContainer size="sm" name={account.custodian_name||account.custodian_email!} photoUrl={account.custodian_photo_url}/></dd></div> : null}
-            </dl>
-            <footer className="mt-auto flex items-center justify-end gap-1 border-t border-ink-600/60 pt-2">
+            <div className="flex min-w-0 items-center gap-2 text-[11px] text-mute">
+              <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5">
+                {account.institution ? <span className="[overflow-wrap:anywhere]">{account.institution}</span> : null}
+                {account.account_number ? <span className="whitespace-nowrap tabular-nums">{account.institution ? '· ' : ''}N.º {account.account_number}</span> : null}
+                {account.holder_name ? <span className="[overflow-wrap:anywhere]">{account.institution || account.account_number ? '· ' : ''}Titular: {account.holder_name}</span> : null}
+                {!account.institution && !account.account_number && !account.holder_name ? <span>Sin datos bancarios</span> : null}
+              </span>
+              {account.custodian_name||account.custodian_email ? <span className="flex shrink-0 items-center gap-1" title={`Custodia: ${account.custodian_name||account.custodian_email}`}><span className="sr-only">Custodia:</span><PersonContainer size="sm" name={account.custodian_name||account.custodian_email!} photoUrl={account.custodian_photo_url}/></span> : null}
               <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
-            </footer>
+            </div>
           </article>)}
         </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<button className="primary" onClick={() => setModal('account')}><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</button>}/>}
       </section>
 
       <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-urgent-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="finance-urgent-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Facturas vencidas o que vencen dentro de 7 días con saldo pendiente.">Cobros urgentes</h3></div>
+          <div className="min-w-0"><h3 id="finance-urgent-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Facturas vencidas o que vencen dentro de 7 días con saldo pendiente.">Cobros urgentes</h3></div>
           {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
         </div>
         {urgent.length
           ? <>
-            <p className="min-w-0 truncate text-xs text-mute" title="Facturas vencidas o por vencer en 7 días, sin cobrar.">{urgent.length} factura{urgent.length === 1 ? '' : 's'} · <span className="font-semibold text-fore">{multiCurrency(urgentTotals)}</span> pendiente</p>
+            <p className="m-0 min-w-0 truncate text-xs text-mute" title="Facturas vencidas o por vencer en 7 días, sin cobrar.">{urgent.length} factura{urgent.length === 1 ? '' : 's'} · <span className="font-semibold text-fore">{multiCurrency(urgentTotals)}</span> pendiente</p>
             <div className="grid gap-2">
               {urgent.slice(0, 5).map(invoice => <div className="grid gap-1 rounded-lg border border-ink-600 bg-ink-900 px-3 py-2" key={invoice.id}>
                 <div className="flex min-w-0 items-baseline justify-between gap-2">
@@ -227,8 +231,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-invoices-title">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <h3 id="finance-invoices-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Facturas con saldo; el cobro descuenta la cuenta elegida.">Cobros pendientes</h3>
-          <p className="min-w-0 truncate text-xs text-mute" title={invoiceHasMore ? `Sobre las ${invoices.length} facturas cargadas; “Ver todas las facturas” completa el total` : 'Facturas emitidas o parciales con saldo pendiente.'}>{receivable.pendingCount ? <>Por cobrar: <span className="font-semibold text-fore">{multiCurrency(receivable.totals)}</span> · {receivable.pendingCount} factura{receivable.pendingCount === 1 ? '' : 's'}</> : 'Sin saldo pendiente.'}</p>
+          <h3 id="finance-invoices-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Facturas con saldo; el cobro descuenta la cuenta elegida.">Cobros pendientes</h3>
+          <p className="m-0 min-w-0 truncate text-xs text-mute" title={invoiceHasMore ? `Sobre las ${invoices.length} facturas cargadas; “Ver todas las facturas” completa el total` : 'Facturas emitidas o parciales con saldo pendiente.'}>{receivable.pendingCount ? <>Por cobrar: <span className="font-semibold text-fore">{multiCurrency(receivable.totals)}</span> · {receivable.pendingCount} factura{receivable.pendingCount === 1 ? '' : 's'}</> : 'Sin saldo pendiente.'}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
           {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
@@ -263,7 +267,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
       <Subtabs value={historyTab} onChange={setHistoryTab} items={[['transferencias', 'Transferencias', transfers.length], ['cobros', 'Cobros registrados', payments.length], ['movimientos', 'Movimientos']]}/>
       <div hidden={historyTab !== 'transferencias'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-transfers-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0"><h3 id="finance-transfers-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Movimientos entre cuentas con su tipo de cambio real.">Transferencias</h3></div>
+          <div className="min-w-0"><h3 id="finance-transfers-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Movimientos entre cuentas con su tipo de cambio real.">Transferencias</h3></div>
           <span className="whitespace-nowrap text-xs tabular-nums text-mute">{transfers.length} movimiento{transfers.length === 1 ? '' : 's'}</span>
         </div>
         {transfers.length
@@ -291,7 +295,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
       </section></div>
 
       <div hidden={historyTab !== 'cobros'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-payments-title">
-        <div className="min-w-0"><h3 id="finance-payments-title" className="text-[17px] font-semibold tracking-tight text-fore" title="Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.">Quién cobró y dónde quedó</h3></div>
+        <div className="min-w-0"><h3 id="finance-payments-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Cada cobro queda en la cuenta elegida y conserva su reversión en el historial.">Quién cobró y dónde quedó</h3></div>
         {payments.length
           ? <ListGrid label="Cobros registrados" template={PAYMENT_TEMPLATE} columns={PAYMENT_COLUMNS} minWidthClass="min-w-[70.5rem]">
             {payments.map(payment => <ListRow key={payment.id} template={PAYMENT_TEMPLATE}>

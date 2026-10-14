@@ -298,14 +298,8 @@ const moraCobranzas = {
   ],
   body: `
 <section class="grid gap-4" aria-label="Cobranza y mora">
- <header class="mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-  <div class="min-w-0 flex-1">
-   <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute">Finanzas</p>
-   <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl">Estado de pagos</h1>
-   <p class="mt-1.5 text-[13px] leading-[1.5] text-mute">Saldo pendiente por antigüedad y días en calle por moneda.</p>
-  </div>
-  <div class="flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start"><span class="whitespace-nowrap text-xs tabular-nums text-mute">Actualizado 22-sept-26 · 09:30</span></div>
- </header>
+ <!-- Reorganización IA: sin segundo encabezado bajo el del shell; la hora de actualización cierra la fila de antigüedad. -->
+ <div class="flex flex-wrap items-center gap-2"><span class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute" title="Saldo pendiente por antigüedad y días en calle por moneda. Actualizado 22-sept-26 · 09:30">Actualizado 22-sept-26 · 09:30</span></div>
  ${v2KpiStrip([v2Kpi('AL DÍA', '86', 'Sin saldo vencido'), v2Kpi('POR VENCER', '12', 'Vencen en los próximos días'), v2Kpi('EN MORA', '9', 'Tarde o mora grave', true), v2Kpi('SIN FACTURA', '4', 'Sin facturas registradas')])}
  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
   ${v2Kpi('MORA 1–15 DÍAS', '<span class="flex flex-wrap items-baseline gap-2"><span>Gs. 45.678.900</span><span>USD 1.250</span></span>', '4 clientes con saldo vencido')}

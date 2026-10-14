@@ -41,7 +41,7 @@ test('arranque #109: los bloques muestran esqueletos honestos, no ceros',async()
  assert(toolbar.includes('loading?: boolean'),'la toolbar acepta el estado de carga');
  assert(toolbar.includes("loading ? 'Cargando el directorio…' : summary"),'y lo dice en vez del resumen');
  assert(shell.includes("loading={shellDataState==='loading'}"),'el shell le pasa el estado real');
- assert(file('app/sections/proyectos.tsx').includes("summary={projectsState==='loading'&&!projects.length?undefined:"),'el contador de Proyectos no afirma cero');
+ assert(file('app/sections/proyectos.tsx').includes("{projectsState==='loading'&&!projects.length?null:<p"),'el contador de Proyectos no afirma cero');
  // El esqueleto: misma grilla que la tira real, sin números.
  let renderer:any;
  await act(async()=>{renderer=create(<KpiStripSkeleton count={3} label="Cargando el directorio…"/>);});
@@ -52,5 +52,5 @@ test('arranque #109: los bloques muestran esqueletos honestos, no ceros',async()
  assert.equal(tree.children.length,3,'un esqueleto por KPI');
  const texto=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArray(node)?node.map(texto).join(''):texto(node.children);
  assert(!/\d/.test(texto(tree)),'el esqueleto no dibuja cifras (nada de ceros inventados)');
- assert(String(tree.props.className).includes('ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'),'comparte la grilla del sistema');
+ assert(String(tree.props.className).includes('ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'),'comparte la grilla del sistema (tres esqueletos → 3 columnas)');
 });

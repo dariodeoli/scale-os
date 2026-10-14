@@ -85,7 +85,7 @@ function DraggableOrder({ order,role,refresh,openOrder }: { order: WorkOrderCard
       <div className="flex items-start justify-between gap-2">
         <button type="button" className="min-h-11 min-w-11 flex-1 text-left text-[13px] font-semibold leading-5 text-fore outline-none transition-colors hover:text-fono-light focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" aria-label={`Abrir ${order.title}`} onClick={()=>openOrder(order.id)}>{order.title}</button>
         <span className="flex shrink-0 items-center">
-          {canMove?<span className="flex items-center" onPointerDown={event=>event.stopPropagation()}><MenuDesplegable ariaLabel={`Acciones de la pieza: ${order.title}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la pieza: ${order.title}`} title={`Acciones de la pieza: ${order.title}`}>⋮</span>} items={[{id:'edit',label:'Editar pieza',icono:'edit',onClick:()=>openOrder(order.id,true)},{id:'archive',label:'Mover a la papelera',icono:'trash',peligro:true,onClick:()=>setArchiveOpen(true)}]}/></span>:null}
+          {canMove?<span className="flex items-center md:[&_.toque-44]:!min-h-8 md:[&_.toque-44]:!min-w-8" onPointerDown={event=>event.stopPropagation()}><MenuDesplegable ariaLabel={`Acciones de la pieza: ${order.title}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la pieza: ${order.title}`} title={`Acciones de la pieza: ${order.title}`}>⋮</span>} items={[{id:'edit',label:'Editar pieza',icono:'edit',onClick:()=>openOrder(order.id,true)},{id:'archive',label:'Mover a la papelera',icono:'trash',peligro:true,onClick:()=>setArchiveOpen(true)}]}/></span>:null}
           {canMove?<span className="flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-md text-mute md:h-7 md:w-7" role="img" aria-label={`Mover ${order.title}`} title={`Mover ${order.title}`}>⋮⋮</span>:null}
         </span>
       </div>
@@ -146,11 +146,10 @@ export function KanbanColumn({
       data-column={status.id}
       aria-label={loading&&counts===undefined?`${status.label}: cargando piezas`:`${status.label}: ${orders.length} pieza${orders.length === 1 ? "" : "s"}`}
     >
-      <div className="sticky top-0 z-10 -mx-3 -mt-3 flex items-center gap-2 rounded-t-xl border-b border-ink-600 bg-ink-800/95 px-3 py-2.5 backdrop-blur-sm">
-        <div className="min-w-0">
-          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-mute">Etapa</p>
-          <h2 className="mt-0.5"><StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip></h2>
-        </div>
+      {/* Encabezado en una línea (reorganización IA): el chip ya nombra la
+          etapa, sin el rótulo «Etapa» encima ni márgenes del navegador. */}
+      <div className="sticky top-0 z-10 -mx-3 -mt-3 flex items-center gap-2 rounded-t-xl border-b border-ink-600 bg-ink-800/95 px-3 py-2 backdrop-blur-sm">
+        <h2 className="m-0 min-w-0"><StateChip tone={STATUS_TONE[status.id] || 'mute'}>{status.label}</StateChip></h2>
         <em className="ml-auto whitespace-nowrap rounded-full bg-ink-700 px-2 py-1 text-[10px] font-medium not-italic tabular-nums text-mute" title={`${counts ?? orders.length} piezas en ${status.label}`}>{loading&&counts===undefined?'…':counts ?? orders.length}</em>
       </div>
       {orders.map((order) => (

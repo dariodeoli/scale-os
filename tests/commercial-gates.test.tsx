@@ -18,7 +18,7 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
 
 const {RecordEditor,BudgetActions}=require('../app/suite') as typeof import('../app/suite');
 const {roleCan}=require('../app/capabilities') as typeof import('../app/capabilities');
-const {WorkPlanner,workStatusLabel}=require('../app/productivity-ui') as typeof import('../app/productivity-ui');
+const {WorkPlanner,workStatusLabel,ClientDetail}=require('../app/productivity-ui') as typeof import('../app/productivity-ui');
 
 type Pending={url:string;init:RequestInit;resolve:(response:Response)=>void};
 const requests:Pending[]=[];
@@ -118,4 +118,28 @@ test('piece statuses cover the API dictionary and never render raw slugs',async(
  assert(!/approved|published/.test(rendered),'raw slugs never reach the planner');
  assert.equal(requests.length,0,'the planner does not depend on extra fetches for the dictionary');
  act(()=>renderer.unmount());
+});
+
+test('la ficha del cliente muestra su oportunidad de origen y abre sus proyectos filtrados',async()=>{
+ requests.length=0;
+ let renderer!:ReactTestRenderer;const opened:string[]=[];
+ const dossier={client:{id:'4',name:'Zeta Flujo SRL'},projects:[{id:'5',name:'Campaña Zeta'}],orders:[],leads:[{id:'9',name:'Zeta Flujo SRL',stage:'won',stage_label:'Ganado',stage_kind:'won',amount:'1500.00',currency:'USD'}]};
+ await act(async()=>{renderer=create(<ClientDetail id="4" role="owner" close={()=>{}} refresh={async()=>{}} createProject={()=>{}} openOrder={()=>{}} openProjects={id=>opened.push(id)}/>);});
+ // Responde todas las lecturas de la ficha; solo la del legajo trae datos.
+ for(let round=0;round<6&&requests.length;round++){
+  const pending=requests.splice(0);
+  for(const request of pending)respond(request,request.url.includes('/productivity/clients/4')?dossier:request.url.includes('client-payment-status')?{clients:[]}:{});
+  await settle();
+ }
+ const tab=buttonWith(renderer,'Oportunidades');
+ assert(tab,'la ficha ofrece la pestaña de oportunidades cuando hay una vinculada');
+ act(()=>{tab!.props.onClick();});
+ const rendered=text(renderer.root);
+ assert(rendered.includes('Oportunidad de origen')&&rendered.includes('Ganado'),'muestra la etapa de la oportunidad');
+ assert(/US\$|USD/.test(rendered)&&rendered.includes('1.500'),'el valor conserva su moneda');
+ act(()=>{buttonWith(renderer,'Producción')!.props.onClick();});
+ act(()=>{buttonWith(renderer,'Ver en Proyectos')!.props.onClick();});
+ assert.deepEqual(opened,['4'],'abre Proyectos filtrado por este cliente');
+ act(()=>renderer.unmount());
+ await settle();requests.length=0;
 });

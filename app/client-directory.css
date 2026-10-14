@@ -122,3 +122,12 @@
  .client-directory-results--list .client-hub-card{border-radius:var(--radius-sm)}
  .client-directory-results--list .client-card-actions{flex-wrap:wrap;overflow:visible;justify-content:flex-start}
 }
+
+/* Pase de densidad: ranuras fijas en las acciones de la fila. WhatsApp reserva
+   su lugar aunque la empresa del cliente no tenga número, y el grupo final
+   (plan/precio + ⋯) tiene ancho mínimo propio: el ojo y WhatsApp quedan
+   alineados en todas las filas. */
+.client-hub-row .client-action-slot{display:inline-flex;flex:none;align-items:center;justify-content:center;width:28px;min-width:28px}
+.client-hub-row .client-row-actions .client-record-actions{min-width:70px;gap:4px}
+.client-hub-row .client-row-actions .client-price-missing{margin-left:0;width:28px;height:20px}
+@media(max-width:767px){.client-hub-row .client-action-slot{width:44px;min-width:44px}}
