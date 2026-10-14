@@ -493,7 +493,7 @@ export function ListGrid({label, template, columns, children, minWidthClass = 'm
     <div className={minWidthClass}>
       <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
         {columns.map((column, index) => (
-          <span key={column.key} role="columnheader" className={`${index === columns.length - 1 ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap ${pinnedActions && index === columns.length - 1 ? 'list-actions-head' : ''}`}>{column.label}</span>
+          <span key={column.key} role="columnheader" className={`${column.align === 'end' || column.key === 'actions' ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap ${pinnedActions && index === columns.length - 1 ? 'list-actions-head' : ''}`}>{column.label}</span>
         ))}
       </div>
       <div role="rowgroup">{children}</div>
