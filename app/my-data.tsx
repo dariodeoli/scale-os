@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {AlertTriangle,Download} from 'lucide-react';
 import {StateChip,ErrorBlock,LoadingBlock} from './ui-v2';
+import {daysUntil} from './client-format';
 import {listDateFull,dueTone} from './list-format';
 import {Dialog} from './dialog';
 import {notify} from './feedback';
@@ -35,11 +36,10 @@ const STATUS_LABEL:Record<PrivacyRequestStatus,string>={recibida:'Recibida',iden
 const STATUS_TONE:Record<PrivacyRequestStatus,'ok'|'warn'|'mute'|'bad'|'info'>={recibida:'info',identidad:'warn',resuelta:'ok',rechazada:'bad'};
 const TYPE_LABEL:Record<PrivacyRequestKind,string>={acceso:'Acceso',rectificacion:'Rectificación',supresion:'Supresión',oposicion:'Oposición',portabilidad:'Portabilidad'};
 
-/** Días corridos restantes hasta el vencimiento del SLA (≤30 días). */
-function slaLabel(due:string):{label:string;vencido:boolean}{
- const target=new Date(due);
- if(Number.isNaN(target.getTime()))return {label:'Sin vencimiento informado',vencido:false};
- const days=Math.ceil((target.getTime()-Date.now())/86400000);
+/** Días de calendario (America/Asuncion) hasta el vencimiento del SLA (≤30 días). */
+export function slaLabel(due:string,now:Date=new Date()):{label:string;vencido:boolean}{
+ const days=daysUntil(due,now);
+ if(days===null)return {label:'Sin vencimiento informado',vencido:false};
  if(days<0)return {label:`Venció hace ${Math.abs(days)} día${Math.abs(days)===1?'':'s'}`,vencido:true};
  if(days===0)return {label:'Vence hoy',vencido:true};
  return {label:`Vence en ${days} día${days===1?'':'s'}`,vencido:false};
