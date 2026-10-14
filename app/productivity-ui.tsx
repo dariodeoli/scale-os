@@ -87,7 +87,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
    {error?<Aviso tono="error" className="mb-3">{error} <button type="button" className="text-button" onClick={()=>{setError('');void load().catch(cause=>setError(errorText(cause)));}}>Reintentar</button></Aviso>:null}
    {!order?<LoadingBlock label="Cargando pieza…" lines={4}/>:<>
     <section className="mb-4 grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/>{order.urgency?<UrgencyBadge value={order.urgency}/>:null}</div>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><span className="min-w-0 max-w-full [&_.client-identity]:max-w-full [&_.identity-name]:overflow-hidden [&_.identity-name]:text-ellipsis [&_.identity-name]:whitespace-nowrap" title={s(order,'client_name')}><ClientIdentity name={s(order,'client_name')} logo={s(order,'client_logo_url')} color={s(order,'client_color_key')}/></span>{order.urgency?<UrgencyBadge value={order.urgency}/>:null}</div>
       <div className="flex flex-wrap items-center gap-1.5">
         <StateChip tone={s(order,'status')==='approved'||s(order,'status')==='published'?'ok':s(order,'status')==='review'?'warn':'info'}>{workStatusLabel(s(order,'status'))}</StateChip>
         {workTypeLabels[s(order,'work_type')]?<StateChip tone="info">{workTypeLabels[s(order,'work_type')]}</StateChip>:null}
@@ -101,8 +101,8 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
       </dl>
       <ProjectPresence projectId={s(order,'project_id')}/>
     </section>
-    <Subtabs className="[&>button]:min-h-11 md:[&>button]:min-h-9" value={tab} onChange={setTab} items={[['Detalle','Detalle'],['Comentarios',`Comentarios (${data.comments.length})`],['Historial','Historial']]}/>
-    <div hidden={tab!=='Detalle'} className="grid gap-4">
+    <Subtabs className="min-w-0 max-w-full [&>button]:min-h-11 md:[&>button]:min-h-9" value={tab} onChange={setTab} items={[['Detalle','Detalle'],['Comentarios',`Comentarios (${data.comments.length})`],['Historial','Historial']]}/>
+    <div hidden={tab!=='Detalle'} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
      <div className="flex flex-wrap items-center gap-2">{editable&&!editing?<button className="secondary" type="button" onClick={()=>setEditing(true)}><Pencil size={14}/>Editar pieza</button>:null}</div>
      {editing&&editable?<RecordAssignees kind="work-orders" id={id} organizationId={organizationId} role={role} updatedAt={s(order,'updated_at')} refresh={()=>{void completeSave(close,refresh,{avisar:avisarRefresco});}}>{save=><Editor key={s(order,'updated_at')} fields={fields} defaults={Object.fromEntries(fields.map(f=>[f.key,f.key==='due_date'?s(order,f.key).slice(0,10):f.key==='due_time'?s(order,f.key).slice(0,5):f.key==='drive_links'?driveLinksText(order.drive_links,s(order,'drive_url')):s(order,f.key)]))} save={save}/>}</RecordAssignees>:<>
         <section className="grid gap-1"><h4 className="text-sm font-semibold text-fore">Descripción</h4><p className="whitespace-pre-line text-[13px] text-mute">{s(order,'description')||'Sin descripción'}</p></section>
