@@ -16,6 +16,7 @@ export type {RecordMenuItem} from './ui-v2';
 import {activityEvent} from './activity-format';
 import {Building2,ChartNoAxesCombined,CircleDollarSign,Copy,Eye,Link2,Link2Off,Pencil,Ticket} from 'lucide-react';
 import {api,Dialog,Editor,Field} from './operations';
+import {ConfirmDialog} from './dialog';
 import {roleCan} from './capabilities';
 import {Aviso,AvisoPrivacidad,normalizarNombre} from 'owncoding-ui';
 import {PHONE_HELP} from './field-rules';
@@ -97,17 +98,18 @@ function BudgetConsult({record}:{record:Row}){
  </section>;
 }
 export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:{id:string;refresh:()=>Promise<void>;role?:string;canInvoice?:boolean;variant?:'text'|'icon';label?:string}){
- const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[publicUrl,setPublicUrl]=useState(''),[confirming,setConfirming]=useState<'revoke'|'invoice'|'share'|''>(''),[editing,setEditing]=useState(false);
+ const [record,setRecord]=useState<Row|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[publicUrl,setPublicUrl]=useState(''),[confirming,setConfirming]=useState<'revoke'|'invoice'|'share'|''>(''),[editing,setEditing]=useState(false),[confirmBusy,setConfirmBusy]=useState(false);
  const invoiceAllowed=canInvoice??roleCan(role,'invoices.manage');
  const shared=Boolean(publicUrl)||record?.share_enabled===true;
  const valid=String(record?.valid_until||'').slice(0,10);
  const accepted=record?.status==='accepted';
  const open=async()=>{setError('');setNotice('');setEditing(false);setConfirming('');try{const d=await api<{budget:Row;items:unknown[]}>(`/api/agency/budgets/${id}`);setRecord({...d.budget,items:d.items});}catch(e){setError(err(e));}};
- const updateShare=async(enabled:boolean)=>{setError('');setNotice('');try{
+ const createInvoice=async()=>{setError('');setConfirmBusy(true);try{await api(`/api/agency/budgets/${id}/invoice`,{});setConfirming('');setNotice('Factura creada o recuperada. La encontrás en Finanzas.');}catch(e){setError(err(e));}finally{setConfirmBusy(false);}};
+ const updateShare=async(enabled:boolean)=>{setError('');setNotice('');setConfirmBusy(true);try{
   if(enabled){setPublicUrl((await api<{url:string}>(`/api/agency/budgets/${id}/share`,{})).url);setRecord(current=>current?{...current,share_enabled:true,status:current.status==='draft'?'sent':current.status}:current);}
   else{await api(`/api/agency/budgets/${id}/revoke`,{});setPublicUrl('');setRecord(current=>current?{...current,share_enabled:false}:current);}
   setConfirming('');await refresh();
- }catch(e){setError(err(e));}};
+ }catch(e){setError(err(e));}finally{setConfirmBusy(false);}};
  const copyLink=async()=>{if(!publicUrl)return;try{await navigator.clipboard?.writeText(publicUrl);setNotice('Enlace copiado.');}catch{setNotice('No se pudo copiar; seleccioná el enlace y copialo a mano.');}};
  return <>{variant==='icon'?<button className="icon-button" type="button" title={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} aria-label={label?`Abrir presupuesto: ${label}`:'Abrir presupuesto'} onClick={()=>void open()}><Eye size={16}/></button>:<button className="text-button" onClick={()=>void open()}><Eye size={14}/>Abrir presupuesto</button>}
  {!record&&error&&<Aviso tono="error" role="alert" compact>{error}</Aviso>}
@@ -123,25 +125,13 @@ export function BudgetActions({id,refresh,role,canInvoice,variant='text',label}:
      :<button className="secondary" onClick={()=>{setConfirming('share');setNotice('');}}><Link2 size={14}/>Habilitar enlace público</button>}
    </div>
    {publicUrl&&<p className="m-0 flex flex-wrap items-center gap-2 text-xs [overflow-wrap:anywhere]"><a href={publicUrl} target="_blank" rel="noreferrer" className="text-button">{publicUrl}</a><button type="button" className="text-button" onClick={()=>void copyLink()}><Copy size={12}/>Copiar enlace</button></p>}
-   {confirming==='share'&&<div className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 text-xs leading-5 text-mute" role="group" aria-label="Condiciones del enlace público">
+   {confirming==='share'&&<ConfirmDialog open title="Habilitar enlace público" confirmLabel="Habilitar enlace" busy={confirmBusy} error={error} onCancel={()=>{if(!confirmBusy)setConfirming('');}} onConfirm={()=>void updateShare(true)} description={<div className="grid gap-2 text-xs leading-5" role="group" aria-label="Condiciones del enlace público">
     <p className="m-0"><b className="text-fore">Alcance.</b> Quien tenga el enlace ve el presupuesto completo (ítems, totales y condiciones) y puede aceptarlo o rechazarlo sin cuenta.</p>
     <p className="m-0"><b className="text-fore">Vencimiento.</b> {valid?`La vigencia cargada llega hasta el ${listDateShort(valid)}; desde esa fecha el enlace deja de aceptar respuestas.`:'No hay vigencia cargada: el enlace sigue activo hasta que lo desactives.'}</p>
     <p className="m-0"><b className="text-fore">Revocación.</b> Podés desactivarlo cuando quieras desde este diálogo; el enlace deja de funcionar al instante.</p>
-    <div className="inline-actions">
-     <button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button>
-     <button className="primary" onClick={()=>void updateShare(true)}>Habilitar enlace</button>
-    </div>
-   </div>}
-   {confirming==='revoke'&&<div className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 text-xs leading-5 text-mute" role="group" aria-label="Revocar enlace público">
-    <p className="m-0"><b className="text-fore">¿Desactivar el enlace público?</b> El enlace deja de funcionar al instante; el presupuesto queda guardado y podés volver a habilitarlo cuando quieras.</p>
-    <div className="inline-actions">
-     <button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button>
-     <button className="secondary danger" onClick={()=>void updateShare(false)}>Confirmar</button>
-    </div>
-   </div>}
-   {accepted&&<><p className="m-0 text-sm text-fore">{str(record,'accepted_by')?`Aceptado por ${str(record,'accepted_by')}. El contenido está protegido.`:'Aceptado. El contenido está protegido.'}</p>{invoiceAllowed&&(confirming==='invoice'
-    ?<div className="inline-actions"><span role="alert" className="text-xs font-semibold text-warn">¿Crear la factura de este presupuesto?</span><button className="primary" onClick={async()=>{setError('');try{await api(`/api/agency/budgets/${id}/invoice`,{});setConfirming('');setNotice('Factura creada o recuperada. La encontrás en Finanzas.');}catch(e){setError(err(e));}}}>Confirmar</button><button className="secondary" onClick={()=>setConfirming('')}>Cancelar</button></div>
-    :<div className="inline-actions"><button className="primary" onClick={()=>setConfirming('invoice')}>Crear factura</button></div>)}</>}
+   </div>}/>}
+   {confirming==='revoke'&&<ConfirmDialog open variant="danger" title="Desactivar enlace público" confirmLabel="Confirmar" busy={confirmBusy} error={error} onCancel={()=>{if(!confirmBusy)setConfirming('');}} onConfirm={()=>void updateShare(false)} description={<p className="m-0"><b className="text-fore">¿Desactivar el enlace público?</b> El enlace deja de funcionar al instante; el presupuesto queda guardado y podés volver a habilitarlo cuando quieras.</p>}/>}
+   {accepted&&<><p className="m-0 text-sm text-fore">{str(record,'accepted_by')?`Aceptado por ${str(record,'accepted_by')}. El contenido está protegido.`:'Aceptado. El contenido está protegido.'}</p>{invoiceAllowed&&<div className="inline-actions"><button className="primary" onClick={()=>setConfirming('invoice')}>Crear factura</button></div>}{confirming==='invoice'&&<ConfirmDialog open title="Crear factura" confirmLabel="Confirmar" busy={confirmBusy} error={error} onCancel={()=>{if(!confirmBusy)setConfirming('');}} onConfirm={()=>void createInvoice()} description="¿Crear la factura de este presupuesto?"/>}</>}
    {editing&&!accepted?<QuoteComposer mode="budget" record={record} done={async()=>{await completeSave(()=>setRecord(null),refresh);}}/>:<BudgetConsult record={record}/>}
    {notice&&<Aviso tono="ok" role="status" compact>{notice}</Aviso>}
   </div>

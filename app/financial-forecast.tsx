@@ -41,7 +41,6 @@ import {
   EmptyState,
   ErrorState,
   FilaDato,
-  ConfirmDialog,
   FormField,
   IconAction,
   Input,
@@ -50,6 +49,7 @@ import {
   SegmentedField,
   cn,
 } from 'owncoding-ui';
+import {ConfirmDialog} from './dialog';
 import {CurrencyField,LoadingBlock,PageHeader,StateChip,denseTableMinWidth,useDenseTableFit} from './ui-v2';
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).

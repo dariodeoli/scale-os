@@ -173,7 +173,7 @@ function check(name:string,run:()=>void){test(name,run);}
  check('footer association preserves validation/button state, explicit targets and dialog structure',()=>{
   const form=new FakeElement('form'),anchor=new FakeElement('span'),footer=new FakeElement('div');form.append(anchor);
   mount(<Dialog title="A heading" close={()=>{}} size="compact"><form><FormActions><button type="submit" disabled>Save</button><button type="button" form="other-form">Other action</button></FormActions></form></Dialog>,el=>el.type==='span'?anchor:el.props.className==='dialog-footer'?footer:new FakeElement());
-  const dialog=renderer!.root.findByProps({role:'dialog'}),heading=renderer!.root.findByType('h2');assert.equal(dialog.props['aria-labelledby'],heading.props.id);assert.equal(dialog.props['data-dialog-size'],'compact');
+  const dialog=renderer!.root.findByProps({role:'dialog'}),heading=renderer!.root.findByType('h2');assert.equal(dialog.props['aria-labelledby'],heading.props.id);assert.equal(dialog.props['data-dialog-size'],'corto','compact es alias de corto (#183)');
   const buttons=renderer!.root.findAllByType('button'),save=buttons.find(button=>button.props.type==='submit')!;
   assert(form.id);assert.equal(save.props.form,form.id);assert.equal(save.props.disabled,true);assert.equal(save.props.type,'submit');assert.equal(buttons.find(button=>button.props.form==='other-form')!.props.type,'button');
   assert(portals.some(portal=>portal.target===footer),'actions use footer portal');

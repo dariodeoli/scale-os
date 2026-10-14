@@ -5,12 +5,11 @@ import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef, useId } from "react";
-import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
+import {ConfirmDialog,Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, MessageSquare, Pencil, Plus, RotateCcw, Star, Trash2 } from "lucide-react";
-import {ConfirmDialog} from 'owncoding-ui';
 import { AmountInput, SelectCustom } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR, personLabel, technicalEmail} from './field-rules';
 import {PasswordField} from './password-field';
@@ -96,6 +95,7 @@ export function Editor({
   closeOnSave = false,
   resetOnSave = false,
   cancelLabel = 'Cancelar',
+  collapseSections = false,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -105,6 +105,8 @@ export function Editor({
   closeOnSave?: boolean;
   resetOnSave?: boolean;
   cancelLabel?: string | false;
+  /** Secciones (`Field.section`) colapsadas salvo la primera; la primera con error se abre sola. */
+  collapseSections?: boolean;
 }) {
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
@@ -125,6 +127,26 @@ export function Editor({
   const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,string>>({});
   const pending=form.formState.isSubmitting||savingNow;
   useDialogPending(pending);
+  // Secciones (issue #183): grupos plegables, resumen de errores y, en móvil con
+  // 3 o más secciones, pasos Anterior/Siguiente. Sin `section` nada de esto aparece.
+  const sectionNames=Array.from(new Set(fields.map(f=>f.section).filter((name):name is string=>Boolean(name))));
+  const [openedSections,setOpenedSections]=useState<string[]|null>(null),[step,setStep]=useState(0),[narrow,setNarrow]=useState(false);
+  useEffect(()=>{
+    if(typeof window==='undefined'||typeof window.matchMedia!=='function')return;
+    const query=window.matchMedia('(max-width: 540px)'),update=()=>setNarrow(query.matches);
+    update();query.addEventListener?.('change',update);
+    return()=>query.removeEventListener?.('change',update);
+  },[]);
+  const stepper=narrow&&sectionNames.length>=3,activeStep=Math.min(step,Math.max(sectionNames.length-1,0));
+  const sectionIsOpen=(name:string)=>openedSections?openedSections.includes(name):!collapseSections||name===sectionNames[0];
+  const setSectionOpen=(name:string,open:boolean)=>setOpenedSections(current=>{
+    const base=current??sectionNames.filter(entry=>!collapseSections||entry===sectionNames[0]);
+    return open?(base.includes(name)?base:[...base,name]):base.filter(entry=>entry!==name);
+  });
+  const sectionErrorCount=(name:string)=>fields.filter(f=>f.section===name&&form.formState.errors[f.key]).length;
+  const errorSections=sectionNames.filter(name=>sectionErrorCount(name)>0);
+  const showSectionSummary=form.formState.submitCount>0&&errorSections.length>0;
+  const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.();}},[saved,pending,requestClose]);
   async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);for(const [key,next] of Object.entries(found))form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá y guardá.'}));}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
   const renderField = (f: Field) => {
@@ -172,13 +194,30 @@ export function Editor({
           saving.current=false;
           setSavingNow(false);
         }
+      },invalid=>{
+        // La primera sección con error se abre sola (y en móvil se salta a su paso).
+        const first=sectionNames.find(name=>fields.some(f=>f.section===name&&invalid[f.key]));
+        if(first)revealSection(first);
       })}
     >
       {fields.some(f=>f.key==='drive_url'||f.key==='drive_links')&&<div className="ops-wide"><DriveLinkNote multiple={fields.some(f=>f.key==='drive_links')}/></div>}
       {fields.filter(f=>!f.section).map(renderField)}
-      {Array.from(new Set(fields.map(f=>f.section).filter((s):s is string=>Boolean(s)))).map(section=><details className="ops-profile-section ops-wide" key={section} open>
-        <summary>{section}</summary><div className="ops-form-grid">{fields.filter(f=>f.section===section).map(renderField)}</div>
-      </details>)}
+      {showSectionSummary&&<div className="error form-error-summary ops-wide" role="alert">
+        <span>Revisá {errorSections.length===1?'esta sección':'estas secciones'}:</span>{' '}
+        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<button type="button" className="text-button" onClick={()=>revealSection(name)}>{name} ({sectionErrorCount(name)})</button></span>)}
+      </div>}
+      {sectionNames.map((section,index)=>{
+        const errors=sectionErrorCount(section);
+        return <details className="ops-profile-section ops-wide" key={section} open={stepper||sectionIsOpen(section)} hidden={stepper&&index!==activeStep} data-section-errors={errors||undefined}
+          onToggle={event=>{if(!stepper)setSectionOpen(section,(event.currentTarget as HTMLDetailsElement).open);}}>
+          <summary>{section}{errors>0&&<span className="ops-section-errors"> · {errors} con error</span>}</summary><div className="ops-form-grid">{fields.filter(f=>f.section===section).map(renderField)}</div>
+        </details>;
+      })}
+      {stepper&&<div className="ops-stepper ops-wide" role="group" aria-label="Pasos del formulario">
+        <button type="button" className="secondary" disabled={pending||activeStep===0} onClick={()=>setStep(activeStep-1)}>Anterior</button>
+        <span aria-live="polite">Paso {activeStep+1} de {sectionNames.length}</span>
+        <button type="button" className="secondary" disabled={pending||activeStep>=sectionNames.length-1} onClick={()=>setStep(activeStep+1)}>Siguiente</button>
+      </div>}
       {error && (
         <p className="error form-error-summary ops-wide" role="alert">
           {error}
@@ -497,7 +536,7 @@ function PeopleWorkspace({
         <Dialog
           title={person ? "Editar persona" : "Nueva persona"}
           close={() => setEdit(null)}
-          size="wide"
+          size="amplio"
         >
           <p className="form-note">
             {person ? 'El estado laboral no modifica el acceso al panel.' : ['owner','admin'].includes(role) ? 'Al guardar un colaborador activo con correo, vinculamos su acceso; los permisos existentes se conservan.' : 'Administración debe autorizar el acceso al panel de los nuevos colaboradores.'}

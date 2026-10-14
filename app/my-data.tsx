@@ -152,7 +152,7 @@ function RequestDialog({type,close,onCreated}:{type:PrivacyRequestKind;close:()=
     :cause instanceof Error?cause.message:'No se pudo registrar el pedido.');
   }finally{setBusy(false);}
  }
- return <Dialog title={`Pedir ${label.toLowerCase()}`} close={close} busy={busy} size="compact">
+ return <Dialog title={`Pedir ${label.toLowerCase()}`} close={close} busy={busy} size="corto">
   <div className="grid gap-3">
    {suppression?<p className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-[12px] leading-5 text-mute">La supresión elimina o anonimiza los datos que ya no sean necesarios. El historial financiero y contable auditable se conserva por obligación fiscal, con acceso restringido y sin otras finalidades. La baja de tu cuenta conserva un período recuperable.</p>:null}
    <label className="grid gap-1.5 text-xs text-mute">Detalle {suppression?'de tu pedido':'o datos a corregir'} <small className="text-mute">Opcional</small>

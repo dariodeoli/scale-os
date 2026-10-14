@@ -11,6 +11,7 @@ const dialogPath=require.resolve('../app/dialog');
 require.cache[dialogPath]={id:dialogPath,filename:dialogPath,loaded:true,exports:{
  Dialog:({title,children}:{title?:string;children:React.ReactNode})=><section role="dialog" aria-label={title}>{children}</section>,
  FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
+ ConfirmDialog:({open=true,title,children,confirmLabel='Confirmar',onConfirm,onCancel}:{open?:boolean;title?:string;children?:React.ReactNode;confirmLabel?:string;onConfirm?:()=>void;onCancel?:()=>void})=>open?<section role="dialog" aria-label={title}>{children}<button type="button" onClick={onCancel}>Cancelar</button><button type="button" onClick={onConfirm}>{confirmLabel}</button></section>:null,
  useDialogClose:()=>undefined,
  useDialogPending:()=>undefined,
 }} as NodeModule;

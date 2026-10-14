@@ -10,6 +10,7 @@ const dialogId=require.resolve('../app/dialog');
 require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
   Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,
   FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
+  ConfirmDialog:({open=true,title,description,children,confirmLabel,cancelLabel='Cancelar',onCancel,onConfirm}:{open?:boolean;title?:string;description?:React.ReactNode;children?:React.ReactNode;confirmLabel?:string;cancelLabel?:string;onCancel:()=>void;onConfirm:()=>void})=>open?<section role="dialog" aria-label={title}>{description}{children}<button type="button" onClick={onCancel}>{cancelLabel}</button><button type="button" onClick={onConfirm}>{confirmLabel||'Confirmar'}</button></section>:null,
   useDialogClose:()=>undefined,
   useDialogPending:()=>{},
   useOverlay:()=>({requestClose:()=>{}}),

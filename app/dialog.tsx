@@ -93,7 +93,14 @@ export function useDialogPending(pending:boolean){
  const controls=useContext(DialogContext),id=useRef(Symbol('dialog-form')).current;
  useLayoutEffect(()=>{controls?.setPending(id,pending);return()=>controls?.setPending(id,false);},[controls,id,pending]);
 }
-export function Dialog({title,close,children,variant='modal',busy=false,size='default'}:{title:string;close:()=>void;children:ReactNode;variant?:'modal'|'drawer';busy?:boolean;size?:'default'|'compact'|'wide'}){
+/** Tamaños nombrados (issue #183). `compact` y `wide` se aceptan como alias de `corto` y `amplio`. */
+export type DialogSize='corto'|'default'|'amplio'|'drawer';
+export const dialogSizeAliases={compact:'corto',wide:'amplio'} as const;
+export function dialogSize(size:DialogSize|keyof typeof dialogSizeAliases|undefined):DialogSize{
+ return size==='compact'||size==='wide'?dialogSizeAliases[size]:size||'default';
+}
+export function Dialog({title,close,children,variant='modal',busy=false,size:requestedSize='default'}:{title:string;close:()=>void;children:ReactNode;variant?:'modal'|'drawer';busy?:boolean;size?:DialogSize|keyof typeof dialogSizeAliases}){
+ const size=dialogSize(requestedSize),drawer=variant==='drawer'||size==='drawer';
  const panel=useRef<HTMLElement>(null),heading=useId();
  const [footer,setFooter]=useState<HTMLDivElement|null>(null);
  const pendingForms=useRef(new Set<symbol>()),[formBusy,setFormBusy]=useState(false);
@@ -105,7 +112,7 @@ export function Dialog({title,close,children,variant='modal',busy=false,size='de
  const setPending=useCallback((id:symbol,pending:boolean)=>{if(pending)pendingForms.current.add(id);else pendingForms.current.delete(id);setFormBusy(pendingForms.current.size>0);},[]);
  const controls=useMemo(()=>({requestClose,setPending}),[requestClose,setPending]);
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
- return createPortal(<div className={`ops-overlay${variant==='drawer'?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
+ return createPortal(<div className={`ops-overlay${drawer?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
   <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
@@ -128,4 +135,34 @@ export function FormActions({children}:{children:ReactNode}){
   return associate?cloneElement(child,{form:formId||undefined}):child;
  })}</div>;
  return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
+}
+
+/**
+ * Confirmación única (issue #183): toda acción destructiva o irreversible pasa por
+ * este primitivo, montado sobre `Dialog` (foco atrapado, Escape, `aria-labelledby`,
+ * bloqueo mientras `busy`). `requireText` exige tipear la palabra exacta antes de
+ * habilitar el botón y solo corresponde a operaciones irreversibles.
+ */
+export type ConfirmDialogProps={
+ open?:boolean;title:string;description?:ReactNode;children?:ReactNode;
+ confirmLabel?:string;cancelLabel?:string;variant?:'danger'|'primary';busy?:boolean;error?:string;
+ requireText?:string;requireLabel?:string;onCancel:()=>void;onConfirm:()=>void;
+};
+export function ConfirmDialog({open=true,title,description,children,confirmLabel='Confirmar',cancelLabel='Cancelar',variant='primary',busy=false,error,requireText,requireLabel,onCancel,onConfirm}:ConfirmDialogProps){
+ const [typed,setTyped]=useState(''),inputId=useId();
+ useEffect(()=>{if(!open)setTyped('');},[open]);
+ if(!open)return null;
+ const blocked=requireText!==undefined&&typed!==requireText;
+ return <Dialog title={title} close={onCancel} busy={busy} size="corto">
+  <form className="confirm-dialog" data-variant={variant} noValidate onSubmit={event=>{event.preventDefault();if(!busy&&!blocked)onConfirm();}}>
+   {description?<div className="confirm-dialog-body">{description}</div>:null}
+   {children}
+   {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><input id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
+   {error?<p className="error form-error-summary" role="alert">{error}</p>:null}
+   <FormActions>
+    <button type="button" className="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</button>
+    <button type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked}>{busy?'Procesando…':confirmLabel}</button>
+   </FormActions>
+  </form>
+ </Dialog>;
 }

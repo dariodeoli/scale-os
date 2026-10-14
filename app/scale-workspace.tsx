@@ -172,17 +172,6 @@ const assignableRoles = [
 
 const listOf=<T,>(value:unknown):T[]=>Array.isArray(value)?value as T[]:[];
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return <Dialog title={title} close={onClose}>{children}</Dialog>;
-}
 // Datos compartidos del shell: qué recursos necesita cada sección y cuánto vale
 // Datos compartidos del shell: qué pide cada sección, con qué recorte y cuánto
 // vale lo ya cargado. Navegar entre secciones no vuelve a pedir lo que está en
@@ -1171,7 +1160,7 @@ export default function Home() {
       {detail?.kind==='order'&&<WorkDetail key={`${user?.organization_id}:${detail.id}`} id={detail.id} anchor={detail.anchor} initialEditing={detail.edit} organizationId={String(user?.organization_id||'')} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load}/>}
       {detail?.kind==='client'&&<ClientDetail key={detail.id} id={detail.id} role={user?.role||'viewer'} close={()=>setDetail(null)} refresh={load} createProject={id=>{setProjectClient(id);setDetail(null);setModal('project');}} openOrder={id=>setDetail({kind:'order',id})}/>}
       {modal === "client" && (
-        <Modal title="Nuevo cliente" onClose={close}>
+        <Dialog title="Nuevo cliente" close={close}>
           {/* Finalidad declarada donde la agencia carga datos de un tercero (#114):
               cubre tanto la consulta por RUC como la carga manual. */}
           <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
@@ -1194,10 +1183,10 @@ export default function Home() {
               }}
             />
           )}
-        </Modal>
+        </Dialog>
       )}
       {modal === "project" && (
-        <Modal title="Nuevo proyecto" onClose={close}>
+        <Dialog title="Nuevo proyecto" close={close}>
           <ProjectForm
             request={request}
             clients={clients}
@@ -1206,10 +1195,10 @@ export default function Home() {
               await completeSave(close,load);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "order" && (
-        <Modal title="Nueva orden de trabajo" onClose={close}>
+        <Dialog title="Nueva orden de trabajo" close={close}>
           <OrderForm
             request={request}
             projects={projects}
@@ -1217,15 +1206,15 @@ export default function Home() {
               await completeSave(close,load);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "budget" && (
-        <Modal title="Nuevo presupuesto" onClose={close}>
+        <Dialog title="Nuevo presupuesto" close={close}>
           <QuoteComposer mode="create" done={()=>completeSave(close,async()=>{setBudgets((await request<{budgets:Budget[]}>('/api/agency/budgets')).budgets);})}/>
-        </Modal>
+        </Dialog>
       )}
       {modal === "account" && (
-        <Modal title="Nueva cuenta" onClose={close}>
+        <Dialog title="Nueva cuenta" close={close}>
           <AccountForm
             request={request}
             custodians={custodians}
@@ -1234,10 +1223,10 @@ export default function Home() {
               close();
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "invoice" && (
-        <Modal title="Nueva factura" onClose={close}>
+        <Dialog title="Nueva factura" close={close}>
           <InvoiceForm
             request={request}
             clients={clients}
@@ -1246,10 +1235,10 @@ export default function Home() {
               close();
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "payment" && (
-        <Modal title="Registrar cobro" onClose={close}>
+        <Dialog title="Registrar cobro" close={close}>
           <PaymentForm
             key={paymentInvoice||'payment'}
             request={request}
@@ -1261,17 +1250,17 @@ export default function Home() {
               await completeSave(close,loadFinance);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
       {modal === "transfer" && (
-        <Modal title="Transferir entre cuentas" onClose={close}>
+        <Dialog title="Transferir entre cuentas" close={close}>
           <FXTransferForm
             accounts={accounts}
             done={async () => {
               await completeSave(close,loadFinance);
             }}
           />
-        </Modal>
+        </Dialog>
       )}
     </main></CompanyCurrencyProvider>
   );

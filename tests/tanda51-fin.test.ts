@@ -86,7 +86,7 @@ assert.match(comisiones,/ConfirmDialog[\s\S]{0,260}title="Revertir descuento"/,'
 assert.match(pre,/ConfirmDialog[\s\S]{0,260}title="Quitar gasto planificado"/,'quitar un gasto planificado pide confirmación');
 assert.match(pre,/ConfirmDialog[\s\S]{0,260}title="Revertir gasto real"/,'revertir un gasto real pide confirmación');
 assert.doesNotMatch(comisiones,/Sin acciones/,'ninguna fila muestra un bloque de acciones vacío');
-assert.match(read('app/daily-controls.tsx'),/Escribí REVERTIR para confirmar/,'revertir un cobro conserva la palabra de confirmación');
+assert.match(read('app/daily-controls.tsx'),/requireText="REVERTIR"/,'revertir un cobro conserva la palabra de confirmación');
 
 // ── Regla 6 · microcopy es-PY: qué pasó y qué hacer, en voseo.
 assert.match(mora,/Reintentá para ver el saldo pendiente/,'el error de cobranza dice qué hacer');

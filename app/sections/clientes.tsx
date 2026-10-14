@@ -8,7 +8,7 @@ import {clientState} from '../client-status';
 import {clientWhatsappUrl} from '../client-links';
 import {clientSince, moneyKpi} from '../client-format';
 import {ClientIdentity} from '../client-identity';
-import {Dialog} from '../dialog';
+import {ConfirmDialog} from '../dialog';
 import {notify} from '../feedback';
 import {LIST_WINDOW,useFilasVisibles,windowSlice} from '../list-window';
 import {WhatsAppButton} from '../whatsapp-button';
@@ -279,17 +279,12 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       </div>
     </div> : null}
 
-    {confirmArchive ? <Dialog title="Archivar clientes" close={() => {if (!bulkBusy) {setConfirmArchive(false); setBulkError('');}}}>
+    {confirmArchive ? <ConfirmDialog open variant="danger" title="Archivar clientes" confirmLabel="Confirmar: archivar" busy={bulkBusy} error={bulkError} onCancel={() => {if (!bulkBusy) {setConfirmArchive(false); setBulkError('');}}} onConfirm={() => void runBatch(true)} description={<>
       <p><strong>{selectedClients.length === 1 ? selectedClients.map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean)[0] || '1 cliente' : `${selectedClients.length} clientes`}</strong></p>
       {selectedClients.length > 1 ? <p>{selectedClients.slice(0, 3).map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean).join(' · ')}{selectedClients.length > 3 ? ` y ${selectedClients.length - 3} más` : ''}</p> : null}
       <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés reactivarlos después.</p>
       <p className="form-note">Mientras estén archivados, sus proyectos y piezas vinculados también quedan ocultos. Reactivar el cliente no los reactiva por sí solo.</p>
-      {bulkError ? <Aviso tono="error" role="alert">{bulkError}</Aviso> : null}
-      <div className="inline-actions">
-        <button className="secondary" disabled={bulkBusy} onClick={() => setConfirmArchive(false)}>Cancelar</button>
-        <button className="secondary danger" disabled={bulkBusy} onClick={() => void runBatch(true)}>{bulkBusy ? 'Procesando…' : 'Confirmar: archivar'}</button>
-      </div>
-    </Dialog> : null}
+    </>}/> : null}
 
     {clients.length > 0 && dataState === 'error' ? (
       <Aviso tono="error" como="div" role="alert">No se pudieron actualizar los clientes. Se muestra la última lista cargada.{' '}

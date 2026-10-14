@@ -6,7 +6,7 @@ import {hasDueWarning} from '../list-format';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';
 import {BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
-import {Dialog} from '../dialog';
+import {ConfirmDialog} from '../dialog';
 import {notify} from '../feedback';
 import {BudgetActions} from '../suite';
 import {RemoveRecord} from '../archive-controls';
@@ -217,17 +217,12 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
         />
       )}
 
-      {confirmOpen && <Dialog title="Mover a la papelera" close={()=>{if(!bulkBusy)setConfirmOpen(false);}}>
+      {confirmOpen && <ConfirmDialog open variant="danger" title="Mover a la papelera" confirmLabel="Confirmar: mover a papelera" busy={bulkBusy} error={bulkError} onCancel={()=>{if(!bulkBusy)setConfirmOpen(false);}} onConfirm={()=>void moveToTrash()} description={<>
         <p><strong>{selected.length===1 ? selectedTitles[0] : `${selected.length} presupuestos`}</strong></p>
         {selected.length>1 ? <p>{selectedTitles.slice(0,3).join(' · ')}{selected.length>3 ? ` y ${selected.length-3} más` : ''}</p> : null}
         <p>Se quitarán de las listas activas y quedarán en la Papelera. Podés restaurarlos después.</p>
         <p className="form-note">El enlace público dejará de funcionar. Restaurar el presupuesto no volverá a publicarlo automáticamente.</p>
-        {bulkError ? <Aviso tono="error" role="alert">{bulkError}</Aviso> : null}
-        <div className="inline-actions">
-          <button className="secondary" disabled={bulkBusy} onClick={()=>setConfirmOpen(false)}>Cancelar</button>
-          <button className="secondary danger" disabled={bulkBusy} onClick={()=>void moveToTrash()}>{bulkBusy?'Procesando…':'Confirmar: mover a papelera'}</button>
-        </div>
-      </Dialog>}
+      </>}/>}
     </section>
   );
 }
