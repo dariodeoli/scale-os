@@ -28,12 +28,12 @@ test('Dialog: tamaños nombrados y alias heredados mapean a la misma clase de ta
   const root=await mount(<Dialog title="Prueba" close={()=>{}} size={requested}><p>Cuerpo</p></Dialog>);
   const section=root.findByProps({role:'dialog'});
   assert.equal(section.props['data-dialog-size'],size,`size=${String(requested)} -> ${size}`);
-  const overlay=renderer!.toJSON() as {props:{className:string}};
+  const overlay=renderer!.toJSON() as unknown as {props:{className:string}};
   assert.equal(overlay.props.className.includes('detail-drawer-overlay'),size==='drawer','solo drawer usa la ficha lateral');
   await unmount();
  }
  const drawer=await mount(<Dialog title="Ficha" close={()=>{}} variant="drawer"><p>x</p></Dialog>);
- assert.equal((renderer!.toJSON() as {props:{className:string}}).props.className.includes('detail-drawer-overlay'),true,'variant=drawer sigue funcionando');
+ assert.equal((renderer!.toJSON() as unknown as {props:{className:string}}).props.className.includes('detail-drawer-overlay'),true,'variant=drawer sigue funcionando');
  assert.equal(drawer.findByProps({role:'dialog'}).props['data-dialog-size'],'default');
  await unmount();
 });
