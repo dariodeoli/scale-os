@@ -36,7 +36,7 @@ const MIME = {png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp'};
 
 /** `GET /api/agency/media/:kind/:id` — bytes del medio con caché privada. */
 export async function agencyMedia({req,res,url,db,session}) {
-  const match = url.pathname.match(/^\/api\/agency\/media\/(person|collaborator|client)\/(\d+)$/);
+  const match = url.pathname.match(/^\/api\/agency\/media\/(person|collaborator|client|organization)\/(\d+)$/);
   if (!match) return false;
   const fail = (status, message) => { res.writeHead(status, {'Content-Type': 'application/json'}); res.end(JSON.stringify({error: message})); return true; };
   if (req.method !== 'GET') return fail(405, 'Método no permitido');
@@ -44,7 +44,10 @@ export async function agencyMedia({req,res,url,db,session}) {
   if (!user) return fail(401, 'No autenticado');
   const [, kind, rawId] = match;
   const id = String(BigInt(rawId));
-  const row = kind === 'client'
+  // `organization`: el logo de la empresa, solo para miembros de esa empresa (la sesión).
+  const row = kind === 'organization'
+    ? (await db.query('select logo_url from organizations where id=$1 and id=$2', [id, user.organization_id])).rows[0]
+    : kind === 'client'
     ? (await db.query('select logo_url from agency_clients where id=$1 and organization_id=$2', [id, user.organization_id])).rows[0]
     : kind === 'collaborator'
       ? (await db.query('select photo_url from agency_collaborators where id=$1 and organization_id=$2', [id, user.organization_id])).rows[0]

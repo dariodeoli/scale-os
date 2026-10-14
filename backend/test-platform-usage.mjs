@@ -11,11 +11,12 @@ await pg.exec(`
  alter table users add column if not exists email_verified_at timestamptz,add column if not exists is_demo_guest boolean not null default false,add column if not exists google_photo_url text,add column if not exists google_full_name text,add column if not exists deleted_at timestamptz,add column if not exists anonymized_at timestamptz;
  alter table organizations add column if not exists demo_owner_user_id bigint,add column if not exists demo_source_id bigint,add column if not exists deleted_at timestamptz,add column if not exists deleted_by_user_id bigint;
  alter table organization_members add column if not exists active boolean not null default true,add column if not exists removed_at timestamptz;
- create table user_personal_identities(user_id bigint primary key,full_name text not null,photo_url text,updated_at timestamptz not null default now());
+ create table user_personal_identities(user_id bigint primary key,full_name text not null,photo_url text,photo_removed_at timestamptz,updated_at timestamptz not null default now());
+ create table agency_user_profiles(user_id bigint,organization_id bigint,full_name text,photo_url text,updated_at timestamptz not null default now(),primary key(user_id,organization_id));
  create table if not exists organization_subscriptions(organization_id bigint primary key);
  create table if not exists agency_projects(id bigserial primary key,organization_id bigint);
 `);
-for(const file of ['20260912_platform_admin.sql','20260915_platform_admin_roles.sql','20260910_presence.sql','20261014_usage_indexes.sql','20261014_usage_indexes.sql'])await pg.exec(await read('./migrations/'+file));
+for(const file of ['20260912_platform_admin.sql','20260915_platform_admin_roles.sql','20260910_presence.sql','20261014_usage_indexes.sql','20261014_usage_indexes.sql','20261014_organization_logo.sql','20261014_organization_logo.sql'])await pg.exec(await read('./migrations/'+file));
 
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion'}).format(new Date());
 const dayAt=offset=>{const d=new Date(today+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);};
@@ -92,6 +93,24 @@ assert.deepEqual(d.users.map(user=>user.id),[4,3,1],'orden por último acceso; s
 const u3=d.users.find(user=>user.id===3);assert.equal(u3.name,'Tres Usuario');assert.equal(u3.avatar_url,'https://img.example/u3.webp');assert.equal(u3.agency,'Agencia A');assert.equal(u3.sessions,1);
 for(const row of d.users)assert.deepEqual(Object.keys(row).sort(),['agency','avatar_url','email','id','last_seen_at','name','sessions']);
 assert(!/salary|amount|compensation|password/i.test(JSON.stringify(d)),'sin campos sensibles');
+// Fotos del panel global: identidad personal → foto de perfil en una empresa real → Google;
+// la foto quitada (tombstone) no revive la de Google. Logo de agencia directo, con tope.
+await pg.exec(`
+ insert into agency_user_profiles(user_id,organization_id,full_name,photo_url,updated_at) values(1,10,'Ana','https://img.example/ana-perfil.webp',now()),(1,30,'Ana demo','https://img.example/ana-demo.webp',now()+interval '1 day');
+ update users set google_photo_url='https://lh.example/u4.jpg' where id=4;
+ update users set google_photo_url='https://lh.example/u3.jpg' where id=3;
+ update user_personal_identities set photo_url=null,photo_removed_at=now() where user_id=3;
+ update organizations set logo_url='https://img.example/logo-a.webp' where id=10;
+ update organizations set logo_url='data:image/webp;base64,'||repeat('A',300000) where id=20;
+`);
+const photos=(await call('/api/platform/usage')).data;
+assert.equal(photos.agencies.find(row=>row.id===10).owner.avatar_url,'https://img.example/ana-perfil.webp','sin identidad personal: la foto de perfil más reciente de una empresa real (no la del demo)');
+assert.equal(photos.users.find(row=>row.id===1).avatar_url,'https://img.example/ana-perfil.webp');
+assert.equal(photos.users.find(row=>row.id===4).avatar_url,'https://lh.example/u4.jpg','solo foto de Google: se usa la de Google');
+assert.equal(photos.agencies.find(row=>row.id===20).owner.avatar_url,'https://lh.example/u4.jpg');
+assert.equal(photos.users.find(row=>row.id===3).avatar_url,null,'la foto quitada no vuelve desde Google');
+assert.equal(photos.agencies.find(row=>row.id===10).logo_url,'https://img.example/logo-a.webp','el logo de la agencia viaja al panel global');
+assert.equal(photos.agencies.find(row=>row.id===20).logo_url,null,'un logo de 300 KB o más no viaja en el listado');
 const custom=await call(`/api/platform/usage?from=${dayAt(-2)}&to=${dayAt(-1)}`);
 assert.equal(custom.data.daily.length,2);assert.equal(custom.data.totals.unique_users,3);
 console.log('platform usage ok');

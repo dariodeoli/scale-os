@@ -29,6 +29,8 @@ await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migra
 // La forma coherente de los cupones también se exige en la base.
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20260920_platform_coupon_shape.sql',import.meta.url),'utf8'));
 await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20261014_coupon_grace.sql',import.meta.url),'utf8'));
+await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20261014_organization_logo.sql',import.meta.url),'utf8'));
+await pg.exec(await (await import('node:fs/promises')).readFile(new URL('./migrations/20261014_organization_logo.sql',import.meta.url),'utf8'));
 await pg.exec(`create table platform_coupon_redemptions(id bigserial primary key,coupon_id bigint not null references platform_coupons(id) on delete restrict,organization_id bigint not null references organizations(id) on delete cascade,months_granted integer not null default 1 check(months_granted >= 0),redeemed_by_user_id bigint not null references users(id) on delete restrict,created_at timestamptz not null default now(),unique(coupon_id,organization_id))`);
 await pg.exec(`
   create table if not exists oauth_states(id bigint primary key,recent_auth_user_id bigint);
@@ -43,7 +45,7 @@ await pg.exec(`
   alter table destructive_action_previews add constraint destructive_action_previews_check check((action='account.delete' and organization_id is null) or (action='organization.delete' and organization_id is not null));
   alter table destructive_auth_proofs add constraint destructive_auth_proofs_action_check check(action in ('account.delete','organization.delete'));
   create table agency_inventory(id bigserial primary key,organization_id bigint,name text,serial_number text,unique(id,organization_id));
-  create table user_personal_identities(user_id bigint primary key,full_name text not null,photo_url text,updated_at timestamptz not null default now());
+  create table user_personal_identities(user_id bigint primary key,full_name text not null,photo_url text,photo_removed_at timestamptz,updated_at timestamptz not null default now());
   create table agency_user_profiles(user_id bigint,organization_id bigint,full_name text,photo_url text,updated_at timestamptz not null default now(),primary key(user_id,organization_id));
   create table agency_inventory_verifications(id bigserial primary key,organization_id bigint,inventory_id bigint,verified_by_user_id bigint,verified_at timestamptz not null default now(),result text not null,differences text not null default '',note text not null default '',adjusted boolean not null default false,before_state jsonb not null,after_state jsonb not null,unique(id,organization_id),foreign key(inventory_id,organization_id) references agency_inventory(id,organization_id),foreign key(organization_id,verified_by_user_id) references organization_members(organization_id,user_id));
  `);
@@ -104,6 +106,25 @@ assert.equal(owner1.full_name,'Ana Dueña');assert.equal(owner1.photo_url,'https
 assert(!Object.keys(owner1).some(k=>/salary|password|compensation/.test(k)),'la lista de accesos no expone datos sensibles');
 const agency10=(await call('/api/platform/agencies?limit=100')).data.agencies.find(row=>row.id===10);
 assert.equal(agency10.owner_email,'owner@agency.example');assert.equal(agency10.owner_name,'Ana Dueña');assert.equal(agency10.owner_photo_url,'https://cdn.example/ana.webp');assert.equal(agency10.extra_admins,0);
+// Fotos del panel global: misma precedencia que la app (identidad personal → foto de
+// perfil en una empresa real → Google) y la foto quitada no revive desde Google.
+await pg.query("insert into agency_user_profiles(user_id,organization_id,full_name,photo_url) values(3,10,'Miembro','https://cdn.example/miembro.webp')");
+await pg.query("update users set google_photo_url='https://lh.example/platform.jpg' where id=2");
+const photoUsers=(await call('/api/platform/users?limit=100')).data.users;
+assert.equal(photoUsers.find(row=>row.id===3).photo_url,'https://cdn.example/miembro.webp','solo foto de perfil de agencia: se devuelve');
+assert.equal(photoUsers.find(row=>row.id===2).photo_url,'https://lh.example/platform.jpg','solo foto de Google: se devuelve');
+await pg.query("update users set google_photo_url='https://lh.example/ana.jpg' where id=1");
+await pg.query("update user_personal_identities set photo_url=null,photo_removed_at=now() where user_id=1");
+assert.equal((await call('/api/platform/users?limit=100')).data.users.find(row=>row.id===1).photo_url,null,'la foto quitada no vuelve desde Google');
+assert.equal((await call('/api/platform/agencies?limit=100')).data.agencies.find(row=>row.id===10).owner_photo_url,null,'el responsable de la agencia respeta la foto quitada');
+await pg.query("update user_personal_identities set photo_url='https://cdn.example/ana.webp',photo_removed_at=null where user_id=1");
+// Logo de la agencia: viaja directo al panel global (no es miembro), con tope de tamaño.
+await pg.query("update organizations set logo_url='https://cdn.example/logo-one.webp' where id=10");
+await pg.query("update organizations set logo_url='data:image/webp;base64,'||repeat('A',300000) where id=20");
+const logoRows=(await call('/api/platform/agencies?limit=100')).data.agencies;
+assert.equal(logoRows.find(row=>row.id===10).logo_url,'https://cdn.example/logo-one.webp');
+assert.equal(logoRows.find(row=>row.id===20).logo_url,null,'un logo de 300 KB o más no viaja en el listado');
+await pg.query("update organizations set logo_url=null where id in (10,20)");
 assert.equal((await call('/api/platform/agencies/10/subscription',{actor:{id:1,email:'owner@agency.example'}})).status,403,'agency ownership cannot inspect platform subscription controls');
 const inspected=await call('/api/platform/agencies/10/subscription');assert.equal(inspected.status,200);assert.equal(inspected.data.subscription.currency,'USD');assert.equal(inspected.data.subscription.internal_state,null);
 const updated=await call('/api/platform/agencies/10/subscription',{method:'PATCH',payload:{state:'suspended',reason:'Security review',expires_at:null}});assert.equal(updated.status,200);assert.equal(updated.data.subscription.internal_state,'suspended');assert.equal(updated.data.subscription.internal_reason,'Security review');

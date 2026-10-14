@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
+import sharp from 'sharp';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {agencyMedia,mediaPhoto,mediaPeople} from './agency-media.js';
 import {operations} from './operations.js';
@@ -43,7 +44,7 @@ const asUser={id:user,organization_id:org,role:'owner'};
 const asForeign={id:foreign,organization_id:other,role:'owner'};
 async function call(handler,path,as=asUser,method='GET',payload={}){
  const response={status:0,headers:null,body:null};
- const handled=await handler({req:{method,socket:{remoteAddress:'media-test'},headers:{}},res:{writeHead:(status,headers)=>{response.status=status;response.headers=headers;},end:body=>{response.body=body;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{response.status=status;response.data=data;}});
+ const handled=await handler({req:{method,socket:{remoteAddress:'media-test'},headers:{}},res:{writeHead:(status,headers)=>{response.status=status;response.headers=headers;},end:body=>{response.body=body;}},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,requestSubscription:async()=>null,send:(_,status,data)=>{response.status=status;response.data=data;}});
  return {...response,handled};
 }
 
@@ -101,6 +102,27 @@ assert.match(assignees.data.members.find(row=>String(row.id)===String(user)).pho
 await query("insert into agency_operation_audit(organization_id,table_name,action,actor,after_state) values($1,'agency_work_orders','UPDATE',$2,'{\"id\":1,\"title\":\"Pieza\"}')",[org,String(user)]);
 const activity=await call(suite,'/api/agency/activity?limit=20&offset=0');
 assert.match(activity.data.records[0].actor_photo_url,/^\/core-api\/api\/agency\/media\/person\/\d+\?v=[a-f0-9]{10}$/,'la foto del actor en Actividad viaja como URL del medio');
+
+// Logo de la empresa: owner/admin (settings.manage) lo cargan desde Configuración,
+// se normaliza a WebP en el servidor y viaja como URL del medio `organization`,
+// servida solo a miembros de esa empresa.
+const PNG=`data:image/png;base64,${(await sharp({create:{width:8,height:4,channels:3,background:'#336699'}}).png().toBuffer()).toString('base64')}`;
+const ORG_MEDIA=/^\/core-api\/api\/agency\/media\/organization\/\d+\?v=[a-f0-9]{10}$/;
+assert.equal((await call(suite,'/api/agency/settings',{id:user,organization_id:org,role:'viewer'},'PATCH',{logo_url:PNG})).status,403,'sin settings.manage no se cambia el logo');
+assert.equal((await call(suite,'/api/agency/settings',asUser,'PATCH',{logo_url:'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4='})).status,400,'el servidor rechaza formatos no permitidos');
+const savedLogo=await call(suite,'/api/agency/settings',asUser,'PATCH',{logo_url:PNG});
+assert.equal(savedLogo.status,200);assert.match(savedLogo.data.logo_url,ORG_MEDIA);
+assert.match((await query('select logo_url from organizations where id=$1',[org])).rows[0].logo_url,/^data:image\/webp;base64,/,'el logo se guarda normalizado a WebP');
+assert.equal((await query('select name from organizations where id=$1',[org])).rows[0].name,'Agencia Medios','un PATCH solo de logo no toca el resto');
+assert.match((await call(suite,'/api/agency/settings')).data.settings.logo_url,ORG_MEDIA,'la configuración devuelve la URL del medio, no el base64');
+const orgLogo=await call(agencyMedia,`/api/agency/media/organization/${org}?v=0000000000`);
+assert.equal(orgLogo.status,200);assert.equal(orgLogo.headers['Content-Type'],'image/webp');
+assert.equal((await call(agencyMedia,`/api/agency/media/organization/${org}`,asForeign)).status,404,'otra empresa no ve el logo');
+const meLogo=await call(agencyCore,'/api/auth/me');
+assert.equal(meLogo.status,200);assert.match(meLogo.data.user.organization_logo_url,ORG_MEDIA,'la sesión expone el logo de la empresa como URL del medio');
+assert.equal((await call(suite,'/api/agency/settings',asUser,'PATCH',{logo_url:null})).status,200);
+assert.equal((await query('select logo_url from organizations where id=$1',[org])).rows[0].logo_url,null,'quitar el logo lo borra');
+assert.equal((await call(agencyMedia,`/api/agency/media/organization/${org}`)).status,404);
 
 await pg.close();
 console.log('PASS: medios de identidad — URL interna cacheable con ETag/304, redirección de enlaces externos, guardas de sesión/empresa y listados sin base64 (Equipo, clientes, proyectos, actividad, presencia/uso, directorio y selector de responsables)');

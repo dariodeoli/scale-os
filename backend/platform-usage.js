@@ -1,5 +1,5 @@
 import {realOrganization} from './platform-subscription-service.js';
-import {actor,realUser} from './platform-admin.js';
+import {actor,realUser,platformPersonPhoto,platformOrganizationLogo} from './platform-admin.js';
 
 // Panel de uso de plataforma (#191). Solo lectura, solo administradores globales.
 // Datos mínimos: sesiones de presencia, altas y la identidad pública (nombre, foto,
@@ -18,7 +18,7 @@ const iso=date=>date.toISOString().slice(0,10);
 const shift=(date,days)=>new Date(date.getTime()+days*86400000);
 const num=value=>Number(value||0);
 const identity=alias=>`coalesce(nullif(trim(pi.full_name),''),nullif(trim(${alias}.google_full_name),''),split_part(${alias}.email,'@',1))`;
-const photo=alias=>`coalesce(nullif(pi.photo_url,''),nullif(${alias}.google_photo_url,''))`;
+const photo=platformPersonPhoto;
 const local=column=>`(${column} at time zone '${ZONE}')`;
 
 // Sesiones de organizaciones y usuarios reales (sin demos), con el día/hora local de Asunción.
@@ -55,7 +55,7 @@ export async function platformUsageData(db,{from,to}){
       (select count(*)::int from users u where ${realUser('u')} and ${local('u.created_at')}>=m.start and ${local('u.created_at')}<m.start+interval '1 month') as signups,
       (select count(distinct ev.user_id)::int from ev where ev.local_at>=m.start and ev.local_at<m.start+interval '1 month') as active_users
     from m order by m.start`),
-  db.query(`select o.id,o.name,
+  db.query(`select o.id,o.name,${platformOrganizationLogo('o')} as logo_url,
      (select count(distinct s.user_id)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and s.last_seen_at>now()-interval '7 days') as active7,
      (select count(distinct s.user_id)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and s.last_seen_at>now()-interval '30 days') as active30,
      (select count(*)::int from agency_usage_sessions s where s.organization_id=o.id and ${sessionsInRange}) as sessions,
@@ -85,7 +85,7 @@ export async function platformUsageData(db,{from,to}){
   signups:signups.rows,
   hourly:hourly.rows,
   monthly:monthly.rows,
-  agencies:agencies.rows.map(row=>({id:row.id,name:row.name,active7:row.active7,active30:row.active30,sessions:row.sessions,last_seen_at:row.last_seen_at,
+  agencies:agencies.rows.map(row=>({id:row.id,name:row.name,logo_url:row.logo_url||null,active7:row.active7,active30:row.active30,sessions:row.sessions,last_seen_at:row.last_seen_at,
    owner:row.owner_id?{name:row.owner_name,avatar_url:row.owner_avatar||null,email:row.owner_email}:null})),
   users:users.rows
  };
