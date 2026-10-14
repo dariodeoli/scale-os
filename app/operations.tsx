@@ -18,6 +18,7 @@ import {DriveLinkNote} from './drive-link';
 import {DriveLinksInput,parseDriveLinksText} from './drive-links';
 import {ActorIdentity} from './actor-identity';
 import {PersonContainer} from './person-container';
+import {FotoPerfil} from './foto-perfil';
 import {CommentBody,CommentComposer} from './commenting';
 import {notifyMutation} from './feedback';
 import {teamRoleLabels} from './team-directory';
@@ -328,7 +329,17 @@ export function ProjectComments({
     </>
   );
 }
-export function CompanySelector({ name }: { name: string }) {
+/** Evento que avisa al selector de empresa que cambió el logo (Configuración › Empresa). */
+export const COMPANY_LOGO_EVENT='scale:company-logo-changed';
+/** Marca de la empresa en el selector: el logo (objeto único de foto, variante logo) o el edificio. */
+function CompanyMark({name,logo}:{name:string;logo?:string|null}){
+  return logo?<FotoPerfil nombre={name} foto={logo} tamano="xs" forma="cuadrado" variante="logo" className="company-mark"/>:<Building2 size={16} />;
+}
+export function CompanySelector({ name, logo }: { name: string; logo?: string|null }) {
+  // El logo llega con la sesión; si se cambia en Configuración se refleja sin recargar.
+  const [logoOverride,setLogoOverride]=useState<{value:string|null}|null>(null);
+  useEffect(()=>{const update=(event:Event)=>{const value=(event as CustomEvent<{logo?:string|null}>).detail?.logo;setLogoOverride({value:typeof value==='string'&&value?value:null});};window.addEventListener(COMPANY_LOGO_EVENT,update);return()=>window.removeEventListener(COMPANY_LOGO_EVENT,update);},[]);
+  const companyLogo=logoOverride?logoOverride.value:logo||null;
   const [companies, setCompanies] = useState<
       { id: string; name: string; role: string;isDemo?:boolean }[]
     >([]),
@@ -368,12 +379,12 @@ export function CompanySelector({ name }: { name: string }) {
     <>
       {singleCompany ? (
         <span className="workspace" title={`Estás en ${name}; no tenés otras empresas`} aria-label={`Empresa actual: ${name}. No tenés otras empresas.`}>
-          <Building2 size={16} />
+          <CompanyMark name={name} logo={companyLogo}/>
           <span className="company-name">{name}</span>
         </span>
       ) : (
         <button className="workspace" title={name} onClick={() => setOpen(true)}>
-          <Building2 size={16} />
+          <CompanyMark name={name} logo={companyLogo}/>
           <span className="company-name">{name}</span>
         </button>
       )}

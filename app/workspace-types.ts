@@ -161,6 +161,8 @@ export type User = {
   role: string;
   organization_name: string;
   organization_slug: string;
+  /** Logo de la empresa como URL del medio (o enlace HTTPS); null sin logo. */
+  organization_logo_url?: string|null;
   demo_owner_user_id?:string|null;
   default_currency?:Currency;
   platform_role?:string|null;

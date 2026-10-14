@@ -8,6 +8,20 @@ import {redeemCoupon} from './coupon-redemption.js';
 const currencies=['USD','PYG'];
 export const realUser=alias=>`not ${alias}.is_demo_guest and ${alias}.deleted_at is null and ${alias}.email not ilike '%@demo.example.invalid' and ${alias}.email not ilike '%@scale-demo.example.invalid'`;
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
+// Foto visible de una persona en el panel global (una sola expresión para agencias,
+// accesos y uso). Misma precedencia que la app: la identidad personal; si no hay,
+// la foto de perfil más reciente en una empresa real; por último la de Google.
+// Si la persona quitó su foto (photo_removed_at), no se recupera la de Google ni otra.
+export const platformPersonPhoto=alias=>`(select case when ppi.photo_removed_at is not null then nullif(ppi.photo_url,'')
+  else coalesce(nullif(ppi.photo_url,''),
+   (select pp.photo_url from agency_user_profiles pp join organizations po on po.id=pp.organization_id
+     where pp.user_id=${alias}.id and nullif(pp.photo_url,'') is not null and po.demo_owner_user_id is null and po.demo_source_id is null and po.slug<>'scale-demo-controles-20260908'
+     order by pp.updated_at desc,pp.organization_id limit 1),
+   nullif(${alias}.google_photo_url,'')) end
+  from (select 1) ppone left join user_personal_identities ppi on ppi.user_id=${alias}.id)`;
+// Logo de la agencia para el panel global: el administrador global no es miembro de
+// la empresa (no puede usar el endpoint de medios), así que viaja directo, con tope.
+export const platformOrganizationLogo=alias=>`case when length(${alias}.logo_url)<300000 then nullif(${alias}.logo_url,'') end`;
 // `Number.isInteger(1e21)` es true pero Postgres no acepta ese bigint: se exige safe integer.
 const integer=(value,fallback=0)=>{if(value===null||value===undefined||value==='')return fallback;const parsed=Number(value);return Number.isSafeInteger(parsed)&&parsed>=0?parsed:fallback;};
 const limit=value=>Math.min(100,Math.max(1,integer(value,25)));
@@ -104,7 +118,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    const {limit,offset}=page(url),q=search(url),where=q?'and (o.name ilike $3 or o.slug ilike $3)':'';
    const values=q?[limit,offset,'%'+q+'%']:[limit,offset];
    const total=Number((await db.query(`select count(*)::int as n from organizations o where ${realOrganization('o')} ${q?'and (o.name ilike $1 or o.slug ilike $1)':''}`,q?['%'+q+'%']:[])).rows[0].n);
-   const result=await db.query(`select o.id,o.name,o.slug,o.active,o.created_at,
+   const result=await db.query(`select o.id,o.name,o.slug,o.active,o.created_at,${platformOrganizationLogo('o')} as logo_url,
      s.stripe_status as subscription_status,s.currency as subscription_currency,
      case s.currency when 'USD' then 10::numeric when 'PYG' then 50000::numeric else null end as subscription_amount,
      s.trial_ends_at,s.due_at,ps.state as internal_subscription_state,ps.expires_at as internal_subscription_expires_at,
@@ -112,7 +126,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
      adm.owner_name,adm.owner_email,adm.owner_photo_url,adm.extra_admins
      from organizations o left join organization_subscriptions s on s.organization_id=o.id
      left join lateral (
-      select nullif(g.full_name,'') as owner_name,u3.email as owner_email,g.photo_url as owner_photo_url,
+      select nullif(g.full_name,'') as owner_name,u3.email as owner_email,${platformPersonPhoto('u3')} as owner_photo_url,
        greatest(0,(select count(*)::int from organization_members m4 join users u4 on u4.id=m4.user_id where m4.organization_id=o.id and m4.active and m4.removed_at is null and m4.role in ('owner','admin') and ${realUser('u4')})-1) as extra_admins
       from organization_members m3 join users u3 on u3.id=m3.user_id left join user_personal_identities g on g.user_id=u3.id
       where m3.organization_id=o.id and m3.active and m3.removed_at is null and m3.role in ('owner','admin') and ${realUser('u3')}
@@ -221,7 +235,7 @@ export async function platformAdmin({req,res,url,db,session,body,send,bootstrapV
    // Solo identidad visible (nombre, foto) y nombres de agencia: nunca salarios ni datos sensibles.
    const result=await db.query(`select u.id,u.email,u.created_at,
      (select nullif(g.full_name,'') from user_personal_identities g where g.user_id=u.id) as full_name,
-     (select g.photo_url from user_personal_identities g where g.user_id=u.id) as photo_url,
+     ${platformPersonPhoto('u')} as photo_url,
      (select coalesce(jsonb_agg(x.name order by x.name),'[]'::jsonb) from (select o2.name from organization_members m2 join organizations o2 on o2.id=m2.organization_id where m2.user_id=u.id and m2.active and m2.removed_at is null and ${realOrganization('o2')} order by o2.name limit 3) x) as agency_names,
      count(m.organization_id) filter(where m.active and m.removed_at is null and ${realOrganization('o')})::int as active_agencies,
      exists(select 1 from platform_administrators pa where pa.user_id=u.id and pa.active) as platform_admin,

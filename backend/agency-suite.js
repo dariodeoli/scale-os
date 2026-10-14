@@ -248,9 +248,21 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
    const monthStart=`date_trunc('month',current_date)::date`;
    result={cash:(await c.query('select currency,sum(balance) as total from bank_accounts where organization_id=$1 and active=true group by currency',[org])).rows,receivables:(await c.query("select currency,sum(total-paid_amount) as total from agency_invoices where organization_id=$1 and status not in ('draft','cancelled') group by currency",[org])).rows,inventory:(await c.query("select currency,sum(value) as total from agency_inventory where organization_id=$1 and status<>'retired' group by currency",[org])).rows,collections:(await c.query("select a.currency,sum(p.amount) as total from agency_cash_movements p join bank_accounts a on a.id=p.account_id where p.organization_id=$1 and p.movement_type in ('payment','reversal') and p.booked_on>=date_trunc('month',current_date) group by a.currency",[org])).rows,expenses:(await c.query(`select currency,coalesce(sum(amount),0)::text as total from agency_planned_expenses where organization_id=$1 and ((cadence='monthly' and effective_month=${monthStart}) or (cadence='recurring' and effective_month<=${monthStart})) group by currency order by currency`,[org])).rows,personnel:(await c.query(`select c.currency as currency,coalesce(sum(c.compensation_amount),0)::text as total from agency_collaborators c where c.organization_id=$1 and c.active=true and c.compensation_type='fixed' and c.compensation_amount>0 and ${visibleRecord('c','collaborators')} and (c.started_on is null or c.started_on<${monthStart}::date+interval '1 month') and (c.ended_on is null or c.ended_on>=${monthStart}::date) group by c.currency order by c.currency`,[org])).rows,expected:(await c.query(`with bounds as (select ${monthStart}::date as start_on,(${monthStart}::date+interval '1 month') as end_on), pending as (select b.currency,b.total,(b.accepted_at at time zone 'America/Asuncion')::date as accepted_on from agency_budgets b where b.organization_id=$1 and b.status='accepted' and ${visibleRecord('b','budgets')} and not exists(select 1 from agency_invoices i where i.organization_id=b.organization_id and i.budget_id=b.id)), entries as (select i.currency,i.total as amount from agency_invoices i cross join bounds d where i.organization_id=$1 and i.status in ('issued','partial','paid','overdue') and i.issued_on>=d.start_on and i.issued_on<d.end_on union all select p.currency,p.total from pending p cross join bounds d where p.accepted_on>=d.start_on and p.accepted_on<d.end_on) select currency,coalesce(sum(amount),0)::text as total from entries group by currency order by currency`,[org])).rows,alerts:(await c.query(`select 'work_order' as type,o.id,o.title as name,o.due_date::text as due from agency_work_orders o join agency_projects p on p.id=o.project_id join agency_clients c on c.id=p.client_id where o.organization_id=$1 and o.due_date<current_date and o.status not in ('approved','published') and ${visibleRecord('o','work-orders')} and ${visibleRecord('p','projects')} and ${visibleRecord('c','clients')} union all select 'invoice',id,number,due_on::text from agency_invoices where organization_id=$1 and due_on<current_date and total>paid_amount and status not in ('draft','cancelled') order by due limit 30`,[org])).rows};
   }else if(kind==='settings'){
-   if(req.method==='GET')result={settings:(await c.query("select o.name,s.*,coalesce(s.default_currency,'PYG') as default_currency from organizations o left join agency_settings s on s.organization_id=o.id where o.id=$1",[org])).rows[0]};
-   else if(req.method==='PATCH'){
+   if(req.method==='GET'){
+    const row=(await c.query("select o.name,to_jsonb(o)->>'logo_url' as logo_url,s.*,coalesce(s.default_currency,'PYG') as default_currency from organizations o left join agency_settings s on s.organization_id=o.id where o.id=$1",[org])).rows[0];
+    // El logo viaja como URL del medio (cacheable), no como base64.
+    result={settings:row?{...row,logo_url:mediaPhoto('organization',org,row.logo_url)}:row};
+   }else if(req.method==='PATCH'){
     const b=await body(req);
+    // Logo de la empresa: misma normalización que los logos de clientes (WebP ≤180 KB
+    // o enlace HTTPS). Un PATCH solo con el logo no reescribe el resto de la configuración.
+    if(b&&typeof b==='object'&&Object.hasOwn(b,'logo_url')){
+     const logo=await clientLogo(b.logo_url);
+     await c.query('update organizations set logo_url=$1 where id=$2',[logo,org]);
+     delete b.logo_url;
+     if(!Object.keys(b).length)result={ok:true,logo_url:mediaPhoto('organization',org,logo)};
+    }
+    if(!result){
     // Serialize updates with other company settings edits; omitted fields survive.
     const organization=(await c.query('select name from organizations where id=$1 for update',[org])).rows[0];
     if(!organization)fail('Empresa no encontrada',404);
@@ -261,6 +273,7 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
     await c.query('update organizations set name=$1 where id=$2',[name,org]);
     await c.query('insert into agency_settings(organization_id,legal_name,tax_id,address,phone,onboarding_completed,default_currency) values($1,$2,$3,$4,$5,$6,$7) on conflict(organization_id) do update set legal_name=excluded.legal_name,tax_id=excluded.tax_id,address=excluded.address,phone=excluded.phone,onboarding_completed=excluded.onboarding_completed,default_currency=excluded.default_currency',[org,text(merged.legal_name||'',160),text(merged.tax_id||'',60),text(merged.address||'',400),Object.hasOwn(b,'phone')?phone(merged.phone):(merged.phone??null),merged.onboarding_completed===true,currency]);
     result={ok:true,default_currency:currency};
+    }
    }else fail('Método no permitido',405);
   }else if(kind==='exchange-rates'){
    if(req.method==='GET')result={records:(await c.query('select * from agency_exchange_rates where organization_id=$1 order by rate_date desc limit 90',[org])).rows};

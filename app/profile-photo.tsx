@@ -73,7 +73,7 @@ export async function preparePhoto(file:File):Promise<string>{
   }finally{bitmap.close();}
 }
 
-export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=false}:{photo:string|null;name:string;save:(value:string)=>Promise<void>;label?:string;compact?:boolean}){
+export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=false,logo}:{photo:string|null;name:string;save:(value:string)=>Promise<void>;label?:string;compact?:boolean;logo?:boolean}){
   const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{photo:photo||''}});
   const [processing,setProcessing]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');
   const [cropSource,setCropSource]=useState<string|null>(null);
@@ -83,7 +83,7 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
   // Reintento del objeto de foto al guardar: si el enlace había fallado,
   // el guardado exitoso vuelve a intentar la carga (contrato de reintento).
   const [fotoVersion,setFotoVersion]=useState(0);
-  const isLogo=label==='Logo o foto del cliente';
+  const isLogo=logo??label==='Logo o foto del cliente';
   const mounted=useRef(true),saving=useRef(false),fileInput=useRef<HTMLInputElement|null>(null);
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   // State disables controls after rendering; the ref also rejects events arriving

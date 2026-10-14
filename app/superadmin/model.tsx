@@ -29,6 +29,8 @@ export type Agency = {
   owner_email?: string | null;
   owner_photo_url?: string | null;
   extra_admins?: number;
+  /** Logo de la agencia (data:/https, solo si pesa menos de 300 KB). */
+  logo_url?: string | null;
 };
 export type Subscription = {
   internal_state: "active" | "suspended" | null;
@@ -237,7 +239,7 @@ export type UsagePayload = {
   signups: { day: string; users: number; agencies: number }[];
   hourly: { hour: number; users: number }[];
   monthly: { month: string; signups: number; active_users: number }[];
-  agencies: { id: number | string; name: string; active7: number; active30: number; sessions: number; last_seen_at: string | null; owner: UsagePerson | null }[];
+  agencies: { id: number | string; name: string; logo_url?: string | null; active7: number; active30: number; sessions: number; last_seen_at: string | null; owner: UsagePerson | null }[];
   users: { id: number | string; name: string; avatar_url: string | null; email: string; agency: string; last_seen_at: string | null; sessions: number }[];
 };
 

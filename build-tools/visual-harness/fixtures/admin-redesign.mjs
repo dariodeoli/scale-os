@@ -37,6 +37,8 @@ const AGENCIES = [
 const initialsOf = (name) => String(name).split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('') || '?';
 /* PersonContainer size="sm" (app/person-container.tsx): avatar + nombre + secundario. */
 const personSm = (name, secondary) => `<span class="person-container person-container-sm"><span class="foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-persona" aria-hidden="true"><span class="foto-perfil-iniciales" aria-hidden="true">${initialsOf(name)}</span></span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span></span>`;
+/* Identidad de la agencia (app/superadmin/agencies.tsx): PersonContainer size="sm" variante logo; sin logo, iniciales. */
+const agencyIdentity = (agency) => `<span class="person-container person-container-sm"><span class="foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-logo" aria-hidden="true"><span class="foto-perfil-iniciales" aria-hidden="true">${initialsOf(agency.name)}</span></span><span class="person-container-details"><span class="person-container-name" title="${agency.name}">${agency.name}</span><span class="person-container-secondary" title="${agency.slug}">${agency.slug}</span></span></span>`;
 const ownerCell = (owner) => owner ? `<span class="flex min-w-0 items-center gap-1.5" title="${owner.name ? owner.name + ' · ' : ''}${owner.email}">${personSm(owner.name || owner.email, owner.name ? owner.email : '')}${owner.extra ? chip('+' + owner.extra, 'mute', owner.extra + ' administradores más') : ''}</span>` : '<span class="list-secondary">—</span>';
 const manualLabel = (value) => value === 'active' ? 'Acceso manual activo' : value === 'suspended' ? 'Acceso manual suspendido' : 'Sin cambio manual';
 const manualTone = (value) => value === 'active' ? 'info' : value === 'suspended' ? 'warn' : 'mute';
@@ -116,7 +118,7 @@ const overview = () => `
 
 const agencyRows = AGENCIES.map((agency) => `
 <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]">
- <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${agency.name}">${agency.name}</b><small class="list-secondary" title="${agency.slug}">${agency.slug}</small></div>
+ <div role="cell" class="min-w-0">${agencyIdentity(agency)}</div>
  <div role="cell" class="flex min-w-0 flex-wrap items-center gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(manualLabel(agency.manual), manualTone(agency.manual))}</div>
  <span role="cell" class="text-right"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-fore">${agency.amount || '—'}</span></span>
  <span role="cell" class="text-right text-[12.5px] font-semibold tabular-nums text-fore">${agency.users}</span>
@@ -349,7 +351,7 @@ const overview2 = () => `
 
 const agencyRows2 = AGENCIES.map((agency) => `
 <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(12rem,1.5fr)_minmax(12rem,1.1fr)_minmax(15rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]">
- <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${agency.name}">${agency.name}</b><small class="list-secondary" title="${agency.slug}">${agency.slug}</small></div>
+ <div role="cell" class="min-w-0">${agencyIdentity(agency)}</div>
  <div role="cell" class="min-w-0">${ownerCell(agency.owner)}</div>
  <div role="cell" class="flex min-w-0 flex-wrap items-center gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(manualLabel(agency.manual), manualTone(agency.manual))}</div>
  <span role="cell" class="text-right"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-fore">${agency.amount || '—'}</span></span>
