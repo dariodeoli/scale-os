@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {useEffect,useState,type ReactNode} from 'react';
 import {AlertCircle,ArrowUpRight,CalendarClock,CheckCircle2,FileQuestion,PackageSearch} from 'lucide-react';
 import {BarraProgreso,Skeleton} from 'owncoding-ui';
 import {api,money} from './operations';
@@ -19,7 +19,12 @@ const FINANCE_TONE={cash:'fono',receivables:'mute',collections:'ok',expenses:'wa
 const DUE_TONE:Record<string,'ok'|'warn'|'bad'>={gold:'warn',warning:'warn',danger:'bad'};
 const dueTone=(due:string,today:string)=>{const past=new Date(due.slice(0,10)+'T12:00:00Z').valueOf();const now=new Date(today+'T12:00:00Z').valueOf();if(Number.isNaN(past))return 'warning';const days=Math.max(0,Math.round((now-past)/86400000));return days<=7?'gold':days<=21?'warning':'danger';};
 
-export function ControlCenter({role,orders,refresh,navigate,signals}:{role:string;orders:Order[];refresh:()=>Promise<void>;navigate:(label:string)=>void;signals:Signals}){
+/**
+ * Panel del Resumen. Orden por tarea (reorganización IA): primero lo accionable
+ * (señales y vencidos), después `work` (el trabajo del día que aporta la
+ * sección) y al final los resúmenes comercial y financiero, que se consultan.
+ */
+export function ControlCenter({role,orders,refresh,navigate,signals,work}:{role:string;orders:Order[];refresh:()=>Promise<void>;navigate:(label:string)=>void;signals:Signals;work?:ReactNode}){
  const allowed=['owner','admin','finance'].includes(role),commercialAllowed=['owner','admin','management','sales','finance'].includes(role);
  const [data,setData]=useState<Dashboard|null>(null),[error,setError]=useState('');
  const [overdue,setOverdue]=useState<DueAlert[]|null>(null),[overdueCapped,setOverdueCapped]=useState(false);
@@ -57,9 +62,17 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
    {Number.isInteger(signals.unanswered_budgets)&&<button type="button" className="control-signal" onClick={()=>navigate('Presupuestos')}><span className="control-signal-icon" aria-hidden="true"><FileQuestion size={16}/></span><span className="control-signal-text"><b>{signals.unanswered_budgets} presupuesto{signals.unanswered_budgets===1?'':'s'} sin respuesta</b><small>Enviados y todavía sin definición</small></span><ArrowUpRight size={14} aria-hidden="true"/></button>}
    {Number.isInteger(signals.unverified_inventory)&&<button type="button" className="control-signal" onClick={()=>navigate('Inventario')}><span className="control-signal-icon" aria-hidden="true"><PackageSearch size={16}/></span><span className="control-signal-text"><b>{signals.unverified_inventory} equipo{signals.unverified_inventory===1?'':'s'} sin verificar</b><small>Sin control físico en más de 30 días</small></span><ArrowUpRight size={14} aria-hidden="true"/></button>}
   </section>}
+  <section className={`due-alert ${alerts.length?'has-overdue':'all-clear'}`} aria-label="Alertas de vencimiento">
+   {alerts.length?<details><summary><AlertCircle size={18}/><strong>Pendientes vencidos <span className="count-badge">{capped?'30+':alerts.length}</span></strong><span className="alert-peek">{groups[0]?.name}{groups[0]?.items.length>1?` ×${groups[0].items.length}`:''} · {shortDate(groups[0]?.due||'')}</span><span className="alert-toggle">Ver detalle</span></summary>
+    <div className="due-details">{capped&&<p className="form-note">Se muestran los primeros 30 vencimientos. Revisá Producción y Cobranza para ver el resto.</p>}
+     {groups.map(group=><details className="due-group" key={group.key}><summary><span className="due-group-cell">{group.name}{group.items.length>1&&<b> ×{group.items.length}</b>}<span className="due-bar-track" aria-hidden="true"><BarraProgreso valor={group.items.length/maxGroupCount*100} max={100} tono={DUE_TONE[dueTone(group.due,today)]??'warn'} etiqueta={`Pendientes de ${group.name}`}/></span></span><time dateTime={group.due}>{shortDate(group.due)}</time><small>{group.type==='invoice'?'Factura':'Producción'}</small></summary><ul>{group.items.map(item=><li key={`${item.type}-${item.id}`}><div><b>{item.context||item.name||`#${item.id}`}</b><small>#{item.id} · {shortDate(String(item.due??''))}</small></div>{item.type==='work_order'?<RecordEditor kind="work-orders" recordId={String(item.id)} name={item.name??undefined} refresh={refresh} role={role}/>:<button className="text-button" onClick={()=>navigate('Mora')}>Ver cobranza<ArrowUpRight size={14}/></button>}</li>)}</ul></details>)}
+    </div>
+   </details>:<div className="clear-message"><CheckCircle2 size={17}/><span>{allowed&&!data&&!error?'Consultando vencimientos…':error?'Sin tareas de producción vencidas · cobros no disponibles':'Sin pendientes vencidos'}</span></div>}
+  </section>
+  {work}
   {commercialAllowed&&<section className="financial-summary commercial-summary" aria-labelledby="commercial-title">
    <div className="section-caption"><div className="section-head"><p className="section-eyebrow">Comercial</p><h2 id="commercial-title">Resumen comercial</h2></div><button className="text-button" onClick={()=>navigate('Pipeline')}>Ver pipeline <ArrowUpRight size={14}/></button></div>
-   {commercialError?<p className="error" role="alert">{commercialError} Los indicadores comerciales no están disponibles.</p>:<KpiStrip aria-busy={!commercial}>
+   {commercialError?<p className="error" role="alert">{commercialError} Los indicadores comerciales no están disponibles.</p>:<KpiStrip aria-busy={!commercial} className="xl:!grid-cols-3">
     <Kpi label="Clientes activos" valor={!commercial?<Skeleton className="h-6 w-16"/>:commercial.activeClients} hint="Con relación comercial activa."/>
     <Kpi label="Prospectos activos" valor={!commercial?<Skeleton className="h-6 w-16"/>:commercial.activeProspects} hint="Leads que todavía no están ganados ni perdidos."/>
     <Kpi destacado label="Facturación mensual contratada" valor={!allowed?<span className={KPI_NOTE}>No disponible para tu rol</span>:billingEstado==='cargando'?<Skeleton className="h-6 w-24"/>:billingEstado==='error'?<span className={KPI_NOTE} role="alert">No se pudo cargar</span>:billingEstado==='sin-dato'?<span className={KPI_NOTE}>Sin dato</span>:billingEstado==='sin-contratos'?<span className="flex flex-wrap items-center gap-2"><span className={KPI_NOTE}>—</span><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip></span>:<span className="grid gap-0.5">{commercial!.expectedMonthlyBilling!.map(item=><MoneyText key={item.currency} valor={item.total} currency={item.currency}/>)}</span>} hint="Expectativa comercial vigente; no es el forecast ni el efectivo cobrado."/>
@@ -67,7 +80,7 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
   </section>}
   {allowed&&<section className="financial-summary" aria-labelledby="financial-title">
    <div className="section-caption"><div className="section-head"><p className="section-eyebrow">Finanzas</p><h2 id="financial-title">Resumen financiero</h2></div><button className="text-button" onClick={()=>navigate('Pagos')}>Ver movimientos <ArrowUpRight size={14}/></button></div>
-   {error?<p className="error" role="alert">{error} Los importes no están disponibles.</p>:<KpiStrip aria-busy={!data}>
+   {error?<p className="error" role="alert">{error} Los importes no están disponibles.</p>:<KpiStrip aria-busy={!data} className="xl:!grid-cols-3">
     {([['cash','Disponible','Saldo actual en cuentas'],['receivables','Por cobrar','Facturas pendientes'],['collections','Cobrado este mes','Neto de reversiones'],['expenses','Gastos planificados','Mes actual · fijos y variables'],['personnel','Personal','Salarios esperados al cierre del mes']] as const).map(([key,label,note])=><Kpi key={key} destacado={key==='cash'} label={label} hint={note} valor={!data?<Skeleton className="h-6 w-24"/>:data[key]?.length?<span className="grid gap-0.5">{data[key].map(r=><MoneyText key={r.currency} valor={r.total} currency={r.currency}/>)}</span>:<span className={KPI_NOTE}>Sin movimientos</span>}/>)}
     <Kpi destacado label="Resultado estimado del mes" hint="Ingreso esperado − gastos planificados y personal." valor={!data?<Skeleton className="h-6 w-24"/>:resultCurrencies.length?<span className="grid gap-0.5">{resultCurrencies.map(currency=>{const value=resultByCurrency(currency);return <span key={currency} className="inline-flex items-center justify-end gap-0.5" data-negative={value<0||undefined}>{value<0?'−':''}<MoneyText valor={Math.abs(value)} currency={currency} tono={value<0?'bad':''}/></span>;})}</span>:<span className={KPI_NOTE}>Sin ingreso esperado</span>}/>
    </KpiStrip>}
@@ -78,12 +91,5 @@ export function ControlCenter({role,orders,refresh,navigate,signals}:{role:strin
    </details>}
    {data&&!error&&data.inventory.length>0&&<p className="inventory-summary">Patrimonio en equipos <b>{data.inventory.map(r=>money(r.total,r.currency)).join(' · ')}</b><button className="text-button" onClick={()=>navigate('Inventario')}>Ver inventario<ArrowUpRight size={14}/></button></p>}
   </section>}
-  <section className={`due-alert ${alerts.length?'has-overdue':'all-clear'}`} aria-label="Alertas de vencimiento">
-   {alerts.length?<details><summary><AlertCircle size={18}/><strong>Pendientes vencidos <span className="count-badge">{capped?'30+':alerts.length}</span></strong><span className="alert-peek">{groups[0]?.name}{groups[0]?.items.length>1?` ×${groups[0].items.length}`:''} · {shortDate(groups[0]?.due||'')}</span><span className="alert-toggle">Ver detalle</span></summary>
-    <div className="due-details">{capped&&<p className="form-note">Se muestran los primeros 30 vencimientos. Revisá Producción y Cobranza para ver el resto.</p>}
-     {groups.map(group=><details className="due-group" key={group.key}><summary><span className="due-group-cell">{group.name}{group.items.length>1&&<b> ×{group.items.length}</b>}<span className="due-bar-track" aria-hidden="true"><BarraProgreso valor={group.items.length/maxGroupCount*100} max={100} tono={DUE_TONE[dueTone(group.due,today)]??'warn'} etiqueta={`Pendientes de ${group.name}`}/></span></span><time dateTime={group.due}>{shortDate(group.due)}</time><small>{group.type==='invoice'?'Factura':'Producción'}</small></summary><ul>{group.items.map(item=><li key={`${item.type}-${item.id}`}><div><b>{item.context||item.name||`#${item.id}`}</b><small>#{item.id} · {shortDate(String(item.due??''))}</small></div>{item.type==='work_order'?<RecordEditor kind="work-orders" recordId={String(item.id)} name={item.name??undefined} refresh={refresh} role={role}/>:<button className="text-button" onClick={()=>navigate('Mora')}>Ver cobranza<ArrowUpRight size={14}/></button>}</li>)}</ul></details>)}
-    </div>
-   </details>:<div className="clear-message"><CheckCircle2 size={17}/><span>{allowed&&!data&&!error?'Consultando vencimientos…':error?'Sin tareas de producción vencidas · cobros no disponibles':'Sin pendientes vencidos'}</span></div>}
-  </section>
  </>;
 }
