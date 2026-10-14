@@ -83,7 +83,7 @@ const INPUT = 'w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore
 const LIST_HEAD = 'grid gap-x-2 border-b border-ink-600 px-2 pb-1.5 text-[10px] font-bold uppercase tracking-[.06em] text-mute';
 const LIST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-1 transition-colors last:border-0 hover:bg-ink-700/40';
 /* Fila finita de la previsión: mismo contrato que app/financial-forecast.tsx. */
-const FORECAST_ROW = 'grid min-h-11 items-center gap-x-2 border-b border-ink-600/60 px-2 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:py-2';
+const FORECAST_ROW = 'grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2';
 const PERSON_COLS = 'grid-cols-[minmax(8.5rem,1fr)_6.5rem_minmax(9rem,1.2fr)_6.5rem]';
 const CONTRACT_COLS = 'grid-cols-[minmax(11rem,1fr)_7rem_7rem_6rem]';
 const EXPENSE_COLS = 'grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
@@ -123,7 +123,7 @@ const v2Card = 'grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4';
 /* Espeja app/ui-v2.tsx (#89): hook `ui-kpi` y hint de una línea con tooltip. */
 const v2Kpi = (label, valor, hint = '', destacado = false) => `<div class="ui-kpi relative overflow-hidden rounded-xl border p-4 ${destacado ? 'border-fono/30 bg-gradient-to-br from-fono-dark via-fono to-fono' : 'border-ink-600 bg-ink-800'}"><div class="text-[11px] font-medium uppercase tracking-wider ${destacado ? 'text-onbrand/75' : 'text-mute'}">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${valor}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="min-w-0 flex-1 truncate ${destacado ? 'text-onbrand/75' : 'text-mute'}" title="${hint}">${hint}</span></div>` : ''}</div>`;
 const v2KpiStrip = (items) => `<div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${items.join('')}</div>`;
-const v2Grid = ({label, template, columns, rows, minWidth = 'min-w-[58rem]'}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? 'text-right ' : ''}whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${Array.isArray(rows) ? rows.join('') : rows}</div></div></div>`;
+const v2Grid = ({label, template, columns, rows, minWidth = 'min-w-[58rem]', className = '', aligns = null}) => `<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto ${className}"><div class="${minWidth}"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">${columns.map((column, index) => `<span role="columnheader" class="${(aligns ? aligns[index] === 'end' : index === columns.length - 1) ? 'text-right ' : 'text-left '}whitespace-nowrap">${column}</span>`).join('')}</div><div role="rowgroup">${Array.isArray(rows) ? rows.join('') : rows}</div></div></div>`;
 const v2Row = (template, cells) => `<div role="row" class="grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template}">${cells}</div>`;
 const v2Empty = (title, description = '', action = '') => `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${icon(20, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>')}</div><p class="mt-3 text-sm font-semibold text-fore">${title}</p>${description ? `<p class="mt-1 max-w-xs text-xs leading-5 text-mute">${description}</p>` : ''}${action ? `<div class="mt-4">${action}</div>` : ''}</div></div>`;
 const actorCompact = (initials, name) => `<span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-mute"><span class="foto-perfil" aria-hidden="true">${initials}</span><span class="truncate" title="${name}">${name}</span></span>`;
@@ -403,18 +403,15 @@ const previsionResumen = {
  </div>
  <div class="${CARD} grid gap-3">
   <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Salarios</h3><p class="text-xs text-mute">Gasto esperado al cierre de Septiembre 2026, sin pagos ni comisiones registrados.</p></div>
-  <p role="status" class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
+  <p class="text-xs text-mute">4 colaborador(es) activo(s) incluido(s).</p>
   <div class="grid gap-4">
    <div class="forecast-personnel-card grid gap-2">
     <div class="flex flex-wrap items-baseline justify-between gap-2"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">PYG · gasto esperado al cierre</span><strong class="whitespace-nowrap text-lg font-semibold tabular-nums text-fore">Gs. 69.765.432</strong></div>
     <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-mute"><span>Salario base (3): <b class="font-semibold tabular-nums text-fore">Gs. 68.565.432</b></span><span>Ajustes del mes (1): <b class="font-semibold tabular-nums text-fore">Gs. 1.200.000</b></span></div>
-    ${listWrap('56rem', `<div class="forecast-person-list" role="table" aria-label="Salarios">
-     <div role="row" class="${LIST_HEAD} ${PERSON_COLS}"><span role="columnheader">Persona</span><span role="columnheader">Salario base</span><span role="columnheader">Cierre del mes</span><span role="columnheader" class="text-right">Acciones</span></div>
- <div role="rowgroup">     ${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
+    ${v2Grid({label: 'Salarios', template: PERSON_COLS, columns: ['Persona', 'Salario base', 'Cierre del mes', 'Acciones'], aligns: ['start', 'end', 'end', 'end'], minWidth: 'min-w-[30.5rem]', className: 'forecast-person-list', rows: `${personnelRow({name: 'Ana López Fernández de la Cruz', initials: 'AL', base: 'Gs. 24.500.000', override: 'Gs. 1.200.000', total: 'Gs. 25.700.000'})}
      ${personnelRow({name: 'Bruno Villalba', initials: 'BV', base: 'Gs. 32.000.000', override: '', total: 'Gs. 32.000.000'})}
      ${personnelRow({name: 'Salario variable sin base fija', initials: 'SV', base: 'Gs. 0', override: 'Gs. 2.065.432', total: 'Gs. 2.065.432', noBase: true})}
-     ${personnelRow({name: 'Salario enmascarado por salary.view', initials: 'SM', base: '', override: '', total: '', masked: true})}</div>
-    </div>`)}
+     ${personnelRow({name: 'Salario enmascarado por salary.view', initials: 'SM', base: '', override: '', total: '', masked: true})}`})}
    </div>
   </div>
  </div>
@@ -426,22 +423,16 @@ const previsionResumen = {
     <article class="forecast-planned-card grid gap-1 rounded-xl border border-ink-600 bg-ink-900 p-4"><span class="font-mono text-[10px] uppercase tracking-[.14em] text-mute">USD · total planificado</span><strong class="text-xl font-semibold tabular-nums text-fore">USD 4.300</strong><small class="planned-expenses-kinds text-xs text-mute">1 fijos · 1 variables</small></article>
    </div>
   </div>
-  ${listWrap('44rem', `<div role="table" aria-label="Gastos planificados del mes">
-   <div role="row" class="${LIST_HEAD} ${PLANNED_COLS}"><span role="columnheader">Gasto</span><span role="columnheader">Cadencia</span><span role="columnheader" class="text-right">Monto</span><span role="columnheader" class="text-right">Acciones</span></div>
- <div role="rowgroup">   ${plannedRow({category: 'Herramientas', kind: 'Fijo', cadence: 'Recurrente', note: 'Licencias de edición y almacenamiento en la nube', amount: 'Gs. 9.000.000'})}
+  ${v2Grid({label: 'Gastos planificados del mes', template: PLANNED_COLS, columns: ['Gasto', 'Cadencia', 'Monto', 'Acciones'], aligns: ['start', 'start', 'end', 'end'], minWidth: 'min-w-[30rem]', rows: `${plannedRow({category: 'Herramientas', kind: 'Fijo', cadence: 'Recurrente', note: 'Licencias de edición y almacenamiento en la nube', amount: 'Gs. 9.000.000'})}
    ${plannedRow({category: 'Marketing', kind: 'Variable', cadence: 'Solo este mes', note: '', amount: 'USD 4.300'})}
-   ${plannedRow({category: 'Administración', kind: 'Fijo', cadence: 'Recurrente', note: 'Honorarios contables mensuales', amount: 'Gs. 3.000.000'})}</div>
-  </div>`)}
+   ${plannedRow({category: 'Administración', kind: 'Fijo', cadence: 'Recurrente', note: 'Honorarios contables mensuales', amount: 'Gs. 3.000.000'})}`})}
  </div>
  <div class="${CARD} grid gap-4">
   <div class="grid gap-3">
    <div class="grid gap-1"><h3 class="text-[17px] font-semibold tracking-tight text-fore">Gastos reales del mes · Septiembre 2026</h3><p class="text-xs text-mute">Registra el pago contra una cuenta: descuenta el saldo y queda en el historial de movimientos. Revertir acredita de nuevo la cuenta.</p></div>
   </div>
-  ${listWrap('40rem', `<div role="table" aria-label="Gastos reales del mes">
-   <div role="row" class="${LIST_HEAD} ${EXPENSE_COLS}"><span role="columnheader">Gasto</span><span role="columnheader" class="text-right">Monto</span><span role="columnheader" class="text-right">Acciones</span></div>
- <div role="rowgroup">   ${realExpenseRow({category: 'Herramientas', kind: 'Fijo', date: '12-sept', account: 'Banco Regional — Operativa', reference: 'Licencia Adobe Creative Cloud anual', createdBy: 'finanzas@estudio.com.py', amount: 'Gs. 3.450.000'})}
-   ${realExpenseRow({category: 'Marketing', kind: 'Variable', date: '10-sept', account: 'Tarjeta corporativa USD', reference: 'Campaña Meta Ads', createdBy: '', amount: 'USD 4.500'})}</div>
-  </div>`)}
+  ${v2Grid({label: 'Gastos reales del mes', template: EXPENSE_COLS, columns: ['Gasto', 'Monto', 'Acciones'], aligns: ['start', 'end', 'end'], minWidth: 'min-w-[27.5rem]', rows: `${realExpenseRow({category: 'Herramientas', kind: 'Fijo', date: '12-sept', account: 'Banco Regional — Operativa', reference: 'Licencia Adobe Creative Cloud anual', createdBy: 'finanzas@estudio.com.py', amount: 'Gs. 3.450.000'})}
+   ${realExpenseRow({category: 'Marketing', kind: 'Variable', date: '10-sept', account: 'Tarjeta corporativa USD', reference: 'Campaña Meta Ads', createdBy: '', amount: 'USD 4.500'})}`})}
   ${aviso('error', 'No se pudo revertir el gasto real: la cuenta no tiene saldo suficiente para la corrección.')}
  </div>
  ${nota('warn', '2 presupuesto(s) aceptado(s) sin fecha: excluidos del total mensual.')}
@@ -450,8 +441,8 @@ const previsionResumen = {
 
 /* --------------- Previsión: contratos vs facturación (v2) ------------- */
 const contractedRow = ({name, currency, endsOn, invoiceRequired, contracted, invoiced, missing}) => `
-<div role="row" class="${LIST_ROW} ${CONTRACT_COLS}">
- ${cell(`<b class="font-semibold text-fore">${name}</b><small class="ml-2 whitespace-nowrap text-xs text-mute">${currency}${endsOn ? ` · hasta ${endsOn}` : ''}</small>`, 'truncate text-sm')}
+<div role="row" class="${FORECAST_ROW} ${CONTRACT_COLS}">
+ ${cell(`<b class="font-semibold text-fore">${name}</b><small class="ml-2 whitespace-nowrap text-xs text-mute">${currency}${endsOn ? ` · hasta ${endsOn}` : ''}</small>`, 'truncate text-sm').replace('<span', `<span title="${name} · ${currency}${endsOn ? ` · hasta ${endsOn}` : ''}"`)}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${contracted}</strong>`, 'text-right')}
  ${cell(`<strong class="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">${invoiced}</strong>`, 'text-right')}
  ${cell(missing ? chip('bad', 'Sin factura', 'Contrato con facturación requerida y sin factura emitida en el mes') : chip('ok', 'Facturado'), 'flex justify-end')}
@@ -467,12 +458,9 @@ const previsionContratos = {
   body: `
 <div class="${CARD} grid gap-3">
  <h3 class="text-[17px] font-semibold tracking-tight text-fore">Contratos vs facturación del mes</h3>
- ${listWrap('56rem', `<div role="table" aria-label="Contratos vigentes contra facturación">
-  <div role="row" class="${LIST_HEAD} ${CONTRACT_COLS}"><span role="columnheader">Cliente</span><span role="columnheader" class="text-right">Contratado</span><span role="columnheader" class="text-right">Facturado</span><span role="columnheader" class="text-right">Estado</span></div>
- <div role="rowgroup">  ${contractedRow({name: 'Industrias del Sur Sociedad Anónima', currency: 'PYG', endsOn: '31-dic-26', invoiceRequired: true, contracted: 'Gs. 45.000.000', invoiced: 'Gs. 90.000.000', missing: false})}
+ ${v2Grid({label: 'Contratos vigentes contra facturación', template: CONTRACT_COLS, columns: ['Cliente', 'Contratado', 'Facturado', 'Estado'], aligns: ['start', 'end', 'end', 'end'], minWidth: 'min-w-[31rem]', rows: `${contractedRow({name: 'Industrias del Sur Sociedad Anónima', currency: 'PYG', endsOn: '31-dic-26', invoiceRequired: true, contracted: 'Gs. 45.000.000', invoiced: 'Gs. 90.000.000', missing: false})}
   ${contractedRow({name: 'Grupo Comercial del Este SRL', currency: 'USD', endsOn: '', invoiceRequired: true, contracted: 'USD 12.500', invoiced: 'USD 0', missing: true})}
-  ${contractedRow({name: 'Fundación Cultural Paraguaya', currency: 'PYG', endsOn: '30-nov-26', invoiceRequired: false, contracted: 'Gs. 8.500.000', invoiced: 'Gs. 8.500.000', missing: false})}</div>
- </div>`)}
+  ${contractedRow({name: 'Fundación Cultural Paraguaya', currency: 'PYG', endsOn: '30-nov-26', invoiceRequired: false, contracted: 'Gs. 8.500.000', invoiced: 'Gs. 8.500.000', missing: false})}`})}
 </div>`,
 };
 
@@ -549,6 +537,9 @@ const informesTablas = {
   section: 'Informes',
   surface: 'Comparativa, distribuciones e histórico mensual (v2)',
   kind: 'workspace',
+  lists: [
+    {container: '[role="table"][aria-label="Evolución mensual por mes"]', head: '[role="table"] > div > [role="row"]', row: '[role="rowgroup"] > [role="row"]', label: 'Informes · evolución mensual', rowHeight: [44, 52]},
+  ],
   body: `
 <section class="grid gap-4" aria-label="Reportes de la agencia">
  <div class="${CARD} grid gap-3">
@@ -584,11 +575,11 @@ const informesTablas = {
  <div class="grid gap-2">
   <p class="text-sm font-semibold text-fore">Evolución mensual · PYG</p>
   <p class="text-xs text-mute">“Sin datos” no significa cero.</p>
-  ${tableBlock([['Mes'], ['Activos', 'right'], ['Incorporados', 'right'], ['Bajas de actividad', 'right'], ['Retención %', 'right'], ['Antigüedad (días)', 'right'], ['Fechas conocidas', 'right'], ['Facturado con impuestos', 'right'], ['Cobrado neto', 'right'], ['Facturas', 'right'], ['Clientes facturados', 'right'], ['Ticket por factura', 'right'], ['Promedio por cliente facturado', 'right']], [
-    [['<span class="whitespace-nowrap">2026-09</span>'], ['128', 'right'], ['14', 'right'], ['5', 'right'], ['96', 'right'], ['412', 'right'], ['120', 'right'], ['PYG 1.234.567.890', 'right'], ['PYG 987.654.321', 'right'], ['500', 'right'], ['104', 'right'], ['PYG 2.469.135,78', 'right'], ['PYG 11.870.845,10', 'right']],
-    [['<span class="whitespace-nowrap">2026-08</span>'], ['116', 'right'], ['11', 'right'], ['7', 'right'], ['94', 'right'], ['398', 'right'], ['109', 'right'], ['PYG 1.111.111.101', 'right'], ['PYG 899.999.999', 'right'], ['500', 'right'], ['99', 'right'], ['PYG 2.222.222,20', 'right'], ['PYG 11.223.344,45', 'right']],
-    [['<span class="whitespace-nowrap">2026-07</span>'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['0', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right'], ['Sin datos', 'right']],
-  ])}
+  ${v2Grid({label: 'Evolución mensual por mes', template: 'grid-cols-[6.5rem_4.5rem_6.5rem_7.5rem_5.5rem_8rem_9.5rem_9rem_6rem_8.5rem_9rem]', columns: ['Mes', 'Activos', 'Incorporados', 'Bajas de actividad', 'Retención %', 'Antigüedad (días · con fecha)', 'Facturado con impuestos', 'Cobrado neto', 'Facturas · clientes', 'Ticket por factura', 'Promedio por cliente facturado'], aligns: ['start', 'end', 'end', 'end', 'end', 'end', 'end', 'end', 'end', 'end', 'end'], minWidth: 'min-w-[78rem]', rows: [
+   v2Row('grid-cols-[6.5rem_4.5rem_6.5rem_7.5rem_5.5rem_8rem_9.5rem_9rem_6rem_8.5rem_9rem]', `<span class="min-w-0 whitespace-nowrap tabular-nums">2026-09</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">128</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">14</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">5</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">96</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">412 · 120/128</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 1.234.567.890</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 987.654.321</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">500 · 104</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 2.469.136</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 11.870.000</span>`),
+   v2Row('grid-cols-[6.5rem_4.5rem_6.5rem_7.5rem_5.5rem_8rem_9.5rem_9rem_6rem_8.5rem_9rem]', `<span class="min-w-0 whitespace-nowrap tabular-nums">2026-08</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">116</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">11</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">7</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">94</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">398 · 109/116</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 1.111.111.101</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 899.999.999</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">500 · 99</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 2.222.222</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">PYG 11.223.000</span>`),
+   v2Row('grid-cols-[6.5rem_4.5rem_6.5rem_7.5rem_5.5rem_8rem_9.5rem_9rem_6rem_8.5rem_9rem]', `<span class="min-w-0 whitespace-nowrap tabular-nums">2026-07 · parcial</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span><span class="min-w-0 whitespace-nowrap text-right tabular-nums">Sin datos</span>`)
+  ]})}
  </div>
  <p class="text-xs text-mute">Comparaciones contra el mes calendario anterior: diferencia absoluta y variación porcentual sobre el valor absoluto anterior. Sin porcentaje cuando la base es cero; sin comparación si falta información o alguno de los meses es parcial. La antigüedad usa solo fechas de inicio conocidas.</p>
 </section>`,
