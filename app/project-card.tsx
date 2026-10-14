@@ -23,7 +23,6 @@ import {DueDate} from './due-date';
 import {OPS_TIME_ZONE} from './ops-time';
 import {PROJECT_PIECES_LIMIT,fetchProjectPieces,remainingPiecesLabel,type ProjectPiece} from './project-pieces';
 import {api} from './operations';
-import {notify} from './feedback';
 import {statuses} from './production-board';
 
 export type ProjectAssignee=AssignedPerson;
@@ -74,11 +73,10 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
   const piecesCount=pieces?pieces.length:knownTotal;
   const piecesTotal=Math.max(piecesCount,knownTotal);
   const {links,legacy,count}=projectLinks(record);
-  // Piezas que exceden la ventana: aviso por el sistema de notificaciones (el
-  // texto queda visible en la lista, sin rol de estado propio).
+  // Piezas que exceden la ventana: el texto queda visible en la lista (sin rol de
+  // estado propio ni aviso transitorio duplicado).
   const shownPieces=pieces?Math.min(pieces.length,PROJECT_PIECES_LIMIT):0;
   const remainingNotice=pieces&&piecesTotal>shownPieces?remainingPiecesLabel(piecesTotal,shownPieces):'';
-  useEffect(()=>{if(remainingNotice)notify({tone:'warning',message:remainingNotice});},[remainingNotice]);
   return <Dialog size="drawer" close={onClose} title={record.name}>
     {error?<ErrorBlock title="No se pudo cargar el proyecto." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
     <div className="grid min-w-0 gap-4">
