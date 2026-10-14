@@ -30,6 +30,8 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
 }){
   const [pending,setPending]=useState<PendingRuc|null>(null),[notice,setNotice]=useState('');
   const pendingRef=useRef<PendingRuc|null>(null);
+  // RUC aplicado en esta edición: al guardar se refresca la ficha tributaria (estado, fuente y fecha) en el API.
+  const rucAppliedRef=useRef(false);
   pendingRef.current=pending;
   useEffect(()=>()=>{pendingRef.current?.reject(new Error('Consulta cancelada.'));},[]);
   // La consulta devuelve un registro, no escribe: la promesa del campo sólo se
@@ -43,7 +45,7 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
     });
   }};
   const rucAfter=pending?<RucConfirmCard record={pending.record}
-    onApply={()=>{const current=pending;setPending(null);current.resolve(rucApplyValues(current.record));}}
+    onApply={()=>{const current=pending;setPending(null);rucAppliedRef.current=true;current.resolve(rucApplyValues(current.record));}}
     onDiscard={()=>{const current=pending;setPending(null);current.reject(new Error('Descartaste los datos del RUC; la ficha no cambió.'));}}/>:null;
   const restricted=record?.contact_restricted===true;
   const fields=clientFields({mode,plan,planRequired,restricted,rucLookup,rucAfter});
@@ -57,6 +59,7 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
     const {client,planTouched}=clientPatchPayload(values,defaults);
     if(client)await api(`/api/agency/clients/${clientId}`,client,'PATCH');
     if(plan&&(planTouched||(planRequired&&!plan.terms)))await api(`/api/agency/clients/${clientId}/commercial-terms`,planTermsPayload(values,plan),'PATCH');
+    if(rucAppliedRef.current){rucAppliedRef.current=false;await api(`/api/agency/clients/${clientId}/ruc-refresh`,{apply:true}).catch(()=>undefined);}
     await onSaved?.();
   }
   return <>

@@ -164,6 +164,25 @@ test('edición: el PATCH envía sólo los campos modificados (semántica legacy)
   act(()=>renderer.unmount());
 });
 
+test('edición: aplicar el RUC guarda también la ficha tributaria (ruc-refresh) después del PATCH',async()=>{
+  calls.length=0;
+  route=(url,method)=>method==='GET'&&url==='/api/agency/clients/4'?{record:{id:'4',name:'ACME',email:'x@acme.com',phone:'',tax_id:'',legal_name:'',notes:'',lifecycle_status:'active',updated_at:'t1',social_links:{}}}:url.endsWith('/ruc-lookup')?{record:rucRecord}:{};
+  let renderer!:ReactTestRenderer;
+  await act(async()=>{renderer=create(<ClientEditorDialog mode="edit" clientId="4" role="finance" close={()=>{}} refresh={async()=>{}}/>);});
+  await settle();
+  await change(renderer,'tax_id','80168807');
+  await act(async()=>{buttonWith(renderer,'Buscar')!.props.onClick();});
+  await settle();
+  await act(async()=>{buttonWith(renderer,'Aplicar')!.props.onClick();});
+  await settle();
+  await submit(renderer);
+  const urls=calls.map(call=>`${call.method} ${call.url}`);
+  const patch=urls.indexOf('PATCH /api/agency/clients/4'),refresh=urls.indexOf('POST /api/agency/clients/4/ruc-refresh');
+  assert.ok(patch>=0&&refresh>patch,'primero se guarda el RUC y después se refresca la ficha tributaria');
+  assert.deepEqual(calls[refresh].body,{apply:true});
+  act(()=>renderer.unmount());
+});
+
 const baseProps={dataState:'ready' as const,clientView:'list',clientStatusFilter:'',setClientStatusFilter:()=>{},clientSearch:'',setClientSearch:()=>{},archiveBusy:'',bulkBusy:false,selectedClients:[] as string[],setSelectedClients:()=>{},canSeeBilling:true,canManageClients:true,archivedClients:[],paymentStatuses:[],clientHubStats:new Map(),commercialSummary:null,commercialState:'idle' as const,directoryKpis:{active:1,paused:0,activeProjects:0,deliveries:0},cobrosKpis:{alDia:0,porVencer:0,enMora:0,sinFactura:0},load:async()=>{},setClientArchive:async()=>{},toggleClientSelected:()=>{},selectVisibleClients:()=>{},batchClients:async()=>{},setDetail:()=>{}};
 const acme={id:'1',name:'ACME',email:'a@acme.com',phone:'+595 981 123456',tax_id:'80168807-8',legal_name:'ACME SA',active:true,lifecycle_status:'active',created_at:'2026-01-02T12:00:00Z',has_recurring_price:true,notes:null,logo_url:null,color_key:'violet'};
 const user=(role:string)=>({id:'1',role,organization_id:'7',full_name:'Prueba',organization_slug:''} as never);
