@@ -35,10 +35,11 @@ for(const [name,source] of [['inventario',inventory],['estudio',studio]] as cons
 // ── Listas: una sola plantilla por lista, compartida entre encabezado y filas.
 assert.match(inventory,/const EQUIPMENT_COLS='\[--eq-cols:[\s\S]*?const EQUIPMENT_GRID='grid grid-cols-\[var\(--eq-cols\)\] items-center gap-x-2'/,'una sola plantilla de equipos');
 assert.match(inventory,/const RESERVATION_COLS='\[--rsv-cols:[\s\S]*?const RESERVATION_GRID='grid grid-cols-\[var\(--rsv-cols\)\] items-center gap-x-2'/,'una sola plantilla de reservas');
-assert.match(studio,/const RESERVATION_COLS='\[--studio-cols:[\s\S]*?const RESERVATION_GRID='grid grid-cols-\[var\(--studio-cols\)\] items-center gap-x-2'/,'una sola plantilla de reservas del estudio');
+assert.match(studio,/const RESERVATION_TEMPLATE='grid-cols-\[var\(--studio-cols\)\]';\nconst RESERVATION_COLS='\[--studio-cols:/,'una sola plantilla de reservas del estudio');
 assert.equal((inventory.match(/\$\{EQUIPMENT_GRID\}/g)||[]).length,2,'el encabezado y las filas de equipos comparten la plantilla');
 assert.equal((inventory.match(/\$\{RESERVATION_GRID\}/g)||[]).length,2,'el encabezado y las filas de reservas comparten la plantilla');
-assert.equal((studio.match(/\$\{RESERVATION_GRID\}/g)||[]).length,2,'el encabezado y las filas del estudio comparten la plantilla');
+assert.match(studio,/<ListGrid label="Reservas del estudio" template=\{RESERVATION_TEMPLATE\}/,'el encabezado del estudio sale de ListGrid');
+assert.match(studio,/<ListRow template=\{RESERVATION_TEMPLATE\}/,'las filas del estudio comparten la plantilla del encabezado');
 
 // ── Nada de elipsis en montos, fechas, códigos ni seriales: el texto largo se
 // recorta con elipsis + `title` (AGENTS.md) y el valor completo queda a mano.
@@ -102,7 +103,7 @@ const studioListAt=studio.indexOf('data-list="studio-reservations"');
 assert(studio.indexOf('<BulkBar')<studioListAt,'la barra de lote vive antes de la lista');
 assert(studio.indexOf('Seleccionar visibles')<studioListAt,'la acción de seleccionar vive antes de la lista');
 assert.match(studio,/<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote">/,'la celda de selección es táctil de 44 px en mobile');
-assert.match(studio,/\[--studio-cols:2\.25rem_/,'la plantilla compartida suma la columna de selección');
+assert.match(studio,/\[--studio-cols:minmax\(13rem,1\.5fr\)_/,'la plantilla compartida aloja la selección dentro de la celda de la reserva');
 const capabilities=read('app/capabilities.ts');
 assert.match(capabilities,/studioReservations: 50/,'el tope del lote del estudio queda declarado');
 assert.match(studio,/\^\\d\{4\}-\(0\[1-9\]\|1\[0-2\]\)\$/,'el mes del estudio se valida antes de aplicarlo');
@@ -191,7 +192,8 @@ assert.match(inventory,/Todavía no hay equipos en el inventario\./,'el catálog
 assert.match(inventory,/No hay equipos que coincidan con la búsqueda\./,'el filtro sin resultados se distingue del catálogo vacío');
 assert.match(inventory,/>Limpiar búsqueda<\/Button>/,'el filtro sin resultados ofrece limpiar');
 assert.match(studio,/\{!spaces\.length\?<EmptyState compact icon="store"/,'el estudio vacío usa el vacío compacto');
-assert.match(studio,/\{\(spaces\.length\|\|reservations\.length\)\?<Card/,'sin espacios ni reservas no se dibuja el calendario');
+assert.match(studio,/const showReservations=Boolean\(spaces\.length\|\|reservations\.length\);/,'sin espacios ni reservas no se dibuja el calendario');
+assert.match(studio,/\{showReservations\?<Card/,'el calendario depende de esa condición');
 assert.match(studio,/para reservarlo después/,'el vacío explica para qué crear el espacio');
 assert.match(productionSection,/\[--board-cols:1\] sm:\[--board-cols:2\] lg:\[--board-cols:4\]/,'el tablero muestra 1/2/4 etapas completas por página');
 assert.match(board,/w-\[calc\(\(100%-\(var\(--board-cols\)-1\)\*0\.75rem\)\/var\(--board-cols\)\)\]/,'el ancho de columna reparte la página sin cortar etapas');
@@ -297,7 +299,7 @@ assert.match(productionSection,/silent-scroll flex snap-x snap-mandatory gap-3 o
 assert.match(uiV2,/mb-4 flex flex-wrap items-end gap-3/,'la toolbar de filtros envuelve en mobile');
 assert.match(productionSection,/production-command-toolbar flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3/,'la barra de producción apila en mobile y va en una fila en desktop');
 assert.match(productionSection,/<label className="production-client-filter flex items-center gap-2">/,'el filtro de cliente va en línea con su rótulo');
-assert.match(projects,/<label className="flex items-center gap-2">/,'el filtro de proyectos va en línea con su rótulo');
+assert.match(projects,/<SelectCustom label="Cliente" choices={clientChoices}/,'el filtro de proyectos usa el selector canónico con su rótulo');
 // Hojas mobile: el harness mide la geometría real del diálogo (cabe y scrollea adentro).
 const fixtures=read('build-tools/visual-harness/fixtures/ops-detalles-formularios.mjs');
 assert.match(fixtures,/const sheet = \(heading, body\) =>/,'el harness mide la hoja mobile');
@@ -320,7 +322,8 @@ assert.match(prodFixtures,/id: 'produccion-calendario'/,'el calendario del plani
 
 // ── Ronda 7: conmutador v2 y fila con acciones de ícono en Proyectos ─────────
 const shell=read('app/scale-workspace.tsx');
-assert.match(shell,/<ViewSwitch value={projectView as 'list'\|'grid'} onChange={changeProjectView}\/>/,'Proyectos usa el conmutador v2 (ViewSwitch) con la persistencia compartida');
+assert.match(projects,/<ViewSwitch value=\{projectView\} onChange=\{changeView\}\/>/,'Proyectos usa el conmutador v2 (ViewSwitch) con la persistencia compartida');
+assert.match(projects,/export const PROJECT_VIEW_KEY='scale:project-view'/,'la vista de Proyectos persiste con su clave de siempre');
 assert.match(shell,/const ROW_ICON_ACTION='grid h-11 w-11 min-h-0[^']*md:h-7 md:w-7'/,'la acción de ícono de la fila fija 44/28 sin el min-height legado');
 assert.match(shell,/function projectRowEntry\(project:Project\)\{/,'la fila de Proyectos la aporta el shell (no los children de la tarjeta)');
 assert.match(shell,/title=\{archived\?'Reactivar proyecto':'Archivar proyecto'\}/,'la acción de archivar/reactivar describe la acción');

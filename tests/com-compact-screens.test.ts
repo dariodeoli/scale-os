@@ -46,7 +46,7 @@ test('resumen y métricas: títulos sin márgenes por defecto y gráfico al alto
  assert.doesNotMatch(resumen, /aria-label="Métricas operativas"|label="Proyectos activos"/, 'el Resumen no repite las métricas de los módulos (#100)');
  assert.doesNotMatch(resumen, /href="\/produccion"/, 'un solo CTA a Producción (el del panel de piezas)');
  const dashboard=read('app/growth-dashboard.tsx');
- assert.match(dashboard, /<h2 className="m-0 mt-0\.5 text-\[17px\]/, 'el título del tablero de crecimiento');
+ assert.match(read('app/sections/metricas.tsx'), /eyebrow="Captación digital"/, 'la página de Métricas publica su encabezado por ListPage');
  assert.match(dashboard, /role="img"[\s\S]{0,220}?h-32 items-end/, 'el gráfico usa el alto compacto');
  assert.match(dashboard, /<h3 id="growth-evolution" className="m-0 text-sm/, 'el título de la evolución');
 });
