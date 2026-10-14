@@ -7,6 +7,7 @@ import {dueTone, listDateShort} from "../list-format";
 import {
   EmptyBlock,
   FilterToolbar,
+  ActionMenu,
   ListActions,
   ListGrid,
   ListRow,
@@ -27,7 +28,7 @@ import {
   type State,
 } from "./model";
 import {PlatformMore} from "./states";
-import {EdgeAwareActionMenu} from "./edge-menu";
+import {EdgeAwareMenu} from "./edge-menu";
 
 type PlatformAgenciesProps = {
   busy: boolean;
@@ -94,7 +95,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
       </button>
     )}
     {writable && (
-      <EdgeAwareActionMenu
+      <EdgeAwareMenu><ActionMenu
         label={`Acciones de la agencia: ${agency.name || "Agencia sin nombre"}`}
         items={[{
           id: "delete",
@@ -106,7 +107,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             setTyped("");
           },
         }]}
-      />
+      /></EdgeAwareMenu>
     )}
   </>;
   return (
