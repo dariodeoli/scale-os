@@ -31,7 +31,7 @@ import {
   type Subscription,
 } from "./model";
 import {SegmentedField} from "owncoding-ui";
-import {StateChip} from "../ui-v2";
+import {PageHeader, StateChip} from "../ui-v2";
 import {PlatformOverview} from "./overview";
 import {notify} from "../feedback";
 import {PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting} from "./states";
@@ -47,7 +47,7 @@ export default function PlatformAdmin() {
   const router = useRouter();
   const [state, setState] = useState<State | null>(null);
   const [view, setView] = useState<PlatformView>("resumen");
-  const headerRef = useRef<HTMLElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
 
   function changeView(nextView: PlatformView) {
     if (nextView === view) return;
@@ -573,39 +573,42 @@ export default function PlatformAdmin() {
   if (busy && !state && !error && !redirecting && !accessDenied) return <PlatformAdminSkeleton/>;
   return (
     <main className="platform-admin-page control-shell">
-      <header ref={headerRef} className="platform-admin-header">
+      <div ref={headerRef} className="platform-admin-top">
         <Link className="platform-admin-brand" href={appHome()} aria-label="Scale OS">
           <WorkspaceBrand />
         </Link>
-        <div className="platform-admin-identity">
-          <p className="eyebrow">Administración global</p>
-          <h1 title="Control de Scale OS">Control de Scale OS</h1>
-        </div>
-        <div className="platform-admin-meta">
-          {/* El estado del encabezado refleja el permiso real (#147): con el
-              acceso denegado no se anuncia «Solo lectura» (esa es la capacidad
-              de un viewer con overview cargado). Sin rol resuelto, sin chip. */}
-          {accessDenied ? <StateChip tone="bad">Acceso denegado</StateChip>
-           : myRole ? <StateChip tone={writable ? "ok" : "info"} title={writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
-           : null}
-          {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
-        </div>
-        <div className="platform-admin-actions">
-          {!accessDenied && <button
-            type="button"
-            className="secondary"
-            onClick={() => void load()}
-            disabled={busy || redirecting}
-          >
-            <RefreshCw aria-hidden="true" />
-            Actualizar
-          </button>}
-          <Link className="secondary" href={appHome()}>
-            <ArrowLeft aria-hidden="true" />
-            Panel
-          </Link>
-        </div>
-      </header>
+        {/* Encabezado único de la app (`PageHeader`): marca aparte, rótulo + título,
+            permiso real y «actualizado» como meta, y las acciones a la derecha. */}
+        <PageHeader
+          className="min-w-0 flex-1 !mb-0"
+          eyebrow="Administración global"
+          title="Control de Scale OS"
+          subtitle={<span className="platform-admin-meta">
+            {/* El estado del encabezado refleja el permiso real (#147): con el
+                acceso denegado no se anuncia «Solo lectura» (esa es la capacidad
+                de un viewer con overview cargado). Sin rol resuelto, sin chip. */}
+            {accessDenied ? <StateChip tone="bad">Acceso denegado</StateChip>
+             : myRole ? <StateChip tone={writable ? "ok" : "info"} title={writable ? "Tu usuario puede administrar la plataforma" : "Tu usuario solo puede consultar la plataforma"}>{writable ? "Admin global" : "Solo lectura"}</StateChip>
+             : null}
+            {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
+          </span>}
+          actions={<div className="platform-admin-actions">
+            {!accessDenied && <button
+              type="button"
+              className="secondary"
+              onClick={() => void load()}
+              disabled={busy || redirecting}
+            >
+              <RefreshCw aria-hidden="true" />
+              Actualizar
+            </button>}
+            <Link className="secondary" href={appHome()}>
+              <ArrowLeft aria-hidden="true" />
+              Panel
+            </Link>
+          </div>}
+        />
+      </div>
       {pageContent}
       {confirming && writable && (
         <PlatformConfirmDialog
