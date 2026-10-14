@@ -46,6 +46,8 @@ import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
 import {trialDetails,trialDetailsFromInput,registerTrial} from './trial-registration.js';
 import {platformUsage} from './platform-usage.js';
 import {platformAdmin,bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
+import {platformAnnouncements,agencyAnnouncements} from './platform-announcements.js';
+import {platformMaintenance,maintenanceGate} from './platform-maintenance.js';
 import {applyPendingMigrations} from './migrations-runner.mjs';
 import {rolePermissions,roleCan} from './permissions.js';
 import {redactPiiText} from './pii-safety.js';
@@ -250,7 +252,8 @@ async function init() {
      "20261014_usage_indexes.sql",
      "20261014_organization_logo.sql",
      "20261014_inventory_default_categories.sql",
-     "20261015_platform_inquiries.sql"
+     "20261015_platform_inquiries.sql",
+     "20261016_platform_announcements_maintenance.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -342,9 +345,14 @@ const server = http.createServer(async (req,res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
+    // Mantenimiento (panel global): corta solo /api/agency/* y lecturas hermanas a
+    // quien no es administrador global; auth, panel, health, públicos y webhooks pasan.
+    if(await maintenanceGate({req,res,url,db,session,send}))return;
+    if(await platformMaintenance({req,res,url,db,session,body,send}))return;
     if(await subscriptionBilling({req,res,url,db,session,body,send,sendPaymentFailed}))return;
     if(await platformUsage({req,res,url,db,session,body,send}))return;
     if(await platformInquiries({req,res,url,db,session,body,send}))return;
+    if(await platformAnnouncements({req,res,url,db,session,body,send}))return;
     if(await platformAdmin({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
     // logout and company switching, but no private operational reads/writes.
@@ -355,6 +363,7 @@ const server = http.createServer(async (req,res) => {
     // La matriz de permisos es una lectura/escritura privada más: va después del
     // corte por suscripción, como el resto de /api/agency/*.
     if(await rolePermissions({req,res,url,db,session,body,send}))return;
+    if(await agencyAnnouncements({req,res,url,db,session,send}))return;
     if(url.pathname==='/api/invitations/status'&&req.method==='GET'){
       const r=(await db.query(`select o.name as organization_name,u.email,l.role,r.status,l.revoked_at,l.used_at,l.expires_at>now() as link_valid,o.active as organization_active,exists(select 1 from organization_members m where m.organization_id=o.id and m.user_id=u.id and m.active=true and m.removed_at is null) as existing_member from sessions s join users u on u.id=s.user_id join organizations o on o.id=s.organization_id join agency_invite_links l on l.organization_id=o.id join agency_access_requests r on r.link_id=l.id and r.user_id=u.id where s.id=$1 and s.expires_at>now() order by r.created_at desc,r.id desc limit 1`,[parseCookies(req).scale_session||''])).rows[0];
       if(!r)return send(res,401,{error:'Ingresá con Google para ver tu solicitud'});
