@@ -10,7 +10,7 @@ import './team-access.css';
 // El estado de acceso se dibuja con el chip canónico de la librería (v0.39);
 // `estado` sale del mapa compartido y `etiqueta`/`tono` del dominio de equipo.
 type AccessState={estado:string;etiqueta:string;tono?:string;icono?:string};
-const accessState=(member:TeamMember|null):AccessState=>{
+export const accessState=(member:TeamMember|null):AccessState=>{
  if(!member)return {estado:'pendiente',etiqueta:'Sin acceso al panel'};
  if(member.removed_at)return {estado:'anulado',etiqueta:'Acceso retirado'};
  if(!member.active)return {estado:'suspendido',etiqueta:'Acceso suspendido',tono:'bad',icono:'alert'};
