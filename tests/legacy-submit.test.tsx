@@ -32,7 +32,7 @@ const formsFile=ts.createSourceFile('workspace-forms.tsx',formsText,ts.ScriptTar
 const boardText=readFileSync(new URL('../app/production-board.tsx',import.meta.url),'utf8');
 const boardFile=ts.createSourceFile('production-board.tsx',boardText,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const statements=[...file.statements,...formsFile.statements,...boardFile.statements];
-const names=['ClientForm','ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
+const names=['ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
 const declarations=statements.filter(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>/Schema$/.test(d.name.getText())||d.name.getText()==='statuses'));
 const defaults={name:'Fixture client',email:'fixture@example.invalid',phone:'',clientId:'1',projectId:'2',title:'Fixture production',status:'to_record',driveUrl:'',description:'Fixture service',quantity:1,unitPrice:100,currency:'USD',validUntil:'',accountType:'bank',institution:'Fixture',accountNumber:'',holderName:'',custodianUserId:'',total:'100',dueOn:'',invoiceId:'3',accountId:'4',amount:'100',receivedOn:'2026-09-10',reference:'',receivedByUserId:'',fromAccountId:'4',toAccountId:'5',transferredOn:'2026-09-10'};
 const props={clients:[{id:'1',name:'Fixture client'}],projects:[{id:'2',name:'Fixture project'}],accounts:[{id:'4',name:'A',currency:'USD'},{id:'5',name:'B',currency:'USD'}],invoices:[{id:'3',status:'pending'}],custodians:[]};

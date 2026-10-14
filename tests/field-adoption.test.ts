@@ -4,11 +4,12 @@ import {readFileSync} from 'node:fs';
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 const forms = read('app/workspace-forms.tsx');
-assert(forms.includes('<PhoneField'), 'client creation uses the shared phone field');
+const clientEditorData = read('app/client-editor-data.ts');
+assert(clientEditorData.includes("type:'phone'"), 'client creation and edition share the Editor phone field (PhoneField)');
 assert(!forms.includes('dialCode'), 'client creation no longer hand-rolls a country code selector');
 
 const suite = read('app/suite.tsx');
-assert((suite.match(/type:'phone'/g) || []).length >= 2, 'suite declares phone fields for clients and settings');
+assert((suite.match(/type:'phone'/g) || []).length >= 1, 'suite declares the phone field for settings (clients live in client-editor-data)');
 // El editor de oportunidades vive en la sección del Pipeline (#85) y comparte
 // el campo y la ayuda del teléfono.
 const pipeline = read('app/sections/pipeline.tsx');
@@ -62,7 +63,7 @@ for (const page of ['app/verificar-correo/page.tsx', 'app/cliente/invitacion/pag
   assert(!source.includes('URLSearchParams'), `${page} no longer hand-rolls the query parse`);
 }
 
-for (const file of ['app/client-ruc.tsx', 'app/suite.tsx']) {
+for (const file of ['app/client-ruc.tsx']) {
   const source = read(file);
   assert(source.includes('normalizarNombre(') && source.includes("apellidosPrimero:'sifen'"), `${file} normalizes RUC names with the library`);
 }

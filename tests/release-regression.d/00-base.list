@@ -110,7 +110,6 @@ tsx tests/ia-cobro-data.test.ts
 tsx tests/ia-carga-120.test.tsx
 tsx tests/ia-carga-128.test.tsx
 tsx tests/ia-carga-132.test.tsx
-tsx tests/client-form-129.test.tsx
 tsx tests/order-form-project.test.tsx
 tsx tests/legacy-submit.test.tsx
 tsx tests/activity-format.test.ts

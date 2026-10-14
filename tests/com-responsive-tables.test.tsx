@@ -111,8 +111,8 @@ test('las secciones COM consumen la primitiva común (#63)',()=>{
  const clientes=read('app/sections/clientes.tsx');
  assert.match(clientes,/useDenseTableFit\(CLIENT_TABLE_MIN_WIDTH\)/,'Clientes mide su contenedor con el hook común');
  assert.match(clientes,/const isGridView = clientView === 'grid'/,'la preferencia conserva explícitamente el modo cuadrícula');
- assert.match(clientes,/const dense = tableFits && !isGridView/,'la tabla densa solo se usa para la vista lista cuando entra en ancho');
- assert.match(clientes,/client-directory-results--\$\{isGridView \? 'grid' : 'list'\}/,'la vista lista chica conserva fichas compactas en lugar de volver a la cuadrícula');
+ assert.match(clientes,/const dense = !isGridView/,'la vista lista es siempre la tabla de filas finas (#184 C4)');
+ assert.doesNotMatch(clientes,/client-directory-results--list/,'la lista chica ya no cae a fichas: scrollea en silencio');
  assert.match(clientes,/ListGrid label="Clientes"[\s\S]{0,220}?pinnedActions/,'la tabla viva fija su columna con la primitiva');
  assert.match(clientes,/ListGrid label="Clientes archivados"[\s\S]{0,240}?pinnedActions/,'la lista archivada usa el mismo contrato');
  assert.match(clientes,/<ListActions className="client-row-actions silent-scroll">/,'la fila usa la celda ListActions');
@@ -209,22 +209,24 @@ const mountClientes=async(role:string,list:unknown[],width:number,canManageClien
  });
 };
 
-test('clientes: tarjetas cuando la tabla no entra y CTA "Cargar plan" por rol',async()=>{
+// En la fila fina el CTA de plan es un icono con título (la tarjeta lo muestra como texto).
+const planCtaButton=()=>renderer.root.findAllByType('button').find(button=>String(button.props.title||'').startsWith('Cargar plan'));
+test('clientes: filas finas con scroll silencioso cuando la tabla no entra y CTA "Cargar plan" por rol',async()=>{
  await mountClientes('owner',[client()],900);
- assert.equal(renderer.root.findAllByProps({role:'table'}).length,0,'sin ancho no hay tabla');
- assert.equal(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.includes('client-hub-card')).length,1,'la tarjeta reemplaza a la fila');
- assert.ok(buttonWith(renderer,'Cargar plan'),'quien gestiona términos recibe el CTA contextual');
+ assert.equal(renderer.root.findAllByProps({role:'table'}).length,1,'sin ancho la lista sigue siendo la tabla de filas finas');
+ assert.equal(renderer.root.findAll(node=>typeof node.props.className==='string'&&node.props.className.includes('client-hub-card')).length,0,'no hay tarjetas en la vista lista');
+ assert.ok(planCtaButton(),'quien gestiona términos recibe el CTA contextual');
  act(()=>renderer.unmount());
 
  // viewer: sin CTA ni acciones.
  await mountClientes('viewer',[client()],900);
- assert.equal(buttonWith(renderer,'Cargar plan'),undefined,'sin permiso no hay CTA');
+ assert.equal(planCtaButton(),undefined,'sin permiso no hay CTA');
  assert.equal(buttonWith(renderer,'Archivar'),undefined,'viewer no gestiona clientes');
  act(()=>renderer.unmount());
 
  // finance: ve cobros pero no gestiona términos; queda el aviso honesto.
  await mountClientes('finance',[client()],900,false,true);
- assert.equal(buttonWith(renderer,'Cargar plan'),undefined,'finanzas no edita términos comerciales');
+ assert.equal(planCtaButton(),undefined,'finanzas no edita términos comerciales');
  assert.equal(renderer.root.findAll(node=>String(node.props.className||'').includes('client-price-missing')).length,1,'el aviso de precio faltante queda visible');
  act(()=>renderer.unmount());
 
