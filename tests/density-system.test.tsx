@@ -75,6 +75,9 @@ test('diálogos y paneles laterales: encabezado y pie compactos, sin alto de má
  assert(/\.dialog-body\{[^}]*padding:var\(--ui-card-padding,16px\) var\(--ui-panel-padding,20px\)/.test(css),'el cuerpo usa el padding de card');
  assert(/\.dialog-footer\{[^}]*padding:12px var\(--ui-panel-padding,20px\)/.test(css),'el pie no reserva aire de más');
  assert(/\.dialog-footer:empty\{display:none\}/.test(css),'sin acciones el pie no existe (nada anclado al fondo)');
+ // operations.css le da borde y aire superior a `.dialog-actions` (formularios en línea);
+ // dentro del pie eso duplicaba el separador: una sola línea, la del pie.
+ assert(/\.dialog-footer>\.dialog-actions\{padding-top:0;border-top:0\}/.test(css),'el pie no dibuja un segundo separador sobre las acciones');
  const mobile=css.slice(css.indexOf('@media(max-width:540px)'));
  assert(mobile.includes('.dialog-heading{min-height:52px;padding:10px 16px}'),'en móvil el encabezado baja a 52 px y las acciones conservan 44');
 });

@@ -11,7 +11,7 @@ const reactDOM=require('react-dom');
 const originalPortal=reactDOM.createPortal;
 const portals:{children:React.ReactNode;target:unknown}[]=[];
 reactDOM.createPortal=(children:React.ReactNode,target:unknown)=>{portals.push({children,target});return children;};
-const {Dialog,FormActions,useOverlay,useDialogClose,useDialogPending}=require('../app/dialog') as typeof import('../app/dialog');
+const {Dialog,FormActions,useOverlay,useDialogClose,useDialogPending,dialogInitialFocus}=require('../app/dialog') as typeof import('../app/dialog');
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const {PhotoViewer}=require('../app/photo-viewer') as typeof import('../app/photo-viewer');
 const {Button}=require('owncoding-ui') as typeof import('owncoding-ui');
@@ -189,6 +189,32 @@ function check(name:string,run:()=>void){test(name,run);}
   const cancel=buttons.find(button=>button.props.type==='button')!;
   assert(form.id);assert.equal(submit.props.form,form.id,'el submit de la librería apunta al formulario del diálogo');
   assert.equal(cancel.props.form,undefined,'un botón secundario no se asocia al formulario');
+ });
+ check('un formulario con cambios sin guardar pide confirmar antes de cerrarse; tras guardar cierra sin preguntar',()=>{
+  let closed=0,dismiss:((options?:{afterSave?:boolean})=>void)|undefined;
+  function Dirty({dirty}:{dirty:boolean}){useDialogPending(false,dirty);dismiss=useDialogClose();return null;}
+  function tree(dirty:boolean){return <Dialog title="Editar" close={()=>closed++}><Dirty dirty={dirty}/></Dialog>;}
+  const titles=()=>renderer!.root.findAllByType('h2').map(h=>h.props.children);
+  mount(tree(true));
+  key('Escape');assert.equal(closed,0,'Escape no descarta datos en silencio');assert(titles().includes('¿Descartar los cambios?'));
+  key('Escape');assert.equal(closed,0,'Escape en la confirmación vuelve al formulario');assert(!titles().includes('¿Descartar los cambios?'));
+  act(()=>dismiss?.());assert.equal(closed,0,'«Cancelar» también pregunta');
+  const confirm=renderer!.root.findAll(node=>node.props.title==='¿Descartar los cambios?'&&typeof node.props.onConfirm==='function')[0];
+  act(()=>confirm.props.onConfirm());assert.equal(closed,1,'descartar cierra el diálogo');
+  act(()=>renderer!.update(tree(false)));act(()=>dismiss?.());assert.equal(closed,2,'sin cambios cierra directo');
+  act(()=>renderer!.update(tree(true)));act(()=>dismiss?.({afterSave:true}));assert.equal(closed,3,'el cierre posterior al guardado no pregunta');
+ });
+ check('el foco inicial va al primer campo del cuerpo y no al botón Cerrar',()=>{
+  type Node={tag:string;attrs:Record<string,string>;tabIndex:number;children:Node[];closest:()=>null;getClientRects:()=>unknown[];ownerDocument:unknown;matches:(selector:string)=>boolean;classList?:{contains:(name:string)=>boolean};querySelector?:(selector:string)=>Node|null;querySelectorAll?:(selector:string)=>Node[]};
+  const view={getComputedStyle:()=>({visibility:'visible'}),matchMedia:(query:string)=>({matches:query==='(pointer: coarse)'&&coarse})};let coarse=false;
+  const node=(tag:string,attrs:Record<string,string>={}):Node=>({tag,attrs,tabIndex:0,children:[],closest:()=>null,getClientRects:()=>[{}],ownerDocument:{defaultView:view},matches:selector=>selector===':disabled'?false:selector.split(',').some(part=>{const p=part.trim();if(p.startsWith('['))return Object.entries(attrs).some(([k,v])=>p===`[${k}]`||p===`[${k}="${v}"]`);return p===tag;})});
+  const help=node('button'),field=node('input'),search=node('input',{type:'search'}),auto=node('select',{'data-autofocus':''});
+  const body:Node={...node('div'),classList:{contains:name=>name==='dialog-body'},querySelectorAll:()=>items};let items=[help,search,field];
+  const panel={querySelector:(selector:string)=>selector==='.dialog-body'?body:null,ownerDocument:{defaultView:view}} as unknown as HTMLElement;
+  assert.equal(dialogInitialFocus(panel),field as unknown as HTMLElement,'salta botones de ayuda y buscadores');
+  items=[help,field,auto];assert.equal(dialogInitialFocus(panel),auto as unknown as HTMLElement,'data-autofocus manda');
+  items=[help];assert.equal(dialogInitialFocus(panel),null,'sin campos conserva el foco por defecto');
+  items=[field];coarse=true;assert.equal(dialogInitialFocus(panel),null,'con puntero táctil no abre el teclado al aparecer');
  });
 after(()=>{
  if(renderer)finish();reactDOM.createPortal=originalPortal;
