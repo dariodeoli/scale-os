@@ -22,7 +22,7 @@ assert.match(source,/flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap/,'la 
 assert.match(source,/<div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto">/,'contador y acciones cierran la fila principal');
 assert.match(source,/Agregar equipo<\/Button>/);
 assert.match(source,/Reservar equipos<\/Button>/);
-assert.match(source,/\[&>button\]:whitespace-nowrap/,'los tabs no parten su texto');
+assert.match(readFileSync(new URL('../app/ui-v2.tsx',import.meta.url),'utf8'),/\[&>button\]:whitespace-nowrap/,'los tabs no parten su texto');
 
 // ── Chips de atención con explicación solo al expandir.
 assert.match(source,/aria-expanded=\{attentionHelp\}/,'la explicación tiene estado expandible');
@@ -37,9 +37,9 @@ assert.match(source,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.leng
 assert.match(source,/\[&>div\]:lg:!flex \[&>div\]:lg:items-center \[&>div\]:lg:gap-2 \[&_\.ops-label\]:lg:mb-0 \[&_\.ops-label\]:lg:whitespace-nowrap/,'el select de categoría alinea su rótulo en desktop');
 
 // ── Mobile: tabs con scroll horizontal y targets de 44 px.
-assert.match(source,/max-lg:flex-nowrap/,'los tabs no envuelven a una segunda línea en mobile (#137)');
-assert.match(source,/<TabScroller[^>]*label="vistas"/,'los tabs usan el carril desplazable con chevrones (#137)');
-assert.match(source,/\[&>button\]:min-h-11/,'los tabs conservan el target de 44 px en mobile');
+assert.match(readFileSync(new URL('../app/ui-v2.tsx',import.meta.url),'utf8'),/max-lg:flex-nowrap/,'los tabs no envuelven a una segunda línea en mobile (#137)');
+assert.match(source,/<ViewTabs ariaLabel="Vistas de inventario"/,'los tabs usan el carril desplazable con chevrones (#137)');
+assert.match(readFileSync(new URL('../app/ui-v2.tsx',import.meta.url),'utf8'),/\[&>button\]:min-h-11/,'los tabs conservan el target de 44 px en mobile');
 assert.match(source,/min-w-\[8rem\] flex-1 lg:max-w-72/,'la búsqueda es flexible y no empuja la fila');
 
 // ── El fixture del harness mide las dos caras del antes/después.

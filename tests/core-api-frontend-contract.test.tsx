@@ -30,7 +30,7 @@ test('inventory, RUC, work-order links and recipient notifications use the Core 
  const inventory=readFileSync(new URL('../app/inventory-workspace.tsx',import.meta.url),'utf8');
  assert.match(inventory,/Detalle y trazabilidad/);assert.match(inventory,/\/api\/agency\/inventory\/\$\{item\.id\}/);assert.match(inventory,/<InventoryBarcode code=\{code\}/);
  const ruc=readFileSync(new URL('../app/client-ruc.tsx',import.meta.url),'utf8');
- assert.match(ruc,/\/api\/agency\/clients\/\$\{existing\.id\}\/ruc-refresh/);assert.match(ruc,/{apply:true}/);assert.match(ruc,/Actualizar datos RUC/);
+ assert.match(ruc,/\/api\/agency\/ruc-lookup/);assert.match(ruc,/Aplicar/);assert.match(ruc,/Descartar/);
  const links=readFileSync(new URL('../app/work-order-links.tsx',import.meta.url),'utf8');
  assert.match(links,/\/api\/agency\/work-orders\/\$\{orderId\}\/links/);assert.match(links,/httpsUrl/);
  const notices=readFileSync(new URL('../app/notification-inbox.tsx',import.meta.url),'utf8');

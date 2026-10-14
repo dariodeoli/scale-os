@@ -196,10 +196,12 @@ const clientTile = (client) => h('article', {
     h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Teléfono'), h('dd', {className: 'mt-0.5 text-fore'}, client.phone || 'Sin teléfono')),
     h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'RUC'), h('dd', {className: 'mt-0.5 text-fore'}, client.tax || 'Sin RUC registrado')),
     h('div', null, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cliente desde'), h('dd', {className: 'mt-0.5 text-fore'}, client.since || 'Sin fecha de alta')),
-    h('div', {className: 'col-span-2'}, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cartera'), h('dd', {className: 'mt-0.5 text-fore'}, client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos'))),
-  h('div', {className: 'flex flex-wrap items-center gap-2'},
-    client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : null,
-    client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente')),
+    h('div', {className: 'col-span-2'}, h('dt', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Actividad'), h('dd', {className: 'mt-0.5 text-fore'}, client.projects || client.pieces ? `${client.projects} proyectos · ${client.pieces} piezas${client.due ? ` · próxima entrega ${client.due}` : ''}` : 'Sin proyectos activos'))),
+  h('div', {className: 'grid gap-0.5'},
+    h('span', {className: 'text-[9.5px] font-bold uppercase tracking-[.06em] text-mute'}, 'Cobros'),
+    h('div', {className: 'flex flex-wrap items-center gap-2'},
+      client.mora ? h(StateChip, {tone: client.mora[0], title: client.mora[1]}, client.mora[1]) : h('span', {className: 'text-[11px] text-mute'}, 'Sin datos de cobro'),
+      client.balance ? h(MoneyText, {valor: client.balance[0], currency: client.balance[1], tono: client.balanceTone}) : h('span', {className: 'text-[11px] text-mute'}, 'Sin saldo pendiente'))),
   h('footer', {className: 'client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]'},
     h(IconAction, {icon: 'eye', tone: 'fono', label: `Abrir ficha: ${client.name}`, onClick: noop}),
     client.phone ? h('a', {className: 'icon-button whatsapp-button', href: '#whatsapp', target: '_blank', rel: 'noopener noreferrer', title: 'WhatsApp', 'aria-label': 'WhatsApp'}, WhatsAppIcon) : null,
@@ -251,7 +253,7 @@ const compactListPage = h('div', {className: 'grid gap-4'},
     h(Stat, {label: 'Cobros al día', valor: 31, sub: '3 en mora · 2 por vencer · 1 sin factura'}),
     h(Stat, {label: 'Facturación contratada', valor: h('span', {className: 'flex flex-wrap items-baseline gap-2'}, h('span', null, 'Gs. 12.345.678 / mes'), h('span', null, 'USD 1.200,00 / mes')), sub: 'Expectativa comercial vigente por moneda'}),
     h(Stat, {label: 'Entregas esta semana', valor: 9, sub: 'Piezas con vencimiento en 7 días'})),
-  h('div', {className: 'client-directory-results client-directory-results--list grid gap-3'}, clients.filter(client => !client.archived).map(clientTile)));
+  h(ListGrid, {label: 'Clientes', template: CLIENT_TEMPLATE, columns: CLIENT_COLUMNS, minWidthClass: 'min-w-[67.5rem]', className: 'client-directory-table'}, clients.filter(client => !client.archived).map(clientRow)));
 
 export default [
   {
@@ -271,7 +273,7 @@ export default [
   {
     id: 'clientes-lista-compacta',
     section: 'Clientes',
-    surface: 'Directorio en lista compacta (sin ancho para la tabla)',
+    surface: 'Directorio en lista con poco ancho (filas finas con scroll silencioso, #184)',
     kind: 'workspace',
     body: renderToStaticMarkup(compactListPage),
   },

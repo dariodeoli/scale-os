@@ -135,7 +135,7 @@ test('permisos: el contacto del cliente se enmascara por rol y el valor real no 
 test('finalidades y transparencia contextual: cada captura declara el para qué', () => {
  assert(PRIVACY_PURPOSES.length > 0 && PRIVACY_PURPOSES.every(purpose => purpose.detalle.length > 10), 'cada finalidad explica su para qué');
  assert(PRIVACY_PURPOSES.every(purpose => typeof purpose.esencial === 'boolean'), 'las finalidades se separan por carácter esencial');
- assert(file('app/suite.tsx').includes('AvisoPrivacidad'), 'el alta/edición de cliente avisa la finalidad del tercero');
+ assert(file('app/client-editor.tsx').includes('AvisoPrivacidad'), 'el alta/edición de cliente avisa la finalidad del tercero');
  assert(file('app/sections/pipeline.tsx').includes('AvisoPrivacidad'), 'el alta de oportunidad avisa la finalidad');
  assert(file('app/daily-controls.tsx').includes('conciliar los movimientos de esta empresa'), 'la importación de extractos avisa su uso');
  assert(file('app/my-profile.tsx').includes('Usamos la foto para identificarte'), 'la foto explica su finalidad');

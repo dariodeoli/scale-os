@@ -97,7 +97,7 @@ test('clients, projects and trash support bulk operations',()=>{
   assert.match(workspace,/batchClients[\s\S]*?\/api\/agency\/clients\/batch/,'clients archive in one batch call');
   assert.match(workspace,/batchProjects[\s\S]*?\/api\/agency\/projects\/batch/,'projects archive in one batch call');
   assert.match(workspace,/selectVisibleClients/,'clients can select the visible set');
-  assert.match(workspace,/selectVisibleProjects/,'projects can select the visible set');
+  assert.match(read('app/sections/proyectos.tsx'),/bulk\.selectVisible\(liveProjects/,'projects can select the visible set');
   const archive=read('app/archive-controls.tsx');
   assert.match(archive,/restoreBatch[\s\S]*?\/restore/,'trash restores the selection');
   const projectCard=read('app/project-card.tsx');

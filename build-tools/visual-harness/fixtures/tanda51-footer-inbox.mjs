@@ -48,7 +48,7 @@ const aviso = ({titulo, detalle, tono, fecha, icono, leido}) => `
 <button type="button" role="menuitem" class="flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition hover:bg-ink-700/60">
  <span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${TONOS[tono]}">${icon(icono, 'h-3.5 w-3.5')}</span>
  <span class="min-w-0 flex-1">
-  <span class="block truncate text-sm ${leido ? 'font-medium text-fore' : 'font-semibold text-fore'}">${titulo}</span>
+  <span title="${titulo}" class="block truncate text-sm ${leido ? 'font-medium text-fore' : 'font-semibold text-fore'}">${titulo}</span>
   ${detalle ? `<span class="mt-0.5 block text-xs leading-5 text-mute">${detalle}</span>` : ''}
   <span class="mt-1 block text-[10px] uppercase tracking-wide text-mute">${fecha}</span>
  </span>
