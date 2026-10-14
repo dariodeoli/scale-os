@@ -9,7 +9,7 @@ import {PlanComparison} from '../plan-comparison';
 import {comparePlans} from '../plan-comparison-data';
 import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
-import {EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListPage,LoadingBlock,MoneyText} from '../ui-v2';
+import {EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,ListPage,LoadingBlock,MoneyText} from '../ui-v2';
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowStateOf,type ListWindowState} from '../list-window';
 import type {ComparablePlan} from '../plan-comparison-data';
 import type {User} from '../workspace-types';
@@ -65,13 +65,16 @@ export function PlanesSection({user}: PlanesSectionProps){
       className="directory"
       aria-label="Planes reutilizables"
       primaryAction={state==='ready'&&canEdit?<Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nuevo plan</Button>:undefined}
-      toolbar={plans.length?<FilterToolbar className="mb-0" summary={`${shown.length} de ${windowState.total ?? plans.length}`}>
+      /* Reorganización IA: con dos indicadores la tira de KPIs dejaba media fila
+         vacía; el conteo y el valor de ítems viajan en la misma fila del buscador. */
+      toolbar={plans.length?<FilterToolbar className="mb-0">
         <SearchField className="w-full sm:w-72" ariaLabel="Buscar plan" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Nombre o moneda…"/>
+        <p className="m-0 ml-auto flex flex-wrap items-baseline justify-end gap-x-1.5 text-xs tabular-nums text-mute">
+          <span className="whitespace-nowrap">{shown.length} de {windowState.total ?? plans.length}</span>
+          <span className="whitespace-nowrap">· {active.length} activo{active.length===1?'':'s'} · {archived.length} archivado{archived.length===1?'':'s'}</span>
+          <span className="whitespace-nowrap">· Valor de ítems <b className="font-semibold text-fore">{valueEntries.length?<MoneyText valor={valueEntries[0][1]} currency={valueEntries[0][0]}/>:'—'}</b>{valueEntries.slice(1).map(([currency,value])=><span key={currency}> · <MoneyText valor={value} currency={currency}/></span>)} sin IVA</span>
+        </p>
       </FilterToolbar>:undefined}
-      kpis={<KpiStrip aria-label="Métricas de planes">
-        <Kpi label="Planes" valor={windowState.total ?? plans.length} destacado hint={active.length?`${active.length} activo${active.length===1?'':'s'} · ${archived.length} archivado${archived.length===1?'':'s'}`:'Sin planes guardados'}/>
-        <Kpi label="Valor de ítems" valor={valueEntries.length?<MoneyText valor={valueEntries[0][1]} currency={valueEntries[0][0]}/>:'—'} hint={valueEntries.length>1?<>{valueEntries.slice(1).map(([currency,value])=><span key={currency}><MoneyText valor={value} currency={currency}/> · </span>)}Sin IVA</>:'Sin IVA · totales guardados'}/>
-      </KpiStrip>}
     >
       {/* Ventana (#105): contador honesto + «Ver más» con el aviso de alcance. */}
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">

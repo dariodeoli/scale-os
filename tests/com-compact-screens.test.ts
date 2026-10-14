@@ -115,7 +115,8 @@ test('planes: ítems en una línea con el detalle en tooltip y sin KPI redundant
  assert.match(comparison, /title=\{`Cantidad del ítem: \$\{item\.quantity===null\?'No disponible':numberLabel\(item\.quantity\)\} · Precio unitario/, 'el detalle etiquetado queda en el tooltip del ítem');
  assert.match(comparison, /min-w-\[9rem\] flex-1 \[overflow-wrap:anywhere\]/, 'la descripción conserva su ancho legible y no se recorta');
  const planes=read('app/sections/planes.tsx');
- assert.match(planes, /<Kpi label="Valor de ítems"/, 'el valor de ítems es un KPI propio');
+ assert.match(planes, /· Valor de ítems <b/, 'el valor de ítems viaja en la fila del buscador (reorganización IA)');
+ assert.doesNotMatch(planes, /<KpiStrip/, 'sin tira de KPIs a media fila');
  assert.doesNotMatch(planes, /label="Monedas"/, 'sin KPI redundante de monedas');
 });
 

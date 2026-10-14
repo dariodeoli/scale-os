@@ -126,7 +126,7 @@ const presupuestosVacio = renderToStaticMarkup(h('section', {className: 'directo
  h('div', {role: 'status', className: 'rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4'},
   h(EmptyState, {icon: 'receipt', title: 'Todavía no hay presupuestos.', description: 'Creá el primero: el valor se carga sin IVA y el IVA se define en el documento.', action: h('button', {type: 'button', className: 'primary'}, 'Nuevo presupuesto')}))));
 
-/* ---- Planes: KpiStrip + comparador (tabla compartida) ------------------- */
+/* ---- Planes: toolbar con conteo y valor + comparador (tabla compartida) - */
 const PLAN_TEMPLATE = 'min-w-0 max-w-full text-fore';
 const planItems = (items) => items.map((item) => `<li data-plan-item class="grid gap-2 border-b border-ink-600/60 pb-2 text-xs leading-relaxed last:border-0 last:pb-0">
  <p class="whitespace-pre-wrap">${item.description}</p>
@@ -139,13 +139,12 @@ const planHeader = (plan) => `<th scope="col" class="sticky top-0 z-[1] border-b
  <div class="mt-2 flex flex-wrap gap-1.5"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-mute md:h-9">Editar</button><button type="button" class="icon-button record-remove" aria-label="Mover a la papelera: ${plan.name}" title="Mover a la papelera">🗑</button></div>
 </th>`;
 const planesSection = `<section class="directory grid gap-4" aria-label="Planes reutilizables">
- ${kpiStrip([
-   kpi('Planes', '3', 'Valor de ítems: Gs. 1.234.567.890 · US$ 12.345', true),
-   kpi('Activos', '2', 'Disponibles para presupuestos'),
-   kpi('Archivados', '1', 'Fuera de circulación'),
-   kpi('Monedas', '3', 'PYG · USD · BRL'),
- ].join(''))}
  <div class="flex flex-wrap items-center justify-end"><button type="button" class="inline-flex h-11 items-center gap-2 rounded-lg bg-fono px-4 text-sm font-semibold text-onbrand md:h-9">+ Nuevo plan</button></div>
+ <!-- Reorganización IA: el conteo y el valor de ítems viajan en la fila del buscador (sin tira de KPIs a media fila). -->
+ <div data-toolbar="filtros" class="mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap">
+  <input type="search" aria-label="Buscar plan" placeholder="Nombre o moneda…" class="h-10 w-full rounded-lg border border-ink-600 px-3 sm:w-72">
+  <p class="m-0 ml-auto flex flex-wrap items-baseline justify-end gap-x-1.5 text-xs tabular-nums text-mute"><span class="whitespace-nowrap">3 de 3</span><span class="whitespace-nowrap">· 2 activos · 1 archivado</span><span class="whitespace-nowrap">· Valor de ítems <b class="font-semibold text-fore">Gs. 1.234.567.890</b><span> · US$ 12.345,67</span> sin IVA</span></p>
+ </div>
  <div class="${PLAN_TEMPLATE}">
   <p class="max-w-[76ch] text-xs leading-5 text-mute">Todos los entregables y precios guardados, sin IVA. El IVA se define en el presupuesto. Cada plan conserva su moneda. Desplazá la tabla horizontalmente para comparar.</p>
   <div class="mt-3 max-w-full overflow-x-auto rounded-xl border border-ink-600 bg-ink-800" role="region" aria-label="Comparación de planes" tabindex="0">
