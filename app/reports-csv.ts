@@ -1,10 +1,10 @@
 import type {ReportsData} from './reports-data';
+import {csvCell} from './csv-safety';
 
 const quote=(value:string)=>`"${value.replace(/"/g,'""')}"`;
-// Quoting alone does not stop spreadsheet formulas. Text fields never opt into numbers.
+// Quoting alone does not stop spreadsheet formulas: text cells go through the shared helper.
 function text(value:string|null){
- const raw=value??'';
- return quote(/^[\t\r\n]|^\s*[=+@-]/.test(raw)?"'"+raw:raw);
+ return csvCell(value??'',{delimiter:';',quote:true});
 }
 // Preserve decimal strings byte-for-byte, including negative values and trailing zeros.
 // Only this strict numeric grammar bypasses text formula protection.
