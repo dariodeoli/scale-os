@@ -102,6 +102,8 @@
 .platform-admin-page .list-actions { justify-content: safe flex-end; overflow-x: auto; scrollbar-width: none }
 .platform-admin-page .list-actions > * { flex: none }
 .platform-admin-page .list-actions::-webkit-scrollbar { display: none }
+/* Con un menú ⋯ abierto la celda no recorta el desplegable (overflow-x:auto lo cortaba). */
+.platform-admin-page .list-actions:has([role="menu"]) { overflow: visible }
 
 /* El fondo de la columna fija toma la superficie del panel (no el canvas). */
 .platform-admin-page .panel .list-actions-head,
