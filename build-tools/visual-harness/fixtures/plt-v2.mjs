@@ -38,6 +38,11 @@ const Grid = ({label, template, columns, children, minWidthClass = 'min-w-[48rem
     h('div', {role: 'row', className: `grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`},
       columns.map((column, index) => h('span', {key: column.key, role: 'columnheader', className: `${index === columns.length - 1 ? 'text-right' : 'text-left'} whitespace-nowrap`}, column.label))),
     h('div', {role: 'rowgroup'}, children)));
+/** Réplica de `FilterToolbar` (app/ui-v2.tsx) con búsqueda y contador al extremo. */
+const Toolbar = ({placeholder, summary, children}) => h('div', {'data-toolbar': 'filtros', className: 'mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap'},
+  h('input', {type: 'search', 'aria-label': placeholder, placeholder, className: 'w-full sm:w-72'}),
+  children,
+  h('p', {className: 'ml-auto whitespace-nowrap text-xs tabular-nums text-mute'}, summary));
 /** Fila finita v2: mismas clases que app/ui-v2.tsx (`ListRow`). */
 const ListRow = ({template, children, className = '', ...props}) => h('div', {role: 'row', ...props, className: `grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 last:border-0 md:min-h-11 md:py-2 ${template} ${className}`}, children);
 /** Densidad de fila finita (app/invite-links.tsx): identidad compacta. */
@@ -153,13 +158,14 @@ const invitacionesPage = h('section', {className: 'grid gap-4'},
     h(Kpi, {key: 'pending', label: 'Solicitudes pendientes', valor: 2, hint: 'Esperan aprobación o rechazo', destacado: true}),
     h(Kpi, {key: 'links', label: 'Enlaces activos', valor: 1, hint: 'Sin revocar ni usar'}),
     h(Kpi, {key: 'joined', label: 'Personas unidas', valor: 3, hint: 'Ingresaron con un enlace'})),
+  h(Toolbar, {placeholder: 'Persona, correo, permiso o autor…', summary: '2 solicitudes · 3 enlaces'}),
   h(SectionCard, {title: 'Solicitudes', subtitle: 'Aprobá solo los accesos disponibles; el estado actual lo confirma el API.', meta: '2 de 2 pendientes'},
     h(Grid, {label: 'Solicitudes de acceso', template: REQUESTS_TEMPLATE, columns: REQUESTS_COLUMNS, minWidthClass: 'min-w-[60rem]'}, REQUESTS.map(requestRow))),
   h(SectionCard, {title: 'Enlaces recientes', subtitle: 'Los enlaces agotados o revocados se pueden eliminar; los que tuvieron ingresos conservan su historial.', meta: '3 enlaces'},
     h(Grid, {label: 'Enlaces de invitación', template: LINKS_TEMPLATE, columns: LINKS_COLUMNS, minWidthClass: 'min-w-[56rem]'}, LINKS.map(linkRow))));
 
 /* ── Papelera (app/archive-controls.tsx) ──────────────────────────────────── */
-const TRASH_TEMPLATE = 'grid-cols-[2rem_7rem_minmax(16rem,2.4fr)_7rem]';
+const TRASH_TEMPLATE = 'grid-cols-[2rem_8.5rem_minmax(16rem,2.4fr)_7rem]';
 const TRASH_COLUMNS = [{key: 'select', label: ''}, {key: 'kind', label: 'Tipo'}, {key: 'record', label: 'Registro'}, {key: 'actions', label: 'Acciones'}];
 const TRASHED = [
   {kind: 'Cliente', name: 'Estudio de Comunicación Audiovisual y Producción del Paraguay S.A.', by: 'María Fernanda Giménez Caballero', when: '18 sept 26 · 14:32'},
@@ -183,8 +189,8 @@ const papeleraPage = h('section', {className: 'grid gap-4'},
   h(Header, {eyebrow: 'Configuración', title: 'Papelera de esta empresa', subtitle: 'Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.'}),
   h(KpiStrip, null,
     h(Kpi, {key: 'total', label: 'Registros en papelera', valor: 3, hint: 'Recuperables con tu permiso actual', destacado: true}),
-    h(Kpi, {key: 'kinds', label: 'Tipos de registro', valor: 3, hint: 'Clasificación del API'}),
-    h(Kpi, {key: 'selected', label: 'Seleccionados', valor: 0, hint: 'Para restaurar en lote'})),
+    h(Kpi, {key: 'kinds', label: 'Tipos de registro', valor: 3, hint: 'Clasificación del API'})),
+  h(Toolbar, {placeholder: 'Nombre, tipo o quién lo movió…', summary: '3 de 3 registros'}, h('select', {'aria-label': 'Tipo', className: 'w-full sm:w-52'}, h('option', null, 'Todos los tipos'))),
   h(SectionCard, {title: 'Registros recuperables', subtitle: 'Seleccioná varios para restaurar en lote.', meta: '3 registros'},
     h(Grid, {label: 'Papelera', template: TRASH_TEMPLATE, columns: TRASH_COLUMNS, minWidthClass: 'min-w-[40rem]'}, TRASHED.map(trashRow))));
 
