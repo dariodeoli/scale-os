@@ -247,6 +247,14 @@ try{
  assert.match(adminRedeem.data.message,/5 días gratis/);
  for(const actor of actors.slice(1))assert.equal((await call('/api/billing/coupon-redeem','POST',{code:'ADMIN5'},actor)).status,403,`${actor.role} cannot redeem coupons`);
  assert.equal((await call('/api/billing/coupon-redeem','POST',{code:'ADMIN5'},{...actors.at(-1),role:'admin'})).status,403,'a stale elevated session role cannot redeem without current membership permission');
+ // #189: cupones vencidos o dirigidos a otra empresa se rechazan con 409; el dirigido a la propia sí canjea.
+ await query("insert into platform_coupons(code,discount_type,discount_value,currency,expires_at,created_by_user_id) values('EXPIRED5','days',5,null,now()-interval '1 day',$1)",[uid]);
+ const expiredRedeem=await call('/api/billing/coupon-redeem','POST',{code:'EXPIRED5'},owner);
+ assert.equal(expiredRedeem.status,409);assert.match(expiredRedeem.data.error,/venci/);
+ await query("insert into platform_coupons(code,discount_type,discount_value,currency,organization_id,created_by_user_id) values('OTHERORG5','days',5,null,$1,$2),('OWNORG5','days',5,null,$3,$2)",[other.organization_id,uid,owner.organization_id]);
+ const restricted=await call('/api/billing/coupon-redeem','POST',{code:'OTHERORG5'},owner);
+ assert.equal(restricted.status,409);assert.match(restricted.data.error,/no corresponde a tu empresa/);
+ assert.equal((await call('/api/billing/coupon-redeem','POST',{code:'OWNORG5'},owner)).status,200,'un cupón dirigido a la propia empresa canjea');
  // Companies without any subscription row still open their runway with a coupon.
  const couponless=await tenant('couponless');
  await query("insert into platform_coupons(code,discount_type,discount_value,currency,created_by_user_id) values('DAYS5','days',5,null,$1)",[uid]);

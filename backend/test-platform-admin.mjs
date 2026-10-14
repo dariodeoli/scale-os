@@ -139,6 +139,54 @@ await pg.query("insert into agency_settings(organization_id,default_currency) va
 await pg.query('delete from organization_subscriptions where organization_id=20');
 const opened=await call('/api/platform/agencies/20/subscription/extend',{method:'POST',payload:{days:5,reason:'Efectivo en guaraníes'}});
 assert.equal(opened.status,200);
+// #189: cupones de gracia — vencimiento, empresa destino, nota y aplicación desde el superadmin.
+{
+ const dueOf=async id=>new Date((await pg.query('select due_at from organization_subscriptions where organization_id=$1',[id])).rows[0].due_at).getTime();
+ const day=offset=>new Date(Date.now()+offset*86400000).toISOString().slice(0,10);
+ await pg.query("insert into organizations(id,name,slug) values(66,'Agency Sixty Six','agency-sixty-six') on conflict do nothing");
+ const created=await call('/api/platform/coupons',{method:'POST',payload:{code:'GRACE7',discount_type:'days',discount_value:7,currency:null,max_redemptions:1,expires_at:day(5),organization_id:'20',note:'Gracia acordada por WhatsApp'}});
+ assert.equal(created.status,201);
+ assert.equal(String(created.data.coupon.organization_id),'20');assert.equal(created.data.coupon.organization_name,'Agency Two');
+ assert.equal(created.data.coupon.note,'Gracia acordada por WhatsApp');assert.equal(created.data.coupon.redemptions,0);assert.equal(created.data.coupon.expired,false);assert(created.data.coupon.expires_at);
+ assert.equal((await call('/api/platform/coupons',{method:'POST',payload:{code:'PASTDUE',discount_type:'days',discount_value:3,currency:null,expires_at:day(-2)}})).status,400,'el vencimiento debe ser futuro al crear');
+ assert.equal((await call('/api/platform/coupons',{method:'POST',payload:{code:'NOORG',discount_type:'days',discount_value:3,currency:null,organization_id:'99999'}})).status,404,'la empresa destino debe existir');
+ assert.equal((await call('/api/platform/coupons',{method:'POST',payload:{code:'LONGNOTE',discount_type:'days',discount_value:3,currency:null,note:'x'.repeat(2001)}})).status,400,'la nota admite hasta 2000 caracteres');
+ const id=created.data.coupon.id;
+ // Aplicable solo a su empresa destino.
+ assert.deepEqual((await call('/api/platform/coupons?organization=20')).data.coupons.map(c=>c.code).sort(),['DAYS30','GRACE7']);
+ assert.equal((await call('/api/platform/coupons?organization=66')).data.coupons.some(c=>c.code==='GRACE7'),false,'un cupón dirigido no es aplicable a otra empresa');
+ const apply=(org,payload,opts={})=>call(`/api/platform/agencies/${org}/coupons/apply`,{method:'POST',payload,...opts});
+ assert.equal((await apply(20,{coupon_id:id},{actor:{id:3,email:'member@agency.example'}})).status,403,'solo un admin global aplica cupones');
+ assert.equal((await apply(66,{coupon_id:id,reason:'Prueba'})).status,409,'un cupón dirigido a otra empresa se rechaza');
+ const before=await dueOf(20);
+ const key='coupon-apply-fixture-01';
+ const applied=await apply(20,{coupon_id:id,idempotency_key:key,reason:'Gracia por mora'});
+ assert.equal(applied.status,200);assert.equal(applied.data.coupon.code,'GRACE7');
+ const after=await dueOf(20);assert(after-before>=6.9*86400000,'el cupón extiende los días en la suscripción');
+ const row=(await pg.query("select action,target_type,target_id,metadata from platform_audit_log where action='coupon.apply'")).rows;
+ assert.equal(row.length,1);assert.equal(row[0].metadata.code,'GRACE7');assert.equal(row[0].metadata.discount_type,'days');assert.equal(Number(row[0].metadata.discount_value),7);assert.equal(row[0].metadata.reason,'Gracia por mora');
+ const replay=await apply(20,{coupon_id:id,idempotency_key:key});
+ assert.equal(replay.status,200);assert.equal(replay.data.idempotent_replay,true);assert.equal(await dueOf(20),after,'la misma clave no suma días dos veces');
+ assert.equal((await pg.query("select count(*)::int as n from platform_coupon_redemptions where coupon_id=$1",[id])).rows[0].n,1);
+ assert.equal((await apply(20,{coupon_id:id})).status,400,'el cupón de un solo uso queda agotado');
+ const open=(await call('/api/platform/coupons')).data.coupons.find(c=>c.code==='DAYS30');
+ assert.equal((await apply(66,{coupon_id:open.id})).status,200);
+ assert.equal((await apply(66,{coupon_id:open.id})).status,409,'una empresa canjea el cupón una sola vez');
+ assert.equal((await call('/api/platform/coupons?organization=20')).data.coupons.some(c=>c.code==='GRACE7'),false,'el cupón ya usado deja de ser aplicable');
+ const listed=(await call('/api/platform/coupons')).data.coupons.find(c=>c.id===id);assert.equal(listed.redemptions,1);
+ // Máximo de usos: un cupón global de un solo uso se agota tras la primera empresa.
+ const single=(await call('/api/platform/coupons',{method:'POST',payload:{code:'ONCE3',discount_type:'days',discount_value:3,currency:null,max_redemptions:1}})).data.coupon;
+ assert.equal((await apply(20,{coupon_id:single.id})).status,200);
+ assert.equal((await apply(66,{coupon_id:single.id})).status,400,'se respeta max_redemptions');
+ // Vencido: se rechaza al aplicar y la lista lo marca.
+ const old=(await call('/api/platform/coupons',{method:'POST',payload:{code:'OLD3',discount_type:'days',discount_value:3,currency:null}})).data.coupon;
+ await pg.query("update platform_coupons set expires_at=now()-interval '1 day' where id=$1",[old.id]);
+ assert.equal((await apply(66,{coupon_id:old.id})).status,409,'un cupón vencido no se aplica');
+ assert.equal((await call('/api/platform/coupons')).data.coupons.find(c=>c.id===old.id).expired,true);
+ assert.equal((await apply(66,{})).status,400,'falta el cupón');
+ const patched=await call('/api/platform/coupons/'+id,{method:'PATCH',payload:{note:'Actualizada',organization_id:null,expires_at:null}});
+ assert.equal(patched.status,200);assert.equal(patched.data.coupon.organization_id,null);assert.equal(patched.data.coupon.expires_at,null);assert.equal(patched.data.coupon.note,'Actualizada');
+}
 assert.equal((await pg.query('select currency from organization_subscriptions where organization_id=20')).rows[0].currency,'PYG','the manual runway uses the company currency');
 await pg.query("insert into sessions(id,user_id,organization_id,expires_at) values('1',1,10,now()+interval '7 days')");
 // Borrado global (issue #22): sin prueba de re-autenticación no hay borrado.
