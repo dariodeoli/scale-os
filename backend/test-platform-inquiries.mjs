@@ -13,9 +13,9 @@ await pg.exec(await read('./migrations/20261015_platform_inquiries.sql'));
 
 const query=(s,v)=>pg.query(s,v),db={query,connect:async()=>({query,release(){}})};
 const scaleOrg=(await query("select id from organizations where slug='scale'")).rows[0].id;
-const admin=(await query("insert into users(email,password_hash) values('platform@example.invalid','!') returning id")).rows[0].id;
-const viewer=(await query("insert into users(email,password_hash) values('viewer@example.invalid','!') returning id")).rows[0].id;
-const owner=(await query("insert into users(email,password_hash) values('owner@example.invalid','!') returning id")).rows[0].id;
+const admin=(await query("insert into users(email,password_hash,email_verified_at) values('platform@example.invalid','!',now()) returning id")).rows[0].id;
+const viewer=(await query("insert into users(email,password_hash,email_verified_at) values('viewer@example.invalid','!',now()) returning id")).rows[0].id;
+const owner=(await query("insert into users(email,password_hash,email_verified_at) values('owner@example.invalid','!',now()) returning id")).rows[0].id;
 await query("insert into platform_administrators(user_id,role) values($1,'admin'),($2,'viewer')",[admin,viewer]);
 await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[scaleOrg,owner]);
 
@@ -98,9 +98,9 @@ async function panel(path,{method='GET',payload={},user={id:admin,email:'platfor
  return {handled,...answer};
 }
 assert.equal((await panel('/api/platform/agencies')).handled,false,'otras rutas no se tocan');
-assert.equal((await panel('/api/platform/inquiries',{user:null})).status,401);
-assert.equal((await panel('/api/platform/inquiries',{user:{id:owner,email:'owner@example.invalid'}})).status,403,'dueño de agencia sin acceso global: 403');
-assert.equal((await panel('/api/platform/inquiries',{user:{id:admin,demo_owner_user_id:admin}})).status,403,'Demo: 403');
+assert.equal((await panel('/api/platform/inquiries',{user:null})).status,404,'sin sesión: 404 genérico');
+assert.equal((await panel('/api/platform/inquiries',{user:{id:owner,email:'owner@example.invalid'}})).status,404,'dueño de agencia sin acceso global: 404 genérico');
+assert.equal((await panel('/api/platform/inquiries',{user:{id:admin,demo_owner_user_id:admin}})).status,404,'Demo: 404 genérico');
 let list=await panel('/api/platform/inquiries');
 assert.equal(list.status,200);
 assert.equal(list.data.total,4);assert.equal(list.data.inquiries.length,4);
@@ -115,7 +115,7 @@ assert.equal((await panel('/api/platform/inquiries',{method:'POST'})).status,405
 assert.equal((await panel('/api/platform/inquiries',{user:{id:viewer}})).status,200,'visor global lee');
 const target=row.id;
 assert.equal((await panel(`/api/platform/inquiries/${target}`,{method:'PATCH',payload:{status:'contacted'},user:{id:viewer}})).status,403,'visor no modifica');
-assert.equal((await panel(`/api/platform/inquiries/${target}`,{method:'PATCH',payload:{status:'contacted'},user:{id:owner}})).status,403,'no admin: 403');
+assert.equal((await panel(`/api/platform/inquiries/${target}`,{method:'PATCH',payload:{status:'contacted'},user:{id:owner}})).status,404,'no admin: 404 genérico');
 assert.equal((await panel(`/api/platform/inquiries/${target}`,{method:'PATCH',payload:{status:'spam'}})).status,400);
 assert.equal((await panel(`/api/platform/inquiries/${target}`,{method:'PATCH',payload:{email:'x@y.z'}})).status,400,'campos no permitidos');
 assert.equal((await panel(`/api/platform/inquiries/${target}`,{method:'PATCH',payload:{note:'x'.repeat(2001)}})).status,400);

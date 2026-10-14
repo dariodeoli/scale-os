@@ -48,9 +48,9 @@ async function call(path,{method='GET',actor={id:2,email:'platform@scale.example
  return {handled,...answer};
 }
 assert.equal((await call('/api/agency/clients')).handled,false,'otras rutas no se tocan');
-assert.equal((await call('/api/platform/usage',{actor:null})).status,401,'sin sesión: 401');
-assert.equal((await call('/api/platform/usage',{actor:{id:6,email:'nonadmin@a.example'}})).status,403,'no admin: 403');
-assert.equal((await call('/api/platform/usage',{actor:{id:2,demo_owner_user_id:2}})).status,403,'Demo: 403');
+assert.equal((await call('/api/platform/usage',{actor:null})).status,404,'sin sesión: 404 genérico (no confirma que el panel existe)');
+assert.equal((await call('/api/platform/usage',{actor:{id:6,email:'nonadmin@a.example'}})).status,404,'no admin: 404 genérico');
+assert.equal((await call('/api/platform/usage',{actor:{id:2,demo_owner_user_id:2}})).status,404,'Demo: 404 genérico');
 assert.equal((await call(`/api/platform/usage?from=${dayAt(-200)}&to=${today}`)).status,400,'máximo 180 días');
 assert.equal((await call('/api/platform/usage?from=hoy')).status,400);
 assert.equal((await call(`/api/platform/usage?from=${today}&to=${dayAt(-5)}`)).status,400);
@@ -133,7 +133,9 @@ for(const path of ['/api/platform/usage',`/api/platform/usage?from=${dayAt(-2)}&
  assert.equal(withRange.status,200);
  assert.deepEqual(withRange.data,withoutRange.data,'the sargable range keeps the response identical for '+path);
 }
-const usageQueries=captured.filter(({sql})=>/agency_usage_sessions|from users u|from organizations o/.test(sql));
+// El sondeo «¿la fuente tiene datos?» es un exists sin período (corta en la primera fila)
+// y el guard relee al usuario por id (clave primaria): ninguno de los dos filtra por fecha.
+const usageQueries=captured.filter(({sql})=>/agency_usage_sessions|from users u|from organizations o/.test(sql)&&!sql.includes('/*fuente:has_data*/')&&!sql.includes('/*platform-gate*/'));
 assert.ok(usageQueries.length&&usageQueries.every(({sql})=>sql.includes('/*idx:start*/')),'every usage query carries a raw-column range');
 await pg.exec('set enable_seqscan=off');
 const daily=captured.find(({sql})=>/count\(ev\.user_id\)::int as sessions/.test(sql));

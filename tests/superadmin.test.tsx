@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 // Fuente concatenada del panel global (issue #46): la pantalla se descompuso en
 // page + model (tipos y helpers) + states + audit, y los contratos siguen valiendo.
-const page = ["page.tsx", "model.tsx", "overview.tsx", "states.tsx", "audit.tsx", "agencies.tsx", "subscription-dialog.tsx", "access.tsx", "catalog.tsx", "confirm.tsx"]
+const page = ["page.tsx", "model.tsx", "sections.tsx", "sidebar.tsx", "metrics.tsx", "metric-kpi.tsx", "overview.tsx", "states.tsx", "audit.tsx", "agencies.tsx", "subscription-dialog.tsx", "access.tsx", "catalog.tsx", "confirm.tsx"]
   .map((file) => readFileSync(new URL(`../app/superadmin/${file}`, import.meta.url), "utf8"))
   .join("\n");
 const styles = readFileSync(
@@ -12,21 +12,21 @@ const styles = readFileSync(
   "utf8",
 );
 
-test("superadmin sends a 401 to the clean app login without the next param before an error dashboard", () => {
+test("sin acceso (401 o el 404 genérico del guard) el panel vuelve al inicio sin revelarse", () => {
   assert.match(page, /function loginReturnPath\(\)/);
   assert.doesNotMatch(page, /\?next=\/superadmin/);
-  assert.match(
-    page,
-    /if \(status === 401\) \{[\s\S]*?setError\(""\);[\s\S]*?window\.location\.assign[\s\S]*?router\.replace/,
-  );
-  assert.match(
-    page,
-    /const overview\s*=\s*await platformApi<Overview>\(['"]\/api\/platform\/overview['"]/,
-  );
-  assert.match(
-    page,
-    /if \(!handlePlatformError\(cause, true\)\)[\s\S]*?"No pudimos cargar el control global/,
-  );
+  assert.match(page, /function redirectHome\(\) \{[\s\S]*?setState\(null\);[\s\S]*?setError\(""\);[\s\S]*?window\.location\.replace\(target\)[\s\S]*?router\.replace\(target\)/);
+  assert.match(page, /if \(status === 401 \|\| gate\) \{\s*redirectHome\(\);/);
+  assert.match(page, /const gate = status === 404 && \(fromLoad \|\| \(cause instanceof Error && cause\.message === PLATFORM_GATE_MESSAGE\)\)/, "un 404 propio de una acción no echa del panel");
+  assert.match(page, /const overview\s*=\s*await platformApi<Overview>\(['"]\/api\/platform\/overview['"]/);
+  assert.match(page, /if \(!handlePlatformError\(cause, true\)\)[\s\S]*?"No pudimos cargar el control global/);
+  // Nada de «no autorizado»: ni pantalla de acceso denegado ni textos del panel antes del permiso.
+  assert.doesNotMatch(page, /PlatformAccessDenied|No tenés acceso global|Acceso denegado/);
+  assert.match(page, /if \(redirecting\) return <PlatformRedirecting\/>;/);
+  assert.match(page, /if \(!state && !error\) return <PlatformAdminSkeleton\/>;/);
+  const states = readFileSync(new URL("../app/superadmin/states.tsx", import.meta.url), "utf8");
+  assert.match(states, /return <main className="min-h-dvh" aria-busy="true"\/>;/, "la redirección no dibuja nada propio");
+  assert.doesNotMatch(states.slice(states.indexOf("export function PlatformAdminSkeleton"), states.indexOf("export function PlatformMore")), /control global|Control de Scale/i, "el skeleton previo al permiso es neutro");
 });
 
 test("superadmin sends the real re-authentication proof on global deletions", () => {
@@ -110,7 +110,7 @@ test("superadmin keeps its operational controls accessible and responsive", () =
   // El encabezado de 56–64 px lo aporta el `PageHeader` del sistema (ui-system.css `.ui-page-header`).
   assert.match(page, /import \{PageHeader, StateChip\} from "\.\.\/ui-v2"/);
   assert.match(readFileSync(new URL('../app/ui-system.css', import.meta.url), 'utf8'), /\.ui-page-header/);
-  assert.match(page, /className="platform-admin-page control-shell"/);
+  assert.match(page, /className="platform-admin-page control-shell platform-shell"/);
 });
 
 test("la vuelta al panel es determinista en SSR y cliente, sin depender de window (#79)", () => {
@@ -119,17 +119,18 @@ test("la vuelta al panel es determinista en SSR y cliente, sin depender de windo
   assert.doesNotMatch(page, /window\.location\.hostname/, "el destino ya no depende del navegador");
   assert.match(page, /process\.env\.NEXT_PUBLIC_APP_ORIGIN/, "el origen se puede configurar por env");
   assert.match(page, /from "\.\.\/brand-metadata"/, "el fallback comparte el origen de la app");
-  // Los tres puntos usan el helper: brand, «Panel» del header y «Volver al panel».
+  // Los tres puntos usan el helper: marca de la barra (mobile), marca del riel y «Panel».
   assert.match(page, /<Link className="platform-admin-brand" href=\{appHome\(\)\} aria-label="Scale OS">/);
+  assert.match(page, /<Link className="platform-sidebar-brand" href=\{appHome\(\)\}/);
   assert.match(page, /<Link className="secondary" href=\{appHome\(\)\} aria-label="Volver al panel"/);
-  assert.match(page, /<Link className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href=\{appHome\(\)\}>/);
 });
 
 test("superadmin panel uses the shared v2 surface and the one notification system (issue #80)", () => {
   // Jerarquía ejecutiva del sistema: KPIs, paneles, listas densas y chips
   // compartidos; sin toasts ni chips propios del panel.
   assert.match(page, /from "\.\.\/ui-v2"/);
-  assert.match(page, /<KpiStrip aria-label="Resumen de plataforma">/);
+  assert.match(page, /<KpiStrip aria-label="Resumen de plataforma" compact>/);
+  assert.match(page, /<KpiStrip aria-label="Indicadores del período"/);
   assert.match(page, /<Kpi label="Agencias activas"/);
   assert.match(page, /<Kpi label="Suscripciones"/);
   assert.match(page, /<ListGrid label="Agencias y suscripciones"/);
@@ -147,38 +148,43 @@ test("superadmin panel uses the shared v2 surface and the one notification syste
   assert.doesNotMatch(styles, /platform-admin-stat-card|platform-admin-badge|platform-admin-status-note/);
 });
 
-test("rediseño #102: consola con secciones, carga de la app y título único", () => {
-  // Consola: encabezado compacto + barra de secciones con contadores + vistas.
-  assert.match(page, /<div className="platform-admin-tabs silent-scroll">/, "la barra de secciones es un contenedor sin la regla legacy `nav button`");
-  assert.match(page, /ariaLabel="Secciones del panel global"/);
-  for (const view of ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso", "comunicados", "mantenimiento", "trafico"]) {
-    assert.match(page, new RegExp(`\\{id: "${view}", label:`), `la vista ${view} existe`);
+test("shell (guía §2/§7): riel lateral desde la lista única de secciones + barra superior compacta", () => {
+  const sections = readFileSync(new URL("../app/superadmin/sections.tsx", import.meta.url), "utf8");
+  // Una sola lista exportada: cada módulo se suma con una entrada {id, label, icon, component}.
+  assert.match(sections, /export const PLATFORM_SECTIONS: PlatformSection\[\] = \[/);
+  assert.equal((page.match(/PLATFORM_SECTIONS: PlatformSection\[\]/g) ?? []).length, 1, "una sola lista de navegación");
+  for (const view of ["resumen", "consultas", "agencias", "accesos", "cupones", "auditoria", "uso", "trafico", "comunicados", "mantenimiento"]) {
+    assert.match(sections, new RegExp(`\\{id: "${view}", label:`), `la sección ${view} existe`);
   }
-  assert.equal((page.match(/\{view === "/g) ?? []).length, 10, "cada sección renderiza su vista");
-  assert.match(page, /<PlatformOverview state=\{state\} audit=\{state\.audit\} onGoTo=\{changeView\} bootstrap=\{bootstrap\}\/>/);
-  // Carga inicial con el skeleton propio del panel (#155 C).
-  assert.match(page, /import \{PlatformAccessDenied, PlatformAdminSkeleton, PlatformNotices, PlatformRedirecting\} from "\.\/states"/);
-  assert.match(page, /if \(busy && !state && !error && !redirecting && !accessDenied\) return <PlatformAdminSkeleton\/>/);
-  assert.doesNotMatch(page, /<KpiStrip[\s\S]{0,2000}?loading/, "las métricas no se inventan durante la carga");
-  // Estado del encabezado: rol + última actualización en 24 h.
+  assert.match(sections, /aliases: \["actividad"\]/, "«Actividad» es un alias de Uso");
+  assert.match(sections, /\{id: "trafico", label: "Tráfico y demos", icon: Radar,/, "Tráfico y demos es una sección del panel");
+  assert.match(page, /<Section \{\.\.\.sectionProps\}\/>/, "la vista activa sale de la lista, sin un if por sección");
+  assert.doesNotMatch(page, /\{view === "/, "page.tsx no conoce las secciones una por una");
+  assert.match(page, /<PlatformSidebar sections=\{PLATFORM_SECTIONS\} current=\{current\.id\}/);
+  assert.match(page, /aria-label="Secciones del panel global"/);
+  assert.match(page, /aria-current=\{active \? "page" : undefined\}/);
+  assert.match(page, /platform-nav-badge/);
+  // Deep links: `?vista=<id>` (alias incluidos) y `?periodo=`, reflejados en la URL.
+  assert.match(page, /if \(requested\) setView\(resolveSection\(requested\)\.id\);/);
+  assert.match(page, /syncUrl\(\{vista: section\.id\}\)/);
+  // Barra superior: título de la sección, permiso real, «Actualizado HH:MM», Actualizar y Panel.
+  assert.match(page, /title=\{current\.title \|\| current\.label\}/);
   assert.match(page, /platformTime\(updatedAt\)/);
-  // #147: el acceso denegado no se anuncia «Solo lectura» y no ofrece refresco;
-  // el motivo del 403 conserva el contexto en el estado y en «Volver al panel».
-  assert.match(page, /accessDenied \? <StateChip tone="bad">Acceso denegado<\/StateChip>/);
+  assert.match(page, /subtitle=\{<span className="platform-admin-meta">[\s\S]*?Actualizado \{updated\}/);
+  assert.match(page, /actions=\{<div className="platform-admin-actions">/);
   assert.match(page, /myRole \? <StateChip tone=\{writable \? "ok" : "info"\}/);
-  assert.match(page, /\{!accessDenied && <button/);
-  assert.match(page, /<PlatformAccessDenied message=\{accessMessage\}\/>/);
-  assert.match(page, /setAccessMessage\(cause instanceof Error \? cause\.message : ""\)/);
-  assert.match(readFileSync(new URL('../app/superadmin/states.tsx', import.meta.url), 'utf8'), /\{message \|\| "Tu sesión está activa/);
-  // #181: el encabezado es el `PageHeader` del sistema; la marca, el permiso real y la hora quedan como meta/acciones.
-  // Encabezado compacto: el título sale del PageHeader único, sin el rótulo redundante;
-  // el aviso de acceso separado vive en el tooltip del chip de permiso.
-  assert.match(page, /<PageHeader\s+className="min-w-0 flex-\[1_1_20rem\] !mb-0"\s+title="Control de Scale OS"/, "título del PageHeader único");
-  assert.doesNotMatch(page, /eyebrow="Administración global"/, "sin rótulo redundante sobre el título");
   assert.match(page, /\$\{PLATFORM_ACCESS_NOTE\}/, "el aviso de acceso separado queda en el tooltip del permiso");
-  assert.match(page, /subtitle=\{<span className="platform-admin-meta">[\s\S]*?Actualizado \{updated\}/, "el permiso y la hora de actualización viajan como meta del encabezado");
-  assert.match(page, /actions=\{<div className="platform-admin-actions">/, "Actualizar y Panel son las acciones del encabezado");
-  assert.doesNotMatch(page, /<header[^>]*className="platform-admin-header"/, "sin encabezado propio paralelo");
+  assert.doesNotMatch(page, /eyebrow="Administración global"/);
+  assert.doesNotMatch(page, /<header[^>]*className="platform-admin-header"/);
+  // Chips de período solo en las secciones que los usan (Resumen y Uso).
+  assert.match(page, /\{current\.usesPeriod \? <PlatformPeriodChips value=\{period\} onChange=\{changePeriod\}\/> : null\}/);
+  assert.equal((sections.match(/usesPeriod: true/g) ?? []).length, 2);
+  // CSS: riel ≥761 px (íconos hasta 1199, con texto desde 1200) y tira horizontal en mobile.
+  assert.match(styles, /@media \(min-width: 761px\) \{\s*\.platform-admin-page\.platform-shell \{ grid-template-columns: 4\.25rem minmax\(0, 1fr\)/);
+  assert.match(styles, /@media \(min-width: 1200px\) \{\s*\.platform-admin-page\.platform-shell \{ grid-template-columns: 14rem minmax\(0, 1fr\) \}/);
+  assert.match(styles, /@media \(max-width: 760px\) \{\s*\.platform-shell > \.platform-sidebar \{ position: sticky; top: 0;/);
+  assert.match(styles, /\.platform-shell nav\.platform-sidebar-nav \{ flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none \}/);
+  assert.match(styles, /\.platform-shell \.platform-nav-item\[aria-current="page"\] \{ background: var\(--violet-soft\)/);
 });
 
 test("rediseño #102: ninguna capacidad del panel se pierde", () => {
@@ -228,12 +234,9 @@ test("rediseño #155 fase 2: resumen útil, orden de secciones y estados propios
   assert.match(page, /Suscripciones por estado/);
   assert.match(page, /xl:grid-cols-\[minmax\(0,1fr\)_22rem\]/);
   assert.match(page, /id: "bootstrap"/);
-  // B · Orden aprobado (personas antes que catálogo) y tabs con indicador.
-  assert.ok(page.indexOf('{id: "accesos", label:') < page.indexOf('{id: "cupones", label:'), "Accesos antes que Cupones");
-  assert.match(page, /platform-admin-tabs-wrap/);
-  assert.match(styles, /\.platform-admin-tabs \[aria-pressed="true"\] \{ box-shadow: inset 0 -2px 0 0 rgb\(var\(--c-fono\)\) \}/);
-  // Mobile: las pestañas son una tira horizontal con scroll silencioso.
-  assert.match(styles, /\.platform-admin-tabs > div \{ flex-wrap: nowrap; gap: 4px \}/);
+  // B · Orden aprobado (personas antes que catálogo).
+  const sections = readFileSync(new URL("../app/superadmin/sections.tsx", import.meta.url), "utf8");
+  assert.ok(sections.indexOf('{id: "accesos", label:') < sections.indexOf('{id: "cupones", label:'), "Accesos antes que Cupones");
   // C · Skeleton propio, avisos con borde de contraste y recuperación.
   assert.doesNotMatch(page, /LoadingScreen/);
   assert.match(readFileSync(new URL("../app/superadmin/states.tsx", import.meta.url), "utf8"), /export function PlatformAdminSkeleton/);

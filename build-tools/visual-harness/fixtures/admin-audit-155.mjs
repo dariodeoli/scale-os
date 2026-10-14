@@ -4,9 +4,11 @@
  * reemplaza a `v2-plt-superadmin-estados` para esta auditoría.
  *
  * Espeja `app/superadmin/page.tsx` (encabezado con chip de permiso real y
- * acciones condicionales, #147) y `app/superadmin/states.tsx` (acceso denegado
- * con motivo, avisos de diagnóstico y error).
+ * acciones condicionales, #147) y `app/superadmin/states.tsx` (avisos de
+ * diagnóstico y error).
  */
+import {adminShell} from './_admin-shell.mjs';
+
 const icon = (paths, size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 const I = {
   shield: icon('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>', 17),
@@ -20,33 +22,6 @@ const chip = (text, tone = 'mute', title = '') => {
   const tones = {ok: 'green', warn: 'orange', bad: 'red', info: 'blue', mute: 'slate'};
   return `<span class="badge badge-${tones[tone] || 'slate'} whitespace-nowrap"${title ? ` title="${title}"` : ''}>${text}</span>`;
 };
-const head = ({state = 'ok', updated = '18:12'} = {}) => `
-<div class="platform-admin-top">
- <a class="platform-admin-brand" href="#" aria-label="Scale OS">${brand}</a>
- <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-[1_1_20rem] !mb-0">
-  <div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
-   <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">Administración global</p>
-   <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">Control de Scale OS</h1>
-   <p class="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1"><span class="platform-admin-meta">
-  ${state === 'denied' ? chip('Acceso denegado', 'bad') : state === 'readonly' ? chip('Solo lectura', 'info', 'Tu usuario solo puede consultar la plataforma') : chip('Admin global', 'ok', 'Tu usuario puede administrar la plataforma')}
-  ${state === 'denied' ? '' : `<span class="platform-admin-updated" title="Última actualización ${updated} (hora de Asunción)">Actualizado ${updated}</span>`}
- </span></p>
-  </div>
-  <div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><div class="platform-admin-actions">
-  ${state === 'denied' ? '' : `<button type="button" class="secondary">${I.refresh}Actualizar</button>`}
-  <a class="secondary" href="#">${I.back}Panel</a>
- </div></div>
- </header>
-</div>`;
-const denied = `
-<section class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3 border-bad/30" role="alert">
- <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-bad" aria-hidden="true">${I.shield}</span>
- <div class="min-w-0">
-  <b class="block text-[13.5px] font-semibold text-fore">No tenés acceso global</b>
-  <p class="mt-0.5 text-xs text-mute">Tu cuenta de demo no tiene acceso al panel global de la plataforma.</p>
-  <a class="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" href="#">${I.back}Volver al panel</a>
- </div>
-</section>`;
 const notices = `
 <div class="grid gap-3">
  <p class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-1 text-[12px] leading-[1.45] text-mute">${I.shield}<strong class="font-semibold text-fore">Acceso separado por plataforma.</strong><span>Ser dueño de una agencia no habilita este panel ni sus datos.</span></p>
@@ -58,12 +33,6 @@ const notices = `
   <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-bad" aria-hidden="true">${I.alert}</span>
   <div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">No pudimos actualizar el control global</b><span class="mt-1 inline-flex items-start gap-2 rounded-lg border border-bad/30 bg-bad/10 px-2.5 py-1.5 text-[12px] leading-[1.4] text-fore">La sesión venció. Volvé a iniciar sesión para reintentar.</span></div>
  </section>
-</div>`;
-const tabs = (active = 'resumen') => `
-<div class="platform-admin-tabs silent-scroll">
- <div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap" role="group" aria-label="Secciones del panel global">
- ${[['resumen', 'Resumen', ''], ['agencias', 'Agencias', '4'], ['cupones', 'Cupones', '3'], ['accesos', 'Accesos', '3'], ['auditoria', 'Auditoría', '50']].map(([id, label, count]) => `<button type="button" aria-pressed="${id === active}" aria-label="${label}${count ? ` (${count})` : ''}" title="${label}" class="inline-flex min-h-11 flex-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium md:min-h-8 ${id === active ? 'bg-fono/15 text-fono-text' : 'text-mute'}">${label}${count ? `<span class="text-xs opacity-75">${count}</span>` : ''}</button>`).join('')}
- </div>
 </div>`;
 const readonlyAgencies = `
 <section class="grid min-w-0 gap-3">
@@ -79,26 +48,21 @@ const readonlyAgencies = `
  <p class="text-[11.5px] text-mute">Con «Solo lectura» desaparecen las acciones mutantes; el API igual revalida cada operación.</p>
 </section>`;
 
+// `admin155-denegado` se retiró: sin acceso el panel ya no dibuja una pantalla
+// propia (vuelve al inicio sin revelarse, guía §1).
 export default [
-  {
-    id: 'admin155-denegado',
-    section: 'Superadmin',
-    surface: 'Acceso denegado real: chip, motivo y sin refresco (#147)',
-    kind: 'plain',
-    body: `<main class="platform-admin-page control-shell">${head({state: 'denied'})}${denied}</main>`,
-  },
   {
     id: 'admin155-avisos',
     section: 'Superadmin',
     surface: 'Avisos de diagnóstico: acceso separado, bootstrap y error de sesión',
     kind: 'plain',
-    body: `<main class="platform-admin-page control-shell">${head()}${notices}</main>`,
+    body: adminShell('resumen', notices),
   },
   {
     id: 'admin155-solo-lectura',
     section: 'Superadmin',
     surface: 'Permiso de lectura: chip «Solo lectura», acciones ocultas y conteos',
     kind: 'plain',
-    body: `<main class="platform-admin-page control-shell">${head({state: 'readonly'})}${tabs('agencias')}${readonlyAgencies}</main>`,
+    body: adminShell('agencias', readonlyAgencies, {viewer: true}),
   },
 ];

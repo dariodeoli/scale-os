@@ -2,10 +2,14 @@
 // Vista «Resumen» del panel global (#102, rediseño #155 fase 2): indicadores
 // compactos, tres paneles operativos (por vencer, últimas acciones y
 // suscripciones) y un riel de atención/atajos que aprovecha el ancho de 1440.
-// Todo sale de los datos ya cargados: sin endpoints nuevos.
+// Arriba, los indicadores del período (GET /api/platform/metrics, chips compartidos
+// con Uso); el resto sale de los datos ya cargados. Nada de demos (guía §3).
 import {ArrowRight, Building2, ScrollText, ShieldCheck, Tag} from "lucide-react";
 import {dueTone, listDateShort} from "../list-format";
 import {EmptyBlock, Kpi, KpiStrip, StateChip} from "../ui-v2";
+import {MetricNote} from "./metric-kpi";
+import {PlatformMetrics} from "./metrics";
+import type {PlatformPeriodId} from "./period";
 import {
   expiringAgencies,
   formatPlatformMetric,
@@ -54,22 +58,29 @@ const SHORTCUTS: {id: string; label: string; detail: string; view: PlatformView;
   {id: "audit", label: "Ver auditoría", detail: "Últimas operaciones sensibles", view: "auditoria", icon: ScrollText},
 ];
 
-export function PlatformOverview({state, audit, onGoTo, bootstrap = null}: {state: State; audit: AuditAction[]; onGoTo: (view: PlatformView) => void; bootstrap?: BootstrapStatus | null}) {
+/** Pista de un KPI de foto actual: su nota «fuente · cálculo» (el detalle va en el cálculo). */
+const snapshotHint = (source: string, calc: string) => <span className="platform-kpi-hint"><MetricNote source={source} calc={calc}/></span>;
+
+export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period = "30d", onError}: {state: State; audit: AuditAction[]; onGoTo: (view: PlatformView) => void; bootstrap?: BootstrapStatus | null; period?: PlatformPeriodId; onError?: (cause: unknown) => boolean}) {
   const subscriptions = state.overview.subscriptions || [];
   const activeSubscriptions = subscriptions.find((row) => row.status === "active")?.total ?? null;
   const expiring = expiringAgencies(state.agencies).slice(0, 6);
   const recent = audit.slice(0, 6);
   const attention = platformAttention(state, bootstrap);
-  return <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+  const subscriptionsEmpty = !subscriptions.length;
+  return <div className="grid min-w-0 gap-4">
+    <PlatformMetrics period={period} onError={onError}/>
+    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
     <div className="grid min-w-0 gap-4">
-      <KpiStrip aria-label="Resumen de plataforma">
-        <Kpi label="Agencias activas" valor={state.overview.agencies?.active} hint={`de ${formatPlatformMetric(state.overview.agencies?.total)} agencias`} destacado/>
-        <Kpi label="Usuarios registrados" valor={state.overview.users?.total} hint="Cuentas de todas las agencias"/>
-        <Kpi label="Cupones activos" valor={state.overview.coupons?.active} hint={`de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`}/>
-        <Kpi label="Suscripciones" valor={activeSubscriptions} hint={subscriptionSummary(subscriptions)}/>
+      {/* Foto actual: estado de hoy, sin período (no hay historia para compararlo). */}
+      <KpiStrip aria-label="Resumen de plataforma" compact>
+        <Kpi label="Agencias activas" valor={formatPlatformMetric(state.overview.agencies?.active)} hint={snapshotHint("Agencias", `activas hoy de ${formatPlatformMetric(state.overview.agencies?.total)}, sin demos`)}/>
+        <Kpi label="Usuarios registrados" valor={formatPlatformMetric(state.overview.users?.total)} hint={snapshotHint("Cuentas", "de todas las agencias, sin demos")}/>
+        <Kpi label="Cupones activos" valor={formatPlatformMetric(state.overview.coupons?.active)} hint={snapshotHint("Cupones", `vigentes de ${formatPlatformMetric(state.overview.coupons?.total)} códigos`)}/>
+        <Kpi label="Suscripciones" valor={subscriptionsEmpty ? <span className="platform-kpi-empty">Sin datos todavía</span> : formatPlatformMetric(activeSubscriptions ?? 0)} hint={snapshotHint("Suscripciones", subscriptionsEmpty ? "todavía no hay registros" : `activas hoy · ${subscriptionSummary(subscriptions)}`)}/>
       </KpiStrip>
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         <section className="panel" aria-labelledby="platform-expiring-title">
           <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
             <h2 id="platform-expiring-title" className="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Agencias por vencer</h2>
@@ -145,5 +156,6 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null}: {stat
         </div>
       </section>
     </aside>
+    </div>
   </div>;
 }

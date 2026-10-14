@@ -39,15 +39,15 @@ import {presence} from './presence.js';
 import {demoOrganization} from './demo-session.js';
 import {inviteLinks,resolveInvite,claimInvite,accessRequestState} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
-import {platformInquiries,notifyInquiry,platformContactEmail} from './platform-inquiries.js';
+import {notifyInquiry,platformContactEmail} from './platform-inquiries.js';
 import {notifications} from './notifications.js';
 import {automationApi,startAutomation} from './automation.js';
 import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
 import {trialDetails,trialDetailsFromInput,registerTrial} from './trial-registration.js';
-import {platformUsage} from './platform-usage.js';
+import {bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
+import {platformRouter} from './platform-router.js';
 import {platformTraffic} from './platform-traffic.js';
 import {publicAnalytics} from './public-analytics.js';
-import {platformAdmin,bootstrapInitialPlatformAdmin,ensurePlatformOwnerAdmin} from './platform-admin.js';
 import {platformAnnouncements,agencyAnnouncements} from './platform-announcements.js';
 import {platformMaintenance,maintenanceGate} from './platform-maintenance.js';
 import {applyPendingMigrations} from './migrations-runner.mjs';
@@ -351,14 +351,12 @@ const server = http.createServer(async (req,res) => {
     // Mantenimiento (panel global): corta solo /api/agency/* y lecturas hermanas a
     // quien no es administrador global; auth, panel, health, públicos y webhooks pasan.
     if(await maintenanceGate({req,res,url,db,session,send}))return;
-    if(await platformMaintenance({req,res,url,db,session,body,send}))return;
+    // El estado público de mantenimiento; la ruta /api/platform/maintenance va por platformRouter.
+    if(url.pathname==='/api/public/maintenance'&&await platformMaintenance({req,res,url,db,session,body,send}))return;
     if(await subscriptionBilling({req,res,url,db,session,body,send,sendPaymentFailed}))return;
-    if(await platformUsage({req,res,url,db,session,body,send}))return;
-    if(await platformTraffic({req,res,url,db,session,send}))return;
     if(await publicAnalytics({req,res,url,db,session,send}))return;
-    if(await platformInquiries({req,res,url,db,session,body,send}))return;
-    if(await platformAnnouncements({req,res,url,db,session,body,send}))return;
-    if(await platformAdmin({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
+    // Todo /api/platform/* pasa por un solo guard (platform-router.js).
+    if(await platformRouter({req,res,url,db,session,body,send,bootstrapValue:initialPlatformAdminEmail}))return;
     // Billing is separate from membership: suspended owners retain billing,
     // logout and company switching, but no private operational reads/writes.
     if(url.pathname.startsWith('/api/agency/')||url.pathname==='/api/metrics'||url.pathname==='/api/hub/overview'||url.pathname==='/api/ia/carga'||(url.pathname==='/api/auth/organizations'&&req.method==='POST')){
