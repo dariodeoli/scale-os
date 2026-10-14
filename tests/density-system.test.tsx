@@ -80,4 +80,8 @@ test('diálogos y paneles laterales: encabezado y pie compactos, sin alto de má
  assert(/\.dialog-footer>\.dialog-actions\{padding-top:0;border-top:0\}/.test(css),'el pie no dibuja un segundo separador sobre las acciones');
  const mobile=css.slice(css.indexOf('@media(max-width:540px)'));
  assert(mobile.includes('.dialog-heading{min-height:52px;padding:10px 16px}'),'en móvil el encabezado baja a 52 px y las acciones conservan 44');
+ // Con tres acciones (Cancelar · Guardar y crear otro · Crear) las secundarias van de a dos y la
+ // principal ocupa el ancho: el pie deja de comerse un cuarto de la hoja en 390 px.
+ assert(mobile.includes('.dialog-actions:has(>button:nth-of-type(3)){grid-template-columns:1fr 1fr}'),'tres acciones comparten fila en móvil');
+ assert(mobile.includes('.dialog-actions:has(>button:nth-of-type(3))>:is(button:last-of-type,:not(button)){grid-column:1/-1}'),'la principal y las notas ocupan el ancho completo');
 });
