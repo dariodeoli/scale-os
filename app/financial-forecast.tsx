@@ -319,7 +319,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     </>:<EmptyState compact title={`Sin gastos reales registrados para ${dateLabel(month)}.`} description="Cuando registres un pago contra una cuenta activa, aparecerá acá y se descontará del saldo."/>}
     {realError?<Aviso tono="error">{realError}</Aviso>:null}
    </Card>:null}
-   {undated>0?<Nota tono="warn">{undated} presupuesto(s) aceptado(s) sin fecha: excluidos del total mensual.</Nota>:null}
+   {undated>0?<Nota tono="warn" className="m-0">{undated} presupuesto(s) aceptado(s) sin fecha: excluidos del total mensual.</Nota>:null}
    <details className="rounded-xl border border-ink-600 bg-ink-800/40 p-3">
     <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-fore md:min-h-0">Cómo se calcula</summary>
     <div className="mt-2 grid gap-1.5 text-xs text-mute">
