@@ -213,9 +213,9 @@ assert.match(planner,/className="h-6 w-6 p-0 accent-fono"/,'la selección de pie
 // ── Ronda 16 (#70) + compactación #94: el lote aparece con la selección y la
 // pista viaja en el title del acceso directo del toolbar.
 assert.match(read('app/ui-v2.tsx'),/if \(!count \|\| role === 'viewer'\) return null;/,'BulkBar sólo aparece con la selección y nunca para viewer');
-assert.match(studio,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.studioReservations\} reservas/,'la pista del lote de Estudio viaja en el title');
+assert.match(studio,/title=\{`Seleccioná hasta \$\{BATCH_LIMITS\.studioReservations\} reservas/,'la pista del lote de Estudio viaja en el title');
 assert.match(projects,/\{canManageProjects\?<BulkBar count=\{bulk\.count\}/,'el lote de Proyectos usa BulkBar con permiso');
-assert.match(projects,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.projects\} proyectos visibles/,'la pista del lote de Proyectos viaja en el title');
+assert.match(projects,/title=\{`Seleccioná hasta \$\{BATCH_LIMITS\.projects\} proyectos visibles/,'la pista del lote de Proyectos viaja en el title');
 assert.match(orderLinks,/className="comment-link-chip min-h-11 md:min-h-0"/,'el chip de enlace de la pieza es táctil en mobile');
 assert.match(inventory,/grid h-11 w-11 place-items-center rounded-lg border md:h-9 md:w-9/,'el selector de íconos de categoría es táctil en mobile');
 assert.match(inventory,/className="mt-0\.5 h-6 w-6 p-0 accent-fono"/,'los ítems de reserva usan el checkbox de 24 px');
