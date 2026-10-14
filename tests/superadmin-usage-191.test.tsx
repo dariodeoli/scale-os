@@ -115,3 +115,24 @@ test('a user without global access never fetches usage and an admin only fetches
     assert.ok(rendered(renderer).includes('Uso por agencia'));
   } finally { if (renderer) act(() => renderer.unmount()); restore(); }
 });
+
+test('a slow response for a previous range never overwrites the range chosen later', async () => {
+  const restore = browser();
+  const pending: {url: string; resolve: (response: Response) => void}[] = [];
+  globalThis.fetch = ((input: RequestInfo | URL) => new Promise<Response>(resolve => { pending.push({url: String(input), resolve}); })) as typeof fetch;
+  const weekly: UsagePayload = {...payload, range: {...payload.range, days: 7}, agencies: [{...payload.agencies[0], name: 'Rango de 7 días'}]};
+  const monthly: UsagePayload = {...payload, range: {...payload.range, days: 30}, agencies: [{...payload.agencies[0], name: 'Rango de 30 días'}]};
+  let renderer!: ReactTestRenderer;
+  try {
+    await act(async () => { renderer = create(<PlatformUsage/>); });
+    assert.equal(pending.length, 1, 'carga inicial de 30 días');
+    await act(async () => { renderer.root.findAllByType('button').find(node => text(node.children) === '7 días')!.props.onClick(); });
+    assert.equal(pending.length, 2, 'el cambio a 7 días pide su rango');
+    // Llega primero la de 7 días (la vigente) y después la de 30 días (vieja).
+    await act(async () => { pending[1].resolve(new Response(JSON.stringify(weekly), {status: 200})); });
+    await act(async () => { pending[0].resolve(new Response(JSON.stringify(monthly), {status: 200})); });
+    const html = rendered(renderer);
+    assert.ok(html.includes('Rango de 7 días'), 'queda el rango elegido');
+    assert.equal(html.includes('Rango de 30 días'), false, 'la respuesta vieja se descarta');
+  } finally { if (renderer) act(() => renderer.unmount()); restore(); }
+});
