@@ -27,7 +27,8 @@ assert.match(projects,/bulk=\{canManageProjects\?<BulkBar count=\{bulk\.count\}/
 assert.match(projects,/title=\{`Seleccioná hasta \$\{BATCH_LIMITS\.projects\} proyectos visibles/,'el acceso directo conserva la pista en el title');
 
 // ── Estudio: encabezado en una fila, calendario denso y lote con selección.
-assert.match(studio,/<div className="flex min-w-0 flex-wrap items-center gap-3">\s*<h2 className="text-\[17px\] font-semibold tracking-tight text-fore">Calendario del estudio<\/h2>/,'el encabezado del Estudio va en una fila');
+assert.match(studio,/<div className="flex min-w-0 flex-wrap items-center gap-3">\s*<h2 className="m-0 text-\[17px\] font-semibold tracking-tight text-fore">Calendario del estudio<\/h2>/,'el encabezado del Estudio va en una fila (sin márgenes del navegador)');
+assert(studio.indexOf('Calendario del estudio')<studio.indexOf('data-grid="studio-spaces"'),'la agenda va antes del catálogo de espacios (reorganización IA)');
 assert.match(studio,/min-\[769px\]:min-h-14/,'las celdas del calendario del estudio son más densas en desktop');
 assert.match(studio,/<Label htmlFor="studio-month" className="whitespace-nowrap">Mes<\/Label>/,'el mes del estudio comparte la fila con su rótulo');
 assert.match(studio,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.studioReservations\}/,"el lote del Estudio aparece con la selección");
