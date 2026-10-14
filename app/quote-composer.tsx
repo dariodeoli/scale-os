@@ -10,6 +10,7 @@
 // y secciones viven en «Opciones del documento» (plegable) y la vista previa en
 // su propio bloque. El guardado queda bloqueado hasta completar los campos
 // obligatorios, con error inline por campo.
+import {OptionalMark} from './field-label';
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
 import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
@@ -30,8 +31,6 @@ export type {QuoteItemDraft,QuoteSection,QuoteValues,QuoteMode} from './quote-co
 
 type Row={id:string;[key:string]:unknown};
 
-/** Señal única de campo obligatorio (mismo objeto en título, cliente e ítems). */
-function Required(){return <span className="ml-1.5 align-middle text-[10px] font-semibold uppercase tracking-[.08em] text-mute">Obligatorio</span>;}
 
 // Ítem/columna bajo el puntero (predecible al arrastrar); el teclado, sin
 // puntero, cae al rectángulo que se cruza.
@@ -96,15 +95,15 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  return <form className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]" noValidate onSubmit={submission.onSubmit}>
  <div className="grid content-start gap-4">
   <section className="grid gap-3">
-   <FormField label={<>{mode==='plan'?'Nombre del plan':'Título del presupuesto'}<Required/></>} htmlFor="quote-title" error={form.formState.errors.title?.message}><Input id="quote-title" required maxLength={120} aria-invalid={form.formState.errors.title?'true':undefined} aria-describedby={form.formState.errors.title?'quote-title-descripcion':undefined} {...form.register('title')}/></FormField>
+   <FormField label={<>{mode==='plan'?'Nombre del plan':'Título del presupuesto'}</>} htmlFor="quote-title" error={form.formState.errors.title?.message}><Input id="quote-title" required maxLength={120} aria-invalid={form.formState.errors.title?'true':undefined} aria-describedby={form.formState.errors.title?'quote-title-descripcion':undefined} {...form.register('title')}/></FormField>
    <div className="flex flex-wrap items-end gap-3">
-    {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label={<>Cliente<Required/></>} htmlFor="quote-client" error={clientError||undefined}><Select id="quote-client" required aria-invalid={clientError?'true':undefined} aria-describedby={clientError?'quote-client-descripcion':undefined} value={v.clientId} onBlur={()=>setClientTouched(true)} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{form.setValue('clientId',event.target.value,{shouldDirty:true});setClientTouched(true);}}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)}>{String(client.name)}</option>)}</Select></FormField></div>}
-    {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label="Usar un plan como base (reemplaza los ítems actuales)" htmlFor="quote-plan-base"><Select id="quote-plan-base" value="" onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{const plan=plans.find(item=>String(item.id)===event.target.value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name),{shouldValidate:true});form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)}>{String(plan.name)}</option>)}</Select></FormField></div>}
+    {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label="Cliente" htmlFor="quote-client" error={clientError||undefined}><Select id="quote-client" required aria-invalid={clientError?'true':undefined} aria-describedby={clientError?'quote-client-descripcion':undefined} value={v.clientId} onBlur={()=>setClientTouched(true)} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{form.setValue('clientId',event.target.value,{shouldDirty:true});setClientTouched(true);}}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)}>{String(client.name)}</option>)}</Select></FormField></div>}
+    {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label={<>Usar un plan como base (reemplaza los ítems actuales)<OptionalMark/></>} htmlFor="quote-plan-base"><Select id="quote-plan-base" value="" onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{const plan=plans.find(item=>String(item.id)===event.target.value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name),{shouldValidate:true});form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)}>{String(plan.name)}</option>)}</Select></FormField></div>}
     <CurrencyField id="quote-currency" label="Moneda" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value))}/>
    </div>
   </section>
   <section className="grid gap-3" aria-label="Ítems del documento">
-   <h3 className="m-0 text-sm font-bold text-fore">Ítems del documento<Required/></h3>
+   <h3 className="m-0 text-sm font-bold text-fore">Ítems del documento</h3>
    <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={reorderAccessibility('item')}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder}>
     <FormField label="Descripción" htmlFor={`quote-item-description-${index}`} error={itemErrors?.[index]?.description?.message}><Input id={`quote-item-description-${index}`} required aria-invalid={itemErrors?.[index]?.description?'true':undefined} aria-describedby={itemErrors?.[index]?.description?`quote-item-description-${index}-descripcion`:undefined} {...form.register(`items.${index}.description`)}/></FormField>
     <div className="flex flex-wrap gap-3">
@@ -120,7 +119,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <div><Button type="button" variant="outline" onClick={()=>array.append({description:'',quantity:'1',unitPrice:'0'})}><Plus size={14}/>Agregar ítem</Button></div>
   </section>
   <section className="grid gap-3">
-   <FormField label="Condiciones (opcional)" htmlFor="quote-notes"><Textarea id="quote-notes" rows={3} maxLength={2000} {...form.register('notes')}/></FormField>
+   <FormField label={<>Condiciones<OptionalMark/></>} htmlFor="quote-notes"><Textarea id="quote-notes" rows={3} maxLength={2000} {...form.register('notes')}/></FormField>
   </section>
   {/* Documento (#150): IVA, vigencia y secciones pasan a un plegable; el alta
       queda con lo esencial y las acciones no se esconden. */}
@@ -129,7 +128,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <div className="grid gap-4">
     <div className="flex flex-wrap items-end gap-3">
      <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select id="quote-tax" value={String(Number(v.tax_rate))} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('tax_rate',event.target.value,{shouldDirty:true})}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
-     {mode!=='plan'&&<div className="w-full max-w-44 min-w-0"><FormField label="Válido hasta" htmlFor="quote-valid-until"><Input id="quote-valid-until" type="date" {...form.register('valid_until')}/></FormField></div>}
+     {mode!=='plan'&&<div className="w-full max-w-44 min-w-0"><FormField label={<>Válido hasta<OptionalMark/></>} htmlFor="quote-valid-until"><Input id="quote-valid-until" type="date" {...form.register('valid_until')}/></FormField></div>}
     </div>
     {mode!=='plan'&&<section className="grid gap-3" aria-label="Secciones del documento">
      <div><h3 className="text-sm font-bold text-fore">Secciones del documento</h3><p className="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>

@@ -59,3 +59,10 @@ html[data-theme="dark"] .control-shell .column{background:var(--control-subtle)}
 .due-group-cell{display:grid;gap:6px;min-width:0}.due-bar-track{display:block;min-width:0}
 @media(max-width:760px){.metrics-heading{margin-top:14px}.finance-compare-row{grid-template-columns:minmax(110px,140px) 1fr;grid-template-areas:'label value' 'track track'}.finance-compare-label{grid-area:label}.finance-compare-value{grid-area:value;text-align:right}.finance-compare-track{grid-area:track}}
 
+
+/* Tarjetas destacadas del Centro de control (AA ≥ 4.5:1): la etiqueta y la ayuda del
+   Stat usan la tinta de marca al 75 % y, en oscuro, el degradado arranca en fono-dark,
+   donde la tinta oscura de marca queda en ~3.6:1. Acá la tinta va plena y, en oscuro,
+   el fondo es el violeta claro donde esa tinta llega a ~5.4:1. */
+.kpi-highlight-aa>div,.kpi-highlight-aa>div>span{color:rgb(var(--c-onbrand))}
+html[data-theme="dark"] .kpi-highlight-aa{background-image:linear-gradient(to bottom right,rgb(var(--c-fono)),rgb(var(--c-fono)))}

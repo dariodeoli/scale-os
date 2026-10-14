@@ -88,7 +88,8 @@ test('presupuesto vacío: guardado bloqueado, campos obligatorios y errores inli
  requests=[];let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<QuoteComposer mode="create" record={null} done={()=>{}}/>);});
  const copy=text(renderer.root);
- assert.match(copy,/Obligatorio/,'los campos requeridos se declaran');
+ assert.doesNotMatch(copy,/Obligatorio/,'convención única: el obligatorio no lleva marca');
+ assert.match(copy,/Condiciones · Opcional/,'el opcional se anuncia con «· Opcional»');
  assert.match(copy,/Opciones del documento/,'las opciones del documento están plegadas');
  const save=buttonExact(renderer,'Guardar');
  assert.equal(save.props.disabled,true,'un presupuesto vacío no se puede guardar');

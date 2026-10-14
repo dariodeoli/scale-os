@@ -72,6 +72,13 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
 }
 
 /** Diálogo del editor: en edición carga la ficha (y los términos comerciales con permiso). */
+/** «Cargar plan y pago» abre el mismo editor con la sección del plan obligatoria: su título lo dice. */
+export const CLIENT_PLAN_DESCRIPTION='Elegí el plan contratado y sus condiciones de pago. El resto de la ficha sigue editable en las otras secciones.';
+export function clientEditorTitle(mode:'create'|'edit',planMode:boolean,name:string){
+  if(mode==='create')return 'Nuevo cliente';
+  if(planMode)return name?`Plan y pago · ${name}`:'Plan y pago del cliente';
+  return 'Editar cliente';
+}
 export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=false,close,refresh,onCreated}:{
   mode:'create'|'edit';
   clientId?:string;
@@ -95,7 +102,9 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
   }
   useEffect(()=>{void load();},[clientId,mode]);// eslint-disable-line react-hooks/exhaustive-deps
   const ready=mode==='create'||(record!==null&&(!canPlan||plan!==null||planError!==''));
-  return <Dialog title={mode==='create'?'Nuevo cliente':'Editar cliente'} close={close}>
+  const planMode=planFocus&&canPlan;
+  return <Dialog title={clientEditorTitle(mode,planMode,String(record?.name??''))} close={close}>
+    {planMode?<p className="form-note mb-3">{CLIENT_PLAN_DESCRIPTION}</p>:null}
     {/* Finalidad declarada donde la agencia carga datos de un tercero (#114). */}
     <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
     {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
