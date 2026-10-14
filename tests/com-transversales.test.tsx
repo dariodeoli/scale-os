@@ -28,10 +28,13 @@ const archivePath=require.resolve('../app/archive-controls');
 require.cache[archivePath]={id:archivePath,filename:archivePath,loaded:true,exports:{
  RemoveRecord:({name}:{name:string})=><button type="button" aria-label={`Mover a la papelera: ${name}`}>Papelera</button>,
 }} as NodeModule;
+// `__esModule:true` es necesario: la sección carga estos módulos con `dynamic(() => import(x).then(m => m.Nombre))` y tsx
+// solo desenvuelve `default` cuando trae ese marcador; sin él, según la versión de Node, `m.Nombre` queda undefined
+// y React falla con «Element type is invalid» (fallaba en local con Node 22.22 y pasaba en CI).
 const growthPath=require.resolve('../app/growth-dashboard');
-require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{GrowthDashboard:({events}:{events:unknown[]})=><div data-events={events.length}>Tablero de crecimiento</div>}} as NodeModule;
+require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{__esModule:true,GrowthDashboard:({events}:{events:unknown[]})=><div data-events={events.length}>Tablero de crecimiento</div>}} as NodeModule;
 const visitorsPath=require.resolve('../app/live-visitors');
-require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
+require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{__esModule:true,LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
 const dndPath=require.resolve('@dnd-kit/core');
 require.cache[dndPath]={id:dndPath,filename:dndPath,loaded:true,exports:{
  DndContext:({children}:{children:React.ReactNode})=><div>{children}</div>,
@@ -49,6 +52,9 @@ type Pending={url:string;init:RequestInit;resolve:(response:Response)=>void};
 let requests:Pending[]=[];
 globalThis.fetch=(input,init={})=>new Promise<Response>(resolve=>{requests.push({url:String(input),init,resolve});});
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
+// Los componentes `dynamic()` se resuelven con un import() nativo (varios ticks de macrotarea, según el Node):
+// se espera a que el lazy termine de montarse en vez de asumir que un solo flush de act() alcanza.
+const lazyLoaded=async(done:()=>boolean)=>{for(let attempt=0;attempt<200&&!done();attempt++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10));});};
 const user=(role='owner')=>({id:'1',role,organization_id:'7',full_name:'Prueba',organization_slug:''} as unknown as User);
 const button=(renderer:ReactTestRenderer,label:string)=>renderer.root.findAllByType('button').find(candidate=>text(candidate).includes(label));
 const flush=async(data:unknown,status=200)=>{const pending=requests.shift()!;await act(async()=>{pending.resolve(new Response(JSON.stringify(data),{status}));});};
@@ -155,7 +161,7 @@ test('métricas: cargando, error con reintento y vacío con acción',async()=>{
  act(()=>renderer.unmount());
  await mount('error',[{name:'page_view',event_date:'2026-09-22',count:3}]);
  assert.match(text(renderer.root),/No se pudieron actualizar las métricas/,'con última lectura el aviso es de actualización');
- assert.match(text(renderer.root),/Tablero de crecimiento/,'la última lectura real se conserva');
+ await lazyLoaded(()=>/Tablero de crecimiento/.test(text(renderer.root)));assert.match(text(renderer.root),/Tablero de crecimiento/,'la última lectura real se conserva');
  act(()=>renderer.unmount());
 });
 
