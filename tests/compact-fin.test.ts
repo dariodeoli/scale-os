@@ -29,7 +29,7 @@ assert.match(finanzas,/<span className="whitespace-nowrap tabular-nums">\{accoun
 assert.match(finanzas,/<span className="sr-only">Custodia:<\/span><PersonContainer size="sm"/,'la custodia conserva su rótulo para lectores');
 
 // ── Mora: header con título completo + toolbar compacta en su fila (#89).
-assert.match(mora,/<FilterToolbar summary=\{`\$\{visible\.length\} de \$\{paymentStatuses\.length\}`\}>/,'la toolbar de cobranza vive en su fila compacta');
+assert.match(mora,/<FilterToolbar className="mb-0" summary=\{`\$\{visible\.length\} de \$\{paymentStatuses\.length\}`\}>/,'la toolbar de cobranza vive en su fila compacta');
 assert.doesNotMatch(mora,/<PageHeader[\s\S]{0,400}<SegmentedField/,'los filtros no recortan el título del header');
 
 // ── Previsión: mes y horizonte en el header; sin caja de toolbar ni nota suelta.
