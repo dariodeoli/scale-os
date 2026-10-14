@@ -111,7 +111,7 @@ const verificationStamp = (item, empty = 'Sin verificación') => item.verificati
 const itemActions = (item, dense = false) => `<span class="flex shrink-0 flex-nowrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Verificar con detalle: ${item.name}`, dense})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense})}</span>`;
 
 const equipmentRow = (item) => `
-<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[56px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
+<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[44px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
  <span class="flex h-11 items-center md:h-auto"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label></span>
  <span class="flex items-center">${photoBox(item, 'row')}</span>
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${item.name}">${item.name}</b><code class="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></span>
@@ -141,7 +141,7 @@ const equipmentCard = (item) => `
   ${itemActions(item)}
  </div>
 </article>`;
-const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[68rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
+const equipmentHead = `<div data-list-head="equipment" class="grid min-w-[69.5rem] grid-cols-[var(--eq-cols)] items-center gap-x-2 border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span></span><span>Foto</span><span>Artículo</span><span>Detalles</span><span class="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span class="text-right">Acciones</span></div>`;
 // Fila "Atención" del inventario: chips de conteo + explicación a ancho completo
 // (antes del pase de compactación #90, espejo de `app/inventory-workspace.tsx`).
 const attentionChip = (label, count, active = false) => `<button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${active ? 'border-warn bg-warn/15 text-fore' : 'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}" aria-pressed="${active}"><span>${label}</span><span class="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">${count}</span></button>`;
@@ -240,7 +240,7 @@ const spaces = [
   {name: 'Estudio B · escenario de ladrillo', scenario: 'Ladrillo visto · chimenea', notes: 'En refacción hasta octubre.', active: false},
 ];
 const spaceCard = (space) => `
-<article data-grid-card="studio-spaces" class="flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
+<article data-grid-card="studio-spaces" class="flex min-h-[200px] min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800/60 p-4">
  <div class="flex items-start justify-between gap-3"><h3 class="break-words text-sm font-semibold text-fore">${space.name}</h3>${badge(space.active ? 'Disponible' : 'Inactivo', space.active ? 'ok' : 'mute')}</div>
  <p class="text-sm text-mute">${space.scenario}</p>${space.notes ? `<small class="line-clamp-2 text-xs text-mute" title="${space.notes}">${space.notes}</small>` : ''}
  <div class="mt-auto flex justify-end">${iconAction({icon: 'edit', label: `Editar espacio: ${space.name}`})}</div>
@@ -287,8 +287,8 @@ export default [
  <div class="grid min-w-0 gap-3">${inventoryToolbar}</div>
  <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
   ${kpiStrip}
-  <div data-list="equipment" class="mt-4 min-w-0 overflow-x-auto">
-   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[68rem] gap-2">
+  <div data-list="equipment" class="silent-scroll mt-4 min-w-0 overflow-x-auto">
+   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[69.5rem] gap-2">
    ${equipmentHead}
    ${equipment.map(equipmentRow).join('')}
    </div>
@@ -308,8 +308,8 @@ export default [
  <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5"><div class="grid min-w-0 gap-3">${inventoryToolbarAntes}</div></div>
  <div class="min-w-0 rounded-xl border border-fono/30 bg-ink-800 p-5">
   ${kpiStrip}
-  <div data-list="equipment" class="mt-4 min-w-0 overflow-x-auto">
-   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[68rem] gap-2">
+  <div data-list="equipment" class="silent-scroll mt-4 min-w-0 overflow-x-auto">
+   <div class="[--eq-cols:2rem_2.25rem_minmax(8.5rem,1.4fr)_minmax(7.5rem,1fr)_7rem_6.5rem_minmax(6.5rem,1fr)_minmax(9.5rem,1.1fr)_12rem] grid min-w-[69.5rem] gap-2">
    ${equipmentHead}
    ${equipment.map(equipmentRow).join('')}
    </div>
