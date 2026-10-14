@@ -175,7 +175,8 @@ test('#138 adopción: kit ⋯, esqueleto del Resumen, vacío compacto y KPIs de 
   assert.doesNotMatch(workHistory,/<p>\{str\(r,'description'\)\}<\/p>/,'la descripción salió de la tarjeta (vive en el detalle)');
 
   const preferencias=file('app/sections/preferencias.tsx');
-  assert.match(preferencias,/<KpiStrip compact>/,'Preferencias apila KPIs compactos en mobile');
+  assert.doesNotMatch(preferencias,/<KpiStrip/,'Preferencias muestra el inicio, los filtros y el alcance en sus tarjetas, sin KPIs duplicados (reorganización IA)');
+  assert.match(preferencias,/lg:grid-cols-2/,'las dos tarjetas van lado a lado en escritorio');
 });
 
 console.log('PASS: patrones #138 — tarjeta compacta, menú ⋯, esqueletos, vacío compacto y adopción en el shell');
