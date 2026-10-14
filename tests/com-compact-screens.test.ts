@@ -19,8 +19,8 @@ test('pipeline: la toolbar va en una fila, los KPIs no se estiran y los totales 
  assert.doesNotMatch(pipeline, /<PageHeader/, 'sin una segunda fila de encabezado');
  assert.match(
   pipeline,
-  /<FilterToolbar>[\s\S]{0,4000}?className="ml-auto flex flex-wrap items-center gap-2">[\s\S]{0,900}?Nueva oportunidad<\/Button>[\s\S]{0,80}?<\/FilterToolbar>/,
-  'las acciones del pipeline cierran la toolbar canónica',
+  /<ListPage aria-label="Pipeline" primaryAction=\{canEdit\?<>[\s\S]{0,600}?Nueva oportunidad<\/Button>[\s\S]{0,40}?<\/>:undefined\}>/,
+  'las acciones del pipeline comparten la fila del título (ownsHeader)',
  );
  assert.doesNotMatch(pipeline, /flex flex-wrap items-center justify-end gap-2">\s*<Button type="button" variant="ghost" onClick=\{\(\)=>setStagePanel\(true\)\}/, 'las acciones no vuelven a su fila propia');
  // La ayuda de arrastre es una etiqueta corta con la explicación en tooltip.
