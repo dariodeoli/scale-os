@@ -88,7 +88,7 @@ test('every visible clock is 24-hour and the trash list carries its columns',()=
   assert.match(invites,/REQUESTS_COLUMNS=\[\{key:'person',label:'Persona'\}/,'invite requests show their column header');
   assert.match(invites,/LINKS_COLUMNS=\[\{key:'link',label:'Enlace'\}/,'invite links show their column header');
   assert.match(invites,/REQUESTS_TEMPLATE='grid-cols-\[minmax\(11rem,1\.5fr\)_minmax\(12rem,1\.5fr\)_6\.5rem_7\.5rem_5\.5rem_14rem\]'/,'invite requests share the v2 template literal with their header');
-  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(12rem,1\.6fr\)_8rem_minmax\(11rem,1\.2fr\)_minmax\(10rem,1\.2fr\)_12rem\]'/,'invite links share the v2 template literal with their header');
+  assert.match(invites,/LINKS_TEMPLATE='grid-cols-\[minmax\(12rem,1\.6fr\)_8rem_minmax\(11rem,1\.2fr\)_minmax\(10rem,1\.2fr\)_14rem\]'/,'invite links share the v2 template literal with their header');
   assert.match(invites,/ListGrid label="Solicitudes de acceso"[\s\S]*?ListGrid label="Enlaces de invitación"/,'both lists use the shared v2 ListGrid');
 });
 
