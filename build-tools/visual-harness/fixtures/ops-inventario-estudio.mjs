@@ -250,16 +250,16 @@ const studioReservations = [
   {title: 'Podcast semanal', place: 'Cabina de podcast insonorizada · Tratamiento acústico completo · Podcast', dates: '25 sept 26 · 18:00 → 25 sept 26 · 20:00', project: 'Sin proyecto vinculado', responsibles: 'Lucía Acosta Fernández de la Vega de Prueba', status: 'Reservada', tone: 'info'},
   {title: 'Spot publicitario (cancelada por lluvia)', place: 'Estudio B · escenario de ladrillo · Ladrillo visto · Ads', dates: '05 sept 26 · 07:00 → 05 sept 26 · 15:00', project: 'Spot · Cumbre Seguros', responsibles: 'Camila Vera de Prueba', status: 'Cancelada', tone: 'mute'},
 ];
-const studioReservationHead = `<div data-list-head="studio-reservations" class="grid grid-cols-[var(--studio-cols)] items-center gap-x-2 px-3 text-[10px] font-bold uppercase tracking-wider text-mute" aria-hidden="true"><span/><span>Reserva</span><span>Horario</span><span>Proyecto</span><span>Responsables</span><span>Estado</span><span class="text-right">Acciones</span></div>`;
+/* app/studio-workspace.tsx: ListGrid + ListRow con UNA plantilla (--studio-cols). */
+const studioReservationHead = `<div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[var(--studio-cols)]"><span role="columnheader" class="whitespace-nowrap">Reserva</span><span role="columnheader" class="whitespace-nowrap">Horario</span><span role="columnheader" class="whitespace-nowrap">Proyecto</span><span role="columnheader" class="whitespace-nowrap">Responsables</span><span role="columnheader" class="whitespace-nowrap">Estado</span><span role="columnheader" class="whitespace-nowrap text-right list-actions-head">Acciones</span></div>`;
 const studioReservationRow = (row) => `
-<div data-list-row="studio-reservations" class="grid min-h-[48px] content-center grid-cols-[var(--studio-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
- <span class="flex h-11 items-center md:h-auto">${row.status === 'Reservada' ? `<label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar reserva: ${row.title}"></label>` : ''}</span>
- <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${row.title}">${row.title}</b><small class="truncate text-[11px] text-mute" title="${row.place}">${row.place}</small></span>
- <span class="min-w-0 whitespace-nowrap text-[13px] leading-5 tabular-nums text-mute">${row.dates}</span>
- <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.project}">${row.project}</span>
- <span class="flex min-w-0 items-center gap-1 overflow-hidden text-[13px] leading-5 text-mute"><span class="text-[11px]">Responsables:</span><span class="truncate" title="${row.responsibles}">${row.responsibles}</span></span>
- <span class="flex">${badge(row.status, row.tone)}</span>
- <span class="flex flex-wrap items-center justify-end gap-1">${row.status === 'Reservada' ? iconAction({icon: 'edit', label: `Editar reserva: ${row.title}`}) + iconAction({icon: 'close', tone: 'warn', label: `Cancelar reserva: ${row.title}`}) : ''}</span>
+<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 md:min-h-11 md:py-2 grid-cols-[var(--studio-cols)] content-center">
+ <span role="cell" class="flex min-w-0 items-center gap-2">${row.status === 'Reservada' ? `<label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar reserva: ${row.title}"></label>` : ''}<span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${row.title}">${row.title}</b><small class="truncate text-[11px] text-mute" title="${row.place}">${row.place}</small></span></span>
+ <span role="cell" class="min-w-0 whitespace-nowrap text-[13px] leading-5 tabular-nums text-mute">${row.dates}</span>
+ <span role="cell" class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.project}">${row.project}</span>
+ <span role="cell" class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${row.responsibles}">${row.responsibles}</span>
+ <span role="cell" class="flex">${badge(row.status, row.tone)}</span>
+ <div role="cell" class="list-actions">${row.status === 'Reservada' ? iconAction({icon: 'edit', label: `Editar reserva: ${row.title}`}) + iconAction({icon: 'close', tone: 'warn', label: `Cancelar reserva: ${row.title}`}) : ''}</div>
  ${row.actor || row.notes ? `<p class="col-span-full flex min-w-0 flex-nowrap items-center gap-x-3 overflow-hidden text-[11px] text-mute" title="${[row.actor ? `Creada por ${row.actor}` : '', row.notes ? `Notas: ${row.notes}` : ''].filter(Boolean).join(' · ')}">${row.actor ? `<span class="truncate">Creada por ${row.actor}</span>` : ''}${row.notes ? `<span class="truncate">Notas: ${row.notes}</span>` : ''}</p>` : ''}
 </div>`;
 const studioCalendar = `<div class="grid gap-2" aria-label="Calendario mensual del estudio"><div class="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => `<span class="text-center text-[10px] font-bold uppercase tracking-wider text-mute">${day}</span>`).join('')}</div><div class="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">${Array.from({length: 1}, (_, index) => `<div class="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key="blank-${index}"></div>`).join('')}${Array.from({length: 30}, (_, index) => {const day = index + 1; const rows = day === 24 || day === 25 ? [{space: day === 24 ? 'Set principal con fondo infinito y grúa' : 'Cabina de podcast insonorizada', title: day === 24 ? 'Grabación de campaña · cliente' : 'Podcast semanal'}] : []; return `<div class="grid min-h-[4.25rem] content-start gap-1 rounded-lg border border-ink-600/60 p-2 min-[769px]:min-h-14 min-[769px]:p-1"><time class="text-[11px] tabular-nums text-mute">${day}</time>${rows.map((row) => `<div class="grid gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-[11px] text-fono-light"><b class="break-words">${row.space}</b><span class="text-mute">${row.title}</span></div>`).join('')}</div>`;}).join('')}</div></div>`;
@@ -460,29 +460,26 @@ export default [
     surface: 'Reservas en lista',
     kind: 'workspace',
     lists: [{
-      container: '[data-list="studio-reservations"]',
-      head: '[data-list-head="studio-reservations"]',
-      row: '[data-list-row="studio-reservations"]',
+      container: '[data-list="studio-reservations"] [role="table"]',
+      head: '[role="row"]',
+      row: '[role="rowgroup"] [role="row"]',
       label: 'Estudio · reservas',
       template: '--studio-cols',
       // La fila de reservas admite UNA línea muted de auditoría (decisión 17-09):
-      // la línea principal queda en 44–52 y con la auditoría la fila llega a ~80.
-      rowHeight: [44, 84],
+      // la línea principal queda en 44–52 y con la auditoría la fila llega a ~88
+      // (ListRow suma su padding de escritorio).
+      rowHeight: [44, 90],
       exemptBelow: 980,
       // Sin línea de auditoría: la fila mide el contrato vigente.
     }],
     body: `
-<div class="grid min-w-0 gap-4"><div class="grid min-w-0 gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
- <div class="flex min-w-0 flex-wrap items-center gap-3"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2><p class="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horario de Asunción. Una reserva activa bloquea únicamente su espacio.">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p><div class="flex items-center gap-2"><label class="whitespace-nowrap text-[12px] font-semibold text-mute" for="studio-month">Mes</label><input id="studio-month" class="h-11 w-44 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm" type="month" value="2026-09"></div><button type="button" class="text-button min-h-11 md:min-h-8" title="Selecciona hasta 50 reservas del mes para cancelarlas juntas">Seleccionar visibles</button></div>
+<div class="grid min-w-0 gap-4">
+ <div data-toolbar="filtros" class="flex flex-wrap items-end gap-3 xl:flex-nowrap"><div role="search" aria-label="Buscar reserva" class="flex h-11 w-full items-center rounded-lg border border-ink-500 bg-ink-800 px-3 text-sm text-mute sm:w-64 md:h-9">Reserva, espacio, proyecto o persona…</div><button type="button" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-left text-sm text-fore sm:w-52 md:h-9">Todos los espacios</button><button type="button" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-left text-sm text-fore sm:w-44 md:h-9">Todos los estados</button><div class="flex items-center gap-2"><label class="whitespace-nowrap text-[12px] font-semibold text-mute" for="studio-month">Mes</label><input id="studio-month" class="h-11 w-44 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm" type="month" value="2026-09"></div><button type="button" class="text-button min-h-11 md:min-h-8" title="Selecciona hasta 50 reservas del mes para cancelarlas juntas">Seleccionar visibles</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">3 de 3 reservas</p></div>
+ <div class="bulk-bar" role="status" aria-live="polite"><span class="bulk-count"><b>1</b> de 50 seleccionada</span><div class="inline-actions bulk-actions"><button type="button" class="secondary min-h-11 md:min-h-10">Cancelar</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button></div></div>
+ <div class="grid min-w-0 gap-4 rounded-xl border border-fono/30 bg-ink-800 p-5">
+ <div class="flex min-w-0 flex-wrap items-center gap-3"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2><p class="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horario de Asunción. Una reserva activa bloquea únicamente su espacio.">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p></div>
  ${studioCalendar}
- <div class="bulk-bar" role="status" aria-live="polite">
-  <span class="bulk-count"><b>1</b> de 50 seleccionada</span>
-  <div class="inline-actions bulk-actions">
-   <button type="button" class="secondary min-h-11 md:min-h-10">Cancelar</button>
-   <button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button>
-  </div>
- </div>
- <div data-list="studio-reservations" class="mt-4 min-w-0 overflow-x-auto"><div class="[--studio-cols:2.25rem_minmax(9.5rem,1.4fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1fr)_7rem_9rem] grid min-w-[67.5rem] gap-2">${studioReservationHead}${studioReservations.map(studioReservationRow).join('')}</div></div>
+ <div data-list="studio-reservations" class="min-w-0"><div role="table" aria-label="Reservas del estudio" class="silent-scroll relative min-w-0 overflow-x-auto [--studio-cols:minmax(13rem,1.5fr)_minmax(14rem,1.2fr)_minmax(7.5rem,1fr)_minmax(8.5rem,1fr)_6.5rem_5rem]"><div class="min-w-[60rem]">${studioReservationHead}<div role="rowgroup">${studioReservations.map(studioReservationRow).join('')}</div></div></div></div>
 </div></div>`,
   },
 ];

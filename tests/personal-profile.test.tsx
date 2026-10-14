@@ -8,13 +8,13 @@ import type {Feedback} from '../app/feedback';
 
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React,window:new EventTarget()});
-// Real Editor/API; only portals and photo primitives are doubled.
+// Real Editor/API/PersonSheet; only portals and the (shared) person photo field are doubled.
 // No browser, upload, image request or remote API is used.
 function PhotoStub({photo,name}:{photo:string|null;name:string}){return photo?<img src={photo} alt={`Foto de ${name}`}/>:<span aria-label="Sin foto">{name[0]}</span>;}
 const CloseContext=React.createContext<(()=>void)|undefined>(undefined);
 function DialogStub({children,close,busy=false}:{children:React.ReactNode;close:()=>void;busy?:boolean}){const guardedClose=()=>{if(!busy)close();};return <CloseContext.Provider value={guardedClose}><section role="dialog" aria-busy={busy}>{children}<button type="button" disabled={busy} onClick={guardedClose}>Cerrar</button></section></CloseContext.Provider>;}
 function mock(path:string,exports:unknown){const id=require.resolve(path);require.cache[id]={id,filename:id,loaded:true,exports} as NodeModule;}
-mock('../app/profile-photo',{ProfilePhoto:PhotoStub});
+mock('../app/person-photo',{PersonPhotoField:PhotoStub});
 mock('../app/dialog',{Dialog:DialogStub,FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,useDialogPending:()=>{},useDialogClose:()=>React.useContext(CloseContext)});
 const {MyProfile}=require('../app/my-profile') as typeof import('../app/my-profile');
 type Profile={email:string;full_name:string|null;photo_url:string|null;identity_scope:'personal'|'demo'|'personal_readonly';google_connected?:boolean};
@@ -39,7 +39,9 @@ async function respond(request:Request,data:unknown,status=200){await act(async(
 async function load(profile=fixture()){await respond(latest(),{profile});}
 async function changeName(value:string){await act(async()=>{await renderer.root.findByProps({name:'full_name'}).props.onChange({target:{name:'full_name',value},type:'change'});});}
 async function startNameSave(){let pending!:Promise<void>;await act(async()=>{pending=renderer.root.findByType('form').props.onSubmit(submitEvent());});return {pending};}
-async function openNameEditor(){await act(async()=>{renderer.root.findByProps({'data-profile-section':'name'}).props.onToggle({currentTarget:{open:true}});});}
+const textOf=(node:any):string=>typeof node==='string'?node:node?.children?.map(textOf).join('')||'';
+const tabButton=(label:string)=>renderer.root.findAllByType('button').find(button=>textOf(button)===label);
+async function openTab(label:string){await act(async()=>{tabButton(label)!.props.onClick();});}
 function close(){act(()=>renderer.unmount());}
 
 test('real identity in a private demo is visible but cannot be changed from the demo',async()=>{
@@ -56,22 +58,24 @@ test('canonical name/email header, single photo preview, edit sequence and scope
  await load();
  assert.match(content(),/ana@example\.invalid/);
  assert.match(content(),/Ana Personal/);assert.match(content(),/se comparten entre tus empresas/);
- assert.equal(renderer.root.findAllByType('input').length,0,'el editor de nombre vive plegado');
- assert.equal(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')),false,'el pie no ofrece guardar sin editor abierto');
+ assert.equal(renderer.root.findAllByType('input').length,1,'la ficha trae el editor de nombre a la vista (sin pliegues)');
+ assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')),'el nombre se guarda por separado de la foto');
+ assert(['Perfil','Acceso','Mis datos'].every(label=>Boolean(tabButton(label))),'la ficha propia ofrece Perfil · Acceso · Mis datos');
+ assert.equal(Boolean(tabButton('Remuneración')),false,'el modo propio nunca ofrece Remuneración');
  assert.equal(requests.length,1,'opening the editor never writes');
  assert.match(JSON.stringify(renderer.toJSON()),/"data-profile-section":"identity"[\s\S]*?Identidad/,'la sección de identidad encabeza el perfil');
  assert.equal(renderer.root.findAllByType(PhotoStub).length,1);
  assert.equal(renderer.root.findAllByType('img').length,2,'avatar de identidad + vista previa de foto');
  assert.equal(renderer.root.findByProps({'data-profile-section':'identity'}).findAllByType('img').length,1,'la identidad usa su avatar y no duplica la vista previa de la foto');
+ await openTab('Acceso');
  assert.match(content(),/Usá Google para ingresar/);const google=renderer.root.findAllByType('a').find(link=>link.children.includes('Conectar Google'))!;assert.equal(google.props.href,'/core-api/api/auth/google/start?connect=1');
  const rendered=content();assert(rendered.indexOf('"data-profile-section":"photo"')<rendered.indexOf('"data-profile-section":"name"'),'photo controls precede name editing');
- await openNameEditor();
  assert.equal(renderer.root.findAllByType('input').length,1);assert.equal(renderer.root.findByType('input').props.name,'full_name');
  assert(renderer.root.findAllByType('button').some(button=>button.children.includes('Guardar nombre')),'el pie guarda cuando el editor está abierto');
 });
 
 test('name failure retains real Editor draft and dialog; retry closes only after persistence',async()=>{
- await mount();await load();await openNameEditor();await changeName('Ana Cambiada');
+ await mount();await load();await changeName('Ana Cambiada');
  const first=await startNameSave();
  assert.equal(latest().init.method,'PATCH');assert.deepEqual(JSON.parse(String(latest().init.body)),{full_name:'Ana Cambiada'});
  assert.equal(closed,0);assert.match(content(),/Guardando/);
@@ -84,7 +88,7 @@ test('name failure retains real Editor draft and dialog; retry closes only after
 });
 
 test('name closes before session refresh finishes; refresh failure warns without denying persistence',async()=>{
- const refresh=deferred<void>();await mount(()=>refresh.promise);await load();await openNameEditor();await changeName('Nombre Persistido');
+ const refresh=deferred<void>();await mount(()=>refresh.promise);await load();await changeName('Nombre Persistido');
  const save=await startNameSave();await respond(latest(),{profile:fixture({full_name:'Nombre Persistido'})});
  assert.equal(closed,1,'pending refresh must not hold a successfully saved editor open');
  assert.equal(refreshes,1);assert.match(content(),/Editor cerrado/);
@@ -95,7 +99,7 @@ test('name closes before session refresh finishes; refresh failure warns without
 });
 
 test('photo remains partial and separate; refresh failure neither rejects persisted photo nor clears name draft',async()=>{
- await mount(async()=>{throw Error('Refresh unavailable');});await load();await openNameEditor();await changeName('Borrador sin guardar');
+ await mount(async()=>{throw Error('Refresh unavailable');});await load();await changeName('Borrador sin guardar');
  let photoSave!:Promise<void>;
  await act(async()=>{photoSave=renderer.root.findByType(PhotoStub).props.save('https://example.invalid/b.png');});
  assert.equal(renderer.root.findByType(DialogStub).props.busy,true,'photo persistence locks the dialog');
@@ -138,7 +142,7 @@ test('load retry and late responses cannot close or refresh an abandoned editor'
  assert.equal(renderer.root.findAllByType('form').length,0);assert.match(content(),/No se pudo cargar/);
  act(()=>renderer.root.findAllByType('button').find(button=>button.children.includes('Reintentar carga'))!.props.onClick());
  assert.match(content(),/Cargando tu perfil/);await load();
- await openNameEditor();await changeName('Nombre pendiente');const save=await startNameSave();const lateSave=latest();close();
+ await changeName('Nombre pendiente');const save=await startNameSave();const lateSave=latest();close();
  await respond(lateSave,{profile:fixture({full_name:'Nombre pendiente'})});await save.pending;
  assert.equal(closed,0);assert.equal(refreshes,0);
  await mount();const lateLoad=latest();close();await respond(lateLoad,{profile:fixture()});assert.equal(refreshes,0);
@@ -156,7 +160,7 @@ test('v2 source: wrapping identity, 44px controls and unchanged hidden file inpu
 });
 
 test('a Google-linked account shows the connected state instead of the connect action',async()=>{
- await mount();await load(fixture({google_connected:true}));
+ await mount();await load(fixture({google_connected:true}));await openTab('Acceso');
  assert.match(content(),/Conectado/,'the linked account shows its state');
  assert.equal(renderer.root.findAllByType('a').some(link=>link.children.includes('Conectar Google')),false,'a linked account never asks to connect again');
  close();

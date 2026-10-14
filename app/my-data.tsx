@@ -4,7 +4,8 @@ import {AlertTriangle,Download} from 'lucide-react';
 import {StateChip,ErrorBlock,LoadingBlock} from './ui-v2';
 import {daysUntil} from './client-format';
 import {listDateFull,dueTone} from './list-format';
-import {Dialog} from './dialog';
+import {ConfirmDialog,Dialog} from './dialog';
+import {Editor} from './operations';
 import {notify} from './feedback';
 import {PRIVACY_NOTICE,PRIVACY_PURPOSES,PRIVACY_RIGHTS_CHANNEL,type PrivacyPurpose} from './privacy-notice';
 import {technicalEmail} from './field-rules';
@@ -134,38 +135,37 @@ function RightsLinks({inline=false}:{inline?:boolean}){
  </span>;
 }
 
-/** Pedido de derechos con confirmación reforzada en la supresión. */
+/** Pedido de derechos con confirmación reforzada en la supresión (`ConfirmDialog` con `requireText`). */
 function RequestDialog({type,close,onCreated}:{type:PrivacyRequestKind;close:()=>void;onCreated:(request:PrivacyRequest)=>void}){
- const [detail,setDetail]=useState(''),[confirmation,setConfirmation]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [pending,setPending]=useState<string|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[failed,setFailed]=useState(false);
  const suppression=type==='supresion';
  const label=TYPE_LABEL[type];
- async function submit(){
-  if(suppression&&confirmation.trim()!=='Suprimir'){setError('Escribí «Suprimir» para confirmar el pedido.');return;}
-  setBusy(true);setError('');
-  try{
-   const request=await requestPrivacyAction(type,detail.trim());
-   notify({tone:'success',message:`Pedido de ${label.toLowerCase()} registrado.`});
-   onCreated(request);
-  }catch(cause){
-   setError(cause instanceof PrivacyApiUnavailableError
-    ?`La base de solicitudes todavía no está desplegada (Refs #112). Mientras tanto, usá el canal alternativo y el equipo registra tu pedido.`
-    :cause instanceof Error?cause.message:'No se pudo registrar el pedido.');
-  }finally{setBusy(false);}
+ const failure=(cause:unknown)=>cause instanceof PrivacyApiUnavailableError
+  ?`La base de solicitudes todavía no está desplegada (Refs #112). Mientras tanto, usá el canal alternativo y el equipo registra tu pedido.`
+  :cause instanceof Error?cause.message:'No se pudo registrar el pedido.';
+ async function submit(detail:string){
+  const request=await requestPrivacyAction(type,detail.trim());
+  notify({tone:'success',message:`Pedido de ${label.toLowerCase()} registrado.`});
+  onCreated(request);
  }
  return <Dialog title={`Pedir ${label.toLowerCase()}`} close={close} busy={busy} size="corto">
   <div className="grid gap-3">
    {suppression?<p className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-[12px] leading-5 text-mute">La supresión elimina o anonimiza los datos que ya no sean necesarios. El historial financiero y contable auditable se conserva por obligación fiscal, con acceso restringido y sin otras finalidades. La baja de tu cuenta conserva un período recuperable.</p>:null}
-   <label className="grid gap-1.5 text-xs text-mute">Detalle {suppression?'de tu pedido':'o datos a corregir'} <small className="text-mute">Opcional</small>
-    <textarea value={detail} onChange={event=>setDetail(event.target.value)} maxLength={2000} rows={3} className="min-h-24 rounded-lg border border-ink-500 bg-ink-800 px-3 py-2 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" placeholder={suppression?'Qué datos querés suprimir y por qué':'Qué necesitás corregir'}/>
-   </label>
-   {suppression?<label className="grid gap-1.5 text-xs text-mute">Escribí <b className="text-fore">Suprimir</b> para confirmar<input value={confirmation} onChange={event=>setConfirmation(event.target.value)} autoComplete="off" className={`${ACTION} h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm`}/></label>:null}
+   <Editor columns={false} label={`Enviar pedido de ${label.toLowerCase()}`}
+    fields={[{key:'detail',label:`Detalle ${suppression?'de tu pedido':'o datos a corregir'}`,type:'textarea',optional:true,maxLength:2000,help:`Opcional · ${suppression?'Qué datos querés suprimir y por qué':'Qué necesitás corregir'}`}]}
+    defaults={{detail:''}}
+    save={async values=>{
+     setFailed(false);
+     if(suppression){setError('');setPending(values.detail||'');return;}
+     try{await submit(values.detail||'');}catch(cause){setFailed(true);throw new Error(failure(cause));}
+    }}/>
    <p className="text-[11.5px] leading-5 text-mute">La respuesta llega dentro de {PRIVACY_RIGHTS_CHANNEL.slaDias} días corridos y vas a ver el estado en «Mis datos».</p>
-   <div className="flex flex-wrap items-center gap-2">
-    <button type="button" className={`primary ${ACTION}`} disabled={busy} onClick={()=>void submit()}>{busy?'Enviando…':`Enviar pedido de ${label.toLowerCase()}`}</button>
-    <button type="button" className={`secondary ${ACTION}`} disabled={busy} onClick={close}>Cancelar</button>
-   </div>
-   {error?<p role="alert" className="error">{error}</p>:null}
-   {error?<RightsLinks/>:null}
+   {failed?<RightsLinks/>:null}
   </div>
+  {suppression?<ConfirmDialog open={pending!==null} variant="danger" title="Confirmar pedido de supresión" description={<p>Vas a pedir la supresión de tus datos. El pedido queda registrado con su plazo de respuesta.</p>} requireText="Suprimir" requireLabel="Escribí Suprimir para confirmar" confirmLabel="Enviar pedido de supresión" busy={busy} error={error}
+   onCancel={()=>{if(!busy){setPending(null);setError('');}}}
+   onConfirm={async()=>{setBusy(true);setError('');try{await submit(pending||'');}catch(cause){setError(failure(cause));}finally{setBusy(false);}}}>
+   {error?<RightsLinks/>:null}
+  </ConfirmDialog>:null}
  </Dialog>;
 }

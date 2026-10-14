@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 require.extensions['.css']=(module:NodeModule)=>{module.exports={};};
-Object.assign(globalThis,{React,window:{dispatchEvent:()=>true,addEventListener:()=>{},removeEventListener:()=>{}}});
+const events:{type:string;detail?:{message:string;tone:string}}[]=[];
+Object.assign(globalThis,{React,window:{dispatchEvent:(event:{type:string;detail?:{message:string;tone:string}})=>{events.push(event);return true;},addEventListener:()=>{},removeEventListener:()=>{}}});
 const calls:{path:string;body:unknown}[]=[];
 let fail=false;
 let pendingSwitch:(()=>void)|null=null;
@@ -18,7 +19,8 @@ const {CompanySettings}=require('../app/company-settings') as typeof import('../
 test('lists only real companies and waits for server confirmation',async()=>{
  let r:ReactTestRenderer;
  await act(async()=>{r=create(<CompanySettings/>);});
- assert.equal(r!.root.findAllByType('article').length,2);
+ assert.equal(r!.root.findAllByProps({role:'row'}).filter(row=>typeof row.type==='string'&&row.props.className?.includes('company-settings-row')).length,2,'una fila por empresa real, bajo el encabezado de columnas');
+ assert.deepEqual(r!.root.findAllByProps({role:'columnheader'}).filter(cell=>typeof cell.type==='string').map(cell=>cell.children.join('')),['Empresa','Rol','Estado','Acciones']);
  assert.doesNotMatch(JSON.stringify(r!.toJSON()),/Demo/);
  const buttons=()=>r!.root.findAllByType('button');
  assert.equal(buttons().filter(b=>b.props['aria-pressed']!==undefined).length,2);
@@ -30,7 +32,9 @@ test('lists only real companies and waits for server confirmation',async()=>{
  fail=false;
  await act(async()=>{await buttons().find(b=>b.props['aria-pressed']===false)!.props.onClick();});
  assert.deepEqual(calls.at(-1),{path:'/api/auth/default-organization',body:{organizationId:2}});
- assert.match(JSON.stringify(r!.toJSON()),/Agencia B se abrirá al iniciar sesión/);
+ assert.equal(r!.root.findAllByProps({role:'status'}).filter(node=>typeof node.type==='string'&&String(node.props.className||'').includes('company-settings')).length,0,'el aviso ya no es un role=status local');
+ const toast=events.find(event=>event.type==='scale:feedback');
+ assert.deepEqual(toast?.detail,{tone:'success',message:'Agencia B se abrirá al iniciar sesión.'},'el aviso sale por notify()');
  await act(async()=>r!.unmount());
 });
 test('a successful company switch completes navigation after the panel unmounts',async()=>{

@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import {fechaLista} from 'owncoding-ui';
 import {workspaceSource,sectionSource} from './workspace-source';
+import {teamWorkspaceSource} from './team-source';
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
 
@@ -40,14 +41,13 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(workspace,/ListGrid label="Clientes" template=\{CLIENT_TEMPLATE\}/,'header and rows share one client template');
   assert.match(workspace,/PROJECT_COLUMNS: Column\[\] = \[[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables[\s\S]*?Acciones/,'the project list declares its column header');
   assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
-  const operations=read('app/operations.tsx');
-  assert.match(operations,/person-hub-head-row[\s\S]*?Persona[\s\S]*?Correo[\s\S]*?Datos[\s\S]*?Estado/,'the team list shows its column header');
+  const equipo=teamWorkspaceSource();
+  assert.match(equipo,/const TEAM_COLUMNS:Column\[\]=\[[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Acceso[\s\S]*?Acciones/,'the team list shows its column header');
   const clientes=sectionSource('clientes.tsx');
   assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'client rows consume the shared template');
-  const team=read('app/operations.css');
-  assert.match(team,/\.person-hub-head-row\{display:grid/);
   // Encabezado y filas comparten UNA plantilla por lista (variable CSS o clase Tailwind).
-  assert.match(team,/--person-cols:[\s\S]*?grid-template-columns:var\(--person-cols\)[\s\S]*?\.person-hub-head-row\{display:grid;grid-template-columns:var\(--person-cols\)/,'team header and rows share --person-cols');
+  assert.match(equipo,/<ListGrid label="Equipo" template=\{TEAM_TEMPLATE\}/,'team header consumes TEAM_TEMPLATE');
+  assert.match(equipo,/<ListRow key=\{facts\.key\} template=\{TEAM_TEMPLATE\}/,'team rows consume the same TEAM_TEMPLATE');
   const projectCard=read('app/project-card.tsx');
   assert.match(projectCard,/\[\.project-list_&\]:grid-cols-\[var\(--project-cols\)\]/,'project rows consume --project-cols');
 });
@@ -122,16 +122,17 @@ test('finance panels use column headers and the shared money formatter',()=>{
   assert.doesNotMatch(operations,/finance-row-head|ReferralDiscounts/,'los pagos y descuentos a colaboradores viven en Finanzas, no en Equipo');
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const EXPENSE_COLS='grid-cols-\[minmax\(0,1fr\)_8\.5rem_5rem\]'/,'real expenses declare one shared template');
-  assert.match(forecast,/LIST_HEAD,EXPENSE_COLS\)[^>]*><span role="columnheader">Gasto<\/span><span role="columnheader" className="text-right">Monto<\/span>/,'real expenses show their header');
-  assert.match(forecast,/cn\(LIST_ROW,EXPENSE_COLS\)/,'real expense rows share the header template');
+  assert.match(forecast,/const EXPENSE_COLUMNS:Column\[\]=\[\{key:'expense',label:'Gasto'\},\{key:'amount',label:'Monto',align:'end'\}/,'real expenses show their header');
+  assert.match(forecast,/<ListGrid label="Gastos reales del mes" template=\{EXPENSE_COLS\} columns=\{EXPENSE_COLUMNS\}/,'real expenses render through ListGrid');
+  assert.match(forecast,/<ListRow template=\{EXPENSE_COLS\}/,'real expense rows share the header template');
 });
 
 test('the team list can suspend and reactivate access in bulk',()=>{
-  const operations=read('app/operations.tsx');
+  const operations=teamWorkspaceSource();
   assert.match(operations,/batchSetAccess[\s\S]*?\/api\/agency\/members\/\$\{id\}/,'bulk access updates each selected member');
   assert.match(operations,/Suspender acceso[\s\S]*?Reactivar acceso/,'the team bulk bar exposes both access actions');
-  assert.match(operations,/selectVisibleAccess/,'the team list can select the visible people');
-  assert.match(operations,/select-check[\s\S]*?Seleccionar \$\{p\.full_name\}/,'member rows expose the selection checkbox');
+  assert.match(operations,/onSelectVisible=\{\(\)=>bulk\.selectVisible\(/,'the team list can select the visible people');
+  assert.match(operations,/select-check[\s\S]*?Seleccionar \$\{facts\.name\}/,'member rows expose the selection checkbox');
   const agents=read('AGENTS.md');
   assert.match(agents,/Excepción \(decisión 17-09\)[\s\S]*?feeds de tarjetas apiladas/,'the card-feed exception stays documented');
   assert.match(agents,/Excepción de contrato \(decisión 17-09\)[\s\S]*?formatWholeMoney/,'the whole-money contract exception stays documented');
@@ -148,7 +149,7 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.doesNotMatch(forecast,/forecast-person-override is-empty/,'el ajuste faltante ya no reserva columna: viaja inline en el cierre (#101)');
   assert.match(forecast,/Ajuste del mes: \$\{formatSignedMoney\(member.override_amount/,'el ajuste del mes se muestra inline con su tooltip');
   assert.match(forecast,/const PERSON_COLS='grid-cols-\[minmax\(8\.5rem,1fr\)_6\.5rem_minmax\(9rem,1\.2fr\)_6\.5rem\]'/,'the payroll list declares one shared compact template con lugar para el ajuste inline');
-  assert.match(forecast,/cn\(LIST_ROW,PERSON_COLS,'forecast-person-row'\)/,'payroll rows share the header template');
+  assert.match(forecast,/<ListRow template=\{PERSON_COLS\} className="forecast-person-row"/,'payroll rows share the header template');
 });
 
 test('lists are thin rows and grids are big distributed cards',()=>{
@@ -157,7 +158,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   const clientes=sectionSource('clientes.tsx');
   assert.match(clientes,/min-h-\[200px\][\s\S]*?flex-col/,'client cards keep a big grid height');
   const team=read('app/operations.css');
-  assert.match(team,/\.control-shell \.ops-grid\.ops-grid-list>\.person-hub-card\.is-list\{display:grid;grid-template-columns:var\(--person-cols\)[\s\S]*?min-height:44px/,'team rows stay thin');
+  assert.match(teamWorkspaceSource(),/<ListRow key=\{facts\.key\} template=\{TEAM_TEMPLATE\} className="team-row">/,'team rows use the thin ListRow (min-h-12 / md:min-h-11)');
   // Inventario y reservas se rediseñaron a la v2 (campaña #41): ya no tienen
   // hoja propia y su plantilla se declara una sola vez en el módulo. El detalle
   // de esa lista lo cubre `tests/ops-v2-contract.test.ts`.
@@ -176,8 +177,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
   assert.match(agents,/Lista vs\. cuadrícula \(regla 17-09\)[\s\S]*?filas finitas[\s\S]*?tarjetas grandes/,'the list/grid contract stays documented');
   const forecast=read('app/financial-forecast.tsx');
   assert.match(forecast,/const CONTRACT_COLS='grid-cols-\[minmax\(11rem,1fr\)_7rem_7rem_6rem\]'/,'contracted clients declare one shared compact template');
-  assert.match(forecast,/role="row" className=\{cn\(LIST_HEAD,CONTRACT_COLS\)\}[^>]*><span role="columnheader">Cliente<\/span><span role="columnheader" className="text-right">Contratado<\/span><span role="columnheader" className="text-right">Facturado<\/span>/,'contracted clients show their header');
-  assert.match(forecast,/const LIST_ROW='grid min-h-11 items-center gap-x-2 border-b border-ink-600\/60 px-2 py-0\.5 transition-colors last:border-0 hover:bg-ink-700\/40 md:py-2'/,'list rows keep the thin row contract with the system hover');
+  assert.match(forecast,/const CONTRACT_COLUMNS:Column\[\]=\[\{key:'client',label:'Cliente'\},\{key:'contracted',label:'Contratado',align:'end'\},\{key:'invoiced',label:'Facturado',align:'end'\}/,'contracted clients show their header');
+  assert.match(forecast,/<ListRow template=\{CONTRACT_COLS\}/,'list rows keep the thin row contract with the system hover (ListRow de ui-v2)');
   // QA ola 2 (#70): targets táctiles y foco del modal de cuenta en la vertical FIN.
   const mora=sectionSource('mora.tsx'),finanzas=sectionSource('finanzas.tsx'),forms=read('app/workspace-forms.tsx');
   assert.match(mora,/\[&>button\]:min-h-11 md:\[&>button\]:min-h-8/,'el filtro de mora tiene target de 44 px en mobile');
@@ -201,9 +202,8 @@ test('lists are thin rows and grids are big distributed cards',()=>{
 });
 
 test('dense list templates keep a silent horizontal escape hatch',()=>{
-  const team=read('app/operations.css');
-  assert.match(team,/\.control-shell \.ops-grid\.ops-grid-list\{grid-template-columns:minmax\(0,1fr\);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none/,'the team list wins over the card grid and scrolls instead of spilling out of its panel');
-  assert.match(team,/\.ops-grid-list::-webkit-scrollbar\{display:none\}/,'the team list keeps the scroll silent');
+  assert.match(teamWorkspaceSource(),/<ListGrid label="Equipo"[^>]*minWidthClass="min-w-\[48rem\]" pinnedActions>/,'the team list scrolls inside ListGrid (silent-scroll) instead of spilling out of its panel');
+  assert.match(read('app/ui-v2.tsx'),/silent-scroll min-w-0 overflow-x-auto/,'ListGrid keeps the scroll silent');
   const uiV2=read('app/ui-v2.tsx');
   assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'la lista v2 conserva el scroll horizontal silencioso');
   const tailwind=read('app/tailwind.css');

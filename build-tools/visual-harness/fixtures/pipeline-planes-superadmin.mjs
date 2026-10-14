@@ -273,11 +273,17 @@ const CHIP = {
 const chip = (label, tone = 'mute') => `<span class="v2-chip inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${CHIP[tone]}">${label}</span>`;
 
 const platformHeader = `
-<header class="platform-admin-header platform-admin-header--global">
- <a href="/" aria-label="Scale OS"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></a>
- <div class="platform-admin-title"><p class="eyebrow">ADMINISTRACIÓN GLOBAL</p><h1>Control de Scale OS</h1><span>Operación, acceso y catálogo comercial</span></div>
- <div class="platform-admin-actions"><button type="button" class="secondary">${svg(I.refresh, 16)}Actualizar</button><a class="text-button" href="/">${svg(I.arrowLeft, 16)}Panel</a></div>
-</header>`;
+<div class="platform-admin-top">
+ <a class="platform-admin-brand" href="#" aria-label="Scale OS"><span class="workspace-brand" aria-label="Scale OS"><img src="/brand/icon-192.png" width="34" height="34" alt=""><span class="workspace-wordmark">scale<span>OS</span></span></span></a>
+ <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-[1_1_20rem] !mb-0">
+  <div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
+   <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">Administración global</p>
+   <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">Control de Scale OS</h1>
+   <p class="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1"><span class="platform-admin-meta">Operación, acceso y catálogo comercial</span></p>
+  </div>
+  <div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><div class="platform-admin-actions"><button type="button" class="secondary">${svg(I.refresh, 16)}Actualizar</button><a class="secondary" href="/">${svg(I.arrowLeft, 16)}Panel</a></div></div>
+ </header>
+</div>`;
 
 const platformNotice = `
 <section class="platform-admin-notice grid grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4 sm:grid-cols-[auto_minmax(0,1fr)]">${svg(I.shieldAlert, 18)}<span><strong>Acceso separado por plataforma.</strong> Ser dueño de una agencia no habilita este panel ni sus datos.</span></section>`;
@@ -300,7 +306,7 @@ const platformStats = `
 
 /* Lista densa v2: ListGrid/ListRow/ListActions de app/ui-v2.tsx. */
 const listGrid = ({label, template, minWidth = 'min-w-[48rem]', columns, rows, className = '', pinned = false}) => `
-<div role="table" aria-label="${label}" class="silent-scroll min-w-0 overflow-x-auto ${className}">
+<div role="table" aria-label="${label}" class="silent-scroll relative min-w-0 overflow-x-auto ${className}">
  <div class="${minWidth}">
   <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}">
    ${columns.map((column, index) => `<span role="columnheader" class="${index === columns.length - 1 ? `text-right${pinned ? ' list-actions-head' : ''}` : 'text-left'} whitespace-nowrap">${column}</span>`).join('')}

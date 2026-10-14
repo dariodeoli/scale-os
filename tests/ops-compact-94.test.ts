@@ -22,8 +22,8 @@ assert.match(production,/<KanbanColumn/,'las columnas por etapa siguen siendo el
 
 // ── Proyectos: toolbar en una fila y lote solo con selección.
 assert.match(projects,/<FilterToolbar className="mb-0"/,'la toolbar de Proyectos no agrega margen propio');
-assert.match(projects,/<label className="flex items-center gap-2">/,'el filtro de cliente de Proyectos va en línea');
-assert.match(projects,/\{canManageProjects\?<BulkBar count=\{bulk\.count\}/,'el lote de Proyectos usa BulkBar (aparece con la selección)');
+assert.match(projects,/<SelectCustom label="Cliente"/,'el filtro de cliente de Proyectos es el selector canónico');
+assert.match(projects,/bulk=\{canManageProjects\?<BulkBar count=\{bulk\.count\}/,'el lote de Proyectos usa BulkBar (aparece con la selección)');
 assert.match(projects,/title=\{`Selecciona hasta \$\{BATCH_LIMITS\.projects\} proyectos visibles/,'el acceso directo conserva la pista en el title');
 
 // ── Estudio: encabezado en una fila, calendario denso y lote con selección.

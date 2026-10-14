@@ -21,18 +21,23 @@ const chip = (text, tone = 'mute', title = '') => {
   return `<span class="badge badge-${tones[tone] || 'slate'} whitespace-nowrap"${title ? ` title="${title}"` : ''}>${text}</span>`;
 };
 const head = ({state = 'ok', updated = '18:12'} = {}) => `
-<header class="platform-admin-header">
+<div class="platform-admin-top">
  <a class="platform-admin-brand" href="#" aria-label="Scale OS">${brand}</a>
- <div class="platform-admin-identity"><p class="eyebrow">Administración global</p><h1>Control de Scale OS</h1></div>
- <div class="platform-admin-meta">
+ <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-[1_1_20rem] !mb-0">
+  <div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
+   <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">Administración global</p>
+   <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">Control de Scale OS</h1>
+   <p class="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1"><span class="platform-admin-meta">
   ${state === 'denied' ? chip('Acceso denegado', 'bad') : state === 'readonly' ? chip('Solo lectura', 'info', 'Tu usuario solo puede consultar la plataforma') : chip('Admin global', 'ok', 'Tu usuario puede administrar la plataforma')}
   ${state === 'denied' ? '' : `<span class="platform-admin-updated" title="Última actualización ${updated} (hora de Asunción)">Actualizado ${updated}</span>`}
- </div>
- <div class="platform-admin-actions">
+ </span></p>
+  </div>
+  <div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><div class="platform-admin-actions">
   ${state === 'denied' ? '' : `<button type="button" class="secondary">${I.refresh}Actualizar</button>`}
   <a class="secondary" href="#">${I.back}Panel</a>
- </div>
-</header>`;
+ </div></div>
+ </header>
+</div>`;
 const denied = `
 <section class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3 border-bad/30" role="alert">
  <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-bad" aria-hidden="true">${I.shield}</span>
@@ -63,7 +68,7 @@ const tabs = (active = 'resumen') => `
 const readonlyAgencies = `
 <section class="grid min-w-0 gap-3">
  <div class="flex min-w-0 flex-wrap items-center justify-between gap-2"><h2 class="text-[15px] font-semibold tracking-tight text-fore">Agencias</h2><span class="text-xs tabular-nums text-mute" role="status">4 de 134 agencias</span></div>
- <div role="table" aria-label="Agencias" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[70.5rem]">
+ <div role="table" aria-label="Agencias" class="silent-scroll relative min-w-0 overflow-x-auto"><div class="min-w-[70.5rem]">
   <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]"><span role="columnheader">Agencia</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Plan</span><span role="columnheader" class="text-right">Usuarios</span><span role="columnheader">Prueba / vencimiento</span><span role="columnheader" class="text-right">Acciones</span></div>
   <div role="rowgroup">${[
     ['Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', 'estudio-comunicacion-py', 'Gs. 50.000', '12', '03-oct'],

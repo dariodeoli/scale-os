@@ -154,13 +154,13 @@ test('#138 kpis compactos: la tira declara la densidad y no pierde el hint',asyn
 
 test('#138 adopción: kit ⋯, esqueleto del Resumen, vacío compacto y KPIs de Preferencias',()=>{
   const suite=file('app/suite.tsx');
-  assert.match(suite,/import \{EmptyBlock,LoadingBlock,ActionMenu,MoneyText,StateChip,type RecordMenuItem\} from '\.\/ui-v2';/,'el kit importa el menú canónico');
+  assert.match(suite,/import \{EmptyBlock,ErrorBlock,LoadingBlock,ActionMenu,ListGrid,ListRow,MoneyText,StateChip,type Column,type RecordMenuItem\} from '\.\/ui-v2';/,'el kit importa el menú canónico');
   assert.match(suite,/<ActionMenu label=\{`Acciones: \$\{name\|\|kind\}`\} items=\{menuItems\}\/>/,'el editor de registros usa el ⋯ del sistema');
   assert.doesNotMatch(suite,/rowMenuTrigger|MenuDesplegable/,'no queda una variante paralela del menú');
   assert.match(suite,/export type \{RecordMenuItem\} from '\.\/ui-v2';/,'el tipo del ítem se reexporta desde la fuente única');
 
   const resumen=file('app/sections/resumen.tsx');
-  assert.match(resumen,/return <DashboardSkeleton label="Cargando el panel…" kpis=\{4\} cards=\{3\}\/>/,'el arranque del Resumen muestra la forma real');
+  assert.match(resumen,/<DashboardSkeleton label="Cargando el panel…" kpis=\{4\} cards=\{3\}\/><\/ListPage>/,'el arranque del Resumen muestra la forma real');
   assert.match(resumen,/variant="cards"/,'los chunks diferidos muestran tarjetas, no líneas genéricas');
   assert.doesNotMatch(resumen,/LoadingBlock/,'no queda el loader genérico en el arranque');
 

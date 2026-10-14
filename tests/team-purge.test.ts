@@ -7,17 +7,18 @@ import {test} from 'node:test';
 // conserva porque el historial referencia (organization_id,user_id)) y filtro
 // de purgados en el directorio. Una nueva invitación reactiva al integrante.
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
-const operations=read('app/operations.tsx');
+const operations=read('app/team-workspace.tsx');
 const agencyCore=read('backend/agency-core.js');
 const teamOps=read('backend/operations.js');
 const migration=read('backend/migrations/20260929_member_purge.sql');
 
 test('Equipo ofrece eliminar definitivamente a los integrantes con acceso retirado',()=>{
- assert.match(operations,/<Trash2 size=\{16\} aria-hidden="true"\/>/,'el botón usa el icono de basurero');
- assert.match(operations,/aria-label=\{`Eliminar del equipo: \$\{personLabel\(entry\.member,'Integrante'\)\}`\}/,'el acceso al botón nombra la acción exacta sin correos técnicos');
- assert.match(operations,/\(!entry\.member!\.active\|\|Boolean\(entry\.member!\.removed_at\)\)/,'solo aparece con el acceso retirado o suspendido');
+ assert.match(operations,/id:'purge',label:'Eliminar',peligro:true/,'la acción vive en el menú ⋯ de la fila y nombra la acción');
+ assert.match(operations,/aria-label=\{`Seleccionar \$\{facts\.name\}`\}|menuLabel=\{menuLabel\(facts\)\}/);
+ assert.match(operations,/\(!m\.active\|\|Boolean\(m\.removed_at\)\)/,'solo aparece con el acceso retirado o suspendido');
  assert.match(operations,/<ConfirmDialog open busy=\{purgeBusy\} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo"/,'la confirmación usa el diálogo peligroso compartido');
  assert.match(operations,/api\(`\/api\/agency\/members\/\$\{purgeTarget\.id\}\/permanent`,\{\},'DELETE'\)/,'el purgado llama al endpoint permanente');
+ assert.match(operations,/personLabel\(purgeTarget,'Esta persona'\)/,'la confirmación no muestra correos técnicos');
  assert.doesNotMatch(operations,/window\.confirm/,'sin confirmaciones nativas');
 });
 

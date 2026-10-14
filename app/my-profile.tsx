@@ -1,9 +1,9 @@
 "use client";
 import {Aviso} from 'owncoding-ui';
 import {useEffect,useRef,useState} from 'react';
-import {Dialog} from './dialog';
 import {Editor,api} from './operations';
-import {ProfilePhoto} from './profile-photo';
+import {PersonPhotoField} from './person-photo';
+import {PersonSheet,type SheetTab} from './person-sheet';
 import {FotoPerfil} from './foto-perfil';
 import {notify} from './feedback';
 import {AccountSecurity} from './account-security';
@@ -21,10 +21,10 @@ const ACTION=`min-h-11 ${FOCUS}`;
 const EDITOR_CONTROLS='grid gap-2 px-2 pb-3 pt-2 [&_button]:min-h-11 [&_button]:focus-visible:outline-none [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-brand [&_button]:focus-visible:ring-offset-2 [&_button]:focus-visible:ring-offset-ink-800';
 
 // Mi perfil (issue #46): mismo comportamiento y textos, superficie v2. Los
-// editores siguen siendo los compartidos (`Dialog`, `Editor`, `ProfilePhoto`).
+// editores siguen siendo los compartidos (`PersonSheet`, `Editor`, `PersonPhotoField`).
 export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>void;refresh:()=>Promise<void>}){
  const [current,setCurrent]=useState<Profile|null>(null),[error,setError]=useState(''),[warning,setWarning]=useState(''),[retry,setRetry]=useState(0);
- const [photoSaving,setPhotoSaving]=useState(false),[securityOpen,setSecurityOpen]=useState(false),[nameOpen,setNameOpen]=useState(false),[dataOpen,setDataOpen]=useState(false);
+ const [photoSaving,setPhotoSaving]=useState(false),[dataOpen,setDataOpen]=useState(false);
  const mounted=useRef(true);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  useEffect(()=>{let alive=true;setError('');void api<{profile:Profile}>('/api/agency/productivity/profile').then(d=>{if(alive)setCurrent(d.profile);}).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar tu perfil.');});return()=>{alive=false;};},[retry]);
@@ -43,11 +43,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
    notify({tone:'warning',message});
   }
  }
- return <Dialog title="Mi perfil" close={close} busy={photoSaving}><div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-  {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><button className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></Aviso>:null}
-  {!current&&!error?<LoadingBlock label="Cargando tu perfil…" lines={3}/>:null}
-  {current?<>
-   <section className={CARD} data-profile-section="identity" aria-labelledby="my-profile-identity-title">
+ const identity=current?<section className={CARD} data-profile-section="identity" aria-labelledby="my-profile-identity-title">
     <p className={KICKER}>{current.identity_scope==='demo'?'Perfil del demo':'Identidad personal'}</p>
     <div className="flex min-w-0 items-center gap-3">
      <FotoPerfil nombre={name} foto={current.photo_url} tamano="2xl"/>
@@ -57,42 +53,38 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      </div>
     </div>
     <p className="text-[11.5px] text-mute">{current.identity_scope==='demo'?'Los cambios de este perfil no modifican tus empresas reales.':'Tu correo de acceso se mantiene protegido. Nombre y foto se comparten entre tus empresas.'}</p>
-   </section>
-   {current.identity_scope==='personal_readonly'?<div className={CARD} data-profile-section="readonly" role="status">
+   </section>:null;
+ const profileTab=current?<>
+   {identity}
+   {current.identity_scope==='personal_readonly'?<div className={CARD} data-profile-section="readonly">
     <strong className="text-[13.5px] text-fore">Edición disponible en tu empresa real</strong>
     <p className="text-xs text-mute">Este perfil está unificado con tus empresas. Seleccioná tu empresa real para cambiar el nombre o la foto; la demo no modifica tus datos personales.</p>
-   </div>:<section className={`${CARD} gap-1`} data-profile-section="edit" aria-labelledby="my-profile-edit-title">
+   </div>:<section className={`${CARD} gap-3`} data-profile-section="edit" aria-labelledby="my-profile-edit-title">
     <p id="my-profile-edit-title" className={KICKER}>Editar perfil</p>
-    <details className="group border-b border-ink-600 pb-1 last:border-b-0" data-profile-section="photo">
-     <summary className={DISCLOSURE}><span>Foto de perfil</span><span className="ml-2 text-[11px] font-normal text-mute">Opcional</span></summary>
-     <div className="px-2 pb-3 pt-2">
-      <ProfilePhoto photo={current.photo_url||null} name={name} save={async photo=>{setPhotoSaving(true);try{await save({...(!current.full_name?{full_name:name}:{}),photo_url:photo});}finally{if(mounted.current)setPhotoSaving(false);}}}/>
-     <p className="mt-2 text-[11.5px] text-mute">Usamos la foto para identificarte ante tu equipo; podés quitarla cuando quieras.</p>
-     </div>
-    </details>
-    <details className="group" data-profile-section="name" onToggle={event=>setNameOpen(event.currentTarget.open)}>
-     <summary className={DISCLOSURE}><span>Datos personales</span><span className="ml-2 text-[11px] font-normal text-mute">Nombre</span></summary>
-     {nameOpen?<div className={EDITOR_CONTROLS}>
-      <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
-      <p className="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
-     </div>:null}
-    </details>
+    <div data-profile-section="photo" className="grid min-w-0 gap-2">
+     {/* Misma foto que la ficha de Equipo: un solo componente para todas las personas. */}
+     <PersonPhotoField photo={current.photo_url||null} name={name} save={async photo=>{setPhotoSaving(true);try{await save({...(!current.full_name?{full_name:name}:{}),photo_url:photo});}finally{if(mounted.current)setPhotoSaving(false);}}}/>
+     <p className="text-[11.5px] text-mute">Usamos la foto para identificarte ante tu equipo; podés quitarla cuando quieras.</p>
+    </div>
+    <div data-profile-section="name" className={EDITOR_CONTROLS}>
+     <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
+     <p className="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
+    </div>
    </section>}
-   {current.identity_scope!=='demo'?<section className={`${CARD} gap-1`} data-profile-section="account" aria-labelledby="my-profile-account-title">
+   {warning?<p className="text-xs text-warn">{warning}</p>:null}
+  </>:null;
+ const accessTab=current&&current.identity_scope!=='demo'?<section className={`${CARD} gap-1`} data-profile-section="account" aria-labelledby="my-profile-account-title">
     <p id="my-profile-account-title" className={KICKER}>Acceso y seguridad</p>
     <div className="grid gap-2 border-b border-ink-600 px-2 py-3">
      <div className="flex flex-wrap items-center justify-between gap-2">
       <strong className="text-[13.5px] text-fore">Google</strong>
-      {current.google_connected?<p role="status"><StateChip tone="ok">Conectado</StateChip></p>:<a className={`secondary ${ACTION}`} href="/core-api/api/auth/google/start?connect=1">Conectar Google</a>}
+      {current.google_connected?<StateChip tone="ok">Conectado</StateChip>:<a className={`secondary ${ACTION}`} href="/core-api/api/auth/google/start?connect=1">Conectar Google</a>}
      </div>
      <p className="max-w-prose text-xs text-mute">Usá Google para ingresar a esta cuenta con el mismo correo. Google puede actualizar tu nombre y foto.</p>
     </div>
-    <details data-profile-section="access" onToggle={event=>setSecurityOpen(event.currentTarget.open)}>
-     <summary className={DISCLOSURE}><span>Seguridad de cuenta</span><span className="ml-2 text-[11px] font-normal text-mute">Contraseña y sesiones</span></summary>
-     {securityOpen?<div className="px-2 pb-3 pt-2"><AccountSecurity onClosed={close}/></div>:null}
-    </details>
-   </section>:null}
-   <section className={`${CARD} gap-1`} data-profile-section="data" aria-labelledby="my-profile-data-title">
+    <div data-profile-section="access" className="px-2 pb-3 pt-2"><AccountSecurity onClosed={close}/></div>
+   </section>:null;
+ const dataTab=<section className={`${CARD} gap-1`} data-profile-section="data" aria-labelledby="my-profile-data-title">
     <p id="my-profile-data-title" className={KICKER}>Mis datos y privacidad</p>
     <div className="grid gap-2 px-2 py-3">
      <p className="max-w-prose text-xs leading-5 text-mute">Aviso de Privacidad {PRIVACY_NOTICE.version} · {PRIVACY_NOTICE.fechaLabel}. Desde «Mis datos» podés ver el resumen y las finalidades, descargar una copia, pedir rectificación, supresión u oposición y revocar consentimientos. La respuesta llega dentro de {PRIVACY_RIGHTS_CHANNEL.slaDias} días corridos.</p>
@@ -101,10 +93,17 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
       <a className={`text-button ${ACTION}`} href="/privacidad">Política de Privacidad</a>
      </div>
     </div>
-   </section>
-   {warning?<p className="text-xs text-warn" role="status">{warning}</p>:null}
-  </>:null}
- </div>
- {dataOpen?<MyDataPanel profile={{email:current?.email||profile.email,full_name:current?.full_name||profile.full_name||null}} close={()=>setDataOpen(false)}/>:null}
- </Dialog>;
+   </section>;
+ // Misma ficha que Equipo, en modo propio: perfil, acceso/seguridad y mis datos.
+ // «Remuneración» no existe en este modo (ni su contenido ni sus datos).
+ const tabs:SheetTab[]=[{id:'perfil',label:'Perfil',content:profileTab}];
+ if(accessTab)tabs.push({id:'acceso',label:'Acceso',content:accessTab});
+ tabs.push({id:'datos',label:'Mis datos',content:dataTab});
+ return <>
+  <PersonSheet mode="self" title="Mi perfil" close={close} busy={photoSaving} tabs={current?tabs:[{id:'perfil',label:'Perfil',content:<div className="grid grid-cols-[minmax(0,1fr)] gap-4">
+   {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><button className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></Aviso>:null}
+   {!error?<LoadingBlock label="Cargando tu perfil…" lines={3}/>:null}
+  </div>}]}/>
+  {dataOpen?<MyDataPanel profile={{email:current?.email||profile.email,full_name:current?.full_name||profile.full_name||null}} close={()=>setDataOpen(false)}/>:null}
+ </>;
 }

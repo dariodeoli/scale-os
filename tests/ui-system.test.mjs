@@ -84,10 +84,9 @@ assert(notifications.includes('whitespace-pre-wrap')&&notifications.includes('[o
 assert(notifications.includes('StateChip'),'el detalle mantiene el chip del tipo de aviso');
 assert(!notifications.includes('<article'),'la tarjeta local de avisos se retiró con la adopción del objeto');
 console.log('PASS notification feed adopts the library bandeja and keeps its detail readable');
-assert(css.includes('.person-hub-card:not(.is-list) .ops-person small'),'team cards show the role as a chip beside the name');
+assert(!css.includes('person-hub'),'the team cards moved to CompactCard: no legacy person-hub rules remain');
 assert(css.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment .inventory-code'),'inventory cards show the code as a chip beside the title');
-assert(/\.person-hub-card:not\(\.is-list\) \.ops-person h3\{font-size:14px/.test(css),'team titles keep one size (the notification clone retired its own classes)');
-console.log('PASS team and inventory cards follow the notification card anatomy');
+console.log('PASS team (CompactCard) and inventory cards follow the notification card anatomy');
 assert(css.includes('.project-grid>.project-entry .project-entry-title h3{font-size:14px'),'project grid cards keep the shared title size');
 assert(css.includes('.project-grid>.project-entry>.project-entry-actions{justify-content:space-between}'),'project grid cards separate the drive meta from the action buttons');
 console.log('PASS project grid cards follow the shared anatomy');

@@ -1,0 +1,2 @@
+# Detalle de proyecto: piezas con ventana y aviso visible (sin toast duplicado)
+tsx tests/project-detail-pieces.test.tsx

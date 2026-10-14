@@ -66,8 +66,8 @@ assert.match(reportsHook,/setPreviousError\('No se pudo cargar el período anter
 assert.match(informes,/previousError\?'No se pudo cargar el período anterior\.'/,'la comparación dice que falló, no que no hay datos');
 assert.match(informes,/Sin actualizar · se reintenta solo/,'los visitantes en vivo declaran su fallo');
 
-assert.match(finanzas,/loadAllInvoices\(\)\.catch\(cause => setToast/,'completar el histórico de facturas avisa si falla');
-assert.match(finanzas,/loadAllPayments\(\)\.catch\(cause => setToast/,'completar el histórico de cobros avisa si falla');
+assert.match(finanzas,/loadAllInvoices\(\)\.catch\(cause => notify\(\{tone: 'error'/,'completar el histórico de facturas avisa si falla');
+assert.match(finanzas,/loadAllPayments\(\)\.catch\(cause => notify\(\{tone: 'error'/,'completar el histórico de cobros avisa si falla');
 
 // Regla 6 · la red no se muestra cruda: «Failed to fetch» se traduce a es-PY y
 // el timeout también; una cancelación esperada no se disfraza de error.

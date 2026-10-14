@@ -1,3 +1,6 @@
+// Mismo formateador que `listDateShort` (list-format lo envuelve con `fechaListaCorta(value,'')`);
+// se importa directo para que este módulo de datos siga puro, sin la hoja CSS de list-format.
+import {fechaListaCorta} from 'owncoding-ui';
 export type DueAlert={id:string;type:string;name?:string|null;due?:string|null;context?:string};
 export type Total={currency:string;total:string};
 export type CommercialDashboard={activeClients:number;activeProspects:number;expectedMonthlyBilling?:Total[]};
@@ -68,7 +71,5 @@ export function groupDueAlerts(alerts:readonly (DueAlert|null|undefined)[]|null|
  return Array.from(groups.values()).sort((a,b)=>a.due.localeCompare(b.due)||a.name.localeCompare(b.name,'es'));
 }
 export function shortDate(value:string){
- if(!/^\d{4}-\d{2}-\d{2}$/.test(value.slice(0,10)))return 'Sin fecha';
- const date=new Date(value.slice(0,10)+'T12:00:00Z');
- return Number.isNaN(date.valueOf())?'Sin fecha':date.toLocaleDateString('es-PY',{day:'numeric',month:'short',timeZone:'UTC'});
+ return fechaListaCorta(value.slice(0,10),'')||'Sin fecha';
 }

@@ -75,7 +75,7 @@ import {test as layoutTest} from 'node:test';
 layoutTest('grid capsules share one aligned skeleton',()=>{
  const ui=readFileSync(new URL('../app/ui-system.css',import.meta.url),'utf8');
  assert(ui.includes('grid-auto-rows:1fr'),'grid rows keep one height per line');
- assert(ui.includes('.ops-grid:not(.ops-grid-list)>.person-hub-card'),'the shared capsule skeleton covers the team grid');
+ assert(!ui.includes('person-hub'),'the team grid no longer rides the legacy capsule skeleton (it is a CompactCard grid since #186)');
  assert(ui.includes('.inventory-equipment-grid:not(.inventory-equipment-list)>.inventory-equipment'),'the skeleton covers the inventory grid');
  assert(ui.includes('margin-top:auto'),'card actions anchor to the footer');
 // Compactación (#89): las tabs del shell conservan 44 px en móvil y son una

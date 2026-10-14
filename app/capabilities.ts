@@ -104,6 +104,7 @@ export const BATCH_LIMITS = {
  studioReservations: 50,
  reservationResponsibles: 30,
  planner: 100,
+ members: 50,
 } as const;
 
 /** Recorta una selección al tope del endpoint y avisa si hubo que recortar. */

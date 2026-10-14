@@ -496,8 +496,8 @@ export const PageChromeContext = createContext<ReactNode>(null);
 export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis, bulk, children, className, rootRef, ...props}: {rootRef?: Ref<HTMLElement>; title?: string; eyebrow?: string; subtitle?: ReactNode; primaryAction?: ReactNode; toolbar?: ReactNode; kpis?: ReactNode; bulk?: ReactNode; children?: ReactNode; className?: string} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
   const pageTitle = useContext(PageTitleContext);
   const tabs = useContext(PageChromeContext);
-  return <section ref={rootRef} data-list-page className={`grid min-w-0 gap-4 ${className ?? ''}`} {...props}>
-    <div className="grid gap-3">
+  return <section ref={rootRef} data-list-page className={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ${className ?? ''}`} {...props}>
+    <div className="grid min-w-0 gap-3">
       <PageTitleContext.Provider value="">
         <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} className="!mb-0"/>
       </PageTitleContext.Provider>
@@ -535,7 +535,7 @@ export function FilterToolbar({children, summary, className}: {children: ReactNo
  * densas de la ronda 14). Se usa junto con la `ListActions` de cada fila.
  */
 export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', pinnedActions = false, className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; pinnedActions?: boolean; className?: string}) {
-  return <div role="table" aria-label={label} className={`silent-scroll min-w-0 overflow-x-auto ${className ?? ''}`}>
+  return <div role="table" aria-label={label} className={`silent-scroll relative min-w-0 overflow-x-auto ${className ?? ''}`}>
     <div className={minWidthClass}>
       <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
         {columns.map((column, index) => (

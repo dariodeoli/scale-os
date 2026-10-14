@@ -9,24 +9,24 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 const missing = (path: string) => !existsSync(new URL(`../${path}`, import.meta.url));
 
 // Equipo: el lote no ofrece filas retiradas y una fila vencida no lo aborta.
-const operations = read('app/operations.tsx');
+const operations = read('app/team-workspace.tsx');
 assert.match(
   operations,
-  /selectVisibleAccess[\s\S]*?entry\.member&&!entry\.member\.removed_at&&entry\.member\.email!==currentEmail/,
+  /const selectable=\(entry:Entry\)=>Boolean\(canManageAccess&&entry\.member&&!entry\.member\.removed_at&&entry\.member\.email!==currentEmail\)/,
   'la selección masiva excluye los accesos retirados',
 );
 assert.ok(
-  (operations.match(/entry\.member&&!entry\.member\.removed_at/g) ?? []).length >= 2,
+  (operations.match(/selectable\(entry\)|\.filter\(selectable\)/g) ?? []).length >= 3,
   'el checkbox seleccionable y la selección de visibles comparten el mismo filtro de retirados',
 );
 assert.match(
   operations,
-  /canManageAccess&&selectedAccess\.length\?<div className="bulk-bar"/,
-  'la barra de lote aparece solo cuando hay selección (selección contextual)',
+  /<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.members\} role=\{role\}/,
+  'la barra de lote (BulkBar) aparece solo cuando hay selección (selección contextual)',
 );
 assert.match(
   operations,
-  /for\(const id of selectedAccess\)\{\s*try\{[\s\S]*?catch\{failed\+=1;\}/,
+  /for\(const id of bulk\.ids\)\{\s*try\{[\s\S]*?catch\{failed\+=1;\}/,
   'una fila retirada o vencida no aborta el lote a mitad',
 );
 assert.doesNotMatch(operations, /Acceso retirado'/, 'la tarjeta no repite el estado: sale de TeamAccess');
@@ -101,11 +101,12 @@ assert.match(read('app/status/page.tsx'), /api\/auth\/email-status/, 'el correo 
 
 // #98 densidad integral: selección masiva contextual en las listas del slot y
 // filas finas en el historial.
-assert.match(read('app/archive-controls.tsx'), /selected\.length\?<div className="bulk-bar"/, 'la papelera muestra el lote solo con selección');
+assert.match(read('app/archive-controls.tsx'), /<BulkBar count={bulk.count}/, 'la papelera muestra el lote solo con selección (BulkBar oculta con count 0)');
 assert.doesNotMatch(read('app/archive-controls.tsx'), /Seleccioná varios para restaurar en lote/, 'sin la fila permanente de instrucciones de lote');
 const workHistory = read('app/work-history.tsx');
-assert.match(workHistory, /px-3 py-2/, 'las filas del historial usan padding compacto');
-assert.match(workHistory, /truncate text-\[13px\] text-fore" title=/, 'el texto del historial se recorta en una línea con tooltip');
+assert.match(workHistory, /<ListGrid label=\{source\?'Historial importado':'Historial de trabajo'\}[^>]*template=\{HISTORY_TEMPLATE\}/, 'el historial es una lista con encabezado de columnas');
+assert.match(workHistory, /<ListRow key=\{r\.id\} template=\{HISTORY_TEMPLATE\}/, 'las filas del historial son filas finitas con la misma plantilla que el encabezado');
+assert.match(workHistory, /truncate text-\[13px\] font-semibold text-fore" title=/, 'el texto del historial se recorta en una línea con tooltip');
 
 // #96 (compactación del resto de Plataforma): la identidad vive en el shell
 // (título + apartados) y las pantallas no repiten el título con PageHeader; los

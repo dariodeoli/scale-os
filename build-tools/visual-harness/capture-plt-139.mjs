@@ -25,7 +25,7 @@ mkdirSync(OUT,{recursive:true});
 
 const SCREENS={
  resumen:{path:'/resumen',ready:'.financial-summary',content:'.financial-summary'},
- equipo:{path:'/equipo',ready:'.team-filters',content:'.person-hub-card'},
+ equipo:{path:'/equipo',ready:'[data-toolbar="filtros"]',content:'[data-compact-card],[role="rowgroup"] [role="row"]'},
  configuracion:{path:'/configuracion',ready:'.settings-slice .settings-card',content:'.settings-card'},
 };
 const wanted=(process.env.QA_SCREENS||Object.keys(SCREENS).join(',')).split(',').filter(Boolean);

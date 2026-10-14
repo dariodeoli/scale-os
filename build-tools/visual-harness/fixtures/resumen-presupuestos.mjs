@@ -75,43 +75,52 @@ const controlSignals = `
  <button type="button" class="control-signal"><span class="control-signal-icon" aria-hidden="true">${svg(16, ICON.packageSearch)}</span><span class="control-signal-text"><b>1 equipo sin verificar</b><small>Sin control físico en más de 30 días</small></span>${svg(14, ICON.arrowUpRight)}</button>
 </section>`;
 
-/* app/control-center.tsx líneas 41-48 (resumen comercial) */
+/* app/ui-v2.tsx: Kpi/KpiStrip/MoneyText (hook `ui-kpi`, hint de una línea con tooltip) y
+   BarraProgreso de owncoding-ui (role=progressbar; el ancho es el valor dinámico). */
+const v2Kpi = (label, valor, hint = '', destacado = false) => `<div class="ui-kpi relative overflow-hidden rounded-xl border p-4 ${destacado ? 'border-fono/30 bg-gradient-to-br from-fono-dark via-fono to-fono' : 'border-ink-600 bg-ink-800'}"><div class="text-[11px] font-medium uppercase tracking-wider ${destacado ? 'text-onbrand/75' : 'text-mute'}">${label}</div><div class="mt-1.5 text-2xl font-semibold tracking-tight md:text-3xl ${destacado ? 'text-onbrand' : 'text-fore'}">${valor}</div>${hint ? `<div class="mt-1.5 flex items-center gap-2 text-xs"><span class="min-w-0 flex-1 truncate ${destacado ? 'text-onbrand/75' : 'text-mute'}" title="${hint}">${hint}</span></div>` : ''}</div>`;
+const v2KpiStrip = (items) => `<div class="ui-kpi-strip grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-busy="false">${items.join('')}</div>`;
+const moneyText = (text, tono = '') => `<span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${tono}">${text}</span>`;
+const moneyStack = (items) => `<span class="grid gap-0.5">${items.map((text) => moneyText(text)).join('')}</span>`;
+const barra = (porcentaje, tono, etiqueta) => `<div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(porcentaje)}" aria-label="${etiqueta}" class="overflow-hidden rounded-full bg-fore/10 h-1.5"><span class="block h-full rounded-full bg-${tono}" style="width:${porcentaje}%"></span></div>`;
+
+/* app/control-center.tsx (resumen comercial) */
 const commercialSummary = `
 <section class="financial-summary commercial-summary" aria-labelledby="commercial-title">
  <div class="section-caption"><div class="section-head"><p class="section-eyebrow">Comercial</p><h2 id="commercial-title">Resumen comercial</h2></div><button class="text-button">Ver pipeline ${svg(14, ICON.arrowUpRight)}</button></div>
- <div class="financial-strip" aria-busy="false">
-  <article class="financial-stat"><span>Clientes activos</span><div class="financial-amounts"><strong>38</strong></div><small>Con relación comercial activa.</small></article>
-  <article class="financial-stat"><span>Prospectos activos</span><div class="financial-amounts"><strong>143</strong></div><small>Leads que todavía no están ganados ni perdidos.</small></article>
-  <article class="financial-stat financial-primary"><span>Facturación mensual contratada</span><div class="financial-amounts"><strong>Gs 1.234.567.890</strong><strong>USD 12.345,67</strong></div><div class="commercial-bars" aria-hidden="true"><span class="commercial-bar-row"><span class="commercial-bar-currency">PYG</span><span class="commercial-bar-track"><span class="commercial-bar-fill" style="width:100%"></span></span></span><span class="commercial-bar-row"><span class="commercial-bar-currency">USD</span><span class="commercial-bar-track"><span class="commercial-bar-fill" style="width:12%"></span></span></span></div><small>Expectativa comercial vigente; no es el forecast ni el efectivo cobrado.</small></article>
- </div>
+ ${v2KpiStrip([
+   v2Kpi('Clientes activos', '38', 'Con relación comercial activa.'),
+   v2Kpi('Prospectos activos', '143', 'Leads que todavía no están ganados ni perdidos.'),
+   v2Kpi('Facturación mensual contratada', moneyStack(['Gs 1.234.567.890', 'USD 12.345,67']), 'Expectativa comercial vigente; no es el forecast ni el efectivo cobrado.', true),
+ ])}
 </section>`;
 
-/* app/control-center.tsx líneas 49-61 (resumen financiero + comparativa + patrimonio) */
+/* app/control-center.tsx (resumen financiero + comparativa + patrimonio) */
+const compareRow = (label, porcentaje, tono, value) => `<div class="finance-compare-row"><span class="finance-compare-label">${label}</span><span class="finance-compare-track" aria-hidden="true">${barra(porcentaje, tono, `${label} en la moneda`)}</span><strong class="finance-compare-value">${value}</strong></div>`;
 const financeSummary = `
 <section class="financial-summary" aria-labelledby="financial-title">
  <div class="section-caption"><div class="section-head"><p class="section-eyebrow">Finanzas</p><h2 id="financial-title">Resumen financiero</h2></div><button class="text-button">Ver movimientos ${svg(14, ICON.arrowUpRight)}</button></div>
- <div class="financial-strip" aria-busy="false">
-  <article class="financial-stat financial-primary"><span>Disponible</span><div class="financial-amounts"><strong>Gs 1.984.567.890</strong><strong>USD 87.654,32</strong></div><small>Saldo actual en cuentas</small></article>
-  <article class="financial-stat"><span>Por cobrar</span><div class="financial-amounts"><strong>Gs 2.345.678.901</strong><strong>USD 45.678,90</strong></div><small>Facturas pendientes</small></article>
-  <article class="financial-stat"><span>Cobrado este mes</span><div class="financial-amounts"><strong>Gs 876.543.210</strong></div><small>Neto de reversiones</small></article>
-  <article class="financial-stat"><span>Gastos planificados</span><div class="financial-amounts"><strong>Gs 1.234.567.890</strong><strong>USD 12.345,67</strong></div><small>Mes actual · fijos y variables</small></article>
-  <article class="financial-stat"><span>Personal</span><div class="financial-amounts"><strong>Gs 3.456.789.012</strong></div><small>Salarios esperados al cierre del mes</small></article>
-  <article class="financial-stat financial-result"><span>Resultado estimado del mes</span><div class="financial-amounts"><strong data-negative="true">−Gs 456.789.012</strong><strong>USD 1.234,56</strong></div><small>Ingreso esperado − gastos planificados y personal.</small></article>
- </div>
+ ${v2KpiStrip([
+   v2Kpi('Disponible', moneyStack(['Gs 1.984.567.890', 'USD 87.654,32']), 'Saldo actual en cuentas', true),
+   v2Kpi('Por cobrar', moneyStack(['Gs 2.345.678.901', 'USD 45.678,90']), 'Facturas pendientes'),
+   v2Kpi('Cobrado este mes', moneyStack(['Gs 876.543.210']), 'Neto de reversiones'),
+   v2Kpi('Gastos planificados', moneyStack(['Gs 1.234.567.890', 'USD 12.345,67']), 'Mes actual · fijos y variables'),
+   v2Kpi('Personal', moneyStack(['Gs 3.456.789.012']), 'Salarios esperados al cierre del mes'),
+   v2Kpi('Resultado estimado del mes', `<span class="grid gap-0.5"><span class="inline-flex items-center justify-end gap-0.5" data-negative="true">−${moneyText('Gs 456.789.012', 'text-bad')}</span><span class="inline-flex items-center justify-end gap-0.5">${moneyText('USD 1.234,56')}</span></span>`, 'Ingreso esperado − gastos planificados y personal.', true),
+ ])}
  <div class="finance-compare">
   <div class="finance-compare-group"><p class="finance-compare-currency">PYG</p>
-   <div class="finance-compare-row"><span class="finance-compare-label">Disponible</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-cash" style="width:57%"></span></span><strong class="finance-compare-value">Gs 1.984.567.890</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Por cobrar</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-receivables" style="width:68%"></span></span><strong class="finance-compare-value">Gs 2.345.678.901</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Cobrado este mes</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-collections" style="width:25%"></span></span><strong class="finance-compare-value">Gs 876.543.210</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Gastos planificados</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-expenses" style="width:36%"></span></span><strong class="finance-compare-value">−Gs 1.234.567.890</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Personal</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-personnel" style="width:100%"></span></span><strong class="finance-compare-value">Gs 3.456.789.012</strong></div>
+   ${compareRow('Disponible', 57, 'fono', 'Gs 1.984.567.890')}
+   ${compareRow('Por cobrar', 68, 'mute', 'Gs 2.345.678.901')}
+   ${compareRow('Cobrado este mes', 25, 'ok', 'Gs 876.543.210')}
+   ${compareRow('Gastos planificados', 36, 'warn', '−Gs 1.234.567.890')}
+   ${compareRow('Personal', 100, 'fono', 'Gs 3.456.789.012')}
   </div>
   <div class="finance-compare-group"><p class="finance-compare-currency">USD</p>
-   <div class="finance-compare-row"><span class="finance-compare-label">Disponible</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-cash" style="width:100%"></span></span><strong class="finance-compare-value">USD 87.654,32</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Por cobrar</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-receivables" style="width:52%"></span></span><strong class="finance-compare-value">USD 45.678,90</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Cobrado este mes</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-collections" style="width:14%"></span></span><strong class="finance-compare-value">USD 12.345,67</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Gastos planificados</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-expenses" style="width:14%"></span></span><strong class="finance-compare-value">−USD 12.345,67</strong></div>
-   <div class="finance-compare-row"><span class="finance-compare-label">Personal</span><span class="finance-compare-track" aria-hidden="true"><span class="finance-compare-fill tone-personnel" style="width:0%"></span></span><strong class="finance-compare-value">USD 0,00</strong></div>
+   ${compareRow('Disponible', 100, 'fono', 'USD 87.654,32')}
+   ${compareRow('Por cobrar', 52, 'mute', 'USD 45.678,90')}
+   ${compareRow('Cobrado este mes', 14, 'ok', 'USD 12.345,67')}
+   ${compareRow('Gastos planificados', 14, 'warn', '−USD 12.345,67')}
+   ${compareRow('Personal', 0, 'fono', 'USD 0,00')}
   </div>
  </div>
  <p class="inventory-summary">Patrimonio en equipos <b>Gs 12.345.678.901 · USD 234.567,89</b><button class="text-button">Ver inventario${svg(14, ICON.arrowUpRight)}</button></p>
@@ -129,7 +138,7 @@ const dueItem = (item) => `
 const dueGroup = (group) => `
 <details class="due-group" open>
  <summary>
-  <span class="due-group-cell">${group.name}${group.items.length > 1 ? `<b> ×${group.items.length}</b>` : ''}<span class="due-bar-track" aria-hidden="true"><span class="due-bar-fill tone-${group.tone}" style="width:${group.width}%"></span></span></span>
+  <span class="due-group-cell">${group.name}${group.items.length > 1 ? `<b> ×${group.items.length}</b>` : ''}<span class="due-bar-track" aria-hidden="true">${barra(group.width, group.tone === 'danger' ? 'bad' : 'warn', `Pendientes de ${group.name}`)}</span></span>
   <time datetime="${group.due}">${group.short}</time>
   <small>${group.type === 'invoice' ? 'Factura' : 'Producción'}</small>
  </summary>

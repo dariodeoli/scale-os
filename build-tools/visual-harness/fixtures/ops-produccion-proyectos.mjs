@@ -134,7 +134,7 @@ const plannerBody = `
  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-lg font-bold text-fore">Trabajo diario</h2></div>
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-2">${kpi('Entregas para hoy o vencidas', '2', 'Piezas asignadas con entrega hasta hoy')}${kpi('Piezas asignadas pendientes', '4', 'Sin aprobar ni publicar')}</div>
  <div class="flex flex-wrap items-center gap-2"><button type="button" class="text-button">Revisar cobros pendientes${svg(ICON.arrowUp, 14)}</button><button type="button" class="text-button">Disponibilidad y efectivo${svg(ICON.arrowUp, 14)}</button></div>
- <div role="table" aria-label="Piezas" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map(plannerRow).join('')}</div></div></div>
+ <div role="table" aria-label="Piezas" class="silent-scroll relative min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map(plannerRow).join('')}</div></div></div>
 </div>`;
 
 /* --------------------------------------------------------------- proyectos */
@@ -196,8 +196,9 @@ const projectListRow = (project) => `
 
 const projectsBody = (asGrid) => `
 <section class="grid min-w-0 gap-4" aria-label="Proyectos">
+ <header class="flex flex-wrap items-start justify-end gap-x-4 gap-y-3"><div class="flex flex-wrap items-center gap-2">${button('Nuevo proyecto')}<div class="inline-flex rounded-lg border border-ink-500 p-0.5" role="group" aria-label="Vista"><button type="button" class="h-11 w-11 rounded-md text-mute md:h-8 md:w-8" aria-pressed="${asGrid}">▦</button><button type="button" class="h-11 w-11 rounded-md text-mute md:h-8 md:w-8" aria-pressed="${!asGrid}">☰</button></div></div></header>
+ <div data-toolbar="filtros" class="mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap"><div class="w-full sm:w-56"><button type="button" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-left text-sm text-fore md:h-9" aria-label="Cliente">Todos los clientes</button></div><button type="button" class="text-button min-h-11 md:min-h-8">${svg(ICON.close, 14)}Limpiar filtro</button><button type="button" class="text-button min-h-11 lg:ml-2 md:min-h-8" title="Selecciona hasta 50 proyectos visibles para operar en lote">Seleccionar visibles</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">4 proyectos</p></div>
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Activos', '2', 'Con trabajo en curso')}${kpi('Pausados', '1', 'Sin producción activa')}${kpi('Completados', '1', 'Cerrados en el historial')}${kpi('Piezas totales', '187', 'Órdenes de los proyectos visibles')}</div>
- <div class="flex flex-wrap items-end gap-3"><label class="flex items-center gap-2"><span class="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm sm:w-56"><option>Todos los clientes</option></select></label><button type="button" class="text-button">${svg(ICON.close, 14)}Limpiar filtro</button><button type="button" class="text-button lg:ml-2" title="Selecciona hasta 50 proyectos visibles para operar en lote">Seleccionar visibles</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">4 proyectos</p></div>
  ${asGrid
    ? `<div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">${projectRows.map(projectCard).join('')}</div>`
    : `<div role="table" aria-label="Proyectos" class="project-list silent-scroll min-w-0 overflow-x-auto [--project-cols:minmax(14rem,1.6fr)_7rem_minmax(13rem,1.1fr)_minmax(10rem,1fr)_10rem]"><div class="min-w-[64rem]"><div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${PROJECT_TEMPLATE}"><span role="columnheader">Proyecto</span><span role="columnheader">Estado</span><span role="columnheader">Fechas y piezas</span><span role="columnheader">Responsables</span><span role="columnheader" class="text-right">Acciones</span></div><div role="rowgroup">${projectRows.map(projectListRow).join('')}</div></div></div>`}
@@ -302,7 +303,7 @@ export default [
 <div class="grid min-w-0 gap-4" aria-label="Planificador de producción">
  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><h2 class="text-[17px] font-semibold tracking-tight text-fore">Lista y lotes</h2></div>
  <div class="flex flex-wrap items-center gap-2"><button class="secondary" type="button">Cambiar 1 piezas</button><button class="text-button" type="button">Quitar selección</button><button class="text-button" type="button">${svg(ICON.calendar, 14)}Plantillas mensuales</button></div>
- <div role="table" aria-label="Piezas en lista y lotes" class="silent-scroll min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map((order, index) => plannerRow({...order, selected: index === 0})).join('')}</div></div></div>
+ <div role="table" aria-label="Piezas en lista y lotes" class="silent-scroll relative min-w-0 overflow-x-auto"><div class="min-w-[72rem]">${plannerHead}<div role="rowgroup">${orders.map((order, index) => plannerRow({...order, selected: index === 0})).join('')}</div></div></div>
 </div>`,
   },
   {
@@ -332,7 +333,7 @@ export default [
     body: `
 <section class="grid min-w-0 gap-4" aria-label="Proyectos">
  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">${kpi('Activos', '2', 'Con trabajo en curso')}${kpi('Pausados', '1', 'Sin producción activa')}${kpi('Completados', '1', 'Cerrados en el historial')}${kpi('Piezas totales', '187', 'Órdenes de los proyectos visibles')}</div>
- <div class="mb-4 flex flex-wrap items-end gap-3"><label class="grid w-full gap-1.5 sm:w-64"><span class="text-[12px] font-semibold text-mute">Cliente</span><select class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-fore md:h-9 md:text-sm"><option>Cooperativa de Servicios Múltiples de Prueba Limitada</option></select></label><button type="button" class="text-button">${svg(ICON.close, 14)}Limpiar filtro</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">0 proyectos</p></div>
+ <div data-toolbar="filtros" class="mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap"><div class="w-full sm:w-56"><button type="button" class="h-11 w-full rounded-lg border border-ink-500 bg-ink-800 px-3 text-left text-sm text-fore md:h-9" aria-label="Cliente"><span class="block whitespace-normal break-words leading-tight">Cooperativa de Servicios Múltiples de Prueba Limitada</span></button></div><button type="button" class="text-button min-h-11 md:min-h-8">${svg(ICON.close, 14)}Limpiar filtro</button><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">0 proyectos</p></div>
  <div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-12 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">Este cliente no tiene proyectos.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Elegí otro cliente o limpiá el filtro.</p><div class="mt-4">${button('Limpiar filtro', 'outline')}</div></div></div>
 </section>`,
   },

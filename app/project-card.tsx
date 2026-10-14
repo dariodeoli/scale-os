@@ -73,6 +73,10 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
   const piecesCount=pieces?pieces.length:knownTotal;
   const piecesTotal=Math.max(piecesCount,knownTotal);
   const {links,legacy,count}=projectLinks(record);
+  // Piezas que exceden la ventana: el texto queda visible en la lista (sin rol de
+  // estado propio ni aviso transitorio duplicado).
+  const shownPieces=pieces?Math.min(pieces.length,PROJECT_PIECES_LIMIT):0;
+  const remainingNotice=pieces&&piecesTotal>shownPieces?remainingPiecesLabel(piecesTotal,shownPieces):'';
   return <Dialog size="drawer" close={onClose} title={record.name}>
     {error?<ErrorBlock title="No se pudo cargar el proyecto." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
     <div className="grid min-w-0 gap-4">
@@ -105,7 +109,7 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
           <span className="min-w-0 truncate font-semibold text-fore" title={piece.title}>{piece.title}</span>
           <span className="ml-auto flex shrink-0 items-center gap-2 whitespace-nowrap"><span className="list-date tabular-nums text-mute" data-tone={hasDueWarning(piece.due_date)?'warn':undefined} title={piece.due_date?`Entrega ${fechaListaCorta(piece.due_date,'')}${piece.due_time?` · ${piece.due_time.slice(0,5)} h`:``}`:undefined}>{piece.due_date?<>{fechaListaCorta(piece.due_date,'')}{piece.due_time?` · ${piece.due_time.slice(0,5)}`:``}</>:'Sin fecha'}</span><StateChip tone={piece.status==='published'?'ok':piece.status==='approved'?'info':piece.status==='review'?'warn':'mute'}>{pieceStatusLabel(piece.status)}</StateChip></span>
         </li>)}</ul>:<p className="text-[13px] text-mute">El proyecto todavía no tiene piezas.</p>}
-        {pieces&&piecesTotal>Math.min(pieces.length,PROJECT_PIECES_LIMIT)?<p className="text-[12px] text-mute" role="status">{remainingPiecesLabel(piecesTotal,Math.min(pieces.length,PROJECT_PIECES_LIMIT))}</p>:null}
+        {remainingNotice?<p className="text-[12px] text-mute">{remainingNotice}</p>:null}
       </section>
     </div>
   </Dialog>;

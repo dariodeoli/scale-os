@@ -62,21 +62,23 @@ export function PlatformNotices({state, error, bootstrap, onRetry}: {state: Stat
 export function PlatformAdminSkeleton() {
   return <main className="platform-admin-page control-shell" aria-busy="true">
     <p className="sr-only" role="status">Cargando el control global…</p>
-    <header className="platform-admin-header" aria-hidden="true">
+    <div className="platform-admin-top" aria-hidden="true">
       <Skeleton className="h-9 w-9 rounded-xl"/>
-      <div className="platform-admin-identity">
-        <Skeleton className="h-3 w-28"/>
-        <Skeleton className="h-5 w-44"/>
+      <div className="ui-page-header flex min-w-0 flex-[1_1_20rem] flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="grid min-w-0 gap-1">
+          <Skeleton className="h-3 w-28"/>
+          <Skeleton className="h-5 w-44"/>
+          <span className="platform-admin-meta">
+            <Skeleton className="h-6 w-24 rounded-full"/>
+            <Skeleton className="h-3 w-24"/>
+          </span>
+        </div>
+        <div className="platform-admin-actions">
+          <Skeleton className="h-11 w-28 rounded-lg md:h-9"/>
+          <Skeleton className="h-11 w-24 rounded-lg md:h-9"/>
+        </div>
       </div>
-      <div className="platform-admin-meta">
-        <Skeleton className="h-6 w-24 rounded-full"/>
-        <Skeleton className="h-3 w-24"/>
-      </div>
-      <div className="platform-admin-actions">
-        <Skeleton className="h-11 w-28 rounded-lg md:h-9"/>
-        <Skeleton className="h-11 w-24 rounded-lg md:h-9"/>
-      </div>
-    </header>
+    </div>
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <div className="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
         {['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size, index) => <Skeleton key={index} className={`h-11 shrink-0 rounded-lg md:h-8 ${size}`}/>)}

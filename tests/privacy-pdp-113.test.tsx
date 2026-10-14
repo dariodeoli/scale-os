@@ -149,7 +149,7 @@ test('«Mis datos»: derechos, SLA y supresión con confirmación reforzada', ()
  for (const kind of ['acceso', 'rectificacion', 'supresion', 'oposicion']) assert(panel.includes(`'${kind}'`), `el panel ofrece el derecho de ${kind}`);
  assert(panel.includes('PRIVACY_RIGHTS_CHANNEL.slaDias'), 'el SLA visible sale de la fuente única');
  assert(panel.includes('Venció hace') && panel.includes('Vence en'), 'los estados muestran el vencimiento real');
- assert(panel.includes("confirmation.trim()!=='Suprimir'"), 'la supresión exige la palabra de confirmación');
+ assert(panel.includes('requireText="Suprimir"') && panel.includes('<ConfirmDialog'), 'la supresión exige la palabra de confirmación (ConfirmDialog con requireText)');
  assert(panel.includes('historial financiero y contable auditable se conserva'), 'la supresión explica la excepción fiscal');
  assert(panel.includes('registerPrivacyConsent') || panel.includes('revokePrivacyConsent'), 'la revocación usa el registro con trazabilidad');
  assert(panel.includes('#112'), 'el pendiente de la base técnica se declara en la vista');
