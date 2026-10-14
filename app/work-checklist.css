@@ -15,3 +15,6 @@
 /* Móvil 360: los ítems de la grilla no se ensanchan por texto largo; el texto envuelve. */
 .work-checklist-items{grid-template-columns:minmax(0,1fr)}.work-checklist-items>li{min-width:0;overflow-wrap:anywhere}.work-checklist-item{min-width:0}
 .work-checklist-actor{flex:0 1 auto;flex-wrap:wrap;min-width:0;max-width:calc(100% - 27px);white-space:normal}
+/* #178: en mobile el rótulo del paso ocupa la línea y su texto puede encoger y partir sin salirse del label. */
+.work-checklist-check>span{min-width:0;overflow-wrap:anywhere}
+@media(max-width:640px){.work-checklist-check{flex:1 1 100%}}
