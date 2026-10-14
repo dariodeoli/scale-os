@@ -14,3 +14,13 @@
 .assigned-people .assigned-person-primary{padding:3px 6px;border-radius:99px;background:var(--violet-soft);color:var(--brand-700);font-size:9px;font-weight:700;line-height:1.2;letter-spacing:.03em}
 .assigned-people-state{margin:0;font-size:11px;line-height:1.4;color:var(--text-subtle,var(--text-muted));overflow-wrap:anywhere}
 @media(max-width:540px){.assigned-people .actor-identity{min-height:44px;padding-inline:8px}/* (#107) el avatar lo dibuja `FotoPerfil`. */}
+
+/* Variante compacta (filas finas): avatares apilados + primer nombre + «+N»
+   en una línea; el detalle completo vive en el title del bloque. */
+.assigned-people-compact{flex-wrap:nowrap;gap:6px}
+.assigned-people-compact .assigned-people-stack{display:inline-flex;flex:none;align-items:center}
+.assigned-people-compact .assigned-people-stack .foto-perfil{--foto-perfil-size:22px;box-shadow:0 0 0 2px var(--surface)}
+.assigned-people-compact .assigned-people-stack .foto-perfil+.foto-perfil{margin-left:-7px}
+.assigned-people-compact .assigned-people-names{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:var(--text)}
+.assigned-people-compact .assigned-people-more{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text-muted)}
+.assigned-people-compact .assigned-people-state{white-space:nowrap}
