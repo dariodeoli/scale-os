@@ -22,10 +22,13 @@ const suitePath=require.resolve('../app/suite');
 require.cache[suitePath]={id:suitePath,filename:suitePath,loaded:true,exports:{RecordEditor:()=>null,BudgetActions:()=>null}} as NodeModule;
 const archivePath=require.resolve('../app/archive-controls');
 require.cache[archivePath]={id:archivePath,filename:archivePath,loaded:true,exports:{RemoveRecord:({name}:{name:string})=><button type="button" aria-label={`Mover a la papelera: ${name}`}>Papelera</button>}} as NodeModule;
+// `__esModule:true` es necesario: la sección carga estos módulos con `dynamic(() => import(x).then(m => m.Nombre))` y tsx
+// solo desenvuelve `default` cuando trae ese marcador; sin él, según la versión de Node, `m.Nombre` queda undefined
+// y React falla con «Element type is invalid» (fallaba en local con Node 22.22 y pasaba en CI).
 const growthPath=require.resolve('../app/growth-dashboard');
-require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{GrowthDashboard:()=><div>Tablero de crecimiento</div>}} as NodeModule;
+require.cache[growthPath]={id:growthPath,filename:growthPath,loaded:true,exports:{__esModule:true,GrowthDashboard:()=><div>Tablero de crecimiento</div>}} as NodeModule;
 const visitorsPath=require.resolve('../app/live-visitors');
-require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
+require.cache[visitorsPath]={id:visitorsPath,filename:visitorsPath,loaded:true,exports:{__esModule:true,LiveVisitors:()=><div>Viendo ahora</div>}} as NodeModule;
 const dndPath=require.resolve('@dnd-kit/core');
 require.cache[dndPath]={id:dndPath,filename:dndPath,loaded:true,exports:{
  DndContext:({children}:{children:React.ReactNode})=><div>{children}</div>,

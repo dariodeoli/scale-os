@@ -17,7 +17,8 @@ test('named comment links are HTTPS-only and render as visible link chips',()=>{
 
 test('platform manual subscription wrapper uses the proxy and UTC expiry',()=>{
  assert.equal(subscriptionExpiry(''),null);
- assert.equal(subscriptionExpiry('2026-10-01T12:30'),new Date('2026-10-01T12:30').toISOString());
+ // La hora es de pared de Asunción (UTC-3 todo el año), no la del equipo que corre el test.
+ assert.equal(subscriptionExpiry('2026-10-01T12:30'),'2026-10-01T15:30:00.000Z');
  assert.throws(()=>subscriptionExpiry('invalid'),/válida/);
  const wrapper=readFileSync(new URL('../app/platform-admin-api.ts',import.meta.url),'utf8');
  assert.match(wrapper,/platformApiBase='\/core-api'/);

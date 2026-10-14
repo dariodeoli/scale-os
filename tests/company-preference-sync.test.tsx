@@ -43,7 +43,7 @@ async function harness(t:TestContext,oneCompany=false){
  await act(async()=>{renderer=create(<><CompanySelector name="Agencia A"/><CompanySettings/></>);});
  const trigger=renderer.root.findByProps({className:'workspace'});
  if(typeof trigger.props.onClick==='function')await act(async()=>{trigger.props.onClick();});
- const settingsRows=()=>renderer.root.findAllByType('article');
+ const settingsRows=()=>renderer.root.findAll(node=>typeof node.type==='string'&&node.props.role==='row'&&String(node.props.className).includes('company-settings-row'));
  const selectorRows=()=>renderer.root.findAllByProps({className:'company-choice-row'});
  const preference=(row:ReactTestInstance)=>row.findAllByType('button').find(b=>/Predeterminada|Usar al iniciar/.test(text(b)))!;
  const settingsButton=(id:number)=>preference(settingsRows()[id-1]);
