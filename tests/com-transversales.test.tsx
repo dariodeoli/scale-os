@@ -173,7 +173,7 @@ test('copias locales reemplazadas por la librería (§15.5) y resultado con el t
  assert.match(suite,/setNotice\('Factura creada o recuperada\. La encontrás en Finanzas\.'\)/,'el resultado de la factura sale como aviso ok, no como error');
  assert.match(suite,/\{notice&&<Aviso tono="ok" role="status" compact>\{notice\}<\/Aviso>\}/,'el resultado positivo usa el aviso de la librería');
  assert.match(suite,/\{error&&<Aviso tono="error" compact role="alert">\{error\}<\/Aviso>\}/,'los errores del detalle y de la factura usan el aviso de la librería');
- assert.match(suite,/\{planError&&<Aviso tono="error" compact role="alert">\{planError\}<\/Aviso>\}/,'los términos comerciales también');
+ assert.match(read('app/client-editor.tsx'),/\{planError&&<Aviso tono="error" compact role="alert">\{planError\}<\/Aviso>\}/,'los términos comerciales también (ClientEditor, #184)');
  const pipeline=read('app/sections/pipeline.tsx');
  assert.match(pipeline,/weightedAmounts\(rows\)/,'la columna y los totales comparten el ponderado');
  const summary=read('app/pipeline-summary.ts');

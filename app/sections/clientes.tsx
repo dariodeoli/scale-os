@@ -13,6 +13,8 @@ import {notify} from '../feedback';
 import {LIST_WINDOW,useFilasVisibles,windowSlice} from '../list-window';
 import {WhatsAppButton} from '../whatsapp-button';
 import {RecordEditor} from '../suite';
+import {AssignPlanDialog} from '../client-assign-plan';
+import {clientsCsv,downloadCsv} from '../client-bulk';
 import {CLIENT_TABLE_MIN_WIDTH} from '../client-directory-data';
 import {EmptyBlock, EmptyCta, ErrorBlock, Kpi, KpiStrip, KpiStripSkeleton, ListActions, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, useDenseTableFit, type ChipTone, type Column} from '../ui-v2';
 import {billingExpectationState,type CommercialDashboard} from '../control-center-data';
@@ -131,15 +133,20 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">RUC</dt><dd className="mt-0.5 text-fore"><PiiTexto kind="documento" value={client.tax_id} masked={!canSeeContact} fallback="Sin RUC registrado"/></dd></div>
       </>}
       <div><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cliente desde</dt><dd className="mt-0.5 text-fore">{since || 'Sin fecha de alta'}</dd></div>
-      <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cartera</dt><dd className="mt-0.5 text-fore">{stat && (stat.projects || stat.pieces) ? `${stat.projects} proyectos · ${stat.pieces} piezas${stat.nextDue ? ` · próxima entrega ${fechaListaCorta(stat.nextDue)}` : ''}` : 'Sin proyectos activos'}</dd></div>
+      <div className="col-span-2"><dt className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Actividad</dt><dd className="mt-0.5 text-fore">{stat && (stat.projects || stat.pieces) ? `${stat.projects} proyectos · ${stat.pieces} piezas${stat.nextDue ? ` · próxima entrega ${fechaListaCorta(stat.nextDue)}` : ''}` : 'Sin proyectos activos'}</dd></div>
     </dl>
-    {canSeeBilling ? <div className="flex flex-wrap items-center gap-2">
-      {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : null}
-      {pay && pay.currency && Number(pay.outstanding_amount) > 0
-        ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
-        : <span className="text-[11px] text-mute">Sin saldo pendiente</span>}
-      {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
-    </div> : null}
+    <div className="grid gap-0.5">
+      <span className="text-[9.5px] font-bold uppercase tracking-[.06em] text-mute">Cobros</span>
+      <div className="flex flex-wrap items-center gap-2">
+        {canSeeBilling ? <>
+          {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Sin datos de cobro</span>}
+          {pay && pay.currency && Number(pay.outstanding_amount) > 0
+            ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
+            : <span className="text-[11px] text-mute">Sin saldo pendiente</span>}
+        </> : <span className="text-[11px] text-mute">Sin acceso a cobros</span>}
+        {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
+      </div>
+    </div>
     <footer className="client-card-actions silent-scroll mt-auto flex items-center gap-1 overflow-x-auto border-t border-ink-600 pt-3 [justify-content:safe_flex-end]">
       <IconAction icon="eye" tone="fono" label={`Abrir ficha: ${client.name}`} onClick={onOpen}/>
       <WhatsAppButton href={tel}/>
@@ -188,6 +195,15 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   // pasa por confirmación explícita y el error queda inline en el diálogo.
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [bulkError, setBulkError] = useState('');
+  const [assignPlan, setAssignPlan] = useState(false);
+  const canSeeContact = canSeeClientContact(user?.role || 'viewer');
+  // Exportar CSV (#184 C5): del lado del cliente, sólo las columnas que el rol ve.
+  function exportCsv() {
+    const chosen = clients.filter(client => selectedClients.includes(String(client.id)));
+    const csv = clientsCsv(chosen, {canSeeContact, canSeeBilling, payments: paymentStatuses, activity: clientHubStats, stateLabel: client => clientState(client).label});
+    if (downloadCsv(`clientes-${new Date().toISOString().slice(0, 10)}.csv`, csv)) notify({tone: 'success', message: `Se exportaron ${chosen.length} ${chosen.length === 1 ? 'cliente' : 'clientes'}.`});
+    else notify({tone: 'error', message: 'Tu navegador no permite descargar el archivo.'});
+  }
   async function runBatch(archived: boolean) {
     setBulkError('');
     try {
@@ -207,9 +223,9 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
   const [visible, setVisible] = useState<number>(LIST_WINDOW.clients);
   useEffect(() => { setVisible(LIST_WINDOW.clients); }, [displayedClients, clientView]);
   const isGridView = clientView === 'grid';
-  // La preferencia de lista usa la tabla cuando entra; en pantallas chicas se
-  // conserva como una lista compacta de fichas, nunca se sustituye por la grilla.
-  const dense = tableFits && !isGridView;
+  // Lista = filas finas siempre (#184 C4): si la tabla no entra, el contenedor
+  // scrollea en silencio en horizontal; nunca se degrada a fichas.
+  const dense = !isGridView;
   const renderClients = (list: Client[], asTile: boolean) => list.map(client => {
     const props: ClientRowProps = {
       client,
@@ -275,9 +291,13 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
         <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</button>
         <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</button>
         <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</button>
+        {canManageTerms ? <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => setAssignPlan(true)}>Asignar plan</button> : null}
+        <button type="button" className="secondary min-h-11 md:min-h-10" onClick={exportCsv}>Exportar CSV</button>
         <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
       </div>
     </div> : null}
+
+    {assignPlan ? <AssignPlanDialog ids={selectedClients} close={() => setAssignPlan(false)} onDone={load}/> : null}
 
     {confirmArchive ? <ConfirmDialog open variant="danger" title="Archivar clientes" confirmLabel="Confirmar: archivar" busy={bulkBusy} error={bulkError} onCancel={() => {if (!bulkBusy) {setConfirmArchive(false); setBulkError('');}}} onConfirm={() => void runBatch(true)} description={<>
       <p><strong>{selectedClients.length === 1 ? selectedClients.map(id => clients.find(client => String(client.id) === id)?.name).filter(Boolean)[0] || '1 cliente' : `${selectedClients.length} clientes`}</strong></p>
@@ -296,12 +316,12 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       // `overflow-x-visible` (Refs #140): la tabla sólo se monta cuando entra
       // completa, y el menú ⋯ necesita salir del contenedor; se retira cuando
       // #138 publique el patrón con portal/popover (hoy el ⋯ vive adentro).
-      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[67.5rem]" pinnedActions>
+      ? <ListGrid label="Clientes" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className={tableFits ? 'client-directory-table overflow-x-visible' : 'client-directory-table'} minWidthClass="min-w-[67.5rem]" pinnedActions>
         {filasVisibles.inicio > 0 ? <div role="row" aria-hidden="true" style={{height: filasVisibles.inicio * filasVisibles.altoFila}}/> : null}
         {renderClients(mountedLive.slice(filasVisibles.inicio, filasVisibles.fin), false)}
         {filasVisibles.fin < mountedLive.length ? <div role="row" aria-hidden="true" style={{height: (mountedLive.length - filasVisibles.fin) * filasVisibles.altoFila}}/> : null}
       </ListGrid>
-      : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(mountedLive, true)}</div>}
+      : <div className={`client-directory-results client-directory-results--grid grid gap-3 md:grid-cols-2 xl:grid-cols-3`}>{renderClients(mountedLive, true)}</div>}
 
     {hidden > 0 ? <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-lg border border-ink-600 bg-ink-800 px-3 py-2" role="status" aria-live="polite">
       <span className="text-xs tabular-nums text-mute">Se muestran {mountedLive.length} de {liveClients.length} {liveClients.length === 1 ? 'cliente' : 'clientes'} que coinciden</span>
@@ -326,8 +346,8 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <details className="archived-capsule" open={clientStatusFilter==='inactive'}>
         <summary>Archivados ({archivedClients.length})</summary>
         {dense
-          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className="client-directory-table overflow-x-visible" minWidthClass="min-w-[67.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
-          : <div className={`client-directory-results client-directory-results--${isGridView ? 'grid' : 'list'} grid gap-3 ${isGridView ? 'md:grid-cols-2 xl:grid-cols-3' : ''}`}>{renderClients(windowSlice(archivedClients, visible), true)}</div>}
+          ? <ListGrid label="Clientes archivados" template={CLIENT_TEMPLATE} columns={CLIENT_COLUMNS} className={tableFits ? 'client-directory-table overflow-x-visible' : 'client-directory-table'} minWidthClass="min-w-[67.5rem]" pinnedActions>{renderClients(windowSlice(archivedClients, visible), false)}</ListGrid>
+          : <div className={`client-directory-results client-directory-results--grid grid gap-3 md:grid-cols-2 xl:grid-cols-3`}>{renderClients(windowSlice(archivedClients, visible), true)}</div>}
       </details>
     ) : null}
   </section>;
