@@ -34,12 +34,9 @@ export function PlatformAccessDenied({message}: {message?: string}) {
 }
 
 export function PlatformNotices({state, error, bootstrap, onRetry}: {state: State | null; error: string; bootstrap: BootstrapStatus | null; onRetry?: () => void}) {
+  // Sin avisos no se dibuja nada: un contenedor vacío sumaba un hueco al ritmo del panel.
+  if (!error && !(bootstrap && !bootstrap.initialized)) return null;
   return <div className="grid gap-3">
-    <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-1 text-[12px] leading-[1.45] text-mute">
-      <ShieldAlert size={14} className="shrink-0" aria-hidden="true"/>
-      <strong className="font-semibold text-fore">Acceso separado por plataforma.</strong>
-      <span>Ser dueño de una agencia no habilita este panel ni sus datos.</span>
-    </p>
     {bootstrap && !bootstrap.initialized ? <section className={`${ROW} border-warn-text/45`} role="status">
       <span className={`${ICON} text-warn`} aria-hidden="true"><TriangleAlert size={17}/></span>
       <div className="min-w-0">
@@ -66,7 +63,6 @@ export function PlatformAdminSkeleton() {
       <Skeleton className="h-9 w-9 rounded-xl"/>
       <div className="ui-page-header flex min-w-0 flex-[1_1_20rem] flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <div className="grid min-w-0 gap-1">
-          <Skeleton className="h-3 w-28"/>
           <Skeleton className="h-5 w-44"/>
           <span className="platform-admin-meta">
             <Skeleton className="h-6 w-24 rounded-full"/>
@@ -74,14 +70,14 @@ export function PlatformAdminSkeleton() {
           </span>
         </div>
         <div className="platform-admin-actions">
-          <Skeleton className="h-11 w-28 rounded-lg md:h-9"/>
-          <Skeleton className="h-11 w-24 rounded-lg md:h-9"/>
+          <Skeleton className="h-11 w-11 rounded-lg md:h-9 md:w-28"/>
+          <Skeleton className="h-11 w-11 rounded-lg md:h-9 md:w-24"/>
         </div>
       </div>
     </div>
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <div className="silent-scroll flex w-max min-w-0 max-w-full gap-1 overflow-x-auto rounded-xl border border-ink-600 bg-ink-800 p-1" aria-hidden="true">
-        {['w-24', 'w-28', 'w-24', 'w-20', 'w-28'].map((size, index) => <Skeleton key={index} className={`h-11 shrink-0 rounded-lg md:h-8 ${size}`}/>)}
+        {['w-24', 'w-28', 'w-24', 'w-24', 'w-20', 'w-28', 'w-16'].map((size, index) => <Skeleton key={index} className={`h-11 shrink-0 rounded-lg md:h-8 ${size}`}/>)}
       </div>
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="grid min-w-0 gap-4">

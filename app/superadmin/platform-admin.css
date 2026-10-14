@@ -10,7 +10,9 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--ui-section-gap, 16px);
+  /* Ritmo compacto: encabezado, pestañas y contenido a 12 px (el contenido
+     arranca a ≤120 px del borde en 1440). */
+  gap: var(--ui-space-3, 12px);
   width: 100%;
   min-width: 0;
   min-height: 100dvh;
@@ -26,8 +28,13 @@
 .platform-admin-page :is(button, a, input, select, textarea) { touch-action: manipulation }
 .platform-admin-page :is(button, a, input, select, textarea):focus-visible { outline: 3px solid color-mix(in srgb, var(--brand-600) 72%, white); outline-offset: 3px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand-600) 20%, transparent) }
 
-/* ── Encabezado: marca + `PageHeader` del sistema (#181) ─────────────────── */
+/* ── Encabezado: marca + `PageHeader` del sistema (#181), una sola fila ───── */
 .platform-admin-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px var(--ui-control-gap-lg, 12px); min-width: 0 }
+.platform-admin-top .ui-page-header { min-height: 0; align-items: center }
+.platform-admin-top h1 { margin: 0 }
+/* Acciones compactas ícono + texto (36 px); en mobile quedan solo con ícono. */
+.platform-admin-actions :is(.secondary) { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; font-size: 13px }
+.platform-admin-actions :is(.secondary) svg { width: 16px; height: 16px; flex: none }
 .platform-admin-brand { display: inline-flex; align-items: center; min-width: 0; padding: 4px 6px; border-radius: var(--ui-radius-control, 10px); color: inherit; text-decoration: none }
 .platform-admin-meta { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 6px var(--ui-control-gap, 8px) }
 .platform-admin-updated { color: var(--text-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap }
@@ -52,6 +59,11 @@
 /* Indicador activo (#155 B): barra inferior de marca además del fondo tenue,
    visible también en alto contraste. */
 .platform-admin-tabs [aria-pressed="true"] { box-shadow: inset 0 -2px 0 0 rgb(var(--c-fono)) }
+/* Pestañas más apretadas y contadores como insignias chicas. */
+@media(min-width:761px){ .platform-admin-tabs [aria-pressed] { padding-inline: 10px } }
+.platform-admin-tabs [aria-pressed] .opacity-75 { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: rgb(var(--c-fore) / .08); font-size: 11px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums }
+/* Consultas nuevas: la insignia toma el color de atención para verse sin abrir la pestaña. */
+.platform-admin-tabs [aria-label^="Consultas ("] .opacity-75 { background: rgb(var(--c-fono)); color: rgb(var(--c-onbrand)) }
 
 /* La toolbar de filtros del panel no deja campos pegados al borde. */
 .platform-admin-page [data-toolbar="filtros"] { gap: var(--ui-control-gap-lg, 12px); margin-bottom: var(--ui-space-3, 12px) }
@@ -93,15 +105,21 @@
 /* Mobile: la tabla densa no entra; va la cuadrícula de tarjetas. El encabezado
    pasa a dos filas (identidad / controles) con targets de 44 px. */
 @media(max-width:760px){
-  .platform-admin-actions { width: 100% }
-  .platform-admin-actions .secondary { flex: 1; min-height: 44px }
-  .platform-admin-updated { white-space: normal }
+  /* Una fila: marca (solo ícono) + título + acciones de solo ícono (44 px). */
+  .platform-admin-top { flex-wrap: nowrap; gap: 8px }
+  .platform-admin-brand { padding: 0 }
+  .platform-admin-brand .workspace-wordmark { display: none }
+  .platform-admin-top .ui-page-header { flex-wrap: nowrap; gap: 8px; flex: 1 1 auto }
+  .platform-admin-top .ui-page-header h1 { font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .platform-admin-top .ui-page-header-subtitle { margin-top: 2px }
+  .platform-admin-top .header-actions { width: auto; flex: none }
+  .platform-admin-actions { width: auto }
+  .platform-admin-actions .secondary { flex: none; min-height: 44px; min-width: 44px; padding: 0; justify-content: center }
+  .platform-admin-action-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
   .platform-admin-table-wrap { display: none; }
-  /* Expose every section without requiring horizontal discovery. */
-  .platform-admin-tabs { overflow: visible }
-  .platform-admin-tabs > div { width: 100%; flex-wrap: wrap; gap: 8px }
+  /* Pestañas: tira horizontal con scroll silencioso (las secciones no se apilan). */
+  .platform-admin-tabs > div { flex-wrap: nowrap; gap: 4px }
   .platform-admin-tabs [aria-pressed] { min-height: 44px; min-width: 44px }
-
 }
 
 /* El micro-rótulo del panel pasa AA también en oscuro (el violeta de marca

@@ -4,6 +4,7 @@ import {invitationEmail,resetEmail,verificationEmail,accessGrantedEmail,destruct
 import {trialStartedEmail,suspensionEmail,paymentFailedEmail} from './billing-email.js';
 import {notificationEmail} from './notifications.js';
 import {clientPortalResetEmail,clientPortalInviteEmail} from './client-portal.js';
+import {inquiryEmail} from './platform-inquiries.js';
 
 const appUrl='https://app.scaleparaguay.com',evil='Agencia <b>&"x"</b>',token='a'.repeat(64);
 const emails={
@@ -18,6 +19,7 @@ const emails={
  notification:{m:notificationEmail({title:evil,body:'<i>x</i>',organization_name:evil,work_order_id:'4'},appUrl),cta:true},
  portalReset:{m:clientPortalResetEmail({token}),cta:true},
  portalInvite:{m:clientPortalInviteEmail({organizationName:evil,clientName:evil,url:'https://app.scaleparaguay.com/cliente/x?a=1&b=2'}),cta:true},
+ inquiry:{m:inquiryEmail({inquiry:{id:1,name:evil,company:evil,email:'a@example.invalid',whatsapp:'+595 981123456',message:'<script>x</script>',consent:true},appUrl}),cta:true},
 };
 assert.equal(EMAIL_TEMPLATE_VERSION,'v3.0.0');
 // Contraste WCAG de los tokens: texto ≥4.5:1 sobre su fondo en claro y oscuro.
@@ -61,7 +63,7 @@ for(const [name,{m,cta}] of Object.entries(emails)){
   assert.ok(h.includes('monospace')&&h.includes('font-size:32px')&&h.includes('letter-spacing:8px')&&h.includes('12345678'),name+' code is large monospaced');
  }
 }
-for(const name of ['invitation','access','trial','suspension','failed','notification','portalInvite'])assert.ok(emails[name].m.html.includes('Agencia &lt;b&gt;&amp;&quot;x&quot;&lt;/b&gt;'),name+' escapes interpolated names');
+for(const name of ['invitation','access','trial','suspension','failed','notification','portalInvite','inquiry'])assert.ok(emails[name].m.html.includes('Agencia &lt;b&gt;&amp;&quot;x&quot;&lt;/b&gt;'),name+' escapes interpolated names');
 assert.ok(emails.portalInvite.m.html.includes('a=1&amp;b=2'),'hrefs escaped once');
 assert.ok(!emailShell({title:'T',lead:'L'}).includes('Si el botón no funciona'),'no CTA, no fallback');
 assert.ok(emailShell({title:'T',preheader:'P'}).includes('>P&nbsp;'),'explicit preheader');

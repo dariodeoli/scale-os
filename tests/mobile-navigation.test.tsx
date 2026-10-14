@@ -48,7 +48,7 @@ assert(!source.includes('className="mobile-nav"'));
 assert.equal((source.match(/visibleNavGroups.map/g)||[]).length,1,'one permission-filtered menu shared on both sizes');
 assert(source.includes('setOpenNavGroup')&&source.includes('moduleNavGroup'),'nav v3: accordion state and group mapping live in the shell');
 assert(!source.includes('className="topbar-logo"'),'the content topbar must not duplicate the brand');
-assert(source.includes('<div className="sidebar-brand"><WorkspaceBrand/></div>'),'desktop navigation retains the canonical brand');
+assert(source.includes('<div className="sidebar-brand"><WorkspaceBrand/>{toggle}</div>'),'desktop navigation retains the canonical brand, with the collapse toggle beside the logo');
 assert(source.includes('<div className="mobile-sidebar-brand"><WorkspaceBrand/></div>'),'mobile navigation retains the canonical brand');
 const drawer=readFileSync(new URL('../app/mobile-navigation.tsx',import.meta.url),'utf8');
 assert(drawer.includes('h-[100dvh]')&&drawer.includes('min-h-11'),'the drawer covers the viewport and preserves touch targets');

@@ -68,11 +68,10 @@ const header = (writable = true, updated = '18:12') => `
  <a class="platform-admin-brand" href="#" aria-label="Scale OS">${brand}</a>
  <header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 min-w-0 flex-[1_1_20rem] !mb-0">
   <div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
-   <p class="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">Administración global</p>
    <h1 class="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">Control de Scale OS</h1>
-   <p class="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1"><span class="platform-admin-meta">${chip(writable ? 'Admin global' : 'Solo lectura', writable ? 'ok' : 'info', 'Rol de tu usuario en la plataforma')}${updated ? `<span class="platform-admin-updated" title="Última actualización ${updated} (hora de Asunción)">Actualizado ${updated}</span>` : ''}</span></p>
+   <p class="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1"><span class="platform-admin-meta">${chip(writable ? 'Admin global' : 'Solo lectura', writable ? 'ok' : 'info', `${writable ? 'Tu usuario puede administrar la plataforma' : 'Tu usuario solo puede consultar la plataforma'}. Acceso separado por plataforma: ser dueño de una agencia no habilita este panel ni sus datos.`)}${updated ? `<span class="platform-admin-updated" title="Última actualización ${updated} (hora de Asunción)">Actualizado ${updated}</span>` : ''}</span></p>
   </div>
-  <div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><div class="platform-admin-actions"><button type="button" class="secondary">${I.refresh}Actualizar</button><a class="secondary" href="#">${I.back}Panel</a></div></div>
+  <div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><div class="platform-admin-actions"><button type="button" class="secondary" aria-label="Actualizar" title="Actualizar los datos del panel">${I.refresh}<span class="platform-admin-action-label">Actualizar</span></button><a class="secondary" href="#" aria-label="Volver al panel" title="Volver al panel de la agencia">${I.back}<span class="platform-admin-action-label">Panel</span></a></div></div>
  </header>
 </div>`;
 
@@ -272,6 +271,48 @@ const auditView = () => `
  </div>
 </section>`;
 
+
+/* ── Consultas de la landing (app/superadmin/inquiries.tsx) ─────────────────
+ * ListGrid: Fecha · Nombre/empresa · Contacto (correo + WhatsApp) · Mensaje
+ * (2 líneas con title) · Estado · Acciones (primaria + ⋯); tarjetas en mobile. */
+const INQUIRIES = [
+  {name: 'Ana María Benítez de la Cruz', company: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', email: 'ana.benitez@estudiocomunicacionparaguay.com.py', whatsapp: '+595 981123456', message: 'Queremos ordenar la producción de 14 clientes y dejar de usar planillas. ¿Tienen migración de datos desde Excel y capacitación para el equipo comercial y de producción?', status: 'new', note: '', when: '2026-10-14T18:12:00.000Z'},
+  {name: 'Compras Cooperativa', company: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', email: 'compras@coopservicios.com.py', whatsapp: null, message: '', status: 'contacted', note: 'Llamar el lunes a las 10, pidió demo para 5 usuarios', when: '2026-10-13T11:05:00.000Z'},
+  {name: 'Luis Ramírez', company: 'Agencia Creativa del Sur', email: 'luis@creativasur.example.com', whatsapp: '+54 91155550000', message: 'Precio para 5 usuarios.', status: 'closed', note: '', when: '2026-10-11T09:40:00.000Z'},
+];
+const INQ_STATUS = {new: ['Nueva', 'warn'], contacted: ['Contactada', 'info'], closed: ['Cerrada', 'mute']};
+const INQ_TEMPLATE = 'grid-cols-[8.5rem_minmax(12rem,1.1fr)_minmax(14rem,1fr)_minmax(14rem,1.4fr)_7rem_13rem]';
+const waHref = (value) => value ? `https://wa.me/${value.replace(/\D/g, '')}` : '';
+const inqWho = (q) => `<span class="grid min-w-0 gap-0.5"><b class="list-identity truncate text-[13px] font-semibold text-fore" title="${q.name}">${q.name}</b><small class="truncate text-[12px] text-mute" title="${q.company}">${q.company}</small></span>`;
+const inqContact = (q) => `<span class="grid min-w-0 gap-0.5"><a class="list-secondary truncate text-[12.5px] text-fore underline-offset-2 hover:underline" href="mailto:${q.email}" title="Escribir a ${q.email}">${q.email}</a>${q.whatsapp ? `<a class="truncate text-[12px] text-mute underline-offset-2 hover:underline" href="${waHref(q.whatsapp)}" target="_blank" rel="noopener noreferrer" title="Abrir WhatsApp con ${q.whatsapp}">WhatsApp ${q.whatsapp}</a>` : '<span class="text-[12px] text-mute">Sin WhatsApp</span>'}</span>`;
+const inqMessage = (q) => `<span class="grid min-w-0 gap-0.5"><span class="line-clamp-2 text-[12.5px] leading-snug ${q.message ? 'text-fore' : 'text-mute'}" title="${q.message || 'Sin mensaje'}">${q.message || 'Sin mensaje'}</span>${q.note ? `<small class="truncate text-[11.5px] text-mute" title="Nota: ${q.note}">Nota: ${q.note}</small>` : ''}</span>`;
+const inqActions = (q) => `${q.status === 'new' ? '<button type="button" class="text-button platform-admin-inline-action">Marcar contactada</button>' : ''}<button type="button" class="ui-action-menu-trigger" aria-label="Acciones de la consulta de ${q.name}" title="Más acciones">⋯</button>`;
+const inquiriesView = () => `
+<section class="panel" aria-labelledby="platform-inquiries-title">
+ <div class="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1"><div class="flex min-w-0 items-center gap-2"><h2 id="platform-inquiries-title" class="text-[15px] font-semibold tracking-tight text-fore">Consultas de la landing</h2>${chip('1 nueva', 'warn', 'Consultas nuevas sin atender')}</div><small class="text-[12px] leading-[1.35] text-mute">Formulario «¿Tenés alguna duda?» · cada consulta también llega por correo</small></div>
+ <div data-toolbar="filtros" class="mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap" style="gap:12px"><label class="grid gap-1.5 text-[11px] font-semibold text-mute">Estado<select aria-label="Filtrar consultas por estado" class="min-w-[12rem]"><option>Todas (3)</option><option>Nuevas (1)</option><option>Contactadas (1)</option><option>Cerradas (1)</option></select></label><p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">3 de 3</p></div>
+ <div class="min-w-0">
+  <style>.admin-inq-fixture-cards{display:none}@media(max-width:1180px){.admin-inq-fixture-table{display:none}.admin-inq-fixture-cards{display:grid}}</style>
+  <div role="table" aria-label="Consultas de la landing" class="admin-inq-fixture-table silent-scroll min-w-0 overflow-x-auto">
+   <div class="min-w-[70rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${INQ_TEMPLATE}"><span role="columnheader">Fecha</span><span role="columnheader">Nombre / empresa</span><span role="columnheader">Contacto</span><span role="columnheader">Mensaje</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Acciones</span></div>
+    <div role="rowgroup">${INQUIRIES.map((q) => `
+    <div role="row" data-status="${q.status}" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 ${INQ_TEMPLATE}">
+     <span role="cell" class="list-date" title="${longDate(q.when)}">${longDate(q.when)}</span>
+     <div role="cell" class="min-w-0">${inqWho(q)}</div>
+     <div role="cell" class="min-w-0">${inqContact(q)}</div>
+     <div role="cell" class="min-w-0">${inqMessage(q)}</div>
+     <span role="cell" class="min-w-0">${chip(INQ_STATUS[q.status][0], INQ_STATUS[q.status][1])}</span>
+     <div role="cell" class="list-actions">${inqActions(q)}</div>
+    </div>`).join('')}</div>
+   </div>
+  </div>
+  <div class="admin-inq-fixture-cards platform-admin-inquiry-cards grid gap-3 sm:grid-cols-2">
+   ${INQUIRIES.map((q) => `<article data-status="${q.status}" class="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4"><div class="flex min-w-0 items-start justify-between gap-2">${inqWho(q)}${chip(INQ_STATUS[q.status][0], INQ_STATUS[q.status][1])}</div>${inqContact(q)}${inqMessage(q)}<small class="list-date text-[12px]">${longDate(q.when)}</small><div class="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">${inqActions(q)}</div></article>`).join('')}
+  </div>
+ </div>
+</section>`;
+
 const shell = (view, body) => `<main class="platform-admin-page control-shell"><style>.platform-admin-mobile-cards{display:none}@media(max-width:760px){.platform-admin-mobile-cards{display:grid}}</style>${header()}${tabs(view)}${body}</main>`;
 
 
@@ -292,11 +333,11 @@ const loadingPage = `
  * atajos, tabs con Accesos antes que Cupones, skeleton propio, acciones de
  * agencia (primaria + ⋯) y tarjetas de 200 px. El CSS real (platform-admin.css)
  * aporta el indicador activo y la sombra de scroll del wrapper. */
-const tabs2 = (active, counts = {agencias: 4, accesos: 3, cupones: 3, auditoria: 50}) => `
+const tabs2 = (active, counts = {consultas: 12, agencias: 4, accesos: 3, cupones: 3, auditoria: 50}) => `
 <div class="platform-admin-tabs-wrap">
  <div class="platform-admin-tabs silent-scroll">
   <div class="flex flex-wrap gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap" role="group" aria-label="Secciones del panel global">
-   ${[['resumen', 'Resumen', undefined], ['agencias', 'Agencias', counts.agencias], ['accesos', 'Accesos', counts.accesos], ['cupones', 'Cupones', counts.cupones], ['auditoria', 'Auditoría', counts.auditoria]].map(([id, label, count]) => `<button type="button" aria-pressed="${id === active}" aria-label="${label}${count === undefined ? '' : ` (${count})`}" title="${label}" class="inline-flex min-h-11 flex-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium md:min-h-8 ${id === active ? 'bg-fono/15 text-fono-text' : 'text-mute'}">${label}${count === undefined ? '' : `<span class="text-xs opacity-75">${count}</span>`}</button>`).join('')}
+   ${[['resumen', 'Resumen', undefined], ['consultas', 'Consultas', counts.consultas], ['agencias', 'Agencias', counts.agencias], ['accesos', 'Accesos', counts.accesos], ['cupones', 'Cupones', counts.cupones], ['auditoria', 'Auditoría', counts.auditoria], ['uso', 'Uso', undefined]].map(([id, label, count]) => `<button type="button" aria-pressed="${id === active}" aria-label="${label}${count === undefined ? '' : ` (${count})`}" title="${label}" class="inline-flex min-h-11 flex-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium md:min-h-8 ${id === active ? 'bg-fono/15 text-fono-text' : 'text-mute'}">${label}${count === undefined ? '' : `<span class="text-xs opacity-75">${count}</span>`}</button>`).join('')}
   </div>
  </div>
 </div>`;
@@ -429,7 +470,6 @@ const skeleton2 = `
 
 const notices2 = `
 <div class="grid gap-3">
- <p class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-1 text-[12px] leading-[1.45] text-mute"><strong class="font-semibold text-fore">Acceso separado por plataforma.</strong><span>Ser dueño de una agencia no habilita este panel ni sus datos.</span></p>
  <section class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3 border-warn-text/45" role="status">
   <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-warn" aria-hidden="true">▲</span>
   <div class="min-w-0"><b class="block text-[13.5px] font-semibold text-fore">Primer acceso global pendiente</b><p class="mt-0.5 text-xs text-mute">La cuenta configurada debe existir, tener correo verificado y acceso activo a una agencia.</p></div>
@@ -552,6 +592,16 @@ export default [
       {container: '[role="table"][aria-label="Actividad de administración global"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · auditoría (#155)', rowHeight: [44, 52], exemptBelow: 856},
     ],
     body: `<main class="platform-admin-page control-shell">${header()}${tabs2('auditoria')}${auditView()}</main>`,
+  },
+  {
+    id: 'admin3-consultas',
+    section: 'Superadmin',
+    surface: 'Consultas de la landing con el encabezado compacto (una fila) y la pestaña con insignia',
+    kind: 'plain',
+    lists: [
+      {container: '[role="table"][aria-label="Consultas de la landing"]', head: '[role="row"]', row: '[role="rowgroup"] [role="row"]', label: 'Superadmin · consultas', rowHeight: [44, 52], exemptBelow: 1181},
+    ],
+    body: `<main class="platform-admin-page control-shell">${header()}${tabs2('consultas')}${inquiriesView()}</main>`,
   },
   {
     id: 'admin2-skeleton',
