@@ -103,6 +103,12 @@ assert(!JSON.stringify(r.data).includes('Other Person.png'));
 r=await read('work-orders/'+order);assert.equal(r.status,200);assert.equal(r.data.record.effective_assignees[0].photo_url,'https://example.invalid/1.png');
 r=await read('productivity/orders/'+order);assert.equal(r.status,200);assert.equal(r.data.order.effective_assignees[0].full_name,'Direct Person');
 r=await read('productivity/clients/'+client);assert.equal(r.status,200);assert.equal(r.data.orders.find(o=>o.id===inherited).assignee_source,'project');
+// Ficha del cliente ↔ Pipeline: la oportunidad convertida vuelve con su etapa, monto y moneda; la que está en Papelera no.
+const sourceLead=await insert("insert into agency_leads(organization_id,name,stage,amount,currency,probability,client_id) values($1,'Origin lead','won',1500,'USD',100,$2)",[org,client]);
+const trashedLead=await insert("insert into agency_leads(organization_id,name,stage,amount,currency,probability,client_id) values($1,'Trashed lead','lead',10,'USD',10,$2)",[org,client]);
+await rows("insert into agency_archived_records(organization_id,kind,record_id) values($1,'leads',$2)",[org,trashedLead]);
+r=await read('productivity/clients/'+client);assert.equal(r.status,200);
+assert.deepEqual(r.data.leads.map(l=>[String(l.id),l.name,l.stage_kind,Number(l.amount),l.currency]),[[String(sourceLead),'Origin lead','won',1500,'USD']],'client dossier lists its visible source opportunities');
 r=await read('work-orders/'+order+'/assignees');assert.equal(r.status,200);assert.equal(r.data.assignees[0].photo_url,'https://example.invalid/1.png');
 r=await read('projects/'+project+'/assignees');assert.equal(r.status,200);assert.equal(r.data.assignees[0].photo_url,'https://example.invalid/2.png');
 r=await read('assignees');assert.equal(r.status,200);assert.equal(r.data.members.find(p=>p.id===String(direct)).photo_url,'https://example.invalid/1.png');

@@ -51,6 +51,11 @@ assert.equal((await call(`/api/agency/control-center`,{as:{...owner,role:'viewer
 let center=await call('/api/agency/control-center');assert.equal(center.active_clients,2);assert.equal(center.active_prospects,0);assert.deepEqual(center.contracted_billing.records,[{currency:'USD',net_monthly:'90.00'}]);assert.equal(center.forecast.separate,true);
 await query("insert into agency_leads(organization_id,name,stage,amount,currency,probability) values($1,'Open lead','lead',100,'USD',10),($1,'Won lead','won',100,'USD',100),($1,'Lost lead','lost',100,'USD',0)",[organization]);
 center=await call('/api/agency/control-center');assert.equal(center.active_prospects,1,'only non-won/non-lost leads are prospects');
+// Papelera: un cliente o una oportunidad borrados no cuentan en el Centro de control.
+const trashedClient=await insert("insert into agency_clients(organization_id,name,lifecycle_status) values($1,'Trashed client','active')",[organization]);
+const trashedLead=await insert("insert into agency_leads(organization_id,name,stage,amount,currency,probability) values($1,'Trashed lead','lead',100,'USD',10)",[organization]);
+await query("insert into agency_archived_records(organization_id,kind,record_id) values($1,'clients',$2),($1,'leads',$3)",[organization,trashedClient,trashedLead]);
+center=await call('/api/agency/control-center');assert.equal(center.active_clients,2,'trashed clients are not active clients');assert.equal(center.active_prospects,1,'trashed leads are not active prospects');
 const amendment={...fichaProfile,effectiveOn:'2021-01-01',planVersionSnapshot:'2026.2',monthlyPrice:200,currency:'PYG',discountType:'fixed',discountValue:20,discountTerms:'Retention'};
 const amended=await call(`${clientPath}/amendments`,{method:'POST',payload:{...amendment,expectedVersion:created.commercial.version}});
 assert.equal(amended.status,201);assert.equal(amended.commercial.amendments.length,2);assert.equal(amended.commercial.amendments[1].monthlyPrice,'200.00');

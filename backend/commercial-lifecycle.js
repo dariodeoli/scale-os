@@ -2,6 +2,7 @@ import {currencies} from './currencies.js';
 import {civilDate} from './business-time.js';
 import {roleCan} from './permissions.js';
 import {amount,date,fail,id,option,text} from './suite-validation.js';
+import {visibleRecord} from './record-lifecycle.js';
 
 
 
@@ -94,10 +95,11 @@ export async function commercialProfile(connection,organization,clientId){
  return {current_term:rows.find(term=>term.effective_until===null)||null,terms:rows};
 }
 async function controlCenter(connection,organization,financial){
- const activeClients=(await connection.query("select count(*)::int as count from agency_clients where organization_id=$1 and active=true and coalesce(lifecycle_status,'active')='active'",[organization])).rows[0].count;
+ // Lo que está en Papelera no cuenta: ni clientes ni oportunidades borradas.
+ const activeClients=(await connection.query(`select count(*)::int as count from agency_clients c where c.organization_id=$1 and c.active=true and coalesce(c.lifecycle_status,'active')='active' and ${visibleRecord('c','clients')}`,[organization])).rows[0].count;
  // A custom stage counts as closed only through its kind; legacy slugs keep the
  // literal fallback so metrics never depend on the stage editor.
- const activeProspects=(await connection.query("select count(*)::int as count from agency_leads l where l.organization_id=$1 and l.stage not in ('won','lost') and not exists(select 1 from agency_pipeline_stages s where s.organization_id=l.organization_id and s.slug=l.stage and s.kind in ('won','lost'))",[organization])).rows[0].count;
+ const activeProspects=(await connection.query("select count(*)::int as count from agency_leads l where l.organization_id=$1 and l.stage not in ('won','lost') and not exists(select 1 from agency_pipeline_stages s where s.organization_id=l.organization_id and s.slug=l.stage and s.kind in ('won','lost')) and "+visibleRecord('l','leads'),[organization])).rows[0].count;
  const contractedBilling=financial?(await connection.query(`select currency,round(sum(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end),2)::text as net_monthly
   from agency_client_commercial_terms where organization_id=$1 and ${currentTerm} group by currency order by currency`,[organization])).rows:null;
  return {
