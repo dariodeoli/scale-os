@@ -25,7 +25,7 @@
  */
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {Badge, EmptyState, ListGridToggle, SegmentedField} from 'owncoding-ui';
+import {Badge, EmptyState, ListGridToggle, SearchField, SegmentedField} from 'owncoding-ui';
 
 const h = React.createElement;
 /* Vista lista/cuadrícula v2: envuelve ListGridToggle como app/ui-v2.tsx (ViewSwitch). */
@@ -200,7 +200,7 @@ const perfilPropio = () => `<div class="grid min-w-0 gap-4">
 const teamHeader = (view = 'list') => `<div class="grid gap-3"><header class="ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 !mb-0"><div class="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3"></div><div class="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap"><button type="button" class="secondary">Permisos del panel</button><button type="button" class="primary">${svg(ICON.plus, 16)}Agregar persona</button>${viewSwitch(view)}</div></header></div>`;
 const teamToolbar = (count = '5 de 5 personas') => `<div data-toolbar="filtros" class="mb-0 flex flex-wrap items-end gap-3 xl:flex-nowrap">
  ${renderToStaticMarkup(h(SegmentedField, {className: '[&>button]:min-h-11 md:[&>button]:min-h-8', ariaLabel: 'Filtrar por estado laboral', value: 'all', onChange: () => {}, options: [['all', 'Todos'], ['active', 'Activos'], ['inactive', 'Inactivos']]}))}
- ${searchField({label: 'Buscar persona', placeholder: 'Nombre, correo o cargo', className: 'w-full sm:w-72'})}
+ ${renderToStaticMarkup(h(SearchField, {value: '', onChange: () => {}, onClear: () => {}, placeholder: 'Nombre, correo o cargo', ariaLabel: 'Buscar persona', className: 'w-full sm:w-72'}))}
  <p class="ml-auto whitespace-nowrap text-xs tabular-nums text-mute"><span role="status" aria-atomic="true">${count}</span></p>
 </div>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
@@ -254,7 +254,7 @@ const teamCard = (person) => `<article data-compact-card class="flex min-w-0 fle
  <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11.5px] leading-4 text-mute"><span class="min-w-0 truncate" title="${person.email}">${person.email}</span>${person.meta.map((item) => `<span class="whitespace-nowrap">· ${item}</span>`).join('')}</div>
  <div class="flex min-w-0 flex-wrap items-center gap-1">${statusChip(person)}<span class="text-[11.5px] text-mute">${person.role}</span>${accessChipOf(person)}</div>
 </article>`;
-const bulkBar = (count) => `<div role="status" aria-live="polite" data-bulk-bar class="bulk-bar bulk-bar-sticky"><span class="bulk-count"><b>${count}</b> de 50 seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button min-h-11 md:min-h-8">Seleccionar visibles</button><button type="button" class="secondary min-h-11 md:min-h-10">Suspender acceso</button><button type="button" class="secondary min-h-11 md:min-h-10">Reactivar acceso</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button></div></div>`;
+const bulkBar = (count) => `<div role="status" aria-live="polite" data-bulk-bar class="bulk-bar"><span class="bulk-count"><b>${count}</b> de 50 seleccionados</span><div class="inline-actions bulk-actions"><button type="button" class="text-button min-h-11 md:min-h-8">Seleccionar visibles</button><button type="button" class="secondary min-h-11 md:min-h-10">Suspender acceso</button><button type="button" class="secondary min-h-11 md:min-h-10">Reactivar acceso</button><button type="button" class="text-button min-h-11 md:min-h-8">Limpiar</button></div></div>`;
 
 /* ---------------------------------------------------- historial / actividad */
 const historyLine = ({actor, photo = '', timestamp, title, meta}) => `<li class="grid min-w-0 gap-1 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3">
@@ -321,7 +321,7 @@ export default [
       exemptBelow: 767,
     }],
     body: `
-<section data-list-page class="grid min-w-0 gap-4 directory" aria-label="Personas, accesos y remuneraciones">
+<section data-list-page class="grid min-w-0 gap-4 directory grid-cols-[minmax(0,1fr)]" aria-label="Personas, accesos y remuneraciones">
  ${teamHeader('list')}
  ${teamToolbar()}
  ${bulkBar(2)}
@@ -335,7 +335,7 @@ export default [
     surface: 'Personas · estado vacío con CTA',
     kind: 'workspace',
     body: `
-<section data-list-page class="grid min-w-0 gap-4 directory" aria-label="Personas, accesos y remuneraciones">
+<section data-list-page class="grid min-w-0 gap-4 directory grid-cols-[minmax(0,1fr)]" aria-label="Personas, accesos y remuneraciones">
  ${teamHeader('list')}
  ${teamToolbar('0 de 0 personas')}
  ${emptyBlock({title: 'Todavía no hay personas', description: 'Agregá la primera persona del equipo para registrar accesos y remuneraciones.', action: h('button', {type: 'button', className: 'primary'}, h('svg', {width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true', dangerouslySetInnerHTML: {__html: ICON.plus}}), 'Agregar primera persona')})}
@@ -349,7 +349,7 @@ export default [
     kind: 'workspace',
     grids: [],
     body: `
-<section data-list-page class="grid min-w-0 gap-4 directory" aria-label="Personas, accesos y remuneraciones">
+<section data-list-page class="grid min-w-0 gap-4 directory grid-cols-[minmax(0,1fr)]" aria-label="Personas, accesos y remuneraciones">
  ${teamHeader('grid')}
  ${teamToolbar()}
  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">${people.map(teamCard).join('')}</div>

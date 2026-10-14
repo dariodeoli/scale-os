@@ -1,9 +1,8 @@
 "use client";
 import {useEffect,useMemo,useState} from 'react';
-import {SegmentedField} from 'owncoding-ui';
+import {SearchField,SegmentedField} from 'owncoding-ui';
 import {Plus} from 'lucide-react';
 import {api} from './operations';
-import {SearchField} from './search-field';
 import {useCompanyCurrency} from './currency-provider';
 import {ConfirmDialog} from './dialog';
 import {PersonContainer} from './person-container';
@@ -214,7 +213,7 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
 
   return <>
     <ListPage
-      className="directory"
+      className="directory grid-cols-[minmax(0,1fr)]"
       aria-label="Personas, accesos y remuneraciones"
       primaryAction={<>
         {roleCan(role,'settings.manage')?<button type="button" className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>:null}
@@ -223,7 +222,7 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
       </>}
       toolbar={<FilterToolbar className="mb-0" summary={<span role="status" aria-atomic="true">{summary}</span>}>
         <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar por estado laboral" value={teamFilter} onChange={(value:string)=>setTeamFilter(value as TeamStatusFilter)} options={[['all','Todos'],['active','Activos'],['inactive','Inactivos']]}/>
-        <SearchField className="w-full sm:w-72" label="Buscar persona" hideLabel value={search} onChange={setSearch} placeholder="Nombre, correo o cargo"/>
+        <SearchField className="w-full sm:w-72" ariaLabel="Buscar persona" value={search} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setSearch(event.target.value)} placeholder="Nombre, correo o cargo"/>
         {hasFilters?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters}>Limpiar filtros</button>:null}
       </FilterToolbar>}
       bulk={canManageAccess?<BulkBar count={bulk.count} total={BATCH_LIMITS.members} role={role} busy={bulkBusy} onSelectVisible={()=>bulk.selectVisible(visible.filter(selectable).map(entry=>String(entry.member!.id)))} onClear={bulk.clear}>

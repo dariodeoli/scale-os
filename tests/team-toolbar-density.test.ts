@@ -13,11 +13,11 @@ const operations=teamSource();
 const css=read('app/operations.css');
 
 test('la toolbar de Equipo usa ListPage + FilterToolbar con filtros segmentados y vista v2',()=>{
- assert.match(team,/<ListPage\s+className="directory"\s+aria-label="Personas, accesos y remuneraciones"/);
+ assert.match(team,/<ListPage\s+className="directory grid-cols-\[minmax\(0,1fr\)\]"\s+aria-label="Personas, accesos y remuneraciones"/);
  assert.match(team,/<FilterToolbar className="mb-0" summary=\{<span role="status" aria-atomic="true">\{summary\}<\/span>\}>/);
  assert.match(team,/<SegmentedField [\s\S]*?ariaLabel="Filtrar por estado laboral"/);
  assert.match(team,/options=\{\[\['all','Todos'\],\['active','Activos'\],\['inactive','Inactivos'\]\]\}/);
- assert.match(team,/<SearchField className="w-full sm:w-72" label="Buscar persona" hideLabel/);
+ assert.match(team,/<SearchField className="w-full sm:w-72" ariaLabel="Buscar persona"/);
  assert.match(team,/<ViewSwitch value=\{view\} onChange=\{changeView\}\/>/);
  assert.match(team,/localStorage\.getItem\(TEAM_VIEW_KEY\)/,'la vista Lista/Cuadrícula se recuerda por usuario');
  assert.match(team,/const TEAM_VIEW_KEY='scale:team-view'/);
