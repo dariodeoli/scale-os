@@ -219,10 +219,12 @@ export function ExchangeRateSettings(){ const [rates,setRates]=useState<Row[]>([
 // Las integraciones son estado informativo y acompañan al lateral (#139).
 export function IntegrationSettings(){ return <section className="panel settings-card" aria-labelledby="integration-settings-title">
    <div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Link2Off size={18}/></span><div><h2 id="integration-settings-title">Integraciones</h2><p>Estado actual de los servicios que pueden complementar tu flujo de trabajo.</p></div></div>
-   <div className="settings-integration-list" role="list" aria-label="Estado de integraciones">
-    <div className="settings-integration-head" role="presentation"><span>Integración</span><span>Estado</span></div>
+   <div className="settings-integration-list">
+    <div className="settings-integration-head" aria-hidden="true"><span>Integración</span><span>Estado</span></div>
+    <div role="list" aria-label="Estado de integraciones">
     <article role="listitem"><div><strong>Google y Drive</strong><p title="Usá tu correo invitado para entrar y agregá enlaces de Drive en cada registro.">Usá tu correo invitado para entrar y agregá enlaces de Drive en cada registro.</p></div><span className="settings-status">No configurado</span></article>
     <article role="listitem"><div><strong>WhatsApp, Instagram y Meta</strong><p title="Requieren una conexión y permisos de Meta antes de poder usarse.">Requieren una conexión y permisos de Meta antes de poder usarse.</p></div><span className="settings-status">No configurado</span></article>
+    </div>
    </div>
    <details className="settings-disclosure"><summary>Qué está disponible hoy</summary><p>Este panel no conecta cuentas ni envía mensajes. Los enlaces de Drive se gestionan desde los registros que los usan.</p></details>
   </section>;

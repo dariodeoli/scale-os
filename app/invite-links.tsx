@@ -15,7 +15,7 @@ const unavailableLabels:Record<string,string>={revoked:'El enlace fue revocado.'
 /** Plantillas v2: encabezado y filas comparten una sola grilla por lista (fila finita 44–52 px). */
 const REQUESTS_TEMPLATE='grid-cols-[minmax(11rem,1.5fr)_minmax(12rem,1.5fr)_6.5rem_7.5rem_5.5rem_14rem]';
 const REQUESTS_COLUMNS=[{key:'person',label:'Persona'},{key:'email',label:'Correo'},{key:'role',label:'Rol'},{key:'status',label:'Estado'},{key:'date',label:'Fecha'},{key:'actions',label:'Acciones'}];
-const LINKS_TEMPLATE='grid-cols-[minmax(12rem,1.6fr)_8rem_minmax(11rem,1.2fr)_minmax(10rem,1.2fr)_12rem]';
+const LINKS_TEMPLATE='grid-cols-[minmax(12rem,1.6fr)_8rem_minmax(11rem,1.2fr)_minmax(10rem,1.2fr)_14rem]';
 const LINKS_COLUMNS=[{key:'link',label:'Enlace'},{key:'status',label:'Estado'},{key:'activity',label:'Actividad'},{key:'author',label:'Autor'},{key:'actions',label:'Acciones'}];
 
 /** Densidad de fila finita: la identidad compartida usa avatar chico y sin relleno extra. */
@@ -82,7 +82,7 @@ export function InviteLinks({role}:{role:string}){
      <span className="whitespace-nowrap text-xs tabular-nums text-mute">{links.length} enlace{links.length===1?'':'s'}</span>
     </div>
     {!links.length?<EmptyBlock compact title="Todavía no creaste enlaces" description="Generá uno cuando necesites sumar a alguien." action={<button type="button" className="secondary" onClick={focusCreate}>Generar enlace</button>}/>:
-     <ListGrid label="Enlaces de invitación" template={LINKS_TEMPLATE} columns={LINKS_COLUMNS} minWidthClass="min-w-[56rem]">
+     <ListGrid label="Enlaces de invitación" template={LINKS_TEMPLATE} columns={LINKS_COLUMNS} minWidthClass="min-w-[58rem]">
       {links.map(link=>{const state=linkState(link);const joinedUsers=link.joined_users||[];const activity=`${link.click_count} clics · ${link.account_count} cuentas creadas · ${joinedUsers.length?`${joinedUsers.length} unidos`:'Nadie se unió todavía'}`;return <ListRow key={link.id} template={LINKS_TEMPLATE} className={ROW_DENSITY}>
        <strong className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={`${teamRoleLabels[link.role]||link.role} · ${link.mode==='single'?'Un solo uso':'Con aprobación'}`}>{teamRoleLabels[link.role]||link.role} · {link.mode==='single'?'Un solo uso':'Con aprobación'}</strong>
        <StateChip tone={state.tone}>{state.label}</StateChip>
