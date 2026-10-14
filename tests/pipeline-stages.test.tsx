@@ -74,6 +74,12 @@ async function run(){
  await act(async()=>{board.props.onDragEnd({active:{id:'10'},over:{id:'stage-cierre'}});});
  assert.deepEqual(JSON.parse(String(requests[0].init.body)),{stage:'cierre',probability:100});
  await flush({record:{}});await flush(rowsIn('cierre'));
+ // Entrar a una etapa ganada ofrece convertir a cliente; aceptar llama al contrato de conversion.
+ assert.match(text(renderer.root),/¿Convertir a Cliente activo en cliente\?/);
+ await act(async()=>{renderer.root.findAllByProps({role:'dialog'})[0].findByType('form').props.onSubmit({preventDefault(){}});});
+ assert.equal(requests[0].url,'/core-api/api/agency/leads/10/convert');assert.equal(requests[0].init.method,'POST');
+ await flush({record:{}});await flush(rowsIn('cierre'));
+ assert.equal(renderer.root.findAllByProps({role:'dialog'}).length,0,'convertir cierra la oferta');
  const before=requests.length;
  await act(async()=>{board.props.onDragEnd({active:{id:'10'},over:{id:'stage-propuesta'}});});
  assert.equal(requests.length,before,'read-only stage columns reject drops');

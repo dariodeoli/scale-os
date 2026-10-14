@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
-import {ArrowUpRight,GripVertical,Move,Plus,Settings2,TrendingUp,ChevronLeft,ChevronRight} from 'lucide-react';
+import {ArrowUpRight,GripVertical,Move,Plus,Settings2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
 import {Aviso,AvisoPrivacidad,Button,IconAction,Input,Label,Select} from 'owncoding-ui';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {roleCan} from '../capabilities';
@@ -10,7 +10,9 @@ import {RemoveRecord} from '../archive-controls';
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
-import {EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip} from '../ui-v2';
+import {ActionMenu,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,Kpi,KpiStrip,LoadingBlock,MoneyText,SectionLoading,StateChip,type RecordMenuItem} from '../ui-v2';
+import {SelectCustom} from '../profile-controls';
+import {SaveActions} from '../save-actions';
 import {PHONE_HELP} from '../field-rules';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_LEAD_FINALITY,PRIVACY_LEAD_DETAIL} from '../privacy-links';
 import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
@@ -52,16 +54,27 @@ const stageKindChoices=[{value:'open',label:'Abierta (oportunidad en curso)'},{v
 // no tiene puntero, cae al rectángulo que se cruza.
 const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
-function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>}){
+type LeadActions={moveTo:(row:Row)=>void;convert:(row:Row)=>void};
+function LeadCard({row,edit,role,canMove,refresh,won=false,actions}:{row:Row;edit:()=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;won?:boolean;actions?:LeadActions}){
   const drag=useDraggable({id:String(row.id),disabled:!canMove});
   // Dato ausente = vacío explícito: no se inventa un monto 0 ni una probabilidad 0.
   const amount=str(row,'amount').trim(),probabilityRaw=str(row,'probability').trim();
   const probability=Number(probabilityRaw);
   const hasProbability=probabilityRaw!==''&&Number.isFinite(probability);
+  // Mover y convertir comparten la capacidad del arrastre (`canMove`): el viewer
+  // no ve ni el menu ni la accion rapida. Convertir solo si aun no es cliente.
+  const convertible=canMove&&Boolean(actions)&&!row.client_id;
+  const menuItems:RecordMenuItem[]=[
+    ...(canMove&&actions?[{id:'move',label:'Mover a etapa…',onClick:()=>actions.moveTo(row)}]:[]),
+    ...(convertible?[{id:'convert',label:'Convertir a cliente',onClick:()=>actions!.convert(row)}]:[]),
+  ];
   return <article ref={drag.setNodeRef} style={{opacity:drag.isDragging?.4:1}} className="grid gap-2 rounded-lg border border-ink-600 bg-ink-900 p-3">
     <header className="flex items-start justify-between gap-2">
       <b className="min-w-0 text-[13px] font-semibold text-fore [overflow-wrap:anywhere]" title={str(row,'name')}>{str(row,'name')}</b>
+      <span className="flex shrink-0 items-center gap-1">
+      {menuItems.length?<ActionMenu label={`Acciones de la oportunidad: ${str(row,'name')}`} items={menuItems}/>:null}
       {canMove?<button type="button" className="grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-7 md:w-7" style={{touchAction:'none'}} title={`Mover ${str(row,'name')}`} aria-label={`Mover ${str(row,'name')}`} {...drag.attributes} {...drag.listeners}><GripVertical size={14}/></button>:null}
+      </span>
     </header>
     <MoneyText valor={amount===''?null:amount} currency={str(row,'currency')||'PYG'} className="text-sm text-fore"/>
     <div className="flex flex-wrap items-center gap-2 text-[11px]">
@@ -69,13 +82,14 @@ function LeadCard({row,edit,role,canMove,refresh}:{row:Row;edit:()=>void;role:st
       {hasProbability?<StateChip tone={probability>=75?'ok':probability>=40?'warn':'mute'} title={`Probabilidad ${probability}%`}>{probability}%</StateChip>:<span className="text-mute">Sin probabilidad cargada</span>}
     </div>
     <footer className="flex flex-wrap items-center justify-end gap-1 border-t border-ink-600 pt-2">
+      {won&&convertible?<CompactQuickAction label={`Convertir a cliente: ${str(row,'name')}`} icon={<UserCheck size={16} aria-hidden="true"/>} onClick={()=>actions!.convert(row)}/>:null}
       <IconAction icon="eye" label={`Ver oportunidad: ${str(row,'name')}`} onClick={edit}/>
       <RemoveRecord kind="leads" id={String(row.id)} name={str(row,'name')} role={role} done={refresh}/>
     </footer>
   </article>;
 }
 
-function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals}:{stage:{value:string;label:string};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean;totals?:{weighted:Record<string,number>;open:Record<string,number>}}){
+function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals,actions,create}:{stage:{value:string;label:string;kind?:Stage['kind']};rows:Row[];edit:(row:Row)=>void;role:string;canMove:boolean;refresh:()=>Promise<void>;readOnly?:boolean;totals?:{weighted:Record<string,number>;open:Record<string,number>};actions?:LeadActions;create?:(stage:string)=>void}){
   const drop=useDroppable({id:`stage-${stage.value}`,disabled:readOnly});
   // Ventana de montaje (#105): la columna monta de a páginas; el conteo y los
   // montos siguen siendo los de la etapa completa.
@@ -93,10 +107,15 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals}
       <h3 className="m-0 text-sm font-bold text-fore">{stage.label}{readOnly?' · desactivada':''}</h3>
       <span className="text-xs tabular-nums text-mute">{rows.length}</span>
     </header>
-    {currencies.length?<div className="grid gap-0.5 text-[10.5px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="truncate" title={`${currency}: ponderado y abierto`}><MoneyText valor={weighted[currency]??0} currency={currency}/> ponderado{open[currency]!==undefined&&open[currency]!==weighted[currency]?<> · <MoneyText valor={open[currency]} currency={currency}/> abierto</>:null}</span>)}</div>:null}
-    {mounted.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh}/>)}
+    {/* Totales sin recorte (#182): cada monto va nowrap + tabular-nums y es la
+        etiqueta la que baja de linea cuando el ancho no alcanza. */}
+    {currencies.length?<div className="grid gap-0.5 text-[10.5px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="flex flex-wrap items-baseline gap-x-1" title={`${currency}: ponderado y abierto`}><span className="whitespace-nowrap tabular-nums"><MoneyText valor={weighted[currency]??0} currency={currency}/> ponderado</span>{open[currency]!==undefined&&open[currency]!==weighted[currency]?<span className="whitespace-nowrap tabular-nums">· <MoneyText valor={open[currency]} currency={currency}/> abierto</span>:null}</span>)}</div>:null}
+    {mounted.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh} won={stage.kind==='won'} actions={readOnly?undefined:actions}/>)}
     {hidden>0?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setVisible(count=>count+LIST_WINDOW.leadsColumns)}>Ver más ({hidden})</button>:null}
-    {!rows.length?<p className="text-xs text-mute">Sin oportunidades.</p>:null}
+    {!rows.length?<div className="grid gap-2">
+      <p className="m-0 text-xs text-mute">Sin oportunidades.</p>
+      {canMove&&!readOnly&&create?<button type="button" className="text-button min-h-11 justify-self-start md:min-h-8" aria-label={`Nueva oportunidad en ${stage.label}`} onClick={()=>create(stage.value)}><Plus aria-hidden="true" size={14}/> Nueva</button>:null}
+    </div>:null}
   </section>;
 }
 
@@ -108,8 +127,11 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
   const [stagePanel,setStagePanel]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
-  // Oposición al contacto (#114): estado del diálogo; el alta arranca destildada.
-  const [doNotContact,setDoNotContact]=useState(false);
+  // Etapa preseleccionada del alta desde una columna vacia («+ Nueva», #182).
+  const [newStage,setNewStage]=useState('');
+  // «Mover a etapa…» (#182): oportunidad en movimiento y oferta de conversion.
+  const [moveTarget,setMoveTarget]=useState<Row|null>(null);
+  const [convertOffer,setConvertOffer]=useState<Row|null>(null);
   // Estado honesto de las dos lecturas: el error real de la lista y el aviso de
   // las etapas (el tablero nunca se cae, pero el fallo no se silencia).
   const [loadError,setLoadError]=useState('');
@@ -187,8 +209,6 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     const step=(first?.offsetWidth||240)+12;
     node.scrollBy({left:direction*step,behavior:'smooth'});
   };
-  // El diálogo refleja la oposición guardada al abrir cada oportunidad.
-  useEffect(()=>{setDoNotContact(edit&&edit!=='new'?edit.do_not_contact===true:false);},[edit]);
 
   const overview=pipelineSummary(rows);
   // Monedas abiertas ordenadas: la base va en el valor del KPI y el resto en la
@@ -224,19 +244,27 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
     {key:'currency',label:'Moneda',choices:[{value:'PYG',label:'PYG · Guaraníes'},{value:'USD',label:'USD · Dólares'},{value:'EUR',label:'EUR · Euros'},{value:'BRL',label:'BRL · Reales'},{value:'ARS',label:'ARS · Pesos argentinos'},{value:'MXN',label:'MXN · Pesos mexicanos'}]},
     {key:'probability',label:'Probabilidad (%)',type:'number',integer:true},
     {key:'notes',label:'Próximo paso y notas',type:'textarea',optional:true},
+    // Oposicion al contacto (#114): campo del Editor (Si/No), viaja en el mismo guardado.
+    {key:'do_not_contact',label:'No contactar',choices:[{value:'no',label:'No'},{value:'yes',label:'Sí · el titular pidió no ser contactado'}],help:'Si es Sí, conservamos el registro de la oportunidad y no iniciamos contacto.'},
   ];
-  const defaults:Record<string,string>=row?Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])):{currency:'PYG',stage:defaultStage,amount:'0',probability:'10',name:'',email:'',phone:'',notes:''};
+  const newDefaultStage=activeStages.find(stage=>stage.value===newStage);
+  const newProbability=newDefaultStage?.kind==='won'?'100':newDefaultStage?.kind==='lost'?'0':'10';
+  const defaults:Record<string,string>=row?{...Object.fromEntries(fields.map(field=>[field.key,str(row,field.key)])),do_not_contact:row.do_not_contact===true?'yes':'no'}:{currency:'PYG',stage:newDefaultStage?newDefaultStage.value:defaultStage,amount:'0',probability:newProbability,name:'',email:'',phone:'',notes:'',do_not_contact:'no'};
 
   // Solo las etapas activas aceptan drops: ganar fija 100% y perder 0%; el resto
   // conserva la probabilidad cargada. El movimiento es optimista: la tarjeta
   // cambia de columna al soltar, no vuelve si la recarga falla y se revierte
   // solo si el PATCH falla.
   async function move(event:DragEndEvent){
-    const value=String(event.over?.id||'').replace('stage-','');
+    await moveLead(String(event.active.id||''),String(event.over?.id||'').replace('stage-',''));
+  }
+  // Una sola via de movimiento: el arrastre y «Mover a etapa…» (mobile/teclado)
+  // pasan por aca, con la misma capacidad y el mismo comportamiento optimista.
+  async function moveLead(id:string,value:string){
     const stage=activeStages.find(candidate=>candidate.value===value);
-    const id=String(event.active.id||'');
     if(!canEdit||busy||!stage||!id)return;
     const previous=rows;
+    const moved=rows.find(item=>String(item.id)===id);
     const probability=stage.kind==='won'?100:stage.kind==='lost'?0:null;
     setRows(current=>current.map(item=>String(item.id)===id?{...item,stage:value,...(probability===null?{}:{probability})}:item));
     setBusy(true);setError('');
@@ -248,9 +276,20 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       setBusy(false);
       return;
     }
+    // Entrar a una etapa ganada ofrece convertir a cliente (sin bloquear: se descarta).
+    if(stage.kind==='won'&&moved&&!moved.client_id)setConvertOffer(moved);
     await load();
     setBusy(false);
   }
+  async function convertLead(target:Row){
+    if(busy)return;
+    setBusy(true);setError('');
+    try{await api(`/api/agency/leads/${target.id}/convert`,{});setEdit(null);setConvertOffer(null);await load();}
+    catch(reason){setError(err(reason));setConvertOffer(null);}
+    finally{setBusy(false);}
+  }
+  const leadActions:LeadActions={moveTo:setMoveTarget,convert:setConvertOffer};
+  const openCreate=(stage:string)=>{setNewStage(stage);setEdit('new');};
 
   return (
     <section className="grid gap-4" aria-label="Pipeline">
@@ -262,7 +301,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>
         {canEdit?<div className="flex flex-wrap items-center gap-2 max-md:ml-auto">
           <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
-          <Button type="button" className="max-md:min-h-11" onClick={()=>setEdit('new')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
+          <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
         </div>:null}
       </div>
       {/* KPIs compactos (#145, coordinación #138): en móvil los tres conteos
@@ -290,7 +329,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
 
       {state==='loading' && !rows.length ? <LoadingBlock label="Cargando oportunidades…" lines={4}/> : null}
       {state==='error' && !rows.length ? <ErrorBlock title="No se pudieron cargar las oportunidades." description={loadError||'Revisá la conexión y volvé a intentar; el tablero conserva las etapas conocidas.'} onRetry={()=>void load()}/> : null}
-      {state==='ready' && !rows.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'} action={canEdit?<EmptyCta label="Nueva oportunidad" onClick={()=>setEdit('new')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}/> : null}
+      {state==='ready' && !rows.length && !activeStages.length ? <EmptyBlock icon="target" title="Todavía no hay oportunidades." description={canEdit?'Cargá el primer lead con su etapa, valor y probabilidad para verlo en el tablero.':'Cuando el equipo cargue una oportunidad, vas a verla acá con su etapa y valor.'} action={canEdit?<EmptyCta label="Nueva oportunidad" onClick={()=>openCreate('')} icon={<Plus aria-hidden="true" size={16}/>}/>:undefined}/> : null}
 
       {/* Ventana (#105): el tablero pide una página explícita; cuando el API
           promete más, el contador lo dice y aclara qué cuentan los indicadores. */}
@@ -301,7 +340,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         </div>
       </div>:null}
 
-      {rows.length?<div className="grid gap-2">
+      {rows.length||(state==='ready'&&activeStages.length)?<div className="grid gap-2">
         {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
             flechas para recorrer el tablero sin adivinar que hay más etapas. */}
         {boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
@@ -314,8 +353,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         </div>:null}
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div ref={boardRef} className="flex gap-3 overflow-x-auto pb-2">
-            {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label}} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
-            {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(value)} readOnly/>)}
+            {activeStages.map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label,kind:stage.kind}} actions={leadActions} create={openCreate} rows={rows.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
+            {looseSlugs.map(value=><LeadColumn key={value} stage={{value,label:stageLabel(value)}} actions={leadActions} rows={rows.filter(candidate=>str(candidate,'stage')===value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(value)} readOnly/>)}
           </div>
         </DndContext>
       </div>:null}
@@ -330,24 +369,29 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       </p>:null}
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
-      {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy)setEdit(null);}}>
+      {edit&&canEdit?<Dialog title={row?'Editar oportunidad':'Nueva oportunidad'} busy={busy} close={()=>{if(!busy){setEdit(null);setNewStage('');}}}>
         {/* #150: los campos van primero; el aviso legal se resume en una línea
             con enlace y el detalle queda en la ayuda desplegable. */}
-        <Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/leads${row?`/${row.id}`:''}`,{...values,do_not_contact:doNotContact},row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>
+        <Editor columns fields={fields} defaults={defaults} save={async values=>{await api(`/api/agency/leads${row?`/${row.id}`:''}`,{...values,do_not_contact:values.do_not_contact==='yes'},row?'PATCH':'POST');await completeSave(()=>setEdit(null),load);}}/>
         <div className="mt-3 grid gap-2">
-          {/* Oposición (#114): se declara junto a los datos y viaja en el mismo
-              guardado; el titular puede revertirla cuando quiera. */}
-          <label className="flex items-start gap-2.5 text-[12.5px] leading-5 text-mute">
-            <input type="checkbox" className="mt-0.5 h-5 w-5 flex-none accent-fono" checked={doNotContact} disabled={busy} onChange={event=>setDoNotContact(event.target.checked)}/>
-            <span><b className="text-fore">No contactar.</b> El titular pidió no ser contactado: conservamos el registro de la oportunidad y no iniciamos contacto.</span>
-          </label>
           <p className="form-note m-0">Datos para gestionar la oportunidad y responderte; no los usamos para otro fin. <a className="text-button" href={PRIVACY_POLICY_URL} target="_blank" rel="noreferrer">Privacidad</a></p>
           <details className="ops-profile-section">
             <summary>Finalidad y tus derechos</summary>
             <div className="pt-1"><AvisoPrivacidad finalidad={PRIVACY_LEAD_FINALITY} detalle={PRIVACY_LEAD_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact/></div>
           </details>
         </div>
-        {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api(`/api/agency/leads/${row.id}/convert`,{});setEdit(null);await load();}catch(reason){setError(err(reason));}finally{setBusy(false);}}}>Ganado: convertir a cliente</Button></div>:null}
+        {row&&!row.client_id?<div className="mt-3"><Button type="button" variant="outline" disabled={busy} onClick={()=>void convertLead(row)}>Ganado: convertir a cliente</Button></div>:null}
+      </Dialog>:null}
+
+      {moveTarget&&canEdit?<Dialog title={`Mover a etapa: ${str(moveTarget,'name')}`} busy={busy} close={()=>{if(!busy)setMoveTarget(null);}}>
+        <MoveStageForm current={str(moveTarget,'stage')} choices={activeStages.map(stage=>({value:stage.value,label:stage.label}))} busy={busy} onMove={value=>{const id=String(moveTarget.id);setMoveTarget(null);void moveLead(id,value);}}/>
+      </Dialog>:null}
+
+      {convertOffer&&canEdit?<Dialog title="Convertir a cliente" busy={busy} close={()=>{if(!busy)setConvertOffer(null);}}>
+        <form className="grid gap-3" onSubmit={event=>{event.preventDefault();void convertLead(convertOffer);}}>
+          <p className="m-0 text-sm leading-6 text-mute">{`¿Convertir a ${str(convertOffer,'name')} en cliente? La oportunidad queda vinculada al nuevo cliente.`}</p>
+          <SaveActions pending={busy} cancelLabel="Ahora no"><button type="submit" className="primary" disabled={busy}>Convertir a cliente</button></SaveActions>
+        </form>
       </Dialog>:null}
 
       {stagePanel&&canEdit?<Dialog title="Etapas del pipeline" close={()=>setStagePanel(false)}>
@@ -408,4 +452,15 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
     </ul>
     <p className="text-xs leading-5 text-mute">Renombrar no cambia el código de la etapa. Una etapa con oportunidades se desactiva en lugar de eliminarse, y debe quedar siempre una etapa abierta activa.</p>
   </div>;
+}
+
+/** Selector de etapa del «Mover a etapa…» (#182): mismo PATCH que el arrastre. */
+function MoveStageForm({current,choices,busy,onMove}:{current:string;choices:{value:string;label:string}[];busy:boolean;onMove:(stage:string)=>void}){
+  const [value,setValue]=useState(choices.some(choice=>choice.value===current)?current:'');
+  const changed=value!==''&&value!==current;
+  return <form className="grid gap-3" onSubmit={event=>{event.preventDefault();if(changed&&!busy)onMove(value);}}>
+    <SelectCustom label="Etapa de destino" value={value} choices={choices} disabled={busy} onChange={setValue}/>
+    <p className="m-0 text-xs leading-5 text-mute">Ganar fija la probabilidad en 100% y perder en 0%.</p>
+    <SaveActions pending={busy}><button type="submit" className="primary" disabled={busy||!changed}>Mover</button></SaveActions>
+  </form>;
 }
