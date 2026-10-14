@@ -228,7 +228,31 @@ export function newExtendKey(){
 export type ConfirmRequest = { kind: "user"; person: Person } | { kind: "agency"; agency: Agency } | null;
 
 /** Vistas del panel (#102): una consola con secciones, no un scroll largo. */
-export type PlatformView = "resumen" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+export type PlatformView = "resumen" | "consultas" | "agencias" | "cupones" | "accesos" | "auditoria" | "uso";
+/** Aviso de acceso separado (antes, una fila propia del panel): vive en el tooltip del permiso. */
+export const PLATFORM_ACCESS_NOTE = "Acceso separado por plataforma: ser dueño de una agencia no habilita este panel ni sus datos.";
+export const PLATFORM_VIEWS: PlatformView[] = ["resumen", "consultas", "agencias", "cupones", "accesos", "auditoria", "uso"];
+
+/** Contrato de `GET /api/platform/inquiries`: consultas de la landing («¿Tenés alguna duda?»). */
+export type InquiryStatus = "new" | "contacted" | "closed";
+export type Inquiry = {
+  id: number | string;
+  name: string;
+  company: string;
+  email: string;
+  whatsapp: string | null;
+  message: string;
+  consent: boolean;
+  source: string;
+  source_url: string | null;
+  status: InquiryStatus;
+  note: string | null;
+  handled_at: string | null;
+  handled_by_email: string | null;
+  created_at: string;
+};
+export type InquiryCounts = Record<InquiryStatus, number>;
+export type InquiryPage = {inquiries: Inquiry[]; total: number; hasMore: boolean; limit: number; offset: number; counts: InquiryCounts};
 
 /** Contrato de `GET /api/platform/usage` (#191): solo presencia y altas, sin datos financieros. */
 export type UsagePerson = { name: string; avatar_url: string | null; email: string };

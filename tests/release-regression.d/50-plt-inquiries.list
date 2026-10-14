@@ -1,0 +1,2 @@
+# Consultas de la landing en el panel global (tab Consultas) y encabezado compacto del superadmin
+tsx tests/superadmin-inquiries.test.tsx
