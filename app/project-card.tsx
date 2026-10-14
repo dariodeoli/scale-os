@@ -130,32 +130,37 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
     window.addEventListener('hashchange',reveal);
     return()=>window.removeEventListener('hashchange',reveal);
   },[anchor]);
-  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 sm:p-4 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
+  // Tarjeta compacta (pase de densidad): encabezado (título de hasta 2 líneas
+  // con title + estado), contexto (cliente + urgencia), hechos alineados en 4
+  // columnas, responsables en una línea y acciones al pie. La altura la define
+  // el contenido; la fila de la cuadrícula la iguala por `stretch`. La línea
+  // «Actualizado …» es auditoría y vive en el detalle (como en Producción, #99).
+  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
     <div className="flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
-      {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-6 md:min-w-6" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
+      {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-5 md:min-w-5" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
       <div className="min-w-0 flex-1 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5 [.project-list_&]:contents">
-          <h3 className="break-words min-w-0 flex-1 text-sm font-semibold leading-5 text-fore [.project-list_&]:flex-none [.project-list_&]:truncate" title={project.name}>{project.name}</h3>
-          <StateChip tone={STATUS_TONE[project.status]||'mute'}>{statusLabel(project.status)}</StateChip>
-          <UrgencyBadge value={project.urgency}/>
+        <div className="flex min-w-0 items-start gap-2 [.project-list_&]:contents">
+          <h3 className="break-words line-clamp-2 m-0 min-w-0 flex-1 text-[13.5px] font-semibold leading-5 text-fore [.project-list_&]:flex-none [.project-list_&]:truncate" title={project.name}>{project.name}</h3>
+          <StateChip tone={STATUS_TONE[project.status]||'mute'} className="shrink-0">{statusLabel(project.status)}</StateChip>
         </div>
-        <button type="button" className="mt-0.5 flex min-h-11 min-w-0 items-center text-left text-[11.5px] leading-4 text-mute hover:text-fono-light md:min-h-0 [.project-list_&]:hidden" onClick={()=>setDetail(true)} aria-label={`Abrir detalle del proyecto ${project.name}`}><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key}/></button>
+        <div className="flex min-w-0 items-center justify-between gap-2 [.project-list_&]:contents">
+          <button type="button" className="mt-0.5 flex min-h-11 min-w-0 items-center text-left text-[11.5px] leading-4 text-mute hover:text-fono-light md:min-h-0 [.project-list_&]:hidden" onClick={()=>setDetail(true)} aria-label={`Abrir detalle del proyecto ${project.name}`}><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key} compact/></button>
+          <span className="shrink-0 [.project-list_&]:hidden"><UrgencyBadge value={project.urgency}/></span>
+        </div>
         <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:inline" title={project.client_name}>· {project.client_name}</span>
       </div>
     </div>
-    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg bg-ink-700/40 px-2.5 py-2 text-[11.5px] [.project-list_&]:flex [.project-list_&]:flex-nowrap [.project-list_&]:items-center [.project-list_&]:gap-x-3 [.project-list_&]:overflow-hidden [.project-list_&]:whitespace-nowrap [.project-list_&]:bg-transparent [.project-list_&]:p-0" title={`Inicio ${fechaListaCorta(project.start_date,'')||'sin fecha'} · Entrega ${fechaListaCorta(project.due_date,'')||'sin fecha'} · ${project.work_order_count||0} piezas`}>
-      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Inicio</dt><dd className="list-date whitespace-nowrap">{fechaListaCorta(project.start_date,'')||'Sin fecha'}</dd></div>
-      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Entrega</dt><dd className="list-date whitespace-nowrap" data-tone={hasDueWarning(project.due_date)?'warn':undefined}>{fechaListaCorta(project.due_date,'')||'Sin fecha'}</dd></div>
-      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:block"><dt className="text-mute [.project-list_&]:hidden">Piezas</dt><dd className="tabular-nums">{project.work_order_count}</dd><span className="hidden [.project-list_&]:inline [.project-list_&]:text-mute"> piezas</span></div>
-      {project.approval_levels?<div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:hidden" title={`Niveles de aprobación interna: ${project.approval_levels}`}><dt className="text-mute">Aprobación</dt><dd className="tabular-nums">{project.approval_levels}</dd></div>:null}
-      <div className="flex min-w-0 items-center justify-between gap-1.5 [.project-list_&]:hidden"><dt className="text-mute">Drive</dt><dd className="tabular-nums">{count||'—'}</dd></div>
+    <dl className="m-0 grid grid-cols-4 gap-x-2 rounded-lg bg-ink-700/40 px-2.5 py-1.5 text-[12px] [.project-list_&]:flex [.project-list_&]:flex-nowrap [.project-list_&]:items-center [.project-list_&]:gap-x-3 [.project-list_&]:overflow-hidden [.project-list_&]:whitespace-nowrap [.project-list_&]:bg-transparent [.project-list_&]:p-0" title={`Inicio ${fechaListaCorta(project.start_date,'')||'sin fecha'} · Entrega ${fechaListaCorta(project.due_date,'')||'sin fecha'} · ${project.work_order_count||0} piezas${project.approval_levels?` · ${project.approval_levels} niveles de aprobación`:''} · ${count} enlaces de Drive`}>
+      <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Inicio</dt><dd className="list-date m-0 whitespace-nowrap">{fechaListaCorta(project.start_date,'')||'Sin fecha'}</dd></div>
+      <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Entrega</dt><dd className="list-date m-0 whitespace-nowrap" data-tone={hasDueWarning(project.due_date)?'warn':undefined}>{fechaListaCorta(project.due_date,'')||'Sin fecha'}</dd></div>
+      <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Piezas</dt><dd className="m-0 font-semibold tabular-nums">{project.work_order_count}{project.approval_levels?<span className="font-normal text-mute" title={`Niveles de aprobación interna: ${project.approval_levels}`}> · {project.approval_levels} niv.</span>:null}</dd><span className="hidden [.project-list_&]:inline [.project-list_&]:text-mute"> piezas</span></div>
+      <div className="grid min-w-0 gap-0.5 [.project-list_&]:hidden"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Drive</dt><dd className="m-0 tabular-nums">{count||'—'}</dd></div>
     </dl>
     <div className="min-w-0 text-[11.5px] [.project-list_&]:hidden"><AssignedPeople people={project.assignees}/></div>
     <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:block" title={(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||undefined}>{(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||'Sin responsables'}</span>
-    {project.updated_at?<p className="text-[10.5px] text-mute [.project-list_&]:hidden">Actualizado {fechaLista(project.updated_at,'',{timeZone:OPS_TIME_ZONE})}</p>:null}
-    <div className="mt-auto flex min-w-0 flex-wrap items-center gap-2 border-t border-ink-600 pt-1.5 [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">
+    <div className="mt-auto flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto border-t border-ink-600 pt-1.5 silent-scroll [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">
       {count?<a className="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light hover:underline md:min-h-0" href={links[0]?.url||legacy||undefined} target="_blank" rel="noreferrer" title={driveLinksText(links,legacy)}>Abrir Drive{count>1?` (${count})`:''} ↗</a>:<small className="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>}
-      <span className={ICON_TARGETS}><IconAction icon="eye" tone="fono" label={`Ver detalle del proyecto: ${project.name}`} onClick={()=>setDetail(true)}/></span>
+      <span className={`ml-auto ${ICON_TARGETS}`}><IconAction icon="eye" tone="fono" label={`Ver detalle del proyecto: ${project.name}`} onClick={()=>setDetail(true)}/></span>
       {children}
     </div>
     {detail?<ProjectDetail project={project} onClose={()=>setDetail(false)}/>:null}

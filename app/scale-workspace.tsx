@@ -49,7 +49,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {PageChromeContext,PageTitleContext,StateChip,useBulkSelection} from './ui-v2';
+import {ListActions,PageChromeContext,PageTitleContext,StateChip,useBulkSelection} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
@@ -727,21 +727,22 @@ export default function Home() {
     const statusTone=archived?'mute':project.status==='active'?'ok':project.status==='paused'?'warn':project.status==='completed'?'info':'bad';
     const statusText=archived?'Archivado':project.status==='active'?'Activo':project.status==='paused'?'Pausado':project.status==='completed'?'Completado':'Cancelado';
     const pieces=Number(project.work_order_count||0);
+    const dueText=listDateShort(project.due_date)||'Sin entrega';
     return <>
       <span className="flex min-w-0 items-center gap-2">
         {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
-          <small className="min-w-0 truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
+          <small className="min-w-0 shrink-[2] truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
         </span>
       </span>
       <span className="flex items-center"><StateChip tone={statusTone}>{statusText}</StateChip></span>
-      <span className="min-w-0 truncate text-[11.5px] text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} · <span data-tone={dueTone(project.due_date)}>{listDateShort(project.due_date)||'Sin entrega'}</span> · <b className="tabular-nums">{pieces}</b> pieza{pieces===1?'':'s'}</span>
-      <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees}/></span>
-      <span className="flex items-center justify-end gap-1">
+      <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} → <span className="list-date" data-tone={dueTone(project.due_date)}>{dueText}</span> · <b className="tabular-nums text-fore">{pieces}</b> pieza{pieces===1?'':'s'}</span>
+      <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees} compact/></span>
+      <ListActions className="flex items-center justify-end gap-1">
         {canManageProjects?<button type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} aria-label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)}>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</button>:null}
         <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
-      </span>
+      </ListActions>
     </>;
   }
   async function loadAllInvoices(){
