@@ -138,4 +138,19 @@ assert.match(plan,/Index Scan on agency_usage_first_seen[^]*?Index Cond: \(\(fir
 const signupPlan=captured.find(({sql})=>/as agencies\s+from generate_series/.test(sql));
 assert.match((await pg.query('explain '+signupPlan.sql,signupPlan.values)).rows.map(row=>row['QUERY PLAN']).join('\n'),/users_created_at_idx/,'daily signups can use the users created_at index');
 await pg.exec('reset enable_seqscan');
+// Regresión: las sesiones y el último acceso por agencia excluyen a los usuarios demo
+// (invitados del Demo o correos demo), igual que activos 7/30 días y el resto del panel.
+{
+ const before=(await call('/api/platform/usage')).data.agencies.find(row=>row.id===10);
+ await pg.exec(`
+  insert into users(id,email,password_hash,email_verified_at,is_demo_guest) values(7,'guest@a.example','x',now(),true),(8,'visita@demo.example.invalid','x',now(),false);
+  insert into organization_members(organization_id,user_id,role,active) values(10,7,'viewer',true),(10,8,'viewer',true);
+ `);
+ await ses(10,7,'guest',new Date(Date.now()-60000),new Date());
+ await ses(10,8,'visita',`${dayAt(-1)}T16:00:00Z`,new Date(Date.now()+60000));
+ const after=(await call('/api/platform/usage')).data.agencies.find(row=>row.id===10);
+ assert.equal(after.sessions,before.sessions,'demo sessions do not count in the agency sessions');
+ assert.equal(new Date(after.last_seen_at).getTime(),new Date(before.last_seen_at).getTime(),'demo sessions do not move the agency last access');
+ assert.equal(after.active30,before.active30);
+}
 console.log('platform usage ok');

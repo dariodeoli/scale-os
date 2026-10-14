@@ -70,8 +70,8 @@ export async function platformUsageData(db,{from,to}){
   db.query(`select o.id,o.name,${platformOrganizationLogo('o')} as logo_url,
      (select count(distinct s.user_id)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and s.last_seen_at>now()-interval '7 days') as active7,
      (select count(distinct s.user_id)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and s.last_seen_at>now()-interval '30 days') as active30,
-     (select count(*)::int from agency_usage_sessions s where s.organization_id=o.id and ${sessionsInRange} ${rawRange('s.first_seen_at',RANGE,RANGE_END)}) as sessions,
-     (select max(s.last_seen_at) from agency_usage_sessions s where s.organization_id=o.id) as last_seen_at,
+     (select count(*)::int from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')} and ${sessionsInRange} ${rawRange('s.first_seen_at',RANGE,RANGE_END)}) as sessions,
+     (select max(s.last_seen_at) from agency_usage_sessions s join users u on u.id=s.user_id where s.organization_id=o.id and ${realUser('u')}) as last_seen_at,
      ow.id as owner_id,${identity('ow')} as owner_name,${photo('ow')} as owner_avatar,ow.email as owner_email
     from organizations o
     left join lateral (select m.user_id from organization_members m where m.organization_id=o.id and m.role='owner' and m.active and m.removed_at is null order by m.user_id limit 1) own on true
