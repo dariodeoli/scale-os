@@ -237,6 +237,9 @@ y esta sección se actualiza.
 | `CompactCard` + `CompactQuickAction` | Tarjeta compacta estándar: título, contexto, vencimiento, responsable y avance; una acción rápida visible y el resto en el ⋯. La descripción vive en el detalle. |
 | `CardSkeleton` / `CardGridSkeleton` / `TableSkeleton` / `DashboardSkeleton` | Esqueletos con la forma real del bloque (tarjeta, tabla, dashboard) para el arranque y las lecturas; nunca dibujan cifras. |
 | `EmptyCompact` | Vacío de una línea, accionable y descartable (`onDismiss`): para filtros, listas cortas y avisos. El bloque centrado sigue siendo `EmptyBlock`. |
+| `useBulkSelection` + `BulkBar` | Selección múltiple única (#185, `app/bulk-selection.tsx` + `ui-v2`). El hook guarda el `Set` elegido y ofrece `toggle` (con tope y aviso «El lote admite hasta N …»), `selectVisible(ids)` (suma hasta el tope; si ya estaban todos, los quita), `clear`, `replace` y `prune` (poda contra la lista viva). `BulkBar` dibuja el contador «N seleccionados» (con «de <tope>» si se pasa `total`), «Seleccionar visibles», «Limpiar» y el slot de acciones del lote; es **pegajosa** (`bulk-bar-sticky`), aparece solo con selección y el `viewer` nunca la ve. Las pantallas conservan su llamada de lote al API. Adoptan: Presupuestos, Proyectos, Inventario, Producción (planificador) y Estudio. |
+| `ListPage` + `PageChromeContext` | Plantilla de pantalla de lista (#185): `PageHeader` con el título del shell + `primaryAction` siempre visible + apartados + `toolbar` + `kpis` + `bulk` + contenido. El shell no repite el encabezado de las secciones que la adoptan (hoy Presupuestos, Planes, Producción e Inventario) y le cede los apartados por contexto. |
+| `ViewTabs` | Única barra de pestañas de **vista** (#185): `TabScroller` + selector segmentado con targets de 44 px. Reemplaza las variantes sueltas de Producción e Inventario; el cambio de vista no cambia la información. |
 
 ### Tarjetas compactas + menú ⋯ (#138)
 
