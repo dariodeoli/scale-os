@@ -13,13 +13,15 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 
 test('pipeline: la toolbar va en una fila, los KPIs no se estiran y los totales son una franja',()=>{
  const pipeline=read('app/sections/pipeline.tsx');
- // PageHeader v2 (#182): el título y las acciones (Etapas, Nueva oportunidad) van en el encabezado; los filtros en su toolbar.
+ // Reorganización IA: el shell ya dibuja el título «Pipeline»; las acciones
+ // (Etapas, Nueva oportunidad) cierran la fila de filtros en vez de ocupar una
+ // fila propia sin título.
+ assert.doesNotMatch(pipeline, /<PageHeader/, 'sin una segunda fila de encabezado');
  assert.match(
   pipeline,
-  /<PageHeader\s+title="Pipeline"\s+actions=\{canEdit\?<>[\s\S]{0,700}?Nueva oportunidad<\/Button>/,
-  'las acciones del pipeline viven en el PageHeader',
+  /<FilterToolbar>[\s\S]{0,4000}?className="ml-auto flex flex-wrap items-center gap-2">[\s\S]{0,900}?Nueva oportunidad<\/Button>[\s\S]{0,80}?<\/FilterToolbar>/,
+  'las acciones del pipeline cierran la toolbar canónica',
  );
- assert.match(pipeline, /<FilterToolbar summary=/, 'los filtros comparten la toolbar canónica');
  assert.doesNotMatch(pipeline, /flex flex-wrap items-center justify-end gap-2">\s*<Button type="button" variant="ghost" onClick=\{\(\)=>setStagePanel\(true\)\}/, 'las acciones no vuelven a su fila propia');
  // La ayuda de arrastre es una etiqueta corta con la explicación en tooltip.
  assert.match(pipeline, /title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%\."><Move size=\{13\}/, 'la explicación del arrastre vive en el tooltip (#100)');

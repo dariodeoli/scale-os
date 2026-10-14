@@ -15,7 +15,7 @@ import {filterLeads,leadCurrencies,leadFiltersActive,NO_LEAD_FILTERS,type LeadFi
 import {completeSave} from '../save-completion';
 import {pipelineSummary,stageTotals,weightedAmounts,type LeadOpportunity} from '../pipeline-summary';
 import {boardColumnWindow,type BoardColumnWindow} from '../pipeline-board-window';
-import {ActionMenu,BulkBar,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,PageHeader,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
+import {ActionMenu,BulkBar,CompactCard,CompactQuickAction,EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingBlock,MoneyText,SectionLoading,StateChip,ViewSwitch,type CollectionView,type Column,type RecordMenuItem} from '../ui-v2';
 import {SelectCustom} from '../profile-controls';
 import {SaveActions} from '../save-actions';
 import {PHONE_HELP} from '../field-rules';
@@ -457,16 +457,12 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
 
   return (
     <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4" aria-label="Pipeline">
-      <PageHeader
-        title="Pipeline"
-        actions={canEdit?<>
-          <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
-          <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
-        </>:undefined}
-      />
       {/* Filtros (#182): buscador + etapa + moneda, válidos para el tablero y la
           lista. No hay «responsable» en las oportunidades del API: no se ofrece. */}
-      <FilterToolbar summary={state==='ready'||rows.length?(filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`):undefined}>
+      {/* Reorganización IA: el título ya lo dibuja el shell; las acciones viven
+          al final de la misma fila que los filtros (una sola fila en escritorio)
+          en vez de ocupar una fila propia sin título. */}
+      <FilterToolbar>
         <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar oportunidades" value={filters.query} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setFilter({query:event.target.value})} placeholder="Buscar por nombre, contacto o notas…"/>
         <div className="min-w-0">
           <Label htmlFor="pipeline-etapa" className="sr-only">Etapa</Label>
@@ -485,6 +481,13 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         <div role="group" aria-label="Vista del pipeline"><ViewSwitch value={view} onChange={changeView}/></div>
         {filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:null}
         {view==='list'&&canEdit&&listRows.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>:null}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {state==='ready'||rows.length?<p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute">{filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`}</p>:null}
+          {canEdit?<>
+            <Button type="button" variant="ghost" className="max-md:min-h-11" onClick={()=>setStagePanel(true)}><Settings2 aria-hidden="true" size={16}/> Etapas</Button>
+            <Button type="button" className="max-md:min-h-11" onClick={()=>openCreate('')}><Plus aria-hidden="true" size={16}/> Nueva oportunidad</Button>
+          </>:null}
+        </div>
       </FilterToolbar>
       {view==='list'&&canEdit&&selected.length?<BulkBar count={selected.length} busy={bulkBusy} onClear={()=>setSelected([])}>
         <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)}><Move size={14} aria-hidden="true"/>Mover a etapa</button>
@@ -533,7 +536,10 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       </div>:<div className="grid min-w-0 gap-2">
         {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
             flechas para recorrer el tablero sin adivinar que hay más etapas. */}
-        {boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
+        {/* Una sola fila: la ayuda de arrastre y el recorrido de etapas. */}
+        {canMove||boardWindow.hiddenTotal>0?<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        {canMove?<span className="flex min-w-0 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>:null}
+        {boardWindow.hiddenTotal>0?<div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-mute" role="status" aria-live="polite">
           <StateChip tone="info" title={`Hay ${boardWindow.hiddenTotal} ${boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista: usá las flechas o desplazá el tablero.`}>{boardWindow.hiddenTotal} {boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista</StateChip>
           <span className="tabular-nums">Mostrando etapas {boardWindow.from+1}–{boardWindow.to+1} de {boardWindow.total}</span>
           <div className="inline-actions gap-1">
@@ -541,7 +547,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
             <button type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></button>
           </div>
         </div>:null}
-        {canMove?<span className="flex min-w-0 items-center gap-1.5 text-[11px] text-mute" title="Arrastrá una tarjeta a otra etapa activa para moverla; ganar fija 100% y perder 0%."><Move size={13} aria-hidden="true" className="shrink-0"/><span className="truncate">Mover: arrastrá una tarjeta a otra etapa</span></span>:null}
+        </div>:null}
         <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={accessibility}>
           <div ref={boardRef} className="flex gap-3 overflow-x-auto pb-2">
             {activeStages.filter(stage=>!filters.stage||stage.value===filters.stage).map(stage=><LeadColumn key={stage.value} stage={{value:stage.value,label:stage.label,kind:stage.kind}} actions={leadActions} create={openCreate} rows={filtered.filter(candidate=>str(candidate,'stage')===stage.value)} edit={setEdit} role={role} canMove={canMove} refresh={load} totals={totalsByStage.get(stage.value)}/>)}
