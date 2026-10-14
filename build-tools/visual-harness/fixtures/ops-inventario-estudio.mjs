@@ -41,9 +41,9 @@ const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).
 const avatar = (name) => `<span class="foto-perfil" aria-hidden="true" style="width:20px;height:20px;font-size:9px">${initials(name)}</span>`;
 const money = (text) => `<span class="inline-flex shrink-0 items-center justify-end gap-1 font-semibold tabular-nums">${text}</span>`;
 const serialTexto = (value) => `<span class="serial-text" title="${value}">${value.slice(0, -4)}<b>${value.slice(-4)}</b></span>`;
-const badge = (label, tone) => {
+const badge = (label, tone, fluid = false) => {
   const tones = {ok: 'bg-ok/15 text-ok border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
-  return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${tones[tone]}">${label}</span>`;
+  return `<span${fluid ? ` title="${label}"` : ''} class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${fluid ? 'min-w-0 max-w-full truncate ' : ''}${tones[tone]}">${label}</span>`;
 };
 const iconAction = ({icon, label, tone = 'mute', disabled = false, dense = false}) => {
   const tones = {mute: 'border-transparent text-mute hover:bg-ink-700 hover:text-fore', ok: 'border-ok/30 text-ok hover:bg-ok/10', warn: 'border-warn/30 text-warn hover:bg-warn/10', bad: 'border-bad/30 text-bad hover:bg-bad/10'};
@@ -108,7 +108,7 @@ const photoBox = (item, size = 'row') => {
 const verificationStamp = (item, empty = 'Sin verificación') => item.verification
  ? `<span class="flex min-w-0 items-center gap-1.5">${avatar(item.verification.verifier)}<span class="min-w-0 truncate text-xs text-mute" title="${item.verification.verifier}">${item.verification.verifier.split(' ')[0]}</span><time class="whitespace-nowrap text-[11px] tabular-nums text-mute">${item.verification.time}</time></span>`
  : `<span class="text-[11px] text-mute">${empty}</span>`;
-const itemActions = (item, dense = false) => `<span class="flex shrink-0 flex-nowrap items-center justify-end gap-1">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Verificar con detalle: ${item.name}`, dense})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense})}</span>`;
+const itemActions = (item, dense = false) => `<span class="flex flex-nowrap items-center justify-end gap-1 ${dense ? 'shrink-0' : 'silent-scroll min-w-0 max-w-full overflow-x-auto'}">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Verificar con detalle: ${item.name}`, dense})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense})}</span>`;
 
 const equipmentRow = (item) => `
 <article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[44px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
@@ -128,7 +128,7 @@ const equipmentCard = (item) => `
   <label class="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label>
   ${photoBox(item, 'card')}
   <div class="min-w-0 flex-1"><h3 class="truncate text-sm font-semibold text-fore" title="${item.name}">${item.name}</h3><p class="truncate text-[11.5px] leading-4 text-mute" title="${item.code} · ${item.category}">${item.code} · ${item.category}</p><p class="truncate text-[11.5px] leading-4 text-mute" title="${item.location}">${item.location}</p></div>
-  ${badge(item.statusLabel, item.statusTone)}
+  ${badge(item.statusLabel, item.statusTone, true)}
  </div>
  <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] leading-4 text-mute">
   <span class="whitespace-nowrap" title="${item.serial ? `Serie / IMEI: ${item.serial}` : 'Sin serie registrada'}">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span>

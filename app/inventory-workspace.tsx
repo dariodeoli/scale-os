@@ -138,7 +138,7 @@ function menuItemsFrom(menu:ReturnType<typeof inventoryItemActions>['menu']){
 function InventoryItemActions(context:InventoryItemActionContext&{dense?:boolean}){
  const {dense=false,item}=context;
  const {quick,menu}=inventoryItemActions(context);
- return <span className={`flex shrink-0 flex-nowrap items-center justify-end gap-1 ${dense?ROW_ICON_TARGETS:ICON_TARGETS}`}>
+ return <span className={`flex flex-nowrap items-center justify-end gap-1 ${dense?`shrink-0 ${ROW_ICON_TARGETS}`:`silent-scroll min-w-0 max-w-full overflow-x-auto ${ICON_TARGETS}`}`}>
   {quick?<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>:null}
   {menu.length?<MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones del equipo: ${item.name}`} title={`Acciones del equipo: ${item.name}`}>⋮</span>} items={menuItemsFrom(menu)}/>:null}
  </span>;
@@ -162,7 +162,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
     <h3 className="truncate text-sm font-semibold text-fore" title={item.name}>{item.name}</h3>
     <InventoryItemMeta item={item} layout="card"/>
    </div>
-   <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
+   <StateChip tone={statusTone(item.status)} title={equipmentStatusLabel(item.status)} className="min-w-0 max-w-full truncate">{equipmentStatusLabel(item.status)}</StateChip>
   </div>
   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] leading-4 text-mute">
    <span className="whitespace-nowrap" title={item.serial_number?`Serie / IMEI: ${item.serial_number}`:'Sin serie registrada'}>{item.serial_number?<><span className="sr-only">Serie </span><SerialTexto serial={item.serial_number} className="serial-text" enmascarar/></>:'Sin serie'}</span>
