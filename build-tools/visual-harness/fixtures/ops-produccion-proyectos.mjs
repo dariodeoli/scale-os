@@ -36,7 +36,7 @@ const ICON = {
 };
 const initials = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 const chip = (label, tone) => {
-  const tones = {ok: 'bg-ok/15 text-ok border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn border-warn/25', bad: 'bg-bad/15 text-bad border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
+  const tones = {ok: 'bg-ok/15 text-ok-text border-ok/25', info: 'bg-fono/15 text-fono-light border-fono/25', warn: 'bg-warn/15 text-warn-text border-warn/25', bad: 'bg-bad/15 text-bad-text border-bad/25', mute: 'bg-ink-600 text-mute border-ink-500'};
   return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium ${tones[tone]}">${label}</span>`;
 };
 const clientIdentity = (name, color) => `<span class="client-identity identity-${color}"><span class="foto-perfil">${initials(name)}</span><span class="actor-identity-name" title="${name}">${name}</span></span>`;
@@ -91,9 +91,9 @@ const boardWindow = `
 <div class="flex flex-wrap items-center justify-between gap-2">
  <p class="text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
  <div class="flex items-center gap-1" role="group" aria-label="Recorrido del tablero" data-board-window>
-  <button type="button" data-board-prev class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled>${svg(ICON.chevronLeft, 14)}</button>
+  <button type="button" data-board-prev class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled>${svg(ICON.chevronLeft, 14)}</button>
   <span class="whitespace-nowrap text-[11px] tabular-nums text-mute" title="Se ven las etapas 1 a 4 de 7. Usá las flechas o deslizá el tablero.">Etapas 1–4 de 7</span>
-  <button type="button" data-board-next class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-ink-500 text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas siguientes" title="Etapas siguientes">${svg(ICON.chevronRight, 14)}</button>
+  <button type="button" data-board-next class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas siguientes" title="Etapas siguientes">${svg(ICON.chevronRight, 14)}</button>
  </div>
 </div>`;
 const boardEmpty = `<div role="status" class="rounded-xl border border-ink-600 bg-ink-800 p-5 shadow-[0_1px_2px_rgb(37_28_41_/_4%)] max-md:p-4"><div class="flex flex-col items-center justify-center px-6 py-6 text-center"><div class="grid h-12 w-12 place-items-center rounded-2xl border border-ink-500 bg-ink-700 text-mute">${svg(ICON.box, 20, 'h-5 w-5')}</div><p class="mt-3 text-sm font-semibold text-fore">Todavía no hay órdenes en producción.</p><p class="mt-1 max-w-xs text-xs leading-5 text-mute">Creá la primera pieza y seguila por las siete etapas hasta publicarla.</p><div class="mt-4">${button('Nueva pieza')}</div></div></div>`;
