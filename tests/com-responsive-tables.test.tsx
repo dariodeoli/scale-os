@@ -366,7 +366,7 @@ test('pipeline: el indicador de columnas ocultas y la tarjeta corta (#140)',()=>
  // La tarjeta queda corta: la descripción sale y la acción pasa a icono.
  const card=pipeline.split('function LeadCard')[1].split('function LeadColumn')[0];
  assert.doesNotMatch(card,/notes/,'la descripción no alarga la tarjeta');
- assert.match(card,/<IconAction icon="eye" label=\{`Ver oportunidad: \$\{str\(row,'name'\)\}`\}/,'la acción rápida es un icono con nombre accesible');
+ assert.match(card,/<CompactCard[\s\S]*openLabel=\{`Ver oportunidad: \$\{facts\.name\}`\}/,'la tarjeta es CompactCard y el título abre la oportunidad con nombre accesible');
 });
 
 test('el menú ⋯ del registro reemplaza a los botones sueltos cuando se pide (#140)',async()=>{

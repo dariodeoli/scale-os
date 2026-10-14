@@ -80,8 +80,8 @@ async function run(){
  renderer=await mount('owner',rows);
  assert.deepEqual(quickConvert(renderer).map(button=>button.props['aria-label']),['Convertir a cliente: Ganado sin cliente'],'solo la tarjeta ganada y sin cliente muestra la accion rapida');
  const ids=(name:string)=>menuOf(renderer,name).props.items.map((item:{id:string})=>item.id);
- assert.deepEqual(ids('Abierto'),['move','convert'],'el menu ofrece convertir en cualquier etapa');
- assert.deepEqual(ids('Ganado ya cliente'),['move'],'un lead ya convertido no ofrece convertir');
+ assert.deepEqual(ids('Abierto'),['move','convert','edit','delete'],'el menu ofrece convertir en cualquier etapa, ademas de editar y papelera');
+ assert.deepEqual(ids('Ganado ya cliente'),['move','edit','delete'],'un lead ya convertido no ofrece convertir');
  await act(async()=>{quickConvert(renderer)[0].props.onClick();});
  assert.match(text(renderer.root),/¿Convertir a Ganado sin cliente en cliente\?/,'la accion pide confirmacion no bloqueante');
  await act(async()=>{dialogs(renderer)[0].findByType('form').props.onSubmit({preventDefault(){}});});
