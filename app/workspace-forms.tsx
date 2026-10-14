@@ -66,52 +66,38 @@ export function ProjectForm({
     >
       <label>
         Nombre del proyecto
-        <input {...form.register("name")} autoFocus />
+        <input {...form.register("name")} autoFocus maxLength={120} aria-invalid={form.formState.errors.name?true:undefined} aria-describedby={form.formState.errors.name?"project-name-error":undefined}/>
         {form.formState.errors.name && (
-          <small className="error">{form.formState.errors.name.message}</small>
+          <small className="error" role="alert" id="project-name-error">{form.formState.errors.name.message}</small>
         )}
       </label>
       <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as ProjectValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
-      <fieldset>
-        <legend>Cliente</legend>
-        <div className="choice-list">
-          {clients.map((client) => (
-            <button
-              type="button"
-              className={
-                form.watch("clientId") === client.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() =>
-                form.setValue("clientId", client.id, { shouldValidate: true })
-              }
-              key={client.id}
-            >
-              {client.name}
-            </button>
-          ))}
-        </div>
+      {/* Un desplegable con buscador (no un botón por cliente): con cientos de
+          clientes la lista de botones empujaba el resto del formulario fuera de vista. */}
+      <div className="grid gap-1.5">
+        <SelectCustom label="Cliente" value={form.watch("clientId")} choices={clients.map(client=>({value:String(client.id),label:client.name}))} disabled={submission.pending} invalid={Boolean(form.formState.errors.clientId)} describedBy={form.formState.errors.clientId?"project-client-error":undefined} onChange={value=>form.setValue("clientId",value,{shouldValidate:true,shouldDirty:true})}/>
         {form.formState.errors.clientId && (
-          <small className="error">
+          <small className="error" role="alert" id="project-client-error">
             {form.formState.errors.clientId.message}
           </small>
         )}
-      </fieldset>
+      </div>
       <label>
         Enlace de archivo o carpeta de Google Drive
         <input
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
+          aria-invalid={form.formState.errors.driveUrl?true:undefined}
+          aria-describedby={form.formState.errors.driveUrl?"project-drive-error":undefined}
         />
         {form.formState.errors.driveUrl && (
-          <small className="error">
+          <small className="error" role="alert" id="project-drive-error">
             {form.formState.errors.driveUrl.message}
           </small>
         )}
         <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
       <SaveActions pending={submission.pending}><button
         className="primary"
         disabled={!clients.length || submission.pending}
@@ -211,9 +197,9 @@ export function OrderForm({
       {selectedProject ? <>
       <label>
         Orden de trabajo
-        <input {...form.register("title")} autoFocus />
+        <input {...form.register("title")} autoFocus maxLength={120} aria-invalid={form.formState.errors.title?true:undefined} aria-describedby={form.formState.errors.title?"order-title-error":undefined}/>
         {form.formState.errors.title && (
-          <small className="error">{form.formState.errors.title.message}</small>
+          <small className="error" role="alert" id="order-title-error">{form.formState.errors.title.message}</small>
         )}
       </label>
       <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as OrderValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
@@ -248,14 +234,20 @@ export function OrderForm({
         <input
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
+          aria-invalid={form.formState.errors.driveUrl?true:undefined}
+          aria-describedby={form.formState.errors.driveUrl?"order-drive-error":undefined}
         />
+        {/* Sin este aviso un enlace inválido bloqueaba el guardado en silencio. */}
+        {form.formState.errors.driveUrl && (
+          <small className="error" role="alert" id="order-drive-error">{form.formState.errors.driveUrl.message}</small>
+        )}
         <small>Solo guardamos el enlace, no el archivo. Los permisos se gestionan en Drive.</small>
       </label>
       <label>
         Notas
         <textarea {...form.register("description")} />
       </label>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
       <SaveActions pending={submission.pending}><button
         className="primary"
         disabled={submission.pending}
@@ -398,7 +390,7 @@ export function AccountForm({
           ))}
         </div>
       </fieldset>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
       <p className="field-help">{financePurposeNotice('treasury')} · <a href={financeNoticeHref('treasury')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <SaveActions pending={submission.pending}><button className="primary" disabled={submission.pending}>
         {submission.pending ? "Creando…" : "Crear cuenta"}
@@ -487,7 +479,7 @@ export function InvoiceForm({
         Vencimiento
         <input type="date" {...form.register("dueOn")} />
       </label>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Completá el cliente y un importe mayor a cero para crear la factura.</p>:null}
       <SaveActions pending={submission.pending}><button
         className="primary"
@@ -624,7 +616,7 @@ export function PaymentForm({
           placeholder="Transferencia / comprobante"
         />
       </label>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Elegí la factura, la cuenta y un importe mayor a cero para registrar el cobro.</p>:null}
       <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
       <SaveActions pending={submission.pending}><button

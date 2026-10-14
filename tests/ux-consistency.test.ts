@@ -300,3 +300,12 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
 }
 console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
+
+test('los formularios del shell anuncian sus errores (role=alert) y el enlace inválido de una orden no bloquea en silencio',()=>{
+  const forms=read('app/workspace-forms.tsx');
+  const errors=[...forms.matchAll(/<(small|p) className="error"[^>]*>/g)].map(match=>match[0]);
+  assert.ok(errors.length>=8,'los formularios tienen sus mensajes de error');
+  for(const tag of errors)assert.match(tag,/role="alert"/,`${tag} se anuncia a lectores de pantalla`);
+  assert.match(forms,/id="order-drive-error"/,'la orden muestra por qué un enlace de Drive no se acepta');
+  assert.match(forms,/<SelectCustom label="Cliente"/,'el proyecto elige cliente con el desplegable con buscador, no un botón por cliente');
+});
