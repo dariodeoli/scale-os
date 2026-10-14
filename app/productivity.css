@@ -14,7 +14,7 @@
 /* Listas dentro de la ficha: fila finita con encabezado y plantilla compartida.
    La segunda columna es fija para que encabezado y filas midan igual en todos los
    anchos; el dato que no entra se recorta con elipsis y su title viene del JSX. */
-.drawer-list{--drawer-cols:minmax(0,1fr) auto}
+.drawer-list{--drawer-cols:minmax(0,1fr) 10rem}
 .drawer-list-head{display:grid;grid-template-columns:var(--drawer-cols);gap:4px 8px;padding:2px 2px 4px;color:var(--text-subtle,var(--text-muted));font-size:10px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
 .drawer-list-head span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drawer-list-head span:last-child{justify-self:end;max-width:100%}
@@ -30,7 +30,6 @@
 /* La celda de identidad de las listas del drawer recorta en una linea con title. */
 .drawer-list :is(.activity-line,.work-list-row)>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Work planner: fila finita con encabezado y plantilla compartida. */
-.drawer-list .work-list-row{--work-cols:minmax(0,1fr) auto auto}
 .ops-select-options [role=listbox]{display:grid}
 .ops-select-options input{position:sticky;top:0;background:var(--surface)}
 @media(max-width:760px){.detail-drawer-overlay .ops-dialog.unified-dialog{border-radius:0}
