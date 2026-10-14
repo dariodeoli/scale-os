@@ -111,13 +111,13 @@ const verificationStamp = (item, empty = 'Sin verificación') => item.verificati
 const itemActions = (item, dense = false) => `<span class="flex flex-nowrap items-center justify-end gap-1 ${dense ? 'shrink-0' : 'silent-scroll min-w-0 max-w-full overflow-x-auto'}">${iconAction({icon: 'eye', label: `Detalle y trazabilidad: ${item.name}`, dense})}${iconAction({icon: 'printer', label: `Imprimir etiqueta: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Marcar verificado: ${item.name}`, dense})}${iconAction({icon: 'check', tone: 'ok', label: `Verificar con detalle: ${item.name}`, dense})}${iconAction({icon: 'edit', label: `Editar equipo: ${item.name}`, dense})}${iconAction({icon: 'trash', tone: 'bad', label: `Archivar equipo: ${item.name}`, dense})}</span>`;
 
 const equipmentRow = (item) => `
-<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[44px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1">
+<article data-list-row="equipment" data-status="${item.status}" class="grid min-h-[44px] grid-cols-[var(--eq-cols)] items-center gap-x-2 rounded-xl border border-ink-600/60 bg-ink-800/40 px-3 py-1 transition-colors hover:bg-ink-700/40">
  <span class="flex h-11 items-center md:h-auto"><label class="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><input type="checkbox" class="h-6 w-6 p-0 accent-fono" aria-label="Seleccionar ${item.name}"></label></span>
  <span class="flex items-center">${photoBox(item, 'row')}</span>
  <span class="flex min-w-0 items-baseline gap-2"><b class="truncate text-[13px] font-semibold text-fore" title="${item.name}">${item.name}</b><code class="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">${item.code}</code></span>
  <span class="flex min-w-0 items-center gap-x-1.5 text-[12px] leading-4 text-mute"><span class="inline-flex min-w-0 items-center gap-1.5 truncate" title="${item.category}">${item.category}</span><span aria-hidden="true">·</span><span class="inline-flex items-center whitespace-nowrap" title="${item.serial ? `Serie: ${item.serial}` : 'Sin serie'}">${item.serial ? `••••${item.serial.slice(-4)}` : 'Sin serie'}</span></span>
  <span class="flex justify-end whitespace-nowrap">${money(item.value)}</span>
- <span class="flex justify-start">${badge(item.statusLabel, item.statusTone)}</span>
+ <span class="flex justify-start pl-1">${badge(item.statusLabel, item.statusTone)}</span>
  <span class="min-w-0 truncate text-[13px] leading-5 text-mute" title="${item.location}">${item.location}</span>
  <span class="min-w-0">${verificationStamp(item)}</span>
  ${itemActions(item, true)}

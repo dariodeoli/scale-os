@@ -29,11 +29,15 @@ const brand = '<span class="workspace-brand" aria-label="Scale OS"><img src="/br
 
 /* ── Datos de estrés ─────────────────────────────────────────────────────── */
 const AGENCIES = [
-  {name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', slug: 'estudio-comunicacion-py', active: true, users: 12, amount: 'Gs. 50.000', currency: 'PYG', manual: 'active', expiry: '2026-10-03', expiring: true},
-  {name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', slug: 'coop-servicios-ltda', active: true, users: 34, amount: 'USD 10,00', currency: 'USD', manual: null, expiry: '2026-11-30'},
-  {name: 'Agencia Creativa del Sur S.A.', slug: 'agencia-creativa-sur', active: false, users: 3, amount: 'Gs. 50.000', currency: 'PYG', manual: 'suspended', expiry: '2026-09-20', expiring: true},
-  {name: 'Marketing Digital Integral Paraguay', slug: 'marketing-integral-py', active: true, users: 8, amount: null, currency: null, manual: null, expiry: null},
+  {name: 'Estudio de Comunicación y Producción Audiovisual del Paraguay Sociedad Anónima', slug: 'estudio-comunicacion-py', active: true, users: 12, amount: 'Gs. 50.000', currency: 'PYG', manual: 'active', expiry: '2026-10-03', expiring: true, owner: {name: 'Ana María Benítez de la Cruz', email: 'ana.benitez@estudiocomunicacionparaguay.com.py', extra: 2}},
+  {name: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', slug: 'coop-servicios-ltda', active: true, users: 34, amount: 'USD 10,00', currency: 'USD', manual: null, expiry: '2026-11-30', owner: {name: 'Compras Cooperativa', email: 'compras@coopservicios.com.py', extra: 0}},
+  {name: 'Agencia Creativa del Sur S.A.', slug: 'agencia-creativa-sur', active: false, users: 3, amount: 'Gs. 50.000', currency: 'PYG', manual: 'suspended', expiry: '2026-09-20', expiring: true, owner: {name: '', email: 'direccion@agenciacreativadelsur.example.com', extra: 1}},
+  {name: 'Marketing Digital Integral Paraguay', slug: 'marketing-integral-py', active: true, users: 8, amount: null, currency: null, manual: null, expiry: null, owner: null},
 ];
+const initialsOf = (name) => String(name).split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0].toUpperCase()).join('') || '?';
+/* PersonContainer size="sm" (app/person-container.tsx): avatar + nombre + secundario. */
+const personSm = (name, secondary) => `<span class="person-container person-container-sm"><span class="foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-persona" aria-hidden="true"><span class="foto-perfil-iniciales" aria-hidden="true">${initialsOf(name)}</span></span><span class="person-container-details"><span class="person-container-name" title="${name}">${name}</span>${secondary ? `<span class="person-container-secondary" title="${secondary}">${secondary}</span>` : ''}</span></span>`;
+const ownerCell = (owner) => owner ? `<span class="flex min-w-0 items-center gap-1.5" title="${owner.name ? owner.name + ' · ' : ''}${owner.email}">${personSm(owner.name || owner.email, owner.name ? owner.email : '')}${owner.extra ? chip('+' + owner.extra, 'mute', owner.extra + ' administradores más') : ''}</span>` : '<span class="list-secondary">—</span>';
 const manualLabel = (value) => value === 'active' ? 'Acceso manual activo' : value === 'suspended' ? 'Acceso manual suspendido' : 'Sin cambio manual';
 const manualTone = (value) => value === 'active' ? 'info' : value === 'suspended' ? 'warn' : 'mute';
 const dueTone = (value, expiring) => expiring ? 'warn' : '';
@@ -41,9 +45,9 @@ const shortDate = (value) => value ? `${value.slice(8, 10)}-${['ene', 'feb', 'ma
 const longDate = (value) => value ? `${value.slice(8, 10)} ${['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'][Number(value.slice(5, 7)) - 1]} ${value.slice(2, 4)} · 18:12` : '—';
 
 const USERS = [
-  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', agencies: 12, self: true, role: 'admin'},
-  {email: 'compras@coopservicios.com.py', agencies: 3, role: null},
-  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', agencies: 1, role: 'viewer'},
+  {email: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', name: 'Administración y Facturación Estudio Comunicación', agencyNames: 'Estudio de Comunicación y Producción Audiovisual, Cooperativa Multiactiva, Agencia Creativa del Sur +9', agencies: 12, self: true, role: 'admin'},
+  {email: 'compras@coopservicios.com.py', name: 'Compras Cooperativa', agencyNames: 'Cooperativa Multiactiva de Servicios Múltiples Limitada', agencies: 3, role: null},
+  {email: 'solo.lectura.auditoria.externa@consultora-internacional.example.com', name: '', agencyNames: 'Sin agencias activas', agencies: 1, role: 'viewer'},
 ];
 const AUDIT = [
   {action: 'platform.agency.delete', target: 'agency', id: 42, actor: 'administracion.facturacion@estudiocomunicacionparaguay.com.py', when: '2026-09-29T18:12:00.000Z'},
@@ -51,9 +55,9 @@ const AUDIT = [
   {action: 'platform.coupon.create', target: 'coupon', id: 15, actor: 'compras@coopservicios.com.py', when: '2026-09-28T11:05:00.000Z'},
 ];
 const COUPONS = [
-  {code: 'FUNDADOR30', detail: '30% · Sin límite de usos', discount: '30%', uses: 'Sin límite', active: true},
-  {code: 'LANZAMIENTO', detail: 'Gs. 25.000 · 100 usos máximos', discount: 'Gs. 25.000', uses: '100', active: true},
-  {code: 'PRUEBA-EXTENDIDA', detail: '15 días gratis · 50 usos máximos', discount: '15 días', uses: '50', active: false},
+  {code: 'FUNDADOR30', detail: '30% · Sin límite de usos', discount: '30%', uses: '12/∞', expiry: null, company: 'Todas', status: 'Vigente', tone: 'ok', active: true, note: ''},
+  {code: 'GRACIA-AGOSTO-ESTUDIO-COMUNICACION', detail: '15 días gratis · 1 uso máximo', discount: '15 días', uses: '1/1', expiry: '2026-09-30', company: 'Estudio de Comunicación y Producción Audiovisual del Paraguay', status: 'Vencido', tone: 'warn', active: true, expired: true, note: 'Gracia acordada por WhatsApp con administración'},
+  {code: 'PRUEBA-EXTENDIDA', detail: '15 días gratis · 50 usos máximos', discount: '15 días', uses: '0/50', expiry: '2026-12-31', company: 'Todas', status: 'Pausado', tone: 'mute', active: false, note: ''},
 ];
 
 /* ── Encabezado y secciones (consola nueva) ──────────────────────────────── */
@@ -175,18 +179,23 @@ const couponsView = () => `
   <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Código<input value="SCALE10" autocomplete="off"/></label>
   <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Tipo<select><option>Porcentaje</option><option>Monto fijo</option><option>Días gratis</option></select></label>
   <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Valor<input value="10" inputmode="numeric"/></label>
+  <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Vence (opcional)<input type="date" value="2026-12-31"/></label>
+  <label class="grid gap-1.5 text-[11px] font-semibold text-mute">Empresa (opcional)<select><option>Todas las empresas</option></select></label>
+  <label class="grid gap-1.5 text-[11px] font-semibold text-mute platform-admin-coupon-note">Nota interna (opcional)<textarea rows="2" maxlength="2000" placeholder="Ej.: gracia acordada por WhatsApp"></textarea></label>
   <button type="button" class="primary min-h-11 md:min-h-10">Crear cupón</button>
  </form>
  <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Cupones" class="silent-scroll relative min-w-0 overflow-x-auto">
-   <div class="min-w-[44rem]">
-    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]"><span role="columnheader">Cupón</span><span role="columnheader" class="text-right">Descuento</span><span role="columnheader" class="text-right">Usos máximos</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
+   <div class="min-w-[62rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(9rem,1.3fr)_8rem_5.5rem_minmax(7rem,1fr)_5rem_5.5rem_7rem]"><span role="columnheader">Cupón</span><span role="columnheader" class="text-right">Descuento</span><span role="columnheader">Vence</span><span role="columnheader">Empresa</span><span role="columnheader" class="text-right">Usos</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${COUPONS.map((coupon) => `
-    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]">
+    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(9rem,1.3fr)_8rem_5.5rem_minmax(7rem,1fr)_5rem_5.5rem_7rem]">
      <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${coupon.code}">${coupon.code}</b></div>
      <span role="cell" class="text-right"><span class="list-amount text-fore">${coupon.discount}</span></span>
+     <span role="cell" class="min-w-0"><span class="list-date" data-tone="${coupon.expired ? 'warn' : ''}" title="${coupon.expiry ? 'Vence ' + coupon.expiry : 'Sin vencimiento'}">${shortDate(coupon.expiry)}</span></span>
+     <span role="cell" class="list-secondary min-w-0" title="${coupon.company}${coupon.note ? ' · ' + coupon.note : ''}">${coupon.company}</span>
      <span role="cell" class="whitespace-nowrap text-right text-[12.5px] font-semibold tabular-nums text-fore">${coupon.uses}</span>
-     <span role="cell">${chip(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'ok' : 'mute')}</span>
+     <span role="cell">${chip(coupon.status, coupon.tone)}</span>
      <div role="cell" class="list-actions"><button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? I.pause + 'Pausar' : I.play + 'Reactivar'}</button></div>
     </div>`).join('')}</div>
    </div>
@@ -196,7 +205,13 @@ const couponsView = () => `
   ${COUPONS.map((coupon) => `
   <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
    <div class="min-w-0"><b class="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${coupon.code}">${coupon.code}</b><small class="mt-0.5 block text-[11px] text-mute">${coupon.detail}</small></div>
-   <div class="flex flex-wrap items-center gap-2">${chip(coupon.active ? 'Activo' : 'Pausado', coupon.active ? 'ok' : 'mute')}</div>
+   <div class="flex flex-wrap items-center gap-2">${chip(coupon.status, coupon.tone)}</div>
+   <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+    <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Vence</dt><dd class="mt-0.5"><span class="list-date" data-tone="${coupon.expired ? 'warn' : ''}">${shortDate(coupon.expiry)}</span></dd></div>
+    <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Usos</dt><dd class="mt-0.5 font-semibold tabular-nums text-fore">${coupon.uses}</dd></div>
+    <div class="col-span-2"><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Empresa</dt><dd class="mt-0.5 text-fore [overflow-wrap:anywhere]">${coupon.company}</dd></div>
+    ${coupon.note ? `<div class="col-span-2"><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Nota</dt><dd class="mt-0.5 text-mute [overflow-wrap:anywhere]">${coupon.note}</dd></div>` : ''}
+   </dl>
    <div class="mt-auto border-t border-ink-600 pt-3"><button type="button" class="text-button ${coupon.active ? 'warn' : 'positive'}">${coupon.active ? I.pause + 'Pausar' : I.play + 'Reactivar'}</button></div>
   </article>`).join('')}
  </div>
@@ -208,11 +223,12 @@ const accessView = () => `
  ${toolbar('3 de 1.284')}
  <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Accesos entre agencias" class="silent-scroll relative min-w-0 overflow-x-auto">
-   <div class="min-w-[45rem]">
-    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(11rem,1fr)_7rem_25rem]"><span role="columnheader">Usuario</span><span role="columnheader">Acceso</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
+   <div class="min-w-[60rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(14rem,1.2fr)_minmax(10rem,1fr)_8rem_25rem]"><span role="columnheader">Usuario</span><span role="columnheader">Agencias</span><span role="columnheader">Acceso</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${USERS.map((person) => `
-    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(11rem,1fr)_7rem_25rem]">
-     <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${person.email}">${person.email}</b><small class="list-secondary">${person.agencies} agencias activas${person.self ? ' · Vos' : ''}</small></div>
+    <div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(14rem,1.2fr)_minmax(10rem,1fr)_8rem_25rem]">
+     <div role="cell" class="min-w-0">${personSm(person.name || person.email, person.name ? person.email + (person.self ? ' · Vos' : '') : (person.self ? 'Vos' : ''))}</div>
+     <span role="cell" class="list-secondary min-w-0" title="${person.agencyNames}">${person.agencyNames}</span>
      <span role="cell">${chip(person.role === 'admin' ? 'Admin global' : person.role === 'viewer' ? 'Solo lectura' : 'Acceso de agencia', person.role === 'admin' ? 'ok' : person.role === 'viewer' ? 'info' : 'mute')}</span>
      <div role="cell" class="list-actions"><span class="inline-actions flex flex-nowrap items-center justify-end gap-2">${person.self ? `<button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar mi cuenta</button>` : `${person.role !== 'admin' ? `<button type="button" class="text-button">${I.shield}Hacer admin global</button>` : ''}${person.role !== 'viewer' ? `<button type="button" class="text-button">${I.eye}Solo lectura</button>` : ''}${person.role ? '<button type="button" class="text-button">Quitar acceso</button>' : ''}<button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar usuario</button>`}</span></div>
     </div>`).join('')}</div>
@@ -222,7 +238,8 @@ const accessView = () => `
  <div class="platform-admin-mobile-cards grid gap-3 sm:grid-cols-2">
   ${USERS.map((person) => `
   <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
-   <div class="min-w-0"><b class="block text-[13px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${person.email}">${person.email}</b><small class="mt-0.5 block text-[11px] text-mute">${person.agencies} agencias activas${person.self ? ' · Vos' : ''}</small></div>
+   <div class="min-w-0">${personSm(person.name || person.email, person.name ? person.email + (person.self ? ' · Vos' : '') : (person.self ? 'Vos' : ''))}</div>
+   <small class="block text-[11px] text-mute [overflow-wrap:anywhere]">${person.agencies} agencias activas · ${person.agencyNames}</small>
    <div class="flex flex-wrap gap-1.5">${chip(person.role === 'admin' ? 'Admin global' : person.role === 'viewer' ? 'Solo lectura' : 'Acceso de agencia', person.role === 'admin' ? 'ok' : person.role === 'viewer' ? 'info' : 'mute')}</div>
    <div class="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">${person.self ? `<button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar mi cuenta</button>` : `${person.role !== 'admin' ? `<button type="button" class="text-button">${I.shield}Hacer admin global</button>` : ''}${person.role ? '<button type="button" class="text-button">Quitar acceso</button>' : ''}<button type="button" class="text-button platform-admin-danger">${I.trash}Eliminar usuario</button>`}</div>
   </article>`).join('')}
@@ -331,8 +348,9 @@ const overview2 = () => `
 </div>`;
 
 const agencyRows2 = AGENCIES.map((agency) => `
-<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]">
+<div role="row" class="list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 md:min-h-11 md:py-2 grid-cols-[minmax(12rem,1.5fr)_minmax(12rem,1.1fr)_minmax(15rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]">
  <div role="cell" class="min-w-0"><b class="list-identity text-fore" title="${agency.name}">${agency.name}</b><small class="list-secondary" title="${agency.slug}">${agency.slug}</small></div>
+ <div role="cell" class="min-w-0">${ownerCell(agency.owner)}</div>
  <div role="cell" class="flex min-w-0 flex-wrap items-center gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(manualLabel(agency.manual), manualTone(agency.manual))}</div>
  <span role="cell" class="text-right"><span class="inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums text-fore">${agency.amount || '—'}</span></span>
  <span role="cell" class="text-right text-[12.5px] font-semibold tabular-nums text-fore">${agency.users}</span>
@@ -346,8 +364,8 @@ const agenciesView2 = () => `
  ${toolbar('4 de 134')}
  <div class="min-w-0 platform-admin-table-wrap">
   <div role="table" aria-label="Agencias y suscripciones" class="silent-scroll relative min-w-0 overflow-x-auto">
-   <div class="min-w-[73.5rem]">
-    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]"><span role="columnheader">Agencia</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Plan</span><span role="columnheader" class="text-right">Usuarios</span><span role="columnheader">Prueba / vencimiento</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
+   <div class="min-w-[84rem]">
+    <div role="row" class="grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute grid-cols-[minmax(12rem,1.5fr)_minmax(12rem,1.1fr)_minmax(15rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]"><span role="columnheader">Agencia</span><span role="columnheader">Administra</span><span role="columnheader">Estado</span><span role="columnheader" class="text-right">Plan</span><span role="columnheader" class="text-right">Usuarios</span><span role="columnheader">Prueba / vencimiento</span><span role="columnheader" class="text-right list-actions-head">Acciones</span></div>
     <div role="rowgroup">${agencyRows2}</div>
    </div>
   </div>
@@ -357,6 +375,7 @@ const agenciesView2 = () => `
   <article class="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
    <div class="min-w-0"><b class="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title="${agency.name}">${agency.name}</b><small class="mt-0.5 block text-[11px] text-mute">${agency.slug}</small></div>
    <div class="flex flex-wrap gap-1.5">${chip(agency.active ? 'Activa' : 'Inactiva', agency.active ? 'ok' : 'mute')}${chip(manualLabel(agency.manual), manualTone(agency.manual))}</div>
+   <div class="min-w-0">${ownerCell(agency.owner)}</div>
    <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
     <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Plan</dt><dd class="mt-0.5 font-semibold text-fore">${agency.amount || '—'}</dd></div>
     <div><dt class="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Usuarios</dt><dd class="mt-0.5 font-semibold tabular-nums text-fore">${agency.users}</dd></div>
@@ -373,6 +392,7 @@ const menuOpen2 = `
  <div class="relative inline-flex w-fit flex-col items-start">
   <button type="button" aria-haspopup="menu" aria-expanded="true" aria-label="Acciones de la agencia: Cooperativa Multiactiva de Servicios Múltiples Limitada" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7"><span role="img" aria-hidden="true">⋮</span></button>
   <div role="menu" aria-label="Acciones de la agencia" class="absolute left-0 top-12 z-20 min-w-48 rounded-xl border border-ink-500 bg-ink p-1 shadow-float md:top-9">
+   <button type="button" role="menuitem" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-fore transition hover:bg-ink-700/60"><span class="min-w-0 flex-1 truncate">Aplicar cupón</span></button>
    <button type="button" role="menuitem" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-bad-text transition hover:bg-bad/10">${I.trash}<span class="min-w-0 flex-1 truncate">Eliminar agencia</span></button>
   </div>
  </div>

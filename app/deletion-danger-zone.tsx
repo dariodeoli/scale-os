@@ -76,7 +76,7 @@ async function deletionRequest<T>(path:string,body:unknown):Promise<T>{
  return data as T;
 }
 
-async function preflightGoogleStart(path:string){
+export async function preflightGoogleStart(path:string){
  const response=await fetch(`/core-api${path}`,{method:'GET',credentials:'include',cache:'no-store',redirect:'manual'});
  if(response.type==='opaqueredirect'||response.status>=300&&response.status<400)return;
  const data=await response.json().catch(()=>({})) as {error?:unknown;code?:unknown};

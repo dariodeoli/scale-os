@@ -4,7 +4,8 @@
 import {useRef} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
 import {ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, MoneyText, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
-import {formatPlatformMetric, money, type CollectionPage, type Coupon, type CouponDraft, type State} from "./model";
+import {dueTone, listDateFull, listDateShort} from "../list-format";
+import {couponStatus, couponUses, formatPlatformMetric, money, type CollectionPage, type Coupon, type CouponDraft, type State} from "./model";
 import {PlatformMore} from "./states";
 import {SelectCustom} from "../profile-controls";
 import {decimalInput} from "../field-rules";
@@ -22,19 +23,22 @@ type PlatformCatalogProps = {
   createCoupon: (event: import("react").FormEvent) => Promise<void>;
 };
 
-const TEMPLATE = "grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem_8rem]";
+// Cupón · Descuento · Vence · Empresa · Usos (n/max) · Estado · Acciones (#189).
+const TEMPLATE = "grid-cols-[minmax(9rem,1.3fr)_8rem_5.5rem_minmax(7rem,1fr)_5rem_5.5rem_7rem]";
 const COLUMNS: Column[] = [
   {key: "coupon", label: "Cupón"},
   {key: "discount", label: "Descuento", align: "end"},
-  {key: "uses", label: "Usos máximos", align: "end"},
+  {key: "expires", label: "Vence"},
+  {key: "company", label: "Empresa"},
+  {key: "uses", label: "Usos", align: "end"},
   {key: "status", label: "Estado"},
   {key: "actions", label: "Acciones", align: "end"},
 ];
-const MIN_WIDTH = denseTableMinWidth(10 + 9 + 8 + 6.5 + 8, 5);
+const MIN_WIDTH = denseTableMinWidth(9 + 8 + 5.5 + 7 + 5 + 5.5 + 7, 7);
 // Sin permiso de escritura no hay acciones: la columna (y su encabezado) no se dibuja.
-const TEMPLATE_READONLY = "grid-cols-[minmax(10rem,1.4fr)_9rem_8rem_6.5rem]";
+const TEMPLATE_READONLY = "grid-cols-[minmax(9rem,1.3fr)_8rem_5.5rem_minmax(7rem,1fr)_5rem_5.5rem]";
 const COLUMNS_READONLY = COLUMNS.slice(0, -1);
-const MIN_WIDTH_READONLY = denseTableMinWidth(10 + 9 + 8 + 6.5, 4);
+const MIN_WIDTH_READONLY = denseTableMinWidth(9 + 8 + 5.5 + 7 + 5 + 5.5, 6);
 
 const FIELD = "grid gap-1.5 text-[11px] font-semibold text-mute";
 
@@ -42,7 +46,10 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
   // El vacío de cupones lleva al formulario de creación que vive arriba.
   const codeRef=useRef<HTMLInputElement|null>(null);
   const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
-  const usesLabel = (item: Coupon) => item.max_redemptions === null ? "Sin límite" : formatPlatformMetric(item.max_redemptions);
+  const usesTitle = (item: Coupon) => `${formatPlatformMetric(item.redemptions ?? 0)} usos · ${item.max_redemptions === null ? "sin límite" : `máximo ${formatPlatformMetric(item.max_redemptions)}`}`;
+  const companyLabel = (item: Coupon) => item.organization_name || (item.organization_id ? `Empresa #${item.organization_id}` : "Todas");
+  const expiryCell = (item: Coupon) => <span className="list-date" data-tone={item.expired ? "warn" : dueTone(item.expires_at) || undefined} title={item.expires_at ? `Vence ${listDateFull(item.expires_at)}` : "Sin vencimiento"}>{listDateShort(item.expires_at) || "—"}</span>;
+  const statusChip = (item: Coupon) => { const status = couponStatus(item); return <StateChip tone={status.tone}>{status.label}</StateChip>; };
   const discountCell = (item: Coupon) => item.discount_type === "fixed"
     ? <MoneyText valor={item.discount_value} currency={item.currency || undefined} className="text-fore"/>
     : <span className="list-amount text-fore">{item.discount_type === "percent" ? `${formatPlatformMetric(item.discount_value)}%` : `${formatPlatformMetric(item.discount_value)} días`}</span>;
@@ -97,6 +104,15 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
         {coupon.discount_type === "fixed" ? (
             <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
         ) : null}
+        <label className={FIELD}>
+          Vence (opcional)
+          <input type="date" value={coupon.expires_at} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
+        </label>
+        <SelectCustom label="Empresa (opcional)" choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
+        <label className={`${FIELD} platform-admin-coupon-note`}>
+          Nota interna (opcional)
+          <textarea value={coupon.note} rows={2} maxLength={2000} onChange={(event) => setCoupon({...coupon, note: event.target.value})} placeholder="Ej.: gracia acordada por WhatsApp"/>
+        </label>
         <button className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
           Crear cupón
         </button>
@@ -104,15 +120,17 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
       )}
       <div ref={listRef} className="mt-4 min-w-0">
         {state.coupons.length ? (listFits ? (
-          <ListGrid label="Cupones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[44rem]" : "min-w-[35.5rem]"} pinnedActions={writable}>
+          <ListGrid label="Cupones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[62rem]" : "min-w-[55rem]"} pinnedActions={writable}>
             {state.coupons.map((item) => (
               <ListRow key={item.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
                 <div role="cell" className="min-w-0">
                   <b className="list-identity text-fore" title={item.code || "Cupón sin código"}>{item.code || "Cupón sin código"}</b>
                 </div>
                 <span role="cell" className="text-right">{discountCell(item)}</span>
-                <span role="cell" className="text-right text-[12.5px] font-semibold tabular-nums text-fore whitespace-nowrap">{usesLabel(item)}</span>
-                <span role="cell"><StateChip tone={item.active ? "ok" : "mute"}>{item.active ? "Activo" : "Pausado"}</StateChip></span>
+                <span role="cell" className="min-w-0">{expiryCell(item)}</span>
+                <span role="cell" className="list-secondary min-w-0" title={item.note ? `${companyLabel(item)} · ${item.note}` : companyLabel(item)}>{companyLabel(item)}</span>
+                <span role="cell" className="text-right text-[12.5px] font-semibold tabular-nums text-fore whitespace-nowrap" title={usesTitle(item)}>{couponUses(item)}</span>
+                <span role="cell">{statusChip(item)}</span>
                 {writable ? <ListActions>
                   <button
                     type="button"
@@ -135,9 +153,13 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                   <b className="block text-[13.5px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title={item.code || "Cupón sin código"}>{item.code || "Cupón sin código"}</b>
                   <small className="mt-0.5 block text-[11px] text-mute">{detail(item)}</small>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StateChip tone={item.active ? "ok" : "mute"}>{item.active ? "Activo" : "Pausado"}</StateChip>
-                </div>
+                <div className="flex flex-wrap items-center gap-2">{statusChip(item)}</div>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+                  <div><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Vence</dt><dd className="mt-0.5">{expiryCell(item)}</dd></div>
+                  <div><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Usos</dt><dd className="mt-0.5 font-semibold tabular-nums text-fore" title={usesTitle(item)}>{couponUses(item)}</dd></div>
+                  <div className="col-span-2"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Empresa</dt><dd className="mt-0.5 text-fore [overflow-wrap:anywhere]">{companyLabel(item)}</dd></div>
+                  {item.note ? <div className="col-span-2"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Nota</dt><dd className="mt-0.5 text-mute [overflow-wrap:anywhere]">{item.note}</dd></div> : null}
+                </dl>
                 {writable ? <div className="mt-auto border-t border-ink-600 pt-3">
                   <button
                     type="button"

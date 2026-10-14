@@ -1,4 +1,7 @@
 node_modules/
+# Sin barra: también ignora symlinks (los worktrees de agentes enlazan node_modules).
+node_modules
+backend/node_modules
 *.tsbuildinfo
 .env
 .env.*

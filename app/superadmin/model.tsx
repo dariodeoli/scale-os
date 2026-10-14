@@ -24,6 +24,11 @@ export type Agency = {
   due_at: string | null;
   internal_subscription_state?: "active" | "suspended" | null;
   internal_subscription_expires_at?: string | null;
+  /** Propietario/administrador principal (solo nombre, correo y foto; #189). */
+  owner_name?: string | null;
+  owner_email?: string | null;
+  owner_photo_url?: string | null;
+  extra_admins?: number;
 };
 export type Subscription = {
   internal_state: "active" | "suspended" | null;
@@ -38,6 +43,10 @@ export type Person = {
   active_agencies: number;
   platform_admin: boolean;
   platform_role?: "admin" | "viewer" | null;
+  /** Identidad visible y agencias (máx. 3) a las que pertenece (#189). */
+  full_name?: string | null;
+  photo_url?: string | null;
+  agency_names?: string[] | null;
 };
 export type Coupon = {
   id: number;
@@ -47,7 +56,25 @@ export type Coupon = {
   currency: string | null;
   active: boolean;
   max_redemptions: number | null;
+  expires_at?: string | null;
+  organization_id?: number | string | null;
+  organization_name?: string | null;
+  note?: string | null;
+  redemptions?: number;
+  expired?: boolean;
 };
+
+/** Estado visible del cupón: pausado manualmente, vencido o vigente (#189). */
+export function couponStatus(item: Coupon): { label: "Vigente" | "Vencido" | "Pausado"; tone: "ok" | "warn" | "mute" } {
+  if (!item.active) return { label: "Pausado", tone: "mute" };
+  if (item.expired) return { label: "Vencido", tone: "warn" };
+  return { label: "Vigente", tone: "ok" };
+}
+
+/** Usos del cupón como «n/max» (∞ sin límite). */
+export function couponUses(item: Coupon) {
+  return `${formatPlatformMetric(item.redemptions ?? 0)}/${item.max_redemptions === null ? "∞" : formatPlatformMetric(item.max_redemptions)}`;
+}
 export type AuditAction = {
   id: string;
   action: string;
@@ -238,4 +265,9 @@ export function expiringAgencies(agencies: Agency[], days = 7) {
     })
     .sort((a, b) => a.time - b.time);
 }
-export type CouponDraft = { code: string; discount_value: string; discount_type: "percent" | "fixed" | "days"; currency: string };
+export type CouponDraft = { code: string; discount_value: string; discount_type: "percent" | "fixed" | "days"; currency: string; expires_at: string; organization_id: string; note: string };
+
+/** Clave de sesión donde se guarda la eliminación pendiente durante la ida a Google. */
+export const PLATFORM_GOOGLE_STORAGE_KEY = "scale.platform.recent-auth-google";
+/** Palabra corta que confirma una eliminación global (la re-autenticación es el control real). */
+export const PLATFORM_DELETE_WORD = "ELIMINAR";

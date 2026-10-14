@@ -37,7 +37,7 @@ test('pipeline: la toolbar va en una fila, los KPIs no se estiran y los totales 
  assert.match(pipeline, /Captación digital y visitas/, 'la captación se resume en un chip con enlace');
  assert.match(pipeline, /onClick=\{\(\)=>navigate\('Métricas'\)\}/, 'el chip navega a Métricas con la vía del shell (sin duplicar la pantalla)');
  // Títulos sin márgenes por defecto (preflight off).
- assert.match(pipeline, /<h3 className="m-0 text-sm font-bold text-fore">\{stage\.label\}/, 'el título de columna no trae márgenes del navegador');
+ assert.match(pipeline, /<h3 className="m-0 flex min-w-0 items-center gap-2 text-sm font-bold text-fore">/, 'el título de columna no trae márgenes del navegador');
 });
 
 test('resumen y métricas: títulos sin márgenes por defecto y gráfico al alto compacto',()=>{

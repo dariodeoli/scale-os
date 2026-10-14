@@ -27,6 +27,7 @@ import {
   type CollectionPage,
   type State,
 } from "./model";
+import {PersonContainer} from "../person-container";
 import {PlatformMore} from "./states";
 import {EdgeAwareMenu} from "./edge-menu";
 
@@ -37,26 +38,27 @@ type PlatformAgenciesProps = {
   onMore: () => void;
   writable: boolean;
   setConfirming: (value: import("./model").ConfirmRequest) => void;
-  setTyped: (value: string) => void;
   manageSubscription: (agency: Agency) => Promise<void>;
+  applyCoupon: (agency: Agency) => void;
 };
 
-const TEMPLATE = "grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]";
+const TEMPLATE = "grid-cols-[minmax(12rem,1.5fr)_minmax(12rem,1.1fr)_minmax(15rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)_20.5rem]";
 const COLUMNS: Column[] = [
   {key: "agency", label: "Agencia"},
+  {key: "owner", label: "Administra"},
   {key: "status", label: "Estado"},
   {key: "plan", label: "Plan", align: "end"},
   {key: "users", label: "Usuarios", align: "end"},
   {key: "expiry", label: "Prueba / vencimiento"},
   {key: "actions", label: "Acciones", align: "end"},
 ];
-const MIN_WIDTH = denseTableMinWidth(70.5, 6);
+const MIN_WIDTH = denseTableMinWidth(12 + 12 + 15 + 7.5 + 5.5 + 8 + 20.5, 7);
 // Sin permiso de escritura no hay acciones: la columna (y su encabezado) no se dibuja.
-const TEMPLATE_READONLY = "grid-cols-[minmax(13rem,1.6fr)_minmax(16rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)]";
+const TEMPLATE_READONLY = "grid-cols-[minmax(12rem,1.5fr)_minmax(12rem,1.1fr)_minmax(15rem,1fr)_7.5rem_5.5rem_minmax(8rem,.9fr)]";
 const COLUMNS_READONLY = COLUMNS.slice(0, -1);
-const MIN_WIDTH_READONLY = denseTableMinWidth(50, 5);
+const MIN_WIDTH_READONLY = denseTableMinWidth(12 + 12 + 15 + 7.5 + 5.5 + 8, 6);
 
-export function PlatformAgencies({busy, state, page, onMore, writable, setConfirming, setTyped, manageSubscription}: PlatformAgenciesProps) {
+export function PlatformAgencies({busy, state, page, onMore, writable, setConfirming, manageSubscription, applyCoupon}: PlatformAgenciesProps) {
   // La tabla densa solo entra con ancho suficiente; si no, tarjetas (#62/#63).
   const {ref: tableRef, fits: tableFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
   const [query, setQuery] = useState("");
@@ -76,12 +78,22 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
       return `${agency.name} ${agency.slug}`.toLowerCase().includes(text);
     });
   }, [state.agencies, query, status]);
+  // Datos mínimos del administrador principal (nombre, correo, foto) + «+N» si hay más.
+  const owner = (agency: Agency) => {
+    const label = agency.owner_name || agency.owner_email;
+    if (!label) return <span className="list-secondary">—</span>;
+    const extra = agency.extra_admins ?? 0;
+    return <span className="flex min-w-0 items-center gap-1.5" title={[agency.owner_name, agency.owner_email].filter(Boolean).join(" · ")}>
+      <PersonContainer name={label} photoUrl={agency.owner_photo_url} secondary={agency.owner_name ? agency.owner_email : null} size="sm"/>
+      {extra > 0 ? <StateChip tone="mute" title={`${extra} administrador${extra === 1 ? "" : "es"} más`}>{`+${extra}`}</StateChip> : null}
+    </span>;
+  };
   const badges = (agency: Agency) => <>
     <StateChip tone={agency.active ? "ok" : "mute"}>{agency.active ? "Activa" : "Inactiva"}</StateChip>
     <StateChip tone={manualAccessTone(agency)}>{manualAccessLabel(agency)}</StateChip>
   </>;
   // Acción primaria visible + resto en el ⋯ del sistema (#155 D). Eliminar
-  // conserva la confirmación reforzada existente (typed + reautenticación).
+  // conserva la confirmación reforzada existente (palabra corta + reautenticación).
   const actions = (agency: Agency) => <>
     {writable && (
       <button
@@ -98,13 +110,17 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
       <EdgeAwareMenu><ActionMenu
         label={`Acciones de la agencia: ${agency.name || "Agencia sin nombre"}`}
         items={[{
+          id: "apply-coupon",
+          label: "Aplicar cupón",
+          icono: "tag",
+          onClick: () => applyCoupon(agency),
+        }, {
           id: "delete",
           label: "Eliminar agencia",
           icono: "trash",
           peligro: true,
           onClick: () => {
             setConfirming({ kind: "agency", agency });
-            setTyped("");
           },
         }]}
       /></EdgeAwareMenu>
@@ -143,7 +159,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             action={<button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button>}
           />
         ) : tableFits ? (
-          <ListGrid label="Agencias y suscripciones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[73.5rem]" : "min-w-[53rem]"} pinnedActions={writable} className="platform-admin-table-wrap">
+          <ListGrid label="Agencias y suscripciones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[84rem]" : "min-w-[63rem]"} pinnedActions={writable} className="platform-admin-table-wrap">
             {visible.map((agency) => {
               const expiry = agencyExpiry(agency);
               return (
@@ -152,6 +168,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
                     <b className="list-identity text-fore" title={agency.name || "Agencia sin nombre"}>{agency.name || "Agencia sin nombre"}</b>
                     <small className="list-secondary" title={agency.slug || "Sin identificador"}>{agency.slug || "Sin identificador"}</small>
                   </div>
+                  <div role="cell" className="min-w-0">{owner(agency)}</div>
                   <div role="cell" className="flex min-w-0 flex-wrap items-center gap-1.5">{badges(agency)}</div>
                   <span role="cell" className="text-right"><MoneyText valor={agency.subscription_amount} currency={agency.subscription_currency || undefined} className="text-fore"/></span>
                   <span role="cell" className="text-right text-[12.5px] font-semibold tabular-nums text-fore">{formatPlatformMetric(agency.active_users)}</span>
@@ -172,6 +189,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
                     <small className="mt-0.5 block text-[11px] text-mute">{agency.slug || "Sin identificador"}</small>
                   </div>
                   <div className="flex flex-wrap gap-1.5">{badges(agency)}</div>
+                  <div className="min-w-0">{owner(agency)}</div>
                   <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
                     <div><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Plan</dt><dd className="mt-0.5 font-semibold text-fore"><MoneyText valor={agency.subscription_amount} currency={agency.subscription_currency || undefined}/></dd></div>
                     <div><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Usuarios</dt><dd className="mt-0.5 font-semibold tabular-nums text-fore">{formatPlatformMetric(agency.active_users)}</dd></div>

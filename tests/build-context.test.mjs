@@ -112,3 +112,10 @@ test('el contexto de build real queda bajo 400 MB y sin archivos de más de 5 MB
     assert.deepEqual(heavy,[],`contexto ${context}: archivos de más de 5 MB`);
   }
 });
+
+test('el repositorio no versiona node_modules (ni como symlink de un worktree)', async () => {
+  const {execFileSync}=await import('node:child_process');
+  const tracked=execFileSync('git',['ls-files','-z'],{cwd:repo}).toString('utf8').split('\0').filter(Boolean);
+  const offenders=tracked.filter(file=>file.split('/').includes('node_modules'));
+  assert.deepEqual(offenders,[],`archivos versionados dentro o con nombre node_modules: ${offenders.join(', ')}`);
+});

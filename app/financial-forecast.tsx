@@ -139,7 +139,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2">
        <span className="text-xs font-medium text-mute">Ingresos</span>
        <BarraProgreso valor={row.income} max={row.max} tono="ok" etiqueta={`Ingresos en ${row.currency}`}/>
-       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.income,row.currency)}</strong>
+       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-ok">{formatWholeMoney(row.income,row.currency)}</strong>
       </div>
       <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2">
        <span className="text-xs font-medium text-mute">Gastos</span>
@@ -149,7 +149,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2 border-t border-ink-600 pt-2">
        <span className="text-xs font-semibold text-fore">Resultado</span>
        <BarraProgreso valor={Math.abs(row.result)} max={row.max} tono={row.result<0?'bad':'fono'} etiqueta={`Resultado en ${row.currency}`}/>
-       <strong className={cn('whitespace-nowrap text-right text-sm font-semibold tabular-nums',row.result<0?'text-bad':'text-fore')}>{formatSignedMoney(row.result,row.currency)}</strong>
+       <strong className={cn('whitespace-nowrap text-right text-base font-bold tabular-nums',row.result<0?'text-bad':row.result>0?'text-ok':'text-fore')}>{formatSignedMoney(row.result,row.currency)}</strong>
       </div>
      </article>)}
     </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
@@ -181,7 +181,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
         id:row.month,
         month:dateLabel(row.month),
         cash:<span className={cn('whitespace-nowrap tabular-nums',Number(row.projected_cash)<0&&'text-bad')}>{formatSignedMoney(row.projected_cash,currency)}</span>,
-        result:<span className={cn('whitespace-nowrap tabular-nums',Number(row.projected_result)<0&&'text-bad')}>{formatSignedMoney(row.projected_result,currency)}</span>,
+        result:<span className={cn('whitespace-nowrap tabular-nums',Number(row.projected_result)<0?'text-bad':Number(row.projected_result)>0&&'text-ok')}>{formatSignedMoney(row.projected_result,currency)}</span>,
        }))}
        mobileCard={(row:{id:string;month:ReactNode;cash:ReactNode;result:ReactNode})=><div className="grid gap-1 rounded-lg border border-ink-600 bg-ink-900 p-3">
         <FilaDato etiqueta="Mes" valor={row.month}/>
@@ -230,7 +230,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
        <ListGrid label="Salarios" template={PERSON_COLS} columns={PERSON_COLUMNS} minWidthClass="min-w-[30.5rem]" className="forecast-person-list">
         {row.members.map(member=>{const {adjustment,total}=personnelAmounts(member);return <ListRow template={PERSON_COLS} className="forecast-person-row" key={String(member.collaborator_id)}>
          <span className="min-w-0"><span className="forecast-person-who flex min-w-0 items-center gap-2"><ActorAvatar name={member.name} photo={safePhoto(member.photo_url)}/><span className="min-w-0 truncate text-sm font-semibold leading-snug text-fore" title={member.name}>{member.name}</span>{member.base_amount===0?<small className="ml-2 flex-none text-[10px] font-bold uppercase tracking-wider text-mute">Sin salario fijo</small>:null}</span></span>
-         <span className="forecast-person-base min-w-0 text-right"><strong className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
+         <span className="forecast-person-base min-w-0 text-right"><strong className="whitespace-nowrap text-sm font-normal tabular-nums text-mute">{formatWholeMoney(member.base_amount,member.currency)}</strong></span>
          <span className="forecast-person-total min-w-0 text-right"><strong className={cn('whitespace-nowrap text-sm font-semibold tabular-nums',total!==null&&total<0?'text-bad':'text-fore')}>{total===null?'Sin dato':total<0?formatSignedMoney(total,member.currency):formatWholeMoney(total,member.currency)}</strong>{adjustment!==null&&adjustment!==0?<small className="ml-1.5 whitespace-nowrap text-[11px] font-semibold tabular-nums text-warn" title={`Ajuste del mes: ${formatSignedMoney(member.override_amount,member.currency)}`}>{formatSignedMoney(member.override_amount,member.currency)}</small>:null}</span>
          {member.base_amount!==null?<span className="forecast-person-actions flex justify-end gap-1.5">
           <span className={ICON_TARGETS}><IconAction icon="edit" label={`Editar salario: ${member.name}`} onClick={()=>openSalary(member)}/></span>

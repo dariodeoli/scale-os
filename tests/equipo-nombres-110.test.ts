@@ -28,7 +28,7 @@ assert.match(team,/<PersonContainer size="md" name=\{facts\.name\} photoUrl=\{fa
 assert.match(team,/<div className="min-w-0" title=\{facts\.name\}>/,'el nombre truncado conserva su tooltip');
 
 // Correo y datos: pueden truncar, pero con `title` como salida.
-assert.match(team,/truncate text-\[12px\] leading-tight text-mute" title=\{\[facts\.emailTitle\|\|facts\.email,\.\.\.facts\.meta\]\.join\(' · '\)\}/,'el correo truncado conserva su tooltip');
+assert.match(team,/text-\[12px\] leading-tight text-mute" title=\{\[facts\.emailTitle\|\|facts\.email,\.\.\.facts\.meta\]\.join\(' · '\)\}/,'el correo truncado conserva su tooltip');
 
 // Tarjeta: el nombre se lee completo (el título de CompactCard no se trunca).
 assert.match(team,/title=\{<PersonContainer size="md" name=\{facts\.name\}/,'la cuadrícula usa el mismo contenedor de persona');

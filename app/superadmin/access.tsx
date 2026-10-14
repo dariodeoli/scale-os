@@ -7,6 +7,7 @@ import {Eye, ShieldCheck, Trash2} from "lucide-react";
 import {Nota, SearchField} from "owncoding-ui";
 import {EmptyBlock, FilterToolbar, ListActions, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from "./model";
+import {PersonContainer} from "../person-container";
 import {PlatformMore} from "./states";
 import type {CollectionPage} from "./model";
 
@@ -17,28 +18,28 @@ type PlatformAccessProps = {
   onMore: () => void;
   writable: boolean;
   setConfirming: (value: ConfirmRequest) => void;
-  setTyped: (value: string) => void;
   selfRow: (person: Person) => boolean;
   setPlatformAccess: (person: Person, access: "admin" | "viewer" | "none") => Promise<void>;
 };
 
-const TEMPLATE = "grid-cols-[minmax(11rem,1fr)_7rem_25rem]";
+const TEMPLATE = "grid-cols-[minmax(14rem,1.2fr)_minmax(10rem,1fr)_8rem_25rem]";
 const COLUMNS: Column[] = [
   {key: "user", label: "Usuario"},
+  {key: "agencies", label: "Agencias"},
   {key: "access", label: "Acceso"},
   {key: "actions", label: "Acciones", align: "end"},
 ];
-const MIN_WIDTH = denseTableMinWidth(43, 3);
-const TEMPLATE_READONLY = "grid-cols-[minmax(11rem,1fr)_7rem]";
+const MIN_WIDTH = denseTableMinWidth(14 + 10 + 8 + 25, 4);
+const TEMPLATE_READONLY = "grid-cols-[minmax(14rem,1.2fr)_minmax(10rem,1fr)_8rem]";
 const COLUMNS_READONLY = COLUMNS.slice(0, -1);
-const MIN_WIDTH_READONLY = denseTableMinWidth(18, 2);
+const MIN_WIDTH_READONLY = denseTableMinWidth(14 + 10 + 8, 3);
 
-export function PlatformAccess({busy, state, page, onMore, writable, setConfirming, setTyped, selfRow, setPlatformAccess}: PlatformAccessProps){
+export function PlatformAccess({busy, state, page, onMore, writable, setConfirming, selfRow, setPlatformAccess}: PlatformAccessProps){
   const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
   const [query, setQuery] = useState("");
   const visible = useMemo(() => {
     const text = query.trim().toLowerCase();
-    return text ? state.users.filter((person) => person.email.toLowerCase().includes(text)) : state.users;
+    return text ? state.users.filter((person) => `${person.email} ${person.full_name || ""}`.toLowerCase().includes(text)) : state.users;
   }, [state.users, query]);
   const accessChip = (person: Person) => person.platform_admin
     ? <StateChip tone={person.platform_role === "viewer" ? "info" : "ok"}>{person.platform_role === "viewer" ? "Solo lectura" : "Admin global"}</StateChip>
@@ -52,7 +53,6 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
         disabled={busy}
         onClick={() => {
           setConfirming({ kind: "user", person });
-          setTyped("");
         }}
       >
         <Trash2 size={14} aria-hidden="true" />
@@ -98,7 +98,6 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
         disabled={busy}
         onClick={() => {
           setConfirming({ kind: "user", person });
-          setTyped("");
         }}
       >
         <Trash2 size={14} aria-hidden="true" />
@@ -106,10 +105,20 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       </button>
     </>;
   };
-  const identity = (person: Person) => <>
-    <b className="list-identity text-fore" title={person.email || "Usuario sin correo"}>{person.email || "Usuario sin correo"}</b>
-    <small className="list-secondary">{formatPlatformMetric(person.active_agencies)} agencias activas{selfRow(person) ? " · Vos" : ""}</small>
-  </>;
+  // Foto + nombre real + correo (secundario): solo identidad visible, nunca datos sensibles.
+  const identity = (person: Person) => (
+    <PersonContainer
+      name={person.full_name || person.email || "Usuario sin correo"}
+      photoUrl={person.photo_url}
+      secondary={person.full_name ? `${person.email}${selfRow(person) ? " · Vos" : ""}` : selfRow(person) ? "Vos" : null}
+      size="sm"
+    />
+  );
+  const agencyNames = (person: Person) => {
+    const names = person.agency_names ?? [];
+    const more = Math.max(0, person.active_agencies - names.length);
+    return names.length ? `${names.join(", ")}${more ? ` +${more}` : ""}` : "Sin agencias activas";
+  };
   return (
     <section className="panel h-full" aria-labelledby="platform-access-title">
       <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1">
@@ -128,12 +137,13 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       )}
       <div ref={listRef} className="min-w-0">
         {visible.length ? (listFits ? (
-          <ListGrid label="Accesos entre agencias" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[45rem]" : "min-w-[20rem]"} pinnedActions={writable}>
+          <ListGrid label="Accesos entre agencias" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[60rem]" : "min-w-[36rem]"} pinnedActions={writable}>
             {visible.map((person) => {
               const rowActions = actions(person);
               return (
                 <ListRow key={person.id} template={writable ? TEMPLATE : TEMPLATE_READONLY}>
                   <div role="cell" className="min-w-0">{identity(person)}</div>
+                  <span role="cell" className="list-secondary min-w-0" title={agencyNames(person)}>{agencyNames(person)}</span>
                   <span role="cell">{accessChip(person)}</span>
                   {rowActions ? <ListActions>{rowActions}</ListActions> : null}
                 </ListRow>
@@ -146,10 +156,8 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
               const cardActions = actions(person);
               return (
                 <article key={person.id} className="flex min-h-[200px] flex-col gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
-                  <div className="min-w-0">
-                    <b className="block text-[13px] font-semibold leading-snug text-fore [overflow-wrap:anywhere]" title={person.email || "Usuario sin correo"}>{person.email || "Usuario sin correo"}</b>
-                    <small className="mt-0.5 block text-[11px] text-mute">{formatPlatformMetric(person.active_agencies)} agencias activas{selfRow(person) ? " · Vos" : ""}</small>
-                  </div>
+                  <div className="min-w-0">{identity(person)}</div>
+                  <small className="block text-[11px] text-mute [overflow-wrap:anywhere]">{formatPlatformMetric(person.active_agencies)} agencias activas · {agencyNames(person)}</small>
                   <div className="flex flex-wrap gap-1.5">{accessChip(person)}</div>
                   {cardActions ? <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">{cardActions}</div> : null}
                 </article>
