@@ -175,7 +175,7 @@ test('cantidad en serie: si una unidad falla, avisa el corte y baja la cantidad 
 
 test('el shell conserva el diálogo abierto cuando la carga sigue',()=>{
  const source=require('node:fs').readFileSync(new URL('../app/inventory-workspace.tsx',import.meta.url),'utf8');
- assert.match(source,/done=\{\(count=1,keepOpen=false\)=>\{if\(keepOpen\)\{setNotice\(''\);setRefresh/);
+ assert.match(source,/done=\{\(count=1,keepOpen=false\)=>\{if\(keepOpen\)\{setRefresh/);
  assert.match(source,/title=\{editItem==='new'\?'Nuevo equipo':'Editar equipo'\}/);
 });
 

@@ -415,7 +415,7 @@ function InventoryPanel(){
     {/* Mobile (pase de densidad): la vista va solo con íconos (el nombre queda en
         aria-label/title) y comparte la línea con «Seleccionar visibles» y «¿Qué es?». */}
     <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto max-md:order-1">
-     <ViewTabs className="max-sm:[&_button>span.truncate]:hidden" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
+     <ViewTabs className="max-sm:[&_button>span.min-w-0]:hidden" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
      {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
     </div>
     {attentionHelp?<Nota tono="info" compact className="basis-full max-md:order-3">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
