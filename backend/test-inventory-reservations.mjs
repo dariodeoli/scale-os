@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {inventoryPhotoHttpCases} from './scripts/test-inventory-photo-http.mjs';
 import {identitySchema} from './scripts/test-identity-schema.mjs';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -48,6 +49,7 @@ async function call(path,method='GET',payload={},user=owner,headers={}){
  const handled=await inventoryReservations({req:{method,headers,socket:{remoteAddress:'127.0.0.1'}},res:{writeHead(status,headers){binary.status=status;Object.assign(binary.headers,headers||{});},end(body){binary.body=body||null;}},url:new URL('https://test/api/agency/'+path),db,session:async()=>user,body:async()=>payload,send:(_,status,data)=>{result={status,...data};}});
  assert(handled);apiCases++;return result??binary;
 }
+await inventoryPhotoHttpCases({db,query,owner,viewer,foreign:{...owner,organization_id:other}});
 const iso=offset=>new Date(Date.now()+offset).toISOString();
 const start=iso(-60000),end=iso(3600000),later=iso(7200000);
 const reservationPayload=items=>({title:'Rodaje memoria y DJI Mic',project_id:project,starts_at:start,ends_at:end,inventory_ids:items,responsible_user_ids:[producer.id,secondProducer.id],return_user_id:secondProducer.id,notes:'Fixture only'});
@@ -84,6 +86,9 @@ assert(storedPhoto.startsWith('data:image/webp;base64,'),'la imagen guardada sig
 assert.equal((await call('inventory')).records.find(row=>String(row.id)===photoId).photo_url,withPhoto.photo_url,'el catálogo también entrega la URL');
 const absolute=await call('inventory','GET',{},owner,{host:'api.example.com','x-forwarded-proto':'https'});
 assert.equal(absolute.records.find(row=>String(row.id)===photoId).photo_url,`https://api.example.com/api/agency/inventory/${photoId}/photo?v=${String(withPhoto.photo_url).split('?v=')[1]}`,'detrás del proxy la URL es absoluta al host público');
+const proxyPhoto=absolute.records.find(row=>String(row.id)===photoId).photo_url;
+assert.equal((await call(`inventory/${photoId}`,'PATCH',{name:'Proxy round-trip',photo_url:proxyPhoto},owner,{host:'api.example.com','x-forwarded-proto':'https'})).status,200);
+assert.equal((await query('select photo_url from agency_inventory where id=$1',[photoId])).rows[0].photo_url,storedPhoto,'#263 absolute proxy round-trip preserves original bytes');
 const itemColumns=(await query("select column_name from information_schema.columns where table_name='agency_inventory' order by ordinal_position")).rows.map(row=>row.column_name);
 const catalogueRow=(await call('inventory')).records.find(row=>String(row.id)===photoId);
 assert.deepEqual(itemColumns.filter(column=>column!=='photo_updated_at'&&!Object.hasOwn(catalogueRow,column)),[],'el catálogo conserva todas las columnas de la tabla (photo_updated_at es el sello interno)');

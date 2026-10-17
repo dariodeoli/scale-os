@@ -1,3 +1,4 @@
+import {inventoryPhotoHttpCases} from './scripts/test-inventory-photo-http.mjs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {accessSync,chmodSync,constants,existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,realpathSync,rmSync} from 'node:fs';
@@ -133,6 +134,9 @@ async function runCases(){
   return {project,actor:{id:uid,organization_id:org,role:'owner'}};
  }
  const a=await tenant('pg-fixture-a'),b=await tenant('pg-fixture-b');
+ const viewerId=await insert('insert into users(email,password_hash) values($1,$2)',['photo-viewer@example.invalid','fixture-not-a-password']);
+ await pool.query("insert into organization_members(organization_id,user_id,role) values($1,$2,'viewer')",[a.actor.organization_id,viewerId]);
+ await inventoryPhotoHttpCases({db:pool,query:(sql,args)=>pool.query(sql,args),owner:a.actor,foreign:b.actor,viewer:{id:viewerId,organization_id:a.actor.organization_id,role:'viewer'}});
  const item=async(name,tenant=a)=>ok(await call('inventory','POST',{name,category:'Concurrency fixture',storage_shelf:'Initial'},tenant.actor),201).record.id;
  const camera=await item('Camera fixture'),audio=await item('Audio fixture'),adjacent=await item('Adjacent fixture'),foreign=await item('Tenant B fixture',b);
  const historicalUser=await insert('insert into users(email,password_hash) values($1,$2)',['historical-custodian@example.invalid','fixture-not-a-password']);
@@ -276,7 +280,7 @@ async function main(){
    await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}
   await runCases();
-  console.log('PASS real PostgreSQL: seven handler races plus direct constraint race; no PGlite, HTTP, UI or production connection');
+  console.log('PASS real PostgreSQL: seven handler races plus direct constraint race; real localhost HTTP; no PGlite, UI or production connection');
  }finally{
   // Bound pool draining too: leaked/failed leases must not prevent pg_ctl stop.
   let timer;
