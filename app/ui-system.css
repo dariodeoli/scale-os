@@ -16,6 +16,8 @@
 .workspace-content{padding:var(--ui-space-4) var(--ui-page-padding) var(--ui-space-6)}
 @media(min-width:768px){.workspace-content{padding-block:var(--ui-space-4) var(--ui-space-5)}}
 .workspace-topbar{padding-inline:var(--ui-page-padding)}
+/* Keep the native company trigger inside its header column; its labelled name may truncate. */
+.control-shell .topbar-company .workspace{max-width:100%}
 :is(.control-shell,.unified-dialog,.photo-dialog){accent-color:var(--brand-700)}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(h2,h3){line-height:1.3;overflow-wrap:anywhere}
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(p,label,legend){overflow-wrap:anywhere}
@@ -577,8 +579,9 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 @media(max-width:760px),(pointer:coarse){.ui-temporal>button{min-width:44px;min-height:44px}}
 
 /* Button / IconButton foundation. Opt-in hooks have no legacy class aliases;
-   business permissions and handlers remain in the consumer. */
-[data-ui-button]{--ui-button-height:var(--ui-control-height);--ui-button-tone:var(--interactive);--ui-button-ink:var(--on-brand);--ui-button-text:rgb(var(--c-fono-text));--ui-button-soft:var(--violet-soft);display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-space-2);min-width:0;max-width:100%;min-height:var(--ui-button-height);padding:8px 14px;border:1px solid transparent;border-radius:var(--ui-radius-control);background:var(--ui-button-tone);color:var(--ui-button-ink);font:600 13px/1.35 var(--ui-font-body);text-decoration:none;vertical-align:middle;cursor:pointer;transition:background var(--ease),border-color var(--ease),color var(--ease),box-shadow var(--ease)}
+   business permissions and handlers remain in the consumer. Short actions keep
+   their natural width; max-width still lets long content wrap at its container. */
+[data-ui-button]{--ui-button-height:var(--ui-control-height);--ui-button-tone:var(--interactive);--ui-button-ink:var(--on-brand);--ui-button-text:rgb(var(--c-fono-text));--ui-button-soft:var(--violet-soft);display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;gap:var(--ui-space-2);min-width:0;max-width:100%;min-height:var(--ui-button-height);padding:8px 14px;border:1px solid transparent;border-radius:var(--ui-radius-control);background:var(--ui-button-tone);color:var(--ui-button-ink);font:600 13px/1.35 var(--ui-font-body);text-decoration:none;vertical-align:middle;cursor:pointer;transition:background var(--ease),border-color var(--ease),color var(--ease),box-shadow var(--ease)}
 [data-ui-button][data-ui-color=neutral]{--ui-button-tone:var(--text-strong);--ui-button-ink:var(--surface);--ui-button-text:var(--text-strong);--ui-button-soft:var(--surface-sunken)}
 [data-ui-button][data-ui-color=success]{--ui-button-tone:var(--success);--ui-button-ink:var(--on-success);--ui-button-text:rgb(var(--c-ok-text));--ui-button-soft:var(--success-soft)}
 [data-ui-button][data-ui-color=warning]{--ui-button-tone:var(--warning);--ui-button-ink:var(--on-warning);--ui-button-text:rgb(var(--c-warn-text));--ui-button-soft:var(--warning-soft)}

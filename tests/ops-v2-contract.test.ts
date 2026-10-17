@@ -284,10 +284,17 @@ assert.match(history,/export function InternalTasks/,'InternalTasks sigue en el 
 for(const [name,source] of [['inventario',inventory],['estudio',studio],['tablero',board],['planificador',planner],['proyectos',projects],['ficha de proyecto',projectCard],['producción',productionSection],['historial',history]] as const){
  for(const line of source.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),`${name}: cada texto recortado lleva title en mobile`);
 }
-for(const [name,source] of [['inventario',inventory],['estudio',studio],['ficha de proyecto',projectCard]] as const){
+for(const [name,source] of [['estudio',studio],['ficha de proyecto',projectCard]] as const){
  assert.match(source,/const ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:/,`${name}: acciones de ícono de 44 px en mobile`);
 }
-assert.match(inventory,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas de inventario son táctiles en mobile');
+for(const [name,desktop] of [['ICON_TARGETS','8'],['ROW_ICON_TARGETS','7']] as const){
+ const value=inventory.match(new RegExp(`const ${name}='([^']+)'`))?.[1];assert(value);
+ assert(!value.includes('[&>button]:'),'square sizing never applies to text actions');
+ for(const selector of ['[&>button[data-ui-icon-button]]','[&>button[aria-haspopup=menu]]'])for(const dimension of ['h','w']){
+  assert(value.split(' ').includes(`${selector}:${dimension}-11`),'native menu and canonical icons retain 44px mobile targets');
+  assert(value.split(' ').includes(`md:${selector}:${dimension}-${desktop}`),'desktop icon geometry is preserved');
+ }
+}
 assert.match(studio,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas del estudio son táctiles en mobile');
 assert.match(board,/role="img" aria-label=\{`Mover \$\{order\.title\}`\}/,'el ⋮⋮ se anuncia como señal de movimiento (la tarjeta entera arrastra)');
 assert.match(planner,/Subtabs[^>]*\[&>button\]:min-h-11 md:\[&>button\]:min-h-9/,'los subtabs del planificador son táctiles en mobile');

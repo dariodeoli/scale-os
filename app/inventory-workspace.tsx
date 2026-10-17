@@ -77,9 +77,9 @@ const RESERVATION_COLS='[--rsv-cols:minmax(9.5rem,1.3fr)_minmax(6.5rem,1fr)_minm
 const RESERVATION_GRID='grid grid-cols-[var(--rsv-cols)] items-center gap-x-2';
 const CELL='min-w-0 text-[13px] leading-5';
 // Targets táctiles: en móvil las acciones de ícono crecen a 44 px (32 en escritorio).
-const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-8 md:[&>button]:w-8';
+const ICON_TARGETS='[&>button[data-ui-icon-button]]:h-11 [&>button[data-ui-icon-button]]:w-11 md:[&>button[data-ui-icon-button]]:h-8 md:[&>button[data-ui-icon-button]]:w-8 [&>button[aria-haspopup=menu]]:h-11 [&>button[aria-haspopup=menu]]:w-11 md:[&>button[aria-haspopup=menu]]:h-8 md:[&>button[aria-haspopup=menu]]:w-8';
 // Las filas densas conservan el ícono de 28 px en escritorio (32 en tarjetas).
-const ROW_ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7';
+const ROW_ICON_TARGETS='[&>button[data-ui-icon-button]]:h-11 [&>button[data-ui-icon-button]]:w-11 md:[&>button[data-ui-icon-button]]:h-7 md:[&>button[data-ui-icon-button]]:w-7 [&>button[aria-haspopup=menu]]:h-11 [&>button[aria-haspopup=menu]]:w-11 md:[&>button[aria-haspopup=menu]]:h-7 md:[&>button[aria-haspopup=menu]]:w-7';
 
 const statusTone=(status:string)=>status==='available'?'ok':status==='in_use'?'info':status==='maintenance'?'warn':status==='retired'?'mute':'mute';const reservationTone=(status:InventoryReservation['status'])=>status==='reserved'?'info':status==='checked_out'?'warn':status==='returned'?'ok':'mute';
 const PHYSICAL_VERIFICATION_MAX_AGE_DAYS=30;
