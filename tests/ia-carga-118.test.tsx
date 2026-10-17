@@ -22,6 +22,7 @@ test('límites del contrato: 20.000 caracteres y 25 registros por tipo', () => {
 test('config: normaliza la respuesta y conserva sólo los tipos permitidos', () => {
  const config = normalizarIaConfig({configurada: true, modelo: 'openai/gpt-oss-120b', tipos: ['clientes', 'inventario', 'eventos', 7]});
  assert.deepEqual(config, {configurada: true, modelo: 'openai/gpt-oss-120b', tipos: ['clientes', 'inventario']});
+ assert.equal(normalizarIaConfig({configurada:false,demoRestricted:true}).demoRestricted,true,'la restricción del demo se conserva separada de la configuración');
  assert.deepEqual(normalizarIaConfig(null), {configurada: false, modelo: null, tipos: []});
  assert.equal(normalizarIaConfig({configurada: 'sí', tipos: null}).configurada, false, 'un valor no booleano no enciende la IA');
  // Puente con el motor de #117: el servidor publica «equipos» y la UI lo llama «inventario».

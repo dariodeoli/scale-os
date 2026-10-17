@@ -1,0 +1,2 @@
+# Demo visitors get a clear local-entry path while normal users retain IA.
+tsx tests/demo-ai-ui.test.tsx

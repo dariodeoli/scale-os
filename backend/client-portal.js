@@ -1,3 +1,4 @@
+import {assertDemoEffectAllowed} from './demo-effects.js';
 import crypto from 'node:crypto';
 import {roleCan} from './permissions.js';
 import {emailShell} from './email-brand.js';
@@ -141,6 +142,7 @@ export async function clientPortal({req,res,url,db,session,body,send,sendPasswor
   if(internalInvite||revokeInvite||revokeGrant||internalDelivery){
    const employee=await session(req);
    actor(employee,internalDelivery?'portal.manage':'portal-access.manage',internalDelivery?'Sin permiso para gestionar el portal de clientes':'Sin permiso para gestionar los accesos del portal de clientes');
+   if((internalInvite||internalDelivery)&&req.method==='POST')assertDemoEffectAllowed(employee,'invitation');
    c=await db.connect();await c.query('begin');transaction=true;
    await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(employee.id),req.socket.remoteAddress||'']);
    if(internalInvite){

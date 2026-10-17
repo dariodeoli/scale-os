@@ -134,7 +134,7 @@ function aTarjetas(resultado: IaResultado, siguienteClave: (prefijo: string) => 
 export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>void; onCreated:()=>Promise<void>|void}){
   const {currency} = useCompanyCurrency();
   const [config,setConfig]=useState<IaConfig|null>(null);
-  const [estadoConfig,setEstadoConfig]=useState<'cargando'|'lista'|'no-configurada'|'pendiente'|'sin-tipos'|'error'>('cargando');
+  const [estadoConfig,setEstadoConfig]=useState<'cargando'|'lista'|'no-configurada'|'pendiente'|'sin-tipos'|'error'|'demo'>('cargando');
   const [configError,setConfigError]=useState('');
   const [reintento,setReintento]=useState(0);
   const [texto,setTexto]=useState('');
@@ -166,7 +166,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       if(!activo)return;
       setConfig(value);
       const tipos=value.tipos.filter((tipo)=>tipo==='clientes'?puedeClientes:puedeInventario);
-      setEstadoConfig(!value.configurada?'no-configurada':tipos.length?'lista':'sin-tipos');
+      setEstadoConfig(value.demoRestricted?'demo':!value.configurada?'no-configurada':tipos.length?'lista':'sin-tipos');
     }).catch((cause)=>{
       if(!activo)return;
       const status=cause&&typeof cause==='object'&&'status' in cause?Number((cause as {status?:unknown}).status):0;
@@ -355,6 +355,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         <button type="button" className="primary" onClick={close}>Entendido</button>
       </FormActions>
     </div>:null}
+
+    {estadoConfig==='demo'?<div className="grid gap-3"><Aviso tono="info" como="div">La asistencia con IA no está disponible en la demostración. Podés cargar clientes y equipos manualmente desde cada módulo.</Aviso><FormActions><button type="button" className="primary" onClick={close}>Entendido</button></FormActions></div>:null}
 
     {estadoConfig==='no-configurada'?<div className="grid gap-3">
       <Aviso tono="warn" como="div" className="grid gap-1">

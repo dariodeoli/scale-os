@@ -1,3 +1,4 @@
+import {assertDemoEffectAllowed,isDemoActor} from './demo-effects.js';
 // «Carga con IA» (scale-os#117, #119 y #127): motor server-side del asistente.
 //
 // Una persona pega texto libre y un proveedor de IA configurable por entorno
@@ -872,11 +873,12 @@ export async function iaCarga({req,res,url,db,session,body,send,proveedor=null})
   const tipos=tiposPermitidos(user);
   if(!tipos.length)fail('Tu rol no puede crear clientes ni equipos de inventario.',403);
   if(req.method==='GET'){
-   const config=iaConfig();
-   send(res,200,{configurada:Boolean(config),modelo:config?.modelo||null,tipos,acciones_soportadas:IA_ACCIONES,limites:{texto:IA_TEXTO_MAX,registros:IA_REGISTROS_MAX,coincidencias:IA_COINCIDENCIAS_MAX}});
+   const demoRestricted=isDemoActor(user),config=demoRestricted?null:iaConfig();
+   send(res,200,{configurada:Boolean(config),modelo:config?.modelo||null,...(demoRestricted?{demoRestricted:true}:{}),tipos,acciones_soportadas:IA_ACCIONES,limites:{texto:IA_TEXTO_MAX,registros:IA_REGISTROS_MAX,coincidencias:IA_COINCIDENCIAS_MAX}});
    return true;
   }
   if(req.method!=='POST')fail('Método no permitido',405);
+  assertDemoEffectAllowed(user,'ai');
   const config=iaConfig();
   if(!config)fail('La carga con IA no está configurada en el servidor.',503,'ia_no_configurada');
   if(!await throttle(db,'ia-carga:'+user.organization_id,IA_RATE_LIMIT))fail('Ya usaste la carga con IA varias veces. Esperá 15 minutos.',429);

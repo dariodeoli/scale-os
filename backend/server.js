@@ -41,6 +41,7 @@ import {rucLookup,assertUniqueClientRuc,rucLookupConfig,configuredRucProvider} f
 import {workOrderLinks} from './work-order-links.js';
 import {presence} from './presence.js';
 import {demoOrganization} from './demo-session.js';
+import {demoEffectGate} from './demo-effects.js';
 import {inviteLinks,resolveInvite,claimInvite,accessRequestState} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
 import {notifyInquiry,platformContactEmail} from './platform-inquiries.js';
@@ -367,6 +368,8 @@ const server = http.createServer(async (req,res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
+    // Check demo effects before any handler can send invitations or call a provider.
+    if(await demoEffectGate({req,res,url,session,send}))return;
     // Mantenimiento (panel global): corta solo /api/agency/* y lecturas hermanas a
     // quien no es administrador global; auth, panel, health, públicos y webhooks pasan.
     if(await maintenanceGate({req,res,url,db,session,send}))return;
