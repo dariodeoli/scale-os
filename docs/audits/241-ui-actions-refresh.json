@@ -2,9 +2,9 @@
   "schema": 1,
   "issue": 241,
   "migrationBaseline": "1cc44010",
-  "sourceSnapshot": "99e7f5c6",
+  "sourceSnapshot": "aa24198368f18f43aa0ce15ec641af3558b781be",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -32,9 +32,9 @@
     },
     {
       "file": "app/finance-balance.tsx",
-      "beforeHash": "bca3babdf8616d20c30699b153cf81078de9af76b5248f630a2511918283e977",
-      "afterHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
-      "rationale": "Reordenación clientes/equipo antes del resumen; mismos botones, permisos y callbacks del balance."
+      "beforeHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
+      "afterHash": "814e7dca5fa015dd4c4f58447dee4177e4259762ffaef7628843fc915f86540c",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
     },
     {
       "file": "app/finance-clients.tsx",
@@ -74,9 +74,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "beforeHash": "aa04a5bbe002630b942c0440ea5f509f0c09329671d0b3a0b4babb71e385487b",
-      "afterHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
-      "rationale": "#245 retira report/logout del sidebar y ThemeToggle del header; monta report y logout iconos canónicos. Dos widgets propios del sidebar conservan JSX/hash exacto."
+      "beforeHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
+      "afterHash": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
     },
     {
       "file": "app/sections/clientes.tsx",
@@ -101,6 +101,72 @@
       "beforeHash": "198fc761675edf32df41829b30bf6a64a6cf5a835f25e793c6737391bbb05b2b",
       "afterHash": "60c054deb003b3ea3e0c2439c93149314f2e82fcc88775ee54cfaa732d596710",
       "rationale": "Fachada sólo reexports del motor visual numeric y reglas puras number-utils de owncoding-ui0.68.17; sin renderers/botones ni lógica local añadida."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "beforeHash": null,
+      "afterHash": "0cee2f7325dd7acbeeec2044c42276cbe6be4fc3715f8fe2159f694251f1c702",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/client-editor.tsx",
+      "beforeHash": "1ceb2684fd509cdeb56f6803907f3a6157c61ab2394a4d9574e46465864fc197",
+      "afterHash": "a0301badf25c81d2b7c149875d4a279ccfb2fdc4b6baecbff88d652c16129315",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/company-legal-profile.tsx",
+      "beforeHash": "8fb1daea1f764504a85bd435333de45df390340ff8a5d2340df08d0a3664d676",
+      "afterHash": "6b0d371cbdde139c2d20cfaed97271278cea416112259db54da43cfb14cbcb88",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/contracts-workspace.tsx",
+      "beforeHash": "ae15e4e2d88b97fca5b0a4b00f527787a4700b4efcad9d79e378148509012635",
+      "afterHash": "e9e5e5d704ba6b9a995022f16fb8fae1c5d5688989df9d3b58f7f31559960bc9",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/employee-tasks.tsx",
+      "beforeHash": "4176e22e96b7a17e5c5f0e291661483f6e1e0f29bab79f841397c13b01308056",
+      "afterHash": "86822a46a0d718453052abf8fae8fcda7688fa8de3c8039a95255c2171ce5360",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/productivity-ui.tsx",
+      "beforeHash": "5f4582f74c9fc22d339d3f40426815839f0f0b49d35629884fe24fcec0be6172",
+      "afterHash": "576a9f434c63b68d50cda165ce887869a7e87586a83fdaec1c061a48abef62ba",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/sections/preferencias.tsx",
+      "beforeHash": "cbd7e9478ab270df68c3ad30f51cfa1283d31dd870b9eeea64802fda3005c0df",
+      "afterHash": "89d60a4c1ed841b254233349741c69c4f77ca4daf5f36be31d3bf88a91e622a1",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/sections/produccion.tsx",
+      "beforeHash": "9b58c6b16dd95d0eb380b8b8c338e105f7a7275cd5f60e908df5d63c58d6fa0b",
+      "afterHash": "3c04c5e4d360da7d7a49d2966847d45beb68daab5fedcae9deb0eeee3c7461df",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/sections/resumen.tsx",
+      "beforeHash": "1c4d43e6199a1bcaf3b37f0d2145bd26acc42904bb9e0f580a8da5641f5fac53",
+      "afterHash": "78e41525cd3ce8ce55a82a65d15d7770ab2e061668d44f04371722c30dac2404",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/studio-workspace.tsx",
+      "beforeHash": "673e8d544285a0ff4b8fa418dfbd9cd786b9616ba6dcec2014390cb3c9825b8f",
+      "afterHash": "f64a078799e9ebfcdf19e4a9135d66753dba286c82e24325d1f6e0f40a72ac8f",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/workspace-forms.tsx",
+      "beforeHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
+      "afterHash": "97027a243b3837505f144cee33ecae2d836a4cf58207732572ca13f4e2b3034e",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
     }
   ],
   "addedCanonical": [
@@ -181,7 +247,7 @@
       "line": 55,
       "column": 60,
       "owner": "Demo",
-      "siteHash": "a303d60a8d579257e58f4344c9de1c059a3624ec71b851dafc00fa2ce1e10994",
+      "siteHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
       "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
     },
     {
@@ -189,7 +255,7 @@
       "line": 55,
       "column": 169,
       "owner": "Demo",
-      "siteHash": "09b40623570dcda8aa9e1aeacbedf8fcd9f77095dcf3a3dc0dac15a0d9904e47",
+      "siteHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
       "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
     },
     {
@@ -197,7 +263,7 @@
       "line": 55,
       "column": 292,
       "owner": "Demo",
-      "siteHash": "4e0aa3250dcad3cad439aa42cdb2bc28d463af3c55ec5bd28bd7ea5235ef3b98",
+      "siteHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
       "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
     },
     {
@@ -237,8 +303,120 @@
       "line": 1073,
       "column": 15,
       "owner": "Home",
-      "siteHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",
+      "siteHash": "9a0623ea61712830671e01c45c9e20addd0b4e1689df1f766711539926ba9658",
       "rationale": "Cerrar sesión trasladado del sidebar al header por #245: IconButton local, size compact, type button y callback logout original."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "line": 51,
+      "column": 108,
+      "owner": "ContactDirectory",
+      "siteHash": "c655d3e614750438f8dde5d6af39eba5a972c596d79577cdd42d4533fbf0286d",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "line": 53,
+      "column": 60,
+      "owner": "ContactDirectory",
+      "siteHash": "fcfb261d8353aea6ba4f62307b70f8bbc347c554500b1d71110a03cd58f0793e",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "line": 58,
+      "column": 54,
+      "owner": "ContactDirectory",
+      "siteHash": "2b58814dd65c2f16307c2a9cf22701458ff77de48593dc431d34ec45d1f1e28c",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "line": 58,
+      "column": 208,
+      "owner": "ContactDirectory",
+      "siteHash": "3bf0ee69965f918b7c56027c7773664631186afd96d99dd5adaa1931226bde0e",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "line": 60,
+      "column": 12,
+      "owner": "ContactDirectory",
+      "siteHash": "9e0a90d8a18469899f7c4e2fece3332e774fa6f6ef38b8d70fa58b08e907bc13",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/client-contacts.tsx",
+      "line": 69,
+      "column": 164,
+      "owner": "ContactEditor",
+      "siteHash": "16d2058d673527bbc9a2403dc0cbb249bcf2714e80c0362e5003722860051414",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/employee-tasks.tsx",
+      "line": 51,
+      "column": 136,
+      "owner": "TaskDashboard",
+      "siteHash": "96fa97e3a0115b8b951942a0704a2526223a62fb4ccd4904d0e043e601728b4f",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/employee-tasks.tsx",
+      "line": 51,
+      "column": 295,
+      "owner": "TaskDashboard",
+      "siteHash": "56261b79df5b57f5acff465c3c400b8d0ee046aa8d37ba8205bb200693d5a65d",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "line": 1040,
+      "column": 90,
+      "owner": "Home",
+      "siteHash": "ca0244f39ae065b35c26bf021d070fdbd6b4ca222e648146a2936187af3b87a0",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/sections/preferencias.tsx",
+      "line": 37,
+      "column": 61,
+      "owner": "PreferenciasSection",
+      "siteHash": "153b7329aabc472ded635e3f70ae3475ff6f4b4373e473f068679ffb071c5819",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/sections/produccion.tsx",
+      "line": 149,
+      "column": 125,
+      "owner": "ProduccionSection",
+      "siteHash": "ca0244f39ae065b35c26bf021d070fdbd6b4ca222e648146a2936187af3b87a0",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/studio-workspace.tsx",
+      "line": 160,
+      "column": 5,
+      "owner": "StudioPanel",
+      "siteHash": "942a77780917c7186484093b2c5193771094a09a4e389d5c500182f6c0ee0bb2",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/studio-workspace.tsx",
+      "line": 161,
+      "column": 5,
+      "owner": "StudioPanel",
+      "siteHash": "7f90a5ae09e6e5dd874f7ddb0b2ef8c0291be4a95c91173ef9e4933b7afa2d76",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/studio-workspace.tsx",
+      "line": 172,
+      "column": 283,
+      "owner": "StudioPanel",
+      "siteHash": "3e115b909d8c2820579e70cc008c68af13eba2749773bab38f46e1462b9a54f9",
+      "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
     }
   ],
   "retiredStructural": [
@@ -386,6 +564,30 @@
       "version": "0.68.17",
       "visualEntry": "owncoding-ui/numeric",
       "pureEntry": "owncoding-ui/number-utils"
+    }
+  },
+  "release194": {
+    "baseline": "2ecdc7f38f466f29a37194783726b985583a5b0e",
+    "sourceSnapshot": "aa24198368f18f43aa0ce15ec641af3558b781be",
+    "canonicalActions": 602,
+    "newCanonicalActions": 14,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [
+      {
+        "file": "app/contracts-workspace.tsx",
+        "reason": "Nuevo contrato conserva callback y permisos; agrega asociación accesible al requisito de plantilla."
+      },
+      {
+        "file": "app/employee-tasks.tsx",
+        "reason": "La misma acción open(record) muestra Ver checklist y detalle sólo en compacto; conserva el ID y el flujo existente."
+      }
+    ],
+    "package": {
+      "version": "0.68.19",
+      "sha": "7cf63ad530384b2887551ddb50c9261270762202",
+      "financialEntry": "owncoding-ui/financial-lazy"
     }
   }
 }

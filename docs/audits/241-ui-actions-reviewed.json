@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "issue": 241,
-  "baseline": "99e7f5c6",
-  "scope": "Snapshot de release tras layouts finales y fachadas OwnCoding0.68.17 publicadas.55 widgets conservan JSX/hash exacto, sin excepciones nuevas ni cambios de producto en esta revisión. Historia167 y revisiones previas separadas.",
+  "baseline": "aa24198368f18f43aa0ce15ec641af3558b781be",
+  "scope": "Release194: conservar JSX/hash exactos de los55 widgets; refrescar sólo posiciones y hashes de archivos tras cambios de producto revisados.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -124,10 +124,10 @@
     },
     {
       "file": "app/employee-tasks.tsx",
-      "sourceHash": "4176e22e96b7a17e5c5f0e291661483f6e1e0f29bab79f841397c13b01308056",
+      "sourceHash": "86822a46a0d718453052abf8fae8fcda7688fa8de3c8039a95255c2171ce5360",
       "sites": [
         {
-          "line": 47,
+          "line": 54,
           "column": 104,
           "siteHash": "3a123131e4f3f2d537ea73d23cdfe424ba0b0322c7064c6f4b6187776b7727ba",
           "owner": "TaskDashboard",
@@ -382,10 +382,10 @@
     },
     {
       "file": "app/productivity-ui.tsx",
-      "sourceHash": "5f4582f74c9fc22d339d3f40426815839f0f0b49d35629884fe24fcec0be6172",
+      "sourceHash": "576a9f434c63b68d50cda165ce887869a7e87586a83fdaec1c061a48abef62ba",
       "sites": [
         {
-          "line": 174,
+          "line": 176,
           "column": 171,
           "siteHash": "64768ad900ba1bbe932fb0bd9c4e7f6afed3e85ce228926623f27819d13deb11",
           "owner": "ClientDetail",
@@ -396,7 +396,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 175,
+          "line": 177,
           "column": 932,
           "siteHash": "f5e41661b01d032d55c67227adce20298f2b04cf02d6274ba59bd6655f7e9129",
           "owner": "ClientDetail",
@@ -407,7 +407,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 214,
+          "line": 216,
           "column": 597,
           "siteHash": "3b9f36feed0ce6f7544f84e53eb78d9901591216472f071b0c66f8f18787fce6",
           "owner": "WorkPlanner",
@@ -418,7 +418,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 222,
+          "line": 224,
           "column": 6,
           "siteHash": "f69c2ec077f1ab44acf401eec0ce85bc6f22afb44ae1f96f9c6a512691188553",
           "owner": "WorkPlanner",
@@ -483,7 +483,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "sourceHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
+      "sourceHash": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0",
       "sites": [
         {
           "line": 989,
@@ -691,7 +691,7 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "sourceHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
+      "sourceHash": "97027a243b3837505f144cee33ecae2d836a4cf58207732572ca13f4e2b3034e",
       "sites": [
         {
           "action": "retain",

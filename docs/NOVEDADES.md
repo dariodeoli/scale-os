@@ -14,6 +14,8 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
   sin reemplazar el contacto principal; edición protegida ante cambios simultáneos.
 - **Preferencias de tu cuenta**: inicio y filtros se sincronizan por usuario y
   empresa, con recuperación visible si falla la conexión.
+- **Domicilio legal coherente**: elegir una localidad vincula ciudad y departamento;
+  los datos manuales y anteriores se conservan para su revisión.
 - **Finanzas más livianas**: los logos bancarios se cargan por institución visible,
   conservando las imágenes originales y el selector compartido.
 
