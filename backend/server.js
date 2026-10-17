@@ -280,7 +280,8 @@ async function init() {
      "20261017_finance_periods_receipts.sql",
      "20261017_expense_currency_precision.sql",
      "20261017_client_representative_link.sql",
-     "20261018_economic_history.sql"
+     "20261018_economic_history.sql",
+     "20261018_commercial_same_month_revisions.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
