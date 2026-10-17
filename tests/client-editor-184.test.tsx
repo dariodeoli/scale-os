@@ -359,3 +359,24 @@ test('lote de plan de servicio conserva clasificación y nunca modifica término
  assert.notEqual(changes()[1].body?.requestId,changes()[2].body?.requestId,'cambiar el contenido inicia otra solicitud');
  act(()=>renderer.unmount());
 });
+
+test('historial ausente o fallido bloquea cambios económicos antes de cualquier PATCH',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ const plan={clientId:'4',archived:false,plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG',startsOn:'2026-01-15',endsOn:null,cadence:'monthly',intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null,updatedAt:'2026-10-01'}};
+ for(const unavailable of ['invalid','error']){
+  calls.length=0;
+  route=url=>{if(url.endsWith('/plan-history')){if(unavailable==='error')throw Error('Historial no disponible');return{};}if(url.endsWith('/commercial-terms'))return plan;if(url.endsWith('/clients/4'))return{record:{id:'4',name:'Cliente',lifecycle_status:'active'}};return{};};
+  let renderer!:ReactTestRenderer;
+  await act(async()=>{renderer=create(<ClientEditorDialog mode="edit" clientId="4" role="owner" close={()=>{}} refresh={async()=>{}}/>);});
+  await settle();
+  assert.match(text(renderer.root),/historial|Historial/);
+  await change(renderer,'name','Nombre que no debe guardarse junto a plan inválido');
+  await act(async()=>renderer.root.findByType(MoneyInput).props.onValueChange('200000'));
+  const reason=renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+  await act(async()=>reason.props.onChange({target:{name:'plan_reason',value:'Nuevo acuerdo comercial'},type:'change'}));
+  await submit(renderer);
+  assert.equal(calls.filter(call=>call.method==='PATCH').length,0,'sin revisión no hay escritura parcial de cliente ni plan');
+  assert.match(text(renderer.root),/revisión del plan/);
+  act(()=>renderer.unmount());
+ }
+});

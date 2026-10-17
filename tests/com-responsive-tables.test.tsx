@@ -354,6 +354,10 @@ test('el editor de cliente carga el plan sólo para los roles de términos comer
    assert.ok(terms,`${role}: trae los términos comerciales`);
    terms!.resolve(new Response(JSON.stringify({clientId:'1',archived:false,terms:null,plans:[],collaborators:[]}),{status:200}));
    await settle();
+   const history=requests.find(request=>request.url.endsWith('/api/agency/clients/1/plan-history'));
+   assert.ok(history,`${role}: trae la revisión del historial antes de editar`);
+   history!.resolve(new Response(JSON.stringify({records:[],revision:'0'}),{status:200}));
+   await settle();
    assert.match(text(renderer.root),/Plan y pago/,'el diálogo abre con la sección de plan');
   }
   act(()=>renderer.unmount());
