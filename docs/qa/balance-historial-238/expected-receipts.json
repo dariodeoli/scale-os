@@ -1,0 +1,150 @@
+{
+  "base": "http://127.0.0.1:3008",
+  "run": "QA-1792223683175",
+  "started_at": "2026-10-17T07:54:43.175Z",
+  "checks": [
+    {
+      "name": "Planned prior debt100201",
+      "passed": true
+    },
+    {
+      "name": "Planning100 adds expected100 without any actual receipt",
+      "passed": true
+    },
+    {
+      "name": "Currency expected total rises100 independently of actual total",
+      "passed": true
+    },
+    {
+      "name": "Actual partial receipt30201",
+      "passed": true
+    },
+    {
+      "name": "Apply30 to planned debt201",
+      "passed": true
+    },
+    {
+      "name": "Partial settlement leaves expected70 and actual delta30 distinct",
+      "passed": true
+    },
+    {
+      "name": "Currency received never includes remaining expected70",
+      "passed": true
+    }
+  ],
+  "screenshots": [],
+  "blocked_external": [],
+  "limitations": [],
+  "before": {
+    "totals": {
+      "currency": "USD",
+      "contracted_amount": "3900.00",
+      "received_in_month": "2775.00",
+      "registered_outstanding": "3600.00",
+      "expected_receipts": "2400.00",
+      "received_unassigned": "25.00"
+    },
+    "client": {
+      "client_id": "44",
+      "client_name": "QA238 Cliente Histórico",
+      "client_logo_url": "/core-api/api/agency/media/client/44?v=d0496dcc38",
+      "currency": "USD",
+      "plan_id": "14",
+      "plan_name": "Plan QA Septiembre",
+      "contracted_amount": "1500.00",
+      "invoice_required": true,
+      "received_in_month": "350.00",
+      "payments": [
+        {
+          "id": "159",
+          "kind": "payment",
+          "amount": "200.00",
+          "reference": "QA238 cobro 200",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        },
+        {
+          "id": "160",
+          "kind": "payment",
+          "amount": "50.00",
+          "reference": "QA238 cobro 50",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        },
+        {
+          "id": "161",
+          "kind": "payment",
+          "amount": "100.00",
+          "reference": "QA238 cobro 100",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        }
+      ],
+      "unallocated_received_in_month": "50.00",
+      "applied_to_month_invoices": "100.00",
+      "registered_outstanding": "1200.00",
+      "expected_receipts": "0.00"
+    }
+  },
+  "after": {
+    "totals": {
+      "currency": "USD",
+      "contracted_amount": "3900.00",
+      "received_in_month": "2805.00",
+      "registered_outstanding": "3670.00",
+      "expected_receipts": "2470.00",
+      "received_unassigned": "25.00"
+    },
+    "client": {
+      "client_id": "44",
+      "client_name": "QA238 Cliente Histórico",
+      "client_logo_url": "/core-api/api/agency/media/client/44?v=d0496dcc38",
+      "currency": "USD",
+      "plan_id": "14",
+      "plan_name": "Plan QA Septiembre",
+      "contracted_amount": "1500.00",
+      "invoice_required": true,
+      "received_in_month": "380.00",
+      "payments": [
+        {
+          "id": "159",
+          "kind": "payment",
+          "amount": "200.00",
+          "reference": "QA238 cobro 200",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        },
+        {
+          "id": "160",
+          "kind": "payment",
+          "amount": "50.00",
+          "reference": "QA238 cobro 50",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        },
+        {
+          "id": "161",
+          "kind": "payment",
+          "amount": "100.00",
+          "reference": "QA238 cobro 100",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        },
+        {
+          "id": "163",
+          "kind": "payment",
+          "amount": "30.00",
+          "reference": "QA238 cobro parcial de previsión",
+          "invoice_id": null,
+          "received_on": "2026-10-17"
+        }
+      ],
+      "unallocated_received_in_month": "50.00",
+      "applied_to_month_invoices": "100.00",
+      "registered_outstanding": "1270.00",
+      "expected_receipts": "70.00"
+    }
+  },
+  "finished_at": "2026-10-17T07:54:46.973Z",
+  "passed": true
+}

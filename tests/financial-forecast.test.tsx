@@ -44,8 +44,8 @@ const byClass=(name:string)=>renderer.root.findAll(node=>typeof node.props?.clas
 const buttonText=(button:{props:{children?:unknown}}):string=>{const value=button.props.children;return (Array.isArray(value)?value:(value===undefined||value===null?[]:[value])).filter((item):item is string=>typeof item==='string').join('');};
 async function run(){
  for(const role of ['management','sales','production','editor','viewer','collaborator']){await act(async()=>{renderer=create(<FinancialForecast role={role} organizationId="one"/>);});assert.equal(renderer.toJSON(),null);act(()=>renderer.unmount());}assert.equal(requests.length,0,'restricted roles do not request financial data');
- await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});assert.equal(requests[0].url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests[0],fixture);assert.match(rendered(),/Recurrente contratado/);assert.match(rendered(),/1\.000/,'contracted total comes from top-level aggregate');assert.match(rendered(),/Cobrado/);assert.match(rendered(),/80/,'numeric canonical transport is accepted');assert.match(rendered(),/Gastos planificados/);assert.equal(byClass('forecast-currency'),2,'resumen por moneda: una tarjeta por moneda con datos');assert.equal(byClass('forecast-personnel-card'),2,'salarios: una tarjeta por moneda');assert.equal(byClass('forecast-planned-card'),1,'gastos planificados: total por moneda');
- assert.equal(byClass('forecast-person-actions'),2,'salary.view roles keep the per-person salary actions');
+ await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});assert.equal(requests[0].url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests[0],fixture);assert.match(rendered(),/Recurrente contratado/);assert.match(rendered(),/1\.000/,'contracted total comes from top-level aggregate');assert.match(rendered(),/Cobrado/);assert.match(rendered(),/80/,'numeric canonical transport is accepted');assert.match(rendered(),/Gastos planificados/);assert.equal(byClass('forecast-currency'),2,'resumen por moneda: una tarjeta por moneda con datos');assert.equal(byClass('forecast-personnel-card'),0,'el detalle salarial se trasladó a Balance');assert.equal(byClass('forecast-planned-card'),1,'gastos planificados: total por moneda');
+ assert.equal(byClass('forecast-person-actions'),0,'los editores de salario viven sólo en Balance');
  const selects=renderer.root.findAllByType(SelectCustom);assert.equal(selects.find(select=>select.props.value==='variable')!==undefined,true,'kind select defaults to variable');act(()=>selects[0].props.onChange('recurring'));act(()=>selects[1].props.onChange('Herramientas'));act(()=>selects[2].props.onChange('fixed'));act(()=>renderer.root.findAllByType(ExpenseAmountInput).find(input=>input.props.id==='forecast-expense-amount')!.props.onChange('3500'));act(()=>renderer.root.findAllByProps({id:'forecast-expense-currency'})[0].props.onChange('USD'));act(()=>renderer.root.findAllByType('input').find(input=>input.props.maxLength===280)!.props.onChange({target:{value:'Licencia'}}));
  act(()=>{void renderer.root.findAllByType('form')[0].props.onSubmit({preventDefault(){}});});const post=requests.at(-1)!;assert.equal(post.url,'/core-api/api/agency/planned-expenses');assert.equal(post.init.method,'POST');assert.deepEqual(JSON.parse(String(post.init.body)),{cadence:'recurring',effectiveMonth:'2026-09',category:'Herramientas',amount:'3500',currency:'USD',kind:'fixed',note:'Licencia'},'planned expense POST carries the canonical payload with kind');await respond(post,{expense:{id:'1'}});assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09','save refreshes canonical forecast aggregates');await respond(requests.at(-1)!,fixture);assert.equal(JSON.stringify(renderer.root.findAll(node=>typeof node.props?.className==='string'&&node.props.className.split(' ').includes('planned-expenses-kinds'))[0].children),JSON.stringify(['2',' fijos · ','1',' variables']),'planned expense list shows the fixed versus variable split');
  assert.match(rendered(),/Gastos reales del mes/);
@@ -63,7 +63,7 @@ async function run(){
  const multiFixture:ForecastData={...contractedFixture,months:3,opening_balance:{month:'2026-09',records:[{currency:'PYG',amount:500},{currency:'USD',amount:1800}]},projection:{months:3,records:[{month:'2026-09',currency:'USD',projected_cash:1860,projected_result:60,collected:0,expected:260,personnel:200,planned_expenses:0,commission_forecast:0},{month:'2026-10',currency:'USD',projected_cash:1960,projected_result:2209,collected:500,expected:2609,personnel:200,planned_expenses:200,commission_forecast:0},{month:'2026-11',currency:'USD',projected_cash:2060,projected_result:100,collected:300,expected:300,personnel:200,planned_expenses:0,commission_forecast:0},{month:'2026-09',currency:'PYG',projected_cash:-740,projected_result:260,collected:500,expected:2000,personnel:1250,planned_expenses:390,commission_forecast:100},{month:'2026-10',currency:'PYG',projected_cash:-3229,projected_result:-2489,collected:0,expected:0,personnel:1999,planned_expenses:390,commission_forecast:100},{month:'2026-11',currency:'PYG',projected_cash:-5718,projected_result:-2489,collected:0,expected:0,personnel:1999,planned_expenses:390,commission_forecast:100}]}};
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests.at(-1)!,contractedFixture);
- assert.match(rendered(),/Contratos vs facturación/);assert.match(rendered(),/Sin factura/,'missing invoice renders the chip');assert.match(rendered(),/Forecast fixture/);assert.match(rendered(),/2\.000/,'invoiced amount renders whole money');
+ assert.doesNotMatch(rendered(),/Contratos vs facturación|Sin factura|Forecast fixture/,'el detalle comercial vive sólo en Balance');assert.match(rendered(),/1\.000/,'el agregado contratado sigue alimentando la previsión');
  const horizonButtons=renderer.root.findAllByType('button').filter(button=>button.props['aria-pressed']===true||button.props['aria-pressed']===false);
  assert.equal(horizonButtons.length,4,'four horizon options');assert.equal(horizonButtons[0].props['aria-pressed'],true,'one month is the default horizon');
  assert.equal(renderer.root.findAllByType(SelectCustom).length,6,'horizon buttons keep the expense form selects in place');
@@ -71,7 +71,7 @@ async function run(){
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09&months=3','horizon changes fetch months');await respond(requests.at(-1)!,multiFixture);
  assert.match(rendered(),/Proyección de caja y resultado/);assert.match(rendered(),/1,860/);assert.match(rendered(),/2,060/);assert.match(rendered(),/−/,'negative projection renders a minus sign');assert.match(rendered(),/Septiembre 2026/);
  assert.equal(renderer.root.findAllByType('table').length,2,'one compact table per currency');
- assert.match(rendered(),/Sin factura/,'contracted clients remain visible in the horizon view');
+ assert.doesNotMatch(rendered(),/Sin factura/,'el horizonte no vuelve a duplicar la tabla comercial de Balance');
  assert.equal(renderer.root.findAllByType(SelectCustom).length,0,'month tools hide in the horizon view');
  act(()=>renderer.root.findAllByType('button').filter(button=>button.props['aria-pressed']===true||button.props['aria-pressed']===false)[0].props.onClick());
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09','back to one month drops the months parameter');await respond(requests.at(-1)!,contractedFixture);
@@ -83,18 +83,8 @@ async function run(){
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});
  assert.equal(requests.at(-1)!.url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests.at(-1)!,maskedFixture);
  assert.doesNotMatch(rendered(),/datos inválidos/,'masked per-person salaries are a valid payload');
- assert.match(rendered(),/Salario oculto/,'the person stays visible without their salary');
- assert.match(rendered(),/Ajuste oculto/,'the adjustment row stays visible without the amount');
- assert.doesNotMatch(rendered(),/Sin salario fijo/,'a masked salary is not a zero salary');
- assert.doesNotMatch(rendered(),/Ajuste del mes<\/small><strong>/,'a masked adjustment never renders an amount');
- const hostClass=(name:string)=>renderer.root.findAll(node=>node.type==='span'&&typeof node.props?.className==='string'&&node.props.className.split(' ').includes(name));
-  const maskedBases=hostClass('forecast-person-base');
- assert.equal(maskedBases.length,2,'one base-salary cell per masked member');
- assert.equal(maskedBases.every(cell=>cell.findByType('strong').children[0]==='Sin dato'),true,'a masked base salary shows Sin dato');
- const maskedTotals=hostClass('forecast-person-total');
- assert.equal(maskedTotals.length,2,'one month-close cell per masked member');
- assert.equal(maskedTotals.every(cell=>cell.findByType('strong').children[0]==='Sin dato'),true,'a masked month close shows Sin dato, never a fabricated zero');
- assert.equal(byClass('forecast-person-actions'),0,'a masked salary offers no blind salary edit');
+ assert.doesNotMatch(rendered(),/Salario oculto|Ajuste oculto/,'Previsión no revela filas personales trasladadas a Balance');
+ assert.equal(byClass('forecast-person-actions'),0,'el editor salarial no se duplica en la previsión');
  assert.match(rendered(),/1\.000/,'the per-currency planning aggregate stays without salary.view');
  act(()=>renderer.unmount());
 
@@ -114,7 +104,7 @@ async function run(){
  await respond(requests.at(-1)!,eurFixture);
  assert.doesNotMatch(rendered(),/datos inválidos/,'an EUR month is valid money');
  assert.match(rendered(),/EUR[^0-9]*1,000/,'EUR records render with their code');
- assert.match(rendered(),/Cliente EUR/,'contracted clients in EUR stay visible');
+ assert.doesNotMatch(rendered(),/Cliente EUR/,'las filas de cliente EUR viven sólo en Balance');
  const currencySelect=renderer.root.findAllByProps({id:'forecast-expense-currency'})[0];
  assert.equal(renderer.root.findAllByType('option').length,6,'the planned-expense currency select offers the six company currencies');
  act(()=>currencySelect.props.onChange('EUR'));
@@ -126,18 +116,7 @@ async function run(){
  await respond(eurExpenses,{month:'2026-09',expenses:[{id:'3',account_id:'7',account_name:'Cuenta EUR',category:'Herramientas',kind:'fixed',amount:'150',currency:'EUR',paid_on:'2026-09-12',reference:'Licencia EUR',created_by_email:'fin@example.invalid'}]});
  assert.match(rendered(),/Licencia EUR/,'an EUR real expense stays in the month list');
  assert.match(rendered(),/EUR[^0-9]*150/,'the EUR real expense renders its amount');
- // El salario se guarda en la moneda de la ficha, sin el par limitado a PYG|USD.
- const salaryButton=renderer.root.findAllByType('button').find(button=>String(button.props.title||'').startsWith('Editar salario'))!;
- act(()=>salaryButton.props.onClick());
- const {AmountInput}=require('../app/profile-controls') as typeof import('../app/profile-controls');
- const salaryFields=renderer.root.findAllByType(AmountInput);
- assert.equal(salaryFields.at(-1)!.props.currency,'EUR','the salary field draws the record currency');
- act(()=>{void renderer.root.findAllByType('form').at(-1)!.props.onSubmit({preventDefault(){}});});
- const salaryPatch=requests.at(-1)!;
- assert.equal(salaryPatch.url,'/core-api/api/agency/collaborators/11');
- assert.equal(salaryPatch.init.method,'PATCH');
- assert.deepEqual(JSON.parse(String(salaryPatch.init.body)),{compensation_type:'fixed',compensation_amount:'1234'},'the salary keeps the record currency and skips the 2-currency legacy pair');
- await respond(salaryPatch,{collaborator:{id:'11'}});
+ assert.equal(renderer.root.findAllByType('button').filter(button=>String(button.props.title||'').startsWith('Editar salario')).length,0,'editar salario se trasladó al editor canónico de Balance');
  act(()=>renderer.unmount());
  // Vacíos con salida (ronda 14, #62): la previsión ofrece registrar la primera
  // factura o navegar a clientes/equipo sin duplicar modales.
@@ -149,11 +128,8 @@ async function run(){
  const invoiceCta=renderer.root.findAllByType('button').find(button=>buttonText(button).includes('Registrar factura'));
  assert(invoiceCta,'la previsión vacía ofrece registrar la primera factura');
  act(()=>invoiceCta!.props.onClick());assert.equal(invoiceClicks,1,'el CTA de factura sale por el shell, sin duplicar el modal');
- const teamCta=renderer.root.findAllByType('button').find(button=>buttonText(button).includes('Ver equipo'));
- assert(teamCta,'el vacío de personal lleva a Equipo');act(()=>teamCta!.props.onClick());
- const clientsCta=renderer.root.findAllByType('button').find(button=>buttonText(button).includes('Ver clientes'));
- assert(clientsCta,'el vacío de contratos lleva a Clientes');act(()=>clientsCta!.props.onClick());
- assert.deepEqual(navigations,['Equipo','Clientes']);
+ assert.equal(renderer.root.findAllByType('button').some(button=>/Ver equipo|Ver clientes/.test(buttonText(button))),false,'las salidas al detalle comercial y salarial viven en Balance');
+ assert.deepEqual(navigations,[]);
  act(()=>renderer.unmount());
  // A date correction/reversal in another month can leave only negative net
  // collections. Preserve the currency, validate the signed projection transport,

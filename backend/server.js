@@ -13,7 +13,9 @@ import { passwordAccess, throttle } from './password-access.js';
 import {throttleClient} from './request-guard.js';
 import {emailPasswordAuth} from './email-password-auth.js';
 import {loginOrganization} from './default-organization.js';
+import {passwordAccount,registrationIdentity,existingAccount} from './existing-account.js';
 import { financeControls } from './finance-controls.js';
+import {economicHistory} from './economic-history.js';
 import {financeTreasury} from './finance-treasury.js';
 import { contentReview } from './content-review.js';
 import { recordLifecycle, visibleRecord } from './record-lifecycle.js';
@@ -276,7 +278,10 @@ async function init() {
      "20261017_client_legal_profile.sql",
      "20261017_inventory_ownership.sql",
      "20261017_finance_periods_receipts.sql",
-     "20261017_expense_currency_precision.sql"
+     "20261017_expense_currency_precision.sql",
+     "20261017_client_representative_link.sql",
+     "20261018_economic_history.sql",
+     "20261018_commercial_same_month_revisions.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -420,6 +425,7 @@ const server = http.createServer(async (req,res) => {
     if(await emailPasswordAuth({req,res,url,db,body,send,sendVerification,emailAvailable:emailDelivery.status.available,cookie,id}))return;
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
+    if(await economicHistory({req,res,url,db,session,body,send}))return;
     if(await financeTreasury({req,res,url,db,session,body,send}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;
@@ -449,13 +455,11 @@ const server = http.createServer(async (req,res) => {
       const e=(typeof input.email==='string'?input.email:'').trim().toLowerCase(),password=typeof input.password==='string'?input.password:'';
       if(!e||!password)return send(res,400,{error:'Ingresá tu correo y contraseña'});
       if(!await throttleClient(db,req,'login',60)||!await throttle(db,'login:'+e,30))return send(res,429,{error:'Demasiados intentos. Esperá 15 minutos.'});
-      const r=await db.query('select id,password_hash,email_verified_at,is_demo_guest from users where email=$1',[e]);
-      if (!r.rows[0]||!r.rows[0].email_verified_at||r.rows[0].is_demo_guest||!(await bcrypt.compare(password,r.rows[0].password_hash))) return send(res,401,{error:'Credenciales inválidas'});
-      if((await db.query('select 1 from account_closure_requests where user_id=$1 and cancelled_at is null and recoverable_until>now()',[r.rows[0].id])).rows.length)return send(res,403,{code:'ACCOUNT_CLOSURE_PENDING',error:'Esta cuenta tiene un cierre solicitado. Podés recuperarla desde Recuperar cuenta.'});
-      r.rows[0].organization_id=(await loginOrganization(db,{userId:r.rows[0].id}))?.organization_id;
-      if (!r.rows[0].organization_id) return send(res,403,{error:'Usuario sin organización asignada'});
-      const token=id(); await db.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '7 days')",[token,r.rows[0].id,r.rows[0].organization_id]);
-      return send(res,200,{ok:true},{'Set-Cookie':cookie('scale_session',token,604800)});
+      try{
+        const account=await passwordAccount(db,e,password),token=id();
+        await db.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '7 days')",[token,account.userId,account.organizationId]);
+        return send(res,200,{ok:true,pending:account.pending,redirect:account.redirect},{'Set-Cookie':cookie('scale_session',token,604800)});
+      }catch(error){if(!error.status)throw error;return send(res,error.status,{error:error.message,...(error.code?{code:error.code}:{})});}
     }
     if (url.pathname === '/api/auth/providers' && req.method === 'GET') {
       return send(res,200,socialProvidersStatus());
@@ -590,7 +594,7 @@ const server = http.createServer(async (req,res) => {
         const portalToken=id();await db.query("insert into client_portal_sessions(token_hash,portal_user_id,expires_at) values($1,$2,now()+interval '7 days')",[crypto.createHash('sha256').update(portalToken).digest('hex'),portalUser.id]);
         res.writeHead(302,{Location:clientPortalUrl('entregas'),'Set-Cookie':`__Host-scale_client_session=${portalToken}; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Lax`});return res.end();
       }
-      if(saved.rows[0].trial_registration){
+      if(saved.rows[0].trial_registration&&!(await registrationIdentity(db,email)).existing){
         const ticket=id(),name=typeof profile.name==='string'?profile.name.trim().slice(0,120):'',picture=googleProfilePhoto(profile);
         await db.query("insert into pending_trial_registrations(token_hash,email_normalized,full_name,picture_url,expires_at) values($1,$2,$3,$4,now()+interval '10 minutes')",[crypto.createHash('sha256').update(ticket).digest('hex'),email,name||null,picture]);
         res.writeHead(302,{Location:`${appUrl}/registro?pendingRegistration=${ticket}`,'Set-Cookie':oauthStateCookie('',0)});return res.end();
@@ -602,20 +606,20 @@ const server = http.createServer(async (req,res) => {
         const ticket=id();await db.query("insert into oauth_handoffs(token_hash,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '60 seconds')",[crypto.createHash('sha256').update(ticket).digest('hex'),claim.userId,claim.organizationId]);
         res.writeHead(302,{Location:`${appUrl}/core-api/api/auth/google/complete?ticket=${ticket}`,'Set-Cookie':oauthStateCookie('',0)});return res.end();
       }
-      const selected=await loginOrganization(db,{email,orderByName:true});
-      const member={rows:selected?[selected]:[]};
-      if(!member.rows.length){const pending=await db.query("select u.id,l.organization_id from users u join agency_access_requests r on r.user_id=u.id join agency_invite_links l on l.id=r.link_id join organizations o on o.id=l.organization_id where u.email=$1 and r.status='pending' and o.active=true order by r.created_at desc limit 1",[email]);member.rows=pending.rows;}
-      if (!member.rows[0]) { res.writeHead(302,{Location:`${appUrl}/?authError=${encodeURIComponent('Tu correo de Google todavía no fue invitado a esta empresa. Pedí una invitación al administrador.')}`}); return res.end(); }
-      if((await db.query('select 1 from account_closure_requests where user_id=$1 and cancelled_at is null and recoverable_until>now()',[member.rows[0].id])).rows.length)return oauthFailure('Esta cuenta tiene un cierre solicitado. Recuperala primero con correo y contraseña.');
+      let account;
+      try{
+        const identity=await registrationIdentity(db,email);
+        if(!identity.user)throw Object.assign(Error('Tu correo de Google todavía no fue invitado a esta empresa. Pedí una invitación al administrador.'),{status:403});
+        account=await existingAccount(db,identity.user);
+      }catch(error){return oauthFailure(error.status?error.message:'No se pudo iniciar sesión.');}
+      const member={rows:[{id:account.userId,organization_id:account.organizationId}]};
       await rememberGooglePhoto(db,member.rows[0].id,profile);
       if(profile.picture||profile.name)await ensurePersonalIdentity(db,member.rows[0].id,member.rows[0].organization_id);
       const ticket=id(); await db.query("insert into oauth_handoffs(token_hash,user_id,organization_id,expires_at,normal_login) values($1,$2,$3,now()+interval '60 seconds',true)",[crypto.createHash('sha256').update(ticket).digest('hex'),member.rows[0].id,member.rows[0].organization_id]);
       res.writeHead(302,{'Location':`${appUrl}/core-api/api/auth/google/complete?ticket=${ticket}`,'Set-Cookie':oauthStateCookie('',0)}); return res.end();
     }
     if(url.pathname==='/api/auth/google/registration/complete'&&req.method==='POST'){
-      const input=await body(req),ticket=typeof input.ticket==='string'?input.ticket:'';
-      let details;
-      try{details=trialDetailsFromInput(input);}catch(error){return send(res,error.status||400,{error:error.message});}
+      const input=(await body(req))||{},ticket=typeof input.ticket==='string'?input.ticket:'';
       if(!/^[a-f0-9]{64}$/.test(ticket))return send(res,400,{error:'El registro con Google venció. Volvé a comenzar.'});
       if(!await throttle(db,'trial-registration-complete',60))return send(res,429,{error:'Hay muchas solicitudes de registro. Intentá nuevamente en unos minutos.'});
       const c=await db.connect();
@@ -624,15 +628,17 @@ const server = http.createServer(async (req,res) => {
         const pending=(await c.query('delete from pending_trial_registrations where token_hash=$1 and expires_at>now() returning email_normalized,full_name,picture_url',[crypto.createHash('sha256').update(ticket).digest('hex')])).rows[0];
         if(!pending)throw Object.assign(Error('El registro con Google venció o ya fue utilizado. Volvé a comenzar.'),{status:400});
         const profile={email:pending.email_normalized,email_verified:true,name:pending.full_name||'',picture:pending.picture_url||undefined};
-        const account=await registerTrial(c,profile,details);
+        const account=await registerTrial(c,profile,()=>trialDetailsFromInput(input));
         await rememberGooglePhoto(c,account.userId,profile);
         if(profile.picture||profile.name)await ensurePersonalIdentityInTransaction(c,account.userId,account.organizationId);
         const sessionToken=id();
         await c.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '7 days')",[sessionToken,account.userId,account.organizationId]);
+        const trialEnds=account.created?(await c.query('select trial_ends_at from organization_subscriptions where organization_id=$1',[account.organizationId])).rows[0]?.trial_ends_at??null:null;
         await c.query('commit');
-        const trialEnds=(await db.query('select trial_ends_at from organization_subscriptions where organization_id=$1',[account.organizationId])).rows[0]?.trial_ends_at??null;
-        await sendTrialEmail(profile.email,details.name,trialEnds).catch(()=>false);
-        return send(res,201,{ok:true,redirect:'/produccion'},{'Set-Cookie':cookie('scale_session',sessionToken,604800)});
+        if(account.created){
+        await sendTrialEmail(profile.email,input.company.trim(),trialEnds).catch(()=>false);
+        }
+        return send(res,account.created?201:200,{ok:true,existing:account.existing===true,redirect:account.created?'/produccion':account.redirect},{'Set-Cookie':cookie('scale_session',sessionToken,604800)});
       }catch(error){await c.query('rollback');return send(res,error.status||500,{error:error.status?error.message:'No se pudo iniciar la prueba. Intentá nuevamente.'});}
       finally{c.release();}
     }
@@ -642,11 +648,18 @@ const server = http.createServer(async (req,res) => {
       const saved=await db.query('delete from oauth_handoffs where token_hash=$1 and expires_at>now() returning user_id,organization_id,trial_registration,normal_login',[crypto.createHash('sha256').update(ticket).digest('hex')]);
       if(!saved.rows[0]) {res.writeHead(302,{Location:`${appUrl}/?authError=El%20acceso%20venció.%20Intentá%20nuevamente.`});return res.end();}
       if((await db.query('select 1 from account_closure_requests where user_id=$1 and cancelled_at is null and recoverable_until>now()',[saved.rows[0].user_id])).rows.length){res.writeHead(302,{Location:`${appUrl}/recuperar-cuenta`,'Set-Cookie':cookie('scale_session','',0)});return res.end();}
-      const preferred=saved.rows[0].normal_login?await loginOrganization(db,{userId:saved.rows[0].user_id,orderByName:true}):null;
-      if(preferred)saved.rows[0].organization_id=preferred.organization_id;
+      let normalAccount;
+      if(saved.rows[0].normal_login){
+        try{
+          const user=(await db.query('select id,is_demo_guest from users where id=$1',[saved.rows[0].user_id])).rows[0];
+          if(!user)throw Object.assign(Error('Usuario sin organización asignada'),{status:403});
+          normalAccount=await existingAccount(db,user);
+          saved.rows[0].organization_id=normalAccount.organizationId;
+        }catch(error){res.writeHead(302,{Location:`${appUrl}/?authError=${encodeURIComponent(error.status?error.message:'No se pudo iniciar sesión.')}`,'Set-Cookie':cookie('scale_session','',0)});return res.end();}
+      }
       const token=id();await db.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '7 days')",[token,saved.rows[0].user_id,saved.rows[0].organization_id]);
       const member=await db.query('select 1 from organization_members where user_id=$1 and organization_id=$2 and active=true and removed_at is null',[saved.rows[0].user_id,saved.rows[0].organization_id]);
-      res.writeHead(302,{Location:member.rows.length?(saved.rows[0].trial_registration?`${appUrl}/produccion`:preferred?.is_default?`${appUrl}/`:`${appUrl}/?chooseCompany=1`):`${appUrl}/acceso-pendiente`,'Set-Cookie':cookie('scale_session',token,604800)});return res.end();
+      res.writeHead(302,{Location:member.rows.length?(saved.rows[0].trial_registration?`${appUrl}/produccion`:`${appUrl}${normalAccount?.redirect||'/?chooseCompany=1'}`):`${appUrl}/acceso-pendiente`,'Set-Cookie':cookie('scale_session',token,604800)});return res.end();
     }
     if (url.pathname === '/api/auth/logout' && req.method === 'POST') { const t=parseCookies(req).scale_session; if(t) await db.query('delete from sessions where id=$1',[t]); return send(res,200,{ok:true},{'Set-Cookie':cookie('scale_session','',0)}); }
     if(await agencyCore({req,res,url,db,session,body,send,cookie,parseCookies,id,requestSubscription,sendInvitation,sendTrialEmail,auditContext,auditedQuery}))return;

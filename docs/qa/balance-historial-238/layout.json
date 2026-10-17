@@ -1,0 +1,6781 @@
+{
+  "base": "http://127.0.0.1:3008",
+  "run": "QA-1792223440921",
+  "started_at": "2026-10-17T07:50:40.921Z",
+  "checks": [
+    {
+      "name": "Balance details200",
+      "passed": true
+    },
+    {
+      "name": "1440 light Clientes y contratos del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "1440 light Clientes y contratos del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Cliente",
+        "Plan",
+        "Contratado",
+        "Pagado en mes",
+        "Factura",
+        "Acciones"
+      ],
+      "rows": 21
+    },
+    {
+      "name": "1440 light document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "1440 light Equipo y salarios del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "1440 light Equipo y salarios del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Persona",
+        "Salario base",
+        "Ajuste del mes",
+        "Cierre previsto",
+        "Pagado en mes",
+        "Diferencia prevista",
+        "Acciones"
+      ],
+      "rows": 10
+    },
+    {
+      "name": "1440 light document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "1440 dark Clientes y contratos del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "1440 dark Clientes y contratos del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Cliente",
+        "Plan",
+        "Contratado",
+        "Pagado en mes",
+        "Factura",
+        "Acciones"
+      ],
+      "rows": 21
+    },
+    {
+      "name": "1440 dark document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "1440 dark Equipo y salarios del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "1440 dark Equipo y salarios del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Persona",
+        "Salario base",
+        "Ajuste del mes",
+        "Cierre previsto",
+        "Pagado en mes",
+        "Diferencia prevista",
+        "Acciones"
+      ],
+      "rows": 10
+    },
+    {
+      "name": "1440 dark document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "390 light Clientes y contratos del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "390 light Clientes y contratos del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Cliente",
+        "Plan",
+        "Contratado",
+        "Pagado en mes",
+        "Factura",
+        "Acciones"
+      ],
+      "rows": 21
+    },
+    {
+      "name": "390 light document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "390 light Equipo y salarios del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "390 light Equipo y salarios del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Persona",
+        "Salario base",
+        "Ajuste del mes",
+        "Cierre previsto",
+        "Pagado en mes",
+        "Diferencia prevista",
+        "Acciones"
+      ],
+      "rows": 10
+    },
+    {
+      "name": "390 light document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "390 dark Clientes y contratos del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "390 dark Clientes y contratos del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Cliente",
+        "Plan",
+        "Contratado",
+        "Pagado en mes",
+        "Factura",
+        "Acciones"
+      ],
+      "rows": 21
+    },
+    {
+      "name": "390 dark document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "390 dark Equipo y salarios del mes: synthetic image decoded",
+      "passed": true
+    },
+    {
+      "name": "390 dark Equipo y salarios del mes: columns aligned",
+      "passed": true,
+      "headers": [
+        "Persona",
+        "Salario base",
+        "Ajuste del mes",
+        "Cierre previsto",
+        "Pagado en mes",
+        "Diferencia prevista",
+        "Acciones"
+      ],
+      "rows": 10
+    },
+    {
+      "name": "390 dark document has no overflow",
+      "passed": true,
+      "overflow": 0
+    },
+    {
+      "name": "Previsión no longer duplicates client/personnel tables",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "balance-1440-light.png",
+    "balance-1440-dark.png",
+    "balance-390-light.png",
+    "balance-390-dark.png"
+  ],
+  "blocked_external": [],
+  "limitations": [],
+  "geometries": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "label": "Clientes y contratos del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 237,
+        "width": 1158,
+        "height": 1051.5
+      },
+      "headers": [
+        {
+          "text": "Cliente",
+          "x": 241,
+          "width": 368,
+          "height": 14.5
+        },
+        {
+          "text": "Plan",
+          "x": 617,
+          "width": 230,
+          "height": 14.5
+        },
+        {
+          "text": "Contratado",
+          "x": 855,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 1007,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Factura",
+          "x": 1159,
+          "width": 128,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 1295,
+          "width": 96,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Alma Cocina",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 5.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Aurora Café",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.950.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Bosque Hogar",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Brisa Viajes",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Cumbre Seguros",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Faro Inmuebles",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Luna Moda",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Marea Cosmética",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Menta Salud",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 7.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Nova Energía",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Nube Software",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Pixel Academy",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Prisma Diseño",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Punto Libros",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "QA238 Cliente Histórico",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Plan QA Julio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 1.000,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Raíz Orgánica",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Roble Muebles",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Ruta Outdoor",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Sol Pet",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Sur Automotores",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Órbita Fitness",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/client/44"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        }
+      ],
+      "horizontalRegions": []
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "label": "Equipo y salarios del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 237,
+        "width": 1158,
+        "height": 512.5
+      },
+      "headers": [
+        {
+          "text": "Persona",
+          "x": 241,
+          "width": 254,
+          "height": 14.5
+        },
+        {
+          "text": "Salario base",
+          "x": 503,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Ajuste del mes",
+          "x": 655,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Cierre previsto",
+          "x": 807,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 959,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Diferencia prevista",
+          "x": 1111,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 1263,
+          "width": 128,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Camila Vera",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.750.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "DIDiego Insfrán",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "FOFacundo Ortiz",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Lucía Acosta",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 6.000.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 750.000",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.750.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.500.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Mateo Ríos",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.250.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Nicolás Duarte",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.250.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "QA238 Lucía Histórica",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "USD 500,00",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 500,00",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 120,05",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 379,95",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "RLRenata López",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "SBSebastián Benítez",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 0",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Valentina Sol",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.550.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/17"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/15"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/16"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/18"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/collaborator/21"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/19"
+        }
+      ],
+      "horizontalRegions": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "label": "Clientes y contratos del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 237,
+        "width": 1158,
+        "height": 1051.5
+      },
+      "headers": [
+        {
+          "text": "Cliente",
+          "x": 241,
+          "width": 368,
+          "height": 14.5
+        },
+        {
+          "text": "Plan",
+          "x": 617,
+          "width": 230,
+          "height": 14.5
+        },
+        {
+          "text": "Contratado",
+          "x": 855,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 1007,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Factura",
+          "x": 1159,
+          "width": 128,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 1295,
+          "width": 96,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Alma Cocina",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 5.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Aurora Café",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.950.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Bosque Hogar",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Brisa Viajes",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Cumbre Seguros",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Faro Inmuebles",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Luna Moda",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Marea Cosmética",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Menta Salud",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 7.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Nova Energía",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Nube Software",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Pixel Academy",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Prisma Diseño",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Punto Libros",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "QA238 Cliente Histórico",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Plan QA Julio",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 1.000,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Raíz Orgánica",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Roble Muebles",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Ruta Outdoor",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Sol Pet",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Sur Automotores",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Órbita Fitness",
+            "x": 241,
+            "width": 368,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 617,
+            "width": 230,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 855,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 1007,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 1159,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 1295,
+            "width": 96,
+            "height": 32
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/client/44"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        }
+      ],
+      "horizontalRegions": []
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "label": "Equipo y salarios del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 237,
+        "width": 1158,
+        "height": 512.5
+      },
+      "headers": [
+        {
+          "text": "Persona",
+          "x": 241,
+          "width": 254,
+          "height": 14.5
+        },
+        {
+          "text": "Salario base",
+          "x": 503,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Ajuste del mes",
+          "x": 655,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Cierre previsto",
+          "x": 807,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 959,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Diferencia prevista",
+          "x": 1111,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 1263,
+          "width": 128,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Camila Vera",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.750.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "DIDiego Insfrán",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "FOFacundo Ortiz",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Lucía Acosta",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 6.000.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 750.000",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.750.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.500.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Mateo Ríos",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.250.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Nicolás Duarte",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.250.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "QA238 Lucía Histórica",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "USD 600,10",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,10",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 120,05",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 480,05",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "RLRenata López",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "SBSebastián Benítez",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 0",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ],
+        [
+          {
+            "text": "Valentina Sol",
+            "x": 241,
+            "width": 254,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 503,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 655,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 807,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 959,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.550.000",
+            "x": 1111,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 1263,
+            "width": 128,
+            "height": 32
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/17"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/15"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/16"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/18"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/collaborator/21"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/19"
+        }
+      ],
+      "horizontalRegions": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "label": "Clientes y contratos del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 27,
+        "width": 336,
+        "height": 1051.5
+      },
+      "headers": [
+        {
+          "text": "Cliente",
+          "x": 31,
+          "width": 236.296875,
+          "height": 14.5
+        },
+        {
+          "text": "Plan",
+          "x": 275.296875,
+          "width": 147.703125,
+          "height": 14.5
+        },
+        {
+          "text": "Contratado",
+          "x": 431,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 583,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Factura",
+          "x": 735,
+          "width": 128,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 871,
+          "width": 96,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Alma Cocina",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 5.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Aurora Café",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.950.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Bosque Hogar",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Brisa Viajes",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Cumbre Seguros",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Faro Inmuebles",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Luna Moda",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Marea Cosmética",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Menta Salud",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 7.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Nova Energía",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Nube Software",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Pixel Academy",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Prisma Diseño",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Punto Libros",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "QA238 Cliente Histórico",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Plan QA Julio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 1.000,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Raíz Orgánica",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Roble Muebles",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Ruta Outdoor",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Sol Pet",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Sur Automotores",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Órbita Fitness",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/client/44"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        }
+      ],
+      "horizontalRegions": [
+        {
+          "clientWidth": 336,
+          "scrollWidth": 944
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "label": "Equipo y salarios del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 27,
+        "width": 336,
+        "height": 512.5
+      },
+      "headers": [
+        {
+          "text": "Persona",
+          "x": 31,
+          "width": 184,
+          "height": 14.5
+        },
+        {
+          "text": "Salario base",
+          "x": 223,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Ajuste del mes",
+          "x": 375,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Cierre previsto",
+          "x": 527,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 679,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Diferencia prevista",
+          "x": 831,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 983,
+          "width": 128,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Camila Vera",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.750.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "DIDiego Insfrán",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "FOFacundo Ortiz",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Lucía Acosta",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 6.000.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 750.000",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.750.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.500.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Mateo Ríos",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.250.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Nicolás Duarte",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.250.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "QA238 Lucía Histórica",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "USD 750,25",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 750,25",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 120,05",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 630,20",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "RLRenata López",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "SBSebastián Benítez",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 0",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Valentina Sol",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.550.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/17"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/15"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/16"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/18"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/collaborator/21"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/19"
+        }
+      ],
+      "horizontalRegions": [
+        {
+          "clientWidth": 336,
+          "scrollWidth": 1088
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "label": "Clientes y contratos del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 27,
+        "width": 336,
+        "height": 1051.5
+      },
+      "headers": [
+        {
+          "text": "Cliente",
+          "x": 31,
+          "width": 236.296875,
+          "height": 14.5
+        },
+        {
+          "text": "Plan",
+          "x": 275.296875,
+          "width": 147.703125,
+          "height": 14.5
+        },
+        {
+          "text": "Contratado",
+          "x": 431,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 583,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Factura",
+          "x": 735,
+          "width": 128,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 871,
+          "width": 96,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Alma Cocina",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 5.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Aurora Café",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.950.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Bosque Hogar",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Brisa Viajes",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Cumbre Seguros",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Faro Inmuebles",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Luna Moda",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Marea Cosmética",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Menta Salud",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 7.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Nova Energía",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Nube Software",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Pixel Academy",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Integral",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Prisma Diseño",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Inicio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Punto Libros",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 1.200,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "QA238 Cliente Histórico",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Plan QA Julio",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 1.000,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Raíz Orgánica",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Roble Muebles",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.000.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Ruta Outdoor",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Internacional",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "USD 0,00",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 600,00",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Sol Pet",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Crecimiento",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "No pide factura",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Sur Automotores",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 1.500.000",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Órbita Fitness",
+            "x": 31,
+            "width": 236.296875,
+            "height": 24
+          },
+          {
+            "text": "Sin plan registrado",
+            "x": 275.296875,
+            "width": 147.703125,
+            "height": 20
+          },
+          {
+            "text": "Gs. 0",
+            "x": 431,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 583,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Sin definir",
+            "x": 735,
+            "width": 128,
+            "height": 22
+          },
+          {
+            "text": "",
+            "x": 871,
+            "width": 96,
+            "height": 44
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/client/44"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 256,
+          "naturalHeight": 256,
+          "srcType": "data"
+        }
+      ],
+      "horizontalRegions": [
+        {
+          "clientWidth": 336,
+          "scrollWidth": 944
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "label": "Equipo y salarios del mes",
+      "exists": true,
+      "documentOverflow": 0,
+      "table": {
+        "x": 27,
+        "width": 336,
+        "height": 512.5
+      },
+      "headers": [
+        {
+          "text": "Persona",
+          "x": 31,
+          "width": 184,
+          "height": 14.5
+        },
+        {
+          "text": "Salario base",
+          "x": 223,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Ajuste del mes",
+          "x": 375,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Cierre previsto",
+          "x": 527,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Pagado en mes",
+          "x": 679,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Diferencia prevista",
+          "x": 831,
+          "width": 144,
+          "height": 14.5
+        },
+        {
+          "text": "Acciones",
+          "x": 983,
+          "width": 128,
+          "height": 14.5
+        }
+      ],
+      "rows": [
+        [
+          {
+            "text": "Camila Vera",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 4.000.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.750.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "DIDiego Insfrán",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.800.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "FOFacundo Ortiz",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.000.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Lucía Acosta",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 6.000.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 750.000",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.750.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 6.500.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Mateo Ríos",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.500.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.250.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Nicolás Duarte",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.500.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 2.250.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "QA238 Lucía Histórica",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "USD 750,25",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 0,00",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 750,25",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 120,05",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "USD 630,20",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "RLRenata López",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.200.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "SBSebastián Benítez",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 0",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ],
+        [
+          {
+            "text": "Valentina Sol",
+            "x": 31,
+            "width": 184,
+            "height": 24
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 223,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 0",
+            "x": 375,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.800.000",
+            "x": 527,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 250.000",
+            "x": 679,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "Gs. 3.550.000",
+            "x": 831,
+            "width": 144,
+            "height": 19.5625
+          },
+          {
+            "text": "",
+            "x": 983,
+            "width": 128,
+            "height": 44
+          }
+        ]
+      ],
+      "images": [
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/17"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/15"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/16"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/18"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 64,
+          "naturalHeight": 64,
+          "srcType": "/core-api/api/agency/media/collaborator/21"
+        },
+        {
+          "alt": "",
+          "complete": true,
+          "naturalWidth": 384,
+          "naturalHeight": 384,
+          "srcType": "/core-api/api/agency/media/person/19"
+        }
+      ],
+      "horizontalRegions": [
+        {
+          "clientWidth": 336,
+          "scrollWidth": 1088
+        }
+      ]
+    }
+  ],
+  "accountGeometry": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 224,
+            "width": 288.5,
+            "right": 512.5
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 237,
+            "right": 499.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 522.5,
+            "width": 288.5,
+            "right": 811
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 535.5,
+            "right": 798,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 821,
+            "width": 288.5,
+            "right": 1109.5
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 834,
+            "right": 1096.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 1119.5,
+            "width": 288.5,
+            "right": 1408
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 1132.5,
+            "right": 1395,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 224,
+            "width": 288.5,
+            "right": 512.5
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 237,
+            "right": 499.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 522.5,
+            "width": 288.5,
+            "right": 811
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 535.5,
+            "right": 798,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 821,
+            "width": 288.5,
+            "right": 1109.5
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 834,
+            "right": 1096.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 1119.5,
+            "width": 288.5,
+            "right": 1408
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 1132.5,
+            "right": 1395,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        }
+      ]
+    }
+  ],
+  "avatarGeometry": [
+    {
+      "table": "Clientes y contratos del mes",
+      "name": "QA238 Cliente HistóricoPlan QA JulioUSD 1.000,00USD 0,00Pide factura",
+      "parents": [
+        {
+          "tag": "IMG",
+          "borderRadius": "0px",
+          "overflow": "clip",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "50%",
+          "overflow": "hidden",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 236.296875,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 236.296875,
+          "height": 24
+        }
+      ]
+    },
+    {
+      "table": "Equipo y salarios del mes",
+      "name": "QA238 Lucía HistóricaUSD 750,25USD 0,00USD 750,25USD 120,05USD 630,20",
+      "parents": [
+        {
+          "tag": "IMG",
+          "borderRadius": "0px",
+          "overflow": "clip",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "50%",
+          "overflow": "hidden",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 184,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 184,
+          "height": 24
+        }
+      ]
+    }
+  ],
+  "ids": {
+    "org": "5",
+    "actor": "14",
+    "person": "21",
+    "client": "44",
+    "plans": [
+      "12",
+      "13",
+      "14"
+    ],
+    "account": "11",
+    "oldInvoice": "159",
+    "currentInvoice": "160"
+  },
+  "finished_at": "2026-10-17T07:51:27.252Z",
+  "passed": true
+}

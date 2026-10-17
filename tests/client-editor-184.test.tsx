@@ -80,7 +80,7 @@ test('alta: mismo POST de siempre y «Guardar y crear otro» no cierra',async()=
   const post=calls.filter(call=>call.method==='POST');
   assert.equal(post.length,1);
   assert.equal(post[0].url,'/api/agency/clients');
-  assert.deepEqual(post[0].body,{name:'Serie',email:'',phone:'',tax_id:'80168807-8',legal_name:''});
+  assert.deepEqual(post[0].body,{legal_representative_same_as_client:false,name:'Serie',email:'',phone:'',tax_id:'80168807-8',legal_name:''});
   assert.deepEqual(created,[['Serie',true]]);
   assert.match(text(renderer.root),/Cliente «Serie» creado\. Podés cargar el siguiente\./);
   await change(renderer,'tax_id','ABC');
@@ -277,4 +277,151 @@ test('ficha legal: mismos campos en alta y edición, datos guardados y PATCH par
  }
  assert.equal(clientFields({mode:'create'}).find(field=>field.key==='address')?.maxLength,400);
  assert.equal(clientFields({mode:'edit'}).find(field=>field.key==='document_number')?.maxLength,80);
+});
+
+// #239: un solo Editor mantiene la relación visible y envía una decisión explícita.
+test('responsable vinculado: checkbox deriva el nombre, persiste y permite volver a editar separado',async()=>{
+ calls.length=0;route=()=>({});
+ const record={id:'link',lifecycle_status:'active',name:'Cliente comercial',legal_name:'Razón social declarada',legal_representative_name:'Representante independiente',legal_representative_document:'CI-DECLARADA',document_number:'RUC-DECLARADO',legal_representative_same_as_client:false};
+ let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="link" record={record}/>);});
+ const checkbox=()=>renderer.root.find(node=>node.type==='input'&&node.props.type==='checkbox');
+ assert.equal(checkbox().props.checked,false);
+ await act(async()=>checkbox().props.onChange({target:{checked:true}}));
+ assert.equal(input(renderer,'legal_representative_name').props.disabled,true);
+ await change(renderer,'legal_name','Razón social actualizada');
+ await submit(renderer);
+ let body=calls.find(call=>call.method==='PATCH')?.body;
+ assert.equal(body?.legal_representative_same_as_client,true);
+ assert.equal(body?.legal_representative_name,'Razón social actualizada');
+ assert(!Object.hasOwn(body!,'legal_representative_document'),'no se copia ni cambia el documento');
+ act(()=>renderer.unmount());
+ await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="link" record={{...record,legal_name:'Razón social actualizada',legal_representative_name:'Razón social actualizada',legal_representative_same_as_client:true}}/>);});
+ calls.length=0;
+ await act(async()=>checkbox().props.onChange({target:{checked:false}}));
+ assert.equal(input(renderer,'legal_representative_name').props.disabled,false);
+ await change(renderer,'legal_representative_name','Nuevo responsable independiente');
+ await change(renderer,'legal_name','Otra razón social');
+ await submit(renderer);
+ body=calls.find(call=>call.method==='PATCH')?.body;
+ assert.equal(body?.legal_representative_same_as_client,false);
+ assert.equal(body?.legal_representative_name,'Nuevo responsable independiente');
+ const defaults=clientEditDefaults({...record,legal_representative_same_as_client:true},null);
+ assert.equal(defaults.legal_representative_same_as_client,'true','reabrir conserva la decisión');
+ act(()=>renderer.unmount());
+});
+
+test('cambio del plan valida vigencia/motivo y edición de contacto conserva términos',async()=>{
+ const {planTermsPayload}=require('../app/client-editor-data') as typeof import('../app/client-editor-data');
+ const plan={clientId:'4',archived:false,historyRevision:'3',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG' as const,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
+ const defaults=clientEditDefaults({id:'4',name:'Cliente'},plan);
+ assert.throws(()=>planTermsPayload({...defaults,plan_amount:'200000'},plan,'fixture-id'),/motivo/);
+ assert.throws(()=>planTermsPayload({...defaults,plan_effective_from:'2026-10-15',plan_reason:'Acuerdo nuevo'},plan,'fixture-id'),/primer día/);
+ const values={...defaults,plan_amount:'200000',plan_effective_from:'2026-10-01',plan_reason:'Acuerdo comercial nuevo'};
+ const payload=planTermsPayload(values,plan,'fixed-request');
+ assert.equal(payload.startsOn,'2026-01-15','inicio comercial no se reemplaza por vigencia');
+ assert.equal(payload.effectiveFrom,'2026-10-01');assert.equal(payload.expectedRevision,'3');assert.equal(payload.reason,'Acuerdo comercial nuevo');
+ calls.length=0;route=()=>({});let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="4" record={{id:'4',name:'Cliente',lifecycle_status:'active'}} plan={plan}/>);});
+ await change(renderer,'name','Cliente actualizado');
+ // Sin alterar términos, el guardado de contacto no exige motivo ni historial nuevo.
+ await submit(renderer);
+ assert.equal(calls.filter(call=>call.url.includes('/commercial-terms')).length,0);
+ assert.equal(calls.filter(call=>call.method==='PATCH').length,1);
+ act(()=>renderer.unmount());
+});
+
+test('lote de plan de servicio conserva clasificación y nunca modifica términos económicos',async()=>{
+ const calls:string[]=[];
+ const call=(async(path:string,body?:unknown)=>{calls.push(path);return body?{}:{reporting:{version:'3'},plans:[]};}) as Parameters<typeof assignServicePlan>[0];
+ await assignServicePlan(call,['4'],'7');
+ assert.deepEqual(calls,['/api/agency/clients/4/reporting','/api/agency/clients/4/reporting']);
+ assert(!calls.some(path=>path.includes('commercial-terms')));
+});
+
+ test('plan: reintento conserva idempotencia, nueva edición genera otra solicitud',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ const plan={clientId:'4',archived:false,historyRevision:'3',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG' as const,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
+ calls.length=0;route=url=>{if(url.endsWith('/commercial-terms'))throw Error('Conexión temporal de prueba');return{};};
+ let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="4" record={{id:'4',name:'Cliente',lifecycle_status:'active'}} plan={plan}/>);});
+ await act(async()=>renderer.root.findByType(MoneyInput).props.onValueChange('200000'));
+ const reason=()=>renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+ await act(async()=>reason().props.onChange({target:{name:'plan_reason',value:'Nuevo acuerdo comercial'},type:'change'}));
+ await submit(renderer);await submit(renderer);
+ const changes=()=>calls.filter(call=>call.url.endsWith('/commercial-terms'));
+ assert.equal(changes().length,2);
+ assert.match(String(changes()[0].body?.requestId),/^[a-f0-9-]{36}$/);
+ assert.equal(changes()[0].body?.requestId,changes()[1].body?.requestId);
+ assert.equal(changes()[0].body?.expectedRevision,'3');
+ await change(renderer,'name','Cliente renombrado durante el reintento');
+ await submit(renderer);
+ assert.equal(changes()[2].body?.requestId,changes()[1].body?.requestId,'un cambio ajeno al plan no altera su idempotencia');
+ await act(async()=>reason().props.onChange({target:{name:'plan_reason',value:'Acuerdo comercial revisado'},type:'change'}));
+ await submit(renderer);
+ assert.notEqual(changes()[2].body?.requestId,changes()[3].body?.requestId,'cambiar el contenido económico inicia otra solicitud');
+ act(()=>renderer.unmount());
+});
+
+test('historial ausente o fallido bloquea cambios económicos antes de cualquier PATCH',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ const plan={clientId:'4',archived:false,plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG',startsOn:'2026-01-15',endsOn:null,cadence:'monthly',intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null,updatedAt:'2026-10-01'}};
+ for(const unavailable of ['invalid','error']){
+  calls.length=0;
+  route=url=>{if(url.endsWith('/plan-history')){if(unavailable==='error')throw Error('Historial no disponible');return{};}if(url.endsWith('/commercial-terms'))return plan;if(url.endsWith('/clients/4'))return{record:{id:'4',name:'Cliente',lifecycle_status:'active'}};return{};};
+  let renderer!:ReactTestRenderer;
+  await act(async()=>{renderer=create(<ClientEditorDialog mode="edit" clientId="4" role="owner" close={()=>{}} refresh={async()=>{}}/>);});
+  await settle();
+  assert.match(text(renderer.root),/historial|Historial/);
+  await change(renderer,'name','Nombre que no debe guardarse junto a plan inválido');
+  await act(async()=>renderer.root.findByType(MoneyInput).props.onValueChange('200000'));
+  const reason=renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+  await act(async()=>reason.props.onChange({target:{name:'plan_reason',value:'Nuevo acuerdo comercial'},type:'change'}));
+  await submit(renderer);
+  assert.equal(calls.filter(call=>call.method==='PATCH').length,0,'sin revisión no hay escritura parcial de cliente ni plan');
+  assert.match(text(renderer.root),/revisión del plan/);
+  act(()=>renderer.unmount());
+ }
+});
+
+test('el editor usa la revisión atómica de los términos y captura historial antes del borrador',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ const plan={clientId:'4',archived:false,revision:'11',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG',startsOn:'2026-01-15',endsOn:null,cadence:'monthly',intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null,updatedAt:'2026-10-01'}};
+ calls.length=0;route=url=>url.endsWith('/plan-history')?{records:[],revision:'10'}:url.endsWith('/commercial-terms')?plan:url.endsWith('/clients/4')?{record:{id:'4',name:'Cliente',lifecycle_status:'active'}}:{};
+ let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditorDialog mode="edit" clientId="4" role="owner" close={()=>{}} refresh={async()=>{}}/>);});
+ await settle();
+ assert(calls.findIndex(call=>call.url.endsWith('/plan-history'))<calls.findIndex(call=>call.url.endsWith('/commercial-terms')));
+ await act(async()=>renderer.root.findByType(MoneyInput).props.onValueChange('200000'));
+ const reason=renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+ await act(async()=>reason.props.onChange({target:{name:'plan_reason',value:'Cambio comercial verificado'},type:'change'}));
+ await submit(renderer);
+ assert.equal(calls.find(call=>call.method==='PATCH'&&call.url.endsWith('/commercial-terms'))?.body?.expectedRevision,'11');
+ act(()=>renderer.unmount());
+});
+
+test('plan monetario entero acepta ceros decimales del MoneyInput real y rechaza centavos',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ for(const currency of ['USD','EUR','PYG'] as const){
+  calls.length=0;route=()=>({});
+  const plan={clientId:'4',archived:false,historyRevision:'3',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'900.00',currency,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
+  let renderer!:ReactTestRenderer;
+  await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="4" record={{id:'4',name:'Cliente',lifecycle_status:'active'}} plan={plan as never}/>);});
+  const raw=()=>renderer.root.findByType(MoneyInput).findByType('input');
+  const display=currency==='PYG'?'1.200':'1.200,00';
+  await act(async()=>raw().props.onChange({currentTarget:{value:display,selectionStart:display.length}}));
+  const reason=renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+  await act(async()=>reason.props.onChange({target:{name:'plan_reason',value:'Acuerdo mensual entero'},type:'change'}));
+  await submit(renderer);
+  const changes=()=>calls.filter(call=>call.method==='PATCH'&&call.url.endsWith('/commercial-terms'));
+  assert.equal(changes().length,1,`${currency}: el formulario guarda el entero monetario`);
+  assert.equal(changes()[0].body?.recurringAmount,'1200');
+  if(currency!=='PYG'){
+   await act(async()=>raw().props.onChange({currentTarget:{value:'1.200,25',selectionStart:8}}));
+   await submit(renderer);
+   assert.equal(changes().length,1,`${currency}: los centavos reales no llegan al API entero`);
+   assert.match(text(renderer.root),/número entero/);
+  }
+  act(()=>renderer.unmount());
+ }
 });

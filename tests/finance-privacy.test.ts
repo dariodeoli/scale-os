@@ -44,8 +44,8 @@ assert(/export async function anonymizeExpiredFinanceData/.test(backend),'the AP
 // 4. Todo punto de captura de datos personales de FIN muestra la finalidad y
 //    enlaza el aviso; nada de capturas silenciosas.
 const capturePoints:[string,RegExp,number][]=[
- ['app/financial-forecast.tsx',/financeNoticeHref\('payroll'\)/g,2],
- ['app/financial-forecast.tsx',/financePurposeNotice\('payroll'\)/g,2],
+ ['app/finance-personnel.tsx',/financeNoticeHref\('payroll'\)/g,2],
+ ['app/finance-personnel.tsx',/financePurposeNotice\('payroll'\)/g,2],
  ['app/sections/comisiones.tsx',/financeNoticeHref\('commissions'\)/g,2],
  ['app/sections/comisiones.tsx',/financeNoticeHref\('payments'\)/g,1],
  ['app/workspace-forms.tsx',/financeNoticeHref\('treasury'\)/g,1],
@@ -55,6 +55,7 @@ for(const [file,pattern,expected] of capturePoints){
  const matches=read(file).match(pattern)||[];
  assert.equal(matches.length,expected,`${file} states ${pattern.source} ${expected} time(s)`);
 }
-for(const file of ['app/financial-forecast.tsx','app/sections/comisiones.tsx','app/workspace-forms.tsx'])assert(read(file).includes('Aviso de Privacidad'),`${file} names the privacy notice`);
+for(const file of ['app/finance-personnel.tsx','app/sections/comisiones.tsx','app/workspace-forms.tsx'])assert(read(file).includes('Aviso de Privacidad'),`${file} names the privacy notice`);
+assert(financePurpose('payroll').capturePoints.every(point=>point.startsWith('Balance · ')),'the inventory names the actual salary capture location');
 
 console.log('PASS finance privacy: purpose inventory, API retention parity and capture-point notices');

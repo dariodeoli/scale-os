@@ -1,25 +1,16 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(new URL(path,import.meta.url),'utf8');
-const source=read('../app/financial-forecast.tsx');
-assert(source.includes('members'),'personnel rows carry the members array');
-assert(source.includes('salary-overrides'),'salary override endpoints are wired');
-assert(source.includes('Sin salario fijo'),'zero-base members render the fallback badge');
-assert(source.includes('formatSignedMoney'),'signed override amounts render with sign');
-assert(source.includes('ActorAvatar'),'members render with ActorAvatar');
-assert(source.includes('compensation_amount'),'salary editing updates the labor record amount');
-assert(!source.includes('monthly_salary_currency'),'salary editing never sends the legacy monthly_salary_currency pair (API limited to PYG|USD)');
-assert(source.includes('currency={salaryPerson.currency}'),'the salary amount is drawn in the record currency');
-
-// #88: el panel se llama «Salarios» y el avatar se dimensiona por CSS, sin
-// wrapper que recorte la foto (mobile y escritorio; iniciales incluidas).
-assert.match(source,/>Salarios</,'the personnel panel is named Salarios');
-assert.match(source,/<ListGrid label="Salarios"/,"the personnel list (ListGrid, aria-label from label) announces Salarios");
-assert.doesNotMatch(source,/Personal proyectado/,'the old panel name is gone');
-assert.doesNotMatch(source,/overflow-hidden[^>]{0,80}><ActorAvatar/,'no wrapper clips the personnel avatar');
-assert.equal((source.match(/<ActorAvatar name=\{member\.name\} photo=\{safePhoto\(member\.photo_url\)\}\/>/g)||[]).length,1,'the single responsive ListGrid row (mobile and desktop) renders the avatar directly');
-const globals=read('../app/globals.css');
-assert.match(globals,/\.forecast-personnel-card \.actor-identity-avatar\{width:32px;height:32px;flex-basis:32px;font-size:11px\}/,'desktop sizes the avatar by CSS');
-assert.match(globals,/@media\(max-width:540px\)\{\.forecast-personnel-card \.actor-identity-avatar\{width:34px;height:34px;flex-basis:34px/,'mobile sizes the avatar by CSS');
-assert.match(globals,/\.forecast-personnel-card \.actor-identity-avatar/,'the initials fallback uses the same sized circle');
-console.log('PASS: per-person personnel breakdown with avatars, signed monthly adjustments, salary editing, «Salarios» naming and CSS-sized avatars (#88)');
+const source=read('../app/finance-personnel.tsx'),projection=read('../app/financial-forecast.tsx');
+assert(source.includes('members'),'Balance muestra filas personales, no sólo un contador');
+assert(source.includes('salary-overrides'),'el ajuste mensual conserva su endpoint canónico');
+assert(source.includes('MoneyText'),'base, ajustes y pagos comparten el formateador monetario');
+assert(source.includes('PersonContainer'),'foto y nombre salen del objeto canónico');
+assert(source.includes("financeHistoryUrl('salary'"),'el cambio de base usa el historial auditable');
+assert(!source.includes('monthly_salary_currency'),'el frontend no impone el par legacy limitado a dos monedas');
+assert(source.includes('currency:person.currency'),'el editor usa la moneda del acuerdo mostrado');
+assert.match(source,/Equipo y salarios/);
+assert.match(source,/<ListGrid label="Equipo y salarios del mes"/);
+assert.doesNotMatch(source,/overflow-hidden[^>]{0,80}><PersonContainer/,'ningún wrapper recorta la foto');
+assert.doesNotMatch(projection,/Editar salario|salary-overrides|forecast-person-row/,'la previsión no duplica personas ni sus editores');
+console.log('PASS personal: detalle, foto, salario, ajustes y cronología únicos en Balance (#238)');

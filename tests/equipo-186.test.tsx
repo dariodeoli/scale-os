@@ -24,9 +24,9 @@ const textOf=(node:any):string=>typeof node==='string'?node:node?.children?.map(
 const content=(renderer:ReactTestRenderer)=>JSON.stringify(renderer.toJSON());
 const tab=(renderer:ReactTestRenderer,label:string)=>renderer.root.findAllByType('button').find(button=>textOf(button)===label);
 const hasButton=(renderer:ReactTestRenderer,label:string)=>Boolean(renderer.root.findAllByType('button').find(button=>textOf(button).includes(label)));
-async function sheet(role:string){
+async function sheet(role:string,capabilities?:Record<string,boolean>){
   let renderer!:ReactTestRenderer;
-  await act(async()=>{renderer=create(<TeamPersonSheet role={role} currentEmail="yo@example.invalid" person={person} member={member} ambiguous={false} seedEmail="" tab="perfil" defaultCurrency="PYG" load={async()=>{}} onCreated={()=>{}} close={()=>{}}/>);});
+  await act(async()=>{renderer=create(<TeamPersonSheet role={role} capabilities={capabilities} currentEmail="yo@example.invalid" person={person} member={member} ambiguous={false} seedEmail="" tab="perfil" defaultCurrency="PYG" load={async()=>{}} onCreated={()=>{}} close={()=>{}}/>);});
   return renderer;
 }
 async function open(renderer:ReactTestRenderer,label:string){await act(async()=>{tab(renderer,label)!.props.onClick();});}
@@ -95,4 +95,67 @@ test('los avisos de Equipo salen por notify() y no por <p role="status"> (E4)',(
   assert.doesNotMatch(teamSheetSource(),/setNotice|<p role="status">\{notice\}/);
   assert.match(teamSheetSource(),/notify\(extra\)/,'los avisos de acceso del perfil viajan por notify');
   assert.match(teamSheetSource(),/notify\(\{tone:'warning',message:'El proveedor no pudo enviar el correo\.'\}\)/);
+});
+
+
+test('salary.view efectivo false oculta remuneración incluso para finance y no pide historial',async()=>{
+ const original=globalThis.fetch,calls:string[]=[];
+ globalThis.fetch=(async(input:RequestInfo|URL)=>{calls.push(String(input));throw Error('unexpected salary query');}) as typeof fetch;
+ try{
+  const renderer=await sheet('finance',{'salary.view':false});
+  assert.equal(Boolean(tab(renderer,'Remuneración')),false);
+  for(const forbidden of ['Remuneración','Importe acordado','Sin salario definido','Guardar remuneración',AMOUNT])assert.equal(content(renderer).includes(forbidden),false,forbidden);
+  assert.deepEqual(calls,[],'denied tab does not mount salary effects or any private query');
+  act(()=>renderer.unmount());
+ }finally{globalThis.fetch=original;}
+});
+
+test('override efectivo true habilita salario fuera del rol por defecto y owner ignora false',async()=>{
+ for(const [role,capabilities]of [['viewer',{'salary.view':true}],['owner',{'salary.view':false,'members.manage':false}]] as const){
+  const renderer=await sheet(role,capabilities);
+  assert(tab(renderer,'Remuneración'),role+' keeps effective salary permission');
+  await open(renderer,'Remuneración');assert(content(renderer).includes('Importe acordado'));
+  if(role==='owner')assert(tab(renderer,'Acceso'),'owner cannot lose access management by an override');
+  act(()=>renderer.unmount());
+ }
+});
+
+test('OperationsWorkspace usa overrides para entrar a Equipo, sin salario ficticio al revocarlo',async()=>{
+ const {OperationsWorkspace}=require('../app/operations') as typeof import('../app/operations');
+ const {canOpenPeopleWorkspace}=require('../app/capabilities') as typeof import('../app/capabilities');
+ assert.equal(canOpenPeopleWorkspace('finance',{'salary.view':false}),false);
+ assert.equal(canOpenPeopleWorkspace('viewer',{'salary.view':true}),true);
+ assert.equal(canOpenPeopleWorkspace('viewer',{'members.manage':true}),true);
+ assert.equal(canOpenPeopleWorkspace('owner',{'salary.view':false,'members.manage':false}),true);
+ const original=globalThis.fetch,calls:string[]=[];
+ globalThis.fetch=(async(input:RequestInfo|URL)=>{calls.push(String(input));return new Response(JSON.stringify({collaborators:[{...person,compensation_amount:null}],members:[member],directory:[{id:'7',full_name:person.full_name,photo_url:null,role:'finance'}]}),{status:200});}) as typeof fetch;
+ try{
+  let renderer!:ReactTestRenderer;
+  await act(async()=>{renderer=create(<OperationsWorkspace role="finance" capabilities={{'salary.view':false}} currentUserId="me"/>);});
+  assert.equal(renderer.root.findAllByType(PeopleWorkspace).length,0,'restricted role uses the directory, not the salary workspace');
+  assert(!content(renderer).includes('Sin salario definido')&&!content(renderer).includes('Remuneración')&&!content(renderer).includes(AMOUNT));
+  assert(calls.every(path=>path.endsWith('/api/agency/team')),'no history or salary endpoint');
+  act(()=>renderer.unmount());
+  await act(async()=>{renderer=create(<OperationsWorkspace role="viewer" capabilities={{'salary.view':true}}/>);});
+  assert.equal(renderer.root.findAllByType(PeopleWorkspace).length,1,'effective true reaches PeopleWorkspace');
+  assert.equal(renderer.root.findByType(PeopleWorkspace).props.capabilities['salary.view'],true,'override propagates across the wrapper');
+  act(()=>renderer.unmount());
+ }finally{globalThis.fetch=original;}
+});
+
+test('revocar salario elimina una pestaña ya visitada y conserva el borrador de perfil',async()=>{
+ const original=globalThis.fetch,writes:Record<string,unknown>[]=[];
+ globalThis.fetch=(async(_input:RequestInfo|URL,init?:RequestInit)=>{writes.push(JSON.parse(String(init?.body)));return new Response(JSON.stringify({collaborator:person}),{status:200});}) as typeof fetch;
+ try{
+  const renderer=await sheet('finance',{'salary.view':true,'members.manage':true});
+  const name=renderer.root.findAllByType('input').find(input=>input.props.name==='full_name')!;
+  await act(async()=>{name.props.onChange({target:{name:'full_name',value:'Borrador conservado'},type:'change'});});
+  await open(renderer,'Remuneración');assert(content(renderer).includes('Importe acordado'));
+  await act(async()=>{renderer.update(<TeamPersonSheet role="finance" capabilities={{'salary.view':false,'members.manage':true}} currentEmail="yo@example.invalid" person={person} member={member} ambiguous={false} seedEmail="" tab="perfil" defaultCurrency="PYG" load={async()=>{}} onCreated={()=>{}} close={()=>{}}/>);});
+  assert.equal(Boolean(tab(renderer,'Remuneración')),false);assert.equal(content(renderer).includes('Importe acordado'),false);
+  const profileForm=renderer.root.findAllByType('form').find(form=>form.findAll(node=>node.type==='input'&&node.props.name==='full_name').length)!;
+  await act(async()=>{await profileForm.props.onSubmit({preventDefault(){}});});
+  assert.equal(writes.length,1);assert.equal(writes[0].full_name,'Borrador conservado');assert(!Object.hasOwn(writes[0],'compensation_amount'),'profile save never restores salary fields');
+  act(()=>renderer.unmount());
+ }finally{globalThis.fetch=original;}
 });

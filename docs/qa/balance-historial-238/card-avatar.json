@@ -1,0 +1,397 @@
+{
+  "source": "11a71500",
+  "checks": [
+    {
+      "name": "1440 light all account amounts fit without clipping",
+      "passed": true
+    },
+    {
+      "name": "1440 dark all account amounts fit without clipping",
+      "passed": true
+    },
+    {
+      "name": "390 light all account amounts fit without clipping",
+      "passed": true
+    },
+    {
+      "name": "390 dark all account amounts fit without clipping",
+      "passed": true
+    },
+    {
+      "name": "Clientes y contratos del mes circular avatar crop",
+      "passed": true
+    },
+    {
+      "name": "Equipo y salarios del mes circular avatar crop",
+      "passed": true
+    }
+  ],
+  "accountGeometry": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 224,
+            "width": 288.5,
+            "right": 512.5
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 237,
+            "right": 499.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 522.5,
+            "width": 288.5,
+            "right": 811
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 535.5,
+            "right": 798,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 821,
+            "width": 288.5,
+            "right": 1109.5
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 834,
+            "right": 1096.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 1119.5,
+            "width": 288.5,
+            "right": 1408
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 1132.5,
+            "right": 1395,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 224,
+            "width": 288.5,
+            "right": 512.5
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 237,
+            "right": 499.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 522.5,
+            "width": 288.5,
+            "right": 811
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 535.5,
+            "right": 798,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 821,
+            "width": 288.5,
+            "right": 1109.5
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 834,
+            "right": 1096.5,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 1119.5,
+            "width": 288.5,
+            "right": 1408
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 1132.5,
+            "right": 1395,
+            "width": 262.5,
+            "scrollWidth": 263,
+            "clientWidth": 263
+          },
+          "descendants": []
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "cards": [
+        {
+          "name": "Banco Continental · Caja de ahorro en guaraníes",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 1.000.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de ahorro en dólares",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 15.600,00",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Caja de oficina",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "Gs. 250.445.000",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        },
+        {
+          "name": "Cuenta QA238 USD",
+          "card": {
+            "x": 16,
+            "width": 358,
+            "right": 374
+          },
+          "amount": {
+            "text": "USD 1.879,95",
+            "x": 29,
+            "right": 361,
+            "width": 332,
+            "scrollWidth": 332,
+            "clientWidth": 332
+          },
+          "descendants": []
+        }
+      ]
+    }
+  ],
+  "avatarGeometry": [
+    {
+      "table": "Clientes y contratos del mes",
+      "name": "QA238 Cliente HistóricoPlan QA JulioUSD 1.000,00USD 0,00Pide factura",
+      "parents": [
+        {
+          "tag": "IMG",
+          "borderRadius": "0px",
+          "overflow": "clip",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "50%",
+          "overflow": "hidden",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 236.296875,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 236.296875,
+          "height": 24
+        }
+      ]
+    },
+    {
+      "table": "Equipo y salarios del mes",
+      "name": "QA238 Lucía HistóricaUSD 750,25USD 0,00USD 750,25USD 120,05USD 630,20",
+      "parents": [
+        {
+          "tag": "IMG",
+          "borderRadius": "0px",
+          "overflow": "clip",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "50%",
+          "overflow": "hidden",
+          "width": 24,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 184,
+          "height": 24
+        },
+        {
+          "tag": "SPAN",
+          "borderRadius": "0px",
+          "overflow": "visible",
+          "width": 184,
+          "height": 24
+        }
+      ]
+    }
+  ]
+}

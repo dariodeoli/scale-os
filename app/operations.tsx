@@ -1,9 +1,10 @@
 "use client";
 import {OptionalMark,optionalLabel} from './field-label';
 import {money} from './money-format';
+import {normalizeWholeMoney} from './amount-format';
 import {currencyChoices} from "./currencies";
 import {ProjectPresence} from './presence';
-import { useEffect, useState, useRef, useId, type ReactNode } from "react";
+import { useEffect, useState, useRef, useId, useImperativeHandle, type ReactNode, type Ref } from "react";
 import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -66,7 +67,7 @@ type Choice = SelectChoice;
 export type Field = {
   key: string;
   label: string;
-  type?: "number" | "date" | "time" | "email" | "url" | "textarea" | "money" | "password" | "phone";
+  type?: "number" | "date" | "time" | "email" | "url" | "textarea" | "money" | "password" | "phone" | "checkbox";
   choices?: Choice[];
   optional?: boolean;
   section?: string;
@@ -80,6 +81,8 @@ export type Field = {
   currencyKey?: string;
   currency?: string;
   currencyFrom?: (values: Record<string, string>) => string;
+  /** Valor dependiente; undefined conserva la edición independiente del campo. */
+  valueFrom?: (values: Record<string, string>) => string | undefined;
   lookup?: {label: string; run: (value: string) => Promise<Record<string, string>>};
   /** Deshabilita el campo según los valores actuales del formulario (p. ej. dependientes de un interruptor maestro). */
   disabled?: boolean | ((values: Record<string, string>) => boolean);
@@ -89,6 +92,8 @@ export type Field = {
   after?: ReactNode;
 };
 const currencies = currencyChoices;
+/** Patch a dependent field without resetting the canonical form or its errors. */
+export type EditorHandle={getValues:()=>Record<string,string>;patchValues:(values:Record<string,string>)=>void};
 export function Editor({
   fields,
   defaults,
@@ -100,6 +105,7 @@ export function Editor({
   cancelLabel = 'Cancelar',
   collapseSections = false,
   secondaryAction,
+  formHandle,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -113,12 +119,13 @@ export function Editor({
   collapseSections?: boolean;
   /** Segundo guardado (p. ej. «Guardar y crear otro»): misma validación, deja el formulario limpio y enfocado en el primer campo. */
   secondaryAction?: {label: string; save: (v: Record<string, string>) => Promise<void>};
+  formHandle?:Ref<EditorHandle>;
 }) {
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
     let s = z.string();
     if (!f.optional) s = s.min(1, `Completá ${f.label.toLowerCase()}`);
-    if(f.integer)s=s.refine(value=>value===''||/^\d+$/.test(value),'Ingresá un número entero.');
+    if(f.integer)s=s.refine(value=>value===''||(f.type==='money'?normalizeWholeMoney(value)!==null:/^\d+$/.test(value)),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
     if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
     const check=f.validate;
@@ -128,6 +135,13 @@ export function Editor({
     resolver: zodResolver(z.object(shape)),
     defaultValues: defaults,
   });
+  const currentValues=form.watch();
+  useEffect(()=>{
+    for(const field of fields){
+      const next=field.valueFrom?.(currentValues);
+      if(next!==undefined&&next!==form.getValues(field.key))form.setValue(field.key,next,{shouldDirty:form.formState.isDirty,shouldValidate:true});
+    }
+  },[fields,currentValues,form]);
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
@@ -136,6 +150,10 @@ export function Editor({
   // Cambios sin guardar (aviso al cerrar): solo cuenta lo que la persona tocó; una
   // normalización del campo al montar no convierte el formulario en «sucio».
   const [interacted,setInteracted]=useState(false);
+  useImperativeHandle(formHandle,()=>({getValues:()=>({...form.getValues()}),patchValues:values=>{
+    for(const [key,value] of Object.entries(values))if(fields.some(field=>field.key===key))form.setValue(key,value,{shouldDirty:true,shouldValidate:true});
+    setInteracted(true);
+  }}),[form,fields]);
   useDialogPending(pending,interacted&&form.formState.isDirty&&!pending);
   // Secciones (issue #183): grupos plegables, resumen de errores y, en móvil con
   // 3 o más secciones, pasos Anterior/Siguiente. Sin `section` nada de esto aparece.
@@ -167,7 +185,7 @@ export function Editor({
     // el guardado del formulario conserva el valor tal como se guardó antes.
     const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
     return <div key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
-      {f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
+      {f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><input id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
         ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
@@ -185,6 +203,7 @@ export function Editor({
         setError("");
         try {
           const values:Record<string,unknown>={...v};
+          for(const field of fields)if(field.type==='money'&&field.integer&&v[field.key]!=='')values[field.key]=normalizeWholeMoney(v[field.key]);
           if(typeof values.drive_links==='string')values.drive_links=parseDriveLinksText(values.drive_links);
           // `drive_links` is normalized to structured link objects just before
           // sending it to the API. Keep the public Editor contract string-based
@@ -248,17 +267,19 @@ export function Editor({
 }
 export function OperationsWorkspace({
   role,
+  capabilities,
   currentEmail='',
   currentUserId='',
   organizationName='',
 }: {
   role: string;
+  capabilities?:Record<string,boolean>;
   currentEmail?:string;
   currentUserId?:string;
   organizationName?:string;
 }) {
-  if(!canOpenPeopleWorkspace(role))return <TeamDirectoryView organizationName={organizationName}/>;
-  return <PeopleWorkspace role={role} currentEmail={currentEmail} currentUserId={currentUserId}/>;
+  if(!canOpenPeopleWorkspace(role,capabilities))return <TeamDirectoryView organizationName={organizationName}/>;
+  return <PeopleWorkspace capabilities={capabilities} role={role} currentEmail={currentEmail} currentUserId={currentUserId}/>;
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
 function TeamDirectoryView({organizationName}:{organizationName:string}){

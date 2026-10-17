@@ -1,4 +1,5 @@
 "use client";
+import {AccountCreateDialog} from './account-create-dialog';
 import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
@@ -96,7 +97,7 @@ import {MoraSection} from './sections/mora';
 import {ProyectosSection} from './sections/proyectos';
 import {ResumenSection} from './sections/resumen';
 const ContractsWorkspace=dynamic(()=>import('./contracts-workspace').then(m=>m.ContractsWorkspace),{loading:()=> <SectionLoading label="Cargando contratos…"/>});
-import {AccountForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
+import {InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
 import {notify} from './feedback';
 import {AvisoPrivacidad} from 'owncoding-ui';
 import {SubscriptionPanel, SubscriptionNotice} from './subscription-panel';
@@ -1182,16 +1183,7 @@ export default function Home() {
         </Dialog>
       )}
       {modal === "account" && (
-        <Dialog title="Nueva cuenta" close={close}>
-          <AccountForm
-            request={request}
-            custodians={custodians}
-            done={(account) => {
-              setAccounts((current) => [...current, account]);
-              close();
-            }}
-          />
-        </Dialog>
+        <AccountCreateDialog request={request} custodians={custodians} close={close} done={(account)=>{setAccounts(current=>[...current,account]);close();}}/>
       )}
       {modal === "invoice" && (
         <Dialog title="Nueva factura" close={close}>

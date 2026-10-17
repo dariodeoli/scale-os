@@ -1,0 +1,125 @@
+{
+  "base": "http://127.0.0.1:3008",
+  "run": "QA-1792223396600",
+  "started_at": "2026-10-17T07:49:56.600Z",
+  "checks": [
+    {
+      "name": "Owner salary history200",
+      "passed": true
+    },
+    {
+      "name": "Legacy baseline has no effective date",
+      "passed": true
+    },
+    {
+      "name": "Old employment date does not become salary agreement date",
+      "passed": true
+    },
+    {
+      "name": "UI legacy row explicitly states unknown vigency",
+      "passed": true,
+      "row": {
+        "text": "Valor anterior importado17 oct 26 · 04:49Antes: Sin dato previoDespués: USD 777,77Vigencia anterior no registrada; no se reconstruye una fecha desconocida.Fixture de valor importado; vigencia anterior desconocidaAIAutor importadoAutor de registro importado",
+        "effectiveDates": [
+          "2026-10-17T07:49:56.906Z"
+        ]
+      }
+    },
+    {
+      "name": "Limited finance still reads commercial balance200",
+      "passed": true
+    },
+    {
+      "name": "All restricted salary values and revision are null",
+      "passed": true
+    },
+    {
+      "name": "Balance JSON does not leak salary sentinel777.77",
+      "passed": true
+    },
+    {
+      "name": "salary.view override denies history403",
+      "passed": true
+    },
+    {
+      "name": "UI hides salary and its actions",
+      "passed": true
+    },
+    {
+      "name": "Other tenant protected404 /api/agency/collaborators/10/salary-history",
+      "passed": true
+    },
+    {
+      "name": "Other tenant protected404 /api/agency/clients/22/plan-history",
+      "passed": true
+    },
+    {
+      "name": "Other tenant protected404 /api/agency/media/client/22",
+      "passed": true
+    },
+    {
+      "name": "Limited receipt has no Add account action",
+      "passed": true
+    },
+    {
+      "name": "Limited actor never requests custodians",
+      "passed": true
+    },
+    {
+      "name": "Direct account creation403",
+      "passed": true
+    },
+    {
+      "name": "Denied account creates no record",
+      "passed": true
+    },
+    {
+      "name": "Mobile dialogs fit viewport without document overflow",
+      "passed": true,
+      "bounds": {
+        "overflow": 0,
+        "dialogs": [
+          {
+            "title": "Recibir pago",
+            "width": 390,
+            "x": 0,
+            "right": 390
+          },
+          {
+            "title": "Nueva cuenta",
+            "width": 390,
+            "x": 0,
+            "right": 390
+          }
+        ]
+      }
+    },
+    {
+      "name": "Cancel mobile nested account retains amount18.75 and reference",
+      "passed": true
+    },
+    {
+      "name": "Exactly one saved receipt100.25",
+      "passed": true
+    },
+    {
+      "name": "Saved receipt client/date/reference match original draft",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "unknown-legacy-salary-history-1440.png",
+    "receipt-no-account-permission-1440.png",
+    "mobile-inline-account-390.png"
+  ],
+  "blocked_external": [],
+  "limitations": [],
+  "ids": {
+    "org": "4",
+    "user": "12",
+    "client": "23",
+    "person": "11"
+  },
+  "finished_at": "2026-10-17T07:50:09.679Z",
+  "passed": true
+}

@@ -1,0 +1,225 @@
+{
+  "base": "http://127.0.0.1:3008",
+  "run": "QA-1792223564515",
+  "started_at": "2026-10-17T07:52:44.515Z",
+  "checks": [
+    {
+      "name": "CAS starts from known salary750.25",
+      "passed": true
+    },
+    {
+      "name": "Concurrent salary update201",
+      "passed": true
+    },
+    {
+      "name": "UI blocks stale base with newly fetched revision",
+      "passed": true
+    },
+    {
+      "name": "Old revision mutation409",
+      "passed": true
+    },
+    {
+      "name": "Retry of identical operation is idempotent200",
+      "passed": true
+    },
+    {
+      "name": "Exactly one salary agreement appended",
+      "passed": true
+    },
+    {
+      "name": "Salary CAS leaves actual cash unchanged",
+      "passed": true
+    },
+    {
+      "name": "CAS preserves salary projection 2026-07",
+      "passed": true
+    },
+    {
+      "name": "CAS preserves salary projection 2026-08",
+      "passed": true
+    },
+    {
+      "name": "CAS preserves salary projection 2026-09",
+      "passed": true
+    },
+    {
+      "name": "CAS preserves salary projection 2026-10",
+      "passed": true
+    },
+    {
+      "name": "No-invoice client has received100.25 without applied invoices",
+      "passed": true
+    },
+    {
+      "name": "No invoice means no invented registered debt149.75",
+      "passed": true
+    },
+    {
+      "name": "No-invoice client paid100.25 visible in real UI",
+      "passed": true
+    },
+    {
+      "name": "light invoice requirement green is visible",
+      "passed": true,
+      "styles": {
+        "label": "Pide factura",
+        "nodes": [
+          {
+            "color": "rgb(29, 21, 32)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "color": "rgb(17, 107, 53)",
+            "background": "rgba(29, 122, 98, 0.15)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dark invoice requirement green is visible",
+      "passed": true,
+      "styles": {
+        "label": "Pide factura",
+        "nodes": [
+          {
+            "color": "rgb(245, 239, 247)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "color": "rgb(79, 181, 150)",
+            "background": "rgba(79, 181, 150, 0.15)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "light invoice requirement red is visible",
+      "passed": true,
+      "styles": {
+        "label": "No pide factura",
+        "nodes": [
+          {
+            "color": "rgb(29, 21, 32)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "color": "rgb(162, 44, 62)",
+            "background": "rgba(180, 59, 76, 0.15)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dark invoice requirement red is visible",
+      "passed": true,
+      "styles": {
+        "label": "No pide factura",
+        "nodes": [
+          {
+            "color": "rgb(245, 239, 247)",
+            "background": "rgba(0, 0, 0, 0)"
+          },
+          {
+            "color": "rgb(232, 139, 158)",
+            "background": "rgba(224, 106, 128, 0.15)"
+          }
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "stale-salary-revision-blocked-1440.png"
+  ],
+  "blocked_external": [],
+  "limitations": [],
+  "no_invoice_client": {
+    "client_id": "23",
+    "client_name": "Cliente QA240 sin factura",
+    "client_logo_url": null,
+    "currency": "USD",
+    "plan_id": null,
+    "plan_name": "Plan QA sin factura",
+    "contracted_amount": "250.00",
+    "invoice_required": false,
+    "received_in_month": "100.25",
+    "payments": [
+      {
+        "id": "80",
+        "kind": "payment",
+        "amount": "100.25",
+        "reference": "QA240 referencia conservada",
+        "invoice_id": null,
+        "received_on": "2026-10-15"
+      }
+    ],
+    "unallocated_received_in_month": "100.25",
+    "applied_to_month_invoices": "0.00",
+    "registered_outstanding": "0.00",
+    "expected_receipts": "0.00"
+  },
+  "invoiceStyles": [
+    {
+      "theme": "light",
+      "required": true,
+      "label": "Pide factura",
+      "nodes": [
+        {
+          "color": "rgb(29, 21, 32)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "color": "rgb(17, 107, 53)",
+          "background": "rgba(29, 122, 98, 0.15)"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "required": true,
+      "label": "Pide factura",
+      "nodes": [
+        {
+          "color": "rgb(245, 239, 247)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "color": "rgb(79, 181, 150)",
+          "background": "rgba(79, 181, 150, 0.15)"
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "required": false,
+      "label": "No pide factura",
+      "nodes": [
+        {
+          "color": "rgb(29, 21, 32)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "color": "rgb(162, 44, 62)",
+          "background": "rgba(180, 59, 76, 0.15)"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "required": false,
+      "label": "No pide factura",
+      "nodes": [
+        {
+          "color": "rgb(245, 239, 247)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "color": "rgb(232, 139, 158)",
+          "background": "rgba(224, 106, 128, 0.15)"
+        }
+      ]
+    }
+  ],
+  "finished_at": "2026-10-17T07:52:57.445Z",
+  "passed": true
+}

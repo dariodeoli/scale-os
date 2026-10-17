@@ -25,3 +25,8 @@ export type ClientIdentityRecord={
  logo_url?:string|null;
  color_key?:string|null;
 };
+
+/** Identidad legal declarada; el nombre comercial sólo es respaldo explícito. */
+export function clientLegalName(values:Record<string,unknown>):string{
+ return String(values.legal_name||'').trim()||String(values.name||'').trim();
+}

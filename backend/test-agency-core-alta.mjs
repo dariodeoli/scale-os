@@ -36,7 +36,7 @@ const helpers=between(server,'const send =','const cookie =')+between(server,'co
 const pg=new PGlite();
 try{
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
- for(const name of ['20260908_treasury_ledger.sql','20260908_google_oauth.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_productivity.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_client_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260919_pipeline_stages.sql','20260914_client_commercial_lifecycle.sql','20261017_client_legal_profile.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
+ for(const name of ['20260908_treasury_ledger.sql','20260908_google_oauth.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_productivity.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_client_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260919_pipeline_stages.sql','20260914_client_commercial_lifecycle.sql','20261017_client_legal_profile.sql','20261017_client_representative_link.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
  const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
  const {post,session}=new Function('db','budgetSections','crypto','visibleRecord','ensurePersonalIdentity','demoOrganization','currencies','roleCan','amount','validDate','fail','validItems','option','text','normalizedEmail','normalizedPhone','clientLogo','clientColor','assertUniqueClientRuc','compressionPlan','clientLegalProfile',`${helpers}
   return {session,post:async function(req,res){const url=new URL(req.url,'https://test.invalid');${routes}
@@ -65,6 +65,11 @@ try{
   await post(request(path,'GET',{},current),{writeHead(status){result.status=status;},end(value){Object.assign(result,JSON.parse(value));}});
   return result;
  }
+ async function detalle(clientId,current=token){
+  let result={status:0};const path=`/api/agency/clients/${clientId}`;
+  assert.equal(await suite({req:request(path,'GET',{},current),res:{},url:new URL(`https://test.invalid${path}`),db,session,body:async()=>({}),send:(_res,status,data)=>{result={status,...data};}}),true);
+  return result;
+ }
  // #220: alta legal reutilizable, sin inferir documentos ni representantes.
  await pg.exec(await fs.readFile(new URL('./migrations/20261017_client_legal_profile.sql',import.meta.url),'utf8'));
  const profile={address:' Domicilio contractual de prueba ',city:'Ciudad de prueba',department:'Departamento de prueba',document_type:'passport',document_number:'DOC-TEST',legal_representative_name:'Representante de prueba',legal_representative_document:'REP-TEST',legal_representative_role:'Apoderado',party_type:'company'};
@@ -76,6 +81,52 @@ try{
  for(const invalid of [{document_type:'inventado'},{party_type:'individual'},{address:'x'.repeat(401)},{city:'x'.repeat(121)},{document_number:123}]){
   assert.equal((await alta('/api/agency/clients',{name:'Alta inválida',...invalid})).status,400);
  }
+ // #239: nombre vinculado explícito, persistente y protegido en todos los caminos.
+ await pg.exec(await fs.readFile(new URL('./migrations/20261017_client_representative_link.sql',import.meta.url),'utf8'));
+ const longLegal='L'.repeat(160);
+ const longLinked=await alta('/api/agency/clients',{name:'Nombre comercial corto',legal_name:longLegal,legal_representative_same_as_client:true});
+ assert.equal(longLinked.status,201);assert.equal(longLinked.client.legal_representative_name,longLegal,'la razón social de160 caracteres se conserva completa');
+ assert.equal((await editar(`/api/agency/clients/${longLinked.client.id}`,{legal_name:'R'.repeat(160)})).record.legal_representative_name,'R'.repeat(160));
+ const linkedProfile={name:'Cliente comercial',legal_name:'Persona jurídica declarada',legal_representative_same_as_client:true,legal_representative_name:'No debe imponerse',document_type:'ruc',document_number:'RUC-DECLARADO',legal_representative_document:'CI-INDEPENDIENTE',legal_representative_role:'Cargo declarado'};
+ const linked=await alta('/api/agency/clients',linkedProfile);
+ assert.equal(linked.status,201,JSON.stringify(linked));
+ const linkedId=linked.client.id;
+ assert.equal(linked.client.legal_representative_same_as_client,true);
+ assert.equal(linked.client.legal_representative_name,'Persona jurídica declarada');
+ for(const key of ['document_type','document_number','legal_representative_document','legal_representative_role'])assert.equal(linked.client[key],linkedProfile[key]);
+ for(const value of ['true',1,null])assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_representative_same_as_client:value})).status,400,'la relación requiere boolean real');
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_name:'Razón social renovada'})).record.legal_representative_name,'Razón social renovada');
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{name:'Comercial renovado',legal_name:''})).record.legal_representative_name,'Comercial renovado');
+ await query('update agency_clients set legal_name=$1 where id=$2',['Nombre legal por otro camino',linkedId]);
+ assert.equal((await query('select legal_representative_name from agency_clients where id=$1',[linkedId])).rows[0].legal_representative_name,'Nombre legal por otro camino');
+ const reopened=(await detalle(linkedId)).record;
+ assert.equal(reopened.legal_representative_same_as_client,true,'la decisión viaja al reabrir');
+ assert.equal(reopened.legal_representative_name,'Nombre legal por otro camino');
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_representative_same_as_client:false,legal_representative_name:'Representante separado'})).status,200);
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_name:'Empresa separada'})).record.legal_representative_name,'Representante separado');
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_representative_same_as_client:true})).record.legal_representative_name,'Empresa separada');
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_representative_same_as_client:false},otherToken)).status,404,'otra empresa no puede modificar la relación');
+ await query("update organization_members set role='viewer' where user_id=$1 and organization_id=$2",[userId,org]);
+ assert.equal((await editar(`/api/agency/clients/${linkedId}`,{legal_representative_same_as_client:false})).status,403);
+ const redacted=(await detalle(linkedId)).record;
+ assert.equal(redacted.legal_representative_same_as_client,null);assert.equal(redacted.legal_representative_name,null);
+ await query("update organization_members set role='owner' where user_id=$1 and organization_id=$2",[userId,org]);
+ // La relación no modifica los snapshots contractuales emitidos.
+ await pg.exec(await fs.readFile(new URL('./migrations/20261017_contract_documents.sql',import.meta.url),'utf8'));
+ const template=(await query("insert into agency_contract_templates(organization_id,name,body,created_by) values($1,'Contrato fixture','Texto emitido',$2) returning id",[org,userId])).rows[0].id;
+ const contract=(await query("insert into agency_contracts(organization_id,template_id,title,body,client_id,created_by) values($1,$2,'Contrato fixture','Texto emitido',$3,$4) returning id",[org,template,linkedId,userId])).rows[0].id;
+ const version=(await query("insert into agency_contract_versions(organization_id,contract_id,version,title,body,rendered_text,variables,sources,template_id,template_revision,reviewed_by) values($1,$2,1,'Emitido','Cuerpo','Empresa separada',$3,'{}',$4,1,$5) returning *",[org,contract,JSON.stringify({'counterparty.legal_representative_name':'Empresa separada'}),template,userId])).rows[0];
+ await editar(`/api/agency/clients/${linkedId}`,{legal_name:'Identidad actual posterior'});
+ assert.deepEqual((await query('select * from agency_contract_versions where id=$1',[version.id])).rows[0],version,'el contrato emitido conserva su snapshot');
+ assert.equal(emptyLegal.client.legal_representative_same_as_client,false,'no se infiere una relación para otros clientes');
+ await query('alter table agency_clients add column if not exists personal_data_blocked_at timestamptz');
+ await query("update agency_clients set legal_representative_name='' where id=$1",[longLinked.client.id]);
+ await query('update agency_clients set personal_data_blocked_at=now() where id=$1',[longLinked.client.id]);
+ const suppressed=(await query('select legal_name,legal_representative_name,legal_representative_same_as_client from agency_clients where id=$1',[longLinked.client.id])).rows[0];
+ assert.equal(suppressed.legal_name,'R'.repeat(160),'la retención fiscal conserva la razón social');
+ assert.equal(suppressed.legal_representative_name,'','la supresión no reconstruye el representante');
+ assert.equal(suppressed.legal_representative_same_as_client,false);
+ console.log('PASS #239: vínculo explícito, rename/toggle/reopen, documentos independientes, permisos/tenant y snapshot emitido');
  const clientPaths={name:'Cliente paridad',email:'paridad@example.invalid',phone:'+595 981123456',tax_id:'80012345-6',legal_name:'Razón social de prueba',notes:'Nota de alta'};
  const altaCliente=await alta('/api/agency/clients',clientPaths);
  assert.equal(altaCliente.status,201,JSON.stringify(altaCliente));

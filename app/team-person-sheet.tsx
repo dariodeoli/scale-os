@@ -10,7 +10,7 @@ import {TeamMember,teamRoleLabels,isCurrentTeamMember} from './team-directory';
 import {PersonSheet,type SheetTab,type SheetTabId} from './person-sheet';
 import {AVISO_REFRESCO,completeSave} from './save-completion';
 import {notify} from './feedback';
-import {roleCan} from './capabilities';
+import {effectiveCapability} from './capabilities';
 
 export type Person={
   id:string;
@@ -115,7 +115,7 @@ function ProfileTab({role,person,member,seedEmail,load,onCreated}:{role:string;p
   </>;
 }
 
-function AccessTab({role,currentUserId,person,member,ambiguous,load}:{role:string;currentUserId:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;load:()=>Promise<void>}){
+function AccessTab({role,capabilities,currentUserId,person,member,ambiguous,load}:{role:string;capabilities?:Record<string,boolean>;currentUserId:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;load:()=>Promise<void>}){
   const editable=accessEditable(member,role,currentUserId);
   const [draft,setDraft]=useState<{role:string;active:string}|null>(null);
   const [busy,setBusy]=useState(''),[error,setError]=useState('');
@@ -144,7 +144,7 @@ function AccessTab({role,currentUserId,person,member,ambiguous,load}:{role:strin
   }
   const choices=[...(role==='owner'?['owner']:[]),'admin','management','finance','sales','production','editor','viewer','collaborator'].map(value=>({value,label:teamRoleLabels[value]||value}));
   return <section className="grid min-w-0 gap-3" aria-label="Acceso al panel">
-    <TeamAccess member={member} ambiguous={ambiguous} email={email} role={role} refresh={load}/>
+    <TeamAccess capabilities={capabilities} member={member} ambiguous={ambiguous} email={email} role={role} refresh={load}/>
     {ambiguous?<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>:null}
     {member&&!member.removed_at?(draft?<>
       <div className="ops-form-grid">
@@ -194,11 +194,11 @@ export type SheetTarget={personId:string|null;memberId:string|null;seedEmail:str
  * Ficha de una persona de Equipo. Cada pestaña guarda por separado (perfil,
  * acceso, remuneración): no hay un guardado a medias entre ellas (#186 E3).
  */
-export function TeamPersonSheet({role,currentEmail,currentUserId='',person,member,ambiguous,seedEmail,tab,defaultCurrency,load,onCreated,close}:{role:string;currentEmail:string;currentUserId?:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;seedEmail:string;tab:SheetTabId;defaultCurrency:string;load:()=>Promise<void>;onCreated:(person:Person)=>void;close:()=>void}){
-  const salaryView=roleCan(role,'salary.view');
-  const canManageAccess=roleCan(role,'members.manage');
+export function TeamPersonSheet({role,capabilities,currentEmail,currentUserId='',person,member,ambiguous,seedEmail,tab,defaultCurrency,load,onCreated,close}:{role:string;capabilities?:Record<string,boolean>;currentEmail:string;currentUserId?:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;seedEmail:string;tab:SheetTabId;defaultCurrency:string;load:()=>Promise<void>;onCreated:(person:Person)=>void;close:()=>void}){
+  const salaryView=effectiveCapability(role,'salary.view',capabilities);
+  const canManageAccess=effectiveCapability(role,'members.manage',capabilities);
   const tabs:SheetTab[]=[{id:'perfil',label:'Perfil',content:<ProfileTab role={role} person={person} member={member} seedEmail={seedEmail} load={load} onCreated={onCreated}/>}];
-  if(canManageAccess&&(person||member))tabs.push({id:'acceso',label:'Acceso',content:<AccessTab role={role} currentUserId={currentUserId} person={person} member={member} ambiguous={ambiguous} load={load}/>});
+  if(canManageAccess&&(person||member))tabs.push({id:'acceso',label:'Acceso',content:<AccessTab capabilities={capabilities} role={role} currentUserId={currentUserId} person={person} member={member} ambiguous={ambiguous} load={load}/>});
   // Sin `salary.view` la pestaña no se arma: ni su contenido ni sus datos existen.
   if(salaryView&&person)tabs.push({id:'remuneracion',label:'Remuneración',content:<PayTab person={person} defaultCurrency={defaultCurrency} load={load}/>});
   const title=person?'Editar persona':'Nueva persona';

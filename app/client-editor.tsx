@@ -9,6 +9,8 @@ import {api,Dialog,Editor} from './operations';
 import {roleCan} from './capabilities';
 import {completeSave} from './save-completion';
 import {ClientAppearance} from './client-identity';
+import {FinanceHistoryDialog} from './finance-history';
+import {financeHistory} from './finance-detail-data';
 import {RucConfirmCard,lookupRuc,rucApplyValues,type RucRecord} from './client-ruc';
 import {CLIENT_CREATE_DEFAULTS,clientCreatePayload,clientEditDefaults,clientFields,clientPatchPayload,planTermsPayload,type ClientRecord,type PlanTermsResponse} from './client-editor-data';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_CLIENT_FINALITY,PRIVACY_CLIENT_DETAIL} from './privacy-links';
@@ -32,6 +34,7 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
   const pendingRef=useRef<PendingRuc|null>(null);
   // RUC aplicado en esta edición: al guardar se refresca la ficha tributaria (estado, fuente y fecha) en el API.
   const rucAppliedRef=useRef(false);
+  const planRequest=useRef<{signature:string;id:string}|null>(null);
   pendingRef.current=pending;
   useEffect(()=>()=>{pendingRef.current?.reject(new Error('Consulta cancelada.'));},[]);
   // La consulta devuelve un registro, no escribe: la promesa del campo sólo se
@@ -57,8 +60,15 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
   }
   async function edit(values:Record<string,string>){
     const {client,planTouched}=clientPatchPayload(values,defaults);
+    let terms:ReturnType<typeof planTermsPayload>|null=null;
+    if(plan&&(planTouched||(planRequired&&!plan.terms))){
+      const draft=planTermsPayload(values,plan,'');
+      const signature=JSON.stringify(draft);
+      if(planRequest.current?.signature!==signature)planRequest.current={signature,id:crypto.randomUUID()};
+      terms={...draft,requestId:planRequest.current.id};
+    }
     if(client)await api(`/api/agency/clients/${clientId}`,client,'PATCH');
-    if(plan&&(planTouched||(planRequired&&!plan.terms)))await api(`/api/agency/clients/${clientId}/commercial-terms`,planTermsPayload(values,plan),'PATCH');
+    if(terms)await api(`/api/agency/clients/${clientId}/commercial-terms`,terms,'PATCH');
     if(rucAppliedRef.current){rucAppliedRef.current=false;await api(`/api/agency/clients/${clientId}/ruc-refresh`,{apply:true}).catch(()=>undefined);}
     await onSaved?.();
   }
@@ -90,14 +100,21 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
   refresh:()=>Promise<void>;
   onCreated?:(client:SavedClient,keepOpen:boolean)=>void;
 }){
-  const [record,setRecord]=useState<ClientRecord|null>(null),[plan,setPlan]=useState<PlanTermsResponse|null>(null),[error,setError]=useState(''),[planError,setPlanError]=useState('');
+  const [record,setRecord]=useState<ClientRecord|null>(null),[plan,setPlan]=useState<PlanTermsResponse|null>(null),[error,setError]=useState(''),[planError,setPlanError]=useState(''),[historyOpen,setHistoryOpen]=useState(false);
   const canPlan=mode==='edit'&&(canManageTerms??roleCan(role,'commercial-terms.manage'));
   async function load(){
     if(mode!=='edit')return;
     setError('');setPlanError('');
     try{
       setRecord((await api<{record:ClientRecord}>(`/api/agency/clients/${clientId}`)).record);
-      if(canPlan)try{setPlan(await api<PlanTermsResponse>(`/api/agency/clients/${clientId}/commercial-terms`));}catch(cause){setPlanError(errorText(cause));}
+      if(canPlan)try{
+        // Capturar primero la revisión: nunca asociar un token nuevo a un borrador anterior.
+        let revision:string|undefined;
+        try{const history=financeHistory(await api(`/api/agency/clients/${clientId}/plan-history`));if(!history)throw Error('El historial recibió datos inválidos.');revision=history.revision;}catch(cause){setPlanError(errorText(cause));}
+        const terms=await api<PlanTermsResponse>(`/api/agency/clients/${clientId}/commercial-terms`);
+        terms.historyRevision=revision===undefined?undefined:terms.revision??revision;
+        setPlan(terms);
+      }catch(cause){setPlanError(errorText(cause));}
     }catch(cause){setError(errorText(cause));}
   }
   useEffect(()=>{void load();},[clientId,mode]);// eslint-disable-line react-hooks/exhaustive-deps
@@ -108,7 +125,9 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
     {/* Finalidad declarada donde la agencia carga datos de un tercero (#114). */}
     <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
     {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
-    {mode==='edit'&&record&&<ClientAppearance id={String(clientId)} name={String(record.name??'')} logo={String(record.logo_url??'')} color={String(record.color_key??'')} showIdentity={false} refresh={async()=>{await refresh();await load();}}/>}
+    {mode==='edit'&&record&&<ClientAppearance id={String(clientId)} name={String(record.name??'')} logo={String(record.logo_url??'')} color={String(record.color_key??'')} legalName={String(record.legal_name??'')} representativeName={String(record.legal_representative_name??'')} linked={record.legal_representative_same_as_client===true} restricted={record.contact_restricted===true} refresh={async()=>{await refresh();await load();}}/>}
+    {canPlan&&record?<button type="button" className="secondary mb-3" onClick={()=>setHistoryOpen(true)}>Historial del plan</button>:null}
+    {historyOpen&&clientId&&record?<FinanceHistoryDialog kind="plan" id={clientId} name={String(record.name??'')} close={()=>setHistoryOpen(false)}/>:null}
     {planError&&<Aviso tono="error" compact role="alert">{planError}</Aviso>}
     {ready?<ClientEditor mode={mode} clientId={clientId} record={record} plan={plan} planRequired={planFocus&&canPlan} onCreated={onCreated} onSaved={()=>completeSave(close,refresh)}/>:!error&&<p role="status">Cargando cliente…</p>}
   </Dialog>;

@@ -11,6 +11,7 @@ const comisiones=sectionSource('comisiones.tsx');
 const pre=read('app/financial-forecast.tsx');
 const informes=read('app/reports-workspace.tsx');
 const controls=read('app/daily-controls.tsx');
+const balance=read('app/finance-balance.tsx'),clients=read('app/finance-clients.tsx'),personnel=read('app/finance-personnel.tsx'),balanceCss=read('app/finance-balance.css');
 
 // ── Finanzas: transferencias finitas sin scroll permanente y ayudas en tooltip.
 assert.match(finanzas,/const TRANSFER_TEMPLATE = 'grid-cols-\[minmax\(12rem,1fr\)_6\.5rem_minmax\(15rem,1fr\)\]'/,'la transferencia declara 3 columnas');
@@ -34,12 +35,26 @@ assert.doesNotMatch(comisiones,/rounded-full text-\[17px\] font-semibold[^>]*>Co
 assert.match(comisiones,/title=\{commissionBasisText\(commission/,'la base de cálculo va en el tooltip del importe');
 assert.match(comisiones,/label: 'Importe fijo'/,'el diálogo de comisión usa etiquetas cortas');
 
-// ── Previsión: pares en 2 columnas ≥1440, definition en tooltips y render único.
+// ── Previsión: ingresos/resumen en 2 columnas ≥1440; detalle operativo único en Balance (#238).
 assert.match(pre,/min-\[1440px\]:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/,'los pares de tarjetas usan 2 columnas desde 1440');
-assert.equal((pre.match(/min-\[1440px\]:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/g)||[]).length,2,'dos pares: ingresos/resumen y contratos/salarios');
+assert.equal((pre.match(/min-\[1440px\]:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/g)||[]).length,1,'Previsión conserva el par ingresos/resumen; no duplica las listas de Balance');
 assert.match(pre,/title=\{\`\$\{data\.definition\.issued\} \$\{data\.definition\.accepted_uninvoiced\}\`\}/,'la definición de ingresos viaja en el tooltip');
 assert.match(pre,/title=\{data\.definition\.planned_expenses\}/,'la definición de gastos planificados viaja en el tooltip');
 assert.doesNotMatch(pre,/md:hidden/,'las listas de la previsión ya no duplican ramas por breakpoint');
+assert.match(balance,/<FinanceClientsSection/,'Balance monta el detalle de clientes');
+assert.match(balance,/<FinancePersonnelSection/,'Balance monta el detalle de salarios');
+assert.doesNotMatch(pre,/<FinanceClientsSection|<FinancePersonnelSection|forecast-person-row/,'el detalle no se replica en la proyección');
+assert.match(balanceCss,/\.finance-balance-columns\{[^}]*grid-template-columns:minmax\(0,1fr\)/,'los dos paneles completos se apilan y no comprimen sus columnas en media pantalla');
+for(const [source,template] of [[clients,'CLIENT_FINANCE_COLUMNS'],[personnel,'PERSONNEL_COLUMNS']]){
+ assert.match(source,new RegExp(`<ListGrid[^>]*template=\\{${template}\\}`),'encabezado y filas usan la misma plantilla');
+ assert.match(source,new RegExp(`<ListRow template=\\{${template}\\}`),'las filas comparten la plantilla del encabezado');
+ assert.match(source,/PersonContainer/,'cada fila conserva identidad visual canónica');
+ assert.doesNotMatch(source,/md:hidden/,'una sola lista sirve para móvil y escritorio');
+ assert.match(source,/MoneyText/,'los montos usan el formateador común');
+}
+assert.match(balanceCss,/\.finance-detail-amount\{[^}]*white-space:nowrap[^}]*text-align:right[^}]*tabular-nums/,'los importes alinean y conservan la cifra completa');
+assert.match(balanceCss,/\.finance-client-table>div\{min-width:max\(/,'las columnas grandes crecen en el scroll de la tabla, no en la página');
+assert.match(balanceCss,/\.finance-personnel-table>div\{min-width:max\(/,'personal mantiene sus columnas al reducir la pantalla');
 
 // ── Informes: exportaciones en el header, ayudas en acordeón y tabla ajustada.
 assert.match(informes,/<ListPage [\s\S]{0,2200}primaryAction=\{<>[\s\S]{0,2200}downloadReportsCsv\(data!,selectedCurrency\)[\s\S]{0,1200}printReportsPdf\(/,'las exportaciones viven en el header');
@@ -55,4 +70,4 @@ assert.match(informes,/label:'Antigüedad \(días · con fecha\)'/,'la antigüed
 assert.match(controls,/id="finance-salaries-title"|Conciliación por extracto/,'el dominio conserva sus paneles');
 assert.match(controls,/title="Compará el extracto con los movimientos registrados/,'la explicación de conciliación pasa al tooltip');
 
-console.log('PASS densidad FIN: una toolbar, chips por señal, subtabs, pares 2×1440, render único y ayudas en tooltip (#101)');
+console.log('PASS densidad FIN: una toolbar, chips, subtabs, proyección 2×1440 y detalle único de Balance con columnas alineadas e importes completos (#101 #238)');

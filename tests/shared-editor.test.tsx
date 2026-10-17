@@ -112,6 +112,9 @@ async function main(){
   await act(async()=>{await submit(r!);});
   assert.equal(numberWrites.length,0,'decimals never reach an integer save');
   assert(JSON.stringify(r!.toJSON()).includes('Ingresá un número entero'));
+  await act(async()=>{numberInput.props.onChange({target:{name:'probability',value:'10.00'},type:'change'});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(numberWrites.length,0,'cantidades y porcentajes siguen rechazando incluso .00');
   await act(async()=>{r!.root.findByType('input').props.onChange({target:{name:'probability',value:'70'},type:'change'});});
   await act(async()=>{await submit(r!);});
   assert.equal(numberWrites.at(-1)!.probability,'70');

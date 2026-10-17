@@ -20,6 +20,7 @@ const allowlist: Record<string, {count: number; why: string}> = {
   'app/client-commercial-lifecycle-data.ts': {count: 1, why: 'valida AAAA-MM-DD ida y vuelta'},
   'app/client-format.ts': {count: 1, why: 'addCivilDays: suma días civiles anclados a T12:00Z'},
   'app/client-reporting-data.ts': {count: 1, why: 'valida AAAA-MM-DD ida y vuelta'},
+  'app/commercial-change-context.ts': {count: 1, why: 'valida una fecha civil escrita con round-trip UTC; el mes por defecto usa todayAsuncion'},
   'app/ia-cobro-data.ts': {count: 1, why: 'valida AAAA-MM-DD ida y vuelta anclada a T12:00Z'},
   'app/inventory-data.ts': {count: 1, why: 'aritmética de días civiles anclados a T00:00Z'},
   'app/production-filter.ts': {count: 2, why: 'semana civil calculada sobre T12:00Z'},

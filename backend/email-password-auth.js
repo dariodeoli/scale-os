@@ -1,5 +1,6 @@
 import {fail} from './suite-validation.js';
 import crypto from 'node:crypto';
+import {passwordAccount} from './existing-account.js';
 import bcrypt from 'bcryptjs';
 import {claimInvite,resolveInvite} from './invite-links.js';
 import {trialDetailsFromInput,registerTrial} from './trial-registration.js';
@@ -56,15 +57,33 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
  if(req.method!=='POST'){send(res,405,{error:'Método no permitido'});return true;}
  let client;
  try{
-  const input=await body(req);
+  const input=(await body(req))||{};
   if(path==='/api/auth/password/register'){
+   const email=emailOf(input.email),password=typeof input.password==='string'?input.password:'';
+   if(!password)fail('Ingresá tu correo y contraseña');
+   // Each public phase has its own pre-lookup budget: ten legitimate
+   // resolve + final pairs remain ten enrollments, while neither phase can
+   // be used for unlimited identity probing. Normal login has its own budget.
+   const publicScope=input.intent==='resolve'?'password-signup-resolve':'password-signup';
+   if(!await throttleClient(db,req,publicScope,10))fail('Intentá nuevamente en unos minutos.',429);
+   if(!await throttleClient(db,req,'login',60)||!await throttle(db,'login:'+email,30))fail('Demasiados intentos. Esperá 15 minutos.',429);
+   client=await db.connect();await client.query('begin');
+   await client.query('select pg_advisory_xact_lock(hashtextextended($1,0))',['trial-registration:'+email]);
+   const account=await passwordAccount(client,email,password,{allowUnknown:true});
+   if(account){
+    const token=id();
+    await client.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '7 days')",[token,account.userId,account.organizationId]);
+    await client.query('commit');client.release();client=null;
+    send(res,200,{ok:true,existing:true,redirect:account.redirect,pending:account.pending},{'Set-Cookie':cookie('scale_session',token,604800)});return true;
+   }
+   if(input.intent==='resolve'){
+    await client.query('commit');client.release();client=null;
+    send(res,200,{requiresAgency:true});return true;
+   }
    if(!emailAvailable)fail('El registro con correo todavía no está disponible. Usá Google o contactá al administrador.',503);
-   const email=emailOf(input.email),password=String(input.password||'');
    validatePassword(password,email);
    const trial=trialDetailsFromInput(input);
-   // El alta revela si el correo ya tiene cuenta (409): tope por cliente antes de mirar la base.
-   if(!await throttleClient(db,req,'password-signup',10)||!await throttle(db,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
-   client=await db.connect();await client.query('begin');
+   if(!await throttle(client,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
    const user=await createUnverifiedUser(client,{email,password});
    const token=await issueVerification(client,{userId:user.id,purpose:'trial',payload:{company:trial.name,currency:trial.currency,full_name:nameOf(input.full_name)}});
    await client.query('commit');client.release();client=null;
@@ -116,7 +135,7 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
   if(!validToken(raw))fail('El enlace de verificación no es válido.');
   client=await db.connect();await client.query('begin');
   const saved=(await client.query(`select v.*,u.email from auth_email_verifications v join users u on u.id=v.user_id
-    where v.token_hash=$1 and v.used_at is null and v.expires_at>now() for update of v,u`,[tokenHash(raw)])).rows[0];
+    where v.token_hash=$1 and v.used_at is null and v.expires_at>now() for update of v`,[tokenHash(raw)])).rows[0];
   if(!saved)fail('El enlace venció o ya fue utilizado. Solicitá uno nuevo.');
   let account;
   const payload=saved.payload&&typeof saved.payload==='object'?saved.payload:{};
@@ -133,9 +152,9 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
   const sessionToken=id();
   await client.query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '7 days')",[sessionToken,account.userId,account.organizationId]);
   await client.query('commit');client.release();client=null;
-  send(res,200,{ok:true,pending:account.pending===true,trial: saved.purpose==='trial'},{'Set-Cookie':cookie('scale_session',sessionToken,604800)});return true;
+  send(res,200,{ok:true,pending:account.pending===true,trial: saved.purpose==='trial'&&account.created===true},{'Set-Cookie':cookie('scale_session',sessionToken,604800)});return true;
  }catch(error){
   if(client){try{await client.query('rollback');}catch{}client.release();}
-  send(res,error.status||500,{error:error.status?error.message:'No se pudo completar el registro. Intentá nuevamente.'});return true;
+  send(res,error.status||500,{error:error.status?error.message:'No se pudo completar el registro. Intentá nuevamente.',...(error.code?{code:error.code}:{})});return true;
  }
 }

@@ -56,11 +56,11 @@ test('el panel de equipo gatea el acceso por personas y no consulta comisiones',
   const operations = read('app/team-workspace.tsx') + read('app/operations.tsx');
   // Equipo sigue a quienes gestionan personas o ven salarios; Comisiones vive en
   // su propia sección de Finanzas (issue #45) y este panel ya no consulta sus endpoints.
-  assert.match(operations, /const allowed=canOpenPeopleWorkspace\(role\);/);
+  assert.match(operations, /const allowed=canOpenPeopleWorkspace\(role,capabilities\);/);
   assert.doesNotMatch(operations, /\/api\/agency\/commissions/, 'Equipo no consulta comisiones');
   assert.doesNotMatch(operations, /\/api\/agency\/payouts/, 'los pagos a colaboradores viven en Finanzas');
-  assert.match(operations, /const canManageAccess=roleCan\(role,'members\.manage'\)/);
-  assert.match(read('app/team-access.tsx'), /const manage=roleCan\(role,'members\.manage'\)/);
+  assert.match(operations, /const canManageAccess=effectiveCapability\(role,'members\.manage',capabilities\)/);
+  assert.match(read('app/team-access.tsx'), /const manage=effectiveCapability\(role,'members\.manage',capabilities\)/);
   assert.match(read('app/archive-controls.tsx'), /const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/);
 });
 

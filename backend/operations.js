@@ -16,7 +16,7 @@ import {logPersonalDataAccess} from './personal-data.js';
 // y solo agrega la regla de negocio: el cero no es un importe válido salvo que el
 // campo lo admita explícitamente (compensación y comisión fija).
 const money=(value,zero=false)=>{const n=amount(value);if(!zero&&n===0)fail('Importe inválido');return n;};
-function monthlySalary(value) { const raw=typeof value==='string'?value.trim():value;if((typeof raw!=='number'&&typeof raw!=='string')||(typeof raw==='string'&&!/^\d+$/.test(raw)))fail('El salario mensual debe ser un importe entero válido');const n=Number(raw);if(!Number.isSafeInteger(n)||n<=0||n>999999999999)fail('El salario mensual debe ser un importe entero válido');return n; }
+function monthlySalary(value) { if(value===null)return null;const raw=typeof value==='string'?value.trim():value;if((typeof raw!=='number'&&typeof raw!=='string')||(typeof raw==='string'&&!/^\d+$/.test(raw)))fail('El salario mensual debe ser un importe entero válido');const n=Number(raw);if(!Number.isSafeInteger(n)||n<=0||n>999999999999)fail('El salario mensual debe ser un importe entero válido');return n; }
 function salaryOverrideAmount(value) { const raw=typeof value==='string'?value.trim():value;if((typeof raw!=='number'&&typeof raw!=='string')||(typeof raw==='string'&&!/^-?\d+$/.test(raw)))fail('El ajuste del mes debe ser un importe entero distinto de cero');const n=Number(raw);if(!Number.isSafeInteger(n)||n===0||Math.abs(n)>999999999999)fail('El ajuste del mes debe ser un importe entero distinto de cero');return n; }
 async function belongs(c,table,id,org) { if(!id)return;const row=(await c.query(`select * from ${table} where id=$1 and organization_id=$2`,[id,org])).rows[0];if(!row)fail('Registro no encontrado',404);await assertRecordAvailable(c,table,row); }
 export async function operations({req,res,url,db,session,body,send,sendInvitation=async()=>false}) {
@@ -42,6 +42,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
   await c.query('begin');
   await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket.remoteAddress||'']);
   const org=user.organization_id;
+  if(req.method!=='GET'&&(collaboratorMatch||salaryOverrideMatch))await lockFinanceMutation(c,org);
   let result, status=200, notifyEmail=null;
   const withoutSalary=row=>{if(roleCan(user,'salary.view'))return row;return {...row,compensation_amount:null,monthly_salary_amount:null,monthly_salary_currency:null,payment_day:null,invoices_company:null};};
   if(teamRoute){
@@ -121,7 +122,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    else if(req.method==='POST'||(req.method==='PATCH'&&collaboratorMatch[1])) {
     let previous={};if(collaboratorMatch[1]){previous=(await c.query('select * from agency_collaborators where id=$1 and organization_id=$2 for update',[collaboratorMatch[1],org])).rows[0];if(!previous)fail('Registro no encontrado',404);await assertRecordAvailable(c,'agency_collaborators',previous);}
     const incoming=await body(req), b={compensation_type:'fixed',compensation_amount:0,active:true,...previous,...incoming};
-    if(!roleCan(user,'salary.view')&&(Object.hasOwn(incoming,'compensation_amount')||Object.hasOwn(incoming,'monthly_salary_amount')||Object.hasOwn(incoming,'monthly_salary_currency')||Object.hasOwn(incoming,'payment_day')||Object.hasOwn(incoming,'invoices_company')))fail('Tu rol no permite editar salarios',403);
+    if(!roleCan(user,'salary.view')&&(Object.hasOwn(incoming,'compensation_type')||Object.hasOwn(incoming,'currency')||Object.hasOwn(incoming,'compensation_amount')||Object.hasOwn(incoming,'monthly_salary_amount')||Object.hasOwn(incoming,'monthly_salary_currency')||Object.hasOwn(incoming,'payment_day')||Object.hasOwn(incoming,'invoices_company')))fail('Tu rol no permite editar salarios',403);
     if(!collaboratorMatch[1]&&b.currency===undefined)b.currency=await companyCurrency(c,org);
     const name=text(b.full_name,120);if(name.length<2) fail('Ingresá el nombre');
     for(const key of ['started_on','ended_on'])if(b[key] instanceof Date)b[key]=b[key].toISOString().slice(0,10);
@@ -149,8 +150,19 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
         select $1,$2,$3,case when $3::text is null then now() else null end from organization_person_identity where user_id=$1 and organization_id=$4 and not is_demo
         on conflict(user_id) do update set photo_url=excluded.photo_url,photo_removed_at=excluded.photo_removed_at,updated_at=now()`,[uid,name,photo||null,org]);
     }
-    const salaryAmount=Object.hasOwn(incoming,'monthly_salary_amount')?monthlySalary(incoming.monthly_salary_amount):previous.monthly_salary_amount??null,salaryCurrency=salaryAmount===null?null:option(b.monthly_salary_currency||'PYG',currencies);
-    const values=[org,uid,name,contact,photo||null,jobTitle,option(b.compensation_type,['fixed','variable','hourly','per_project']),money(b.compensation_amount,true),Boolean(b.invoices_company),start,day,b.active!==false,text(b.notes||''),option(b.currency,currencies),end,salaryAmount,salaryCurrency];
+    const compensationType=option(b.compensation_type,['fixed','variable','hourly','per_project']),compensationAmount=money(b.compensation_amount,true),compensationCurrency=option(b.currency,currencies);
+    let salaryAmount=Object.hasOwn(incoming,'monthly_salary_amount')?monthlySalary(incoming.monthly_salary_amount):previous.monthly_salary_amount??null,salaryCurrency=salaryAmount===null?null:option(b.monthly_salary_currency||'PYG',currencies);
+    // Fixed remuneration and its explicit monthly amount describe one salary.
+    // Team edits must not leave the monthly snapshot shadowing a stale amount.
+    // Other modalities keep an independent fee; contact-only saves do not create
+    // an agreement, nor replace an explicitly supplied monthly salary.
+    const compensationChanged=(Object.hasOwn(incoming,'compensation_type')&&compensationType!==previous.compensation_type)||(Object.hasOwn(incoming,'compensation_amount')&&compensationAmount!==Number(previous.compensation_amount))||(Object.hasOwn(incoming,'currency')&&compensationCurrency!==previous.currency);
+    const explicitMonthly=Object.hasOwn(incoming,'monthly_salary_amount')||Object.hasOwn(incoming,'monthly_salary_currency');
+    if(previous.id&&compensationType==='fixed'&&salaryAmount!==null&&compensationChanged&&!explicitMonthly){
+     if(compensationCurrency==='PYG'&&!Number.isInteger(compensationAmount))fail('El salario en guaraníes debe ser un entero');
+     salaryAmount=compensationAmount;salaryCurrency=compensationCurrency;
+    }
+    const values=[org,uid,name,contact,photo||null,jobTitle,compensationType,compensationAmount,Boolean(b.invoices_company),start,day,b.active!==false,text(b.notes||''),compensationCurrency,end,salaryAmount,salaryCurrency];
     if(collaboratorMatch[1]) {await belongs(c,'agency_collaborators',collaboratorMatch[1],org);values.push(collaboratorMatch[1]);result={collaborator:(await c.query('update agency_collaborators set user_id=$2,full_name=$3,email=$4,photo_url=$5,job_title=$6,compensation_type=$7,compensation_amount=$8,invoices_company=$9,started_on=$10,payment_day=$11,active=$12,notes=$13,currency=$14,ended_on=$15,monthly_salary_amount=$16,monthly_salary_currency=$17,updated_at=now() where organization_id=$1 and id=$18 returning *',values)).rows[0]};}
     else {result={collaborator:(await c.query('insert into agency_collaborators(organization_id,user_id,full_name,email,photo_url,job_title,compensation_type,compensation_amount,invoices_company,started_on,payment_day,active,notes,currency,ended_on,monthly_salary_amount,monthly_salary_currency) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) returning *',values)).rows[0]};status=201;}
     result.collaborator=(await c.query('update agency_collaborators set job_role_id=$1 where id=$2 and organization_id=$3 returning *',[jobId,result.collaborator.id,org])).rows[0];result.access={status:access.status};result.collaborator=withoutSalary(result.collaborator);
@@ -160,7 +172,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    const month=forecastMonth(url.searchParams.get('month'));
    const [expected,recorded]=await Promise.all([
     c.query(`select r.id::text as recipient_id,r.full_name as name,t.currency,coalesce(sum(case when t.commission_mode='percentage' then round(coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)*t.commission_value/100.0,0) when t.commission_mode='fixed' then t.commission_value else 0 end),0)::text as expected_amount
-     from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
+     from agency_commercial_terms_for_month($1,$2::date) t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
      join agency_collaborators r on r.organization_id=t.organization_id and r.id=t.commission_recipient_id
      where t.organization_id=$1 and t.starts_on<($2::date+interval '1 month')::date and c.active=true and r.active=true and ${visibleRecord('c','clients')} and ${visibleRecord('r','collaborators')}
      group by r.id,r.full_name,t.currency order by r.full_name,t.currency`,[org,`${month}-01`]),

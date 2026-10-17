@@ -34,13 +34,10 @@ async function run(){
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});
  await respond(requests.at(-1)!,data);
  const text=rendered();
- assert.match(text,/Plan Growth/,'el nombre del plan se dibuja');
- assert.match(text,/Cliente Sin Plan/,'los clientes activos sin plan también figuran');
- assert.match(text,/Sin plan/,'el cliente sin plan se marca');
- assert.match(text,/Persona Sin Fijo/,'la persona sin salario fijo conserva su nombre');
- assert.match(text,/Sin salario fijo/,'el chip vive en la columna de salario');
- assert.ok(text.indexOf('Contratos vs facturación')<text.indexOf('Salarios'),'clientes a la izquierda, salarios a la derecha');
+ assert.doesNotMatch(text,/Plan Growth|Cliente Sin Plan|Persona Sin Fijo/,'el detalle de clientes y personas sólo se muestra en Balance');
+ assert.doesNotMatch(text,/Contratos vs facturación|Editar salario/,'no se duplican tablas ni formularios operativos en Previsión');
+ assert.match(text,/Ingresos vs gastos/,'Previsión conserva sus agregados y proyección');
  act(()=>renderer.unmount());
- console.log('PASS previsión: clientes activos con plan (o Sin plan) y salarios con nombre visible');
+ console.log('PASS previsión: proyección conserva agregados sin duplicar el detalle operativo trasladado a Balance (#238)');
 }
 run().catch(error=>{console.error(error);process.exit(1);});

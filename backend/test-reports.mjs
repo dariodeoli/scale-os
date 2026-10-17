@@ -1,3 +1,4 @@
+import {economicFixtureSchema} from './scripts/test-economic-schema.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -21,11 +22,13 @@ await pg.exec(migration);
 const observed=await one('select * from agency_client_reporting_events where client_id=$1',[legacy]);
 assert.equal(observed.event_kind,'observed');assert.equal(observed.relationship_started_on,null);assert.equal(observed.customer_kind,'unknown');
 await pg.exec(migration);assert.equal((await one('select count(*)::int n from agency_client_reporting_events where client_id=$1',[legacy])).n,1);
+await economicFixtureSchema(pg);
 let n=0;const fixed=new Date('2024-04-15T15:00:00Z');
 const uid=(await one("insert into users(email,password_hash) values('reports@example.invalid','unused') returning id")).id;
 await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[org,uid]);
 let user={id:uid,organization_id:org,role:'owner'};
 async function call(path,method='GET',input={},as=user,handler=reports){
+ if(method==='PATCH'&&path.includes('/commercial-terms')&&input.effectiveFrom===undefined)input={...input,effectiveFrom:input.startsOn};
  let result;assert.equal(await handler({req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://fixture.invalid'+path),db,session:async()=>as,body:async()=>input,send:(_,status,data)=>{result={status,...data};}}),true);n++;return result;
 }
 const fresh=(await one("insert into organizations(slug,name) values('reports-fresh','Fresh') returning id")).id;
@@ -188,9 +191,9 @@ assert.equal(cycleRead.status,200);
 assert.equal(cycleRead.terms?.planName,'Plan ciclo','the lifecycle snapshot row is served instead of null');
 assert.deepEqual({planId:cycleRead.terms.planId,planName:cycleRead.terms.planName,recurringAmount:cycleRead.terms.recurringAmount,commissionMode:cycleRead.terms.commissionMode,startsOn:cycleRead.terms.startsOn,cadence:cycleRead.terms.cadence},{planId:'',planName:'Plan ciclo',recurringAmount:90000,commissionMode:'none',startsOn:'2026-01-01',cadence:'monthly'},'the lifecycle snapshot row is served with its plan snapshot and net recurring amount');
 // El mismo período no se reescribe: la enmienda necesita una fecha posterior.
-const cycleRefused=await call(termsPath,'PATCH',{planId:String(termsPlan.id),recurringAmount:'130000',currency:'PYG',startsOn:'2026-01-01',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null},user);
-assert.equal(cycleRefused.status,409,'a same-day edit of a cycle term is refused, never rewritten');
-assert.match(cycleRefused.error,/ciclo comercial/,'the refusal explains where the term comes from');
+const cycleRefused=await call(termsPath,'PATCH',{planId:String(termsPlan.id),recurringAmount:'130000',currency:'PYG',startsOn:'2025-12-31',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null},user);
+assert.equal(cycleRefused.status,409,'an amendment cannot precede the earliest current agreement');
+assert.match(cycleRefused.error,/vigencia/,'the refusal explains the invalid effective date');
 const untouched=(await query('select plan_id,recurring_amount,monthly_price::text as monthly_price,plan_name,version from agency_client_commercial_terms where organization_id=$1 and client_id=$2',[org,termsClient.id])).rows;
 assert.deepEqual(untouched,[{plan_id:null,recurring_amount:null,monthly_price:'100000.00',plan_name:'Plan ciclo',version:1}],'the refused edit never touched the cycle row');
 // Con una fecha posterior, la ficha cierra el término del ciclo (version+1) y anexa el nuevo.

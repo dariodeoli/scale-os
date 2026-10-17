@@ -54,7 +54,8 @@ const read=file=>fs.readFile(new URL(file,import.meta.url),'utf8');
 const pg=new PGlite();await pg.exec(await read('./schema.sql'));
 for(const f of migrationOrder)await pg.exec(await read('./migrations/'+f));
 const seen=[];
-const query=(s,v)=>{seen.push(String(s));return pg.query(s,v);},db={query,connect:async()=>({query,release(){}})};
+let connectionRequests=0;
+const query=(s,v)=>{seen.push(String(s));return pg.query(s,v);},db={query,connect:async()=>{connectionRequests++;return {query,release(){}};}};
 const touched=pattern=>seen.filter(sql=>pattern.test(sql)).length;
 
 // requestClientKey: hash sin IP en crudo, X-Forwarded-For primero.
@@ -80,18 +81,44 @@ const lookupsBefore=touched(/from agency_invite_links/);
 assert.equal((await inviteRegister(99)).status,429,'tope por cliente aunque cambie el correo');
 assert.equal(touched(/from agency_invite_links/),lookupsBefore,'el 429 no consultó el enlace');
 
-// Alta con correo: el 409 «ya existe» queda detrás del tope por cliente.
+// Alta con correo: ninguna búsqueda de identidad queda delante del tope público.
 await pg.query("insert into users(email,password_hash,email_verified_at) values('existe@example.invalid','x',now())");
-async function signup(email,ip='203.0.113.11'){
+async function signup(email,ip='203.0.113.11',intent){
  let response;
  await emailPasswordAuth({req:{method:'POST',headers:{'x-forwarded-for':ip}},res:{},url:new URL('https://admin.scaleparaguay.com/api/auth/password/register'),db,
-  body:async()=>({email,password:'ClaveSegura!2026',company:'Agencia',currency:'USD',consent:true}),send:(_,status,data)=>{response={status,data};},sendVerification:async()=>true,emailAvailable:true,cookie:()=>'',id:()=>'x'});
+  body:async()=>({email,password:'ClaveSegura!2026',...(intent?{intent}:{company:'Agencia',currency:'USD',consent:true})}),send:(_,status,data)=>{response={status,data};},sendVerification:async()=>true,emailAvailable:true,cookie:()=>'',id:()=>'x'});
  return response;
 }
 for(let i=0;i<10;i++)await signup(`nuevo${i}@example.invalid`);
-const usersBefore=touched(/from users where email=\$1 for update/);
+const identityQueries=()=>touched(/\b(?:from|join)\s+users\b/i);
+const usersBefore=identityQueries(),connectionsBefore=connectionRequests;
 assert.equal((await signup('existe@example.invalid')).status,429,'no revela que la cuenta existe');
-assert.equal(touched(/from users where email=\$1 for update/),usersBefore);
+assert.equal(identityQueries(),usersBefore,'el 429 no ejecutó ningún SELECT de identidad');
+assert.equal(connectionRequests,connectionsBefore,'el presupuesto corta antes de retener una conexión');
+
+// Resolve no puede usarse para evadir la protección rotando correos. El
+// presupuesto también corre antes de la contraseña y no consume otra conexión.
+for(let i=0;i<10;i++){
+ const response=await signup(`resolve-attack${i}@example.invalid`,'203.0.113.13','resolve');
+ assert.equal(response.status,200);assert.equal(response.data.requiresAgency,true);
+}
+const resolveQueries=identityQueries(),resolveConnections=connectionRequests;
+assert.equal((await signup('existe@example.invalid','203.0.113.13','resolve')).status,429);
+assert.equal(identityQueries(),resolveQueries,'resolve limitado no busca la identidad existente');assert.equal(connectionRequests,resolveConnections);
+
+// Dos fases legítimas: diez pares desde un cliente pasan completos, sin que
+// resolve descuente también un alta final. La fase inicial jamás crea usuarios.
+for(let i=0;i<10;i++){
+ const email=`paired-new${i}@example.invalid`;
+ const resolved=await signup(email,'203.0.113.14','resolve');assert.equal(resolved.status,200);assert.equal(resolved.data.requiresAgency,true);
+ assert.equal((await pg.query('select 1 from users where email=$1',[email])).rows.length,0);
+ assert.equal((await signup(email,'203.0.113.14')).status,202);
+ assert.equal((await pg.query('select email_verified_at from users where email=$1',[email])).rows[0].email_verified_at,null);
+}
+const pairedQueries=identityQueries();
+assert.equal((await signup('existe@example.invalid','203.0.113.14','resolve')).status,429);
+assert.equal((await signup('existe@example.invalid','203.0.113.14')).status,429);
+assert.equal(identityQueries(),pairedQueries,'ambas fases rechazan consultas tras agotar su presupuesto');
 
 // Recuperar contraseña: tras el tope por cliente ya no se busca la cuenta (respuesta idéntica).
 async function resetRequest(email,ip='203.0.113.12'){
@@ -139,7 +166,7 @@ assert.equal((await preview('203.0.113.14')).status,410,'otro cliente sigue pudi
 {
  const server=await read('./server.js');
  const block=server.slice(server.indexOf("url.pathname === '/api/auth/login'"),server.indexOf("url.pathname === '/api/auth/providers'"));
- assert.ok(block.indexOf("throttleClient(db,req,'login'")>0&&block.indexOf("throttleClient(db,req,'login'")<block.indexOf('from users where email'),'login: límite antes de la búsqueda');
+ assert.ok(block.indexOf("throttleClient(db,req,'login'")>0&&block.indexOf("throttleClient(db,req,'login'")<block.indexOf('passwordAccount(db,e,password)'),'login: límite antes de la búsqueda');
 }
 
 // ── (c) Compare-and-set en el cambio de contraseña ───────────────────────────

@@ -78,10 +78,11 @@ const forecastSnapshot=async(db,organizationId,label)=>{
    select c.id as collaborator_id,c.user_id as user_id,
     coalesce(nullif(c.full_name,''),u.email) as name,
     p.photo_url as photo_url,
-    c.currency as currency,c.compensation_type as compensation_type,
-    case when c.compensation_type='fixed' and c.compensation_amount>0 then c.compensation_amount else 0 end as base_amount,
+    coalesce(h.salary->>'currency',c.currency) as currency,coalesce(h.salary->>'compensation_type',c.compensation_type) as compensation_type,
+    case when h.salary->>'compensation_type'='fixed' or h.salary->>'monthly_salary_amount' is not null then coalesce((h.salary->>'amount')::numeric,0) else 0 end as base_amount,
     coalesce((select sum(o.amount) from agency_salary_month_overrides o where o.organization_id=c.organization_id and o.collaborator_id=c.id and o.month=$2::date),0) as override_amount
    from agency_collaborators c
+   left join lateral(select agency_salary_at(c.organization_id,c.id,($2::date+interval '1 month -1 day')::date) as salary) h on true
    left join users u on u.id=c.user_id
    left join agency_user_profiles p on p.user_id=c.user_id and p.organization_id=c.organization_id
    where c.organization_id=$1 and c.active=true and ${visibleRecord('c','collaborators')}
@@ -98,7 +99,7 @@ const forecastSnapshot=async(db,organizationId,label)=>{
   from included group by currency order by currency`,[organizationId,`${label}-01`]);
  const [contractedRecurring,collectedActual,commissionForecast,plannedExpenses]=await Promise.all([
   db.query(`select t.currency,count(*)::int as client_count,coalesce(sum(coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)),0)::text as amount
-   from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
+   from agency_commercial_terms_for_month($1,$2::date) t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
    where t.organization_id=$1 and t.cadence='monthly' and t.starts_on<($2::date+interval '1 month')::date and (t.ends_on is null or t.ends_on>=$2::date) and c.active=true and ${visibleRecord('c','clients')}
    group by t.currency order by t.currency`,[organizationId,`${label}-01`]),
   db.query(`with movements as (
@@ -107,7 +108,7 @@ const forecastSnapshot=async(db,organizationId,label)=>{
     select a.currency,-p.amount,r.reversed_on from agency_payment_reversals r join agency_payments p on p.id=r.payment_id and p.organization_id=r.organization_id join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id where r.organization_id=$1
    ) select currency,coalesce(sum(amount),0)::text as amount from movements where booked_on>=$2::date and booked_on<($2::date+interval '1 month')::date group by currency order by currency`,[organizationId,`${label}-01`]),
   db.query(`select t.currency,count(*)::int as client_count,coalesce(sum(case when t.commission_mode='percentage' then round(coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)*t.commission_value/100.0,0) when t.commission_mode='fixed' then t.commission_value else 0 end),0)::text as amount
-   from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
+   from agency_commercial_terms_for_month($1,$2::date) t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
    join agency_collaborators r on r.organization_id=t.organization_id and r.id=t.commission_recipient_id
    where t.organization_id=$1 and t.cadence='monthly' and t.starts_on<($2::date+interval '1 month')::date and (t.ends_on is null or t.ends_on>=$2::date) and c.active=true and r.active=true and ${visibleRecord('c','clients')} and ${visibleRecord('r','collaborators')}
    group by t.currency order by t.currency`,[organizationId,`${label}-01`]),
@@ -178,7 +179,7 @@ export async function financialForecast({req,res,url,db,session,send}) {
    terms as (
     select t.client_id,t.currency,t.invoice_required,t.ends_on::text as ends_on,coalesce(nullif(t.plan_name,''),pl.name) as plan_name,
      coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint) as contracted_amount
-    from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
+    from agency_commercial_terms_for_month($1,$2::date) t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
     left join agency_plans pl on pl.organization_id=t.organization_id and pl.id=t.plan_id
     where t.organization_id=$1 and t.starts_on<($2::date+interval '1 month')::date and (t.ends_on is null or t.ends_on>=$2::date) and c.active=true and ${visibleRecord('c','clients')}
    ), invoiced as (

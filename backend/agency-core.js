@@ -81,8 +81,9 @@ export function projectDirectorySql(){
 
 // Campos que expone la lista de clientes; `?fields=` proyecta sobre esta lista
 // (#67) para que el shell no traiga la ficha completa en cada página.
-const clientListFields=['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type','id','name','email','phone','active','notes','legal_name','tax_id','logo_url','color_key','lifecycle_status','customer_kind','service_plan_id','relationship_started_on','reporting_version','social_links','ruc_legal_name','ruc_tax_state','ruc_source','ruc_refreshed_at','created_at','updated_at','has_recurring_price'];
+const clientListFields=['legal_representative_same_as_client','address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type','id','name','email','phone','active','notes','legal_name','tax_id','logo_url','color_key','lifecycle_status','customer_kind','service_plan_id','relationship_started_on','reporting_version','social_links','ruc_legal_name','ruc_tax_state','ruc_source','ruc_refreshed_at','created_at','updated_at','has_recurring_price'];
 const clientColumnSql={
+ legal_representative_same_as_client:'c.legal_representative_same_as_client',
  address:'c.address',city:'c.city',department:'c.department',document_type:'c.document_type',document_number:'c.document_number',legal_representative_name:'c.legal_representative_name',legal_representative_document:'c.legal_representative_document',legal_representative_role:'c.legal_representative_role',party_type:'c.party_type',
  id:'c.id',name:'c.name',email:'c.email',phone:'c.phone',active:'c.active',notes:'c.notes',
  legal_name:'c.legal_name',tax_id:'c.tax_id',logo_url:'c.logo_url',color_key:'c.color_key',

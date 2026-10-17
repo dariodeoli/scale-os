@@ -41,7 +41,7 @@ export const FINANCE_PURPOSES: readonly FinancePurpose[] = [
   subjects: ['collaborator'],
   data: ['Nombre y correo del colaborador', 'Salario base y moneda', 'Ajustes mensuales y su nota', 'Día de pago y facturación', 'Egresos de pago'],
   visibility: ['salary.view'],
-  capturePoints: ['Previsión financiera · salario fijo mensual', 'Previsión financiera · ajuste del mes'],
+  capturePoints: ['Balance · salario fijo mensual', 'Balance · ajuste del mes'],
  },
  {
   id: 'payments',

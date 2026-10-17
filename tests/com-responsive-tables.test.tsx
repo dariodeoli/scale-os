@@ -350,6 +350,10 @@ test('el editor de cliente carga el plan sólo para los roles de términos comer
    assert.ok(record,`${role}: abre la ficha del cliente`);
    record!.resolve(new Response(JSON.stringify({record:{id:'1',name:'ACME',legal_name:'',tax_id:'',lifecycle_status:'active',updated_at:'2026-09-20T12:00:00Z'}}),{status:200}));
    await settle();
+   const history=requests.find(request=>request.url.endsWith('/api/agency/clients/1/plan-history'));
+   assert.ok(history,`${role}: captura la revisión antes de leer el borrador`);
+   history!.resolve(new Response(JSON.stringify({records:[],revision:'0'}),{status:200}));
+   await settle();
    const terms=requests.find(request=>request.url.endsWith('/api/agency/clients/1/commercial-terms'));
    assert.ok(terms,`${role}: trae los términos comerciales`);
    terms!.resolve(new Response(JSON.stringify({clientId:'1',archived:false,terms:null,plans:[],collaborators:[]}),{status:200}));

@@ -97,7 +97,7 @@ async function pendingTicket(r){
 }
 async function complete(r,{currency='USD',company='Fixture private agency',extra={}}={}){
  const {ticket}=await pendingTicket(r),path='/api/auth/google/registration/complete',payload={ticket,company,currency,consent:true,...extra};
- const response=await request(path,{method:'POST',payload});assert.equal(response.status,201,JSON.stringify(response.data));assert.equal(response.data.redirect,'/produccion');
+ const response=await request(path,{method:'POST',payload});assert.equal(response.status,response.data.existing?200:201,JSON.stringify(response.data));assert.equal(response.data.redirect,response.data.existing?'/?chooseCompany=1':'/produccion');
  return {cookie:cookieOf(response),path,payload};
 }
 async function completeLogin(r){
@@ -109,7 +109,7 @@ async function completeLogin(r){
  assert.equal(response.headers.Location,'https://app.scaleparaguay.com/?chooseCompany=1');
  return {cookie:cookieOf(response),path};
 }
-async function signup(profile,currency='USD'){return complete(await callback(await start(),profile),{currency});}
+async function signup(profile,currency='USD'){const r=await callback(await start(),profile);return new URL(r.headers.Location).pathname==='/registro'?complete(r,{currency}):completeLogin(r);}
 async function fixtureCookie(user,org){
  const token=crypto.randomUUID();await query("insert into sessions(id,user_id,organization_id,expires_at) values($1,$2,$3,now()+interval '1 day')",[token,user,org]);
  return 'scale_session='+token;
@@ -125,7 +125,9 @@ async function emptyOperations(org){
  // business tables, including future modules, with only onboarding exceptions.
  const tables=await rows("select table_name from information_schema.columns where table_schema='public' and column_name='organization_id' and table_name in(select tablename from pg_tables where schemaname='public') order by table_name");
  // Database audit rows for onboarding are expected; they are not copied work.
- const allowed=new Set(['organization_members','agency_settings','agency_user_profiles','agency_pipeline_stages','os_trial_registrations','organization_subscriptions','sessions','oauth_handoffs','agency_operation_audit','agency_reporting_coverage']);
+ const allowed=new Set(['organization_members','agency_settings','agency_user_profiles','agency_pipeline_stages','agency_inventory_categories','personal_data_consents','personal_data_consent_events','os_trial_registrations','organization_subscriptions','sessions','oauth_handoffs','agency_operation_audit','agency_reporting_coverage']);
+ assert.deepEqual((await rows('select purpose,revoked_at from personal_data_consents where organization_id=$1 order by purpose',[org])),[{purpose:'account',revoked_at:null},{purpose:'service',revoked_at:null}]);
+ assert.equal((await rows('select count(*)::int as n from agency_inventory_categories where organization_id=$1',[org]))[0].n,7,'new trial seeds its seven default inventory categories');
  const coverage=await rows('select c.history_since,o.created_at from agency_reporting_coverage c join organizations o on o.id=c.organization_id where c.organization_id=$1',[org]);
  assert.equal(coverage.length,1,'new agency starts one reporting coverage marker');
  assert(+coverage[0].history_since>= +coverage[0].created_at,'onboarding cannot invent prior reporting coverage');
@@ -133,7 +135,7 @@ async function emptyOperations(org){
   assert(/^[a-z_]+$/.test(table));if(allowed.has(table))continue;
   assert.equal(Number((await rows(`select count(*) as n from "${table}" where organization_id=$1`,[org]))[0].n),0,`new trial copied/created data in ${table}`);
  }
- for(const audit of await rows('select table_name from agency_operation_audit where organization_id=$1',[org]))assert(['agency_user_profiles','agency_settings','organization_members'].includes(audit.table_name),'only onboarding may produce new-company audit rows');
+ for(const audit of await rows('select table_name from agency_operation_audit where organization_id=$1',[org]))assert(['agency_user_profiles','agency_settings','organization_members','agency_pipeline_stages','agency_inventory_categories','personal_data_consents'].includes(audit.table_name),'only onboarding may produce new-company audit rows: '+audit.table_name);
 }
 
 try{
@@ -187,15 +189,19 @@ try{
  assert.equal((await request(usd.path,{method:'POST',payload:usd.payload})).headers['Set-Cookie'],undefined,'pending registration may be completed only once');
  assert.equal(googleCalls,callsBeforeReplay);
 
- const pyg=await signup({email:'prior-trial@example.invalid',name:'Google must not overwrite identity',email_verified:true},'PYG'),pygUser=await me(pyg.cookie);
- const pygOrg=pygUser.organization_id;assert.notEqual(pygOrg,existing);assert.equal(pygUser.id,priorUser);assert.equal(pygUser.role,'owner');
- assert.equal(pygUser.default_currency,'PYG');assert.equal(pygUser.subscription.amount,50000);await assertTrial(pygOrg,'PYG');await emptyOperations(pygOrg);
- assert.deepEqual(await rows('select user_id,role from organization_members where organization_id=$1',[pygOrg]),[{user_id:priorUser,role:'owner'}]);
- assert.equal(pygUser.full_name,'Prior Personal Identity');assert.equal(pygUser.photo_url,'https://example.invalid/prior.png');
+ const priorLogin=await signup({email:'prior-trial@example.invalid',name:'Google must not overwrite identity',email_verified:true},'PYG');
+ const priorActor=await me(priorLogin.cookie);
+ assert.equal(priorActor.organization_id,existing);assert.equal(priorActor.id,priorUser);assert.equal(priorActor.role,'viewer');
+ assert.equal((await rows('select 1 from os_trial_registrations where user_id=$1',[priorUser])).length,0);
+ assert.equal(await count('organizations'),baselineOrgs+1,'existing historical user never creates an agency');
+ assert.equal(priorActor.full_name,'Prior Personal Identity');assert.equal(priorActor.photo_url,'https://example.invalid/prior.png');
  assert.deepEqual(await rows('select * from user_personal_identities where user_id=$1',[priorUser]),priorIdentity);
  const [currentPriorUser]=await rows('select * from users where id=$1',[priorUser]);assert.equal(currentPriorUser.email,priorUserRow[0].email);assert.equal(currentPriorUser.password_hash,priorUserRow[0].password_hash);assert.equal(currentPriorUser.google_full_name,'Google must not overwrite identity');
  assert.deepEqual(await rows('select * from organization_members where user_id=$1 and organization_id=$2',[priorUser,existing]),priorMembership);
  assert.equal((await me(priorCookie)).role,'viewer');
+ const pyg=await signup({email:'new-pyg-trial@example.invalid',name:'PYG Owner',email_verified:true},'PYG'),pygUser=await me(pyg.cookie);
+ const pygOrg=pygUser.organization_id;assert.notEqual(pygOrg,existing);assert.equal(pygUser.role,'owner');
+ assert.equal(pygUser.default_currency,'PYG');assert.equal(pygUser.subscription.amount,50000);await assertTrial(pygOrg,'PYG');await emptyOperations(pygOrg);
  assert.deepEqual(await rows('select * from agency_clients order by id'),sourceClients);
  assert.deepEqual(await rows('select * from organizations where id=any($1::bigint[]) order by id',[existingOrganizations.map(o=>o.id)]),existingOrganizations);
  console.log('PASS: USD/PYG private owner-only 30-day trials, empty business tables, prior identity/membership/data unchanged');
@@ -220,7 +226,7 @@ try{
  const oneState=await start(),sessionCount=await count('sessions');
  const sameStateResults=await Promise.all([callback(oneState,dupeProfile),callback(oneState,dupeProfile)]);
  assert.deepEqual(sameStateResults.map(r=>r.status).sort(),[302,400]);
- const handed=await complete(sameStateResults.find(r=>r.status===302));
+ const handed=await completeLogin(sameStateResults.find(r=>r.status===302));
  assert.equal((await me(handed.cookie)).organization_id,dupeOrg);assert.equal(await count('sessions'),sessionCount+1);
  const forged=await callback({...await start(),cookie:'scale_oauth_state=wrong'},dupeProfile);assert.equal(forged.status,302);assert(forged.headers.Location.includes('authError'));
  const expired=await start();await query("update oauth_states set expires_at=now()-interval '1 second' where state=$1",[expired.state]);assert.equal((await callback(expired,dupeProfile)).status,400);
@@ -256,9 +262,11 @@ try{
  const state=await request('/api/billing/subscription',{cookie:pyg.cookie});assert.equal(state.status,200);assert.equal(state.data.status,'suspended');assert.equal(state.data.canManage,true);
  for(const path of ['/api/billing/checkout','/api/billing/portal'])assert.equal((await request(path,{cookie:pyg.cookie,method:'POST',payload:{}})).status,503,'unconfigured provider fails closed without fetch');
  const expiredSub=await rows('select * from organization_subscriptions where organization_id=$1',[pygOrg]);
- const retryExpired=await signup({email:'prior-trial@example.invalid',email_verified:true},'USD');assert.equal((await me(retryExpired.cookie)).subscription.status,'suspended');
+ const retryExpired=await signup({email:'new-pyg-trial@example.invalid',email_verified:true},'USD');assert.equal((await me(retryExpired.cookie)).subscription.status,'suspended');
  assert.deepEqual(await rows('select * from organization_subscriptions where organization_id=$1',[pygOrg]),expiredSub);
  assert.equal((await request('/api/auth/organizations',{cookie:pyg.cookie})).status,200);
+ await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'viewer')",[existing,pygUser.id]);
+ await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'viewer')",[sourceDemo,pygUser.id]);
  const switched=await request('/api/auth/switch-organization',{cookie:pyg.cookie,method:'POST',payload:{organizationId:existing}});assert.equal(switched.status,200);
  assert.equal((await me(cookieOf(switched))).role,'viewer');assert.equal((await me(cookieOf(switched))).subscription.status,'unmanaged');
  const suspendedSlug=(await rows('select slug from organizations where id=$1',[pygOrg]))[0].slug;
@@ -323,6 +331,44 @@ try{
  const managed=await request('/api/auth/organizations',{cookie:usd.cookie,method:'POST',payload:{name:'Manager created fixture',slug:'manager-created-trial',billingCurrency:'PYG'}});
  assert.equal(managed.status,201);await assertTrial(managed.data.organization.id,'PYG');
  assert.equal((await request('/api/auth/organizations',{cookie:priorCookie,method:'POST',payload:{name:'Viewer cannot create',slug:'viewer-cannot-create'}})).status,403);
+ // A ticket issued for a new identity can become stale before the form is
+ // submitted. Completion must authenticate its now-existing account, ignoring
+ // the obsolete agency form, without granting a second trial.
+ const staleEmail='stale-registration@example.invalid';
+ const stale=await pendingTicket(await callback(await start(),{email:staleEmail,email_verified:true}));
+ const staleUser=await insert("insert into users(email,password_hash,email_verified_at) values($1,'!google-existing',now())",[staleEmail]);
+ await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'viewer')",[existing,staleUser]);
+ const staleOrgs=await count('organizations'),staleTrials=await count('os_trial_registrations');
+ const staleResult=await request('/api/auth/google/registration/complete',{method:'POST',payload:{ticket:stale.ticket}});
+ assert.equal(staleResult.status,200);assert.equal(staleResult.data.existing,true);assert.equal(staleResult.data.redirect,'/?chooseCompany=1');
+ assert.equal((await me(cookieOf(staleResult))).organization_id,existing);assert.equal((await me(cookieOf(staleResult))).role,'viewer');
+ assert.equal(await count('organizations'),staleOrgs);assert.equal(await count('os_trial_registrations'),staleTrials);
+ assert.equal((await request('/api/auth/google/registration/complete',{method:'POST',payload:{ticket:stale.ticket}})).status,400);
+
+ const blockedEmail='revoked-registration@example.invalid';
+ const blockedTicket=await pendingTicket(await callback(await start(),{email:blockedEmail,email_verified:true}));
+ const blockedUser=await insert("insert into users(email,password_hash,email_verified_at) values($1,'!google-existing',now())",[blockedEmail]);
+ await query("insert into organization_members(organization_id,user_id,role,active,removed_at) values($1,$2,'viewer',false,now())",[existing,blockedUser]);
+ const blockedSessions=await count('sessions');
+ const blockedComplete=await request('/api/auth/google/registration/complete',{method:'POST',payload:{ticket:blockedTicket.ticket,company:'Must not enroll',currency:'USD',consent:true}});
+ assert.equal(blockedComplete.status,403);assert.equal(blockedComplete.headers['Set-Cookie'],undefined);assert.equal(await count('sessions'),blockedSessions);assert.equal(await count('organizations'),staleOrgs);
+ // Signup callback itself must not issue another agency ticket for historical
+ // revoked/orphan/inactive/closing/demo identities.
+ for(const state of ['revoked','orphan','inactive','closing','demo']){
+  const email=`google-${state}@example.invalid`,actor=await insert("insert into users(email,password_hash,is_demo_guest) values($1,'!google-existing',$2)",[email,state==='demo']);
+  if(state!=='orphan')await query("insert into organization_members(organization_id,user_id,role,active,removed_at) values($1,$2,'viewer',$3,case when $4 then now() else null end)",[existing,actor,state!=='inactive',state==='revoked']);
+  if(state==='closing')await query("insert into account_closure_requests(user_id,recoverable_until) values($1,now()+interval '1 day')",[actor]);
+  const pendingBefore=await count('pending_trial_registrations'),sessionsBefore=await count('sessions');
+  const denied=await callback(await start(),{email,email_verified:true});assert.equal(denied.status,302);assert(!new URL(denied.headers.Location).searchParams.has('pendingRegistration'));
+  assert.equal(await count('pending_trial_registrations'),pendingBefore);assert.equal(await count('sessions'),sessionsBefore);assert.equal(await count('organizations'),staleOrgs);
+ }
+ // Revoke after callback but before consuming the handoff: no usable session.
+ const revokeHandoff=await callback(await start(),{email:staleEmail,email_verified:true});
+ await query('update organization_members set active=false,removed_at=now() where user_id=$1',[staleUser]);
+ const revokePath=new URL(revokeHandoff.headers.Location),sessionsBeforeRevoke=await count('sessions');
+ const revokedLogin=await request(revokePath.pathname.replace(/^\/core-api/,'')+revokePath.search);
+ assert.equal(revokedLogin.status,302);assert(new URL(revokedLogin.headers.Location).searchParams.has('authError'));assert.equal(await count('sessions'),sessionsBeforeRevoke);assert.match(revokedLogin.headers['Set-Cookie'],/^scale_session=; Max-Age=0;/);
+ console.log('PASS: stale registration tickets resolve existing roles, revoked/closing/demo/orphan identities cannot reenroll, stale handoff revalidates access');
  assert.equal(forbiddenCalls,0);assert.equal(connections,0);assert.deepEqual(databaseErrors,[],'no hidden database errors');
  console.log(`PASS: viewer cannot pay, unmanaged tenants/demo exempt, authorized new-company trial; ${requests} real handler requests, ${migrations.length} registered migrations, Google responses mocked only`);
 }finally{await pg.close();}

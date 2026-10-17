@@ -1,3 +1,4 @@
+import {economicFixtureSchema} from './scripts/test-economic-schema.mjs';
 import assert from 'node:assert/strict';
 import {identitySchema} from './scripts/test-identity-schema.mjs';
 import fs from 'node:fs/promises';
@@ -11,6 +12,7 @@ for(const file of ['20260908_treasury_ledger.sql','20260908_people_commissions_c
 for(const file of ['20260910_productivity.sql','20260910_profile_identity.sql','20260912_comment_mentions.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
 for(const file of ['20260910_currencies.sql','20260910_company_currency.sql','20260914_salary_forecast.sql','20260915_salary_override_signed.sql','20260929_member_purge.sql','20260930_personal_data.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
 await identitySchema(pg);
+await economicFixtureSchema(pg);
 const sql=(s,v)=>pg.query(s,v);
 const org=(await sql("select id from organizations where slug='scale'")).rows[0].id;
 const other=(await sql("insert into organizations(slug,name) values('test-other','Other') returning id")).rows[0].id;
