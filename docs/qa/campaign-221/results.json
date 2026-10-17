@@ -1,0 +1,1515 @@
+{
+  "candidate": "768acbd73e31a2d648f4983098e9c35c13043b17 + 76cc280e + 70ef74e8 + cd111d2d + 93a1375b + 9fe2f97d",
+  "execution": "Local Chromium 154, Node 24.19.0, PostgreSQL 17.11, synthetic data only",
+  "date_asuncion": "2026-10-17",
+  "viewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "passed_unique_assertions": 97,
+  "failed_product_assertions": 0,
+  "method": "Unique passing assertions from final focal runs. Earlier runner failures were diagnosed and corrected; raw reports remain at the listed local paths. This is not a claim that every preliminary invocation exited successfully.",
+  "source_reports": [
+    {
+      "path": "/tmp/scale-qa221-initial-report.json",
+      "area": "navigation"
+    },
+    {
+      "path": "/tmp/scale-qa221-core-report.json",
+      "area": "core"
+    },
+    {
+      "path": "/tmp/scale-qa221-inventory/report.json",
+      "area": "inventory"
+    },
+    {
+      "path": "/tmp/scale-qa221-extra/report.json",
+      "area": "legacy"
+    },
+    {
+      "path": "/tmp/scale-qa221-bank/report.json",
+      "area": "bank"
+    },
+    {
+      "path": "/tmp/scale-qa221-team/report.json",
+      "area": "owner_ui_and_css"
+    },
+    {
+      "path": "/tmp/scale-qa221-historical/report.json",
+      "area": "historical_custody"
+    }
+  ],
+  "checks": [
+    {
+      "name": "contratos-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Contratos",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Elegir modelo",
+            "height": 40
+          },
+          {
+            "label": "Nueva plantilla",
+            "height": 40
+          },
+          {
+            "label": "Todas las plantillas",
+            "height": 40
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/contratos renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "proyectos-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Proyectos",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Todos los clientes",
+            "height": 40
+          },
+          {
+            "label": "Seleccionar visibles",
+            "height": 32
+          },
+          {
+            "label": "Ver como lista",
+            "height": 36
+          },
+          {
+            "label": "Ver como cuadrícula",
+            "height": 36
+          },
+          {
+            "label": "Nuevo proyecto",
+            "height": 40
+          },
+          {
+            "label": "Abrir detalle del proyecto Proyecto QA Foto",
+            "height": 34
+          },
+          {
+            "label": "Ver detalle del proyecto: Proyecto QA Foto",
+            "height": 28
+          },
+          {
+            "label": "Comentarios",
+            "height": 32
+          },
+          {
+            "label": "Archivar",
+            "height": 32
+          },
+          {
+            "label": "Editar Proyecto QA Foto",
+            "height": 40
+          },
+          {
+            "label": "Mover a la papelera: Proyecto QA Foto",
+            "height": 40
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/proyectos renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "inventario-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Inventario",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Equipos",
+            "height": 32
+          },
+          {
+            "label": "Calendario y reservas",
+            "height": 32
+          },
+          {
+            "label": "Todas",
+            "height": 40
+          },
+          {
+            "label": "Agregar equipo",
+            "height": 36
+          },
+          {
+            "label": "Reservar equipos",
+            "height": 36
+          },
+          {
+            "label": "Filtrar equipos con valor faltante: 0",
+            "height": 34
+          },
+          {
+            "label": "Filtrar equipos con control físico vencido o sin registro: 0",
+            "height": 34
+          },
+          {
+            "label": "¿Qué es?",
+            "height": 32
+          },
+          {
+            "label": "Cuadrícula",
+            "height": 32
+          },
+          {
+            "label": "Lista",
+            "height": 32
+          },
+          {
+            "label": "Ubicaciones",
+            "height": 32
+          },
+          {
+            "label": "Agregar equipo",
+            "height": 36
+          },
+          {
+            "label": "Ubicaciones de guardado",
+            "height": 20
+          },
+          {
+            "label": "Crear ubicación",
+            "height": 36
+          },
+          {
+            "label": "Categorías de equipos",
+            "height": 20
+          },
+          {
+            "label": "Accesorio",
+            "height": 36
+          },
+          {
+            "label": "Audio",
+            "height": 36
+          },
+          {
+            "label": "Computación",
+            "height": 36
+          },
+          {
+            "label": "Cámara",
+            "height": 36
+          },
+          {
+            "label": "Iluminación",
+            "height": 36
+          },
+          {
+            "label": "Lente",
+            "height": 36
+          },
+          {
+            "label": "Otro",
+            "height": 36
+          },
+          {
+            "label": "Agregar categoría",
+            "height": 36
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/inventario renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "clientes-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Clientes",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Ver como lista",
+            "height": 36
+          },
+          {
+            "label": "Ver como cuadrícula",
+            "height": 36
+          },
+          {
+            "label": "Nuevo cliente",
+            "height": 36
+          },
+          {
+            "label": "Ver el cliente sin plan",
+            "height": 32
+          },
+          {
+            "label": "Abrir ficha de Cliente QA221",
+            "height": 34
+          },
+          {
+            "label": "Abrir ficha: Cliente QA221",
+            "height": 28
+          },
+          {
+            "label": "Cargar plan y pago: Cliente QA221",
+            "height": 28
+          },
+          {
+            "label": "⋮Acciones: Cliente QA221",
+            "height": 30
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/clientes renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "presupuestos-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Presupuestos",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Nuevo presupuesto",
+            "height": 40
+          },
+          {
+            "label": "Ver como lista",
+            "height": 36
+          },
+          {
+            "label": "Ver como cuadrícula",
+            "height": 36
+          },
+          {
+            "label": "Presupuestos",
+            "height": 34
+          },
+          {
+            "label": "Planes reutilizables",
+            "height": 34
+          },
+          {
+            "label": "Todos",
+            "height": 32
+          },
+          {
+            "label": "Borradores",
+            "height": 32
+          },
+          {
+            "label": "Enviados",
+            "height": 32
+          },
+          {
+            "label": "Aceptados",
+            "height": 32
+          },
+          {
+            "label": "Rechazados",
+            "height": 32
+          },
+          {
+            "label": "Vencidos",
+            "height": 32
+          },
+          {
+            "label": "Todos",
+            "height": 40
+          },
+          {
+            "label": "Sin enviar al cliente",
+            "height": 32
+          },
+          {
+            "label": "Con aprobación del cliente",
+            "height": 32
+          },
+          {
+            "label": "Vigencia en los próximos 7 días",
+            "height": 32
+          },
+          {
+            "label": "Nuevo presupuesto",
+            "height": 40
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/presupuestos renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "equipo-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Equipo",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Permisos del panel",
+            "height": 40
+          },
+          {
+            "label": "Agregar persona",
+            "height": 40
+          },
+          {
+            "label": "Ver como lista",
+            "height": 36
+          },
+          {
+            "label": "Ver como cuadrícula",
+            "height": 36
+          },
+          {
+            "label": "Personas y accesos",
+            "height": 34
+          },
+          {
+            "label": "Invitaciones y solicitudes",
+            "height": 34
+          },
+          {
+            "label": "Comisiones y referidos",
+            "height": 34
+          },
+          {
+            "label": "Roles y permisos",
+            "height": 34
+          },
+          {
+            "label": "Historial de trabajo",
+            "height": 34
+          },
+          {
+            "label": "Actividad",
+            "height": 34
+          },
+          {
+            "label": "Todos",
+            "height": 32
+          },
+          {
+            "label": "Activos",
+            "height": 32
+          },
+          {
+            "label": "Inactivos",
+            "height": 32
+          },
+          {
+            "label": "⋮Acciones de Dueño QA",
+            "height": 32
+          },
+          {
+            "label": "⋮Acciones de Persona QA Foto",
+            "height": 32
+          },
+          {
+            "label": "⋮Acciones de Integrante sin ficha",
+            "height": 32
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/equipo renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "pagos-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Finanzas",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Registrar cobro",
+            "height": 40
+          },
+          {
+            "label": "Cuentas y movimientos",
+            "height": 34
+          },
+          {
+            "label": "Cobranza y mora",
+            "height": 34
+          },
+          {
+            "label": "Previsión financiera",
+            "height": 34
+          },
+          {
+            "label": "Balance",
+            "height": 34
+          },
+          {
+            "label": "Cuenta",
+            "height": 32
+          },
+          {
+            "label": "Transferir",
+            "height": 32
+          },
+          {
+            "label": "Mover a la papelera: Banco QA",
+            "height": 40
+          },
+          {
+            "label": "Ver mora",
+            "height": 32
+          },
+          {
+            "label": "Cobrar",
+            "height": 32
+          },
+          {
+            "label": "Ver más",
+            "height": 32
+          },
+          {
+            "label": "Ver mora",
+            "height": 32
+          },
+          {
+            "label": "Factura",
+            "height": 32
+          },
+          {
+            "label": "Todas",
+            "height": 40
+          },
+          {
+            "label": "Con saldo",
+            "height": 40
+          },
+          {
+            "label": "Vencidas",
+            "height": 40
+          },
+          {
+            "label": "Vencen en 7 días",
+            "height": 40
+          },
+          {
+            "label": "Borradoras",
+            "height": 40
+          },
+          {
+            "label": "Canceladas",
+            "height": 40
+          },
+          {
+            "label": "Registrar cobro",
+            "height": 32
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/pagos renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "pagos-mora-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Mora",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Registrar factura",
+            "height": 40
+          },
+          {
+            "label": "Cuentas y movimientos",
+            "height": 34
+          },
+          {
+            "label": "Cobranza y mora",
+            "height": 34
+          },
+          {
+            "label": "Previsión financiera",
+            "height": 34
+          },
+          {
+            "label": "Balance",
+            "height": 34
+          },
+          {
+            "label": "Cargar deuda anterior",
+            "height": 40
+          },
+          {
+            "label": "Recibir pago",
+            "height": 40
+          },
+          {
+            "label": "Buscar",
+            "height": 40
+          },
+          {
+            "label": "Todos",
+            "height": 32
+          },
+          {
+            "label": "Sin mora",
+            "height": 32
+          },
+          {
+            "label": "Por vencer",
+            "height": 32
+          },
+          {
+            "label": "En mora",
+            "height": 32
+          },
+          {
+            "label": "Mora grave",
+            "height": 32
+          },
+          {
+            "label": "Sin factura",
+            "height": 32
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/pagos/mora renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "pagos-balance-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Colapsar barra lateral",
+            "height": 32
+          },
+          {
+            "label": "Cambiar tema (ahora: Tema claro)",
+            "height": 36
+          },
+          {
+            "label": "Guía del panel · Balance",
+            "height": 40
+          },
+          {
+            "label": "Carga con IA",
+            "height": 40
+          },
+          {
+            "label": "Buscar en esta empresa · ⌘K",
+            "height": 40
+          },
+          {
+            "label": "Planificar gasto",
+            "height": 40
+          },
+          {
+            "label": "Registrar gasto",
+            "height": 40
+          },
+          {
+            "label": "Cuentas y movimientos",
+            "height": 34
+          },
+          {
+            "label": "Cobranza y mora",
+            "height": 34
+          },
+          {
+            "label": "Previsión financiera",
+            "height": 34
+          },
+          {
+            "label": "Balance",
+            "height": 34
+          },
+          {
+            "label": "Cerrar mes",
+            "height": 40
+          },
+          {
+            "label": "Registrar saldo de apertura",
+            "height": 32
+          },
+          {
+            "label": "Ver previsión",
+            "height": 32
+          },
+          {
+            "label": "Ver equipo",
+            "height": 32
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/pagos/balance renders authenticated workspace 1440",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "contratos-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/contratos renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "proyectos-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/proyectos renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "inventario-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Ubicaciones de guardado",
+            "height": 20
+          },
+          {
+            "label": "Categorías de equipos",
+            "height": 20
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/inventario renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "clientes-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Cargar plan y pago: Cliente QA221",
+            "height": 28
+          },
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/clientes renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "presupuestos-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/presupuestos renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "equipo-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/equipo renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "pagos-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/pagos renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "pagos-mora-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/pagos/mora renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "pagos-balance-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      },
+      "area": "navigation"
+    },
+    {
+      "name": "/pagos/balance renders authenticated workspace 390",
+      "passed": true,
+      "area": "navigation"
+    },
+    {
+      "name": "Company onboarding set",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "QA template saved",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Closed editor apply footer hidden",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Collapsed editor footer hidden after toggle",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Project grid exists",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Project grid includes assignee photo",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Project list includes assignee photo",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "New inventory value starts blank",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Unassigned receipt UI succeeds",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Receipt initially without client/invoice",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Treasury HTTP ready",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Cash increases once",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Later receipt client association succeeds",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Association cash-neutral",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Partial invoice application succeeds",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Applying receipt does not duplicate cash",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Invoice actual paid amount reflects partial receipt",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Prior debt created",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Expected payment preserves overdue original date",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Opening debt does not alter cash",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Balance shows real cash and available account",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Bank account branding present",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Real expense UI saves",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Expense reduces real cash",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Audited receipt date correction succeeds",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Date correction cash-neutral",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Expense reversal succeeds",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Expense reversal restores cash",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Receipt reversal succeeds",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Receipt reversal removes cash",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Owner can close period",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Closed period rejects new movement",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Owner can reopen period",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Current person marked vos",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Team has access status text",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Owner removes other owner without collaborator profile",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Remaining owner self-removal protected",
+      "passed": true,
+      "area": "core"
+    },
+    {
+      "name": "Person select options show photos",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Escape closes person options",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "inventory-create-owner-1440: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 1440,
+        "overflow": 0,
+        "dialog": {
+          "width": 1040,
+          "height": 906
+        },
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Cerrar",
+            "height": 40
+          },
+          {
+            "label": "Accesorio",
+            "height": 40
+          },
+          {
+            "label": "Guaraníes (PYG)",
+            "height": 40
+          },
+          {
+            "label": "Persona del equipo",
+            "height": 40
+          },
+          {
+            "label": "Limpiar Persona propietaria",
+            "height": 28
+          },
+          {
+            "label": "Ubicación personalizada",
+            "height": 40
+          },
+          {
+            "label": "Más datos · foto, compra, depreciación, estado, custodio, adquisición ",
+            "height": 20
+          },
+          {
+            "label": "Sin depreciación",
+            "height": 40
+          },
+          {
+            "label": "Disponible",
+            "height": 40
+          },
+          {
+            "label": "Cancelar",
+            "height": 40
+          },
+          {
+            "label": "Guardar y agregar otro",
+            "height": 38
+          },
+          {
+            "label": "Crear equipo",
+            "height": 38
+          }
+        ]
+      },
+      "area": "inventory"
+    },
+    {
+      "name": "inventory-create-owner-1440: dialog fits viewport",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Inventory creation succeeds",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Inventory owner differs from custodian",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Blank inventory value stored zero",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Inventory edited from grid",
+      "passed": true,
+      "area": "inventory"
+    },
+    {
+      "name": "Legacy invoice-bound receipt fixture accepted",
+      "passed": true,
+      "area": "legacy"
+    },
+    {
+      "name": "Legacy receipt shows invoice reference",
+      "passed": true,
+      "area": "legacy"
+    },
+    {
+      "name": "Legacy receipt has Date and Reverse without relink/apply",
+      "passed": true,
+      "area": "legacy"
+    },
+    {
+      "name": "Legacy date corrected in UI",
+      "passed": true,
+      "area": "legacy"
+    },
+    {
+      "name": "Legacy date correction preserves cash",
+      "passed": true,
+      "area": "legacy"
+    },
+    {
+      "name": "Legacy date correction preserves invoice payment",
+      "passed": true,
+      "area": "legacy"
+    },
+    {
+      "name": "Banco Continental actual logo loaded",
+      "passed": true,
+      "area": "bank"
+    },
+    {
+      "name": "Account shows actual custodian identity",
+      "passed": true,
+      "area": "bank"
+    },
+    {
+      "name": "Remove access action appears for other owner without profile",
+      "passed": true,
+      "area": "owner_ui_and_css"
+    },
+    {
+      "name": "Removal confirmation explains access-only and history",
+      "passed": true,
+      "area": "owner_ui_and_css"
+    },
+    {
+      "name": "Owner removal confirmed through UI200",
+      "passed": true,
+      "area": "owner_ui_and_css"
+    },
+    {
+      "name": "UI removal persisted revoked access",
+      "passed": true,
+      "area": "owner_ui_and_css"
+    },
+    {
+      "name": "First three contract cards align at top",
+      "passed": true,
+      "cards": [
+        {
+          "top": 277.1875,
+          "marginTop": "0px"
+        },
+        {
+          "top": 277.1875,
+          "marginTop": "0px"
+        },
+        {
+          "top": 277.1875,
+          "marginTop": "0px"
+        }
+      ],
+      "area": "owner_ui_and_css"
+    },
+    {
+      "name": "Retained inactive custodian shows recorded identity",
+      "passed": true,
+      "label": [
+        "worker@qa.local"
+      ],
+      "area": "historical_custody"
+    },
+    {
+      "name": "Form edit with unchanged inactive custodian succeeds",
+      "passed": true,
+      "area": "historical_custody"
+    },
+    {
+      "name": "Inactive custodian and distinct ownership fields survive save",
+      "passed": true,
+      "area": "historical_custody"
+    }
+  ],
+  "visual_observations": [
+    "contratos-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "proyectos-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "inventario-390: [{\"label\":\"Ubicaciones de guardado\",\"height\":20},{\"label\":\"Categorías de equipos\",\"height\":20},{\"label\":\"Privacidad\",\"height\":15}]",
+    "clientes-390: [{\"label\":\"Cargar plan y pago: Cliente QA221\",\"height\":28},{\"label\":\"Privacidad\",\"height\":15}]",
+    "presupuestos-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "equipo-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "pagos-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "pagos-mora-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "pagos-balance-390: [{\"label\":\"Privacidad\",\"height\":15}]"
+  ],
+  "bank_logo": {
+    "institution": "Banco Continental",
+    "source_type": "data:image/svg+xml (embedded catalog asset)",
+    "complete": true,
+    "natural_width": 201,
+    "natural_height": 40
+  }
+}
