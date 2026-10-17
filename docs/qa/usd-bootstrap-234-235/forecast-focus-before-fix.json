@@ -1,0 +1,141 @@
+[
+  {
+    "input": "0.10",
+    "trace": [
+      {
+        "value": "0",
+        "start": 1,
+        "end": 1,
+        "isConnected": false,
+        "active": "",
+        "current": "0,00"
+      },
+      {
+        "value": "0",
+        "start": 1,
+        "end": 1,
+        "isConnected": false,
+        "active": "",
+        "current": "0,00"
+      },
+      {
+        "value": "0",
+        "start": 1,
+        "end": 1,
+        "isConnected": false,
+        "active": "",
+        "current": "0,00"
+      },
+      {
+        "value": "0",
+        "start": 1,
+        "end": 1,
+        "isConnected": false,
+        "active": "",
+        "current": "0,00"
+      }
+    ],
+    "after_blur": {
+      "value": "0,00",
+      "active": "forecast-real-amount"
+    }
+  },
+  {
+    "input": "0,10",
+    "trace": [
+      {
+        "value": "",
+        "start": 0,
+        "end": 0,
+        "isConnected": false,
+        "active": "",
+        "current": ""
+      },
+      {
+        "value": "",
+        "start": 0,
+        "end": 0,
+        "isConnected": false,
+        "active": "",
+        "current": ""
+      },
+      {
+        "value": "",
+        "start": 0,
+        "end": 0,
+        "isConnected": false,
+        "active": "",
+        "current": ""
+      },
+      {
+        "value": "",
+        "start": 0,
+        "end": 0,
+        "isConnected": false,
+        "active": "",
+        "current": ""
+      }
+    ],
+    "after_blur": {
+      "value": "",
+      "active": "forecast-real-amount"
+    }
+  },
+  {
+    "input": "100.25",
+    "trace": [
+      {
+        "value": "1,00",
+        "start": 1,
+        "end": 1,
+        "isConnected": true,
+        "active": "forecast-real-amount",
+        "current": "1,00"
+      },
+      {
+        "value": "10,00",
+        "start": 2,
+        "end": 2,
+        "isConnected": true,
+        "active": "forecast-real-amount",
+        "current": "10,00"
+      },
+      {
+        "value": "100,00",
+        "start": 3,
+        "end": 3,
+        "isConnected": true,
+        "active": "forecast-real-amount",
+        "current": "100,00"
+      },
+      {
+        "value": "100,00",
+        "start": 4,
+        "end": 6,
+        "isConnected": true,
+        "active": "forecast-real-amount",
+        "current": "100,00"
+      },
+      {
+        "value": "100,20",
+        "start": 5,
+        "end": 5,
+        "isConnected": true,
+        "active": "forecast-real-amount",
+        "current": "100,20"
+      },
+      {
+        "value": "100,25",
+        "start": 6,
+        "end": 6,
+        "isConnected": true,
+        "active": "forecast-real-amount",
+        "current": "100,25"
+      }
+    ],
+    "after_blur": {
+      "value": "100,25",
+      "active": "forecast-real-date"
+    }
+  }
+]

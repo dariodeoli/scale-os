@@ -1,0 +1,92 @@
+[
+  {
+    "input": "100.25",
+    "trace": [
+      {
+        "value": "1,00",
+        "start": 1,
+        "end": 1
+      },
+      {
+        "value": "10,00",
+        "start": 2,
+        "end": 2
+      },
+      {
+        "value": "100,00",
+        "start": 3,
+        "end": 3
+      },
+      {
+        "value": "100,00",
+        "start": 3,
+        "end": 3
+      },
+      {
+        "value": "1.002,00",
+        "start": 5,
+        "end": 5
+      },
+      {
+        "value": "10.025,00",
+        "start": 6,
+        "end": 6
+      }
+    ]
+  },
+  {
+    "mode": "keyboard60ms",
+    "input": "100.25",
+    "display": "10.025,00"
+  },
+  {
+    "input": "100,25",
+    "trace": [
+      {
+        "value": "1,00",
+        "start": 1,
+        "end": 1
+      },
+      {
+        "value": "10,00",
+        "start": 2,
+        "end": 2
+      },
+      {
+        "value": "100,00",
+        "start": 3,
+        "end": 3
+      },
+      {
+        "value": "100,00",
+        "start": 3,
+        "end": 3
+      },
+      {
+        "value": "1.002,00",
+        "start": 5,
+        "end": 5
+      },
+      {
+        "value": "10.025,00",
+        "start": 6,
+        "end": 6
+      }
+    ]
+  },
+  {
+    "mode": "keyboard60ms",
+    "input": "100,25",
+    "display": "10.025,00"
+  },
+  {
+    "mode": "insertText",
+    "input": "100.25",
+    "display": "100,25"
+  },
+  {
+    "mode": "insertText",
+    "input": "100,25",
+    "display": "100,25"
+  }
+]

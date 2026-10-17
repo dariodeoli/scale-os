@@ -1,0 +1,212 @@
+{
+  "base": "http://127.0.0.1:3007",
+  "run": "QA-1792218394077",
+  "started_at": "2026-10-17T06:26:34.077Z",
+  "checks": [
+    {
+      "name": "USD starts without session cookie",
+      "passed": true
+    },
+    {
+      "name": "USD anonymous demo start201",
+      "passed": true
+    },
+    {
+      "name": "Fresh demo commercial summary200",
+      "passed": true
+    },
+    {
+      "name": "Monthly contracted PYG exactly22000000",
+      "passed": true
+    },
+    {
+      "name": "Monthly contracted USD exactly2400",
+      "passed": true
+    },
+    {
+      "name": "Home KPI shows monthly amounts instead of Sin contratos",
+      "passed": true,
+      "text": "Facturación mensual contratadaGs. 22.000.000USD 2.400,00Expectativa comercial vigente; no es el forecast ni el efectivo cobrado."
+    },
+    {
+      "name": "Manual demo USD account created",
+      "passed": true
+    },
+    {
+      "name": "Opening UI request201",
+      "passed": true
+    },
+    {
+      "name": "Opening stores exact100.25",
+      "passed": true,
+      "actual": "100.25"
+    },
+    {
+      "name": "Opening ledger cash exactly100.25",
+      "passed": true,
+      "actual": "100.25",
+      "expected": "100.25"
+    },
+    {
+      "name": "USD expense UI request201",
+      "passed": true
+    },
+    {
+      "name": "Expense numeric amount exactly12.34",
+      "passed": true,
+      "actual": "12.34"
+    },
+    {
+      "name": "Expense ledger cash exactly87.91",
+      "passed": true,
+      "actual": "87.91",
+      "expected": "87.91"
+    },
+    {
+      "name": "Forecast retains real expense row with cents",
+      "passed": true,
+      "rendered": "USD QA gasto con centavos · Variable17-oct · Cuenta USD QA centavos · registró visitante-746501a7-662d-41ec-af6d-fd80bb9276ae@demo.example.invalidUSD 12,34"
+    },
+    {
+      "name": "Forecast expense UI0.10 request201",
+      "passed": true
+    },
+    {
+      "name": "Forecast expense preserves0.10",
+      "passed": true,
+      "actual": "0.10"
+    },
+    {
+      "name": "Forecast expense UI0.20 request201",
+      "passed": true
+    },
+    {
+      "name": "Forecast expense preserves0.20",
+      "passed": true,
+      "actual": "0.20"
+    },
+    {
+      "name": "Two forecast cent expenses preserve exact cash87.61",
+      "passed": true,
+      "actual": "87.61",
+      "expected": "87.61"
+    },
+    {
+      "name": "12.34 plus0.10 plus0.20 totals exact12.64",
+      "passed": true
+    },
+    {
+      "name": "USD receipt UI request201",
+      "passed": true
+    },
+    {
+      "name": "Receipt numeric amount exactly10.75",
+      "passed": true,
+      "actual": "10.75"
+    },
+    {
+      "name": "Receipt ledger cash exactly98.36",
+      "passed": true,
+      "actual": "98.36",
+      "expected": "98.36"
+    },
+    {
+      "name": "USD debt20.55 accepted through UI",
+      "passed": true
+    },
+    {
+      "name": "Debt numeric amount exactly20.55",
+      "passed": true,
+      "actual": "20.55"
+    },
+    {
+      "name": "USD partial application UI201",
+      "passed": true
+    },
+    {
+      "name": "Applied amount exactly4.25",
+      "passed": true,
+      "actual": "4.25"
+    },
+    {
+      "name": "Applying USD receipt is cash-neutral98.36",
+      "passed": true,
+      "actual": "98.36",
+      "expected": "98.36"
+    },
+    {
+      "name": "Debt remaining exactly16.30",
+      "passed": true,
+      "outstanding": "16.30",
+      "paid": "4.25"
+    },
+    {
+      "name": "USD date correction UI201",
+      "passed": true
+    },
+    {
+      "name": "Corrected receipt retains10.75",
+      "passed": true
+    },
+    {
+      "name": "Date correction preserves cash98.36",
+      "passed": true,
+      "actual": "98.36",
+      "expected": "98.36"
+    },
+    {
+      "name": "Expense reversal12.34 succeeds",
+      "passed": true
+    },
+    {
+      "name": "Expense reversal0.10 succeeds",
+      "passed": true
+    },
+    {
+      "name": "Expense reversal0.20 succeeds",
+      "passed": true
+    },
+    {
+      "name": "All expense reversals preserve exact cash111.00",
+      "passed": true,
+      "actual": "111.00",
+      "expected": "111.00"
+    },
+    {
+      "name": "Receipt reversal succeeds with fractional amount",
+      "passed": true
+    },
+    {
+      "name": "Reversals restore original opening100.25",
+      "passed": true,
+      "actual": "100.25",
+      "expected": "100.25"
+    },
+    {
+      "name": "Receipt reversal restores debt20.55 exactly",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "demo-home-monthly-contracted-kpi-1440.png",
+    "usd-forecast-real-expense-cents-1440.png",
+    "usd-collections-cents-1440.png",
+    "usd-balance-cents-1440.png"
+  ],
+  "blocked_external": [],
+  "limitations": [],
+  "input_method": "Decimal amount fields inserted as whole text to isolate persistence; per-keystroke typing remains a separate known product bug.",
+  "fixture_ids": {
+    "account": "36",
+    "expense": "27",
+    "extras": [
+      "28",
+      "29"
+    ],
+    "receipt": "862",
+    "debt": "13"
+  },
+  "arithmetic": "Assertions compare decimal transport as exact BigInt minor units, without binary floating-point comparisons.",
+  "finished_at": "2026-10-17T06:27:19.867Z",
+  "passed": true
+}

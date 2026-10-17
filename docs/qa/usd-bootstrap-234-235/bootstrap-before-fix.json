@@ -1,0 +1,16 @@
+{
+  "candidate": "c8b7dc777c1b5c4ce54f42f63619ac80138c0c2e",
+  "scope": "Local PostgreSQL QA database only, after six private demo instances",
+  "health_http_status": 503,
+  "database_state": "initializing",
+  "postgres_error": "23514",
+  "constraint": "agency_inventory_trace_event_type_check",
+  "failure_location": "backend/server.js:282, historical migration replay loop",
+  "historical_migration": "20260915_inventory_location_pipeline.sql",
+  "cause": "Historical check constraint excludes ownership.changed, which a later migration allows and private demo seeds legitimately create.",
+  "existing_valid_ownership_events": 36,
+  "expense_amount_before_pending_111": "numeric(64,0)",
+  "pending_migration_not_applied": "20261017_expense_currency_precision.sql",
+  "reproduction": ["Start candidate8b5 API on native PostgreSQL17", "Start anonymous private demos", "Restart API on candidatec8b using the same database"],
+  "data_modified_to_hide_failure": false
+}
