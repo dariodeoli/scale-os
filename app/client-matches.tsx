@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {normalizeTaxId} from 'owncoding-ui';
+import {normalizeTaxId} from 'owncoding-ui/core';
 import {api} from './operations';
 import {emailValid,phoneValid} from './field-rules';
 import {taxIdError} from './client-editor-data';

@@ -1,6 +1,6 @@
 "use client";
 import {api} from './operations';
-import {MENSAJE_RUC,normalizarNombre,normalizeTaxId,taxIdValid} from 'owncoding-ui';
+import {MENSAJE_RUC,normalizarNombre,normalizeTaxId,taxIdValid} from 'owncoding-ui/core';
 import {listDateFull} from './list-format';
 import {LookupReview} from './ui/smart-field';
 

@@ -3,7 +3,7 @@ import {useSingleFlightSubmit} from '../use-single-flight-submit';
 import {PendingFields} from '../ui/form-state';
 import {InputControl} from '../ui/input-control';
 import {useEffect,useRef,useState} from 'react';
-import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui';
+import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui/core';
 import {teamRoleLabels} from '../team-directory';
 import {AccessLayout} from '../access-layout';
 import {StateChip} from '../ui-v2';

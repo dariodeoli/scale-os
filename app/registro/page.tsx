@@ -4,7 +4,7 @@ import {InputControl} from '../ui/input-control';
 
 import {FormEvent,useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
-import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui';
+import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui/core';
 import {founderPricingNote} from '../founder-pricing';
 import {AccessLayout} from '../access-layout';
 import {GoogleSignIn} from '../google-sign-in';

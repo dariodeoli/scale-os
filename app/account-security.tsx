@@ -1,6 +1,6 @@
 'use client';
 
-import {fechaHora} from 'owncoding-ui';
+import {fechaHora} from 'owncoding-ui/core';
 import {useEffect,useState} from 'react';
 import {LogOut,Smartphone} from 'lucide-react';
 import {api} from './operations';

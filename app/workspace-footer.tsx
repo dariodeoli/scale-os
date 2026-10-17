@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import {ProductFooter,CREDITO_PIE,CREDITO_PIE_URL} from 'owncoding-ui';
+import {ProductFooter,CREDITO_PIE,CREDITO_PIE_URL} from 'owncoding-ui/core';
 import {APP_VERSION} from './app-version';
 import {PRIVACY_NOTICE_URL} from './privacy-notice';
 

@@ -1,6 +1,6 @@
 "use client";
 import {useState} from 'react';
-import {ChipEstado} from 'owncoding-ui';
+import {ChipEstado} from 'owncoding-ui/core';
 import {effectiveCapability} from './capabilities';
 import {api,Dialog,Editor} from './operations';
 import {completeSave} from './save-completion';

@@ -38,7 +38,7 @@ import {
   type ReportsData,
 } from './reports-data';
 import {useReportsWindow} from './use-reports';
-import {BarraProgreso,FilaDato,cn} from 'owncoding-ui';
+import {BarraProgreso,FilaDato,cn} from 'owncoding-ui/core';
 import {Button} from "./ui/button";
 import {notify} from './feedback';
 import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,type Column} from './ui-v2';

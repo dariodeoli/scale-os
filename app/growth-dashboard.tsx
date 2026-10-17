@@ -5,7 +5,7 @@ import {Note as Nota} from './ui/notice';
 
 // Rediseño v2 (campaña #41 / spec #43 §3): serie con barras Tailwind y datos
 // diarios con `DataTable` (tabla en escritorio, tarjetas en móvil). La lógica vive en ./growth-dashboard-data.
-import {fechaListaCorta} from 'owncoding-ui';
+import {fechaListaCorta} from 'owncoding-ui/core';
 import {growthSeries,type GrowthEvent} from './growth-dashboard-data';
 // La lógica de datos vive en ./growth-dashboard-data (funciones puras); se
 // reexporta para no romper imports existentes.

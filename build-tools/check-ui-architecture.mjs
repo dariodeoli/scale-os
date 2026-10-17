@@ -47,7 +47,7 @@ export function auditUiArchitecture(input){
    if(isPure(file)&&(businessModules.test(target??'')||source.startsWith('node:')||['axios','undici','node-fetch'].includes(source)))report(file,node,'business-module','Pure UI cannot import a business/API/server module.',sf);
    if(owncoding(source)){
     if(bindings===null){report(file,node,'opaque-owncoding-import','Use auditable named imports/reexports for OwnCoding, not namespace/default/dynamic access.',sf);return;}
-    const allowed=source==='owncoding-ui'?(facadeSymbols.get(file)??[]):[];
+    const allowed=(source==='owncoding-ui'||source==='owncoding-ui/core')?(facadeSymbols.get(file)??[]):[];
     const pilotAllowed=pilotFacades.get(file)?.[source]??[];
     const pilotSource=source==='owncoding-ui/numeric'||source.startsWith('owncoding-ui/numeric/')||source==='owncoding-ui/number-utils'||source.startsWith('owncoding-ui/number-utils/');
     for(const name of bindings){

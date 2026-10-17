@@ -1,5 +1,5 @@
 "use client";
-import {parseTelefono, whatsappUrl} from 'owncoding-ui';
+import {parseTelefono, whatsappUrl} from 'owncoding-ui/core';
 type Links={website?:string;instagram?:string;whatsapp?:string;other?:{label:string;url:string}[]};
 /** Enlace de WhatsApp del teléfono guardado (`+<código> <dígitos>`), conservando su país. */
 export function clientWhatsappUrl(phone?:string){

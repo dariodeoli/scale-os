@@ -104,7 +104,7 @@ const OrderForm=dynamic(()=>import('./workspace-forms').then(m=>m.OrderForm),{lo
 const PaymentForm=dynamic(()=>import('./workspace-forms').then(m=>m.PaymentForm),{loading:()=> <SectionLoading label="Cargando formulario…"/>});
 const ProjectForm=dynamic(()=>import('./workspace-forms').then(m=>m.ProjectForm),{loading:()=> <SectionLoading label="Cargando formulario…"/>});
 import {notify} from './feedback';
-import {AvisoPrivacidad} from 'owncoding-ui';
+import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {SubscriptionPanel, SubscriptionNotice} from './subscription-panel';
 import './settings-slice.css';
 

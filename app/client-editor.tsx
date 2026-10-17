@@ -6,7 +6,7 @@ import {Notice as Aviso} from './ui/notice';
 // Identidad · Contacto · Fiscal · Plan y pago · Enlaces (plegables; en móvil,
 // pasos). Alta y edición comparten campos y validadores (client-editor-data).
 import {useEffect,useRef,useState} from 'react';
-import {AvisoPrivacidad} from 'owncoding-ui';
+import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {api,Dialog,Editor,ApiFieldError} from './operations';
 import {ClientMatches,useClientMatches,type ClientMatch} from './client-matches';
 import {roleCan} from './capabilities';

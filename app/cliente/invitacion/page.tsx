@@ -3,7 +3,7 @@ import {useSingleFlightSubmit} from '../../use-single-flight-submit';
 import {PendingFields} from '../../ui/form-state';
 import {InputControl} from '../../ui/input-control';
 import {useEffect,useRef,useState} from 'react';
-import {esToken,extractTokenFromUrl,registroConsentimiento} from 'owncoding-ui';
+import {esToken,extractTokenFromUrl,registroConsentimiento} from 'owncoding-ui/core';
 import {GoogleSignIn} from '../../google-sign-in';
 import {PasswordField} from '../../password-field';
 import {clientPortalApiUrl,PortalApiError,portalApi} from '../../client-portal-api';

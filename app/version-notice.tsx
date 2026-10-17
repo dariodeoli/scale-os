@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {RefreshCw} from 'lucide-react';
-import {hayVersionNueva} from 'owncoding-ui';
+import {hayVersionNueva} from 'owncoding-ui/core';
 import {APP_VERSION} from './app-version';
 import {Button as ScaleButton} from "./ui/button";
 

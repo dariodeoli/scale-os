@@ -6,7 +6,7 @@ import {Notice as Aviso} from '../ui/notice';
 // contraste, acción de recuperación en el error y skeleton con la forma real
 // del panel mientras carga.
 import {CircleAlert, RefreshCw, TriangleAlert} from "lucide-react";
-import {Skeleton} from 'owncoding-ui';
+import {Skeleton} from 'owncoding-ui/core';
 import {formatPlatformMetric, type BootstrapStatus, type CollectionPage, type State} from "./model";
 import {Button as ScaleButton} from "../ui/button";
 

@@ -193,3 +193,10 @@ test('a reviewed action that cannot transform is still pending and blocks write'
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'scale-ui-review-block-'));fs.mkdirSync(path.join(root,'app'));fs.writeFileSync(path.join(root,'app/page.tsx'),source);
  try{assert.throws(()=>runMigration({root,write:true,files:['app/page.tsx'],manifest:{schema:1,files:[{file:'app/page.tsx',...review}]}}),/UNREVIEWED/);assert.equal(fs.readFileSync(path.join(root,'app/page.tsx'),'utf8'),source);}finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('asset-free core cannot hide legacy Button from the canonical action audit',()=>{
+ const root=analyze("import {Button as Legacy} from 'owncoding-ui'; export const A=()=> <Legacy className='primary'>Save</Legacy>;");
+ const core=analyze("import {Button as Legacy} from 'owncoding-ui/core'; export const A=()=> <Legacy className='primary'>Save</Legacy>;");
+ assert.equal(core.sites.length,1);assert.equal(core.sites[0].status,root.sites[0].status);
+ assert.equal(core.changed,true);assert.match(core.source,/ui\/button/);
+});

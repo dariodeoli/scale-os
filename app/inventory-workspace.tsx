@@ -23,14 +23,14 @@ import {TextareaBase} from './ui/input';
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {BarraProgreso,CeldaMoneda,FilaDato,MenuDesplegable,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
+import {BarraProgreso,CeldaMoneda,FilaDato,MenuDesplegable,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui/core';
 import {IconAction} from "./ui/icon-action";
 import {Button} from "./ui/button";
 import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SaveActions} from './save-actions';
 import {BulkBar,ViewTabs,Kpi,KpiStrip,LoadingBlock,MoneyText,StateChip,useBulkSelection} from './ui-v2';
-import {fechaLista,fechaListaCorta} from 'owncoding-ui';
+import {fechaLista,fechaListaCorta} from 'owncoding-ui/core';
 import {api,Dialog,Editor,money} from './operations';
 import {ActorAvatar,ActorIdentity,safePhoto} from './actor-identity';
 import {currencyChoices} from './currencies';

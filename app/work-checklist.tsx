@@ -6,7 +6,7 @@ import {useEffect,useId,useRef,useState} from 'react';
 import {clearDataCache} from './data-cache';
 import {ActorAvatar,isTechnicalDemoEmail,personDisplayName} from './actor-identity';
 import {listDateFull} from './list-format';
-import {primerNombre} from 'owncoding-ui';
+import {primerNombre} from 'owncoding-ui/core';
 import './work-checklist.css';
 import {EmptyBlock} from './ui-v2';
 import {roleCan} from './capabilities';

@@ -25,7 +25,7 @@ import {listDateShort} from './list-format';
 import {movementValue,matchingMovements,reconciliationPending,transferPreview,type StatementLine} from './treasury-data';
 import {useReconciliation} from './use-reconciliation';
 import {todayAsuncion} from './client-format';
-import {cn,AvisoPrivacidad} from 'owncoding-ui';
+import {cn,AvisoPrivacidad} from 'owncoding-ui/core';
 import {IconAction} from "./ui/icon-action";
 import {Button} from "./ui/button";
 import {LoadingBlock,MoneyText,StateChip} from './ui-v2';

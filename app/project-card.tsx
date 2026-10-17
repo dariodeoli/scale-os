@@ -14,7 +14,7 @@ import {useEffect,useRef,useState} from 'react';
 import {IconAction} from "./ui/icon-action";
 import {Dialog} from './dialog';
 import {EmployeeTasks,type EmployeeTasksProps} from './employee-tasks';
-import {fechaLista,fechaListaCorta} from 'owncoding-ui';
+import {fechaLista,fechaListaCorta} from 'owncoding-ui/core';
 import {hasDueWarning} from './list-format';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,type ChipTone} from './ui-v2';
 import {UrgencyBadge} from './urgency';

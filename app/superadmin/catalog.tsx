@@ -16,7 +16,7 @@ import {couponStatus, couponUses, formatPlatformMetric, money, type CollectionPa
 import {PlatformMore} from "./states";
 import {SelectCustom} from "../profile-controls";
 import {decimalInput} from "../field-rules";
-import {soloDigitos} from "owncoding-ui";
+import {soloDigitos} from "owncoding-ui/core";
 import {Button as ScaleButton} from "../ui/button";
 
 

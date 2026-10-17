@@ -10,7 +10,7 @@ import {SegmentedField} from './ui/navigation';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Settings2} from 'lucide-react';
 import {useRouter} from 'next/navigation';
-import {CampanaAvisos} from 'owncoding-ui';
+import {CampanaAvisos} from 'owncoding-ui/core';
 import {api} from './operations';
 import {Dialog} from './dialog';
 import {listDateFull} from './list-format';

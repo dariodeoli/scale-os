@@ -1,7 +1,7 @@
 "use client";
 import {OptionsSelect as Select} from './ui/options-select';
 import {forwardRef, useState} from 'react';
-import {componerTelefono} from 'owncoding-ui';
+import {componerTelefono} from 'owncoding-ui/core';
 import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, phoneParts} from './field-rules';
 import {InputBase, type InputBaseProps} from './ui/input';
 

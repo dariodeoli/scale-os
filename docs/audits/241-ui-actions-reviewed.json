@@ -68,7 +68,7 @@
     },
     {
       "file": "app/control-center.tsx",
-      "sourceHash": "c035a47d79300e59f3a6d2d722bb6bc48e7dc77a4c13675f438c71e4b794e181",
+      "sourceHash": "dd13a45be9110ab21a1519d28f73d9db8b44c6beb682fbfe1c42b5bf66126aee",
       "sites": [
         {
           "line": 71,
@@ -175,7 +175,7 @@
     },
     {
       "file": "app/ia-carga.tsx",
-      "sourceHash": "b8e15e105d75f57810306b0e27e6f45dd1b9b22fd75db47ed06d43f689a706e5",
+      "sourceHash": "7540da89beb7cf5491bfd35028aab1e76d9835ef618a908f11d1b5cde6281904",
       "sites": [
         {
           "line": 625,
@@ -214,7 +214,7 @@
     },
     {
       "file": "app/inventory-workspace.tsx",
-      "sourceHash": "e801e158c086a4b3296938c1eb886c44e9d929d4ead671f78feaf2af960ef257",
+      "sourceHash": "ac95e0c9cad6354de9751fd168cc1ff2a4b9a5c5b0ccedccde13f70dd3e2c866",
       "sites": [
         {
           "line": 315,
@@ -365,7 +365,7 @@
     },
     {
       "file": "app/production-board.tsx",
-      "sourceHash": "765316b765d016f50bdb6108b9c3705703829fe0f55b42f9e2eb0e90c201c6ce",
+      "sourceHash": "c3a5d87a3d62834b30f44b484a5a3fb0d40ba86132985f2bc661b1d0e249f96c",
       "sites": [
         {
           "line": 88,
@@ -382,7 +382,7 @@
     },
     {
       "file": "app/productivity-ui.tsx",
-      "sourceHash": "92fe7b639da762cc865a84a7b25ec4eacea3175a184cbff8671b178a6530f7da",
+      "sourceHash": "5f4582f74c9fc22d339d3f40426815839f0f0b49d35629884fe24fcec0be6172",
       "sites": [
         {
           "line": 174,
@@ -432,7 +432,7 @@
     },
     {
       "file": "app/project-card.tsx",
-      "sourceHash": "7c4251bf6ccee6f0e433dc8154aadf2b3ce06c7a0724b4e24d0747ee571b8bcb",
+      "sourceHash": "da3703b55dc91f6b77c6a6b43a6b8c7747b517658d113566244fb7126897d5a6",
       "sites": [
         {
           "line": 153,
@@ -483,7 +483,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "sourceHash": "7aefb3fa2d6778f67165987af36d3bd8090bbcc2470888ad89cd840ea00fb413",
+      "sourceHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
       "sites": [
         {
           "line": 989,
@@ -511,7 +511,7 @@
     },
     {
       "file": "app/sections/clientes.tsx",
-      "sourceHash": "9376fab9fd7f3e01a5b11cb5ffb8c032fdcf6fecb9468333ace7984c17afabf7",
+      "sourceHash": "5495fe90ce33845d6b729f348264b061605127dcdfdda5dc7f6c018b56f8374a",
       "sites": [
         {
           "line": 86,
@@ -556,7 +556,7 @@
     },
     {
       "file": "app/sections/finanzas.tsx",
-      "sourceHash": "5042f127ae2f182add403f3a4a94587fe7e4dc9acf739b7dc6de21d5f8bb7acf",
+      "sourceHash": "8abd2290464bf4b368784bc9304e1eac3a6ceaa4d60d6c2bfd6dd75814ae6312",
       "sites": [
         {
           "line": 250,
@@ -573,7 +573,7 @@
     },
     {
       "file": "app/sections/pipeline.tsx",
-      "sourceHash": "1aa085c050b223e5dcbce4dccfeb3637610d46ee2917e24d322477c01b3eb268",
+      "sourceHash": "25e380755902a06924d0ebe60cb23ed341bda6c47b591060ab72f95f3db91f5d",
       "sites": [
         {
           "line": 145,
@@ -646,7 +646,7 @@
     },
     {
       "file": "app/ui-v2.tsx",
-      "sourceHash": "fcc08c96e08d3db98dbf1b56c20a73c610c578ccabc79d0df187f308215f0974",
+      "sourceHash": "66de422a0bbc46db810c08b9b273f21f169673bd93874c80f78ba950ea4818f9",
       "sites": [
         {
           "line": 341,
@@ -752,7 +752,7 @@
     },
     {
       "file": "app/workspace-guide.tsx",
-      "sourceHash": "3fe3a0ce73bc18693d6ca3dae6c319e756612f3ab524b645a4be245fac3e2270",
+      "sourceHash": "f8ba60dff93d110dc9233f7d32ec40a01467f6853ac6629935e79c7df2cf6d96",
       "sites": [
         {
           "line": 61,

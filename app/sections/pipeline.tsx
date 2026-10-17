@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {AvisoPrivacidad} from 'owncoding-ui';
+import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {Button} from "../ui/button";
 import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';

@@ -1,7 +1,7 @@
 // Contrato de datos del ClientEditor (#184): campos por sección, validadores y
 // payloads. Alta y edición comparten los mismos campos y las mismas reglas; el
 // API revalida siempre (backend/suite-validation.js). Funciones puras.
-import {MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui';
+import {MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui/core';
 import type {Field} from './operations';
 import {PHONE_HELP} from './field-rules';
 import {clientLegalName} from './client-identity-data';

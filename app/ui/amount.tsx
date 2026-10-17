@@ -1,6 +1,6 @@
 "use client";
 
-import {MoneyInput} from 'owncoding-ui';
+import {MoneyInput} from 'owncoding-ui/core';
 import {forwardRef, type InputHTMLAttributes} from 'react';
 import type {FieldStateProps} from './input';
 

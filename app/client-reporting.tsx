@@ -10,10 +10,10 @@ import {AmountInput as MoneyInput} from './ui/amount';
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
 import {OptionalMark} from './field-label';
-import {FilaDato} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui/core';
 import {Button} from "./ui/button";
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
-import {soloDigitos} from 'owncoding-ui';
+import {soloDigitos} from 'owncoding-ui/core';
 import {listDateFull} from './list-format';
 import {todayAsuncion} from './client-format';
 import {COMMISSION_MODE_CHOICES,CUSTOMER_KINDS,CUSTOMER_KIND_CHOICES,isCurrency,useClientReportingData} from './client-reporting-data';

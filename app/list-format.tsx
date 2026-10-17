@@ -4,7 +4,7 @@
 // `diasHasta`, `partirSerial`, `serialEnmascarado`): acá solo se fija la zona de
 // la empresa y el contrato de vacío de las celdas, que devuelve `null` para que
 // cada celda elija su texto. No hay una segunda implementación de Intl.
-import {diasHasta, fechaLista, fechaListaCorta, partirSerial, serialEnmascarado} from 'owncoding-ui';
+import {diasHasta, fechaLista, fechaListaCorta, partirSerial, serialEnmascarado} from 'owncoding-ui/core';
 import './list-format.css';
 
 const timeZone = 'America/Asuncion';
