@@ -2,7 +2,7 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
-## v1.0.191
+## v1.0.190
 
 - **Hover y selección legibles**: perfil de la barra lateral, menús, filas,
   selectores y Kanban conservan contraste en temas claro y oscuro.
@@ -16,8 +16,6 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
 - **Acciones externas protegidas**: la demo no contacta proveedores del tenant;
   crear una cuenta real y recuperar acceso desde los formularios públicos sigue
   disponible. La limpieza de datos vencidos distingue expiración y borrado físico.
-
-## v1.0.190
 
 - **Más espacio útil**: encabezados y filtros compactos, proyectos en cuadrícula
   reorganizados y logos de clientes circulares, también en las listas.
