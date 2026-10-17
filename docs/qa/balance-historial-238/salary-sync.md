@@ -14,7 +14,7 @@ Las tres proyecciones del mes anterior conservaron el acuerdo explícito de 500.
 
 ## Hallazgo visual independiente
 
-Al revisar la captura se observó que, al seleccionar Remuneración después de Perfil, el grupo anterior seguía visible arriba: `hidden=true`, `display:grid`, `checkVisibility()=true`, altura 860.53 px. El grupo Remuneración seleccionado medía 430.94 px. Se informó al integrador; los controles correctos se alcanzaron por scroll y los guardados funcionales sí quedaron acreditados. Este resultado funcional no presenta ese defecto visual como resuelto.
+Al revisar la captura se observó que, al seleccionar Remuneración después de Perfil, el grupo anterior seguía visible arriba: `hidden=true`, `display:grid`, `checkVisibility()=true`, altura 860.53 px. El grupo Remuneración seleccionado medía 430.94 px. El integrador corrigió el conflicto con `3397305a`. El focal readonly posterior acredita **11 comprobaciones**: grupos inactivos con `display:none`, altura cero y sin foco programático ni por Tab; ambos borradores se conservan al alternar; API e historial permanecen idénticos. [Evidencia](person-tabs-results.json), [runner](person-tabs-browser.mjs). Los diez checks de tabs se extraen de la ejecución combinada y el undécimo verifica sus solicitudes interceptadas, sin repetir los flujos salariales. Los POST de presencia y diagnóstico Next fueron bloqueados antes del servidor. En esa misma ejecución se detectó por separado una pestaña salarial montada para un actor con `salary.view=false`; la API redactaba importes y devolvía historial403. Ese control de permiso espera corrección aparte, no se incluye entre los once aprobados.
 
 La primera tentativa del runner se detuvo por buscar `aria-label` directamente en el botón del menú; su nombre accesible proviene del texto de lector de pantalla. Se corrigió el selector para localizar el botón de menú dentro de la fila de la persona. La ejecución final usa un tenant nuevo; ese error del harness no se atribuye al producto.
 
@@ -48,3 +48,5 @@ node docs/qa/balance-historial-238/salary-sync-browser.mjs
 ```
 
 El runner admite `CHROME_PATH`, exige origen localhost y `synthetic:true`, bloquea solicitudes fuera del entorno local y nunca escribe la sesión en el reporte. Sólo exporta cuatro campos económicos por persona y dos capturas; no contiene credenciales ni copias de datos reales.
+
+Para el focal de pestañas, el runner adicional utiliza las mismas variables locales con `QA_SCOPE=tabs`. Para permisos: `QA_SCOPE=permission`, `QA_LIMITED_SESSION_FILE`, `QA_LIMITED_PERSON_NAME` y `QA_LIMITED_PERSON_ID` de un actor sintético ya existente con `salary.view=false`. Ningún modo permite peticiones mutantes al servidor.

@@ -1,0 +1,129 @@
+{
+  "source": "3397305a",
+  "checks": [
+    {
+      "name": "Inactive Perfil computed display none and height zero",
+      "passed": true
+    },
+    {
+      "name": "Selected Remuneraci\u00f3n is visible",
+      "passed": true
+    },
+    {
+      "name": "Inactive Perfil cannot receive programmatic focus",
+      "passed": true
+    },
+    {
+      "name": "Keyboard Tab never enters inactive panel",
+      "passed": true
+    },
+    {
+      "name": "Inactive Remuneraci\u00f3n computed display none and height zero",
+      "passed": true
+    },
+    {
+      "name": "Profile draft survives tab switch",
+      "passed": true
+    },
+    {
+      "name": "Inactive Remuneraci\u00f3n cannot receive focus",
+      "passed": true
+    },
+    {
+      "name": "Salary draft survives switch back",
+      "passed": true
+    },
+    {
+      "name": "No collaborator data changed",
+      "passed": true
+    },
+    {
+      "name": "No salary history changed",
+      "passed": true
+    },
+    {
+      "name": "No business mutation attempted; background/dev POST requests intercepted before server",
+      "passed": true
+    }
+  ],
+  "geometry": [
+    {
+      "stage": "salary",
+      "tabs": [
+        {
+          "tab": "perfil",
+          "hidden": true,
+          "display": "none",
+          "height": 0,
+          "visible": false
+        },
+        {
+          "tab": "remuneracion",
+          "hidden": false,
+          "display": "grid",
+          "height": 430.9375,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "stage": "profile",
+      "tabs": [
+        {
+          "tab": "perfil",
+          "hidden": false,
+          "display": "grid",
+          "height": 795.53125,
+          "visible": true
+        },
+        {
+          "tab": "remuneracion",
+          "hidden": true,
+          "display": "none",
+          "height": 0,
+          "visible": false
+        }
+      ]
+    }
+  ],
+  "blockedWrites": [
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/__nextjs_original-stack-frames"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/__nextjs_original-stack-frames"
+    }
+  ],
+  "screenshots": [
+    "evidence/person-tabs-remuneracion-only.webp"
+  ],
+  "passed": true,
+  "scope": "tabs-only, extracted from combined read-only run",
+  "excluded": "Restricted-user tab check failed and remains a separate finding; no salary amount leakage observed. Permission fix is not covered here."
+}
