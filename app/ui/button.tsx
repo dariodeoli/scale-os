@@ -29,9 +29,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     className={`ui-button ${variantClass[variant]}${iconOnly ? ' icon-button' : ''} ${className}`.trim()}
     data-variant={variant} data-size={size} data-full-width={fullWidth || undefined}
     style={color ? {...style, '--ui-button-color': color} as CSSProperties : style}>
+    {loading || icon ? <>
     {loading ? <span className="ui-button-spinner" aria-hidden="true"/> : null}
     {icon && iconPosition === 'start' ? <span className="ui-button-icon" aria-hidden="true">{icon}</span> : null}
     {children}
     {icon && iconPosition === 'end' ? <span className="ui-button-icon" aria-hidden="true">{icon}</span> : null}
+    </> : children}
   </button>;
 });
