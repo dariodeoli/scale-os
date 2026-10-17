@@ -2,6 +2,14 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.195
+
+- **Fotos de inventario estables**: editar un equipo conserva su foto actual,
+  también cuando se abre desde la dirección pública del API.
+- **Referencias antiguas sin bucles**: las fotos dejan de redirigir hacia sí
+  mismas. Si el historial conserva una imagen original verificable, puede
+  mostrarse esa copia sin reescribir ni borrar el historial.
+
 ## v1.0.194
 
 - **Tareas a mano**: Inicio prioriza una tarea propia de hoy, su checklist y las
