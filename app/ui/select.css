@@ -1,6 +1,7 @@
 /* Local selector anatomy; domain styles and data sources remain with adapters. */
 [data-ui-selector]{min-width:0;display:grid;gap:var(--ui-space-2,8px)}
-[data-ui-selector] .ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-2,8px);min-width:0;width:100%;min-height:44px;text-align:left}
+[data-ui-selector] .ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:var(--ui-space-2,8px);min-width:0;width:100%;text-align:left}
+[data-ui-selector] .ops-select-trigger:not(:where([data-ui-button])){min-height:44px}
 [data-ui-selector] .ops-select-trigger>span{min-width:0;flex:1}
 [data-ui-selector] .ops-select-trigger>svg{flex:none}
 .ui-select-content{display:flex;align-items:center;gap:var(--ui-space-2,8px);min-width:0;max-width:100%}
@@ -16,8 +17,8 @@
 .ui-select-inline-options{display:grid;gap:var(--ui-space-2,8px);min-width:0}
 .ui-select-check{display:flex;align-items:center;gap:var(--ui-space-2,8px);min-height:44px;min-width:0}
 .ui-select-check input[type=checkbox]{appearance:auto;flex:none;width:18px;height:18px;min-height:18px;margin:0;padding:0;accent-color:var(--brand-600)}
-[data-ui-selector] button:focus-visible,[data-ui-selector] input:focus-visible,[data-ui-select-popup] button:focus-visible,[data-ui-select-popup] input:focus-visible{outline:2px solid var(--brand-600);outline-offset:2px}
-[data-ui-selector] button:disabled,[data-ui-selector] input:disabled,[data-ui-select-popup] button:disabled{cursor:default;opacity:.6}
+[data-ui-selector] button:focus-visible:not(:where([data-ui-button])),[data-ui-selector] input:focus-visible,[data-ui-select-popup] button:focus-visible:not(:where([data-ui-button])),[data-ui-select-popup] input:focus-visible{outline:2px solid var(--brand-600);outline-offset:2px}
+[data-ui-selector] button:disabled:not(:where([data-ui-button])),[data-ui-selector] input:disabled,[data-ui-select-popup] button:disabled:not(:where([data-ui-button])){cursor:default;opacity:.6}
 [data-ui-selector] p,[data-ui-select-popup] p{margin:0;overflow-wrap:anywhere;font-size:.85rem}
 
 [data-ui-selector] .ops-select-trigger>[id$="-value"]{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

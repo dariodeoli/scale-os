@@ -11,4 +11,4 @@
 .project-card-v3 .client-identity.compact{font-size:12px}
 .project-card-v3 .client-identity.compact .identity-avatar{width:32px;height:32px}
 .project-list .project-card-v3 .project-card-facts{margin:0;padding:0;background:transparent}
-@media(max-width:767px){.project-card-v3{padding:14px}.project-card-v3 button,.project-card-v3 a{min-height:44px}}
+@media(max-width:767px){.project-card-v3{padding:14px}.project-card-v3 button:not(:where([data-ui-button])),.project-card-v3 a{min-height:44px}}

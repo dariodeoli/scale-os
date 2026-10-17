@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {legacyButtonCss} from './helpers/legacy-button-css.mjs';
 import postcss,{type Rule,type AnyNode} from 'postcss';
 import {selectPosition} from '../app/select-position';
 
-const root=postcss.parse(readFileSync(new URL('../app/mobile-forms.css',import.meta.url),'utf8'));
+const root=postcss.parse(legacyButtonCss(readFileSync(new URL('../app/mobile-forms.css',import.meta.url),'utf8')));
 const globalsRoot=postcss.parse(readFileSync(new URL('../app/globals.css',import.meta.url),'utf8'));
 // Inspect stylesheet contracts at the supported widths. This is not a browser
 // layout engine and does not prove rendered pixels or physical touch behavior.

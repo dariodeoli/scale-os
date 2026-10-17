@@ -13,11 +13,13 @@
  .dialog-body textarea,.dialog-body select{
   min-width:0;max-width:100%;font-size:16px;min-height:44px;
  }
- .dialog-heading .icon-button{width:44px;min-height:44px}
- .dialog-footer .dialog-actions>button{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere;padding-block:8px}
- .dialog-body .ops-select-trigger{min-height:44px}
- .login-card .primary,.login-card .secondary,.login-card .google-login-button{min-height:44px;max-width:100%;white-space:normal}
+ .dialog-heading .icon-button:not(:where([data-ui-button])){width:44px;min-height:44px}
+ .dialog-footer .dialog-actions>button{max-width:100%}
+ .dialog-footer .dialog-actions>button:not(:where([data-ui-button])){min-height:44px;white-space:normal;overflow-wrap:anywhere;padding-block:8px}
+ .dialog-body .ops-select-trigger:not(:where([data-ui-button])){min-height:44px}
+ .login-card .primary,.login-card .secondary,.login-card .google-login-button{max-width:100%}
+ .login-card .primary:not(:where([data-ui-button])),.login-card .secondary:not(:where([data-ui-button])),.login-card .google-login-button:not(:where([data-ui-button])){min-height:44px;white-space:normal}
 }
 
 /* Mobile form controls remain comfortably tappable without widening their dialogs. */
-@media(max-width:760px){.dialog-body :is(button.icon-button,.text-button,.secondary){min-width:44px;min-height:44px}.dialog-body .form-stack>label{gap:8px}.dialog-body input::placeholder,.dialog-body textarea::placeholder{color:var(--text-subtle,var(--text-muted));opacity:.82}.login-page .login-card{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-card)}}
+@media(max-width:760px){.dialog-body :is(button.icon-button,.text-button,.secondary):not(:where([data-ui-button])){min-width:44px;min-height:44px}.dialog-body .form-stack>label{gap:8px}.dialog-body input::placeholder,.dialog-body textarea::placeholder{color:var(--text-subtle,var(--text-muted));opacity:.82}.login-page .login-card{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-card)}}
