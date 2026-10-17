@@ -56,6 +56,10 @@ test('client editor shows Plan y pago only for commercial-terms roles and never 
    assert(terms,`${role} fetches commercial terms to edit them`);
    respond(terms,{clientId:'1',archived:false,terms:null,plans:[],collaborators:[]});
    await settle();
+   const history=requests.find(request=>request.url.endsWith('/api/agency/clients/1/plan-history'));
+   assert(history,`${role} obtains the optimistic history revision`);
+   respond(history,{records:[],revision:'0'});
+   await settle();
    const rendered=text(renderer.root);
    assert(rendered.includes('Plan y pago'),`${role} sees Plan y pago`);
    assert(rendered.includes('Cuánto paga por mes'),`${role} edits the monthly amount`);
