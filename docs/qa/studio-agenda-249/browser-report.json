@@ -1,0 +1,195 @@
+{
+  "scope": "Actual StudioWorkspace + canonical controls, local synthetic API and 112px shell header. No full authenticated shell or production validation.",
+  "reports": [
+    {
+      "width": 390,
+      "theme": "light",
+      "scrollWidth": 390,
+      "reservationY": 586.78125,
+      "reservationBottom": 780.625,
+      "todayWidth": 44,
+      "todayHeight": 44,
+      "calendarDisplay": "none",
+      "selectMonthVisible": false
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "scrollWidth": 390,
+      "reservationY": 586.78125,
+      "reservationBottom": 780.625,
+      "todayWidth": 44,
+      "todayHeight": 44,
+      "calendarDisplay": "none",
+      "selectMonthVisible": false
+    },
+    {
+      "width": 390,
+      "theme": "contrast",
+      "scrollWidth": 390,
+      "reservationY": 586.78125,
+      "reservationBottom": 780.625,
+      "todayWidth": 44,
+      "todayHeight": 44,
+      "calendarDisplay": "none",
+      "selectMonthVisible": false
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "scrollWidth": 1440,
+      "reservationY": 0,
+      "reservationBottom": 0,
+      "todayWidth": 0,
+      "todayHeight": 0,
+      "calendarDisplay": "block",
+      "selectMonthVisible": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "scrollWidth": 1440,
+      "reservationY": 0,
+      "reservationBottom": 0,
+      "todayWidth": 0,
+      "todayHeight": 0,
+      "calendarDisplay": "block",
+      "selectMonthVisible": true
+    },
+    {
+      "width": 1440,
+      "theme": "contrast",
+      "scrollWidth": 1440,
+      "reservationY": 0,
+      "reservationBottom": 0,
+      "todayWidth": 0,
+      "todayHeight": 0,
+      "calendarDisplay": "block",
+      "selectMonthVisible": true
+    }
+  ],
+  "emptyOtherError": true,
+  "existingDialogsOpenedAndDismissed": true,
+  "requests": [
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-context",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-spaces",
+      "method": "GET"
+    },
+    {
+      "path": "/core-api/api/agency/studio-reservations",
+      "method": "GET"
+    }
+  ]
+}
