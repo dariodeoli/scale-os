@@ -67,7 +67,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      <p className="text-[11.5px] text-mute">Usamos la foto para identificarte ante tu equipo; podés quitarla cuando quieras.</p>
     </div>
     <div data-profile-section="name" className={EDITOR_CONTROLS}>
-     <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
+     <Editor fields={[{key:'full_name',label:'Nombre completo',maxLength:120,validate:value=>value.trim().length>=2?null:'Ingresá el nombre completo (al menos dos caracteres).'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
      <p className="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
     </div>
    </section>}

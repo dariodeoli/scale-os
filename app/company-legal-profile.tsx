@@ -5,7 +5,7 @@ import {LoadingBlock,ErrorBlock} from './ui-v2';
 import {contractRequest,contractMessage} from './contracts-data';
 import './company-legal-profile.css';
 type LegalProfile={revision:number;city:string;department:string;legal_representative_name:string;legal_representative_document:string;legal_representative_role:string;provenance:Record<string,{source:string;verified_at?:string}>};
-const fields:Field[]=[{key:'city',label:'Ciudad',maxLength:120,optional:true},{key:'department',label:'Departamento',maxLength:120,optional:true},{key:'legal_representative_name',label:'Nombre del representante legal',maxLength:120,optional:true},{key:'legal_representative_document',label:'Documento del representante legal',maxLength:80,optional:true},{key:'legal_representative_role',label:'Cargo del representante legal',maxLength:120,optional:true}];
+const fields:Field[]=[{key:'city',label:'Ciudad',maxLength:160,optional:true},{key:'department',label:'Departamento',maxLength:160,optional:true},{key:'legal_representative_name',label:'Nombre del representante legal',maxLength:160,optional:true},{key:'legal_representative_document',label:'Documento del representante legal',maxLength:60,optional:true},{key:'legal_representative_role',label:'Cargo del representante legal',maxLength:160,optional:true}];
 export function CompanyLegalProfile({organizationId,userId}:{organizationId:string;userId:string}){return <LegalProfileSession key={`${organizationId}:${userId}`}/>;}
 function LegalProfileSession(){
  const [profile,setProfile]=useState<LegalProfile|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[editorKey,setEditorKey]=useState(0);const alive=useRef(true),generation=useRef(0);

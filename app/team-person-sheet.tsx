@@ -43,7 +43,7 @@ const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pud
 // Campos del perfil: sin ningún dato salarial (la API rechaza con 403 que un rol
 // sin `salary.view` los envíe, y la pestaña Remuneración es la única que los edita).
 const profileFields:Field[]=[
-  {key:'full_name',label:'Nombre completo'},
+  {key:'full_name',label:'Nombre completo',maxLength:120,validate:value=>value.trim().length>=2?null:'Ingresá el nombre completo (al menos dos caracteres).'},
   {key:'email',label:'Correo de contacto',type:'email',optional:true},
   {key:'job_title',label:'Cargo',optional:true},
   {key:'active',label:'Estado laboral',choices:[{value:'true',label:'Activo'},{value:'false',label:'Inactivo'}]},
