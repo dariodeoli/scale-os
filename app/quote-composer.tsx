@@ -21,12 +21,14 @@ import {Button,FormField,Switch,Aviso} from 'owncoding-ui';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
-import {useEffect,useState} from 'react';
-import {useForm,useFieldArray} from 'react-hook-form';
+import {useEffect,useRef,useState} from 'react';
+import {PendingFields} from './ui/form-state';
+import {useFormFocus,FormValidationErrors} from './ui/form-focus';
+import {useForm,useFieldArray,get,set,type FieldPath} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,DragEndEvent,PointerSensor,KeyboardSensor,useSensor,useSensors,type CollisionDetection,type UniqueIdentifier} from '@dnd-kit/core';
 import {ArrowDown,ArrowUp,GripVertical,Plus,X} from 'lucide-react';
-import {api} from './operations';
+import {api,ApiFieldError} from './operations';
 import {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteMissingText,quoteReadiness,quoteRequest,quoteSchema,quoteTotals,type QuoteClientOption,type QuoteMode,type QuotePlanRecord,type QuoteSection,type QuoteValues} from './quote-composer-data';
 // Los esquemas, totales y requests viven en ./quote-composer-data (puros); se
 // reexporta lo que otros módulos/tests ya importaban de acá.
@@ -40,11 +42,11 @@ type Row={id:string;[key:string]:unknown};
 // puntero, cae al rectángulo que se cruza.
 const detectCollision:CollisionDetection=(args)=>{const within=pointerWithin(args);return within.length?within:rectIntersection(args);};
 
-function ItemShell({id,title,canReorder=true,itemLabel='ítem',children}:{id:string;title?:string;canReorder?:boolean;itemLabel?:'ítem'|'sección';children:React.ReactNode}){
- const drag=useDraggable({id,disabled:!canReorder}),drop=useDroppable({id});
+function ItemShell({id,title,canReorder=true,pending=false,itemLabel='ítem',children}:{id:string;title?:string;canReorder?:boolean;pending?:boolean;itemLabel?:'ítem'|'sección';children:React.ReactNode}){
+ const drag=useDraggable({id,disabled:pending||!canReorder}),drop=useDroppable({id,disabled:pending});
  return <div ref={node=>{drag.setNodeRef(node);drop.setNodeRef(node);}} className={`grid gap-3 rounded-xl border bg-ink-800 p-3 ${drop.isOver?'border-fono/60':'border-ink-600'}`} style={{opacity:drag.isDragging?.5:1}}>
   <div className="flex items-start gap-2">
-   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-9 md:w-9" title={`Reordenar ${itemLabel}`} aria-label={`Reordenar ${itemLabel}`} style={{touchAction:'none'}} {...drag.attributes} {...drag.listeners}><GripVertical size={16}/></button>}
+   {canReorder&&<button type="button" className="mt-0.5 grid h-11 w-11 shrink-0 cursor-grab place-items-center rounded-lg text-mute transition motion-reduce:transition-none hover:bg-ink-700 hover:text-fore active:cursor-grabbing md:h-9 md:w-9" title={`Reordenar ${itemLabel}`} aria-label={`Reordenar ${itemLabel}`} style={{touchAction:'none'}} {...drag.attributes} {...drag.listeners} disabled={pending}><GripVertical size={16}/></button>}
    <div className="grid min-w-0 flex-1 gap-3">{title?<b className="text-sm font-bold text-fore">{title}</b>:null}{children}</div>
   </div>
  </div>;
@@ -56,7 +58,14 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  // Señales del bloqueo: `attempted` enciende los errores al intentar guardar (o
  // con Enter) y `clientTouched` al pasar por el selector de cliente.
  const [attempted,setAttempted]=useState(false),[clientTouched,setClientTouched]=useState(false);
- const form=useForm<QuoteValues>({mode:'onTouched',resolver:zodResolver(quoteSchema),defaultValues:{title:String(record?.title||record?.name||''),clientId:String(record?.client_id||''),currency:validCurrency(record?.currency??defaultCurrency),tax_rate:String(record?.tax_rate??'.1'),notes:String(record?.notes||''),valid_until:String(record?.valid_until||'').slice(0,10),items:normalizeQuoteItems(record?.items),sections:Array.isArray(record?.sections)?record.sections as QuoteSection[]:initialQuoteSections()}});
+ const serverErrors=useRef<Record<string,{value:unknown;message:string}>>({});
+ const [persisted,setPersisted]=useState(false),[completionFailed,setCompletionFailed]=useState(false);
+ const persistedRef=useRef(false);
+ const form=useForm<QuoteValues>({mode:'onTouched',shouldFocusError:false,resolver:async(values,context,options)=>{
+  const result=await zodResolver(quoteSchema)(values,context,options);
+  for(const [key,problem] of Object.entries(serverErrors.current)){if(get(values,key)!==problem.value){delete serverErrors.current[key];continue;}set(result.errors,key,{type:'server',message:problem.message});}
+  return Object.keys(result.errors).length?{values:{},errors:result.errors}:result;
+ },defaultValues:{title:String(record?.title||record?.name||''),clientId:String(record?.client_id||''),currency:validCurrency(record?.currency??defaultCurrency),tax_rate:String(record?.tax_rate??'.1'),notes:String(record?.notes||''),valid_until:String(record?.valid_until||'').slice(0,10),items:normalizeQuoteItems(record?.items),sections:Array.isArray(record?.sections)?record.sections as QuoteSection[]:initialQuoteSections()}});
  const array=useFieldArray({control:form.control,name:'items'}),v=form.watch();
  const sections=useFieldArray({control:form.control,name:'sections'});
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
@@ -86,33 +95,50 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    },
   };
  };
- function move(e:DragEndEvent){const from=array.fields.findIndex(f=>f.id===e.active.id),to=array.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0&&from!==to)array.move(from,to);}
- const submission=useSingleFlightSubmit(form.handleSubmit(async values=>{setError('');
-  // El bloqueo es también de contrato: sin los campos obligatorios no se
-  // dispara ninguna escritura, aunque el submit llegue por Enter.
-  if(!quoteReadiness(values,mode).ready){setAttempted(true);void form.trigger();return;}
-  try{
+ function move(e:DragEndEvent){if(submission.pending||persistedRef.current)return;const from=array.fields.findIndex(f=>f.id===e.active.id),to=array.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0&&from!==to)array.move(from,to);}
+ const submission=useSingleFlightSubmit(event=>{setError('');return form.handleSubmit(async values=>{
+  if(!quoteReadiness(values,mode).ready){
+   setAttempted(true);await form.trigger(undefined,{shouldFocus:false});
+   if(mode==='create'&&!values.clientId){form.setError('clientId',{type:'required',message:'Elegí un cliente.'});focus.onInvalid({clientId:{message:'Elegí un cliente.'}});}
+   else{const index=values.items.findIndex(item=>!Number.isFinite(Number(item.quantity.replace(',','.'))));if(index>=0){const key=`items.${index}.quantity` as const;form.setError(key,{type:'validate',message:'Cantidad inválida'});focus.onInvalid({[key]:{message:'Cantidad inválida'}});}}
+   return;
+  }
+  if(!persistedRef.current)try{
    const request=quoteRequest(mode,record?.id,values);
    await api(request.path,request.body,request.method);
-   await done();
-  }catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}}));
- return <form className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]" noValidate onSubmit={submission.onSubmit}>
+   persistedRef.current=true;setPersisted(true);serverErrors.current={};form.reset(form.getValues());
+  }catch(cause){
+   setError(cause instanceof Error?cause.message:'No se pudo guardar');
+   const accepted:Record<string,{message:string}>={};
+   if(cause instanceof ApiFieldError)for(const [key,message] of Object.entries(cause.fieldErrors)){
+    const allowed=/^(title|clientId|currency|tax_rate|notes|valid_until)$/.test(key)||/^items\.\d+\.(description|quantity|unitPrice)$/.test(key)||/^sections\.\d+\.(type|title|body|enabled)$/.test(key);
+    if(allowed&&get(form.getValues(),key)!==undefined){const path=key as FieldPath<QuoteValues>;serverErrors.current[key]={value:get(form.getValues(),key),message};form.setError(path,{type:'server',message});accepted[key]={message};}
+   }
+   focus.onInvalid(Object.keys(accepted).length?accepted:{root:{message:'No se pudo guardar'}});return;
+  }
+  setCompletionFailed(false);
+  try{await done();}catch{setCompletionFailed(true);}
+ },errors=>{setAttempted(true);focus.onInvalid(errors);})(event);});
+ const focus=useFormFocus(submission.pending);
+ const locked=submission.pending||persisted;
+ return <form ref={focus.formRef} aria-busy={submission.pending} className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]" noValidate onSubmit={submission.onSubmit}>
+ <PendingFields pending={locked}>
  <div className="grid content-start gap-4">
   <section className="grid gap-3">
    <FormField label={<>{mode==='plan'?'Nombre del plan':'Título del presupuesto'}</>} htmlFor="quote-title" error={form.formState.errors.title?.message}><Input id="quote-title" required maxLength={120} aria-invalid={form.formState.errors.title?'true':undefined} aria-describedby={form.formState.errors.title?'quote-title-descripcion':undefined} {...form.register('title')}/></FormField>
    <div className="flex flex-wrap items-end gap-3">
-    {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label="Cliente" htmlFor="quote-client" error={clientError||undefined}><Select hideLabel label="Cliente" id="quote-client" required aria-invalid={clientError?'true':undefined} aria-describedby={clientError?'quote-client-descripcion':undefined} value={v.clientId} onBlur={()=>setClientTouched(true)} onChange={(value:string)=>{form.setValue('clientId',value,{shouldDirty:true});setClientTouched(true);}}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)} data-kind="entity" data-photo-url={client.logo_url}>{String(client.name)}</option>)}</Select></FormField></div>}
-    {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label={<>Usar un plan como base (reemplaza los ítems actuales)<OptionalMark/></>} htmlFor="quote-plan-base"><Select hideLabel label="Usar un plan como base (reemplaza los ítems actuales)" id="quote-plan-base" value="" onChange={(value:string)=>{const plan=plans.find(item=>String(item.id)===value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name),{shouldValidate:true});form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)} data-kind="entity">{String(plan.name)}</option>)}</Select></FormField></div>}
-    <CurrencyField id="quote-currency" label="Moneda" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value))}/>
+    {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><div data-form-field="clientId"><FormField label="Cliente" htmlFor="quote-client" error={clientError||undefined}><Select disabled={locked} hideLabel label="Cliente" id="quote-client" required aria-invalid={clientError?'true':undefined} aria-describedby={clientError?'quote-client-descripcion':undefined} value={v.clientId} onBlur={()=>setClientTouched(true)} onChange={(value:string)=>{form.setValue('clientId',value,{shouldDirty:true,shouldValidate:true});setClientTouched(true);}}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)} data-kind="entity" data-photo-url={client.logo_url}>{String(client.name)}</option>)}</Select></FormField></div></div>}
+    {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label={<>Usar un plan como base (reemplaza los ítems actuales)<OptionalMark/></>} htmlFor="quote-plan-base"><Select disabled={locked} hideLabel label="Usar un plan como base (reemplaza los ítems actuales)" id="quote-plan-base" value="" onChange={(value:string)=>{const plan=plans.find(item=>String(item.id)===value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency),{shouldDirty:true,shouldValidate:true});form.setValue('title',String(plan.name),{shouldValidate:true,shouldDirty:true});form.setValue('notes',String(plan.notes||''),{shouldDirty:true,shouldValidate:true});}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)} data-kind="entity">{String(plan.name)}</option>)}</Select></FormField></div>}
+    <CurrencyField disabled={locked} id="quote-currency" label="Moneda" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value),{shouldDirty:true,shouldValidate:true})}/>
    </div>
   </section>
-  <section className="grid gap-3" aria-label="Ítems del documento">
+  <section data-form-field="items" className="grid gap-3" aria-label="Ítems del documento">
    <h3 className="m-0 text-sm font-bold text-fore">Ítems del documento</h3>
-   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={reorderAccessibility('item')}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder}>
+   <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={move} accessibility={reorderAccessibility('item')}>{array.fields.map((field,index)=><ItemShell key={field.id} id={field.id} canReorder={canReorder} pending={locked}>
     <FormField label="Descripción" htmlFor={`quote-item-description-${index}`} error={itemErrors?.[index]?.description?.message}><Input id={`quote-item-description-${index}`} required aria-invalid={itemErrors?.[index]?.description?'true':undefined} aria-describedby={itemErrors?.[index]?.description?`quote-item-description-${index}-descripcion`:undefined} {...form.register(`items.${index}.description`)}/></FormField>
     <div className="flex flex-wrap gap-3">
      <FormField label="Cantidad" htmlFor={`quote-item-quantity-${index}`} error={itemErrors?.[index]?.quantity?.message}><Input id={`quote-item-quantity-${index}`} className="w-24" inputMode="decimal" autoComplete="off" required aria-invalid={itemErrors?.[index]?.quantity?'true':undefined} aria-describedby={itemErrors?.[index]?.quantity?`quote-item-quantity-${index}-descripcion`:undefined} {...form.register(`items.${index}.quantity`)}/></FormField>
-     <FormField label="Precio sin IVA" htmlFor={`quote-item-price-${index}`} error={itemErrors?.[index]?.unitPrice?.message}><MoneyInput id={`quote-item-price-${index}`} className="w-44" currency={v.currency} value={v.items[index]?.unitPrice||''} onChange={(value: unknown)=>form.setValue(`items.${index}.unitPrice`,String(value),{shouldValidate:true,shouldDirty:true})}/></FormField>
+     <FormField label="Precio sin IVA" htmlFor={`quote-item-price-${index}`} error={itemErrors?.[index]?.unitPrice?.message}><MoneyInput disabled={locked} name={`items.${index}.unitPrice`} aria-invalid={itemErrors?.[index]?.unitPrice?true:undefined} aria-describedby={itemErrors?.[index]?.unitPrice?`quote-item-price-${index}-descripcion`:undefined} id={`quote-item-price-${index}`} className="w-44" currency={v.currency} value={v.items[index]?.unitPrice||''} onChange={(value: unknown)=>form.setValue(`items.${index}.unitPrice`,String(value),{shouldValidate:true,shouldDirty:true})}/></FormField>
     </div>
     <div className="flex flex-wrap gap-2">
      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>array.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
@@ -131,16 +157,16 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <summary>Opciones del documento <span className="ml-1 text-[11px] font-normal text-mute">{mode==='plan'?'IVA':'IVA, vigencia y secciones'}</span></summary>
    <div className="grid gap-4">
     <div className="flex flex-wrap items-end gap-3">
-     <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select hideLabel label="IVA" id="quote-tax" value={String(Number(v.tax_rate))} onChange={(value:string)=>form.setValue('tax_rate',value,{shouldDirty:true})}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
+     <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select disabled={locked} hideLabel label="IVA" id="quote-tax" value={String(Number(v.tax_rate))} onChange={(value:string)=>form.setValue('tax_rate',value,{shouldDirty:true,shouldValidate:true})}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
      {mode!=='plan'&&<div className="w-full max-w-44 min-w-0"><FormField label={<>Válido hasta<OptionalMark/></>} htmlFor="quote-valid-until"><Input id="quote-valid-until" type="date" {...form.register('valid_until')}/></FormField></div>}
     </div>
     {mode!=='plan'&&<section className="grid gap-3" aria-label="Secciones del documento">
      <div><h3 className="text-sm font-bold text-fore">Secciones del documento</h3><p className="mt-1 text-xs leading-5 text-mute">Arrastrá o usá Subir/Bajar. Detalle y totales son obligatorios; podés ocultar las otras secciones.</p></div>
-     <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={e=>{const from=sections.fields.findIndex(f=>f.id===e.active.id),to=sections.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0)sections.move(from,to);}} accessibility={reorderAccessibility('section')}>{sections.fields.map((field,index)=><ItemShell key={field.id} id={field.id} title={SECTION_TYPE_LABELS[field.type]} canReorder={canReorder} itemLabel="sección">
+     <DndContext sensors={sensors} collisionDetection={detectCollision} onDragEnd={e=>{if(submission.pending||persistedRef.current)return;const from=sections.fields.findIndex(f=>f.id===e.active.id),to=sections.fields.findIndex(f=>f.id===e.over?.id);if(from>=0&&to>=0)sections.move(from,to);}} accessibility={reorderAccessibility('section')}>{sections.fields.map((field,index)=><ItemShell key={field.id} id={field.id} title={SECTION_TYPE_LABELS[field.type]} canReorder={canReorder} pending={locked} itemLabel="sección">
       {field.type==='text'&&<><FormField label="Título" htmlFor={`quote-section-title-${index}`}><Input id={`quote-section-title-${index}`} {...form.register(`sections.${index}.title`)}/></FormField><FormField label="Contenido" htmlFor={`quote-section-body-${index}`}><Textarea id={`quote-section-body-${index}`} rows={4} {...form.register(`sections.${index}.body`)}/></FormField></>}
       {['items','totals'].includes(field.type)
        ?<p className="text-xs font-medium text-mute">Siempre visible</p>
-       :<label htmlFor={`quote-section-enabled-${index}`} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0"><Switch id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked)} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mostrar sección</span></label>}
+       :<label htmlFor={`quote-section-enabled-${index}`} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0"><Switch disabled={locked} id={`quote-section-enabled-${index}`} checked={Boolean(v.sections[index]?.enabled)} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>form.setValue(`sections.${index}.enabled`,event.target.checked,{shouldDirty:true,shouldValidate:true})} ariaLabel={`Mostrar sección ${SECTION_TYPE_LABELS[field.type]}`}/><span className="text-[11px] font-medium uppercase tracking-wider text-mute">Mostrar sección</span></label>}
       <div className="flex flex-wrap gap-2">
        <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>sections.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>
        <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===sections.fields.length-1} onClick={()=>sections.move(index,index+1)}><ArrowDown size={14}/>Bajar</Button>
@@ -166,10 +192,13 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    </section>)}
   </section>
  </details>
- {error&&<div className="lg:col-span-2"><Aviso tono="error" role="alert" compact>{error}</Aviso></div>}
+ </PendingFields>
+ <FormValidationErrors errors={form.formState.errors}/>
+ {completionFailed&&<div className="lg:col-span-2" role="status">El documento se guardó. No pudimos actualizar la vista; reintentá la actualización o cerrá esta ventana.</div>}
+ {error&&<div data-form-field="root" tabIndex={-1} className="lg:col-span-2"><Aviso tono="error" role="alert" compact>{error}</Aviso></div>}
  <div className="lg:col-span-2"><SaveActions pending={submission.pendiente} dirty={form.formState.isDirty}>
   {!readiness.ready&&<span className="self-center text-xs text-mute" role="status">{quoteMissingText(readiness.missing)}</span>}
-  <button className="primary" disabled={submission.pendiente||!readiness.ready}>{submission.pendiente?'Guardando…':'Guardar'}</button>
+  <button className="primary" disabled={submission.pendiente||!readiness.ready||persisted&&!completionFailed}>{submission.pendiente?(persisted?'Actualizando…':'Guardando…'):completionFailed?'Reintentar actualización':persisted?'Guardado':'Guardar'}</button>
  </SaveActions></div>
 </form>;
 }
