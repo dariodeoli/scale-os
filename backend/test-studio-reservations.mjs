@@ -84,7 +84,9 @@ assert.equal((await call('studio-reservations/batch','POST',{ids:Array.from({len
 assert.equal((await call('studio-reservations/batch','POST',{ids:[batchFirst.id,'999999'],action:'cancel'},seller)).status,404,'toda reserva debe pertenecer a la empresa');
 assert.deepEqual(await call('studio-reservations/batch','POST',{ids:[batchFirst.id,batchSecond.id],action:'cancel'},seller),{status:200,updated:2,cancelled:2,skipped:0});
 assert.deepEqual(await call('studio-reservations/batch','POST',{ids:[batchFirst.id,batchSecond.id],action:'cancel'},seller),{status:200,updated:0,cancelled:0,skipped:2},'el lote es idempotente');
-const batchListed=(await call('studio-reservations','GET',{},seller)).reservations.filter(row=>[String(batchFirst.id),String(batchSecond.id)].includes(String(row.id)));
+// These fixtures have fixed September dates; request that period explicitly
+// rather than letting the moving default window expire as the calendar advances.
+const batchListed=(await call('studio-reservations?from=2026-09-01T00:00:00Z&to=2026-10-01T00:00:00Z','GET',{},seller)).reservations.filter(row=>[String(batchFirst.id),String(batchSecond.id)].includes(String(row.id)));
 assert.equal(batchListed.length,2);assert.equal(batchListed.every(row=>row.status==='cancelled'),true,'las reservas quedan canceladas en el listado');
 // #71: `?fields=` (lista blanca) y `?limit=` en espacios y reservas, con equivalencia.
 const spacesFull=(await call('studio-spaces')).spaces;

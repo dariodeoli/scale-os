@@ -1,5 +1,18 @@
 # Reglas operativas — Scale OS
 
+## Protocolo vigente del dueño — 17/10/2026
+
+Aplicar [`docs/WORKFLOW.md`](docs/WORKFLOW.md), adaptación del modelo indicado
+por el dueño: issue previo, ramas `codex/<area>-<descripcion>`, subagentes en
+checkouts/worktrees aislados, PR con CI y un único integrador/deploy por SHA.
+Esta instrucción prevalece sobre las convenciones históricas de ramas SOS y
+push directo que aparecen debajo. Los nombres SOS conservan su alcance de
+dominio. No matar procesos ajenos ni inventar scripts de otras aplicaciones.
+Para `main` protegido, preparar versión con `npm run release:patch -- --prepare`
+y publicar mediante PR aprobado por CI; el merge activa Coolify. El cierre
+requiere evidencia de integración, pruebas y deploy, con pendientes externos
+explícitos. Usar el formato de reporte solicitado en la guía.
+
 ## Comando abreviado `ht` (integrar y desplegar)
 - Cuando Dario escribe solo `ht`, ejecutar el ciclo completo sin preguntar (monorepo `scale-os`; el API vive en `backend/`): (0) preámbulo: matar servidores zombies (`lsof -ti :3000 :<PUERTO_API> | xargs kill -9` y procesos `next-server` de worktrees de Scale OS) y verificar que no haya otro merge en curso (`.git/MERGE_HEAD` ajeno); (1) `git fetch origin --prune` y relevar ramas con trabajo pendiente; (2) integrar a main una rama por vez, verificando el árbol mergeado (`npm run test:release-regression` + `npx next build` para el front; `npm --prefix backend run test:release` para el API); (3) conflictos: si la rama quedó superseded por main, resolver del lado de main y verificar diff neto vacío; si hay trabajo real en conflicto, parar y preguntar; (4) pushear con `SCALE_INTEGRATOR=1` (un solo push a main); (5) desplegar solo con `npm run release:patch` y validar el smoke con `npm run release:smoke` (reintentar hasta que Coolify sirva la versión nueva). Reportar al final qué ramas integraron y la versión desplegada.
 

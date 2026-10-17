@@ -39,7 +39,7 @@ const gates:[string,string,RegExp][]=[
  ['app/record-assignees.tsx','assignees.manage',/const editable=roleCan\(role,'assignees\.manage'\)/],
  ['app/productivity-ui.tsx','portal-access.manage',/roleCan\(role,'portal-access\.manage'\)&&<ClientPortalAccess/],
  ['app/work-history.tsx','work-orders.manage',/const managers=roleCan\(role,'work-orders\.manage'\)/],
- ['app/work-history.tsx','work-orders.edit',/const canEdit=roleCan\(role,'work-orders\.edit'\)/],
+ ['app/employee-tasks.tsx','tasks.edit (effective API flag)',/context\.can_edit\?<button/],
  ['app/scale-workspace.tsx','projects.manage',/roleCan\(user\?\.role,'projects\.manage'\)/],
  ['app/scale-workspace.tsx','projects.edit',/const canManageProjects=roleCan\(user\?\.role,'projects\.edit'\)/],
  ['app/scale-workspace.tsx','budgets.manage',/roleCan\(user\?\.role,'budgets\.manage'\)/],

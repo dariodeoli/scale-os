@@ -5,6 +5,8 @@ import {outboundAllowlist,safeFetch} from './outbound-allowlist.js';
 // Consultas por usuario cada 15 min, antes de mirar la caché (que revela si un RUC ya se consultó).
 export const RUC_LOOKUPS_PER_WINDOW=40;
 
+export const OWNDATA_RUC_URL='https://app.controlaria.online/api/v1/ruc';
+const OWNDATA_SOURCE='owndata:dnit_official_snapshot';
 const defaultProviderUrl='https://ruc.sun.com.py/api/ruc';
 const numberSetting=(value,fallback,min,max)=>{
  const parsed=Number(value);
@@ -21,10 +23,15 @@ export function rucDigits(value){
  return raw?normalizeRuc(raw).replace('-',''):null;
 }
 export function rucLookupConfig(env=process.env){
+ const providerKind=(env.RUC_LOOKUP_PROVIDER_KIND||'legacy').trim();
+ if(!['legacy','owndata'].includes(providerKind))throw Error('RUC_LOOKUP_PROVIDER_KIND inválido');
  const providerUrl=(env.RUC_LOOKUP_PROVIDER_URL||defaultProviderUrl).trim().replace(/\/+$/,'');
  try{const parsed=new URL(providerUrl);if(parsed.protocol!=='https:'||parsed.username||parsed.password)throw Error();}catch{throw Error('RUC_LOOKUP_PROVIDER_URL debe ser una URL HTTPS válida');}
+ if(providerKind==='owndata'&&providerUrl!==OWNDATA_RUC_URL)throw Error('OwnData requiere RUC_LOOKUP_PROVIDER_URL explícita al endpoint documentado');
+ const ownDataApiKey=providerKind==='owndata'?(env.OWNDATA_API_KEY||'').trim():null;
+ if(providerKind==='owndata'&&(!ownDataApiKey||/[\r\n]/.test(ownDataApiKey)||ownDataApiKey.startsWith('pk_')))throw Error('OwnData requiere OWNDATA_API_KEY secreta del servidor y autorización empresarial');
  return {
-  providerUrl,
+  providerKind,ownDataApiKey,providerUrl,
   timeoutMs:numberSetting(env.RUC_LOOKUP_TIMEOUT_MS,12000,1000,30000),
   cacheTtlSeconds:numberSetting(env.RUC_LOOKUP_CACHE_TTL_SECONDS,86400,60,604800),
   noResultTtlSeconds:numberSetting(env.RUC_LOOKUP_NO_RESULT_TTL_SECONDS,3600,60,86400),
@@ -41,6 +48,37 @@ export function createRucProvider({baseUrl=defaultProviderUrl,fetcher=fetch,time
   try{return await response.json();}catch{throw Object.assign(Error('Proveedor de RUC devolvió una respuesta inválida'),{status:503});}
  }};
 }
+const ownDataFailure=(message,status=503)=>Object.assign(Error(message),{status,rucProviderError:true});
+export function validateOwnDataRuc(value){
+ if(typeof value!=='string'||!/^[1-9][0-9]{0,8}(?:-[0-9])?$/.test(value))throw ownDataFailure('OwnData requiere un RUC numérico de hasta 9 dígitos, sin cero inicial.',400);
+ const [base,digit]=value.split('-');let sum=0,weight=2;
+ for(const character of [...base].reverse()){sum+=Number(character)*weight;weight=weight===11?2:weight+1;}
+ const remainder=sum%11,expected=String(remainder>1?11-remainder:0);
+ if(digit!==undefined&&digit!==expected)throw ownDataFailure('El dígito verificador del RUC no coincide. Corregilo antes de consultar.',400);
+ return value;
+}
+export function createOwnDataRucProvider({baseUrl,apiKey,fetcher=fetch,timeoutMs=12000,allowedHosts=outboundAllowlist()}={}){
+ if(baseUrl!==OWNDATA_RUC_URL||typeof apiKey!=='string'||!apiKey.trim()||/[\r\n]/.test(apiKey)||apiKey.startsWith('pk_'))throw ownDataFailure('OwnData no está configurado con endpoint y clave secreta empresarial autorizados.');
+ return {name:'owndata-ruc-provider',async lookup(input){
+  const ruc=validateOwnDataRuc(input);let response;
+  try{response=await safeFetch(`${baseUrl}/${encodeURIComponent(ruc)}`,{headers:{Accept:'application/json','X-API-Key':apiKey},signal:AbortSignal.timeout(timeoutMs)},{fetchImpl:fetcher,allowedHosts,label:'OwnData'});}catch{throw ownDataFailure('No se pudo conectar con OwnData. Podés ingresar los datos manualmente.');}
+  const envelope=await response.json().catch(()=>null),code=envelope?.error?.code;
+  if(response.status===404&&code==='REGISTERED_RUC_NOT_FOUND')return null;
+  if(response.status===429)throw ownDataFailure('OwnData agotó o limitó el cupo. Esperá el reinicio del proveedor o ingresá los datos manualmente.',429);
+  if(response.status===400&&['INVALID_RUC_FORMAT','INVALID_RUC_DV'].includes(code))throw ownDataFailure('OwnData rechazó el formato o dígito verificador del RUC. Corregilo antes de consultar.',400);
+  if(response.status===401||response.status===403)throw ownDataFailure('OwnData no autorizó la credencial, el permiso ruc:read o el plan empresarial. Podés ingresar los datos manualmente.');
+  if(code==='COMMERCIAL_API_DISABLED')throw ownDataFailure('La API empresarial de OwnData no está habilitada. Se requiere autorización del proveedor.');
+  if(!response.ok)throw ownDataFailure('OwnData no está disponible. Podés ingresar los datos manualmente.');
+  const data=envelope?.data,provenance=envelope?.meta?.provenance;
+  if(!data||typeof data.nameOfficial!=='string'||!data.nameOfficial.trim()||typeof data.stateRaw!=='string'||typeof data.ruc!=='string'||typeof data.dv!=='string'||data.fullRuc!==`${data.ruc}-${data.dv}`||provenance?.source!=='dnit_official_snapshot'||!/^\d{4}-\d{2}-\d{2}$/.test(provenance.publicationDate??''))throw ownDataFailure('OwnData devolvió una ficha o procedencia inválida.');
+  try{validateOwnDataRuc(data.fullRuc);}catch{throw ownDataFailure('OwnData devolvió un RUC o dígito verificador inválido.');}
+  if(ruc.includes('-')?data.fullRuc!==ruc:data.ruc!==ruc)throw ownDataFailure('El RUC devuelto por OwnData no coincide con la consulta.');
+  return {name:data.nameOfficial,ruc:data.ruc,dv:data.dv,fullRuc:data.fullRuc,state:data.stateRaw,publicationDateText:provenance.publicationDate};
+ }};
+}
+export function configuredRucProvider(settings,{fetcher=fetch}={}){
+ return settings.providerKind==='owndata'?createOwnDataRucProvider({baseUrl:settings.providerUrl,apiKey:settings.ownDataApiKey,fetcher,timeoutMs:settings.timeoutMs}):createRucProvider({baseUrl:settings.providerUrl,fetcher,timeoutMs:settings.timeoutMs});
+}
 export async function assertUniqueClientRuc(c,organizationId,taxId,exceptClientId=null){
  const digits=rucDigits(taxId);if(!digits)return;
  const params=exceptClientId?[organizationId,digits,exceptClientId]:[organizationId,digits];
@@ -48,11 +86,11 @@ export async function assertUniqueClientRuc(c,organizationId,taxId,exceptClientI
  const found=await c.query(`select id,name from agency_clients where organization_id=$1 and regexp_replace(coalesce(tax_id,''),'[^0-9]','','g')=$2${excluded} limit 1`,params);
  if(found.rows.length)fail('Ya existe un cliente con este RUC en tu empresa. Buscalo antes de crear otro.',409);
 }
-export function rucRecord(value,requested){
+export function rucRecord(value,requested,{source='ruc-provider'}={}){
  if(!value||typeof value!=='object'||typeof value.name!=='string'||!value.name.trim())fail('El proveedor no devolvió una ficha válida',502);
  const full=normalizeRuc(value.fullRuc||`${value.ruc}-${value.dv}`);
  if(!full.includes('-')||(requested.includes('-')?full!==requested:full.split('-')[0]!==requested))fail('El RUC recibido no coincide con la consulta',502);
- return {name:text(value.name,160),tax_id:full,tax_state:text(value.state||'',60),source:'ruc-provider',publication_date:text(value.publicationDateText||'',30)};
+ return {name:text(value.name,160),tax_id:full,tax_state:text(value.state||'',60),source,publication_date:text(value.publicationDateText||'',30)};
 }
 const parsedCache=value=>typeof value==='string'?JSON.parse(value):value;
 async function cachedRecord(c,ruc){
@@ -73,13 +111,16 @@ async function consumeQuota(c,limit){
 async function lookupCachedOrProvider({db,ruc,provider,config,force=false}){
  let c=await db.connect();
  try{
-  if(!force){const cached=await cachedRecord(c,ruc);if(cached)return {...cached,remaining:null};}
+  // Separate provider cache namespaces: switching providers must not present legacy results as OwnData.
+  const cacheKey=provider.name==='owndata-ruc-provider'?'owndata:'+ruc:ruc;
+  if(provider.name==='owndata-ruc-provider')validateOwnDataRuc(ruc);
+  if(!force){const cached=await cachedRecord(c,cacheKey);if(cached)return {...cached,remaining:null};}
   await c.query('begin');const used=await consumeQuota(c,config.monthlyLimit);await c.query('commit');
   let raw;
-  try{raw=await provider.lookup(ruc);}catch{throw Object.assign(Error('La consulta externa no está disponible. Podés agregar el cliente manualmente.'),{status:503});}
+  try{raw=await provider.lookup(ruc);}catch(error){if(error.rucProviderError)throw error;throw Object.assign(Error('La consulta externa no está disponible. Podés agregar el cliente manualmente.'),{status:503});}
   let record;
-  try{record=raw?rucRecord(raw,ruc):null;}catch{throw Object.assign(Error('La consulta externa devolvió una respuesta inválida. Podés agregar el cliente manualmente.'),{status:503});}
-  await writeCache(c,ruc,record,record?config.cacheTtlSeconds:config.noResultTtlSeconds);
+  try{record=raw?rucRecord(raw,ruc,{source:provider.name==='owndata-ruc-provider'?OWNDATA_SOURCE:'ruc-provider'}):null;}catch{throw Object.assign(Error('La consulta externa devolvió una respuesta inválida. Podés agregar el cliente manualmente.'),{status:503});}
+  await writeCache(c,cacheKey,record,record?config.cacheTtlSeconds:config.noResultTtlSeconds);
   return {record,cached:false,remaining:config.monthlyLimit-used};
  }catch(error){try{await c.query('rollback');}catch{}throw error;}finally{c.release();}
 }
@@ -93,8 +134,6 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
   if(req.method!=='POST')fail('Método no permitido',405);
   if(!url.pathname.endsWith('from-ruc')&&!await throttle(db,'ruc-lookup:'+user.id,RUC_LOOKUPS_PER_WINDOW))fail('Hiciste muchas consultas de RUC seguidas. Esperá unos minutos.',429);
   const b=await body(req);
-  const settings=config||rucLookupConfig();
-  const service=provider||createRucProvider({baseUrl:settings.providerUrl,fetcher,timeoutMs:settings.timeoutMs});
   const refresh=url.pathname.match(/^\/api\/agency\/clients\/(\d+)\/ruc-refresh$/);
   if(url.pathname.endsWith('from-ruc')){
    const ruc=normalizeRuc(b.ruc);if(!ruc.includes('-'))fail('Confirmá el RUC completo con su dígito verificador');
@@ -106,6 +145,8 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
    const client=(await c.query('insert into agency_clients(organization_id,name,legal_name,tax_id) values($1,$2,$3,$4) returning *',[user.organization_id,name,legal,ruc])).rows[0];
    await c.query('commit');tx=false;send(res,201,{client});return true;
   }
+  const settings=config||rucLookupConfig();
+  const service=provider||configuredRucProvider(settings,{fetcher});
   if(refresh){
    c=await db.connect();const client=(await c.query('select * from agency_clients where id=$1 and organization_id=$2',[refresh[1],user.organization_id])).rows[0];
    c.release();c=null;

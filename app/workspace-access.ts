@@ -19,12 +19,13 @@ export const MODULE_CAPABILITIES: Record<string, Capability> = {
   Mora: 'billing.view',
   Planes: 'budgets.manage',
   Presupuestos: 'budgets.manage',
+  Contratos: 'contracts.view',
   Estudio: 'inventory.view',
   Métricas: 'metrics.view',
 };
 
 /** Leaf permissions do not expand when menu entries are grouped. Server checks remain authoritative. */
-export const visibleModule = (label: string, role: string) => {
+export const visibleModule = (label: string, role: string, overrides?:Record<string,boolean>) => {
   if (label === 'Colaboradores') return false;
   if (label === 'Admin') return false;
   // El historial propio lo entrega el API a cualquier rol; el del equipo suma
@@ -34,5 +35,6 @@ export const visibleModule = (label: string, role: string) => {
   // filtra qué tipos devuelve.
   if (label === 'Papelera') return canSeeTrash(role);
   const capability = MODULE_CAPABILITIES[label];
+  if(role!=='owner'&&capability&&overrides&&Object.hasOwn(overrides,capability))return overrides[capability];
   return capability ? roleCan(role, capability) : true;
 };

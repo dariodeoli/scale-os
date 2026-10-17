@@ -12,6 +12,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {IconAction} from 'owncoding-ui';
 import {Dialog} from './dialog';
+import {EmployeeTasks,type EmployeeTasksProps} from './employee-tasks';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from './list-format';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,type ChipTone} from './ui-v2';
@@ -53,7 +54,7 @@ export const projectLinks=(project:Pick<ProjectView,'drive_links'|'drive_url'>)=
   return {links,legacy:project.drive_url||'',count:links.length||(project.drive_url?1:0)};
 };
 
-function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void}){
+function ProjectDetail({project,onClose,taskIdentity}:{project:ProjectView;onClose:()=>void;taskIdentity?:EmployeeTasksProps}){
   const [data,setData]=useState<{record:ProjectView;assignees:ProjectAssignee[]}|null>(null);
   const [pieces,setPieces]=useState<{id:string;title:string;status:string;due_date?:string|null;due_time?:string|null;effective_assignees?:ProjectAssignee[]}[]|null>(null);
   const [error,setError]=useState('');const [reload,setReload]=useState(0);const [assigneesError,setAssigneesError]=useState(false);
@@ -111,11 +112,12 @@ function ProjectDetail({project,onClose}:{project:ProjectView;onClose:()=>void})
         </li>)}</ul>:<p className="text-[13px] text-mute">El proyecto todavía no tiene piezas.</p>}
         {remainingNotice?<p className="text-[12px] text-mute">{remainingNotice}</p>:null}
       </section>
+      {taskIdentity?.organizationId&&taskIdentity?.userId?<EmployeeTasks {...taskIdentity} projectId={String(project.id)}/>:null}
     </div>
   </Dialog>;
 }
 
-export function ProjectCard({project,client,children,selectable=false,selected=false,onSelect}:{project:ProjectView;client?:{logo_url?:string|null;color_key?:string};children:React.ReactNode;selectable?:boolean;selected?:boolean;onSelect?:()=>void}){
+export function ProjectCard({project,client,children,selectable=false,selected=false,onSelect,taskIdentity}:{taskIdentity?:EmployeeTasksProps;project:ProjectView;client?:{logo_url?:string|null;color_key?:string};children:React.ReactNode;selectable?:boolean;selected?:boolean;onSelect?:()=>void}){
   const anchor=`project-${project.id}`,card=useRef<HTMLElement>(null);
   const [detail,setDetail]=useState(false);
   const {links,legacy,count}=projectLinks(project);
@@ -163,6 +165,6 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
       <span className={`ml-auto ${ICON_TARGETS}`}><IconAction icon="eye" tone="fono" label={`Ver detalle del proyecto: ${project.name}`} onClick={()=>setDetail(true)}/></span>
       {children}
     </div>
-    {detail?<ProjectDetail project={project} onClose={()=>setDetail(false)}/>:null}
+    {detail?<ProjectDetail project={project} taskIdentity={taskIdentity} onClose={()=>setDetail(false)}/>:null}
   </article>;
 }

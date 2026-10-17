@@ -33,6 +33,13 @@ ya construye desde este repositorio y el repo original (`dariodeoli/scale-core-a
 - `npm run release:patch` es el único camino de release: árbol limpio, un solo bump de
   `release/version.json`, sincronización de front y `backend/`, regresiones + build +
   `npm --prefix backend run test:release`, un solo commit y un solo push a `main`.
+- Con `main` protegido, usar `npm run release:patch -- --prepare` sobre la rama de
+  entrega limpia: hace el mismo bump, sincronización, checks y commit, y termina
+  antes de cualquier push, webhook o smoke. Publicar la rama en un PR, esperar los
+  checks obligatorios e integrar. El merge a `main` dispara Coolify; después correr
+  `npm run release:smoke`. Este modo evita publicar un commit de versión que aún
+  no tiene CI aprobado y mantiene un único bump por entrega.
+- Desarrollo, CI y ambas imágenes usan Node 24, requerido por `owncoding-ui`.
 - Webhooks directos opcionales (`.release.env`, gitignored):
   `SCALE_API_DEPLOY_WEBHOOK` y `SCALE_WEB_DEPLOY_WEBHOOK` (ambos o ninguno);
   `SCALE_DEPLOY_WEBHOOK_METHOD` (default `GET`). Si quedan vacíos se usa el webhook

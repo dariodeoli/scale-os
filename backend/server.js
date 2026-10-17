@@ -28,13 +28,15 @@ import {inventoryReservations} from './inventory-reservations.js';
 import {pipelineStages} from './pipeline-stages.js';
 import {studioReservations} from './studio-reservations.js';
 import {workChecklists} from './work-checklists.js';
+import {employeeTasks} from './employee-tasks.js';
+import {contracts} from './contracts.js';
 import {ensurePersonalIdentity,ensurePersonalIdentityInTransaction} from './identity-session.js';
 import {compressionPlan} from './response-compression.js';
 import {googleProfilePhoto,rememberGooglePhoto} from './google-profile-photo.js';
 import {liveVisitors,startLiveVisitorCleanup} from './live-visitors.js';
 import { productivity } from './productivity.js';
 import {weeklyReports} from './weekly-reports.js';
-import {rucLookup,assertUniqueClientRuc,rucLookupConfig,createRucProvider} from './ruc-lookup.js';
+import {rucLookup,assertUniqueClientRuc,rucLookupConfig,configuredRucProvider} from './ruc-lookup.js';
 import {workOrderLinks} from './work-order-links.js';
 import {presence} from './presence.js';
 import {demoOrganization} from './demo-session.js';
@@ -72,7 +74,7 @@ const db = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.e
 const root = path.dirname(fileURLToPath(import.meta.url));
 const release=JSON.parse(await fs.readFile(path.join(root,'release-version.json'),'utf8'));
 const rucConfig=rucLookupConfig();
-const rucProvider=createRucProvider({baseUrl:rucConfig.providerUrl,timeoutMs:rucConfig.timeoutMs});
+const rucProvider=configuredRucProvider(rucConfig);
 const bootstrapEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const bootstrapPassword = process.env.ADMIN_PASSWORD || '';
 const scaleOsOwnerEmail = (process.env.SCALE_OS_OWNER_EMAIL || '').trim().toLowerCase();
@@ -267,7 +269,9 @@ async function init() {
      "20261015_platform_inquiries.sql",
      "20261016_platform_announcements_maintenance.sql",
      "20261016_public_analytics.sql",
-     "20261016_platform_errors_reports.sql"
+     "20261016_platform_errors_reports.sql",
+     "20261017_employee_tasks.sql",
+     "20261017_contract_documents.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -412,6 +416,8 @@ const server = http.createServer(async (req,res) => {
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;
     if(await contentReview({req,res,url,db,session,body,send}))return;
+    if(await employeeTasks({req,res,url,db,session,body,send}))return;
+    if(await contracts({req,res,url,db,session,body,send}))return;
     if(await productivity({req,res,url,db,session,body,send}))return;
     if(await weeklyReports({req,res,url,db,session,body,send}))return;
     if(await rucLookup({req,res,url,db,session,body,send,provider:rucProvider,config:rucConfig}))return;

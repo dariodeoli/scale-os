@@ -169,10 +169,11 @@ test('#138 adopción: kit ⋯, esqueleto del Resumen, vacío compacto y KPIs de 
   assert.doesNotMatch(control,/Cargando…/,'no queda texto de carga en los widgets financieros');
 
   const workHistory=file('app/work-history.tsx');
-  assert.match(workHistory,/<CompactCard key=\{r\.id\} title=\{str\(r,'title'\)\|\|'Tarea interna'\}/,'los pendientes internos usan la tarjeta compacta');
-  assert.match(workHistory,/actions=\{canEdit\?\[\{id:'edit',label:'Editar tarea'/,'editar vive en el ⋯');
-  assert.match(workHistory,/<EmptyCompact message="No hay pendientes internos cargados\."/,'el vacío es de una línea y accionable');
-  assert.doesNotMatch(workHistory,/<p>\{str\(r,'description'\)\}<\/p>/,'la descripción salió de la tarjeta (vive en el detalle)');
+  assert.match(workHistory,/<EmployeeTasks \{\.\.\.props\}/,'los pendientes internos delegan al mismo dashboard que el proyecto');
+  const tasks=file('app/employee-tasks.tsx');
+  assert.match(tasks,/className="employee-task-card"/,'las tareas reúnen estado, entrega, responsables y checklist en una tarjeta');
+  assert.match(tasks,/record\.can_edit\?<button/,'editar requiere el permiso efectivo del API');
+  assert.match(tasks,/<EmptyBlock title="No hay tareas en esta vista\."/,'el vacío describe el filtro actual');
 
   const preferencias=file('app/sections/preferencias.tsx');
   assert.doesNotMatch(preferencias,/<KpiStrip/,'Preferencias muestra el inicio, los filtros y el alcance en sus tarjetas, sin KPIs duplicados (reorganización IA)');
