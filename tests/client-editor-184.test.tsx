@@ -399,3 +399,29 @@ test('el editor usa la revisión atómica de los términos y captura historial a
  assert.equal(calls.find(call=>call.method==='PATCH'&&call.url.endsWith('/commercial-terms'))?.body?.expectedRevision,'11');
  act(()=>renderer.unmount());
 });
+
+test('plan monetario entero acepta ceros decimales del MoneyInput real y rechaza centavos',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ for(const currency of ['USD','EUR','PYG'] as const){
+  calls.length=0;route=()=>({});
+  const plan={clientId:'4',archived:false,historyRevision:'3',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'900.00',currency,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
+  let renderer!:ReactTestRenderer;
+  await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="4" record={{id:'4',name:'Cliente',lifecycle_status:'active'}} plan={plan as never}/>);});
+  const raw=()=>renderer.root.findByType(MoneyInput).findByType('input');
+  const display=currency==='PYG'?'1.200':'1.200,00';
+  await act(async()=>raw().props.onChange({currentTarget:{value:display,selectionStart:display.length}}));
+  const reason=renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+  await act(async()=>reason.props.onChange({target:{name:'plan_reason',value:'Acuerdo mensual entero'},type:'change'}));
+  await submit(renderer);
+  const changes=()=>calls.filter(call=>call.method==='PATCH'&&call.url.endsWith('/commercial-terms'));
+  assert.equal(changes().length,1,`${currency}: el formulario guarda el entero monetario`);
+  assert.equal(changes()[0].body?.recurringAmount,'1200');
+  if(currency!=='PYG'){
+   await act(async()=>raw().props.onChange({currentTarget:{value:'1.200,25',selectionStart:8}}));
+   await submit(renderer);
+   assert.equal(changes().length,1,`${currency}: los centavos reales no llegan al API entero`);
+   assert.match(text(renderer.root),/número entero/);
+  }
+  act(()=>renderer.unmount());
+ }
+});

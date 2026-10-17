@@ -60,5 +60,14 @@ export type MoneyCurrency=Currency;
 export const isMoneyCurrency=(value:unknown):value is MoneyCurrency=>typeof value==='string'&&currencyCodes.includes(value as Currency);
 export const isWholeTransport=(value:unknown,allowZero=true):value is string|number=>typeof value==='number'?Number.isSafeInteger(value)&&(allowZero?value>=0:value>0):typeof value==='string'&&new RegExp(allowZero?'^(?:0|[1-9]\\d*)$':'^[1-9]\\d*$').test(value)&&Number.isSafeInteger(Number(value));
 export const isSignedWhole=(value:unknown):value is string|number=>typeof value==='number'?Number.isSafeInteger(value):typeof value==='string'&&new RegExp('^-?(?:0|[1-9]\\d*)$').test(value)&&Number.isSafeInteger(Number(value));
+/** Campos monetarios con contrato entero: los ceros decimales son presentación, no fracción.
+ * No se aplica a cantidades/porcentajes ni elimina centavos reales. */
+export function normalizeWholeMoney(value:unknown):string|null{
+ if(typeof value!=='string'&&typeof value!=='number')return null;
+ const raw=String(value);
+ if(!/^(?:0|[1-9]\d*)(?:\.0{1,2})?$/.test(raw))return null;
+ const integer=raw.split('.')[0];
+ return isWholeTransport(integer)?integer:null;
+}
 export const formatWholeMoney=(value:unknown,currency:unknown)=>isMoneyCurrency(currency)&&isWholeTransport(value)?new Intl.NumberFormat(currency==='PYG'?'es-PY':'en-US',{style:'currency',currency,currencyDisplay:'code',maximumFractionDigits:0,minimumFractionDigits:0}).format(Number(value)):'Sin dato';
 export const formatSignedMoney=(value:unknown,currency:unknown)=>{if(!isMoneyCurrency(currency)||!isSignedWhole(value))return 'Sin dato';const amount=Number(value);return `${amount<0?'−':''}${new Intl.NumberFormat(currency==='PYG'?'es-PY':'en-US',{style:'currency',currency,currencyDisplay:'code',maximumFractionDigits:0,minimumFractionDigits:0}).format(Math.abs(amount))}`;};
