@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import React from 'react';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
@@ -172,7 +173,7 @@ test('#138 adopción: kit ⋯, esqueleto del Resumen, vacío compacto y KPIs de 
   assert.match(workHistory,/<EmployeeTasks \{\.\.\.props\}/,'los pendientes internos delegan al mismo dashboard que el proyecto');
   const tasks=file('app/employee-tasks.tsx');
   assert.match(tasks,/className="employee-task-card"/,'las tareas reúnen estado, entrega, responsables y checklist en una tarjeta');
-  assert.match(tasks,/record\.can_edit\?<button/,'editar requiere el permiso efectivo del API');
+  assert(actionElements(tasks).some(action=>action.children==='Editar / reprogramar'&&action.guardedBy('record.can_edit')&&action.attribute('onClick')==='()=>void open(record,true)'),'editar requiere el permiso efectivo del API y abre su edición');
   assert.match(tasks,/<EmptyBlock title="No hay tareas en esta vista\."/,'el vacío describe el filtro actual');
 
   const preferencias=file('app/sections/preferencias.tsx');

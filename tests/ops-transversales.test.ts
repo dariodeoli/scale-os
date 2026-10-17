@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {traceLabel} from '../app/inventory-data';
@@ -31,7 +32,7 @@ assert.match(board,/\?<LoadingBlock label="Cargando producción…" lines=\{5\}\
 // El historial no convierte un fallo de la lista del equipo en un filtro vacío.
 assert.match(history,/setPeopleError\(cause instanceof Error\?cause\.message:'No se pudo cargar el equipo\.'\)/,'el fallo de personas se registra');
 assert.match(history,/No se pudo cargar la lista del equipo: \{peopleError\}/,'el fallo de personas se muestra');
-assert.match(history,/<button type="button" className="text-button" onClick=\{\(\)=>setPeopleVersion\(v=>v\+1\)\}>Reintentar<\/button>/,'el fallo de personas ofrece reintento');
+assert(actionElements(history).some(action=>action.children==='Reintentar'&&action.attribute('onClick')==='()=>setPeopleVersion(v=>v+1)'&&action.attribute('variant')==='ghost'),'el fallo de personas ofrece reintento');
 
 // El lote del estudio cuenta por fila: nunca da por cancelada una reserva sin respuesta.
 assert.match(studio,/let cancelled=0;let failed:string\[\]=\[\];/);
@@ -44,16 +45,17 @@ assert.doesNotMatch(studio,/la fila se saltea/,'no quedan filas salteadas en sil
 // Los responsables del proyecto no se declaran "sin responsables" cuando la lectura falla.
 assert.match(projectCard,/setAssigneesError\(head\.failed\)/);
 assert.match(projectCard,/No se pudieron cargar los responsables\./,'el fallo de responsables se nombra');
-assert.match(projectCard,/<button type="button" className="text-button" onClick=\{\(\)=>setReload\(value=>value\+1\)\}>Reintentar<\/button>/,'el fallo de responsables ofrece reintento');
+assert(actionElements(projectCard).some(action=>action.children==='Reintentar'&&action.attribute('onClick')==='()=>setReload(value=>value+1)'&&action.attribute('variant')==='ghost'),'el fallo de responsables ofrece reintento');
 
 // ── §15.3 Cuatro estados: vacío con acción y error con reintento.
-assert.match(board,/action=\{createOrder\?<Button type="button" onClick=\{createOrder\}><Plus size=\{16\}\/>Nueva pieza<\/Button>:undefined\}/,'el tablero vacío ofrece crear la primera pieza');
-assert.match(planner,/<EmptyCompact message=\{view==='Mi día'\?'No tenés piezas pendientes asignadas\.':'No hay piezas para esta vista\. Probá con otro mes\.'\} action=\{<button type="button" className="secondary min-h-9" onClick=\{\(\)=>navigate\('Producción'\)\}>Abrir Producción<\/button>\}\/>/,'el planificador vacío abre el tablero con el vacío compacto (#138)');
-assert.match(planner,/className="text-button" onClick=\{\(\)=>\{setError\(''\);void load\(\)\.catch\(cause=>setError\(errorText\(cause\)\)\);\}\}>Reintentar<\/button>/,'el detalle de la pieza falla con reintento');
-assert.match(history,/action=\{!source&&navigate\?<Button type="button" variant="outline" onClick=\{\(\)=>navigate\('Producción'\)\}>Abrir Producción<\/Button>:undefined\}/,'el historial vacío ofrece una salida');
+assert(actionElements(board).some(action=>action.children.includes('Nueva pieza')&&action.attribute('onClick')==='createOrder'&&action.guardedBy('createOrder')&&action.attributeOwner()==='action'),'el tablero vacío ofrece crear la primera pieza sólo si existe su callback');
+assert.match(planner,/<EmptyCompact message=\{view==='Mi día'\?'No tenés piezas pendientes asignadas\.':'No hay piezas para esta vista\. Probá con otro mes\.'\}/,'el planificador conserva el vacío compacto y el texto según la vista');
+assert(actionElements(planner).some(action=>action.children==='Abrir Producción'&&action.attribute('onClick')==="()=>navigate('Producción')"&&action.attributeOwner()==='action'&&action.attribute('variant')==='secondary'),'el planificador vacío permite navegar a producción');
+assert(actionElements(planner).some(action=>action.children==='Reintentar'&&action.attribute('onClick')==="()=>{setError('');void load().catch(cause=>setError(errorText(cause)));}"&&action.attribute('variant')==='ghost'),'el detalle de la pieza conserva su reintento y limpieza del error');
+assert(actionElements(history).some(action=>action.children==='Abrir Producción'&&action.attribute('onClick')==="()=>navigate('Producción')"&&action.guardedBy('!source&&navigate')&&action.attributeOwner()==='action'&&action.attribute('variant')==='outline'),'el historial vacío ofrece una salida sólo cuando corresponde');
 assert.match(historySection,/navigate=\{navigate\}/,'la sección pasa la navegación');
 assert.match(shell,/<HistorialSection user=\{user\} navigate=\{setActive\}\/>/,'el shell cablea la navegación del historial');
-assert.match(projects,/action=\{projectClientFilter \? <Button type="button" variant="outline" onClick=\{\(\)=>setProjectClientFilter\(''\)\}>Limpiar filtro<\/Button> : undefined\}/,'el vacío filtrado limpia el filtro');
+assert(actionElements(projects).some(action=>action.children==='Limpiar filtro'&&action.attribute('onClick')==="()=>setProjectClientFilter('')"&&action.guardedBy('projectClientFilter')&&action.attributeOwner()==='action'&&action.attribute('variant')==='outline'),'el vacío filtrado limpia el filtro sólo cuando está aplicado');
 assert.match(inventory,/<EmptyState icon="calendar" title="Sin reservas en este mes\." description="Elegí equipos y fechas para planificar una producción\." action=\{/,'las reservas vacías ofrecen reservar');
 assert.match(inventory,/<EmptyState icon="box" title="No hay equipos para mostrar en el pipeline\." description="Arrastrá los equipos entre ubicaciones para ordenar dónde se guarda cada uno\." action=\{/,'el pipeline vacío ofrece agregar equipo');
 assert.match(studio,/title="No hay reservas en este mes\." description="Elegí un espacio y una franja para reservarlo\." action=\{/,'el estudio vacío ofrece reservar');
@@ -88,9 +90,9 @@ assert.match(history,/export const INTERNAL_TASKS_WINDOW=50;/);
 assert.match(history,/export function InternalTasks\(props:EmployeeTasksProps\)/,'el dashboard se comparte con proyectos');
 const tasks=readFileSync(new URL('../app/employee-tasks.tsx',import.meta.url),'utf8');
 assert.match(tasks,/limit:'10'/,'las tareas usan páginas acotadas del API');
-assert.match(tasks,/Siguiente<\/button>/,'la ventana siguiente tiene acción explícita');
+assert(actionElements(tasks).some(action=>action.children==='Siguiente'&&action.attribute('onClick')!==undefined),'la ventana siguiente tiene acción explícita');
 assert.match(planner,/visible\.slice\(0,100\)/,'el planificador no monta más de 100 filas');
 assert.match(planner,/Mostrando 100 de \{visible\.length\}/);
-assert.match(kanban,/\{hasMore && onLoadMore \? <button/, 'el tablero conserva «Ver más» por columna');
+assert(actionElements(kanban).some(action=>action.children.includes('Ver más')&&action.guardedBy('hasMore && onLoadMore')&&action.attribute('onClick')==='onLoadMore'),'el tablero conserva «Ver más» por columna cuando hay más resultados');
 
 console.log('PASS: §15 transversales en Operaciones — estados honestos, vacíos con acción, reintento, microcopy es-PY, targets 44 y listas acotadas (#86).');

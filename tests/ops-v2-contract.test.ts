@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
@@ -165,8 +166,8 @@ assert.match(productionSection,/boardVisibleWindow\(columns,viewport\)/,'el indi
 assert.match(productionSection,/data-board-window/,'el indicador se marca para medirlo');
 assert.match(productionSection,/data-board-prev/,'la flecha anterior del riel existe');
 assert.match(productionSection,/data-board-next/,'la flecha siguiente del riel existe');
-assert.match(productionSection,/aria-label="Ver etapas anteriores"/,'la flecha anterior se anuncia');
-assert.match(productionSection,/aria-label="Ver etapas siguientes"/,'la flecha siguiente se anuncia');
+assert(actionElements(productionSection).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Ver etapas anteriores'&&action.attribute('onClick')==='()=>scrollBoard(-1)'),'la flecha anterior se anuncia');
+assert(actionElements(productionSection).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Ver etapas siguientes'&&action.attribute('onClick')==='()=>scrollBoard(1)'),'la flecha siguiente se anuncia');
 assert.match(productionSection,/boardWindowLabel\(boardWindow,statuses\.length\)/,'la etiqueta dice cuántas de las 7 etapas se ven');
 assert.match(productionSection,/prefers-reduced-motion/,'el avance del riel respeta la preferencia de movimiento');
 assert.match(productionSection,/Cargando órdenes…/,'la primera carga no se anuncia como 0 órdenes');
@@ -187,7 +188,7 @@ assert.match(inventory,/min-w-\[8rem\] flex-1 lg:max-w-72/,'la búsqueda del inv
 assert.match(inventory,/visible\.length\} de \{items\.length\}\{updatedAt/,'el contador compacto dice visibles de total');
 assert.match(inventory,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.length\} equipos/,'el detalle del contador viaja en el title');
 assert.match(inventory,/onAddValue=\{context\?\.can_manage&&itemWithoutValue\?/,'el valor ausente ofrece la edición de un equipo');
-assert.match(inventory,/>Agregar valor<\/button>/,'el CTA del valor se nombra "Agregar valor"');
+assert(actionElements(inventory).some(action=>action.children==='Agregar valor'&&action.attribute('onClick')==='onAddValue'&&action.attribute('variant')==='ghost'),'el CTA Agregar valor sigue disponible y conserva su callback de edición');
 assert.match(inventory,/Todavía no hay equipos en el inventario\./,'el catálogo vacío tiene su estado con CTA');
 assert.match(inventory,/No hay equipos que coincidan con la búsqueda\./,'el filtro sin resultados se distingue del catálogo vacío');
 assert.match(inventory,/>Limpiar búsqueda<\/Button>/,'el filtro sin resultados ofrece limpiar');
@@ -266,7 +267,7 @@ assert.match(projectCard,/Piezas del proyecto/,'el detalle lista las piezas del 
 for(const source of [projects,projectCard])assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|listDate(Short|Full))\b/,'proyectos no recorta montos ni fechas');
 
 // ── Historial de trabajo (feed de auditoría, tomado de PLT).
-assert.match(history,/from 'owncoding-ui'/,'el historial usa la librería');
+assert(actionElements(history).length>0,'el historial compone acciones canónicas importadas de la biblioteca local');
 assert.match(history,/from '\.\/ui-v2'/,'el historial usa las primitivas v2 (carga/vacío/error/aviso)');
 assert.match(history,/LoadingBlock/);assert.match(history,/EmptyBlock/);assert.match(history,/ErrorBlock/);
 assert.match(history,/const managers=roleCan\('role','work-orders\.manage'\)|const managers=roleCan\(role,'work-orders\.manage'\)/,'el historial completo sigue gateado por capacidad');

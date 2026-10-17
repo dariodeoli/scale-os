@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -14,7 +15,7 @@ test('#147: la vista previa del cliente declara que no realiza acciones y no luc
  assert.match(controls,/data-preview="inert"/,'la réplica se marca inerte');
  assert.match(controls,/Vista previa: no realiza acciones/,'la etiqueta exacta vive en el diálogo y en el badge');
  assert.match(controls,/review-preview-badge/,'el badge viaja dentro de la réplica');
- assert.match(controls,/disabled aria-disabled="true">Aprobar esta versión/,'el CTA principal queda deshabilitado y anunciado');
+ assert(actionElements(controls).some(action=>action.children==='Aprobar esta versión'&&action.attribute('disabled')===true&&action.attribute('aria-disabled')==='true'),'el CTA principal queda deshabilitado y anunciado');
  assert.match(controls,/<a className="secondary justify-self-start" href=\{assetUrl\}/,'el enlace de archivo baja de jerarquía');
  const css=file('app/productivity.css');
  assert.match(css,/\.client-review-preview\[data-preview="inert"\] \.review-preview-actions button\.primary:disabled:not\(:where\(\[data-ui-button\]\)\)\{[^}]*background:var\(--surface-subtle\)/,'el primario inerte pierde el relleno de marca');
