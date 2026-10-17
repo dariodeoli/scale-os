@@ -205,3 +205,19 @@ test('editar sin cambiar propiedad preserva el dueño recibido del catálogo',as
  await form.submit();assert.equal(body().ownership_kind,'person');assert.equal(body().owner_user_id,'11');
  act(()=>form.renderer.unmount());
 });
+
+test('custodio histórico ausente del equipo activo conserva nombre, foto real e identificador',async()=>{
+ const form=await mount({...baseItem,custodian_user_id:'99',current_custodian_user_id:'99',current_custodian_name:'Persona histórica',owner_user_id:'99',owner_photo_url:'https://example.invalid/historical.webp'});
+ const select=form.renderer.root.findAll(node=>node.props?.label==='Custodio registrado'&&Array.isArray(node.props.choices))[0];
+ const historical=select.props.choices.find((choice:{value:string})=>choice.value==='99');
+ assert.equal(select.props.value,'99');assert.equal(historical.label,'Persona histórica');assert.equal(historical.photoUrl,'https://example.invalid/historical.webp');
+ await form.submit();assert.equal(body().custodian_user_id,'99');
+ act(()=>form.renderer.unmount());
+});
+test('custodio histórico sin identidad conocida muestra su ID sin atribuir otra persona',async()=>{
+ const form=await mount({...baseItem,custodian_user_id:'99',current_custodian_user_id:'88',current_custodian_name:'Otra persona',owner_user_id:'88',owner_photo_url:'https://example.invalid/other.webp'});
+ const select=form.renderer.root.findAll(node=>node.props?.label==='Custodio registrado'&&Array.isArray(node.props.choices))[0];
+ const historical=select.props.choices.find((choice:{value:string})=>choice.value==='99');
+ assert.equal(historical.label,'Custodio registrado · ID 99');assert.equal(historical.photoUrl,null);
+ act(()=>form.renderer.unmount());
+});
