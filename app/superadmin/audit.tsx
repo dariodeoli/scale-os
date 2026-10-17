@@ -1,9 +1,10 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 // Auditoría global (issue #46): lista densa v2 del panel del sistema (#80).
 // El API no devuelve `before_state`/`after_state` (deuda registrada): solo se
 // muestran fecha, actor, acción, destino y los metadatos disponibles.
 import {useMemo, useState} from "react";
-import {Select} from 'owncoding-ui';
+
 import {SearchField} from '../search-field';
 import {listDateFull} from "../list-format";
 import {EmptyBlock, FilterToolbar, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
@@ -43,7 +44,7 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
       <SearchField className="min-w-[12rem] flex-1 sm:max-w-72"  label="Buscar en la auditoría" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Actor, acción o destino"/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Acción
-        <Select aria-label="Filtrar por acción" value={action} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setAction(event.target.value)} className="min-w-[13rem]">
+        <Select hideLabel label="Filtrar por acción" value={action} onChange={(value:string)=>setAction(value)} className="min-w-[13rem]">
           <option value="">Todas las acciones</option>
           {actions.map((item) => <option key={item} value={item}>{item}</option>)}
         </Select>

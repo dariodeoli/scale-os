@@ -1,9 +1,10 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStateAction} from 'react';
 import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {Button, Select} from 'owncoding-ui';
+import {Button} from 'owncoding-ui';
 import {EmptyBlock,ErrorBlock,ListPage,LoadingBlock,SectionLoading,ViewTabs} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
@@ -125,9 +126,9 @@ export function ProduccionSection({productionView, preferences, changeProduction
         {productionView==="Tablero"&&<div className="production-command-toolbar-actions flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:ml-auto lg:gap-2">
           <label className="production-client-filter flex items-center gap-2">
             <span className="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span>
-            <Select className="w-full sm:w-56" value={selectedProductionClient} disabled={!preferencesReady} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProductionClientId(event.target.value)}>
+            <Select hideLabel label="Cliente" className="w-full sm:w-56" value={selectedProductionClient} disabled={!preferencesReady} onChange={(value:string)=>setProductionClientId(value)}>
               <option value="">Todos los clientes</option>
-              {[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => <option key={client.id} value={String(client.id)}>{client.name}</option>)}
+              {[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => <option key={client.id} value={String(client.id)} data-kind="entity" data-photo-url={client.logo_url}>{client.name}</option>)}
             </Select>
           </label>
           <div className="production-filter-actions flex flex-wrap items-center gap-2">

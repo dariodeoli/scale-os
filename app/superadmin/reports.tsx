@@ -1,11 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 import {TextareaBase} from '../ui/input';
 // «Reportes» del panel global: lo que los usuarios mandan con «Reportar un
 // problema». Lista densa v2 (Fecha · Agencia / usuario · Reporte · Ruta y
 // versión · Estado · Acciones) con tarjetas cuando no entra, filtro por estado
 // (en el API) y, para el administrador global, cambio de estado + nota interna.
 import {useEffect, useRef, useState} from "react";
-import {Select} from "owncoding-ui";
+
 import {listDateFull} from "../list-format";
 import {ConfirmDialog} from "../dialog";
 import {notify} from "../feedback";
@@ -154,7 +155,7 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
     <FilterToolbar summary={data ? `${formatPlatformMetric(list.length)} de ${formatPlatformMetric(data.total)}` : undefined}>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Estado
-        <Select aria-label="Filtrar reportes por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value as ReportStatus | "")} className="min-w-[11rem]">
+        <Select hideLabel label="Filtrar reportes por estado" value={status} onChange={(value:string)=>setStatus(value as ReportStatus | "")} className="min-w-[11rem]">
           <option value="">Todos{counts ? ` (${formatPlatformMetric(counts.new + counts.in_progress + counts.resolved)})` : ""}</option>
           {(Object.keys(REPORT_STATUS) as ReportStatus[]).map((key) => <option key={key} value={key}>{REPORT_STATUS[key].plural}{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>

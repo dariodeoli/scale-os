@@ -1,4 +1,5 @@
 "use client";
+import {OptionsSelect as Select} from './ui/options-select';
 import {useEffect,useState,type ReactNode} from 'react';
 import {BadgeCheck,CircleX,Download,Landmark,Plus,RefreshCw,ShieldCheck,ShieldOff} from 'lucide-react';
 import {api,Dialog,Editor,type Field} from './operations';
@@ -166,9 +167,9 @@ export function PrivacyPanel({user}:{user:User|null}){
   <Section title="Solicitudes de titulares (Ley 7593/2025)"
    action={<div className="flex flex-wrap items-center gap-2">
     <label className="flex items-center gap-2 text-[11.5px] text-mute">Ver
-     <select className="h-8 rounded-lg border border-ink-500 bg-ink-900 px-2 text-[12px] text-fore" value={filter} onChange={event=>setFilter(event.target.value)} aria-label="Filtrar solicitudes por estado">
+     <Select hideLabel className="h-8 rounded-lg border border-ink-500 bg-ink-900 px-2 text-[12px] text-fore" value={filter} onChange={(value:string)=>setFilter(value)} label="Filtrar solicitudes por estado">
       <option value="open">Abiertas</option><option value="all">Todas</option><option value="resolved">Resueltas</option><option value="rejected">Rechazadas</option>
-     </select>
+     </Select>
     </label>
     <button type="button" className="secondary" disabled={busy} onClick={()=>setReloadKey(value=>value+1)} title="Actualizar la cola" aria-label="Actualizar la cola"><RefreshCw size={15}/>Actualizar</button>
     <button type="button" className="primary" disabled={busy} onClick={()=>setCreating(true)}><Plus size={15}/>Nueva solicitud</button>

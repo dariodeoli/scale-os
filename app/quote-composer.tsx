@@ -1,4 +1,5 @@
 "use client";
+import {OptionsSelect as Select} from './ui/options-select';
 import {InputControl as Input} from './ui/input-control';
 import {AmountInput as MoneyInput} from './ui/amount';
 import {TextareaBase as Textarea} from './ui/input';
@@ -16,7 +17,7 @@ import {TextareaBase as Textarea} from './ui/input';
 import {OptionalMark} from './field-label';
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Select,Switch,Aviso} from 'owncoding-ui';
+import {Button,FormField,Switch,Aviso} from 'owncoding-ui';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
@@ -100,8 +101,8 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
   <section className="grid gap-3">
    <FormField label={<>{mode==='plan'?'Nombre del plan':'Título del presupuesto'}</>} htmlFor="quote-title" error={form.formState.errors.title?.message}><Input id="quote-title" required maxLength={120} aria-invalid={form.formState.errors.title?'true':undefined} aria-describedby={form.formState.errors.title?'quote-title-descripcion':undefined} {...form.register('title')}/></FormField>
    <div className="flex flex-wrap items-end gap-3">
-    {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label="Cliente" htmlFor="quote-client" error={clientError||undefined}><Select id="quote-client" required aria-invalid={clientError?'true':undefined} aria-describedby={clientError?'quote-client-descripcion':undefined} value={v.clientId} onBlur={()=>setClientTouched(true)} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{form.setValue('clientId',event.target.value,{shouldDirty:true});setClientTouched(true);}}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)}>{String(client.name)}</option>)}</Select></FormField></div>}
-    {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label={<>Usar un plan como base (reemplaza los ítems actuales)<OptionalMark/></>} htmlFor="quote-plan-base"><Select id="quote-plan-base" value="" onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{const plan=plans.find(item=>String(item.id)===event.target.value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name),{shouldValidate:true});form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)}>{String(plan.name)}</option>)}</Select></FormField></div>}
+    {mode==='create'&&<div className="min-w-0 flex-1 basis-64"><FormField label="Cliente" htmlFor="quote-client" error={clientError||undefined}><Select hideLabel label="Cliente" id="quote-client" required aria-invalid={clientError?'true':undefined} aria-describedby={clientError?'quote-client-descripcion':undefined} value={v.clientId} onBlur={()=>setClientTouched(true)} onChange={(value:string)=>{form.setValue('clientId',value,{shouldDirty:true});setClientTouched(true);}}><option value="">Elegí un cliente</option>{clients.map(client=><option key={String(client.id)} value={String(client.id)} data-kind="entity" data-photo-url={client.logo_url}>{String(client.name)}</option>)}</Select></FormField></div>}
+    {mode!=='plan'&&plans.length>0&&<div className="min-w-0 flex-1 basis-64"><FormField label={<>Usar un plan como base (reemplaza los ítems actuales)<OptionalMark/></>} htmlFor="quote-plan-base"><Select hideLabel label="Usar un plan como base (reemplaza los ítems actuales)" id="quote-plan-base" value="" onChange={(value:string)=>{const plan=plans.find(item=>String(item.id)===value);if(plan){array.replace(normalizeQuoteItems(plan.items));form.setValue('currency',validCurrency(plan.currency));form.setValue('title',String(plan.name),{shouldValidate:true});form.setValue('notes',String(plan.notes||''));}}}><option value="">Sin plan base</option>{plans.map(plan=><option key={String(plan.id)} value={String(plan.id)} data-kind="entity">{String(plan.name)}</option>)}</Select></FormField></div>}
     <CurrencyField id="quote-currency" label="Moneda" value={v.currency} onChange={value=>form.setValue('currency',validCurrency(value))}/>
    </div>
   </section>
@@ -130,7 +131,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
    <summary>Opciones del documento <span className="ml-1 text-[11px] font-normal text-mute">{mode==='plan'?'IVA':'IVA, vigencia y secciones'}</span></summary>
    <div className="grid gap-4">
     <div className="flex flex-wrap items-end gap-3">
-     <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select id="quote-tax" value={String(Number(v.tax_rate))} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>form.setValue('tax_rate',event.target.value,{shouldDirty:true})}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
+     <div className="w-24"><FormField label="IVA" htmlFor="quote-tax"><Select hideLabel label="IVA" id="quote-tax" value={String(Number(v.tax_rate))} onChange={(value:string)=>form.setValue('tax_rate',value,{shouldDirty:true})}>{TAX_RATE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></FormField></div>
      {mode!=='plan'&&<div className="w-full max-w-44 min-w-0"><FormField label={<>Válido hasta<OptionalMark/></>} htmlFor="quote-valid-until"><Input id="quote-valid-until" type="date" {...form.register('valid_until')}/></FormField></div>}
     </div>
     {mode!=='plan'&&<section className="grid gap-3" aria-label="Secciones del documento">

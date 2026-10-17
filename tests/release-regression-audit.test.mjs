@@ -62,7 +62,7 @@ assert(file('../app/superadmin/subscription-dialog.tsx').includes('className="gr
 assert(file('../app/actor-identity.css').includes('.actor-identity-time{white-space:nowrap'),'author timestamps never break mid-value');
 assert(file('../app/status/page.tsx').includes('AccessLayout wide')&&file('../app/status/page.tsx').includes('StateChip'),'la página de estado conserva el marco de acceso y un solo chip');
 // Ronda 21-09 (SOS-DSN): las primitivas exponen el texto completo y permiten elipsis sin perderlo (#31).
-assert(file('../app/ui/select.tsx').includes('title={selectedLabel}'),'SelectCustom exposes the selected label as title');
+assert(file('../app/ui/select.tsx').includes('title={props.title??selectedLabel}'),'SelectCustom exposes the selected label as title');
 assert(file('../app/actor-identity.tsx').includes('title={label}'),'ActorIdentity exposes the full name as title');
 assert(file('../app/actor-identity.css').includes('.actor-identity-name{display:block;min-width:0;max-width:100%'),'ActorIdentity name is a block so caller ellipsis applies');
 console.log('PASS: rail, topbar, company switcher and dense lists keep their content inside the container.');

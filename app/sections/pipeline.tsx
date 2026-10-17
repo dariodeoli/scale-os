@@ -1,11 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 import {InputControl as Input,InputControl} from '../ui/input-control';
 import {OptionalMark} from '../field-label';
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,Label,Select} from 'owncoding-ui';
+import {Aviso,AvisoPrivacidad,Button,Label} from 'owncoding-ui';
 import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
@@ -479,14 +480,14 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         <SearchField className="w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7"  label="Buscar oportunidades" hideLabel value={filters.query} onChange={(nextSearchValue)=>setFilter({query:nextSearchValue})} placeholder="Buscar por nombre, contacto o notas…"/>
         <div className="min-w-0">
           <Label htmlFor="pipeline-etapa" className="sr-only">Etapa</Label>
-          <Select id="pipeline-etapa" aria-label="Etapa" value={filters.stage} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({stage:event.target.value})} className="min-w-[10rem]">
+          <Select hideLabel id="pipeline-etapa" label="Etapa" value={filters.stage} onChange={(value:string)=>setFilter({stage:value})} className="min-w-[10rem]">
             <option value="">Todas las etapas</option>
             {stageFilterChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
           </Select>
         </div>
         {currencies.length>1||filters.currency?<div className="min-w-0">
           <Label htmlFor="pipeline-moneda" className="sr-only">Moneda</Label>
-          <Select id="pipeline-moneda" aria-label="Moneda" value={filters.currency} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({currency:event.target.value})} className="min-w-[8rem]">
+          <Select hideLabel id="pipeline-moneda" label="Moneda" value={filters.currency} onChange={(value:string)=>setFilter({currency:value})} className="min-w-[8rem]">
             <option value="">Todas las monedas</option>
             {[...new Set([...currencies,...(filters.currency?[filters.currency]:[])])].map(currency=><option key={currency} value={currency}>{currency}</option>)}
           </Select>
@@ -646,7 +647,7 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
     {notice?<Aviso tono="ok" role="status" compact>{notice}</Aviso>:null}
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={event=>{event.preventDefault();if(busy)return;const name=label.trim();const order=validOrder(position);if(name.length<2){setError('Ingresá el nombre de la etapa.');return;}if(Number.isNaN(order)){setError('Orden de etapa inválido.');return;}void run(async()=>{await api('/api/agency/pipeline-stages',{label:name,kind,...(order===null?{}:{position:order})},'POST');setLabel('');setPosition('');setKind('open');return 'Etapa creada.';});}}>
       <div className="grid gap-1"><Label htmlFor="stage-name">Nombre de la etapa</Label><Input id="stage-name" value={label} disabled={busy} maxLength={60} placeholder="Ej.: Visita técnica" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setLabel(event.target.value)}/></div>
-      <div className="grid gap-1"><Label htmlFor="stage-kind">Tipo</Label><Select id="stage-kind" value={kind} disabled={busy} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setKind(event.target.value as Stage['kind'])}>{stageKindChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></div>
+      <div className="grid gap-1"><Label htmlFor="stage-kind">Tipo</Label><Select hideLabel label="Tipo" id="stage-kind" value={kind} disabled={busy} onChange={(value:string)=>setKind(value as Stage['kind'])}>{stageKindChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></div>
       <div className="grid gap-1"><Label htmlFor="stage-position">Orden<OptionalMark/></Label><Input id="stage-position" type="number" min={0} max={9999} value={position} disabled={busy} placeholder="Al final" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setPosition(event.target.value)}/></div>
       <div className="sm:col-span-3"><Button type="submit" disabled={busy||label.trim().length<2}>{busy?'Guardando…':'Crear etapa'}</Button></div>
     </form>

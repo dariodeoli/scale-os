@@ -1,4 +1,5 @@
 'use client';
+import {OptionsSelect as Select} from './ui/options-select';
 // Primitivas únicas v2 (campaña #41, DESIGN-SYSTEM.md §Sistema v2).
 //
 // Envuelven objetos de `owncoding-ui` para fijar la semántica de Scale OS:
@@ -6,14 +7,14 @@
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge, BarraProgreso, EmptyState, ErrorState, Label, ListGridToggle, MenuDesplegable, SegmentedField, Select, Skeleton, Stat} from 'owncoding-ui';
+import {Badge,BarraProgreso,EmptyState,ErrorState,Label,ListGridToggle,MenuDesplegable,SegmentedField,Skeleton,Stat} from 'owncoding-ui';
 import {TabScroller} from './tab-scroller';
 import {ConfirmDialog} from './dialog';
 import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
 import {money} from './operations';
-import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ChangeEvent,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
+import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -175,7 +176,7 @@ export function ViewSwitch({value, onChange, className}: {value: CollectionView;
 export function CurrencyField({id, label, value, onChange, disabled = false, className}: {id: string; label: string; value: string; onChange: (value: string) => void; disabled?: boolean; className?: string}) {
   return <div className={`grid gap-1.5 ${className ?? ''}`}>
     <Label htmlFor={id}>{label}</Label>
-    <Select id={id} value={value} disabled={disabled} onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)} className="max-w-[11rem]">
+    <Select hideLabel label={label} id={id} value={value} disabled={disabled} onChange={(value:string)=>onChange(value)} className="max-w-[11rem]">
       {currencyChoices.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
     </Select>
   </div>;

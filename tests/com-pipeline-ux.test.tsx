@@ -102,7 +102,7 @@ async function run(){
  assert.doesNotMatch(text(renderer.root),/Todavía no hay oportunidades/,'el vacio global solo aparece sin etapas');
  const create1=renderer.root.findAllByType('button').find(button=>button.props['aria-label']==='Nueva oportunidad en Contactado')!;
  act(()=>{create1.props.onClick();});
- const stageField=renderer.root.findAll(node=>typeof node.type!=='string'&&node.props.label==='Etapa'&&typeof node.props.onChange==='function')[0];
+ const stageField=renderer.root.findByProps({role:'dialog'}).findAll(node=>typeof node.type!=='string'&&node.props.label==='Etapa'&&typeof node.props.onChange==='function')[0];
  assert.equal(stageField.props.value,'contacted','el alta arranca en la etapa de la columna');
  act(()=>renderer.unmount());
  renderer=await mount('viewer',[]);
@@ -122,8 +122,8 @@ async function run(){
   {id:'3',name:'Gamma',stage:'lead',amount:'300',currency:'PYG',probability:20,notes:'pedir presupuesto Acme'},
  ];
  const control=(renderer:ReactTestRenderer,predicate:(node:ReactTestInstance)=>boolean)=>renderer.root.findAll(node=>typeof node.props?.onChange==='function'&&predicate(node))[0];
- const setSearch=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.props.ariaLabel==='Buscar oportunidades').props.onChange({target:{value}});});
- const setStageFilter=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.props.id==='pipeline-etapa').props.onChange({target:{value}});});
+ const setSearch=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.props.label==='Buscar oportunidades').props.onChange(value);});
+ const setStageFilter=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.props.id==='pipeline-etapa').props.onChange(value);});
  const setView=(renderer:ReactTestRenderer,value:'grid'|'list')=>act(()=>{control(renderer,node=>node.props.value==='grid'||node.props.value==='list').props.onChange(value);});
  const cardNames=(renderer:ReactTestRenderer)=>renderer.root.findAllByType('article').map(card=>text(card.findAll(node=>node.type==='h3'||(node.type==='button'&&String(node.props['aria-label']||'').startsWith('Ver oportunidad'))).slice(0,1)[0]));
  const listRowsOf=(renderer:ReactTestRenderer)=>renderer.root.findAll(node=>typeof node.type==='string'&&node.props['data-lead-row']!==undefined);
@@ -219,7 +219,7 @@ async function run(){
  assert.deepEqual(opened,['9'],'abre la ficha del cliente vinculado');
  assert.equal(menuOf(renderer,'Acme SA').props.items.some((item:{id:string})=>item.id==='client'),false,'sin cliente no hay atajo');
  act(()=>{renderer.root.findAllByType('button').find(button=>/Nueva oportunidad/.test(text(button))||/^Nueva oportunidad/.test(String(button.props['aria-label']||'')))!.props.onClick();});
- const currencyField=renderer.root.findAll(node=>typeof node.type!=='string'&&node.props.label==='Moneda'&&typeof node.props.onChange==='function')[0];
+ const currencyField=renderer.root.findByProps({role:'dialog'}).findAll(node=>typeof node.type!=='string'&&node.props.label==='Moneda'&&typeof node.props.onChange==='function')[0];
  assert.equal(currencyField.props.value,'USD','el alta arranca en la moneda de la empresa, no en PYG fijo');
  act(()=>renderer.unmount());
  console.log('PASS: pipeline UX (#182): mover a etapa por menu con el mismo PATCH, convertir visible solo en ganado y con capacidad, columnas vacias con alta por etapa y totales sin recorte, filtros en tablero y lista, misma informacion en tarjeta y fila, lote optimista y viewer sin acciones.');

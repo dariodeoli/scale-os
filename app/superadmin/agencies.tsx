@@ -1,8 +1,9 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 // Agencias y suscripciones del panel global (#102): toolbar única (búsqueda +
 // estado + contador) y lista densa con tarjetas cuando la plantilla no entra.
 import {useMemo, useState} from "react";
-import {Select} from 'owncoding-ui';
+
 import {SearchField} from '../search-field';
 import {dueTone, listDateShort} from "../list-format";
 import {
@@ -149,7 +150,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
         <SearchField className="min-w-[12rem] flex-1 sm:max-w-72"  label="Buscar agencia" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Nombre o identificador"/>
         <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
           Estado
-          <Select aria-label="Filtrar por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value)} className="min-w-[11rem]">
+          <Select hideLabel label="Filtrar por estado" value={status} onChange={(value:string)=>setStatus(value)} className="min-w-[11rem]">
             <option value="">Todas</option>
             <option value="active">Activas</option>
             <option value="inactive">Inactivas</option>
