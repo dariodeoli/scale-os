@@ -186,12 +186,13 @@ assert.equal((await query("select site_key from live_visitor_sites where site_ke
 // Any failure after trigger suspension must roll back data, audit, and trigger DDL.
 const rollbackOrg = await fixture(true);
 await modernState(query,rollbackOrg,owner);
+const rollbackMembers=(await query('select * from organization_members where organization_id=$1 order by user_id',[rollbackOrg])).rows;
 await pg.exec(`create function maintenance_test_reject() returns trigger language plpgsql as $$ begin
  if old.id=${rollbackOrg} then raise exception 'test failure'; end if; return old; end $$;
  create trigger maintenance_test_reject before delete on organizations for each row execute function maintenance_test_reject()`);
 result = await runMaintenance(db, {dryRun: false, env: {DEMO_CLEANUP_BATCH_SIZE: '20'}});
 assert.equal(result.demos.find(d => d.organizationId === rollbackOrg).status, 'blocked');
-assert.equal(await count('organization_members', rollbackOrg), 1);
+assert.deepEqual((await query('select * from organization_members where organization_id=$1 order by user_id',[rollbackOrg])).rows,rollbackMembers);
 assert.equal((await query("select tgname from pg_trigger where not tgisinternal and tgenabled<>'O'")).rows.length, 0);
 assert.ok(await count('agency_salary_history',rollbackOrg));
 await assert.rejects(query('delete from agency_salary_history where organization_id=$1',[rollbackOrg]),/append-only/);
