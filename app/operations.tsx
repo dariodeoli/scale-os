@@ -1,6 +1,7 @@
 "use client";
 import {OptionalMark,optionalLabel} from './field-label';
 import {money} from './money-format';
+import {normalizeWholeMoney} from './amount-format';
 import {currencyChoices} from "./currencies";
 import {ProjectPresence} from './presence';
 import { useEffect, useState, useRef, useId, useImperativeHandle, type ReactNode, type Ref } from "react";
@@ -124,7 +125,7 @@ export function Editor({
   for (const f of fields) {
     let s = z.string();
     if (!f.optional) s = s.min(1, `Completá ${f.label.toLowerCase()}`);
-    if(f.integer)s=s.refine(value=>value===''||/^\d+$/.test(value),'Ingresá un número entero.');
+    if(f.integer)s=s.refine(value=>value===''||(f.type==='money'?normalizeWholeMoney(value)!==null:/^\d+$/.test(value)),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
     if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
     const check=f.validate;
@@ -202,6 +203,7 @@ export function Editor({
         setError("");
         try {
           const values:Record<string,unknown>={...v};
+          for(const field of fields)if(field.type==='money'&&field.integer&&v[field.key]!=='')values[field.key]=normalizeWholeMoney(v[field.key]);
           if(typeof values.drive_links==='string')values.drive_links=parseDriveLinksText(values.drive_links);
           // `drive_links` is normalized to structured link objects just before
           // sending it to the API. Keep the public Editor contract string-based

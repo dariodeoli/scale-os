@@ -8,7 +8,7 @@ import {clientLegalName} from './client-identity-data';
 import {todayAsuncion} from './client-format';
 import {commercialChangeContext} from './commercial-change-context';
 import {clientStatuses} from './client-status';
-import {isWholeTransport} from './amount-format';
+import {isWholeTransport,normalizeWholeMoney} from './amount-format';
 import {buildSocialLinks,clientLinksDefaults} from './client-links';
 
 export const CLIENT_SECTIONS={identity:'Identidad',contact:'Contacto',tax:'Fiscal',legal:'Datos para contratos',plan:'Plan y pago',links:'Enlaces'} as const;
@@ -94,7 +94,7 @@ export function clientEditDefaults(record:ClientRecord|null,plan:PlanTermsRespon
   const base:Record<string,string>={[CLIENT_REPRESENTATIVE_LINK]:record?.[CLIENT_REPRESENTATIVE_LINK]===true?'true':'false',...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,str(record,key)])),name:str(record,'name'),email:str(record,'email'),phone:str(record,'phone'),lifecycle_status:str(record,'lifecycle_status'),tax_id:str(record,'tax_id'),legal_name:str(record,'legal_name'),notes:str(record,'notes'),...clientLinksDefaults(record?.social_links)};
   if(!plan)return base;
   const terms=plan.terms;
-  return {...base,plan_effective_from:todayAsuncion().slice(0,7)+'-01',plan_reason:'',plan_plan_id:terms?.planId||'',plan_amount:terms?String(terms.recurringAmount):'',plan_currency:terms?.currency||'PYG',plan_cadence:terms?.cadence||'monthly',plan_interval:['2','3','4','6','12'].includes(String(terms?.intervalMonths||''))?String(terms?.intervalMonths):'3',plan_starts_on:terms?.startsOn||'',plan_ends_on:terms?.endsOn||'',plan_invoice_required:terms?String(terms.invoiceRequired):'true'};
+  return {...base,plan_effective_from:todayAsuncion().slice(0,7)+'-01',plan_reason:'',plan_plan_id:terms?.planId||'',plan_amount:terms?(normalizeWholeMoney(terms.recurringAmount)??String(terms.recurringAmount)):'',plan_currency:terms?.currency||'PYG',plan_cadence:terms?.cadence||'monthly',plan_interval:['2','3','4','6','12'].includes(String(terms?.intervalMonths||''))?String(terms?.intervalMonths):'3',plan_starts_on:terms?.startsOn||'',plan_ends_on:terms?.endsOn||'',plan_invoice_required:terms?String(terms.invoiceRequired):'true'};
 }
 export const CLIENT_CREATE_DEFAULTS:Record<string,string>={[CLIENT_REPRESENTATIVE_LINK]:'false',...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,''])),name:'',email:'',phone:'',tax_id:'',legal_name:'',notes:''};
 
@@ -125,9 +125,10 @@ export function clientPatchPayload(values:Record<string,string>,defaults:Record<
 /** Cuerpo del PATCH de /commercial-terms (mismo contrato de siempre); lanza el mensaje si falta algo. */
 export function planTermsPayload(values:Record<string,string>,plan:PlanTermsResponse,requestId:string){
   const context=commercialChangeContext({effectiveFrom:values.plan_effective_from,reason:values.plan_reason||''},plan.historyRevision,requestId);
-  if(!isWholeTransport(values.plan_amount,false))throw Error('Ingresá un importe mensual entero positivo.');
+  const recurringAmount=normalizeWholeMoney(values.plan_amount);
+  if(recurringAmount===null||!isWholeTransport(recurringAmount,false))throw Error('Ingresá un importe mensual entero positivo.');
   if(!isDate(values.plan_starts_on))throw Error('Completá la fecha real de inicio comercial.');
   if(values.plan_ends_on&&(!isDate(values.plan_ends_on)||values.plan_ends_on<values.plan_starts_on))throw Error('La fecha de fin debe ser válida y posterior al inicio.');
   const active=plan.terms;
-  return {...context,planId:values.plan_plan_id,recurringAmount:values.plan_amount,currency:values.plan_currency,startsOn:values.plan_starts_on,endsOn:values.plan_ends_on||null,cadence:values.plan_cadence,intervalMonths:Number(values.plan_interval||1),invoiceRequired:values.plan_invoice_required==='true',commissionRecipientId:active?.commissionMode==='none'?null:active?.commissionRecipientId||null,commissionMode:active?.commissionMode||'none',commissionValue:active?.commissionMode==='none'?null:active?.commissionValue??null};
+  return {...context,planId:values.plan_plan_id,recurringAmount,currency:values.plan_currency,startsOn:values.plan_starts_on,endsOn:values.plan_ends_on||null,cadence:values.plan_cadence,intervalMonths:Number(values.plan_interval||1),invoiceRequired:values.plan_invoice_required==='true',commissionRecipientId:active?.commissionMode==='none'?null:active?.commissionRecipientId||null,commissionMode:active?.commissionMode||'none',commissionValue:active?.commissionMode==='none'?null:active?.commissionValue??null};
 }

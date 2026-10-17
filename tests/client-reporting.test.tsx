@@ -98,6 +98,20 @@ async function run(){
   assert.notEqual(json(changed).expectedRevision,'0','another edit uses the refreshed revision');
   await respond(changed,commercial({...terms,recurringAmount:'3000000'}));
   act(()=>renderer.unmount());
+  await act(async()=>{renderer=create(<ClientReporting id="1" role="owner"/>);});
+  await load(reporting(),commercial({...terms,currency:'USD',commissionMode:'fixed'}));
+  setMoney('client-reporting-amount','1200.00');setMoney('client-reporting-commission-value','50.00');setAudit();
+  act(()=>{void saveButton().props.onClick();});const wholeMoney=requests.at(-1)!;
+  assert(wholeMoney.url.endsWith('/commercial-terms'));
+  assert.equal(json(wholeMoney).recurringAmount,'1200');assert.equal(json(wholeMoney).commissionValue,'50');
+  await respond(wholeMoney,commercial({...terms,currency:'USD',recurringAmount:'1200',commissionMode:'fixed',commissionValue:'50'}));
+  setMoney('client-reporting-amount','1200.00');setMoney('client-reporting-commission-value','50.00');
+  assert.equal(saveButton().props.disabled,true,'representar el mismo importe con ceros decimales no crea otro cambio');
+  setMoney('client-reporting-amount','1200.25');setAudit();const beforeCents=requests.length;
+  act(()=>{void saveButton().props.onClick();});
+  assert.equal(requests.length,beforeCents,'fracciones reales siguen bloqueadas antes de cualquier PATCH');
+  assert.match(plain(),/enteros positivos/);
+  act(()=>renderer.unmount());
   console.log('PASS client reporting: role safety, financial-only commercial terms, reporting-only sales save, read-only finance, owner editor without terms, exact nine-field terms PATCH with end date, optional commission, preserved reporting version PATCH, and the six company currencies in the terms editor');
 }
 void run();
