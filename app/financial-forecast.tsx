@@ -164,7 +164,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <div className="flex items-center justify-between gap-3 border-b border-ink-600 pb-2"><span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{currency}</span><span className="text-xs text-mute">Planificación del mes</span></div>
       <FilaDato etiqueta="Recurrente contratado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.contracted,currency),currency))}/>
       <FilaDato etiqueta={`Emitido / facturado (${count(row?.invoice_count)} ${count(row?.invoice_count)===1?'factura':'facturas'})`} valor={moneyNowrap(formatWholeMoney(row?.issued_total,currency))}/>
-      <FilaDato etiqueta="Cobrado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.collected,currency),currency))}/>
+      <FilaDato etiqueta="Cobrado" valor={moneyNowrap(formatSignedMoney(amountFor(aggregates?.collected,currency),currency))}/>
       <FilaDato etiqueta="Saldo inicial de caja" valor={moneyNowrap(formatWholeMoney(opening,currency))}/>
       <FilaDato etiqueta="Personal" valor={moneyNowrap(formatWholeMoney(personnel?.expected_end_of_month_expense,currency))}/>
       <FilaDato etiqueta="Comisiones de clientes" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.commissions,currency),currency))}/>

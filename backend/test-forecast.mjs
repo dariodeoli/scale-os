@@ -506,5 +506,14 @@ assert.equal((await call('/api/agency/forecast?month=2032-03','GET',{}, {...adva
 await query("insert into forecast_opening_receivable_fixture values($1,'EUR',9007199254740993.01,null,true),($1,'EUR',0.09,null,true)",[advanceOrg]);
 const exactPrior=await openingReceivableForecast(db,advanceOrg,'2032-03',2);
 assert.equal(exactPrior.undated_records.find(row=>row.currency==='EUR').amount,'9007199254740993.10','source sums remain exact SQL strings, beyond JS integer precision');
+// Cross-month reversal is a negative collection in its actual booking month.
+// Cash already includes the refund, so the projection must not debit it again.
+const advancePayment=(await query('select id from agency_payments where organization_id=$1 and invoice_id=$2',[advanceOrg,advanceInvoice])).rows[0].id;
+await query("insert into agency_payment_reversals(organization_id,payment_id,reason,reversed_on,created_by_user_id) values($1,$2,'Anticipo devuelto','2032-04-10',$3)",[advanceOrg,advancePayment,uid]);
+const reversedApril=await call('/api/agency/forecast?month=2032-04','GET',{},advanceUser);
+assert.equal(reversedApril.status,200);
+assert.deepEqual(reversedApril.collected_actual.records,[{currency:'USD',amount:-400}]);
+const reversedUsd=reversedApril.projection.records.find(row=>row.currency==='USD');
+assert.equal(reversedUsd.collected,-400);assert.equal(reversedUsd.projected_cash,260,'cash balance 250 plus scheduled prior debt 10; refund is not debited twice');
 await pg.close();
 console.log('PASS: forecast dates, timezone, fixed-salary authorization, signed salary overrides and per-person members, commercial-term role and integer validation, auditable planned-expense recurrence, revenue/payment segregation, leap/year boundaries, exact totals, zero, no pipeline, invoice/budget dedup, cancelled/draft/archive exclusion, role and tenant isolation; multi-month cash projection and estimated result per currency, contracted versus invoiced per client, six default currencies, partial settings, new versus existing records, real expenses with debits, cash movements, idempotent reversals and tenant isolation, prior-month advances and unrelated receipts, explicit scheduling of prior receivables without new revenue, undated/excluded balances and exact source amounts, no external writes');
