@@ -2,6 +2,8 @@
 import {useEffect,useState} from 'react';
 import {Contrast,Moon,Sun} from 'lucide-react';
 import './theme-toggle.css';
+import {IconButton as ScaleIconButton} from "./ui/button";
+
 
 // Tres temas (§15 regla 4, Refs #82): claro → oscuro → alto contraste. La
 // preferencia vive en `scale-theme` y el layout la aplica antes del primer
@@ -34,5 +36,5 @@ export function ThemeToggle({className=''}:{className?:string}){
   try{localStorage.setItem('scale-theme',next);}catch{/* Sin almacenamiento el tema igual se aplicó. */}
  }
  const Icon=ICONOS[theme];
- return <button type="button" className={className?`theme-toggle ${className}`:'theme-toggle'} onClick={toggle} aria-label={`Cambiar tema (ahora: ${ETIQUETAS_TEMA[theme]})`} title={`${ETIQUETAS_TEMA[theme]} · clic para el siguiente`} data-theme-state={theme}><Icon size={18}/></button>;
+ return <ScaleIconButton type="button" className={className?`theme-toggle ${className}`:'theme-toggle'} onClick={toggle} label={`Cambiar tema (ahora: ${ETIQUETAS_TEMA[theme]})`} title={`${ETIQUETAS_TEMA[theme]} · clic para el siguiente`} data-theme-state={theme} icon={<><Icon size={18}/></>} variant="ghost" size="compact"></ScaleIconButton>;
 }

@@ -2,6 +2,8 @@
 import {useEffect} from 'react';
 import {APP_VERSION} from './app-version';
 import {reportClientError} from './client-error-reporter';
+import {Button as ScaleButton} from "./ui/button";
+
 // Superficie de recuperación global: reemplaza el layout raíz, así que no puede
 // depender de la hoja de la app ni del `ProductFooter`. Mantiene el contenido
 // canónico del pie (§14) en texto plano — versión real + crédito con enlace — y
@@ -14,7 +16,7 @@ export default function GlobalError({error,reset}:{error:Error&{digest?:string};
     <p className="eyebrow">ERROR INESPERADO</p>
     <h1>Scale OS no pudo cargar</h1>
     <p>Ocurrió un error general en la aplicación. Reintentá o recargá la página.</p>
-    <button className="primary" type="button" onClick={reset}>Reintentar</button>
+    <ScaleButton className="primary" type="button" onClick={reset} variant="primary">Reintentar</ScaleButton>
     <p className="error-boundary-version">Scale OS v{APP_VERSION} · Desarrollado por <a href="https://owncoding.dev/">Owncoding</a></p>
    </section>
   </main>

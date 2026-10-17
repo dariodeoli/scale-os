@@ -10,6 +10,8 @@ import {Dialog,FormActions} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
 import {assignServicePlan,loadServicePlans} from './client-bulk';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export function AssignPlanDialog({ids,close,onDone}:{ids:string[];close:() => void;onDone:() => Promise<void>|void}){
   const [plans,setPlans]=useState<{id:string;name:string}[]|null>(null),[planId,setPlanId]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -28,6 +30,6 @@ export function AssignPlanDialog({ids,close,onDone}:{ids:string[];close:() => vo
     <p className="form-note">Se asigna a {ids.length} {ids.length===1?'cliente seleccionado':'clientes seleccionados'}. Cambia solo el plan de servicio; el precio y el pago se editan desde cada cliente.</p>
     {plans===null?<p role="status">Cargando planes…</p>:plans.length?<SelectCustom label="Plan de servicio" value={planId} choices={[{value:'',label:'Elegí un plan'},...plans.map(plan=>({value:String(plan.id),label:plan.name}))]} onChange={setPlanId} disabled={busy}/>:<p className="form-note">No hay planes activos. Creá uno en Planes.</p>}
     {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
-    <FormActions><button type="button" className="secondary" disabled={busy} onClick={close}>Cancelar</button><button type="button" className="primary" disabled={busy||!planId} onClick={()=>void run()}>{busy?'Asignando…':'Asignar plan'}</button></FormActions>
+    <FormActions><ScaleButton type="button" className="secondary" disabled={busy} onClick={close} variant="secondary">Cancelar</ScaleButton><ScaleButton type="button" className="primary" disabled={busy||!planId} onClick={()=>void run()} variant="primary">{busy?'Asignando…':'Asignar plan'}</ScaleButton></FormActions>
   </Dialog>;
 }

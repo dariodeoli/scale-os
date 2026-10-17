@@ -20,7 +20,7 @@ import {TextareaBase as Textarea} from './ui/input';
 import {OptionalMark} from './field-label';
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button} from 'owncoding-ui';
+import {Button} from "./ui/button";
 import {Switch} from './ui/choice';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
@@ -34,6 +34,8 @@ import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,Drag
 import {ArrowDown,ArrowUp,GripVertical,Plus,X} from 'lucide-react';
 import {api,ApiFieldError} from './operations';
 import {SECTION_TYPE_LABELS,TAX_RATE_CHOICES,initialQuoteSections,normalizeQuoteItems,quoteMissingText,quoteReadiness,quoteRequest,quoteSchema,quoteTotals,type QuoteClientOption,type QuoteMode,type QuotePlanRecord,type QuoteSection,type QuoteValues} from './quote-composer-data';
+import {Button as ScaleButton} from "./ui/button";
+
 // Los esquemas, totales y requests viven en ./quote-composer-data (puros); se
 // reexporta lo que otros módulos/tests ya importaban de acá.
 export {quoteSchema,sectionSchema,normalizeQuoteItems,quoteTotals,quoteRequest,quoteReadiness,quoteMissingText} from './quote-composer-data';
@@ -202,7 +204,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  {error&&<div data-form-field="root" tabIndex={-1} className="lg:col-span-2"><Aviso tono="error" role="alert" compact>{error}</Aviso></div>}
  <div className="lg:col-span-2"><SaveActions pending={submission.pendiente} dirty={form.formState.isDirty}>
   {!readiness.ready&&<span className="self-center text-xs text-mute" role="status">{quoteMissingText(readiness.missing)}</span>}
-  <button className="primary" disabled={submission.pendiente||!readiness.ready||persisted&&!completionFailed}>{submission.pendiente?(persisted?'Actualizando…':'Guardando…'):completionFailed?'Reintentar actualización':persisted?'Guardado':'Guardar'}</button>
+  <ScaleButton className="primary" disabled={submission.pendiente||!readiness.ready||persisted&&!completionFailed} variant="primary">{submission.pendiente?(persisted?'Actualizando…':'Guardando…'):completionFailed?'Reintentar actualización':persisted?'Guardado':'Guardar'}</ScaleButton>
  </SaveActions></div>
 </form>;
 }

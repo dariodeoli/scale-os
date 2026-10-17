@@ -33,6 +33,8 @@ import {PeopleWorkspace} from './team-workspace';
 import {dataFetch} from './data-cache';
 import {transporteError} from './workspace-request';
 import {canOpenPeopleWorkspace} from './capabilities';
+import {Button as ScaleButton} from "./ui/button";
+
 
 /** Structured field errors are consumed only when the API explicitly names fields. */
 export class ApiFieldError extends Error {
@@ -337,7 +339,7 @@ export function Editor({
       {fields.filter(f=>!f.section).map(renderField)}
       {showSectionSummary&&<div className="error form-error-summary ops-wide" role="alert">
         <span>Revisá {errorSections.length===1?'esta sección':'estas secciones'}:</span>{' '}
-        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<button type="button" className="text-button" onClick={()=>revealSection(name)}>{name} ({sectionErrorCount(name)})</button></span>)}
+        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<ScaleButton type="button" className="text-button" onClick={()=>revealSection(name)} variant="ghost">{name} ({sectionErrorCount(name)})</ScaleButton></span>)}
       </div>}
       {sectionNames.map((section,index)=>{
         const errors=sectionErrorCount(section);
@@ -347,18 +349,18 @@ export function Editor({
         </details>;
       })}
       {stepper&&<div className="ops-stepper ops-wide" role="group" aria-label="Pasos del formulario">
-        <button type="button" className="secondary" disabled={pending||activeStep===0} onClick={()=>setStep(activeStep-1)}>Anterior</button>
+        <ScaleButton type="button" className="secondary" disabled={pending||activeStep===0} onClick={()=>setStep(activeStep-1)} variant="secondary">Anterior</ScaleButton>
         <span aria-live="polite">Paso {activeStep+1} de {sectionNames.length}</span>
-        <button type="button" className="secondary" disabled={pending||activeStep>=sectionNames.length-1} onClick={()=>setStep(activeStep+1)}>Siguiente</button>
+        <ScaleButton type="button" className="secondary" disabled={pending||activeStep>=sectionNames.length-1} onClick={()=>setStep(activeStep+1)} variant="secondary">Siguiente</ScaleButton>
       </div>}
       {error && (
         <p className="error form-error-summary ops-wide" role="alert">
           {error}
         </p>
       )}
-      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={()=>requestClose()}>{cancelLabel}</button>}{secondaryAction&&<button className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()}>{secondaryAction.label}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
+      <FormActions>{requestClose&&cancelLabel&&<ScaleButton className="secondary" type="button" disabled={pending} onClick={()=>requestClose()} variant="secondary">{cancelLabel}</ScaleButton>}{secondaryAction&&<ScaleButton className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()} variant="secondary">{secondaryAction.label}</ScaleButton>}<ScaleButton type="submit" className="primary ops-wide" disabled={pending} variant="primary">
         {pending ? "Guardando…" : label}
-      </button></FormActions>
+      </ScaleButton></FormActions>
     </form>
   );
 }
@@ -420,15 +422,15 @@ export function ProjectComments({
   }
   return (
     <>
-      <button
+      <ScaleButton
         className="text-button"
         onClick={() => {
           setOpen(true);
           load().catch((e) => setError(message(e)));
-        }}
+        }} variant="ghost"
       >
         <MessageSquare size={14} /> Comentarios
-      </button>
+      </ScaleButton>
       {open && (
         <Dialog title={`Seguimiento · ${name}`} close={() => setOpen(false)}>
           <ProjectPresence projectId={projectId}/>
@@ -552,11 +554,11 @@ export function CompanySelector({ name, logo }: { name: string; logo?: string|nu
               >
                 {c.name} · {c.role}
               </button>
-              {!c.isDemo&&<button type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
+              {!c.isDemo&&<ScaleButton type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
                 if(preferenceLock.current)return;preferenceLock.current=true;setBusy(true);setError('');
                 try{await api('/api/auth/default-organization',{organizationId:c.id});setPreferred(String(c.id));window.dispatchEvent(new Event('scale:default-company-changed'));}
                 catch(e){setError(message(e));}finally{preferenceLock.current=false;setBusy(false);}
-              }}><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</button>}
+              }} variant="ghost"><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</ScaleButton>}
               </div>
             ))}
           </div>

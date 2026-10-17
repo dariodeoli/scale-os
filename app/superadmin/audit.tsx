@@ -10,6 +10,8 @@ import {listDateFull} from "../list-format";
 import {EmptyBlock, FilterToolbar, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type AuditAction, type CollectionPage} from "./model";
 import {PlatformMore} from "./states";
+import {Button as ScaleButton} from "../ui/button";
+
 
 const TEMPLATE = "grid-cols-[9.5rem_minmax(9rem,1fr)_17rem_minmax(12rem,1.4fr)]";
 const MIN_WIDTH = denseTableMinWidth(47.5, 4);
@@ -49,7 +51,7 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
           {actions.map((item) => <option key={item} value={item}>{item}</option>)}
         </Select>
       </label>
-      {(query || action) ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setAction("");}}>Limpiar filtros</button> : null}
+      {(query || action) ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setAction("");}} variant="ghost">Limpiar filtros</ScaleButton> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
     {visible.length ? (tableFits ? (

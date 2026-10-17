@@ -8,6 +8,8 @@ import {daysUntil} from './client-format';
 import {listDateFull} from './list-format';
 import {LoadingBlock} from './ui-v2';
 import {founderPricingNote} from './founder-pricing';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type SubscriptionState={
  status:'unmanaged'|'demo'|'trialing'|'active'|'grace'|'suspended';
@@ -214,7 +216,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
      <div className="subscription-actions grid gap-3">
      {showCheckout?(state.checkoutReady?<div className="subscription-checkout grid gap-3">
       <label className="subscription-consent flex min-h-11 min-w-0 items-start gap-3 py-1 text-[13px] leading-[1.5]"><InputControl type="checkbox" className="!m-0 !h-5 !w-5 !min-h-5 appearance-auto !p-0 accent-fono" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
-      <button type="button" className={PRIMARY} disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo checkout…':'Activar suscripción mensual'}</button>
+      <ScaleButton type="button" className={PRIMARY} disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')} variant="primary">{pending==='checkout'?'Abriendo checkout…':'Activar suscripción mensual'}</ScaleButton>
      </div>:<div className="subscription-manual grid gap-3 rounded-lg border border-ink-600 bg-ink-700 p-3">
       <p><strong className="text-fore">Activación con pago coordinado.</strong> El cobro en línea no está disponible en esta instalación, pero podés activar la suscripción igual:</p>
       <ol className="subscription-manual-steps grid list-decimal gap-1 pl-5 text-[13px] leading-[1.5]">
@@ -232,7 +234,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
       <a className={`${PRIMARY} subscription-manual-link no-underline`} href={activationRequestUrl(organizationName)} target="_blank" rel="noopener noreferrer">Enviar comprobante por WhatsApp</a>
       <p className="text-xs leading-[1.45] text-mute">Este enlace abre WhatsApp con el mensaje ya escrito; no realiza ningún cobro. La cuenta recibe guaraníes; si tu plan está en dólares, coordinamos el equivalente al enviar el comprobante. Cuando administración verifique el pago, esta pantalla mostrará “Suscripción activa”.</p>
      </div>):null}
-     {showPortal?<button type="button" className={SECONDARY} disabled={busy||!canPortal} onClick={()=>redirect('portal')}>{pending==='portal'?'Abriendo portal…':'Gestionar suscripción en Stripe'}</button>:null}
+     {showPortal?<ScaleButton type="button" className={SECONDARY} disabled={busy||!canPortal} onClick={()=>redirect('portal')} variant="secondary">{pending==='portal'?'Abriendo portal…':'Gestionar suscripción en Stripe'}</ScaleButton>:null}
      {state.checkoutReady?<p className="text-xs leading-[1.45] text-mute">Abrir el checkout no confirma un pago. Al volver, Scale mostrará “verificando” y consultará el estado autorizado por el servidor.</p>:null}
      </div>
     </>}
@@ -240,7 +242,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
   </div>}
   {actionError?<p className="subscription-error mt-3 rounded-lg border-l-[3px] border-bad bg-bad/10 p-3 text-[13px] text-bad-text" role="alert">{actionError}</p>:null}
   {verification?<p className="subscription-feedback mt-3 border-l-2 border-fono px-3 text-xs leading-[1.45] text-mute" role="status" aria-live="polite" aria-atomic="true">{verification}</p>:null}
-  {onRefresh?<div className="subscription-refresh mt-3 flex justify-start"><button type="button" className={SECONDARY} disabled={busy} onClick={refresh}>{pending==='refresh'?'Actualizando…':error||!state||actionError?'Reintentar':'Actualizar estado'}</button></div>:null}
+  {onRefresh?<div className="subscription-refresh mt-3 flex justify-start"><ScaleButton type="button" className={SECONDARY} disabled={busy} onClick={refresh} variant="secondary">{pending==='refresh'?'Actualizando…':error||!state||actionError?'Reintentar':'Actualizar estado'}</ScaleButton></div>:null}
  </section>;
 }
 
@@ -254,6 +256,6 @@ export function SubscriptionNotice({state,onOpen}:{state:SubscriptionState|null;
  const label=state.status==='trialing'?`Prueba · ${days===0?'vence hoy':`faltan ${days} ${days===1?'día':'días'}`}`:state.status==='grace'?`Pago pendiente · ${remaining(state)}`:'Acceso suspendido';
  const tone=state.status==='trialing'?'bg-fono/15 text-fono-light':state.status==='grace'?'bg-warn/15 text-warn':'bg-bad/15 text-bad';
  return <section className="subscription-notice inline-flex min-w-0 items-center" aria-label={`Estado de la suscripción: ${label}`}>
-  <button type="button" className={`subscription-secondary inline-flex min-h-11 min-w-0 max-w-full items-center justify-center rounded-full px-3 text-[11px] font-bold leading-tight [white-space:nowrap] hover:bg-ink-700 ${tone}`} onClick={onOpen} title="Ver suscripción">{label}</button>
+  <ScaleButton type="button" className={`subscription-secondary inline-flex min-h-11 min-w-0 max-w-full items-center justify-center rounded-full px-3 text-[11px] font-bold leading-tight [white-space:nowrap] hover:bg-ink-700 ${tone}`} onClick={onOpen} title="Ver suscripción" variant="ghost" size="compact">{label}</ScaleButton>
  </section>;
 }

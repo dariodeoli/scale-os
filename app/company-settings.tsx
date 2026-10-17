@@ -6,6 +6,8 @@ import {api} from './operations';
 import {EmptyBlock,ListGrid,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';
 import {notify} from './feedback';
 import './company-settings.css';
+import {Button as ScaleButton} from "./ui/button";
+
 
 type Company={id:string|number;name:string;role:string;isDemo?:boolean};
 type Companies={organizations:Company[];currentOrganizationId:string|number;defaultOrganizationId?:string|number|null};
@@ -44,13 +46,13 @@ export function CompanySettings(){
      <span role="cell" className="company-settings-role">{roles[company.role]||company.role}</span>
      <div role="cell">{current?<StateChip tone="ok">Empresa abierta</StateChip>:preferred?<StateChip tone="info">Predeterminada</StateChip>:<span className="company-settings-role" aria-hidden="true">—</span>}</div>
      <div role="cell" className="company-settings-actions">
-      {!current&&<button className="secondary company-settings-open" disabled={busy} onClick={()=>void choose(company,false)}>Abrir</button>}
-      {!company.isDemo&&<button className="secondary company-settings-default" disabled={busy} aria-label={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)}><Star size={16} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></button>}
+      {!current&&<ScaleButton className="secondary company-settings-open" disabled={busy} onClick={()=>void choose(company,false)} variant="secondary">Abrir</ScaleButton>}
+      {!company.isDemo&&<ScaleButton className="secondary company-settings-default" disabled={busy} aria-label={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)} variant="secondary"><Star size={16} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></ScaleButton>}
      </div>
     </ListRow>;
    })}
   </ListGrid>}
   {error&&<p className="error company-settings-feedback" role="alert">{error}</p>}
-  {!data&&error&&<button className="secondary" onClick={()=>{setError('');setAttempt(value=>value+1);}}>Reintentar</button>}
+  {!data&&error&&<ScaleButton className="secondary" onClick={()=>{setError('');setAttempt(value=>value+1);}} variant="secondary">Reintentar</ScaleButton>}
  </div>;
 }

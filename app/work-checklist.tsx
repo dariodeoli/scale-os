@@ -11,6 +11,8 @@ import './work-checklist.css';
 import {EmptyBlock} from './ui-v2';
 import {roleCan} from './capabilities';
 import {ConfirmDialog} from './dialog';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type WorkChecklistItem={id:string;text:string;completed:boolean;completed_at?:string|null;completed_by_name?:string|null;completed_by_photo_url?:string|null;completed_by_verified?:boolean;actor_name?:string;actor_photo_url?:string;actor_verified?:boolean};
 export type WorkChecklistSnapshot={version:string;items:WorkChecklistItem[];total:number;completed:number;max_items:number};
@@ -96,27 +98,27 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
     {item.completed?<span className="work-checklist-actor" data-state="complete" title={item.completed_by_name?`Completado por ${personDisplayName(item.completed_by_name)}${completedLabel?` · ${completedLabel}`:''}`:'Completado. No quedó registro de quién ni cuándo.'}>
      {item.completed_by_name?<>Completado por <ActorAvatar name={personDisplayName(item.completed_by_name)} photo={item.completed_by_verified===true?item.completed_by_photo_url??'':''}/><b title={personDisplayName(item.completed_by_name)}>{shortName(item.completed_by_name)}</b>{completedLabel?<time className="work-checklist-time" dateTime={item.completed_at||undefined}>{completedLabel}</time>:null}</>:<>Completado<span className="work-checklist-muted"> · sin registro</span></>}
     </span>:item.actor_name?<span className="work-checklist-actor" title={`Agregado por ${personDisplayName(item.actor_name)}`}>por <b title={personDisplayName(item.actor_name)}>{shortName(item.actor_name)}</b></span>:null}
-    {editable?<div className="work-checklist-actions"><button type="button" disabled={locked||!!edit} aria-label={`Editar ítem: ${item.text}`} onClick={()=>{setRemoving(null);setEdit({id:item.id,text:item.text});}}>Editar</button><button type="button" disabled={locked||!!edit} aria-label={`Quitar ítem: ${item.text}`} onClick={()=>setRemoving(item.id)}>Quitar</button></div>:null}
+    {editable?<div className="work-checklist-actions"><ScaleButton type="button" disabled={locked||!!edit} aria-label={`Editar ítem: ${item.text}`} onClick={()=>{setRemoving(null);setEdit({id:item.id,text:item.text});}} variant="ghost">Editar</ScaleButton><ScaleButton type="button" disabled={locked||!!edit} aria-label={`Quitar ítem: ${item.text}`} onClick={()=>setRemoving(item.id)} variant="ghost" color="danger">Quitar</ScaleButton></div>:null}
    </div>
    {edit?.id===item.id?<div className="work-checklist-editor">
     <label htmlFor={`${label}-edit`}>Texto del ítem</label><InputControl id={`${label}-edit`} autoFocus maxLength={500} value={edit.text} disabled={locked} onChange={event=>setEdit({...edit,text:event.target.value})} onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();if(!busy)setEdit(null);}if(event.key==='Enter'){event.preventDefault();if(edit.text.trim())void mutate('PATCH',item.id,{text:edit.text.trim()});}}}/>
-    <div className="work-checklist-actions"><button type="button" disabled={locked||!edit.text.trim()} onClick={()=>{void mutate('PATCH',item.id,{text:edit.text.trim()});}}>Guardar ítem</button><button type="button" disabled={busy} onClick={()=>setEdit(null)}>Cancelar edición</button></div>
+    <div className="work-checklist-actions"><ScaleButton type="button" disabled={locked||!edit.text.trim()} onClick={()=>{void mutate('PATCH',item.id,{text:edit.text.trim()});}} variant="primary">Guardar ítem</ScaleButton><ScaleButton type="button" disabled={busy} onClick={()=>setEdit(null)} variant="secondary">Cancelar edición</ScaleButton></div>
    </div>:null}
    {removing===item.id?<ConfirmDialog open variant="danger" title="Quitar ítem" description={<>¿Quitar «{item.text}» del checklist?</>} cancelLabel="Conservar ítem" confirmLabel="Sí, quitar ítem" busy={locked} onCancel={()=>setRemoving(null)} onConfirm={()=>{void mutate('DELETE',item.id);}}/>:null}
   </li>;})}</ul>:null}
   {edit&&snapshot&&!snapshot.items.some(item=>item.id===edit.id)?<div className="work-checklist-editor">
    <label htmlFor={`${label}-pending`}>El ítem que editabas fue quitado. Tu texto pendiente:</label>
    <TextareaBase id={`${label}-pending`} readOnly value={edit.text}/>
-   <button type="button" onClick={()=>setEdit(null)}>Descartar texto pendiente</button>
+   <ScaleButton type="button" onClick={()=>setEdit(null)} variant="ghost">Descartar texto pendiente</ScaleButton>
   </div>:null}
   {editable&&snapshot?<div className="work-checklist-add">
    <label htmlFor={`${label}-new`}>Nuevo ítem</label><div className="work-checklist-add-row"><InputControl ref={addInput} id={`${label}-new`} maxLength={500} value={draft} disabled={locked||total>=snapshot.max_items} placeholder="Escribí una tarea concreta" onChange={event=>setDraft(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();if(draft.trim()&&total<snapshot.max_items)void mutate('POST',null,{text:draft.trim()});}}}/>
-   <button type="button" disabled={locked||!draft.trim()||total>=snapshot.max_items} onClick={()=>{if(draft.trim()&&total<snapshot.max_items)void mutate('POST',null,{text:draft.trim()});}}>Agregar ítem</button></div>
+   <ScaleButton type="button" disabled={locked||!draft.trim()||total>=snapshot.max_items} onClick={()=>{if(draft.trim()&&total<snapshot.max_items)void mutate('POST',null,{text:draft.trim()});}} variant="primary">Agregar ítem</ScaleButton></div>
    {total>=snapshot.max_items?<p className="work-checklist-hint">Máximo {snapshot.max_items} ítems por pieza.</p>:null}
   </div>:null}
   {error?<p role="alert" className="work-checklist-error">{error}</p>:null}
   {conflict?<p className="work-checklist-hint">Recargá y revisá la lista antes de volver a guardar. Tu texto pendiente se conserva.</p>:null}
-  {!loading&&(error||conflict)?<button type="button" disabled={busy} onClick={reloadChecklist}>Recargar checklist</button>:null}
+  {!loading&&(error||conflict)?<ScaleButton type="button" disabled={busy} onClick={reloadChecklist} variant="secondary">Recargar checklist</ScaleButton>:null}
   {notice?<p role="status" className="work-checklist-hint">{notice}</p>:null}
  </section>;
 }

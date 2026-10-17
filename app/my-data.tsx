@@ -10,6 +10,8 @@ import {notify} from './feedback';
 import {PRIVACY_NOTICE,PRIVACY_PURPOSES,PRIVACY_RIGHTS_CHANNEL,type PrivacyPurpose} from './privacy-notice';
 import {technicalEmail} from './field-rules';
 import {PrivacyApiUnavailableError,loadPrivacyData,pendingPrivacyConsents,requestPrivacyAction,revokePrivacyConsent,type PrivacyConsent,type PrivacyData,type PrivacyRequest,type PrivacyRequestKind,type PrivacyRequestStatus} from './privacy-data';
+import {Button as ScaleButton} from "./ui/button";
+
 
 /**
  * «Mis datos» (Ley N° 7593/2025, Refs #113): zona visible de privacidad del
@@ -90,7 +92,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
        <ConsentState consent={latest(purpose.id)}/>
       </div>
       <p className="text-[11.5px] leading-5 text-mute">{purpose.detalle}</p>
-      {latest(purpose.id)?.aceptado?<button type="button" className={`text-button w-fit ${ACTION}`} disabled={revoking===purpose.id} onClick={()=>void revoke(purpose)}>{revoking===purpose.id?'Revocando…':'Revocar este consentimiento'}</button>:null}
+      {latest(purpose.id)?.aceptado?<ScaleButton type="button" className={`text-button w-fit ${ACTION}`} disabled={revoking===purpose.id} onClick={()=>void revoke(purpose)} variant="ghost">{revoking===purpose.id?'Revocando…':'Revocar este consentimiento'}</ScaleButton>:null}
      </li>)}
     </ul>
    </section>
@@ -108,7 +110,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
       <StateChip tone="mute">Próximamente</StateChip>
      </li>)}
     </ul>:<div className="flex flex-wrap gap-2">
-     {REQUEST_TYPES.map(type=><button key={type.value} type="button" className={`secondary ${ACTION}`} onClick={()=>setRequestType(type.value)}>{type.label}</button>)}
+     {REQUEST_TYPES.map(type=><ScaleButton key={type.value} type="button" className={`secondary ${ACTION}`} onClick={()=>setRequestType(type.value)} variant="secondary">{type.label}</ScaleButton>)}
     </div>}
     {bridge?<p className="text-[11.5px] leading-5 text-mute">Mientras la base técnica esté pendiente, estos pedidos se registran por el canal alternativo de arriba: el equipo los carga y podés seguirlos con tu referencia.</p>:null}
     {data?.exportPath?<a className={`secondary w-fit ${ACTION}`} href={`/core-api${data.exportPath}`} download="mis-datos.json"><Download size={15} aria-hidden="true"/>Descargar copia de mis datos</a>:<p className="text-[11.5px] text-mute">{bridge?'La descarga en autoservicio se habilita con la base del API; pedila por el canal alternativo y el equipo la prepara.':'Sin descarga disponible por ahora.'}</p>}

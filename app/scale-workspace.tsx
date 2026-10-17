@@ -151,6 +151,8 @@ import {
   Workflow,
   X,
 } from "lucide-react";
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 // Nav v3 (issue #68): 5 grupos desplegables (Resumen · Flujo · Recursos ·
 // Finanzas · Configuración); cada grupo lista sus módulos y el ícono del grupo
@@ -720,7 +722,7 @@ export default function Home() {
   function projectEntry(project:Project){
     return <ProjectCard key={project.id} project={project} taskIdentity={user?{organizationId:String(user.organization_id),userId:String(user.id),canView:user.role==='owner'||user.capabilities?.['tasks.view']!==false}:undefined} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
-      {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
+      {canManageProjects?<ScaleButton type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)} variant="ghost">{project.active===false?'Reactivar':'Archivar'}</ScaleButton>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
     </ProjectCard>;
   }
@@ -751,7 +753,7 @@ export default function Home() {
       <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} → <span className="list-date" data-tone={dueTone(project.due_date)}>{dueText}</span> · <b className="tabular-nums text-fore">{pieces}</b> pieza{pieces===1?'':'s'}</span>
       <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees} compact/></span>
       <ListActions className="flex items-center justify-end gap-1">
-        {canManageProjects?<button type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} aria-label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)}>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</button>:null}
+        {canManageProjects?<ScaleIconButton type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)} icon={<>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</>} variant="ghost" size="compact"></ScaleIconButton>:null}
         <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
       </ListActions>
     </>;
@@ -922,7 +924,7 @@ export default function Home() {
             />
             <PasswordPanel/>
             {toast && <p className="error" role="alert">{toast}</p>}
-            <button type="submit" className="primary login-button">{loginPending?'Ingresando…':'Continuar'}</button>
+            <ScaleButton type="submit" className="primary login-button" variant="primary" size="large">{loginPending?'Ingresando…':'Continuar'}</ScaleButton>
             </PendingFields>
           </form>
           <AvisoPrivacidad compact finalidad="Privacidad de tus datos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
@@ -935,7 +937,7 @@ export default function Home() {
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
-  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name} logo={user.organization_logo_url}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
+  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name} logo={user.organization_logo_url}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><ScaleButton className="secondary" onClick={logout} variant="secondary">Cerrar sesión</ScaleButton><WorkspaceFooter/></div></main>;
 
   // Ítem de nav (riel y drawer): mismo esqueleto, tono por superficie. El riel
   // marca el activo con barra dorada y tile de ícono; el drawer usa el tono de
@@ -1035,7 +1037,7 @@ export default function Home() {
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
           <p className="form-note">De lunes a domingo según el calendario local de tu dispositivo. Incluye todos los estados; las órdenes sin fecha quedan fuera del filtro semanal. Se combina con el cliente elegido y se guarda para vos en esta empresa y navegador.</p>
-          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>
+          <ScaleButton className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})} variant="ghost"><RotateCcw size={14}/>Restablecer filtros</ScaleButton>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
@@ -1097,9 +1099,9 @@ export default function Home() {
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {(active==='Resumen'&&canCreateRecord(active)) && (
-                <button className="primary" onClick={() => setModal("order")}>
+                <ScaleButton className="primary" onClick={() => setModal("order")} variant="primary">
                   <Plus size={18} /> Nueva orden
-                </button>
+                </ScaleButton>
               )}
             </div>
           </>}

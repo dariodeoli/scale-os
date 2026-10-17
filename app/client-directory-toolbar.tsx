@@ -11,11 +11,13 @@ import {OptionsSelect as Select} from './ui/options-select';
 // nunca un bloque propio—, los filtros en línea y la acción primaria al final.
 // En mobile se apila sólo lo que no entra, con targets de 44 px.
 import { Plus } from "lucide-react";
-import {Button} from 'owncoding-ui';
+import {Button} from "./ui/button";
 import {SearchField} from './search-field';
 import {ViewSwitch, type CollectionView} from './ui-v2';
 import {directorySummaryText} from './client-directory-data';
 import { clientStatuses } from "./client-status";
+import {Button as ScaleButton} from "./ui/button";
+
 
 // La lógica pura vive en ./client-directory-data; se reexporta para no romper
 // a los consumidores existentes (el shell importa filterClientDirectory de acá).
@@ -89,7 +91,7 @@ export function ClientDirectoryToolbar({
       <div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">
         <ViewSwitch value={view} onChange={onViewChange}/>
       </div>
-      {query || status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</button> : null}
+      {query || status ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}} variant="ghost">Limpiar filtros</ScaleButton> : null}
       {children}
       {canCreate && (
         <Button

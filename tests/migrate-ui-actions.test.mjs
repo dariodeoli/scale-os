@@ -136,12 +136,37 @@ test('write refuses an unreviewed site before any eligible source changes',()=>{
  try{assert.throws(()=>runMigration({root,write:true,files:['app/page.tsx']}),/UNREVIEWED/);assert.equal(fs.readFileSync(path.join(root,'app/page.tsx'),'utf8'),source);}finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
-test('repository review manifest covers all169 pending sites once with explicit reasons and hashes',()=>{
- const manifest=JSON.parse(fs.readFileSync(new URL('../docs/audits/241-ui-actions-reviewed.json',import.meta.url),'utf8'));
- assert.equal(manifest.schema,1);assert.equal(manifest.files.length,68);const sites=manifest.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));assert.equal(sites.length,169);
- assert.equal(new Set(sites.map(s=>`${s.file}:${s.line}:${s.column}`)).size,169);
- assert.equal(sites.filter(s=>s.action==='action').length,87);assert.equal(sites.filter(s=>s.action==='facade').length,23);assert.equal(sites.filter(s=>s.action==='retain').length,59);
- for(const file of manifest.files){assert.match(file.sourceHash,/^[a-f0-9]{64}$/);for(const s of file.sites){assert.match(s.siteHash,/^[a-f0-9]{64}$/);assert(s.rationale.length>20);if(s.action==='retain')assert(s.canonical);}}
+test('repository migration accounts for every action and only explicitly reviewed native widgets remain',()=>{
+ const read=name=>JSON.parse(fs.readFileSync(new URL(`../docs/audits/${name}`,import.meta.url),'utf8'));
+ const history=read('241-ui-actions-migration-reviewed.json'),manifest=read('241-ui-actions-reviewed.json');
+ const applied=read('241-ui-actions-applied.json'),final=read('241-ui-actions-final.json');
+ const reviewed=history.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));
+ const retained=manifest.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));
+ for(const current of [history,manifest]){
+  assert.equal(current.schema,1);
+  const sites=current.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));
+  assert.equal(new Set(sites.map(s=>`${s.file}:${s.line}:${s.column}`)).size,sites.length);
+  for(const file of current.files){assert.match(file.sourceHash,/^[a-f0-9]{64}$/);for(const site of file.sites){assert.match(site.siteHash,/^[a-f0-9]{64}$/);assert(site.rationale.length>20);if(site.action==='retain')assert(site.canonical);}}
+ }
+ assert.equal(applied.unreviewed,0);assert.equal(final.unreviewed,0);
+ assert.equal(reviewed.length,applied.sites.filter(s=>s.reviewed).length,'history includes every explicit decision, without a fixed inventory count');
+ assert.equal(retained.length,reviewed.filter(s=>s.action==='retain').length,'only reviewed structural exceptions survive');
+ assert(retained.every(s=>s.action==='retain'));
+ assert.equal(applied.sites.length,final.sites.length,'all source actions remain accounted after migration');
+ assert.equal(final.counts.canonical,(applied.counts.canonical||0)+(applied.counts.migrate||0));
+ assert.equal(final.counts.structural,retained.length);
+ const live=runMigration({root:fileURLToPath(new URL('../',import.meta.url)),manifest});
+ assert.equal(live.unreviewed,0,'new manual/native widget sites require explicit review');
+ assert.deepEqual(live.counts,final.counts);
+ assert.deepEqual(live.files.map(f=>[f.file,f.sha256]),final.files.map(f=>[f.file,f.sha256]),'final file hashes bind the published inventory to actual source');
+ assert(live.files.every(f=>!f.changed),'a second migration is an idempotent audit');
+ const renderers=live.sites.filter(s=>s.status==='renderer');assert.equal(renderers.length,1);assert.equal(renderers[0].file,'app/ui/button.tsx');
+ assert(live.sites.filter(s=>s.kind==='native'&&s.status!=='renderer').every(s=>s.status==='structural'&&s.reviewed&&s.canonical));
+});
+
+test('the local IconAction adapter is counted as a canonical action, including aliases',()=>{
+ const source='import {IconAction as Action} from "../ui/icon-action";<Action icon="eye" label="Abrir"/>';
+ const result=analyze(source);assert.equal(result.changed,false);assert.equal(result.sites.length,1);assert.equal(result.sites[0].status,'canonical');
 });
 
 test('a reviewed action that cannot transform is still pending and blocks write',()=>{

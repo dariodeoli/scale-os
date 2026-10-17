@@ -19,6 +19,8 @@ import {AnnouncementBannerView, ANNOUNCEMENT_KIND_LABEL, type AnnouncementKind} 
 import {ActionMenu, EmptyBlock, ErrorBlock, ListActions, ListGrid, ListRow, LoadingBlock, StateChip, denseTableMinWidth, useDenseTableFit, type ChipTone, type Column, type RecordMenuItem} from "../ui-v2";
 import {EdgeAwareMenu} from "./edge-menu";
 import {formatPlatformMetric} from "./model";
+import {Button as ScaleButton} from "../ui/button";
+
 
 export const ANNOUNCEMENT_TITLE_MAX = 80;
 export const ANNOUNCEMENT_MESSAGE_MAX = 500;
@@ -217,9 +219,9 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
       </div>
       {formError ? <p className="error form-error-summary" role="alert">{formError}</p> : null}
       <SaveActions pending={busy} cancelLabel={false}>
-        {editing ? <button type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }}>Cancelar edición</button> : null}
-        <button type="submit" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy}>{editing ? "Guardar cambios" : "Guardar borrador"}</button>
-        {!editing?.published_at ? <button type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void flight.run(()=>save(null,true))}>{editing ? "Guardar y publicar" : "Publicar"}</button> : null}
+        {editing ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }} variant="ghost">Cancelar edición</ScaleButton> : null}
+        <ScaleButton type="submit" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} variant="secondary">{editing ? "Guardar cambios" : "Guardar borrador"}</ScaleButton>
+        {!editing?.published_at ? <ScaleButton type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void flight.run(()=>save(null,true))} variant="primary">{editing ? "Guardar y publicar" : "Publicar"}</ScaleButton> : null}
       </SaveActions>
       </PendingFields>
     </form> : null}
@@ -264,7 +266,7 @@ export function AnnouncementList({items, writable, busy, fits, onToggle, onEdit,
     {id: "delete", label: "Eliminar comunicado", icono: "trash", peligro: true, onClick: () => onRemove(item)},
   ];
   const actions = (item: PlatformAnnouncement) => writable ? <>
-    <button type="button" className="text-button platform-admin-inline-action" disabled={busy || (!item.published_at && item.status === "expired")} onClick={() => onToggle(item)}>{item.published_at ? "Despublicar" : "Publicar"}</button>
+    <ScaleButton type="button" className="text-button platform-admin-inline-action" disabled={busy || (!item.published_at && item.status === "expired")} onClick={() => onToggle(item)} variant="ghost">{item.published_at ? "Despublicar" : "Publicar"}</ScaleButton>
     <EdgeAwareMenu><ActionMenu label={`Acciones del comunicado ${item.title}`} items={menu(item)}/></EdgeAwareMenu>
   </> : null;
   const identity = (item: PlatformAnnouncement) => <span className="grid min-w-0 gap-0.5">

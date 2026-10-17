@@ -8,6 +8,8 @@ import {Notice as Aviso} from '../ui/notice';
 import {CircleAlert, RefreshCw, TriangleAlert} from "lucide-react";
 import {Skeleton} from 'owncoding-ui';
 import {formatPlatformMetric, type BootstrapStatus, type CollectionPage, type State} from "./model";
+import {Button as ScaleButton} from "../ui/button";
+
 
 const ROW = "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3";
 const ICON = "grid size-8 shrink-0 place-items-center rounded-lg border border-ink-600 text-mute";
@@ -37,7 +39,7 @@ export function PlatformNotices({state, error, bootstrap, onRetry}: {state: Stat
       <div className="min-w-0">
         <b className="block text-[13.5px] font-semibold text-fore">No pudimos actualizar el control global</b>
         <Aviso tono="error" compact className="mt-1">{error}</Aviso>
-        {onRetry ? <button type="button" className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" onClick={onRetry}><RefreshCw size={14} aria-hidden="true"/>Reintentar</button> : null}
+        {onRetry ? <ScaleButton type="button" className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" onClick={onRetry} variant="secondary"><RefreshCw size={14} aria-hidden="true"/>Reintentar</ScaleButton> : null}
       </div>
     </section> : null}
   </div>;
@@ -94,6 +96,6 @@ export function PlatformAdminSkeleton() {
 export function PlatformMore({loaded,total,hasMore,busy,onMore,label='registros'}: {loaded:number;total:number|null;hasMore:boolean;busy:boolean;onMore:()=>void;label?:string}) {
   return <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
     <span className="text-xs tabular-nums text-mute" role="status">{total===null?`${formatPlatformMetric(loaded)} ${label}`:`${formatPlatformMetric(loaded)} de ${formatPlatformMetric(total)} ${label}`}</span>
-    {hasMore?<button type="button" className="secondary" disabled={busy} onClick={onMore}>Ver más</button>:null}
+    {hasMore?<ScaleButton type="button" className="secondary" disabled={busy} onClick={onMore} variant="secondary">Ver más</ScaleButton>:null}
   </div>;
 }

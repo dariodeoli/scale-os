@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
-import {IconAction} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
 import {PersonContainer} from './person-container';
 import {ListGrid,ListRow,MoneyText,StateChip,type Column} from './ui-v2';
 import {ClientEditorDialog} from './client-editor';
@@ -8,12 +8,14 @@ import {FinanceHistoryDialog} from './finance-history';
 import {formatRealMoney} from './finance-money';
 import type {BalanceClient} from './finance-detail-data';
 import {financeMoneyColumns} from './finance-list-layout';
+import {Button as ScaleButton} from "./ui/button";
+
 export const CLIENT_FINANCE_COLUMNS='grid-cols-[minmax(12rem,1.6fr)_minmax(9rem,1fr)_var(--finance-amount-width)_var(--finance-amount-width)_8rem_6rem]';
 const columns:Column[]=[{key:'client',label:'Cliente'},{key:'plan',label:'Plan'},{key:'contracted',label:'Contratado',align:'end'},{key:'paid',label:'Pagado en mes',align:'end'},{key:'invoice',label:'Factura'},{key:'actions',label:'Acciones',align:'end'}];
 export function FinanceClientsSection({clients,month,role,canManageTerms,canHistory,onReload,navigate}:{clients:BalanceClient[];month:string;role:string;canManageTerms:boolean;canHistory:boolean;onReload:()=>void;navigate?:(label:string)=>void}){
  const [selection,setSelection]=useState<{kind:'edit'|'history';client:BalanceClient}|null>(null);
  useEffect(()=>setSelection(null),[month]);
- return <section className="finance-balance-card finance-detail-section" style={financeMoneyColumns(clients.flatMap(row=>[row.contracted_amount,row.received_in_month].map(value=>({value,currency:row.currency}))))} aria-labelledby="balance-clients-title"><header><h3 className="finance-detail-title" id="balance-clients-title">Contratado y pagado</h3>{navigate?<button className="text-button" onClick={()=>navigate('Clientes')}>Ver clientes</button>:null}</header>
+ return <section className="finance-balance-card finance-detail-section" style={financeMoneyColumns(clients.flatMap(row=>[row.contracted_amount,row.received_in_month].map(value=>({value,currency:row.currency}))))} aria-labelledby="balance-clients-title"><header><h3 className="finance-detail-title" id="balance-clients-title">Contratado y pagado</h3>{navigate?<ScaleButton className="text-button" onClick={()=>navigate('Clientes')} variant="ghost">Ver clientes</ScaleButton>:null}</header>
  <p className="finance-balance-help">Pagado muestra cobros recibidos en el mes, incluso de períodos anteriores; no indica cancelación del contrato actual. Factura expresa el requisito del cliente.</p>
  {clients.length?<ListGrid label="Clientes y contratos del mes" template={CLIENT_FINANCE_COLUMNS} columns={columns} minWidthClass="min-w-[59rem]" className="finance-client-table">{clients.map(client=><ListRow template={CLIENT_FINANCE_COLUMNS} key={`${client.client_id}-${client.currency}`}>
   <span className="min-w-0"><PersonContainer name={client.client_name} photoUrl={client.client_logo_url} verified variante="logo" size="sm"/></span>

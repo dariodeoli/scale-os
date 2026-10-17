@@ -2,6 +2,8 @@
 import {useEffect, useState} from 'react';
 import {PersonContainer} from './person-container';
 import {WorkspaceBrand} from './workspace-brand';
+import {Button as ScaleButton} from "./ui/button";
+
 
 /** Pasado este tiempo la carga deja de ser «normal» y se ofrece recargar. */
 export const LOADING_SLOW_MS=10000;
@@ -32,7 +34,7 @@ export function LoadingScreen({name,photoUrl,roleLabel}:{name?:string;photoUrl?:
     </div>
     {slow ? <div className="grid justify-items-center gap-2" data-loading-slow>
      <p className="text-[12px] text-mute">Está tardando más de lo normal. Revisá tu conexión.</p>
-     <button type="button" className="secondary" onClick={()=>window.location.reload()}>Recargar</button>
+     <ScaleButton type="button" className="secondary" onClick={()=>window.location.reload()} variant="secondary">Recargar</ScaleButton>
     </div> : null}
    </div>
   </div>

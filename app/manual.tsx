@@ -1,6 +1,8 @@
 "use client";
 import {BookOpen,CheckCircle2,Globe,CircleDot} from 'lucide-react';
 import './manual.css';
+import {Button as ScaleButton} from "./ui/button";
+
 
 const modules=[
  {name:'Clientes',summary:'Fichas de contacto, apariencia, RUC y datos comerciales de cada cliente. El estado del servicio (activo, pausado, cancelado) gobierna sus proyectos.'},
@@ -27,7 +29,7 @@ export function PortalPreview(){
   <h4>Reel de lanzamiento · Campaña de verano</h4>
   <p className="manual-portal-note">Tu agencia publicó esta pieza para tu revisión.</p>
   <div className="manual-portal-card"><CircleDot size={14}/><b>Video final</b><span className="manual-portal-state">Publicada</span></div>
-  <div className="manual-portal-actions"><button type="button" disabled className="primary">Aprobar</button><button type="button" disabled className="secondary">Pedir cambios</button></div>
+  <div className="manual-portal-actions"><ScaleButton type="button" disabled className="primary" variant="primary">Aprobar</ScaleButton><ScaleButton type="button" disabled className="secondary" variant="secondary">Pedir cambios</ScaleButton></div>
   <p className="manual-portal-foot">El enlace vence y no muestra datos internos de tu empresa.</p>
  </div>;
 }

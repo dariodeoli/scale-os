@@ -7,6 +7,8 @@ import {api} from './operations';
 import {PersonContainer} from './person-container';
 import {personLabel, technicalEmail} from './field-rules';
 import './commenting.css';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type CommentPerson={id:string;full_name?:string|null;email?:string|null;photo_url?:string|null};
 const displayName=(person:CommentPerson)=>personLabel(person);
@@ -61,8 +63,8 @@ export function CommentComposer({label='Comentario',save}:{label?:string;save:(b
    if(event.key==='Escape'){event.preventDefault();textarea.current?.setSelectionRange(body.length,body.length);}
   }}/></label>
    {suggestions.length>0&&<div className="mention-menu" role="listbox" aria-label="Personas para mencionar">{suggestions.map((person,index)=><button type="button" role="option" aria-selected={active===index} className={active===index?'active':''} key={person.id} onMouseDown={event=>{event.preventDefault();choose(person);}}><PersonContainer size="sm" name={displayName(person)} photoUrl={person.photo_url} secondary={visibleEmail(person)} verified/></button>)}</div>}
-  <fieldset className="comment-link-fields"><legend>Enlace con nombre</legend><label>Nombre visible<InputControl value={linkLabel} maxLength={120} disabled={busy} onChange={event=>setLinkLabel(event.target.value)} placeholder="Brief aprobado"/></label><label>URL HTTPS<InputControl value={linkUrl} type="url" inputMode="url" disabled={busy} onChange={event=>setLinkUrl(event.target.value)} placeholder="https://…"/></label><button type="button" className="secondary" disabled={busy||!linkLabel.trim()||!linkUrl.trim()} onClick={addLink}>Agregar enlace</button></fieldset>
-  <div className="inline-actions"><small className="form-note">Enter agrega la mención elegida · Shift + Enter crea una línea.</small><button className="primary" disabled={busy||!body.trim()}>{busy?'Publicando…':'Publicar comentario'}</button></div>
+  <fieldset className="comment-link-fields"><legend>Enlace con nombre</legend><label>Nombre visible<InputControl value={linkLabel} maxLength={120} disabled={busy} onChange={event=>setLinkLabel(event.target.value)} placeholder="Brief aprobado"/></label><label>URL HTTPS<InputControl value={linkUrl} type="url" inputMode="url" disabled={busy} onChange={event=>setLinkUrl(event.target.value)} placeholder="https://…"/></label><ScaleButton type="button" className="secondary" disabled={busy||!linkLabel.trim()||!linkUrl.trim()} onClick={addLink} variant="secondary">Agregar enlace</ScaleButton></fieldset>
+  <div className="inline-actions"><small className="form-note">Enter agrega la mención elegida · Shift + Enter crea una línea.</small><ScaleButton className="primary" disabled={busy||!body.trim()} variant="primary">{busy?'Publicando…':'Publicar comentario'}</ScaleButton></div>
   {error&&<p role="alert" className="error">{error}</p>}
  </form>;
 }

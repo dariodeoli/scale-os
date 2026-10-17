@@ -46,6 +46,8 @@ import {DEFAULT_PLATFORM_PERIOD, isPlatformPeriod, type PlatformPeriodId} from "
 import {PlatformConfirmDialog, type PlatformAuthMethod} from "./confirm";
 import {ApplyCouponDialog} from "./apply-coupon-dialog";
 import {preflightGoogleStart} from "../deletion-danger-zone";
+import {Button as ScaleButton} from "../ui/button";
+
 
 
 export default function PlatformAdmin() {
@@ -751,17 +753,17 @@ export default function PlatformAdmin() {
             {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
           </span>}
           actions={<div className="platform-admin-actions">
-            <button
+            <ScaleButton
               type="button"
               className="secondary"
               onClick={() => void load()}
               disabled={busy}
               aria-label="Actualizar"
-              title="Actualizar los datos del panel"
+              title="Actualizar los datos del panel" variant="secondary"
             >
               <RefreshCw aria-hidden="true" />
               <span className="platform-admin-action-label">Actualizar</span>
-            </button>
+            </ScaleButton>
             <Link className="secondary" href={appHome()} aria-label="Volver al panel" title="Volver al panel de la agencia">
               <ArrowLeft aria-hidden="true" />
               <span className="platform-admin-action-label">Panel</span>

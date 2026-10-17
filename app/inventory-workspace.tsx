@@ -23,7 +23,9 @@ import {TextareaBase} from './ui/input';
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {BarraProgreso,Button,CeldaMoneda,FilaDato,IconAction,MenuDesplegable,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
+import {BarraProgreso,CeldaMoneda,FilaDato,MenuDesplegable,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
+import {Button} from "./ui/button";
 import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SaveActions} from './save-actions';
@@ -52,6 +54,8 @@ import {OPS_TIME_ZONE,opsLocalTime,opsUtcTime} from './ops-time';
 import {useInventoryCatalog,useInventoryRecord} from './use-inventory-data';
 // El tope de unidades del alta en serie es el mismo de la Carga con IA (#130).
 import {IA_REGISTROS_MAX} from './ia-carga-data';
+import {Button as ScaleButton} from "./ui/button";
+
 
 // El contrato de datos y las funciones puras viven en `inventory-data.ts`; acá
 // se re-exportan los tipos para quien ya los importaba de este módulo.
@@ -333,7 +337,7 @@ function InventorySummary({items,onAddValue}:{items:InventoryItem[];onAddValue?:
  const missingValue=items.filter(item=>!(Number(item.value)>0)).length;
  const equipmentLabel=`${items.length} equipo${items.length===1?'':'s'}`;
  return <section aria-label="Métricas de inventario"><KpiStrip dense>
-  <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1" title={currencyTotals.map(({currency,total})=>money(total,currency)).join(' · ')}>{currencyTotals.map(({currency,total})=><span key={currency} className="whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.875rem)] font-semibold leading-tight tabular-nums"><CeldaMoneda valor={total} currency={currency}/></span>)}</span>:<span className="text-base font-semibold text-mute">Sin valor</span>} hint={currencyTotals.length?<span className="min-w-0 flex-1 truncate" title={`${equipmentLabel}${missingValue?` · ${missingValue} sin valor`:''}`}>{equipmentLabel}{missingValue?` · ${missingValue} sin valor`:''}</span>:items.length?<span className="flex min-w-0 flex-wrap items-center gap-x-2"><span className="min-w-0 truncate" title={`${missingValue} equipo${missingValue===1?'':'s'} sin valor registrado`}>{missingValue?`${missingValue} sin valor`:'Sin datos monetarios'}</span>{missingValue&&onAddValue?<button type="button" className="min-h-11 shrink-0 text-[11px] font-semibold text-fono-light underline-offset-2 hover:underline focus-visible:underline md:min-h-0" onClick={onAddValue} title="Completar el valor de un equipo del inventario">Agregar valor</button>:null}</span>:equipmentLabel}/>
+  <Kpi label="Valor total" valor={currencyTotals.length?<span className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1" title={currencyTotals.map(({currency,total})=>money(total,currency)).join(' · ')}>{currencyTotals.map(({currency,total})=><span key={currency} className="whitespace-nowrap text-[clamp(1.15rem,1.6vw,1.875rem)] font-semibold leading-tight tabular-nums"><CeldaMoneda valor={total} currency={currency}/></span>)}</span>:<span className="text-base font-semibold text-mute">Sin valor</span>} hint={currencyTotals.length?<span className="min-w-0 flex-1 truncate" title={`${equipmentLabel}${missingValue?` · ${missingValue} sin valor`:''}`}>{equipmentLabel}{missingValue?` · ${missingValue} sin valor`:''}</span>:items.length?<span className="flex min-w-0 flex-wrap items-center gap-x-2"><span className="min-w-0 truncate" title={`${missingValue} equipo${missingValue===1?'':'s'} sin valor registrado`}>{missingValue?`${missingValue} sin valor`:'Sin datos monetarios'}</span>{missingValue&&onAddValue?<ScaleButton type="button" className="min-h-11 shrink-0 text-[11px] font-semibold text-fono-light underline-offset-2 hover:underline focus-visible:underline md:min-h-0" onClick={onAddValue} title="Completar el valor de un equipo del inventario" variant="ghost" size="compact">Agregar valor</ScaleButton>:null}</span>:equipmentLabel}/>
   <Kpi label="En uso" valor={inUse} hint="Retirados o en rodaje"/>
   <Kpi label="Mantenimiento" valor={maintenance} hint="No asignables a rodaje"/>
   <Kpi label="Disponibles" valor={available} hint="Listos para reservar"/>
@@ -432,7 +436,7 @@ function InventoryPanel(){
         aria-label/title) y comparte la línea con «Seleccionar visibles» y «¿Qué es?». */}
     <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto max-md:order-1">
      <ViewTabs className="max-sm:[&_button>span.min-w-0]:hidden" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
-     {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
+     {selectionEnabled&&visible.length?<ScaleButton type="button" className="text-button" onClick={selectVisible} variant="ghost">Seleccionar visibles</ScaleButton>:null}
     </div>
     {attentionHelp?<Nota tono="info" compact className="basis-full max-md:order-3">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
    </div>:null}

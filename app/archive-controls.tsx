@@ -10,6 +10,8 @@ import {listDateFull} from './list-format';
 import {RotateCcw,Trash2} from 'lucide-react';
 import {ARCHIVE_KIND_CAPABILITIES,roleCan,type Capability} from './capabilities';
 import {BulkBar,EmptyBlock,ErrorBlock,FilterToolbar,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,useBulkSelection} from './ui-v2';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 // Fuente única con la papelera del API: el NAV usa el mismo mapa.
 const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>;
@@ -52,7 +54,7 @@ export function RemoveRecord({kind,id,name,role,done,hideTrigger=false,open,onCl
  const access=kind==='members';
  const visible=open??internal;
  const close=()=>{setInternal(false);onClose?.();};
- return <>{hideTrigger?null:<button className="icon-button record-remove" type="button" title={access?'Quitar acceso':'Mover a la papelera'} aria-label={`${access?'Quitar acceso':'Mover a la papelera'}: ${name}`} onClick={()=>setInternal(true)}><Trash2 size={16} aria-hidden="true"/></button>}
+ return <>{hideTrigger?null:<ScaleIconButton className="icon-button record-remove" type="button" title={access?'Quitar acceso':'Mover a la papelera'} label={`${access?'Quitar acceso':'Mover a la papelera'}: ${name}`} onClick={()=>setInternal(true)} icon={<><Trash2 size={16} aria-hidden="true"/></>} variant="ghost" size="compact"></ScaleIconButton>}
  <RemoveRecordDialog kind={kind} id={id} name={name} role={role} done={done} open={visible} onClose={close}/></>;
 }
 
@@ -115,11 +117,11 @@ export function TrashWorkspace({refresh,role}:{refresh:()=>Promise<void>;role?:s
    <div className="w-full sm:w-52"><SelectCustom label="Tipo" choices={kindChoices} value={kindFilter} onChange={setKindFilter}/></div>
   </FilterToolbar>:undefined}
   bulk={<BulkBar count={bulk.count} label="seleccionado" role={role} busy={bulkBusy} onSelectVisible={()=>bulk.selectVisible(shown.map(keyOf))} onClear={bulk.clear}>
-   <button type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()}>{bulkBusy?'Restaurando…':'Restaurar'}</button>
+   <ScaleButton type="button" className="secondary" disabled={bulkBusy} onClick={()=>void restoreBatch()} variant="secondary">{bulkBusy?'Restaurando…':'Restaurar'}</ScaleButton>
   </BulkBar>}>
   <p className="m-0 text-xs text-mute" title="No se borran de forma definitiva: los accesos retirados se devuelven con una nueva invitación desde Equipo.">Solo ves registros que tu permiso permite recuperar. No se borran de forma definitiva.</p>
   {error?<ErrorBlock title="No pudimos completar la operación" description={error} onRetry={()=>void load().catch(e=>setError(errorMessage(e)))}/>:null}
-   {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:!shown.length?<EmptyBlock compact title="Ningún registro coincide" description="Probá con otra búsqueda o con todos los tipos." action={<button type="button" className="secondary" onClick={()=>{setQuery('');setKindFilter('');}}>Limpiar filtros</button>}/>:
+   {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:!shown.length?<EmptyBlock compact title="Ningún registro coincide" description="Probá con otra búsqueda o con todos los tipos." action={<ScaleButton type="button" className="secondary" onClick={()=>{setQuery('');setKindFilter('');}} variant="secondary">Limpiar filtros</ScaleButton>}/>:
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]" pinnedActions>
      {shown.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
       <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><InputControl type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={bulk.has(keyOf(record))} onChange={()=>bulk.toggle(keyOf(record))}/></label>
@@ -132,10 +134,10 @@ export function TrashWorkspace({refresh,role}:{refresh:()=>Promise<void>;role?:s
        </small>
       </div>
       <ListActions>
-       <button className="text-button" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}><RotateCcw size={14} aria-hidden="true"/>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</button>
+       <ScaleButton className="text-button" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}} variant="ghost"><RotateCcw size={14} aria-hidden="true"/>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</ScaleButton>
       </ListActions>
      </ListRow>)}
     </ListGrid>}
-  {hasMore?<div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs tabular-nums text-mute">{records.length} de {total} registros cargados</span><button type="button" className="secondary" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando…':'Ver más'}</button></div>:null}
+  {hasMore?<div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs tabular-nums text-mute">{records.length} de {total} registros cargados</span><ScaleButton type="button" className="secondary" disabled={loadingMore} onClick={()=>void more()} variant="secondary">{loadingMore?'Cargando…':'Ver más'}</ScaleButton></div>:null}
  </ListPage>;
 }

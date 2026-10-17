@@ -11,7 +11,7 @@ import {InputControl} from './ui/input-control';
  * y comparte la plantilla `--project-cols` con el encabezado de la sección.
  */
 import {useEffect,useRef,useState} from 'react';
-import {IconAction} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
 import {Dialog} from './dialog';
 import {EmployeeTasks,type EmployeeTasksProps} from './employee-tasks';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
@@ -27,6 +27,8 @@ import {OPS_TIME_ZONE} from './ops-time';
 import {PROJECT_PIECES_LIMIT,fetchProjectPieces,remainingPiecesLabel,type ProjectPiece} from './project-pieces';
 import {api} from './operations';
 import {statuses} from './production-board';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type ProjectAssignee=AssignedPerson;
 
@@ -100,7 +102,7 @@ function ProjectDetail({project,client,onClose,taskIdentity}:{project:ProjectVie
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Responsables</h4>
-        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <button type="button" className="text-button" onClick={()=>setReload(value=>value+1)}>Reintentar</button></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
+        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <ScaleButton type="button" className="text-button" onClick={()=>setReload(value=>value+1)} variant="ghost">Reintentar</ScaleButton></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4>

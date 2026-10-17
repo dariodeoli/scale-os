@@ -14,6 +14,8 @@ import {agencyExpiry, newExtendKey, platformDate, type Agency, type Subscription
 import {listDateFull} from "../list-format";
 import {SelectCustom} from "../profile-controls";
 import {LoadingBlock, StateChip} from '../ui-v2';
+import {Button as ScaleButton} from "../ui/button";
+
 
 type SubscriptionDialogProps = {
   busy: boolean;
@@ -116,14 +118,14 @@ export function SubscriptionDialog({busy:externalBusy, subscriptionAgency, setSu
           {subscriptionError ? (
             <div>
               <p className="error" role="alert">{subscriptionError}</p>
-              <button
+              <ScaleButton
                 type="button"
                 className="text-button"
                 disabled={busy}
-                onClick={() => void manageSubscription(subscriptionAgency)}
+                onClick={() => void manageSubscription(subscriptionAgency)} variant="ghost"
               >
                 Reintentar
-              </button>
+              </ScaleButton>
             </div>
           ) : !subscriptionLoaded ? (
             <LoadingBlock label="Cargando estado manual…" lines={2}/>
@@ -139,19 +141,19 @@ export function SubscriptionDialog({busy:externalBusy, subscriptionAgency, setSu
             <p className="form-note">Dar gracia suma días de acceso a partir del vencimiento y queda auditado.</p>
             <div className="inline-actions">
               {GRACE_OPTIONS.map((option) => (
-                <button
+                <ScaleButton
                   key={option.days}
                   type="button"
                   className={option.days === 30 ? "primary" : "secondary"}
                   disabled={busy}
-                  onClick={() => openGrace(option)}
+                  onClick={() => openGrace(option)} variant={option.days===30?'primary':'secondary'}
                 >
                   {option.label}
-                </button>
+                </ScaleButton>
               ))}
-              <button type="button" className="text-button" disabled={busy} onClick={() => applyCoupon(subscriptionAgency)}>
+              <ScaleButton type="button" className="text-button" disabled={busy} onClick={() => applyCoupon(subscriptionAgency)} variant="ghost">
                 Aplicar cupón
-              </button>
+              </ScaleButton>
             </div>
           </section>
           {/* Las acciones de las opciones avanzadas viven junto a su formulario: en el
@@ -206,17 +208,17 @@ export function SubscriptionDialog({busy:externalBusy, subscriptionAgency, setSu
                 </>
               ) : null}
               <SaveActions pending={busy} dirty={dirty} cancelLabel={false}>
-                <button
+                <ScaleButton
                   type="submit"
                   className="secondary"
                   disabled={
                     busy ||
                     (subscriptionState !== "clear" &&
                       subscriptionReason.trim().length < 3)
-                  }
+                  } variant="secondary"
                 >
                   {busy ? "Guardando…" : "Guardar estado manual"}
-                </button>
+                </ScaleButton>
               </SaveActions>
             </form>
           )}
@@ -244,13 +246,13 @@ export function SubscriptionDialog({busy:externalBusy, subscriptionAgency, setSu
                 />
               </label>
               <SaveActions pending={busy} dirty={dirty} cancelLabel={false}>
-                <button
+                <ScaleButton
                   type="submit"
                   className="secondary"
-                  disabled={busy || extendReason.trim().length < 3}
+                  disabled={busy || extendReason.trim().length < 3} variant="secondary"
                 >
                   {busy ? "Guardando…" : "Marcar pago manual"}
-                </button>
+                </ScaleButton>
               </SaveActions>
             </form>
           </details>

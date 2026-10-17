@@ -13,6 +13,8 @@ import {InputControl} from '../ui/input-control';
 import {ConfirmDialog} from "../dialog";
 import type {ConfirmRequest} from "./model";
 import {PLATFORM_DELETE_WORD} from "./model";
+import {Button as ScaleButton} from "../ui/button";
+
 
 /** Shares one synchronous lock across all actions of a platform form. */
 export function usePlatformFlight(){
@@ -83,9 +85,9 @@ export function PlatformConfirmDialog({request, busy, self, error, emailSending,
           <p className="m-0 rounded-lg bg-ok/10 p-3 text-xs text-ok" role="status">Identidad confirmada con Google.</p>
         ) : authMethod === "google" ? (
           <>
-            <button type="button" className="primary" disabled={pending} onClick={()=>void flight.run(onGoogle)}>
+            <ScaleButton type="button" className="primary" disabled={pending} onClick={()=>void flight.run(onGoogle)} variant="primary">
               {googleStarting ? "Abriendo Google…" : "Confirmar con Google"}
-            </button>
+            </ScaleButton>
             <small className="text-[11px] text-mute">Un clic: Google verifica que seas vos y volvés acá para terminar.</small>
           </>
         ) : authMethod === "password" ? (
@@ -116,19 +118,19 @@ export function PlatformConfirmDialog({request, busy, self, error, emailSending,
                 />
               </label>
             ) : (
-              <button type="button" className="secondary" disabled={pending} onClick={()=>void flight.run(onRequestEmailCode)}>
+              <ScaleButton type="button" className="secondary" disabled={pending} onClick={()=>void flight.run(onRequestEmailCode)} variant="secondary">
                 {emailSending ? "Enviando…" : "Enviar código a mi correo"}
-              </button>
+              </ScaleButton>
             )}
           </div>
         )}
         {googleVerified ? null : (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {authMethod !== "google" ? (
-              <button type="button" className="text-button" disabled={pending} onClick={() => setAuthMethod("google")}>{label.google}</button>
+              <ScaleButton type="button" className="text-button" disabled={pending} onClick={() => setAuthMethod("google")} variant="ghost">{label.google}</ScaleButton>
             ) : null}
             {alternatives.map((method) => (
-              <button key={method} type="button" className="text-button" disabled={pending} onClick={() => setAuthMethod(method)}>{label[method]}</button>
+              <ScaleButton key={method} type="button" className="text-button" disabled={pending} onClick={() => setAuthMethod(method)} variant="ghost">{label[method]}</ScaleButton>
             ))}
           </div>
         )}

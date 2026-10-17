@@ -12,6 +12,8 @@ import {PasswordField} from '../password-field';
 import {EmailField} from '../email-field';
 import {PRIVACY_NOTICE} from '../privacy-notice';
 import {queuePrivacyConsent,registerPrivacyConsent} from '../privacy-data';
+import {Button as ScaleButton} from "../ui/button";
+
 type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
 type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'|'expired'|'revoked'|'used'}|{status:'ready';info:Preview;token:string};
 function isPreview(value:unknown):value is Preview{
@@ -115,20 +117,20 @@ export default function InvitationPage(){
     <div ref={consentField}><ConsentimientoDatos checked={dataConsent} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{setDataConsent(event.target.checked);if(event.target.checked)setConsentError('');}} finalidad="Acepto el tratamiento de mis datos para crear mi cuenta y trabajar en este espacio." detalle="Nombre, correo y actividad de trabajo; la agencia donde te invitan es responsable de estos datos." politicaUrl="/privacidad" version={PRIVACY_NOTICE.version} error={consentError||undefined}/></div>
     <div className="grid gap-2">
      <a className="primary login-button" aria-disabled={passwordBusy||undefined} tabIndex={passwordBusy?-1:undefined} referrerPolicy="no-referrer" onClick={continueWithGoogle} href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
-     {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:
+     {!passwordOpen?<ScaleButton type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}} variant="secondary">Crear cuenta con correo</ScaleButton>:
       <form className="grid gap-4" onSubmit={submission.onSubmit}>
        <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<InputControl name="full_name" value={fullName} onChange={event=>setFullName(event.target.value)} maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
        <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
        <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
        <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
-       <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
+       <ScaleButton className="primary login-button" disabled={passwordBusy} variant="primary">{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</ScaleButton>
        {passwordError?<p ref={errorFocus} tabIndex={-1} className="error" role="alert">{passwordError}</p>:null}
        {passwordNotice?<p className="success" role="status">{passwordNotice}</p>:null}
       </form>}
     </div>
    </PendingFields>:<div className="grid gap-3" role="status" aria-live="polite">
     <p className="text-sm text-mute">{notice?.message}</p>
-    {state.status==='connection'?<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>:null}
+    {state.status==='connection'?<ScaleButton type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}} variant="primary">Reintentar comprobación</ScaleButton>:null}
    </div>}
    <p className="text-[11.5px] text-mute"><a href="https://app.scaleparaguay.com/" referrerPolicy="no-referrer">{state.status==='pending'?'Consultar mi acceso':'Ir al inicio de sesión'}</a></p>
   </div>

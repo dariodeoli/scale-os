@@ -20,6 +20,8 @@ import {ActionMenu,BulkBar,CompactCard,EmptyBlock,FilterToolbar,ListActions,List
 import {teamDirectory,filterTeamEntries,teamRoleLabels,isCurrentTeamMember,type ArchivedProfile,type TeamEntry,type TeamMember,type TeamStatusFilter} from './team-directory';
 import {accessState} from './team-access';
 import {TeamPersonSheet,compensationTypes,type Person,type SheetTarget} from './team-person-sheet';
+import {Button as ScaleButton} from "./ui/button";
+
 
 const TEAM_VIEW_KEY='scale:team-view';
 // Una sola plantilla para el encabezado y las filas (Persona · Datos · Estado laboral · Permiso · Acceso · Acciones).
@@ -224,23 +226,23 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
       className="directory grid-cols-[minmax(0,1fr)]"
       aria-label="Personas, accesos y remuneraciones"
       primaryAction={<>
-        {roleCan(role,'settings.manage')?<button type="button" className="secondary" onClick={()=>setPermissionsOpen(true)}>Permisos del panel</button>:null}
-        <button type="button" className="primary" onClick={()=>openSheet()}><Plus size={16} aria-hidden="true"/>Agregar persona</button>
+        {roleCan(role,'settings.manage')?<ScaleButton type="button" className="secondary" onClick={()=>setPermissionsOpen(true)} variant="secondary">Permisos del panel</ScaleButton>:null}
+        <ScaleButton type="button" className="primary" onClick={()=>openSheet()} variant="primary"><Plus size={16} aria-hidden="true"/>Agregar persona</ScaleButton>
         <ViewSwitch value={view} onChange={changeView}/>
       </>}
       toolbar={<FilterToolbar className="mb-0" summary={<span role="status" aria-atomic="true">{summary}</span>}>
         <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar por estado laboral" value={teamFilter} onChange={(value:string)=>setTeamFilter(value as TeamStatusFilter)} options={[['all','Todos'],['active','Activos'],['inactive','Inactivos']]}/>
         <SearchField className="w-full sm:w-72" label="Buscar persona" hideLabel value={search} onChange={(nextSearchValue)=>setSearch(nextSearchValue)} placeholder="Nombre, correo o cargo"/>
-        {hasFilters?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters}>Limpiar filtros</button>:null}
+        {hasFilters?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters} variant="ghost">Limpiar filtros</ScaleButton>:null}
       </FilterToolbar>}
       bulk={canManageAccess?<BulkBar count={bulk.count} total={BATCH_LIMITS.members} role={role} busy={bulkBusy} onSelectVisible={()=>bulk.selectVisible(visible.filter(selectable).map(entry=>String(entry.member!.id)))} onClear={bulk.clear}>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchSetAccess(false)}>Suspender acceso</button>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchSetAccess(true)}>Reactivar acceso</button>
+        <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchSetAccess(false)} variant="secondary">Suspender acceso</ScaleButton>
+        <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchSetAccess(true)} variant="secondary">Reactivar acceso</ScaleButton>
       </BulkBar>:undefined}
     >
       {error?<p className="error" role="alert">{error}</p>:null}
       {loading?<LoadingBlock label="Cargando equipo…" lines={4}/>
-        :!visible.length?<EmptyBlock compact title={hasFilters?'Sin coincidencias':'Todavía no hay personas'} description={hasFilters?'Probá con otro nombre, correo o cargo, o cambiá el filtro.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={hasFilters?<button type="button" className="text-button" onClick={clearFilters}>Limpiar filtros</button>:<button type="button" className="primary" onClick={()=>openSheet()}><Plus size={16} aria-hidden="true"/>Agregar primera persona</button>}/>
+        :!visible.length?<EmptyBlock compact title={hasFilters?'Sin coincidencias':'Todavía no hay personas'} description={hasFilters?'Probá con otro nombre, correo o cargo, o cambiá el filtro.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={hasFilters?<ScaleButton type="button" className="text-button" onClick={clearFilters} variant="ghost">Limpiar filtros</ScaleButton>:<ScaleButton type="button" className="primary" onClick={()=>openSheet()} variant="primary"><Plus size={16} aria-hidden="true"/>Agregar primera persona</ScaleButton>}/>
         :view==='list'
           ?<ListGrid label="Equipo" template={TEAM_TEMPLATE} columns={TEAM_COLUMNS} minWidthClass="min-w-[56rem]" pinnedActions>{visible.map(row)}</ListGrid>
           :<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{visible.map(card)}</div>}

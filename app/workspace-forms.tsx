@@ -25,6 +25,8 @@ import {listDateShort} from './list-format';
 import {money} from './money-format';
 import {teamRoleLabels} from './team-directory';
 import {paymentCurrency} from './treasury-data';
+import {Button as ScaleButton} from "./ui/button";
+
 
 
 type WorkspaceRequest = <T>(path: string, init?: RequestInit) => Promise<T>;
@@ -115,12 +117,12 @@ export function ProjectForm({
         <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton
         className="primary"
-        disabled={!clients.length || submission.pending}
+        disabled={!clients.length || submission.pending} variant="primary"
       >
         {submission.pending ? "Guardando…" : "Crear proyecto"}
-      </button></SaveActions>
+      </ScaleButton></SaveActions>
       {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
       <FormValidationErrors errors={form.formState.errors}/>
       </PendingFields>
@@ -209,7 +211,7 @@ export function OrderForm({
             <small className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Proyecto</small>
             <b className="block truncate text-[13.5px] font-semibold text-fore" title={`${selectedProject.client_name} · ${selectedProject.name}`}>{selectedProject.client_name} · {selectedProject.name}</b>
           </span>
-          <button type="button" className="text-button shrink-0" onClick={()=>form.setValue("projectId","",{shouldValidate:false,shouldDirty:true})}>Cambiar</button>
+          <ScaleButton type="button" className="text-button shrink-0" onClick={()=>form.setValue("projectId","",{shouldValidate:false,shouldDirty:true})} variant="ghost">Cambiar</ScaleButton>
         </div>
       ) : (
         <div className="ops-wide grid gap-1.5" data-form-field="projectId">
@@ -278,12 +280,12 @@ export function OrderForm({
         <TextareaBase {...form.register("description")} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton
         className="primary"
-        disabled={submission.pending}
+        disabled={submission.pending} variant="primary"
       >
         {submission.pending ? "Guardando…" : "Crear orden"}
-      </button></SaveActions>
+      </ScaleButton></SaveActions>
       </> : null}
       <FormValidationErrors errors={form.formState.errors}/>
       </PendingFields>
@@ -436,9 +438,9 @@ export function AccountForm({
       </fieldset>
       {error && <p className="error" role="alert">{error}</p>}
       <p className="field-help">{financePurposeNotice('treasury')} · <a href={financeNoticeHref('treasury')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button className="primary" disabled={submission.pending}>
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton className="primary" disabled={submission.pending} variant="primary">
         {submission.pending ? "Creando…" : "Crear cuenta"}
-      </button></SaveActions>
+      </ScaleButton></SaveActions>
       <FormValidationErrors errors={form.formState.errors}/>
       </PendingFields>
     </form>
@@ -539,12 +541,12 @@ export function InvoiceForm({
       </label>
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Completá el cliente y un importe mayor a cero para crear la factura.</p>:null}
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton
         className="primary"
-        disabled={!canSubmit}
+        disabled={!canSubmit} variant="primary"
       >
         {submission.pending ? "Creando…" : "Crear factura"}
-      </button></SaveActions>
+      </ScaleButton></SaveActions>
       <FormValidationErrors errors={form.formState.errors}/>
       </PendingFields>
     </form>
@@ -692,12 +694,12 @@ export function PaymentForm({
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Elegí la factura, la cuenta y un importe mayor a cero para registrar el cobro.</p>:null}
       <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton
         className="primary"
-        disabled={!canSubmit}
+        disabled={!canSubmit} variant="primary"
       >
         {submission.pending ? "Guardando…" : "Registrar cobro"}
-      </button></SaveActions>
+      </ScaleButton></SaveActions>
       <FormValidationErrors errors={form.formState.errors}/>
       </PendingFields>
     </form>

@@ -6,6 +6,8 @@
 // es la misma que usa la vista previa del panel global.
 import React, {useEffect, useRef, useState} from "react";
 import {Info, Megaphone, Sparkles, TriangleAlert, X} from "lucide-react";
+import {IconButton as ScaleIconButton} from "./ui/button";
+
 
 export type AnnouncementKind = "info" | "aviso" | "novedad";
 export type ActiveAnnouncement = {
@@ -63,7 +65,7 @@ export function AnnouncementBannerView({announcement, onDismiss, busy = false, p
       </p>
       <p className="announcement-banner-message mt-0.5 whitespace-pre-line break-words text-[12.5px] leading-snug text-fore/85">{announcement.message || "El mensaje aparece acá."}</p>
     </div>
-    {onDismiss ? <button type="button" className="icon-button grid size-11 shrink-0 place-items-center rounded-lg text-mute hover:text-fore md:size-8" title="Cerrar comunicado" aria-label={`Cerrar comunicado: ${title}`} disabled={busy} onClick={onDismiss}><X size={16} aria-hidden="true"/></button> : null}
+    {onDismiss ? <ScaleIconButton type="button" className="icon-button grid size-11 shrink-0 place-items-center rounded-lg text-mute hover:text-fore md:size-8" title="Cerrar comunicado" label={`Cerrar comunicado: ${title}`} disabled={busy} onClick={onDismiss} icon={<><X size={16} aria-hidden="true"/></>} variant="ghost" size="compact"></ScaleIconButton> : null}
   </section>;
 }
 

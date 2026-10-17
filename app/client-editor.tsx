@@ -17,6 +17,8 @@ import {financeHistory} from './finance-detail-data';
 import {RucConfirmCard,lookupRuc,rucApplyValues,RucNotFoundError,type RucRecord} from './client-ruc';
 import {CLIENT_CREATE_DEFAULTS,clientCreatePayload,clientEditDefaults,clientFields,clientPatchPayload,planTermsPayload,type ClientRecord,type PlanTermsResponse} from './client-editor-data';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_CLIENT_FINALITY,PRIVACY_CLIENT_DETAIL} from './privacy-links';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type SavedClient={id:string;name:string;email:string|null;phone:string|null;active:boolean;[key:string]:unknown};
 const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar';
@@ -146,7 +148,7 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
     <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
     {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
     {mode==='edit'&&record&&<ClientAppearance id={String(clientId)} name={String(record.name??'')} logo={String(record.logo_url??'')} color={String(record.color_key??'')} legalName={String(record.legal_name??'')} representativeName={String(record.legal_representative_name??'')} linked={record.legal_representative_same_as_client===true} restricted={record.contact_restricted===true} refresh={async()=>{await refresh();await load();}}/>}
-    {canPlan&&record?<button type="button" className="secondary mb-3" onClick={()=>setHistoryOpen(true)}>Historial del plan</button>:null}
+    {canPlan&&record?<ScaleButton type="button" className="secondary mb-3" onClick={()=>setHistoryOpen(true)} variant="secondary">Historial del plan</ScaleButton>:null}
     {historyOpen&&clientId&&record?<FinanceHistoryDialog kind="plan" id={clientId} name={String(record.name??'')} close={()=>setHistoryOpen(false)}/>:null}
     {planError&&<Aviso tono="error" compact role="alert">{planError}</Aviso>}
     {existing?<ClientEditorDialog mode="edit" clientId={existing.id} role={role} canManageTerms={canManageTerms} close={()=>setExisting(null)} refresh={refresh}/>:null}

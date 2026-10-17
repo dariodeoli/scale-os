@@ -13,6 +13,8 @@ import {LoadingBlock} from "../ui-v2";
 import {notify} from "../feedback";
 import {platformApi} from "../platform-admin-api";
 import {formatPlatformMetric, money, newExtendKey, type Agency, type Coupon} from "./model";
+import {Button as ScaleButton} from "../ui/button";
+
 
 type ApplyCouponDialogProps = {
   agency: Agency;
@@ -78,7 +80,7 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
         {loadError ? <p className="error" role="alert">{loadError}</p>
           : coupons === null ? <LoadingBlock label="Cargando cupones aplicables…" lines={2}/>
           : <p className="form-note">No hay cupones aplicables a esta agencia: deben estar vigentes, con cupo, ser globales o dirigidos a ella y no haber sido usados por ella.</p>}
-        <div className="inline-actions"><button type="button" className="secondary" onClick={onClose}>Cerrar</button></div>
+        <div className="inline-actions"><ScaleButton type="button" className="secondary" onClick={onClose} variant="secondary">Cerrar</ScaleButton></div>
       </Dialog>
     );
   }

@@ -2,6 +2,8 @@
 import {useEffect,useRef,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
 import {AccessLayout} from '../access-layout';
+import {Button as ScaleButton} from "../ui/button";
+
 async function withDeadline<T>(controller:AbortController,operation:(signal:AbortSignal)=>Promise<T>):Promise<T>{
  const transport=new AbortController();let timeout:ReturnType<typeof setTimeout>|undefined;
  let cancel=()=>{};
@@ -56,7 +58,7 @@ export default function PendingAccess(){
    {data?.status==='approved'?<a className="primary" href="/produccion">Entrar a Scale OS</a>:<p className="text-sm text-mute">{data?.status==='unavailable'?'La invitación ya no está disponible o tu acceso dejó de estar habilitado. Esta solicitud no puede aprobarse. Pedí al administrador que revise tu acceso y, si corresponde, te envíe un enlace nuevo.':data?.status==='rejected'?'Tu solicitud no fue aprobada. Contactá al administrador de la empresa.':'Una vez que la administración apruebe tu solicitud, podrás utilizar Scale OS según el permiso autorizado. Esta pantalla comprueba el estado automáticamente.'}</p>}
    {error?<p role="alert" className="text-sm text-bad">{error}</p>:null}
    {logoutError?<p role="alert" className="text-sm text-bad">{logoutError}</p>:null}
-   <button className="secondary" disabled={loggingOut} onClick={logout}>{loggingOut?'Cerrando sesión…':'Cerrar sesión'}</button>
+   <ScaleButton className="secondary" disabled={loggingOut} onClick={logout} variant="secondary">{loggingOut?'Cerrando sesión…':'Cerrar sesión'}</ScaleButton>
   </div>
  </AccessLayout>;
 }

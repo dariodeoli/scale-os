@@ -17,6 +17,8 @@ import {PlatformMore} from "./states";
 import {SelectCustom} from "../profile-controls";
 import {decimalInput} from "../field-rules";
 import {soloDigitos} from "owncoding-ui";
+import {Button as ScaleButton} from "../ui/button";
+
 
 type PlatformCatalogProps = {
   busy: boolean;
@@ -126,9 +128,9 @@ export function PlatformCatalog({busy:externalBusy, state, page, onMore, writabl
           <TextareaBase value={coupon.note} rows={2} maxLength={2000} onChange={(event) => setCoupon({...coupon, note: event.target.value})} placeholder="Ej.: gracia acordada por WhatsApp"/>
         </label>
         {formError?<p className="error form-error-summary" role="alert">{formError}</p>:null}
-        <SaveActions pending={busy} cancelLabel={false}><button type="submit" className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
+        <SaveActions pending={busy} cancelLabel={false}><ScaleButton type="submit" className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy} variant="primary">
           Crear cupón
-        </button></SaveActions>
+        </ScaleButton></SaveActions>
         </PendingFields>
       </form>
       )}
@@ -146,15 +148,15 @@ export function PlatformCatalog({busy:externalBusy, state, page, onMore, writabl
                 <span role="cell" className="text-right text-[12.5px] font-semibold tabular-nums text-fore whitespace-nowrap" title={usesTitle(item)}>{couponUses(item)}</span>
                 <span role="cell">{statusChip(item)}</span>
                 {writable ? <ListActions>
-                  <button
+                  <ScaleButton
                     type="button"
                     className={"text-button " + (item.active ? "warn" : "positive")}
                     disabled={busy}
-                    onClick={() => void run(()=>toggleCoupon(item))}
+                    onClick={() => void run(()=>toggleCoupon(item))} variant="ghost" color={item.active?'warning':'success'}
                   >
                     {item.active ? <PauseCircle size={14} aria-hidden="true" /> : <PlayCircle size={14} aria-hidden="true" />}
                     {item.active ? "Pausar" : "Reactivar"}
-                  </button>
+                  </ScaleButton>
                 </ListActions> : null}
               </ListRow>
             ))}
@@ -175,15 +177,15 @@ export function PlatformCatalog({busy:externalBusy, state, page, onMore, writabl
                   {item.note ? <div className="col-span-2"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Nota</dt><dd className="mt-0.5 text-mute [overflow-wrap:anywhere]">{item.note}</dd></div> : null}
                 </dl>
                 {writable ? <div className="mt-auto border-t border-ink-600 pt-3">
-                  <button
+                  <ScaleButton
                     type="button"
                     className={"text-button " + (item.active ? "warn" : "positive")}
                     disabled={busy}
-                    onClick={() => void run(()=>toggleCoupon(item))}
+                    onClick={() => void run(()=>toggleCoupon(item))} variant="ghost" color={item.active?'warning':'success'}
                   >
                     {item.active ? <PauseCircle size={14} aria-hidden="true" /> : <PlayCircle size={14} aria-hidden="true" />}
                     {item.active ? "Pausar" : "Reactivar"}
-                  </button>
+                  </ScaleButton>
                 </div> : null}
               </article>
             ))}

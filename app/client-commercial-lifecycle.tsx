@@ -12,7 +12,7 @@ import {TextareaBase as Textarea} from './ui/input';
 // compartida (`DataTable`: tabla en escritorio, tarjetas en móvil) y enmienda
 // con campos por tipo. La lógica vive en ./client-commercial-lifecycle-data.
 import {OptionalMark} from './field-label';
-import {Button} from 'owncoding-ui';
+import {Button} from "./ui/button";
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {listDateFull} from './list-format';
 import {todayAsuncion} from './client-format';

@@ -28,6 +28,8 @@ import {
   type AccionCobroIA,type AccionIA,type CoincidenciaIA,type EstadoMatch,type IaCliente,type IaConfig,type IaFallo,type IaResultado,type IaTipo,
 } from './ia-carga-data';
 import {cargarCuentasCobro,cuentaSugeridaIa,cuentasCobroIa,detalleCuentaIa,metodoCuentaIa,registrarCobroDesdeIa,validarCobroIa,validarPartesIa,IA_COBRO_PARTES_MAX,type IaCobroParte,type IaCuentaCobro} from './ia-cobro-data';
+import {Button as ScaleButton} from "./ui/button";
+
 
 /**
  * «Carga con IA» (Refs #118, #119, #120 y #121, réplica de LedBox #120): el
@@ -357,12 +359,12 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       </Aviso>
       <p className="text-[11.5px] text-mute">{configError}</p>
       <FormActions>
-        <button type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Volver a chequear</button>
-        <button type="button" className="primary" onClick={close}>Entendido</button>
+        <ScaleButton type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)} variant="secondary">Volver a chequear</ScaleButton>
+        <ScaleButton type="button" className="primary" onClick={close} variant="primary">Entendido</ScaleButton>
       </FormActions>
     </div>:null}
 
-    {estadoConfig==='demo'?<div className="grid gap-3"><Aviso tono="info" como="div">La asistencia con IA no está disponible en la demostración. Podés cargar clientes y equipos manualmente desde cada módulo.</Aviso><FormActions><button type="button" className="primary" onClick={close}>Entendido</button></FormActions></div>:null}
+    {estadoConfig==='demo'?<div className="grid gap-3"><Aviso tono="info" como="div">La asistencia con IA no está disponible en la demostración. Podés cargar clientes y equipos manualmente desde cada módulo.</Aviso><FormActions><ScaleButton type="button" className="primary" onClick={close} variant="primary">Entendido</ScaleButton></FormActions></div>:null}
 
     {estadoConfig==='no-configurada'?<div className="grid gap-3">
       <Aviso tono="warn" como="div" className="grid gap-1">
@@ -370,21 +372,21 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         <span className="text-[12px] leading-5">Se activa cargando la clave del proveedor (el modelo y la base se ajustan por entorno). Hasta entonces el asistente no está disponible y no se envía ningún texto.</span>
       </Aviso>
       <FormActions>
-        <button type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Volver a chequear</button>
-        <button type="button" className="primary" onClick={close}>Entendido</button>
+        <ScaleButton type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)} variant="secondary">Volver a chequear</ScaleButton>
+        <ScaleButton type="button" className="primary" onClick={close} variant="primary">Entendido</ScaleButton>
       </FormActions>
     </div>:null}
 
     {estadoConfig==='sin-tipos'?<div className="grid gap-3">
       <Aviso tono="warn" como="div">Tu rol no puede crear clientes ni equipos de inventario, así que el asistente no está disponible. Si necesitás cargar esos registros, pedile el permiso a un administrador.</Aviso>
-      <FormActions><button type="button" className="primary" onClick={close}>Entendido</button></FormActions>
+      <FormActions><ScaleButton type="button" className="primary" onClick={close} variant="primary">Entendido</ScaleButton></FormActions>
     </div>:null}
 
     {estadoConfig==='error'?<div className="grid gap-3">
       <Aviso tono="error" como="div">{configError||'No pudimos consultar la configuración de IA.'}</Aviso>
       <FormActions>
-        <button type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Reintentar</button>
-        <button type="button" className="primary" onClick={close}>Cerrar</button>
+        <ScaleButton type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)} variant="secondary">Reintentar</ScaleButton>
+        <ScaleButton type="button" className="primary" onClick={close} variant="primary">Cerrar</ScaleButton>
       </FormActions>
     </div>:null}
 
@@ -410,8 +412,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {fallo?<FalloIa fallo={fallo}/>:null}
       {error?<Aviso tono="error">{error}</Aviso>:null}
       <FormActions>
-        <button type="button" className="secondary" disabled={analizando} onClick={close}>Cancelar</button>
-        <button type="submit" className="primary" disabled={analizando||!texto.trim()}>{analizando?'Analizando…':'Analizar con IA'}</button>
+        <ScaleButton type="button" className="secondary" disabled={analizando} onClick={close} variant="secondary">Cancelar</ScaleButton>
+        <ScaleButton type="submit" className="primary" disabled={analizando||!texto.trim()} variant="primary">{analizando?'Analizando…':'Analizar con IA'}</ScaleButton>
       </FormActions>
     </form>:null}
 
@@ -432,7 +434,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {puedeClientes?<section className="grid gap-3" aria-label={`Clientes en el carrito (${clientes.length})`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Clientes <span className="tabular-nums">{clientes.length}</span></h3>
-          <button type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarCliente}><Plus size={14} aria-hidden="true"/>Agregar cliente</button>
+          <ScaleButton type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarCliente} variant="secondary"><Plus size={14} aria-hidden="true"/>Agregar cliente</ScaleButton>
         </div>
         {clientes.map((cliente)=>{
           const candidatas=cliente.coincidencias??[];
@@ -469,7 +471,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {puedeInventario?<section className="grid gap-3" aria-label={`Equipos en el carrito (${equipos.length})`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Equipos de inventario <span className="tabular-nums">{equipos.length}</span></h3>
-          <button type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarEquipo}><Plus size={14} aria-hidden="true"/>Agregar equipo</button>
+          <ScaleButton type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarEquipo} variant="secondary"><Plus size={14} aria-hidden="true"/>Agregar equipo</ScaleButton>
         </div>
         {equipos.map((equipo)=>{
           const candidatas=equipo.coincidencias;
@@ -536,18 +538,18 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           <div className="flex flex-wrap items-center gap-2">
             {fila.estado==='ejecutada'?<span className="text-[11.5px] text-mute">Confirmada. No hace falta volver a ejecutarla.</span>:
               fila.estado==='parcial'?<span className="text-[11.5px] text-mute">Pago parcial confirmado. El saldo restante queda a la vista en Finanzas.</span>:
-              fila.estado==='duplicado'?<button type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)}>Registrar igual</button>:
-              fila.estado==='ejecutando'?<button type="button" className="primary" disabled>Ejecutando…</button>:
-              <button type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</button>}
+              fila.estado==='duplicado'?<ScaleButton type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)} variant="secondary">Registrar igual</ScaleButton>:
+              fila.estado==='ejecutando'?<ScaleButton type="button" className="primary" disabled variant="primary">Ejecutando…</ScaleButton>:
+              <ScaleButton type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)} variant="primary">Confirmar acción</ScaleButton>}
           </div>
         </article>)}
       </section>:null}
 
       <FormActions>
-        <button type="button" className="secondary" disabled={creando} onClick={()=>setFase('entrada')}>Volver</button>
+        <ScaleButton type="button" className="secondary" disabled={creando} onClick={()=>setFase('entrada')} variant="secondary">Volver</ScaleButton>
         {totalCrear>0
-          ? <button type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>{creando?'Creando…':`Crear todo (${totalCrear})`}</button>
-          : acciones.length?<button type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>Ver resumen</button>:null}
+          ? <ScaleButton type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()} variant="primary">{creando?'Creando…':`Crear todo (${totalCrear})`}</ScaleButton>
+          : acciones.length?<ScaleButton type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()} variant="primary">Ver resumen</ScaleButton>:null}
       </FormActions>
     </div>:null}
 
@@ -562,9 +564,9 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {resultado.errores.length?<Aviso tono="error" como="div" className="grid gap-1"><strong>No pudimos crear {resultado.errores.length} registro(s):</strong>{resultado.errores.map((mensaje,index)=><span key={index} className="text-[12px] leading-5">{mensaje}</span>)}</Aviso>:null}
       <p className="text-[11.5px] leading-5 text-mute">Cada alta quedó auditada como cualquier carga manual y el texto que pegaste no se guardó. Los registros creados ya aparecen en Clientes y en Inventario.</p>
       <FormActions>
-        {resultado.acciones.pendientes>0?<button type="button" className="secondary" onClick={()=>setFase('revision')}>Volver a las acciones</button>:null}
-        <button type="button" className="secondary" onClick={reiniciar}>Cargar otro texto</button>
-        <button type="button" className="primary" onClick={close}>Listo</button>
+        {resultado.acciones.pendientes>0?<ScaleButton type="button" className="secondary" onClick={()=>setFase('revision')} variant="secondary">Volver a las acciones</ScaleButton>:null}
+        <ScaleButton type="button" className="secondary" onClick={reiniciar} variant="secondary">Cargar otro texto</ScaleButton>
+        <ScaleButton type="button" className="primary" onClick={close} variant="primary">Listo</ScaleButton>
       </FormActions>
     </div>:null}
   </Dialog>;
@@ -589,8 +591,8 @@ function CardHead({titulo,estado,confianza,incluir,decision,unidades,origen,imag
   <div className="flex shrink-0 flex-col items-end gap-1.5">
    <Checkbox label="Incluir" checked={incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>onIncluir(event.target.checked)}/>
    <span className="flex items-center gap-1">
-    <button type="button" className="text-button min-h-11 md:min-h-9" title={`Duplicar ${titulo||'registro'}`} aria-label={`Duplicar ${titulo||'registro'}`} onClick={onDuplicar}>Duplicar</button>
-    <button type="button" className="text-button min-h-11 md:min-h-9" title={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} aria-label={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} onClick={()=>onIncluir(!incluir)}>{incluir?'Quitar':''}</button>
+    <ScaleButton type="button" className="text-button min-h-11 md:min-h-9" title={`Duplicar ${titulo||'registro'}`} aria-label={`Duplicar ${titulo||'registro'}`} onClick={onDuplicar} variant="ghost">Duplicar</ScaleButton>
+    <ScaleButton type="button" className="text-button min-h-11 md:min-h-9" title={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} aria-label={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} onClick={()=>onIncluir(!incluir)} variant="ghost">{incluir?'Quitar':''}</ScaleButton>
    </span>
   </div>
  </header>;
@@ -723,7 +725,7 @@ function CuentaDeAccion({fila,cuentas,onElegir,onDividir}:{fila:AccionEdit; cuen
     : <Aviso tono="warn" compact>No hay una cuenta de ingreso en {fila.accion.moneda} activa. Creala o activala en Finanzas para confirmar el cobro.</Aviso>}
   </FormField>
   {elegida?<p className="field-help" title={detalleCuentaIa(elegida)||elegida.name}>{`Método: ${metodoCuentaIa(elegida)}`}{detalleCuentaIa(elegida)?` · ${detalleCuentaIa(elegida)}`:''}</p>:null}
-  {opciones.length>1?<button type="button" className="text-button" disabled={bloqueada} onClick={onDividir}>Dividir en partes</button>:null}
+  {opciones.length>1?<ScaleButton type="button" className="text-button" disabled={bloqueada} onClick={onDividir} variant="ghost">Dividir en partes</ScaleButton>:null}
  </div>;
 }
 
@@ -749,16 +751,16 @@ function PartesDivision({fila,cuentas,disabled,onChange,onUnaCuenta}:{fila:Accio
     <AmountInput id={`${parte.clave}-monto`} value={parte.monto} currency={fila.accion.moneda} integerOnly disabled={disabled} onChange={(value)=>onChange(fila.partes.map((item)=>item.clave===parte.clave?{...item,monto:value}:item))}/>
    </FormField>
    {fila.partes.length>2
-    ?<button type="button" className="text-button danger" disabled={disabled} onClick={()=>onChange(fila.partes.filter((item)=>item.clave!==parte.clave))}>Quitar</button>
+    ?<ScaleButton type="button" className="text-button danger" disabled={disabled} onClick={()=>onChange(fila.partes.filter((item)=>item.clave!==parte.clave))} variant="ghost" color="danger">Quitar</ScaleButton>
     :<span aria-hidden="true"/>}
   </div>)}
   <div className="flex flex-wrap items-center justify-between gap-2">
    {fila.partes.length<IA_COBRO_PARTES_MAX
-    ?<button type="button" className="text-button" disabled={disabled} onClick={agregar}>Agregar parte</button>
+    ?<ScaleButton type="button" className="text-button" disabled={disabled} onClick={agregar} variant="ghost">Agregar parte</ScaleButton>
     :<span className="text-[11px] text-mute">Máximo {IA_COBRO_PARTES_MAX} partes.</span>}
    <span className={`text-[11.5px] tabular-nums ${cuadra?'text-mute':'text-bad'}`} role="status">{`Suma: ${money(suma,'PYG')} de ${money(total,'PYG')}`}</span>
   </div>
-  <button type="button" className="text-button" disabled={disabled} onClick={onUnaCuenta}>Usar una sola cuenta</button>
+  <ScaleButton type="button" className="text-button" disabled={disabled} onClick={onUnaCuenta} variant="ghost">Usar una sola cuenta</ScaleButton>
  </div>;
 }
 

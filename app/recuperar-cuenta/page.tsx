@@ -6,6 +6,8 @@ import {useEffect,useRef,useState} from 'react';
 import {AccessLayout} from '../access-layout';
 import {PasswordField} from '../password-field';
 import {EmailField} from '../email-field';
+import {Button as ScaleButton} from "../ui/button";
+
 
 export default function RecoverAccount(){
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[error,setError]=useState(''),[done,setDone]=useState(false);
@@ -24,7 +26,7 @@ export default function RecoverAccount(){
     <PendingFields pending={busy}><form className="grid gap-3" onSubmit={submission.onSubmit}>
      <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required/></label>
      <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="current-password" required/>
-     <button className="primary" disabled={busy}>{busy?'Recuperando…':'Recuperar cuenta'}</button>
+     <ScaleButton className="primary" disabled={busy} variant="primary">{busy?'Recuperando…':'Recuperar cuenta'}</ScaleButton>
     </form></PendingFields>
     {error?<p ref={errorFocus} tabIndex={-1} className="error" role="alert">{error}</p>:null}
     <p className="text-[11.5px] text-mute"><a className="inline-flex min-h-11 items-center" aria-disabled={busy||undefined} tabIndex={busy?-1:undefined} onClick={event=>{if(busy)event.preventDefault();}} href="/">Volver al inicio de sesión</a></p>

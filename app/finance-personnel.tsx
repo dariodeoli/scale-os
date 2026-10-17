@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
-import {IconAction} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
 import {api,Dialog,Editor,type Field} from './operations';
 import {PersonContainer} from './person-container';
 import {ListGrid,ListRow,MoneyText,ErrorBlock,LoadingBlock,type Column} from './ui-v2';
@@ -10,6 +10,8 @@ import {FinanceHistoryDialog,FinanceHistoryPanel,financeHistoryUrl,useFinanceHis
 import type {BalancePerson} from './finance-detail-data';
 import {financeMoneyColumns} from './finance-list-layout';
 import {financeNoticeHref,financePurposeNotice} from './finance-privacy';
+import {Button as ScaleButton} from "./ui/button";
+
 export const PERSONNEL_COLUMNS='grid-cols-[minmax(11rem,1.5fr)_var(--finance-amount-width)_var(--finance-amount-width)_var(--finance-amount-width)_var(--finance-amount-width)_var(--finance-amount-width)_8rem]';
 const columns:Column[]=[{key:'person',label:'Persona'},{key:'base',label:'Salario base',align:'end'},{key:'adjustment',label:'Ajuste del mes',align:'end'},{key:'expected',label:'Cierre previsto',align:'end'},{key:'paid',label:'Pagado en mes',align:'end'},{key:'difference',label:'Diferencia prevista',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
 type Selection={kind:'salary'|'adjustment'|'history';person:BalancePerson}|null;
@@ -18,7 +20,7 @@ export function FinancePersonnelSection({members,month,canSalary,onReload,naviga
  const [error,setError]=useState('');
  useEffect(()=>{setSelection(null);setError('');},[month]);
  const completed=(person:BalancePerson)=>{onReload();setSelection({kind:'history',person});};
- return <section className="finance-balance-card finance-detail-section" style={financeMoneyColumns(canSalary?members.flatMap(row=>[row.base_amount,row.override_amount,row.expected_amount,row.paid_in_month,row.outstanding_amount].map(value=>({value,currency:row.currency}))):[])} aria-labelledby="balance-personnel-title"><header><h3 className="finance-detail-title" id="balance-personnel-title">Equipo y salarios</h3>{navigate?<button className="text-button" onClick={()=>navigate('Equipo')}>Ver equipo</button>:null}</header>
+ return <section className="finance-balance-card finance-detail-section" style={financeMoneyColumns(canSalary?members.flatMap(row=>[row.base_amount,row.override_amount,row.expected_amount,row.paid_in_month,row.outstanding_amount].map(value=>({value,currency:row.currency}))):[])} aria-labelledby="balance-personnel-title"><header><h3 className="finance-detail-title" id="balance-personnel-title">Equipo y salarios</h3>{navigate?<ScaleButton className="text-button" onClick={()=>navigate('Equipo')} variant="ghost">Ver equipo</ScaleButton>:null}</header>
   <p className="finance-balance-help">Base y ajustes forman el cierre previsto. Pagado muestra pagos realizados en el mes; la diferencia es orientativa y no acredita la cancelación de un período salarial.</p>
   {!canSalary?<p className="finance-balance-help">Tu acceso no incluye información salarial.</p>:null}
   {members.length?<ListGrid label="Equipo y salarios del mes" template={PERSONNEL_COLUMNS} columns={columns} minWidthClass="min-w-[68rem]" className="finance-personnel-table">{members.map(member=><ListRow template={PERSONNEL_COLUMNS} className="forecast-person-row" key={`${member.collaborator_id}-${member.currency}`}>

@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,Pencil} from 'lucide-react';
-import {Button} from 'owncoding-ui';
+import {Button} from "../ui/button";
 import {SearchField} from '../search-field';
 import {api,Dialog} from '../operations';
 import {roleCan} from '../capabilities';
@@ -14,6 +14,8 @@ import {EmptyBlock,EmptyCta,ErrorBlock,FilterToolbar,ListPage,LoadingBlock,Money
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowStateOf,type ListWindowState} from '../list-window';
 import type {ComparablePlan} from '../plan-comparison-data';
 import type {User} from '../workspace-types';
+import {Button as ScaleButton} from "../ui/button";
+
 
 // Planes reutilizables (SOS-COM, campaña #41 / spec #43 §5).
 // Rediseño v2: KPIs reales, comparador con tabla compartida, alta/edición con
@@ -81,7 +83,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'plan', 'planes')} · los indicadores cuentan lo cargado</span>
         <div className="inline-actions bulk-actions">
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+          <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()} variant="secondary">{moreBusy?'Cargando…':'Ver más'}</ScaleButton>
         </div>
       </div> : null}
 
@@ -90,7 +92,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       ) : null}
 
       {plans.length&&!shown.length ? (
-        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<button type="button" className="secondary" onClick={()=>setQuery('')}>Limpiar búsqueda</button>}/>
+        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<ScaleButton type="button" className="secondary" onClick={()=>setQuery('')} variant="secondary">Limpiar búsqueda</ScaleButton>}/>
       ) : plans.length ? (
         <PlanComparison
           plans={shown}

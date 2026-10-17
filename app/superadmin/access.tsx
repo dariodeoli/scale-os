@@ -13,6 +13,8 @@ import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from
 import {PersonContainer} from "../person-container";
 import {PlatformMore} from "./states";
 import type {CollectionPage} from "./model";
+import {Button as ScaleButton} from "../ui/button";
+
 
 type PlatformAccessProps = {
   busy: boolean;
@@ -50,62 +52,62 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
   const actions = (person: Person) => {
     if (!writable) return null;
     if (selfRow(person)) return (
-      <button
+      <ScaleButton
         type="button"
         className="text-button platform-admin-danger"
         disabled={busy}
         onClick={() => {
           setConfirming({ kind: "user", person });
-        }}
+        }} variant="ghost"
       >
         <Trash2 size={14} aria-hidden="true" />
         Eliminar mi cuenta
-      </button>
+      </ScaleButton>
     );
     return <>
       {person.platform_role !== "admin" && (
-        <button
+        <ScaleButton
           type="button"
           className="text-button"
           disabled={busy}
-          onClick={() => void setPlatformAccess(person, "admin")}
+          onClick={() => void setPlatformAccess(person, "admin")} variant="ghost"
         >
           <ShieldCheck size={14} aria-hidden="true" />
           Hacer admin global
-        </button>
+        </ScaleButton>
       )}
       {person.platform_role !== "viewer" && (
-        <button
+        <ScaleButton
           type="button"
           className="text-button"
           disabled={busy}
-          onClick={() => void setPlatformAccess(person, "viewer")}
+          onClick={() => void setPlatformAccess(person, "viewer")} variant="ghost"
         >
           <Eye size={14} aria-hidden="true" />
           Solo lectura
-        </button>
+        </ScaleButton>
       )}
       {person.platform_role && (
-        <button
+        <ScaleButton
           type="button"
           className="text-button"
           disabled={busy}
-          onClick={() => void setPlatformAccess(person, "none")}
+          onClick={() => void setPlatformAccess(person, "none")} variant="ghost"
         >
           Quitar acceso
-        </button>
+        </ScaleButton>
       )}
-      <button
+      <ScaleButton
         type="button"
         className="text-button platform-admin-danger"
         disabled={busy}
         onClick={() => {
           setConfirming({ kind: "user", person });
-        }}
+        }} variant="ghost"
       >
         <Trash2 size={14} aria-hidden="true" />
         Eliminar usuario
-      </button>
+      </ScaleButton>
     </>;
   };
   // Foto + nombre real + correo (secundario): solo identidad visible, nunca datos sensibles.
@@ -134,7 +136,7 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       </div>
       <FilterToolbar summary={`${visible.length} de ${state.users.length}`}>
         <SearchField className="min-w-[12rem] flex-1 sm:max-w-72"  label="Buscar usuario" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Correo del usuario"/>
-        {query ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setQuery("")}>Limpiar filtros</button> : null}
+        {query ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setQuery("")} variant="ghost">Limpiar filtros</ScaleButton> : null}
       </FilterToolbar>
       {!writable && (
         <Nota tono="info" como="div" compact className="mb-3">Solo lectura: podés consultar la administración global, no modificarla.</Nota>

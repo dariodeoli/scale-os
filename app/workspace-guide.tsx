@@ -10,6 +10,8 @@ import {ManualWorkspace} from './manual';
 import {sections} from './navigation';
 import {visibleModule} from './workspace-access';
 import {suggestedWorkspaceGuideStep,workspaceGuideScope,workspaceGuideSteps,workspaceGuideStorageKey,type WorkspaceGuideData,type WorkspaceGuideIdentity,type WorkspaceGuideStep} from './workspace-guide-data';
+import {Button as ScaleButton} from "./ui/button";
+
 export {visibleModule} from './workspace-access';
 export {workspaceGuideScope} from './workspace-guide-data';
 export type {WorkspaceGuideData} from './workspace-guide-data';
@@ -27,7 +29,7 @@ export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
 };
 
 function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
- return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><button type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}<ArrowUpRight size={14}/></button></article>;
+ return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><ScaleButton type="button" className="text-button" onClick={()=>navigate(step.module)} variant="ghost">Abrir {step.module}<ArrowUpRight size={14}/></ScaleButton></article>;
 }
 
 /** The keyed child resets open/dismissed UI synchronously when identity, role or demo changes. */
@@ -89,7 +91,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
      {suggestion?<span className="hidden min-w-0 flex-1 truncate text-[11.5px] text-mute sm:block" title={suggestion.description}>Siguiente: {suggestion.title}</span>:<span className="hidden min-w-0 flex-1 text-[11.5px] text-mute sm:block">Todo listo</span>}
      <ChevronDown size={16} aria-hidden="true" className={`shrink-0 text-mute transition-transform ${open?'rotate-180':''}`}/>
     </button>
-    <button type="button" className="text-button shrink-0" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button>
+    <ScaleButton type="button" className="text-button shrink-0" onClick={dismiss} variant="ghost"><EyeOff size={14}/>Ocultar primeros pasos</ScaleButton>
    </div>
    {open&&<div className="grid gap-2 border-t border-ink-600 pb-2 pt-3">
     <ul className="grid gap-1">
@@ -103,18 +105,18 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
      </li>)}
     </ul>
     {demoNote}
-    <button type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)}>Abrir guía completa</button>
+    <ScaleButton type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)} variant="secondary">Abrir guía completa</ScaleButton>
    </div>}
   </section>;
  }
- return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{guideDialog}</>;
+ return <><ScaleButton type="button" className="secondary" onClick={()=>setOpen(true)} variant="secondary">Guía del panel</ScaleButton>{guideDialog}</>;
 }
 export function NewCompany(){
  const [open,setOpen]=useState(false);
  return <section className="panel settings-card workspace-company-card" aria-labelledby="workspace-company-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Building2 size={18}/></span><div><h2 id="workspace-company-title">Empresas</h2><p>Cambiá de empresa o creá un espacio separado para otra operación.</p></div></div>
   <CompanySettings/>
   <details className="settings-disclosure"><summary>Cómo funciona una empresa adicional</summary><div><p>Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p><p>Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p><p><strong>Precio de lanzamiento.</strong> {founderPricingNote}</p></div></details>
-  <div className="settings-card-actions"><button className="secondary" onClick={()=>setOpen(true)}>Crear otra empresa</button></div>
+  <div className="settings-card-actions"><ScaleButton className="secondary" onClick={()=>setOpen(true)} variant="secondary">Crear otra empresa</ScaleButton></div>
   {open&&<Dialog title="Nueva empresa · 30 días gratis" close={()=>setOpen(false)}><Editor fields={[{key:'name',label:'Nombre de la empresa'},{key:'slug',label:'Código único (letras, números y guiones)'},{key:'billingCurrency',label:'Suscripción después de la prueba',choices:[{value:'USD',label:'US$10 al mes'},{value:'PYG',label:'G. 50.000 al mes'}]}]} defaults={{name:'',slug:'',billingCurrency:'USD'}} label="Crear empresa e iniciar prueba" save={async v=>{const d=await api<{organization:{id:string}}>('/api/auth/organizations',v);await api('/api/auth/switch-organization',{organizationId:d.organization.id});window.location.assign('/');}}/></Dialog>}
  </section>;
 }

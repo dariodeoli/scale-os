@@ -7,6 +7,8 @@ import {esToken,extractTokenFromUrl} from 'owncoding-ui';
 import {AccessLayout} from '../access-layout';
 import {api} from '../operations';
 import {EmailField} from '../email-field';
+import {Button as ScaleButton} from "../ui/button";
+
 
 type State='checking'|'done'|'error'|'missing';
 export default function VerifyEmailPage(){
@@ -50,7 +52,7 @@ export default function VerifyEmailPage(){
    <p role="status" className={state==='error'||state==='missing'?'text-sm text-bad':'text-sm text-ok'} aria-live="polite">{message}</p>
    {state==='error'||state==='missing'?<PendingFields pending={resending}><form className="grid gap-3" onSubmit={submission.onSubmit}>
     <label htmlFor="verify-email" className="grid gap-1.5 text-xs text-mute">Correo de la cuenta<EmailField id="verify-email" value={email} onChange={setEmail} disabled={resending}/></label>
-    <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
+    <ScaleButton className="primary" type="submit" disabled={!email||resending} variant="primary">{resending?'Enviando…':'Reenviar correo de verificación'}</ScaleButton>
     {resendMessage?<p ref={feedback} tabIndex={-1} role="status" className="text-xs text-mute">{resendMessage}</p>:null}
     <p className="flex flex-wrap gap-3 text-[11.5px] text-mute"><Link aria-disabled={resending||undefined} tabIndex={resending?-1:undefined} onClick={event=>{if(resending)event.preventDefault();}} className="inline-flex min-h-11 items-center" href="/registro">Volver al registro</Link><Link aria-disabled={resending||undefined} tabIndex={resending?-1:undefined} onClick={event=>{if(resending)event.preventDefault();}} className="inline-flex min-h-11 items-center" href="/">Ir al inicio de sesión</Link></p>
    </form></PendingFields>:null}

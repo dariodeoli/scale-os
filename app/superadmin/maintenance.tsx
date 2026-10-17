@@ -14,6 +14,8 @@ import {notify} from "../feedback";
 import {listDateFull} from "../list-format";
 import {asuncionInput, platformApi, subscriptionExpiry} from "../platform-admin-api";
 import {ErrorBlock, LoadingBlock, StateChip} from "../ui-v2";
+import {Button as ScaleButton} from "../ui/button";
+
 
 export const MAINTENANCE_MESSAGE_MAX = 500;
 /** Contrato de `GET/PATCH /api/platform/maintenance`. */
@@ -125,7 +127,7 @@ export function MaintenanceControls({state, message, until, writable, busy, form
     </label>
     {formError ? <p className="error form-error-summary" role="alert">{formError}</p> : null}
     {writable ? <div className="flex flex-wrap justify-end gap-2">
-      <button type="button" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={onSave}>Guardar mensaje</button>
+      <ScaleButton type="button" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={onSave} variant="secondary">Guardar mensaje</ScaleButton>
     </div> : null}
   </div>;
 }

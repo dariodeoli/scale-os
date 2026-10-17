@@ -7,6 +7,8 @@ import {X} from 'lucide-react';
 import {createLayerStack} from './overlay-stack';
 import './dialog.css';
 import {DialogContext,type DialogCloseOptions} from './dialog-context';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 export {useDialogClose,type DialogCloseOptions} from './dialog-context';
 const layers=createLayerStack();
 let originalOverflow='';
@@ -134,7 +136,7 @@ export function Dialog({title,close,children,variant='modal',busy=false,size:req
  const controls=useMemo(()=>({requestClose:contextClose,setPending,setDirty}),[contextClose,setPending,setDirty]);
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
  return createPortal(<div className={`ops-overlay${drawer?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
-  <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
+  <div className="dialog-heading"><h2 id={heading}>{title}</h2><ScaleIconButton className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} label="Cerrar" icon={<><X size={18}/></>} variant="ghost" size="compact"></ScaleIconButton></div>
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
   {discardAsked?<OverlayContext.Provider value={ancestry}><ConfirmDialog title="¿Descartar los cambios?" description="Hay datos sin guardar en este formulario. Si cerrás ahora, se pierden." confirmLabel="Descartar cambios" cancelLabel="Seguir editando" variant="danger" onCancel={()=>setDiscardAsked(false)} onConfirm={()=>{setDiscardAsked(false);dirtyForms.current.clear();closeRef.current();}}/></OverlayContext.Provider>:null}
@@ -200,8 +202,8 @@ export function ConfirmDialog({open=true,title,description,children,confirmLabel
    {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><InputBase id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
    {error?<p className="error form-error-summary" role="alert">{error}</p>:null}
    <FormActions>
-    <button type="button" className="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</button>
-    <button type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked}>{busy?'Procesando…':confirmLabel}</button>
+    <ScaleButton type="button" className="secondary" disabled={busy} onClick={onCancel} variant="secondary">{cancelLabel}</ScaleButton>
+    <ScaleButton type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked} variant={variant==='danger'?'outline':'primary'} color={variant==='danger'?'danger':'brand'}>{busy?'Procesando…':confirmLabel}</ScaleButton>
    </FormActions>
   </form>
  </Dialog>;

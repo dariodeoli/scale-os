@@ -11,6 +11,8 @@ import {PersonSheet,type SheetTab,type SheetTabId} from './person-sheet';
 import {AVISO_REFRESCO,completeSave} from './save-completion';
 import {notify} from './feedback';
 import {effectiveCapability} from './capabilities';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type Person={
   id:string;
@@ -154,8 +156,8 @@ function AccessTab({role,capabilities,currentUserId,person,member,ambiguous,load
       <p className="form-note">Cambiar el permiso o suspender el acceso cierra sus sesiones en esta empresa.</p>
       {error?<p className="error" role="alert">{error}</p>:null}
       <div className="inline-actions">
-        <button type="button" className="primary" disabled={!dirty||Boolean(busy)} onClick={()=>void saveAccess()}>{busy==='save'?'Guardando…':'Guardar acceso'}</button>
-        {member.active!==false?<button type="button" className="secondary" disabled={Boolean(busy)} onClick={()=>void resend()}>Reenviar invitación</button>:null}
+        <ScaleButton type="button" className="primary" disabled={!dirty||Boolean(busy)} onClick={()=>void saveAccess()} variant="primary">{busy==='save'?'Guardando…':'Guardar acceso'}</ScaleButton>
+        {member.active!==false?<ScaleButton type="button" className="secondary" disabled={Boolean(busy)} onClick={()=>void resend()} variant="secondary">Reenviar invitación</ScaleButton>:null}
         <RemoveRecord kind="members" id={member.id} name={member.email} role={role} done={load}/>
       </div>
     </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>):null}

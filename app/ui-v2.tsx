@@ -18,6 +18,8 @@ import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
 import {money} from './money-format';
 import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -357,7 +359,7 @@ export function CompactCard({
 
 /** Acción rápida canónica de una tarjeta compacta (mismo target que el ⋯). */
 export function CompactQuickAction({label, onClick, icon, disabled = false}: {label: string; onClick: () => void; icon: ReactNode; disabled?: boolean}) {
-  return <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-7 md:w-7" title={label} aria-label={label} disabled={disabled} onClick={onClick}>{icon}</button>;
+  return <ScaleIconButton type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-7 md:w-7" title={label} label={label} disabled={disabled} onClick={onClick} icon={<>{icon}</>} variant="ghost" size="compact"></ScaleIconButton>;
 }
 
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
@@ -408,7 +410,7 @@ export function EmptyBlock({title, description, action, icon, compact = false, c
  * (mismo objeto, mismo target de 44 px en móvil y mismo texto sobre marca).
  */
 export function EmptyCta({label, onClick, icon, className}: {label: string; onClick: () => void; icon?: ReactNode; className?: string}) {
-  return <button type="button" className={`primary ${className ?? ''}`} onClick={onClick}>{icon}{label}</button>;
+  return <ScaleButton type="button" className={`primary ${className ?? ''}`} onClick={onClick} variant="primary">{icon}{label}</ScaleButton>;
 }
 
 /**
@@ -423,7 +425,7 @@ export function EmptyCompact({message, action, onDismiss, dismissLabel = 'Oculta
     {icon ? <span className="shrink-0 text-mute" aria-hidden="true">{icon}</span> : null}
     <p className="min-w-0 flex-1">{message}</p>
     {action ? <span className="shrink-0">{action}</span> : null}
-    {onDismiss ? <button type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-8 md:w-8" title={dismissLabel} aria-label={dismissLabel} onClick={onDismiss}><X size={15} aria-hidden="true"/></button> : null}
+    {onDismiss ? <ScaleIconButton type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-8 md:w-8" title={dismissLabel} label={dismissLabel} onClick={onDismiss} icon={<><X size={15} aria-hidden="true"/></>} variant="ghost" size="compact"></ScaleIconButton> : null}
   </div>;
 }
 
@@ -485,9 +487,9 @@ export function BulkBar({count, total, label = 'seleccionado', children, onSelec
   return <div role="status" aria-live="polite" data-bulk-bar className={`bulk-bar ${sticky ? 'bulk-bar-sticky' : ''} ${className ?? ''}`}>
     <span className="bulk-count"><b>{count}</b>{total !== undefined ? <> de {total}</> : null} {label}{count === 1 ? '' : 's'}</span>
     <div className="inline-actions bulk-actions">
-      {onSelectVisible && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</button>}
+      {onSelectVisible && <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible} variant="ghost">{selectVisibleLabel}</ScaleButton>}
       {children}
-      {onClear && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear}>Limpiar</button>}
+      {onClear && <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear} variant="ghost">Limpiar</ScaleButton>}
     </div>
   </div>;
 }
