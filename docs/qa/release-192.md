@@ -1,6 +1,6 @@
 # Scale v1.0.192 — validación de integración
 
-17/10/2026. Release preparado una sola vez mediante `release:patch -- --prepare`, commit `50091b70`. Fuente funcional y dependencia publicada en `99e7f5c6`; auditoría final en `fa282b79`. Los commits de documentación posteriores conservan la misma fuente funcional.
+17/10/2026. Release preparado una sola vez mediante `release:patch -- --prepare`, commit `50091b70`. Fuente funcional y dependencia publicada en `99e7f5c6`; auditoría final en `fa282b79`. Los commits posteriores de documentación y CI conservan la misma fuente funcional.
 
 ## Gates
 
@@ -36,6 +36,10 @@ No se acreditan OAuth/correo/RUC externos reales, dispositivos ni impresoras fí
 
 ## Integración y producción
 
-Pendiente PR/CI, merge, CI de main y smoke público. Producción anterior acreditada: v1.0.191. No se disparó un segundo deploy ni se publicó desde una rama de agente.
+[PR #251](https://github.com/dariodeoli/scale-os/pull/251) preparado con las evidencias anteriores. El primer CI de frontend falló; la instalación limpia reprodujo el fallo al resolver `puppeteer-core` para la prueba visual #147. El job sólo instalaba la raíz, mientras el harness utiliza la dependencia existente en `backend/`.
+
+El workflow ahora instala esas dependencias con scripts desactivados antes de la regresión. La instalación limpia pasó las tres pruebas #147, incluido Chromium, sin omitir ni debilitar aserciones. No se agregó una dependencia nueva ni cambió el código funcional. Logs locales `scale192-ci-clean-{regression,dsn,dsn-fixed,browser-deps}.log` conservan la reproducción y corrección.
+
+CI del candidato corregido, merge, CI de main y smoke público pendientes al escribir este registro. Producción anterior acreditada: v1.0.191. No se disparó un segundo deploy ni se publicó desde una rama de agente.
 
 Seguimiento: #241, #245, #247 y #248. #249/#250 y la mejora de primer pliegue de #206 son propuestas adicionales. #246 permanece bloqueado: cinco revisiones periódicas no programadas, cero ejecuciones.
