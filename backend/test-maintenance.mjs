@@ -61,11 +61,13 @@ for (const table of ['agency_clients','agency_payments','account_transfers','age
 await query("insert into user_personal_identities(user_id,full_name) values($1,'Canonical identity')", [owner]);
 const identitiesBefore = (await query('select * from user_personal_identities order by user_id')).rows;
 await modernState(query,real,owner);
-const protectedTables = [...modernTables,'organizations','users','organization_members','sessions','agency_clients','agency_projects','agency_work_orders','bank_accounts','agency_invoices','agency_payments','account_transfers','agency_reporting_coverage','agency_client_reporting_events','agency_inventory_categories','agency_inventory','agency_inventory_reservations','agency_work_checklists','agency_work_checklist_items'];
+await query('insert into agency_workspace_preferences(organization_id,user_id) values($1,$2)',[real,owner]);
+const protectedTables = [...modernTables,'agency_workspace_preferences','organizations','users','organization_members','sessions','agency_clients','agency_projects','agency_work_orders','bank_accounts','agency_invoices','agency_payments','account_transfers','agency_reporting_coverage','agency_client_reporting_events','agency_inventory_categories','agency_inventory','agency_inventory_reservations','agency_work_checklists','agency_work_checklist_items'];
 const capture = async () => Object.fromEntries(await Promise.all(protectedTables.filter(t => t !== 'users').map(async t =>
  [t, (await query(`select * from ${t} where ${t === 'organizations' ? 'id' : 'organization_id'} in ($1,$2,22) order by 1`, [real, template])).rows])));
 const baseline = await capture();
 const full = await fixture(true);
+await query('insert into agency_workspace_preferences(organization_id,user_id) values($1,$2)',[full,owner]);
 const fixtureProject = (await query('select id from agency_projects where organization_id=$1 order by id limit 1', [full])).rows[0].id;
 const fixtureOrder = (await query('select id from agency_work_orders where organization_id=$1 order by id limit 1', [full])).rows[0].id;
 const fixtureInventory = (await query('select id from agency_inventory where organization_id=$1 order by id limit 1', [full])).rows[0].id;
@@ -107,6 +109,7 @@ await assert.rejects(maintenance(db, {dryRun: false, demoDryRun: false, env: {DA
 result = await runMaintenance(db, {dryRun: false, env: {}});
 assert.equal(result.demos.find(d => d.organizationId === full)?.status, 'deleted', JSON.stringify(result));
 assert.equal(await count('agency_payments', full), 0);
+assert.equal(await count('agency_workspace_preferences',full),0,'expired demo removes its preferences while the real tenant baseline remains intact');
 for(const table of modernTables)assert.equal(await count(table,full),0,`expired demo removes ${table}`);
 assert.equal((await query('select id from organizations where id=$1', [full])).rows.length, 0);
 assert.ok(await count('agency_operation_audit', full) > auditBefore);

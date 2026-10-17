@@ -51,6 +51,7 @@ import {notifyInquiry,platformContactEmail} from './platform-inquiries.js';
 import {captureServerError,clientErrors} from './error-tracking.js';
 import {userReports} from './user-reports.js';
 import {notifications} from './notifications.js';
+import {workspacePreferences} from './workspace-preferences.js';
 import {automationApi,startAutomation} from './automation.js';
 import {subscriptionBilling,subscriptionState} from './subscription-billing.js';
 import {trialDetails,trialDetailsFromInput,registerTrial} from './trial-registration.js';
@@ -282,7 +283,8 @@ async function init() {
      "20261017_expense_currency_precision.sql",
      "20261017_client_representative_link.sql",
      "20261018_economic_history.sql",
-     "20261018_commercial_same_month_revisions.sql"
+     "20261018_commercial_same_month_revisions.sql",
+     "20261018_workspace_preferences.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -440,6 +442,7 @@ const server = http.createServer(async (req,res) => {
     if(await presence({req,res,url,db,session,body,send,sessionKey:req=>crypto.createHash('sha256').update(parseCookies(req).scale_session||'').digest('hex')}))return;
     if(await agencyMedia({req,res,url,db,session}))return;
     if(await notifications({req,res,url,db,session,body,send}))return;
+    if(await workspacePreferences({req,res,url,db,session,body,send}))return;
     if(await automationApi({req,res,url,db,session,body,send}))return;
     if(await studioReservations({req,res,url,db,session,body,send}))return;
     if(await pipelineStages({req,res,url,db,session,body,send}))return;

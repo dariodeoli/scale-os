@@ -1,0 +1,2 @@
+# Self-owned workspace preferences: API validation, tenant isolation, import CAS and FK cleanup.
+node backend/test-workspace-preferences.mjs

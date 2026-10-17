@@ -19,7 +19,7 @@ export function parseWorkspacePreferences(raw:string|null):WorkspacePreferences 
   return {version:1,
    startup:['summary','production','my-day'].includes(data.startup)?data.startup:'summary',
    production:{
-    clientId:typeof production?.clientId==='string' && /^[1-9]\d{0,19}$/.test(production.clientId)?production.clientId:'',
+    clientId:typeof production?.clientId==='string' && /^[1-9]\d{0,18}$/.test(production.clientId) && BigInt(production.clientId)<=9223372036854775807n?production.clientId:'',
     mine:production?.mine===true,week:production?.week===true,
    }};
  } catch {return fallback;}
