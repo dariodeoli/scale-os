@@ -37,3 +37,37 @@ La composición de filas de entidades y responsables permanece en los adaptadore
 - Pruebas existentes de `AssigneePicker`, `EntityPicker`, diálogos, posicionamiento, responsables de registros y montos.
 
 La prueba aislada acredita interacción y geometría del selector; la revisión visual del catálogo y de los consumidores con los estilos completos corresponde a la integración.
+
+## Consumidores declarativos — lote completo #241
+
+`OptionsSelect` en `app/ui/options-select.tsx` convierte children `<option>`, arrays, fragments y `<optgroup>` en datos del mismo `Selector`. Respeta valores numéricos convertidos a string, texto compuesto, label explícito, deshabilitado por opción/grupo y metadata `data-kind`, `data-photo-url`, `data-secondary`, `data-search-text`. Los grupos conservan su rótulo visible.
+
+La fachada recibe `label`, `value`, `onChange(string)`, `id`, `className`, `disabled`, `loading`, `error`, `required`, `invalid`/`aria-invalid`, `describedBy`/`aria-describedby`, `hideLabel` y `onBlur()`. El ID pertenece al botón real; los rótulos externos conservan su destino. `required` informa el estado requerido mediante ARIA: los esquemas y los gates existentes validan el formulario. No es un select nativo ni ofrece equivalencia genérica de FormData, constraint validation o ref de HTMLSelectElement. Los consumidores migrados no dependían de esas funciones y siguen controlados; no se agregan proxies ocultos ni eventos simulados.
+
+`onBlur` se emite una sola vez después de que el foco sale de todo el widget, incluyendo su portal. Abrir, buscar, seleccionar o cerrar con Escape y volver al trigger no marca touched. Se comprueba la posición final del foco tras un frame, incluyendo el caso de cerrar un portal cuyo nodo enfocado desaparece por un click externo.
+
+| Archivo | Controles migrados |
+| --- | ---: |
+| `client-commercial-lifecycle.tsx` | 1 |
+| `client-directory-toolbar.tsx` | 1 |
+| `client-reporting.tsx` | 6 |
+| `demo-toolbar.tsx` | 2 |
+| `phone-field.tsx` | 1 |
+| `privacy-panel.tsx` | 1 |
+| `quote-composer.tsx` | 3 |
+| `sections/pipeline.tsx` | 3 |
+| `sections/produccion.tsx` | 1 |
+| `superadmin/agencies.tsx` | 1 |
+| `superadmin/audit.tsx` | 1 |
+| `superadmin/errors.tsx` | 2 |
+| `superadmin/inquiries.tsx` | 1 |
+| `superadmin/reports.tsx` | 1 |
+| `superadmin/usage.tsx` | 1 |
+| `ui-v2.tsx` | 1 |
+| **Total** | **27** |
+
+Son los 23 Select de la dependencia y los cuatro selects nativos previos (incluido país). El inventario AST en `tests/options-select.test.tsx` verifica que no quede select nativo/import Select externo en la aplicación, que las fachadas tengan label/value/onChange explícitos y que no dependan de ref o eventos de select.
+
+Clientes y planes declaran kind entity; colaboradores, person. Los clientes usan logo cuando el dato ya está disponible, sin pedir contactos ni ampliar endpoints. El teléfono conserva los 12 códigos, el valor internacional desconocido/parcial, el bloqueo pendiente y el ref al input nacional. Su campo nacional mantiene el espacio en la grilla de 390/1366.
+
+`tests/options-select-browser.test.mjs` acredita en Chromium el label/ID real, optgroups deshabilitados, teclado, 4 transiciones de foco (portal/selección/Escape/salida), el gate real `quoteReadiness`, teléfono/ref/pending y geometría. Las suites de reporting y lifecycle conservan comprobaciones de versiones, permisos y payloads; no se cambian esquemas ni permisos.

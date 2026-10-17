@@ -1,11 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 import {TextareaBase} from '../ui/input';
 // Consultas de la landing (formulario «¿Tenés alguna duda?»): bandeja del panel
 // global. Lista densa v2 (Fecha · Nombre/empresa · Contacto · Mensaje · Estado ·
 // Acciones) con tarjetas cuando la plantilla no entra, filtro por estado (en el
 // API) y acciones de seguimiento solo para el administrador global.
 import {useEffect, useRef, useState} from "react";
-import {Select} from "owncoding-ui";
+
 import {listDateFull} from "../list-format";
 import {ConfirmDialog} from "../dialog";
 import {notify} from "../feedback";
@@ -164,7 +165,7 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
     <FilterToolbar summary={data ? `${formatPlatformMetric(list.length)} de ${formatPlatformMetric(data.total)}` : undefined}>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Estado
-        <Select aria-label="Filtrar consultas por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value as InquiryStatus | "")} className="min-w-[12rem]">
+        <Select hideLabel label="Filtrar consultas por estado" value={status} onChange={(value:string)=>setStatus(value as InquiryStatus | "")} className="min-w-[12rem]">
           <option value="">Todas{counts ? ` (${formatPlatformMetric(counts.new + counts.contacted + counts.closed)})` : ""}</option>
           {(Object.keys(INQUIRY_STATUS) as InquiryStatus[]).map((key) => <option key={key} value={key}>{INQUIRY_STATUS[key].label}s{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>

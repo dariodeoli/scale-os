@@ -1,11 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 // «Errores» del panel global: errores del API y de la web agrupados por huella
 // (mensaje normalizado + primer frame). Lista densa v2 (Mensaje · Origen · Ruta
 // · Ocurrencias · Última vez · Estado · Acciones) con tarjetas cuando no entra,
 // filtros por estado y origen (en el API) y detalle con el stack de muestra.
 // La muestra ya llega limpia de PII desde el API; acá solo se muestra.
 import {Fragment, useEffect, useRef, useState} from "react";
-import {Select} from "owncoding-ui";
+
 import {listDateFull} from "../list-format";
 import {Dialog} from "../dialog";
 import {notify} from "../feedback";
@@ -146,14 +147,14 @@ export function PlatformErrors({writable, onError, onCounts, initialData}: Props
     <FilterToolbar summary={data ? `${formatPlatformMetric(list.length)} de ${formatPlatformMetric(data.total)}` : undefined}>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Estado
-        <Select aria-label="Filtrar errores por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value as ErrorStatus | "")} className="min-w-[11rem]">
+        <Select hideLabel label="Filtrar errores por estado" value={status} onChange={(value:string)=>setStatus(value as ErrorStatus | "")} className="min-w-[11rem]">
           <option value="">Todos{counts ? ` (${formatPlatformMetric(counts.new + counts.resolved + counts.ignored)})` : ""}</option>
           {(Object.keys(ERROR_STATUS) as ErrorStatus[]).map((key) => <option key={key} value={key}>{ERROR_STATUS[key].plural}{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>
       </label>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Origen
-        <Select aria-label="Filtrar errores por origen" value={source} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSource(event.target.value as ErrorSource | "")} className="min-w-[9rem]">
+        <Select hideLabel label="Filtrar errores por origen" value={source} onChange={(value:string)=>setSource(value as ErrorSource | "")} className="min-w-[9rem]">
           <option value="">API y web</option>
           {(Object.keys(ERROR_SOURCE) as ErrorSource[]).map((key) => <option key={key} value={key}>{ERROR_SOURCE[key]}</option>)}
         </Select>

@@ -1,4 +1,5 @@
 "use client";
+import {OptionsSelect as Select} from './ui/options-select';
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
 // DSN para la referencia de Clientes (#42): mismos props y objetos de la
 // librería, con la lógica pura centralizada en ./client-directory-data.
@@ -8,8 +9,7 @@
 // nunca un bloque propio—, los filtros en línea y la acción primaria al final.
 // En mobile se apila sólo lo que no entra, con targets de 44 px.
 import { Plus } from "lucide-react";
-import type {ChangeEvent} from 'react';
-import {Button,Label,Select} from 'owncoding-ui';
+import {Button,Label} from 'owncoding-ui';
 import {SearchField} from './search-field';
 import {ViewSwitch, type CollectionView} from './ui-v2';
 import {directorySummaryText} from './client-directory-data';
@@ -78,7 +78,7 @@ export function ClientDirectoryToolbar({
       <SearchField className="client-directory-search w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7"  label="Buscar clientes" hideLabel value={query} onChange={(nextSearchValue)=>onQueryChange(nextSearchValue)} placeholder={contactVisible?'Buscar por nombre, correo o teléfono':'Buscar por nombre'}/>
       <div className="min-w-0">
         <Label htmlFor="clientes-estado" className="sr-only">Estado</Label>
-        <Select id="clientes-estado" aria-label="Estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
+        <Select hideLabel id="clientes-estado" label="Estado" value={status} onChange={(value:string)=>onStatusChange(value)} className="min-w-[11rem]">
           <option value="">Todos los estados</option>
           {clientStatuses.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
           {planFilter ? <option value="sin_plan">Sin plan y pago</option> : null}

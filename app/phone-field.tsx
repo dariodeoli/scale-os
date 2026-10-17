@@ -1,4 +1,5 @@
 "use client";
+import {OptionsSelect as Select} from './ui/options-select';
 import {forwardRef, useState} from 'react';
 import {componerTelefono} from 'owncoding-ui';
 import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, phoneParts} from './field-rules';
@@ -22,17 +23,17 @@ export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(function
     onChange(componerTelefono({countryCode: code, phone: digits}) ?? '');
   };
   return <span className="phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2">
-    <select className="px-2" aria-label="Código de país" value={country} disabled={blocked}
+    <Select hideLabel label="Código de país" value={country} disabled={blocked}
       aria-invalid={props.invalid ?? props['aria-invalid']} aria-describedby={props.describedBy ?? props['aria-describedby']}
-      onChange={event => {
+      onChange={(value:string)=>{
         if (blocked) return;
-        const code = event.target.value;
+        const code = value;
         setEmptyCountry(code);
         compose(code, parsed.national);
       }}>
       {parsed.raw ? <option value="">Código original</option> : null}
       {PHONE_COUNTRIES.map(entry => <option key={entry.code} value={entry.code}>{entry.label}</option>)}
-    </select>
+    </Select>
     <InputBase inputMode="tel" autoComplete="tel-national" {...props} ref={ref} type="tel" placeholder={placeholder}
       value={parsed.national} disabled={disabled} pending={pending}
       onChange={event => {

@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useId,useLayoutEffect,useRef,useState,type ReactNode} from 'react';
+import {Fragment,useEffect,useId,useLayoutEffect,useRef,useState,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {ChevronDown} from 'lucide-react';
 import {FotoPerfil} from '../foto-perfil';
@@ -9,11 +9,11 @@ import {selectPosition} from '../select-position';
 import './select.css';
 
 export type SelectKind='plain'|'person'|'entity';
-export type SelectOption={value:string;primary:string;secondary?:string;avatarUrl?:string|null;kind?:SelectKind;searchText?:string;disabled?:boolean;pinned?:boolean};
+export type SelectOption={value:string;primary:string;secondary?:string;avatarUrl?:string|null;kind?:SelectKind;searchText?:string;disabled?:boolean;pinned?:boolean;group?:string};
 export type SelectOptionState={selected:boolean;disabled:boolean};
 type CommonSelectProps={
  label:string;options:readonly SelectOption[];variant?:SelectKind;presentation?:'popover'|'inline';
- disabled?:boolean;loading?:boolean;error?:string;invalid?:boolean;describedBy?:string;id?:string;
+ disabled?:boolean;loading?:boolean;error?:string;invalid?:boolean;describedBy?:string;id?:string;required?:boolean;onBlur?:()=>void;title?:string;
  placeholder?:string;searchable?:boolean;searchLabel?:string;searchPlaceholder?:string;
  emptyLabel?:string;noResultsLabel?:string;loadingLabel?:string;missingLabel?:string;showMissingSelection?:boolean;
  hideLabel?:boolean;className?:string;optionClassName?:string;optionsClassName?:string;
@@ -40,6 +40,11 @@ export function Selector(props:SelectorProps){
   hideLabel=false,className,optionClassName='',optionsClassName='',renderOption,renderValue}=props;
  const generatedId=useId(),id=props.id||generatedId,listId=`${id}-options`;
  const initialFocus=useRef<'selected'|'last'>('selected');
+ const focusWithin=useRef(false),blurFrame=useRef<number|null>(null),onBlur=useRef(props.onBlur);onBlur.current=props.onBlur;
+ function containsFocus(){const active=document.activeElement;return Boolean(root.current?.contains(active)||menu.current?.contains(active));}
+ function checkBlur(){if(!onBlur.current)return;if(blurFrame.current!==null)cancelAnimationFrame(blurFrame.current);blurFrame.current=requestAnimationFrame(()=>{blurFrame.current=null;if(focusWithin.current&&!containsFocus()){focusWithin.current=false;onBlur.current?.();}});}
+ useEffect(()=>()=>{if(blurFrame.current!==null)cancelAnimationFrame(blurFrame.current);},[]);
+ useEffect(()=>{if(!props.onBlur||typeof document==='undefined')return;const focus=(event:FocusEvent)=>{if(focusWithin.current&&!root.current?.contains(event.target as Node)&&!menu.current?.contains(event.target as Node))checkBlur();};document.addEventListener('focusin',focus);return()=>document.removeEventListener('focusin',focus);},[Boolean(props.onBlur)]);
  const root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDivElement>(null),search=useRef<HTMLInputElement>(null);
  const [open,setOpen]=useState(false),[query,setQuery]=useState('');
  const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
@@ -67,7 +72,7 @@ export function Selector(props:SelectorProps){
  },[open,inline,options.length,searchable]);
  useEffect(()=>{
   if(!open||inline)return;
-  const outside=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node)&&!menu.current?.contains(event.target as Node))close();};
+  const outside=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node)&&!menu.current?.contains(event.target as Node)){close();checkBlur();}};
   document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside);
  },[open,inline]);
  const positioned=Boolean(floating);
@@ -82,17 +87,18 @@ export function Selector(props:SelectorProps){
  const content=<>
   {searchable&&<SearchField ref={search} label={searchLabel} hideLabel placeholder={searchPlaceholder} value={query} disabled={locked} onChange={setQuery} onKeyDown={event=>{if(['Home','End'].includes(event.key))event.stopPropagation();if(event.key==='Enter'){event.preventDefault();const first=filtered.find(option=>!option.disabled&&(!query||!option.pinned))||filtered.find(option=>!option.disabled);if(first)choose(first);}}}/>}
   {loading?<p role="status">{loadingLabel}</p>:<div className={inline?`ui-select-inline-options ${optionsClassName}`:optionsClassName||undefined} role={inline?'group':'listbox'} id={listId} aria-labelledby={`${id}-label`} aria-multiselectable={!inline&&props.multiple?true:undefined}>
-   {filtered.map(option=>{
+   {filtered.map((option,index)=>{
     const state={selected:values.includes(option.value),disabled:locked||Boolean(option.disabled)};
     const body=renderOption?renderOption(option,state):<OptionContent option={option} variant={variant}/>;
-    return inline&&props.multiple?<label key={option.value} className={`ui-select-check ${optionClassName}`}>
+    const optionNode=inline&&props.multiple?<label key={option.value} className={`ui-select-check ${optionClassName}`}>
      <InputBase data-select-option type="checkbox" checked={state.selected} disabled={state.disabled} onChange={()=>choose(option)}/>{body}
     </label>:<button key={option.value} type="button" data-select-option role={inline?undefined:'option'} aria-selected={inline?undefined:state.selected} aria-pressed={inline?state.selected:undefined} disabled={state.disabled} className={inline?`choice${state.selected?' active':''} ${optionClassName}`:optionClassName||undefined} onClick={()=>choose(option)}>{body}</button>;
+    return <Fragment key={option.value}>{option.group&&filtered[index-1]?.group!==option.group&&<span className="ui-select-group" role="presentation">{option.group}</span>}{optionNode}</Fragment>;
    })}
   </div>}
   {!loading&&!filtered.length&&<p role="status">{query&&options.length?noResultsLabel:emptyLabel}</p>}
  </>;
- return <div data-ui-selector data-variant={variant} data-presentation={presentation} className={className||'ops-select'} ref={root} role={inline?'group':undefined} aria-labelledby={inline?`${id}-label`:undefined} aria-describedby={inline?help:undefined} aria-invalid={inline&&(invalid||Boolean(error))||undefined} aria-busy={loading||undefined} onKeyDown={event=>{
+ return <div data-ui-selector data-variant={variant} data-presentation={presentation} className={className||'ops-select'} ref={root} onFocusCapture={()=>{focusWithin.current=true;}} onBlurCapture={checkBlur} role={inline?'group':undefined} aria-labelledby={inline?`${id}-label`:undefined} aria-describedby={inline?help:undefined} aria-invalid={inline&&(invalid||Boolean(error))||undefined} aria-busy={loading||undefined} onKeyDown={event=>{
   if(event.key==='Escape'&&open){event.preventDefault();event.stopPropagation();close(true);return;}
   if(event.key==='Tab'&&open){close(true);return;}
   if((open||inline)&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){event.preventDefault();navigate(event.key);}
@@ -100,7 +106,7 @@ export function Selector(props:SelectorProps){
  }}>
   <span className={hideLabel?'sr-only':'ops-label'} id={`${id}-label`}>{label}</span>
   {inline?<div ref={menu} aria-describedby={help}>{content}</div>:<>
-   <button ref={trigger} type="button" disabled={locked} title={selectedLabel} className="ops-select-trigger" aria-invalid={invalid||Boolean(error)||undefined} aria-describedby={help} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!locked} aria-controls={open&&!locked?listId:undefined} onClick={()=>{if(!locked){initialFocus.current='selected';setOpen(current=>!current);}}} onKeyDown={event=>{if(!locked&&!open&&['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();event.stopPropagation();initialFocus.current=event.key==='ArrowUp'?'last':'selected';setOpen(true);}}}>
+   <button ref={trigger} id={id} type="button" disabled={locked} title={props.title??selectedLabel} aria-required={props.required||undefined} className="ops-select-trigger" aria-invalid={invalid||Boolean(error)||undefined} aria-describedby={help} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!locked} aria-controls={open&&!locked?listId:undefined} onClick={()=>{if(!locked){initialFocus.current='selected';setOpen(current=>!current);}}} onKeyDown={event=>{if(!locked&&!open&&['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();event.stopPropagation();initialFocus.current=event.key==='ArrowUp'?'last':'selected';setOpen(true);}}}>
     <span id={`${id}-value`}>{renderValue?renderValue(selected,missing):selected.length===1?<OptionContent option={selected[0]} variant={variant}/>:selectedLabel}</span><ChevronDown size={16} aria-hidden="true"/>
    </button>
    {open&&!locked&&floating&&createPortal(<div className="ops-select-options ops-select-floating" data-ui-select-popup ref={menu} style={floating.style}>{content}</div>,floating.target)}
