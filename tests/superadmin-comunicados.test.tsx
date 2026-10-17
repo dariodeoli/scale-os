@@ -26,7 +26,7 @@ function browser() {
     for (const key of ['self', 'window', 'document'] as const) { const descriptor = previous[key]; if (descriptor) Object.defineProperty(globalThis, key, descriptor); else Reflect.deleteProperty(globalThis, key); }
   };
 }
-const wide = () => ({clientWidth: 1400, scrollIntoView() {}, focus() {}});
+const wide = () => ({clientWidth: 1400, scrollIntoView() {}, focus() {},closest:()=>null});
 
 const items: PlatformAnnouncement[] = [
   {id: 7, title: 'Nueva vista de producción', message: 'Probá el tablero nuevo.', kind: 'novedad', priority: 1, organization_id: null, organization_name: null, starts_at: '2026-10-14T12:00:00Z', ends_at: null, published_at: '2026-10-14T12:00:00Z', created_at: '2026-10-14T12:00:00Z', status: 'active', audience_users: 3, reads: 1, read_pct: 33.3},
@@ -55,6 +55,7 @@ test('Comunicados: lista con % leídas, vista previa escapada y alta + publicaci
     calls.push({url, method, body: init?.body as string | undefined});
     if (method === 'POST' && url.endsWith('/announcements')) return json({announcement: {...items[1], id: 8, ...JSON.parse(String(init?.body)), organization_id: null, status: 'draft', published_at: null}}, 201);
     if (method === 'POST' && url.endsWith('/8/publish')) return json({announcement: {...items[1], id: 8, title: '<b>Hola</b>', status: 'active', published_at: '2026-10-14T13:00:00Z'}});
+    if(url.endsWith('/unpublish'))return json({announcement:{...items[0],published_at:null,status:'draft'}});
     return json({announcements: items});
   }) as typeof fetch;
   let renderer!: ReactTestRenderer;
@@ -196,4 +197,22 @@ test('registro: una entrada por sección, banner en el shell y gate solo en el e
   assert.ok(shell.includes('<AnnouncementBanner key='));
   const frame = readFileSync(new URL('../app/workspace-frame.tsx', import.meta.url), 'utf8');
   assert.ok(frame.includes('isWorkspace?<MaintenanceGate>{workspace}</MaintenanceGate>:children'));
+});
+
+test('comunicado: doble publicación bloquea campos; fallo parcial conserva ID y reintenta sin duplicar alta',async()=>{
+ const restore=browser();let createCalls=0,publishCalls=0,patchCalls=0,release!:()=>void;
+ const saved={...items[1],id:80,title:'Mensaje de prueba',message:'Contenido',published_at:null};
+ globalThis.fetch=(async(input:RequestInfo|URL,init?:RequestInit)=>{const url=String(input);if(init?.method==='POST'&&url.endsWith('/announcements')){createCalls++;await new Promise<void>(resolve=>{release=resolve;});return json({announcement:saved});}if(url.endsWith('/80/publish')){publishCalls++;return publishCalls===1?json({error:'Publicación no disponible'},503):json({announcement:{...saved,published_at:'2026-10-17T12:00:00Z',status:'active'}});}if(init?.method==='PATCH'){patchCalls++;return json({announcement:saved});}return json({announcements:[]});}) as typeof fetch;
+ let renderer!:ReactTestRenderer;
+ try{
+  await act(async()=>{renderer=create(<PlatformAnnouncements writable agencies={[]} onError={()=>false}/>,{createNodeMock:wide});});
+  await act(async()=>renderer.root.findAllByType('input').find(n=>n.props.maxLength===80)!.props.onChange({target:{value:'Mensaje de prueba'}}));
+  await act(async()=>renderer.root.findByType('textarea').props.onChange({target:{value:'Contenido'}}));
+  const publish=renderer.root.findAllByType('button').find(n=>text(n.children)==='Publicar')!;
+  await act(async()=>{publish.props.onClick();publish.props.onClick();});assert.equal(createCalls,1);assert(renderer.root.findAllByType('fieldset').some(n=>n.props.disabled));
+  await act(async()=>release());
+  assert(rendered(renderer).includes('El borrador se guardó'));assert(renderer.root.findAllByType('input').some(n=>n.props.value==='Mensaje de prueba'));
+  const retry=renderer.root.findAllByType('button').find(n=>text(n.children)==='Guardar y publicar')!;await act(async()=>retry.props.onClick());
+  assert.equal(createCalls,1);assert.equal(patchCalls,1);assert.equal(publishCalls,2);assert(!renderer.root.findAllByType('input').some(n=>n.props.value==='Mensaje de prueba'));
+ }finally{if(renderer)act(()=>renderer.unmount());restore();}
 });

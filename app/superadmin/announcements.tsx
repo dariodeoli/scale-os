@@ -1,4 +1,7 @@
 "use client";
+import {PendingFields} from '../ui/form-state';
+import {SaveActions} from '../save-actions';
+import {usePlatformFlight} from './confirm';
 import {InputControl} from '../ui/input-control';
 import {TextareaBase} from '../ui/input';
 // Comunicados del panel global: alta/edición con vista previa (el mismo banner que
@@ -101,7 +104,9 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
   const [items, setItems] = useState<PlatformAnnouncement[] | null>(null);
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [saving, setBusy] = useState(false);
+  const flight=usePlatformFlight();
+  const busy=saving||flight.pending;
   const [draft, setDraft] = useState<AnnouncementDraft>(EMPTY_ANNOUNCEMENT);
   const [editing, setEditing] = useState<PlatformAnnouncement | null>(null);
   const [removing, setRemoving] = useState<PlatformAnnouncement | null>(null);
@@ -126,16 +131,19 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
     let payload;
     try { payload = announcementPayload(draft); } catch (cause) { setFormError(cause instanceof Error ? cause.message : "Revisá el comunicado."); return; }
     setBusy(true); setFormError("");
+    let persisted=false;
     try {
       let saved = editing
         ? (await platformApi<{announcement: PlatformAnnouncement}>(`/api/platform/announcements/${editing.id}`, {method: "PATCH", body: JSON.stringify(payload)})).announcement
         : (await platformApi<{announcement: PlatformAnnouncement}>("/api/platform/announcements", {method: "POST", body: JSON.stringify(payload)})).announcement;
+      persisted=true;
+      replace(saved);setEditing(saved);
       if (publish && !saved.published_at) saved = (await platformApi<{announcement: PlatformAnnouncement}>(`/api/platform/announcements/${saved.id}/publish`, {method: "POST", body: "{}"})).announcement;
       replace(saved);
       notify({tone: "success", message: publish ? "Comunicado publicado." : editing ? "Comunicado actualizado." : "Borrador guardado."});
       setDraft(EMPTY_ANNOUNCEMENT); setEditing(null);
     } catch (cause) {
-      if (!onError(cause)) setFormError(cause instanceof Error ? cause.message : "No pudimos guardar el comunicado.");
+      if (!onError(cause)) setFormError((persisted&&publish?"El borrador se guardó; no pudimos publicarlo. ":"")+(cause instanceof Error ? cause.message : "No pudimos guardar el comunicado."));
     } finally { setBusy(false); }
   }
 
@@ -177,7 +185,8 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
       </div>
       <small className="text-[12px] leading-[1.35] text-mute">Banner arriba del espacio de trabajo · uno por vez, por prioridad · se cierra y queda leído</small>
     </div>
-    {writable ? <form className="mb-4 grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" onSubmit={(event) => void save(event, false)} aria-label={editing ? "Editar comunicado" : "Nuevo comunicado"}>
+    {writable ? <form className="mb-4 grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" onSubmit={(event) => {event.preventDefault();void flight.run(()=>save(event,false));}} aria-busy={busy} aria-label={editing ? "Editar comunicado" : "Nuevo comunicado"}>
+      <PendingFields pending={busy}>
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="grid min-w-0 gap-3">
           <label className={FIELD}>
@@ -190,10 +199,10 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
             <TextareaBase value={draft.message} maxLength={ANNOUNCEMENT_MESSAGE_MAX} rows={4} required placeholder="Texto plano, sin HTML. Los saltos de línea se respetan." onChange={(event) => setDraft({...draft, message: event.target.value})}/>
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
-            <SelectCustom label="Tipo" value={draft.kind} choices={KINDS.map((kind) => ({value: kind, label: ANNOUNCEMENT_KIND_LABEL[kind]}))} onChange={(value) => setDraft({...draft, kind: value as AnnouncementKind})}/>
-            <SelectCustom label="Prioridad" value={draft.priority} choices={[1, 2, 3, 4, 5].map((n) => ({value: String(n), label: n === 1 ? "1 · más alta" : n === 5 ? "5 · más baja" : String(n)}))} onChange={(value) => setDraft({...draft, priority: value})}/>
+            <SelectCustom disabled={busy} label="Tipo" value={draft.kind} choices={KINDS.map((kind) => ({value: kind, label: ANNOUNCEMENT_KIND_LABEL[kind]}))} onChange={(value) => setDraft({...draft, kind: value as AnnouncementKind})}/>
+            <SelectCustom disabled={busy} label="Prioridad" value={draft.priority} choices={[1, 2, 3, 4, 5].map((n) => ({value: String(n), label: n === 1 ? "1 · más alta" : n === 5 ? "5 · más baja" : String(n)}))} onChange={(value) => setDraft({...draft, priority: value})}/>
           </div>
-          <SelectCustom label="Audiencia" value={draft.organizationId} choices={[{value: "", label: "Todas las agencias"}, ...agencies.map((agency) => ({value: String(agency.id), label: agency.name || `Agencia #${agency.id}`}))]} onChange={(value) => setDraft({...draft, organizationId: value})}/>
+          <SelectCustom disabled={busy} label="Audiencia" value={draft.organizationId} choices={[{value: "", label: "Todas las agencias"}, ...agencies.map((agency) => ({value: String(agency.id), label: agency.name || `Agencia #${agency.id}`}))]} onChange={(value) => setDraft({...draft, organizationId: value})}/>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={FIELD}>Vigente desde<OptionalMark/><InputControl type="datetime-local" className="max-w-[14rem]" value={draft.startsAt} onChange={(event) => setDraft({...draft, startsAt: event.target.value})}/></label>
             <label className={FIELD}>Vigente hasta<OptionalMark/><InputControl type="datetime-local" className="max-w-[14rem]" value={draft.endsAt} min={draft.startsAt || undefined} onChange={(event) => setDraft({...draft, endsAt: event.target.value})}/></label>
@@ -207,17 +216,18 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
         </div>
       </div>
       {formError ? <p className="error form-error-summary" role="alert">{formError}</p> : null}
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <SaveActions pending={busy} cancelLabel={false}>
         {editing ? <button type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }}>Cancelar edición</button> : null}
         <button type="submit" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy}>{editing ? "Guardar cambios" : "Guardar borrador"}</button>
-        {!editing?.published_at ? <button type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void save(null, true)}>{editing ? "Guardar y publicar" : "Publicar"}</button> : null}
-      </div>
+        {!editing?.published_at ? <button type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void flight.run(()=>save(null,true))}>{editing ? "Guardar y publicar" : "Publicar"}</button> : null}
+      </SaveActions>
+      </PendingFields>
     </form> : null}
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar los comunicados" description={error} onRetry={() => void load()}/>
         : !items ? <LoadingBlock label="Cargando comunicados…" lines={3}/>
         : !list.length ? <EmptyBlock compact icon="megaphone" title="Todavía no hay comunicados." description="Creá uno arriba: se guarda como borrador hasta que lo publiques."/>
-        : <AnnouncementList items={list} writable={writable} busy={busy} fits={tableFits} onToggle={(item) => void toggle(item)} onEdit={edit} onRemove={setRemoving}/>}
+        : <AnnouncementList items={list} writable={writable} busy={busy} fits={tableFits} onToggle={(item) => void flight.run(()=>toggle(item))} onEdit={edit} onRemove={setRemoving}/>}
     </div>
     {removing ? <ConfirmDialog
       title={`Eliminar «${removing.title}»`}
@@ -226,7 +236,7 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
       variant="danger"
       busy={busy}
       onCancel={() => { if (!busy) setRemoving(null); }}
-      onConfirm={() => void remove()}
+      onConfirm={() => void flight.run(remove)}
     /> : null}
   </section>;
 }

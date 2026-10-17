@@ -81,10 +81,13 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
     /subscription\/extend/,
   );
   assert.match(page, /Marcar pago manual/);
-  // Las acciones de «Opciones avanzadas» no se portan al pie: con la sección cerrada
-  // quedaban visibles y apuntaban a un formulario oculto.
+  // El motor común observa details/hidden antes de portar acciones al pie.
+  // La prueba Chromium superadmin-form-browser verifica cerrado→abierto→cerrado.
   const dialog = readFileSync(new URL("../app/superadmin/subscription-dialog.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(dialog, /<SaveActions|<FormActions/, "el estado manual no porta acciones del <details> al pie");
+  assert.match(dialog, /<SaveActions pending=\{busy\} dirty=\{dirty\}/, "acciones registradas en el motor común con pending/dirty");
+  const dialogEngine=readFileSync(new URL("../app/dialog.tsx",import.meta.url),"utf8");
+  assert.match(dialogEngine,/node.tagName==='DETAILS'&&.*?\.open/);
+  assert.match(dialogEngine,/footer&&visible\?createPortal/);
   assert.match(page, /Días a sumar/);
   assert.match(page, /Number\.isFinite\(number\)[\s\S]*?: fallback;/);
   assert.match(page, /const total = formatPlatformMetric\(item\.total, ""\);/);
@@ -220,7 +223,7 @@ test("rediseño #102: ninguna capacidad del panel se pierde", () => {
   assert.match(page, /requireText=\{PLATFORM_DELETE_WORD\}/);
   assert.match(page, /export const PLATFORM_DELETE_WORD = "ELIMINAR"/);
   assert.match(page, /PlatformConfirmDialog/);
-  assert.match(page, /ariaLabel="Buscar en la auditoría"/);
+  assert.match(page, /label="Buscar en la auditoría"/);
   assert.match(page, /<Select aria-label="Filtrar por acción"/);
   // Permisos: viewer nunca ve controles mutantes (mismo gate de siempre).
   assert.match(page, /const writable = myRole === "admin"/);

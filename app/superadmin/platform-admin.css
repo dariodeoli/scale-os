@@ -143,10 +143,10 @@
   gap: var(--ui-control-gap-lg, 12px);
   margin-bottom: var(--ui-space-3, 12px);
 }
-.platform-admin-coupon > label { flex: 1 1 9rem; min-width: 0 }
-.platform-admin-coupon > label:first-child { flex: 1 1 12rem }
-.platform-admin-coupon > label.platform-admin-coupon-note { flex: 1 1 100% }
-.platform-admin-coupon > button { flex: 0 0 auto }
+.platform-admin-coupon > label, .platform-admin-coupon > .ui-form-fields > label { flex: 1 1 9rem; min-width: 0 }
+.platform-admin-coupon > label:first-child, .platform-admin-coupon > .ui-form-fields > label:first-child { flex: 1 1 12rem }
+.platform-admin-coupon > label.platform-admin-coupon-note, .platform-admin-coupon > .ui-form-fields > label.platform-admin-coupon-note { flex: 1 1 100% }
+.platform-admin-coupon > button, .platform-admin-coupon > .ui-form-fields > .dialog-actions { flex: 0 0 auto }
 
 /* ── Listas densas en la superficie del panel ───────────────────────────── */
 @media(min-width:761px){
