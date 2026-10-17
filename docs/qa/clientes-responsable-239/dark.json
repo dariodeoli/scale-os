@@ -1,0 +1,173 @@
+{
+  "theme": "dark",
+  "sha": "a70ee1cd",
+  "startedAt": "2026-10-17T07:40:49.087Z",
+  "base": "http://127.0.0.1:3008",
+  "checks": [
+    {
+      "name": "Authenticated synthetic local owner",
+      "passed": true
+    },
+    {
+      "name": "Detail 1366: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Detail 1366: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-detail-1366: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 1366,
+        "documentOverflow": 0,
+        "dialogWidth": 560,
+        "dialogLeft": 806,
+        "dialogRight": 1366,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Editor readonly 1366: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Editor readonly 1366: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "Editor readonly 1366: linked checkbox and disabled representative",
+      "passed": true
+    },
+    {
+      "name": "client-editor-readonly-1366: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 1366,
+        "documentOverflow": 0,
+        "dialogWidth": 820,
+        "dialogLeft": 273,
+        "dialogRight": 1093,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Detail 390: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Detail 390: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-detail-390: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 390,
+        "documentOverflow": 0,
+        "dialogWidth": 390,
+        "dialogLeft": 0,
+        "dialogRight": 390,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Editor readonly 390: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Editor readonly 390: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "Editor readonly 390: linked checkbox and disabled representative",
+      "passed": true
+    },
+    {
+      "name": "client-editor-readonly-390: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 390,
+        "documentOverflow": 0,
+        "dialogWidth": 390,
+        "dialogLeft": 0,
+        "dialogRight": 390,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    }
+  ],
+  "screenshots": [
+    "client-detail-1366.png",
+    "client-editor-readonly-1366.png",
+    "client-detail-390.png",
+    "client-editor-readonly-390.png"
+  ],
+  "blockedExternal": [],
+  "limitations": [
+    "390px is browser emulation, not a physical device.",
+    "Google, RUC, legal advice and production deploy are outside this local run."
+  ],
+  "browserErrors": [
+    {
+      "type": "console",
+      "message": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <HotReload assetPrefix=\"\" globalError={[...]}>\n      <AppDevOverlayErrorBoundary globalError={[...]}>\n        <ReplaySsrOnlyErrors>\n        <DevRootHTTPAccessFallbackBoundary>\n          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>\n            <HTTPAccessFallbackErrorBoundary pathname=\"/\" notFound={<NotAllowedRootHTTPFallbackError>} ...>\n              <RedirectBoundary>\n                <RedirectErrorBoundary router={{...}}>\n                  <Head>\n                  <__next_root_layout_boundary__>\n                    <SegmentViewNode type=\"layout\" pagePath=\"layout.tsx\">\n                      <SegmentTrieNode>\n                      <link>\n                      <RootLayout>\n                        <html\n                          lang=\"es\"\n-                         data-theme=\"dark\"\n                        >\n                  ...\n"
+    },
+    {
+      "type": "console",
+      "message": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <HotReload assetPrefix=\"\" globalError={[...]}>\n      <AppDevOverlayErrorBoundary globalError={[...]}>\n        <ReplaySsrOnlyErrors>\n        <DevRootHTTPAccessFallbackBoundary>\n          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>\n            <HTTPAccessFallbackErrorBoundary pathname=\"/clientes\" notFound={<NotAllowedRootHTTPFallbackError>} ...>\n              <RedirectBoundary>\n                <RedirectErrorBoundary router={{...}}>\n                  <Head>\n                  <__next_root_layout_boundary__>\n                    <SegmentViewNode type=\"layout\" pagePath=\"layout.tsx\">\n                      <SegmentTrieNode>\n                      <link>\n                      <RootLayout>\n                        <html\n                          lang=\"es\"\n-                         data-theme=\"dark\"\n                        >\n                  ...\n"
+    },
+    {
+      "type": "console",
+      "message": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <HotReload assetPrefix=\"\" globalError={[...]}>\n      <AppDevOverlayErrorBoundary globalError={[...]}>\n        <ReplaySsrOnlyErrors>\n        <DevRootHTTPAccessFallbackBoundary>\n          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>\n            <HTTPAccessFallbackErrorBoundary pathname=\"/clientes\" notFound={<NotAllowedRootHTTPFallbackError>} ...>\n              <RedirectBoundary>\n                <RedirectErrorBoundary router={{...}}>\n                  <Head>\n                  <__next_root_layout_boundary__>\n                    <SegmentViewNode type=\"layout\" pagePath=\"layout.tsx\">\n                      <SegmentTrieNode>\n                      <link>\n                      <RootLayout>\n                        <html\n                          lang=\"es\"\n-                         data-theme=\"dark\"\n                        >\n                  ...\n"
+    }
+  ],
+  "fixture": {
+    "clientId": "1",
+    "readOnly": true
+  },
+  "finishedAt": "2026-10-17T07:41:10.428Z",
+  "assertionRecords": 15,
+  "uniqueCheckNames": 15,
+  "passed": true
+}

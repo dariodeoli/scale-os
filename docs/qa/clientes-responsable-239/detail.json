@@ -1,0 +1,88 @@
+{
+  "sha": "a70ee1cd",
+  "startedAt": "2026-10-17T07:38:14.735Z",
+  "base": "http://127.0.0.1:3008",
+  "checks": [
+    {
+      "name": "Authenticated synthetic local owner",
+      "passed": true
+    },
+    {
+      "name": "Detail 1366: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Detail 1366: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-detail-1366: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 1366,
+        "documentOverflow": 0,
+        "dialogWidth": 560,
+        "dialogLeft": 806,
+        "dialogRight": 1366,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Detail 390: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Detail 390: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-detail-390: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 390,
+        "documentOverflow": 0,
+        "dialogWidth": 390,
+        "dialogLeft": 0,
+        "dialogRight": 390,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    }
+  ],
+  "screenshots": [
+    "client-detail-1366.png",
+    "client-detail-390.png"
+  ],
+  "blockedExternal": [],
+  "limitations": [
+    "390px is browser emulation, not a physical device.",
+    "Google, RUC, legal advice and production deploy are outside this local run."
+  ],
+  "fixture": {
+    "clientId": "1",
+    "readOnly": true
+  },
+  "finishedAt": "2026-10-17T07:38:21.867Z",
+  "assertionRecords": 7,
+  "uniqueCheckNames": 7,
+  "passed": true
+}
