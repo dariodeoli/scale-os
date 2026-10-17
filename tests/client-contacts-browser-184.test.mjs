@@ -8,12 +8,16 @@ const require=createRequire(new URL('../backend/package.json',import.meta.url)),
 const repo=fileURLToPath(new URL('../',import.meta.url));
 const compiled=await build({stdin:{contents:`
 import React from'react';import{createRoot}from'react-dom/client';import{ClientContacts}from'./app/client-contacts';
-const root=createRoot(document.getElementById('root'));window.calls=[];window.records=[];window.conflict=false;let key=0,next=1;
+const root=createRoot(document.getElementById('root'));window.calls=[];window.records=[];window.conflict=false;window.getMode='normal';window.pendingGets=[];let key=0,next=1;
 window.fetch=async(input,init={})=>{
  const url=new URL(String(input),'http://fixture.invalid'),method=init.method||'GET',body=init.body?JSON.parse(init.body):{};window.calls.push({path:url.pathname,method,body});
  const id=url.pathname.split('/').at(-1),existing=window.records.find(row=>row.id===id);
  const respond=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
- if(method==='GET')return respond(existing?{contact:existing}:{contacts:window.records,page:{has_more:false}});
+ if(method==='GET'){
+  if(window.getMode==='deferred')return new Promise(resolve=>window.pendingGets.push(status=>resolve(respond(status===403?{error:'Acceso denegado'}:{contacts:window.records,page:{has_more:false}},status))));
+  if(window.getMode==='network')throw Error('Red temporalmente no disponible');
+  return respond(existing?{contact:existing}:{contacts:window.records,page:{has_more:false}});
+ }
  if(method==='POST'){const contact={...body,id:String(next++),version:1};window.records.push(contact);return respond({contact},201)}
  if(window.conflict){window.conflict=false;existing.version++;existing.role='Cambio del servidor';return respond({error:'El contacto cambió'},409)}
  if(method==='PATCH'){Object.assign(existing,body,{version:existing.version+1});return respond({contact:existing})}
@@ -32,13 +36,29 @@ try{
  for(const width of [1440,390]){
   await page.setViewport({width,height:900});await page.goto('http://127.0.0.1:'+server.address().port);await page.addScriptTag({content:compiled.outputFiles[0].text});
   await page.waitForFunction(()=>document.body.textContent.includes('todavía no tiene contactos adicionales'));
+  await page.evaluate(()=>{window.getMode='deferred';window.mount(false)});
+  await page.waitForFunction(()=>window.pendingGets.length===2);
+  assert.equal(await page.$('button'),null);checks++;
+  await page.evaluate(()=>window.pendingGets.splice(0).forEach(resolve=>resolve(403)));
+  await page.waitForFunction(()=>document.body.textContent.includes('Contactos reservados'));
+  assert.equal(await page.$('button'),null);checks++;
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('scale:client-contacts-changed',{detail:{clientId:'41'}})));
+  await page.waitForFunction(()=>window.pendingGets.length===2);
+  assert.equal(await page.$('button'),null);checks++;
+  await page.evaluate(()=>{window.getMode='normal';window.pendingGets.splice(0).forEach(resolve=>resolve(200))});
+  await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(node=>node.textContent==='Agregar contacto'&&!node.disabled));checks++;
   await click('Agregar contacto');await page.waitForSelector('[data-field="name"] input');
   await set('name','Contacto QA');await set('role','Coordinación');await set('email','contacto@example.invalid');
   await click('Agregar contacto');await page.waitForFunction(()=>window.records.length===1&&document.querySelectorAll('[role="dialog"]').length===0);
   assert.equal(await page.evaluate(()=>window.calls.filter(call=>call.method==='POST').length),1);checks++;
   await click('Editar contacto: Contacto QA');await page.waitForSelector('[data-field="name"] input');
   assert.equal(await page.$eval('[data-field="email"] input',node=>node.value),'contacto@example.invalid');checks++;
-  await set('role','Borrador conservado');await page.evaluate(()=>window.conflict=true);await click('Guardar contacto');
+  await set('role','Borrador conservado');
+  await page.evaluate(()=>{window.getMode='network';window.dispatchEvent(new CustomEvent('scale:client-contacts-changed',{detail:{clientId:'41'}}))});
+  await page.waitForFunction(()=>document.body.textContent.includes('Red temporalmente no disponible'));
+  assert.equal(await page.$eval('[data-field="role"] input',node=>node.value),'Borrador conservado');checks++;
+  assert.equal(await page.evaluate(()=>[...document.querySelectorAll('button')].filter(node=>node.textContent==='Editar').length),2);checks++;
+  await page.evaluate(()=>{window.getMode='normal';window.conflict=true});await click('Guardar contacto');
   await page.waitForFunction(()=>document.body.textContent.includes('Tu borrador sigue visible'));
   assert.equal(await page.$eval('[data-field="role"] input',node=>node.value),'Borrador conservado');checks++;
   await click('Recargar versión actual');await page.waitForFunction(()=>document.body.textContent.includes('Se reemplazará el borrador visible'));
@@ -52,8 +72,15 @@ try{
   await click('Cancelar');assert.equal(await page.evaluate(()=>window.records.length),1);checks++;
   await click('Eliminar contacto: Contacto QA');await click('Eliminar contacto');await page.waitForFunction(()=>window.records.length===0&&document.querySelectorAll('[role="dialog"]').length===0);
   assert.equal(await page.evaluate(()=>window.calls.filter(call=>call.method==='DELETE').length),1);checks++;
+  await page.evaluate(()=>{window.records=[{id:'revoked',name:'Contacto autorizado',role:'',email:null,phone:null,version:1}];window.dispatchEvent(new CustomEvent('scale:client-contacts-changed',{detail:{clientId:'41'}}))});
+  await page.waitForFunction(()=>document.querySelectorAll('li').length===2);
+  await page.evaluate(()=>{window.getMode='deferred';window.dispatchEvent(new CustomEvent('scale:client-contacts-changed',{detail:{clientId:'41'}}))});
+  await page.waitForFunction(()=>window.pendingGets.length===2);
+  await page.evaluate(()=>window.pendingGets.splice(0).forEach(resolve=>resolve(403)));
+  await page.waitForFunction(()=>document.body.textContent.includes('Contactos reservados'));
+  assert.equal(await page.$('button'),null);assert.equal(await page.$('li'),null);checks+=2;
   const calls=await page.evaluate(()=>window.calls.length);await page.evaluate(()=>window.mount(true));await page.waitForFunction(()=>document.body.textContent.includes('Contactos reservados'));
   assert.equal(await page.evaluate(()=>window.calls.length),calls);assert.equal(await page.$('button'),null);checks+=2;
  }
- assert.deepEqual(errors,[]);console.log('PASS client contacts Chromium: '+checks+' checks; canonical create/edit/CAS draft/reload confirmation/delete cancellation/versioned mutation/PII restricted no request at1440/390; synthetic transport, no full-app CSS or external provider claims');
+ assert.deepEqual(errors,[]);console.log('PASS client contacts Chromium: '+checks+' checks; canonical create/edit/CAS draft/reload confirmation/delete cancellation/versioned mutation/authoritative GET authorization/deferred403/regrant/transient network draft preservation/PII restricted no request at1440/390; synthetic transport, no full-app CSS or external provider claims');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}

@@ -19,47 +19,47 @@ const defaults=(record:ClientContact|null)=>({name:record?.name||'',role:record?
 /** Los contactos son hijos de la ficha; el correo/teléfono principal se conserva. */
 export function ClientContacts(props:{clientId:string;restricted?:boolean}){return <ContactDirectory key={props.clientId} {...props}/>;}
 function ContactDirectory({clientId,restricted=false}:{clientId:string;restricted?:boolean}){
- const [contacts,setContacts]=useState<ClientContact[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[denied,setDenied]=useState(false),[hasMore,setHasMore]=useState(false),[offset,setOffset]=useState(0),[reload,setReload]=useState(0);
+ const [contacts,setContacts]=useState<ClientContact[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[denied,setDenied]=useState(false),[authorized,setAuthorized]=useState(false),[hasMore,setHasMore]=useState(false),[offset,setOffset]=useState(0),[reload,setReload]=useState(0);
  const [editing,setEditing]=useState<ClientContact|'new'|null>(null),[removing,setRemoving]=useState<ClientContact|null>(null),[pending,setPending]=useState(false);
  const generation=useRef(0),flight=useRef(false);
  const root=`/api/agency/clients/${clientId}/contacts`;
  const refresh=()=>{setOffset(0);setReload(value=>value+1);};
  const changed=()=>{refresh();window.dispatchEvent(new CustomEvent(CONTACTS_CHANGED,{detail:{clientId}}));};
- useEffect(()=>{const update=(event:Event)=>{if((event as CustomEvent<{clientId:string}>).detail?.clientId===clientId)refresh();};window.addEventListener(CONTACTS_CHANGED,update);return()=>window.removeEventListener(CONTACTS_CHANGED,update);},[clientId]);
+ useEffect(()=>{if(typeof window==='undefined')return;const update=(event:Event)=>{if((event as CustomEvent<{clientId:string}>).detail?.clientId===clientId)refresh();};window.addEventListener(CONTACTS_CHANGED,update);return()=>window.removeEventListener(CONTACTS_CHANGED,update);},[clientId]);
  useEffect(()=>{
   const version=++generation.current,controller=new AbortController();
   setDenied(false);setError('');
-  if(restricted){setContacts([]);setLoading(false);return()=>controller.abort();}
+  if(restricted){setAuthorized(false);setContacts([]);setLoading(false);return()=>controller.abort();}
   setLoading(true);
   void api<{contacts:ClientContact[];page:{has_more:boolean}}>(`${root}?limit=50&offset=${offset}`,undefined,'GET',{signal:controller.signal}).then(data=>{
    if(controller.signal.aborted||version!==generation.current)return;
    if(!Array.isArray(data.contacts)||typeof data.page?.has_more!=='boolean')throw Error('La respuesta de contactos no es válida. Recargá para intentarlo nuevamente.');
-   setContacts(previous=>offset?[...previous,...data.contacts]:data.contacts);setHasMore(data.page.has_more);
+   setAuthorized(true);setContacts(previous=>offset?[...previous,...data.contacts]:data.contacts);setHasMore(data.page.has_more);
   }).catch(cause=>{
    if(controller.signal.aborted||version!==generation.current)return;
-   if(cause instanceof ApiFieldError&&cause.status===403){setDenied(true);setContacts([]);}else setError(message(cause));
+   if(cause instanceof ApiFieldError&&cause.status===403){setDenied(true);setAuthorized(false);setContacts([]);}else setError(message(cause));
   }).finally(()=>{if(!controller.signal.aborted&&version===generation.current)setLoading(false);});
   return()=>controller.abort();
  },[clientId,restricted,offset,reload]);
  if(restricted||denied)return <section className="ops-card"><h3>Contactos</h3><p className="form-note">Contactos reservados a quienes gestionan clientes.</p></section>;
  async function remove(){
-  if(!removing||flight.current)return;flight.current=true;setPending(true);setError('');
+  if(!authorized||!removing||flight.current)return;flight.current=true;setPending(true);setError('');
   try{await api(`${root}/${removing.id}`,{expected_version:removing.version},'DELETE');setRemoving(null);changed();notify({message:'Contacto eliminado',tone:'success'});}
   catch(cause){setError(message(cause));setRemoving(null);}finally{flight.current=false;setPending(false);}
  }
  return <section className="ops-card grid min-w-0 gap-3" aria-label="Contactos del cliente">
-  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><h3>Contactos</h3><Button type="button" variant="secondary" disabled={loading||pending} onClick={()=>setEditing('new')}>Agregar contacto</Button></div>
+  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><h3>Contactos</h3>{authorized?<Button type="button" variant="secondary" disabled={loading||pending} onClick={()=>setEditing('new')}>Agregar contacto</Button>:null}</div>
   <p className="form-note">Personas para coordinar el servicio. Agregar, editar o eliminar aquí no cambia el correo ni el teléfono principal del cliente.</p>
   {error?<div><p role="alert" className="error">{error}</p><Button type="button" variant="ghost" onClick={refresh}>Recargar contactos</Button></div>:null}
   {loading?<p role="status">Cargando contactos…</p>:null}
-  {!loading&&!error&&!contacts.length?<p className="empty-copy">Este cliente todavía no tiene contactos adicionales.</p>:null}
+  {authorized&&!loading&&!error&&!contacts.length?<p className="empty-copy">Este cliente todavía no tiene contactos adicionales.</p>:null}
   <ul className="grid min-w-0 gap-2">{contacts.map(contact=><li key={contact.id} className="ops-card grid min-w-0 gap-2">
    <div className="min-w-0 [overflow-wrap:anywhere]"><strong>{contact.name}</strong>{contact.role?<p>{contact.role}</p>:null}<p>{[contact.email,contact.phone].filter(Boolean).join(' · ')||'Sin correo ni teléfono'}</p></div>
-   <div className="flex flex-wrap gap-2"><Button type="button" variant="ghost" disabled={pending} onClick={()=>setEditing(contact)} aria-label={`Editar contacto: ${contact.name}`}>Editar</Button><Button type="button" variant="ghost" color="danger" disabled={pending} onClick={()=>setRemoving(contact)} aria-label={`Eliminar contacto: ${contact.name}`}>Eliminar</Button></div>
+   {authorized?<div className="flex flex-wrap gap-2"><Button type="button" variant="ghost" disabled={pending} onClick={()=>setEditing(contact)} aria-label={`Editar contacto: ${contact.name}`}>Editar</Button><Button type="button" variant="ghost" color="danger" disabled={pending} onClick={()=>setRemoving(contact)} aria-label={`Eliminar contacto: ${contact.name}`}>Eliminar</Button></div>:null}
   </li>)}</ul>
   {hasMore?<Button type="button" variant="secondary" disabled={loading} onClick={()=>setOffset(contacts.length)}>Cargar más contactos</Button>:null}
-  {editing?<ContactEditor key={editing==='new'?'new':editing.id} root={root} record={editing==='new'?null:editing} close={()=>setEditing(null)} saved={()=>{setEditing(null);changed();}}/>:null}
-  {removing?<ConfirmDialog title="Eliminar contacto" description="Se elimina sólo este contacto adicional. La ficha y su contacto principal se conservan." confirmLabel="Eliminar contacto" variant="danger" busy={pending} onCancel={()=>setRemoving(null)} onConfirm={()=>void remove()}/>:null}
+  {authorized&&editing?<ContactEditor key={editing==='new'?'new':editing.id} root={root} record={editing==='new'?null:editing} close={()=>setEditing(null)} saved={()=>{setEditing(null);changed();}}/>:null}
+  {authorized&&removing?<ConfirmDialog title="Eliminar contacto" description="Se elimina sólo este contacto adicional. La ficha y su contacto principal se conservan." confirmLabel="Eliminar contacto" variant="danger" busy={pending} onCancel={()=>setRemoving(null)} onConfirm={()=>void remove()}/>:null}
  </section>;
 }
 function ContactEditor({root,record,close,saved}:{root:string;record:ClientContact|null;close:()=>void;saved:()=>void}){

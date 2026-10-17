@@ -32,7 +32,7 @@ principal ni cambios en datos legales/contratos emitidos.
 | --- | --- |
 | `node backend/test-client-contacts.mjs` | PASS27 llamadas handler: CRUD/paginación/validación, roles/overrides actuales/revocación/tenant/FK, principal intacto,409, papelera, export y supresiónPDP, auditoría sinPII y dispatcher real |
 | `SCALE_TEST_PG_BIN=... node backend/test-client-contacts-postgres.mjs` | PASS PostgreSQL17.11 real, cluster propio sólo socket, dos conexiones con espera de rowlock observada; PATCH/PATCH ganador+409 y versión exacta; supresión/create409 sin resucitar hijos. Cluster detenido y eliminado |
-| `node tests/client-contacts-browser-184.test.mjs` | PASS22 checks Chromium1440/390: alta/edición, payloadCAS, conservar borrador409, cancelar/confirmar recarga y borrado, sincronización de dos paneles montados sin perder borradores, restricción sinrequest. Usa componentes reales y transporte sintético; no acredita DB vía navegador niCSS completo de la aplicación |
+| `node tests/client-contacts-browser-184.test.mjs` | PASS38 checks Chromium1440/390: GET pendiente sin acciones de escritura,403 inicial y tras autorización borra personas/acciones,200 posterior habilita, error de red conserva autorización y borrador; alta/edición, payloadCAS, conservar borrador409, cancelar/confirmar recarga y borrado, sincronización de dos paneles montados sin perder borradores, restricción sinrequest. Usa componentes reales y transporte sintético; no acredita DB vía navegador niCSS completo de la aplicación |
 | `node build-tools/run-release-regression.mjs --only client-editor-184` | PASS22 pruebas previas: flujo único, RUC con confirmación, planes/términos/historial, lista y CSV preservados |
 | `cd backend && node test-privacy.mjs` | PASS export/supresión/consentimientos/retención con migraciones actuales |
 | `cd backend && node test-maintenance.mjs` | PASS18 tablas modernas, contactos poblados incluidos, demos vencidas limpiadas y tenants reales/finanzas preservados, rollback/guards y scheduling |
@@ -50,3 +50,10 @@ hay bump/tag/deploy en esta rama. El issue184 sigue abierto hasta integración,
 QA de aplicación y deploy acreditados; C1/C3/C4/C5 previos no se reimplementaron.
 Rollback: revertir rutas/UI manteniendo tabla y contactos; no borrar datos de
 producción para volver a una versión anterior.
+
+Seguimiento previo al freeze: las acciones sólo se montan después de un GET200
+con listado válido. Restricción/403 revocan esa autorización local; errores de red
+no descartan un permiso ya acreditado ni un borrador. Browser38 y regresión
+ClientEditor22 repetidos PASS; logs `/tmp/scale184-authorization-browser.log` y
+`/tmp/scale184-authorization-client-regression.log`. El listener sólo se instala
+con window disponible, también compatible con el renderer de pruebas sin DOM.
