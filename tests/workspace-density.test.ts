@@ -11,7 +11,7 @@ assert(toolbar.includes('disabled={busy}'));
 assert(workspace.includes('grid-cols-[minmax(0,1fr)]'),'the sidebar footer keeps one bounded column');
 assert(personContainer.includes('overflow:hidden;text-overflow:ellipsis;white-space:nowrap'));
 assert(workspace.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
-assert(workspace.includes('onClick={logout} aria-label="Cerrar sesión"'));
+assert(workspace.includes('label="Cerrar sesión" title="Cerrar sesión" size="compact" onClick={logout}'));
 const fields=read('operations.tsx'),css=read('operations.css');
 assert(fields.includes('columns = true'));
 // Additional wide fields are intentional; do not couple this contract to array order.

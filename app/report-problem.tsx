@@ -1,7 +1,8 @@
 "use client";
 import {TextareaBase} from './ui/input';
-// «Reportar un problema» (panel global → Reportes). Se abre desde el pie del
-// menú lateral del workspace; exige sesión (el API devuelve 401 sin ella),
+import {Button,IconButton} from './ui/button';
+// «Reportar un problema» (panel global → Reportes). Se abre desde el
+// encabezado del workspace; exige sesión (el API devuelve 401 sin ella),
 // admite hasta 1000 caracteres y una categoría, y adjunta la ruta visible (sin
 // query) y la versión de la app. El API limita a 5 reportes por hora.
 import {useId, useState} from "react";
@@ -78,13 +79,14 @@ export function ReportProblemDialog({onClose, route, send = defaultSend}: {onClo
   </ConfirmDialog>;
 }
 
-/** Entrada del menú del usuario (pie del menú lateral). */
-export function ReportProblemButton({className, iconClassName}: {className: string; iconClassName: string}) {
+/** Acceso al mismo diálogo desde el encabezado; conserva la variante con texto. */
+export function ReportProblemButton({className, iconClassName, iconOnly=false}: {className?: string; iconClassName?: string; iconOnly?: boolean}) {
   const [open, setOpen] = useState(false);
+  const trigger={type:'button' as const,onClick:()=>setOpen(true),title:'Reportar un problema'};
   return <>
-    <button type="button" className={`nav-report ${className}`} onClick={() => setOpen(true)} aria-label="Reportar un problema" title="Reportar un problema">
-      <span className={iconClassName}><MessageSquareWarning size={16}/></span><span className="nav-label">Reportar un problema</span>
-    </button>
+    {iconOnly
+      ? <IconButton {...trigger} className={className} size="compact" label="Reportar un problema" icon={<MessageSquareWarning size={16}/>}/>
+      : <Button {...trigger} className={className} variant="ghost" aria-label="Reportar un problema"><span className={iconClassName}><MessageSquareWarning size={16}/></span><span>Reportar un problema</span></Button>}
     {open ? <ReportProblemDialog onClose={() => setOpen(false)}/> : null}
   </>;
 }
