@@ -8,9 +8,11 @@ El botón mensual «Seleccionar visibles» permanece en escritorio/mes completo;
 
 ## Evidencia
 
-- [Referencia anterior390](screens/before-390-light.png): captura heredada de auditoría #248, build `0afdbd08`, con días vacíos 1–8 en el primer pliegue. No se presenta como una nueva ejecución de main 193.
-- [Después390 claro](screens/390-light.png), [oscuro](screens/390-dark.png), [contraste](screens/390-contrast.png).
-- [Después1440 claro](screens/1440-light.png), [oscuro](screens/1440-dark.png), [contraste](screens/1440-contrast.png).
+La política de `.gitignore` excluye capturas QA. Se conservan de forma durable el harness, los datos sintéticos, las mediciones JSON y la referencia al informe previo; las imágenes se regeneran con el comando indicado y no se fuerza su inclusión en Git.
+
+- Referencia anterior 390: `/tmp/scale241-app-final/screens/390-light-estudio.png`: captura heredada de auditoría #248, build `0afdbd08`, con días vacíos 1–8 en el primer pliegue. No se presenta como una nueva ejecución de main 193.
+- Después 390: `/tmp/scale249-agenda/390-{light,dark,contrast}.png`.
+- Después 1440: `/tmp/scale249-agenda/1440-{light,dark,contrast}.png`.
 - [Medición y peticiones](browser-report.json): componente StudioWorkspace y controles reales, HTTP fixture local, fecha fija 2026-10-17, cabecera sintética112 px. A 390×844, reserva de hoy y587–781, Hoy 44×44 y ancho del documento390. A 1440 permanece el calendario mensual.
 
 Los seis escenarios pasan en claro/oscuro/contraste. Se prueban vacío de hoy, reservas sólo en otra fecha, error recuperable y lectura sin acciones mutantes. Se abren y cierran alta, edición y confirmación de cancelación existentes. La navegación Hoy se activa con teclado. Todas las peticiones observadas son GET locales; no se envían reservas ni se usa producción. Esta evidencia no sustituye QA del shell autenticado integrado ni pruebas físicas.
