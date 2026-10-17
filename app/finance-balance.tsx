@@ -3,7 +3,7 @@ import {validateMonth} from './ui/temporal-value';
 import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl} from './ui/input-control';
 import {useCallback,useEffect,useMemo,useState} from 'react';
-import {BancoLogo} from 'owncoding-ui/financial';
+import {BancoLogoLazy as BancoLogo} from 'owncoding-ui/financial-lazy';
 import {PersonContainer} from './person-container';
 import {api,Dialog,Editor,type Field} from './operations';
 import {roleCan} from './capabilities';
