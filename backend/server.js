@@ -424,8 +424,8 @@ const server = http.createServer(async (req,res) => {
     if(await emailPasswordAuth({req,res,url,db,body,send,sendVerification,emailAvailable:emailDelivery.status.available,cookie,id}))return;
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
-    if(await financeTreasury({req,res,url,db,session,body,send}))return;
     if(await economicHistory({req,res,url,db,session,body,send}))return;
+    if(await financeTreasury({req,res,url,db,session,body,send}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;
     if(await contentReview({req,res,url,db,session,body,send}))return;
