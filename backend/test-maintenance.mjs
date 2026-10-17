@@ -87,6 +87,8 @@ const payment = (await query('select id from agency_payments where organization_
 await query("insert into agency_payment_reversals(organization_id,payment_id,reason,created_by_user_id) values($1,$2,'Test reversal',$3)", [full, payment, owner]);
 const fullState=await modernState(query,full,owner);
 await assert.rejects(query('delete from agency_contract_versions where organization_id=$1',[full]),/immutable/);
+await assert.rejects(query('delete from agency_salary_history where organization_id=$1',[full]),/append-only/);
+await assert.rejects(query('delete from agency_salary_month_overrides where organization_id=$1',[full]),/cerrado/);
 await assert.rejects(query('delete from agency_payments where id=$1',[fullState.payment]),/cerrado/);
 const auditBefore = await count('agency_operation_audit', full);
 const usersBefore = (await query('select * from users order by id')).rows;
@@ -117,6 +119,8 @@ assert.equal(await count('agency_work_checklists', full), 0);
 assert.deepEqual(await capture(), baseline);
 assert.deepEqual((await runMaintenance(db, {dryRun: false, env: {}})).demos, []);
 await assert.rejects(query('delete from agency_contract_versions where organization_id=$1',[real]),/immutable/);
+await assert.rejects(query('delete from agency_salary_history where organization_id=$1',[real]),/append-only/);
+await assert.rejects(query('delete from agency_salary_month_overrides where organization_id=$1',[real]),/cerrado/);
 await assert.rejects(query('delete from agency_finance_period_events where organization_id=$1',[real]),/immutable/);
 for (const sql of ["delete from agency_payments where organization_id=$1", "delete from account_transfers where organization_id=$1"])
  await assert.rejects(query(sql, [real]), /immutable|cerrado/);
@@ -181,6 +185,7 @@ assert.equal((await query("select site_key from live_visitor_sites where site_ke
 
 // Any failure after trigger suspension must roll back data, audit, and trigger DDL.
 const rollbackOrg = await fixture();
+await modernState(query,rollbackOrg,owner);
 await pg.exec(`create function maintenance_test_reject() returns trigger language plpgsql as $$ begin
  if old.id=${rollbackOrg} then raise exception 'test failure'; end if; return old; end $$;
  create trigger maintenance_test_reject before delete on organizations for each row execute function maintenance_test_reject()`);
@@ -188,6 +193,9 @@ result = await runMaintenance(db, {dryRun: false, env: {DEMO_CLEANUP_BATCH_SIZE:
 assert.equal(result.demos.find(d => d.organizationId === rollbackOrg).status, 'blocked');
 assert.equal(await count('organization_members', rollbackOrg), 1);
 assert.equal((await query("select tgname from pg_trigger where not tgisinternal and tgenabled<>'O'")).rows.length, 0);
+assert.ok(await count('agency_salary_history',rollbackOrg));
+await assert.rejects(query('delete from agency_salary_history where organization_id=$1',[rollbackOrg]),/append-only/);
+await assert.rejects(query('delete from agency_salary_month_overrides where organization_id=$1',[rollbackOrg]),/cerrado/);
 await pg.exec('drop trigger maintenance_test_reject on organizations; drop function maintenance_test_reject()');
 
 // Bounded retention uses last activity (not login start), configurable 30/90 days.

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-export const modernTables=['agency_company_legal_profiles','agency_contract_templates','agency_contracts','agency_contract_versions','agency_contract_audit','agency_internal_tasks','agency_internal_task_assignees','agency_internal_task_comments','agency_payment_links','agency_account_openings','agency_opening_receivables','agency_payment_applications','agency_payment_application_reversals','agency_payment_date_corrections','agency_finance_periods','agency_finance_period_events'];
+export const modernTables=['agency_company_legal_profiles','agency_contract_templates','agency_contracts','agency_contract_versions','agency_contract_audit','agency_internal_tasks','agency_internal_task_assignees','agency_internal_task_comments','agency_payment_links','agency_account_openings','agency_opening_receivables','agency_payment_applications','agency_payment_application_reversals','agency_payment_date_corrections','agency_finance_periods','agency_finance_period_events','agency_salary_history'];
 // Test-only synthetic data: exercise FK ordering, immutable documents and closed periods.
 export async function modernState(query,org,owner){
  const one=async(sql,args)=>(await query(sql,args)).rows[0];
@@ -7,6 +7,8 @@ export async function modernState(query,org,owner){
  const client=(await one('select id from agency_clients where organization_id=$1 order by id limit 1',[org])).id;
  const project=(await one('select id from agency_projects where organization_id=$1 order by id limit 1',[org])).id;
  const account=(await one("select id from bank_accounts where organization_id=$1 and currency='PYG' order by id limit 1",[org])).id;
+ const collaborator=await insert("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency) values($1,'Persona ficticia historial','fixed',1000,'PYG')",[org]);
+ await query("insert into agency_salary_month_overrides(organization_id,collaborator_id,month,amount,note) values($1,$2,date_trunc('month',current_date)::date,10,'Ajuste ficticio')",[org,collaborator]);
  await query("insert into agency_company_legal_profiles(organization_id,city,updated_by) values($1,'Ciudad ficticia',$2) on conflict(organization_id) do update set city=excluded.city",[org,owner]);
  const template=await insert("insert into agency_contract_templates(organization_id,name,body,created_by) values($1,'Plantilla ficticia','Servicio de ejemplo',$2)",[org,owner]);
  const contract=await insert("insert into agency_contracts(organization_id,template_id,title,body,client_id,bank_account_id,created_by) values($1,$2,'Documento ficticio','Servicio de ejemplo',$3,$4,$5)",[org,template,client,account,owner]);
@@ -32,5 +34,5 @@ export async function modernState(query,org,owner){
  await query("insert into agency_finance_periods(organization_id,month,status,reason,closed_at,updated_by,snapshot) values($1,date_trunc('month',current_date)::date,'closed','Cierre ficticio',now(),$2,'{}')",[org,owner]);
  await query("insert into agency_finance_period_events(organization_id,month,action,reason,actor_user_id,revision,snapshot) values($1,date_trunc('month',current_date)::date,'close','Cierre ficticio',$2,1,'{}')",[org,owner]);
  for(const table of modernTables)assert.ok((await one(`select count(*)::int as n from ${table} where organization_id=$1`,[org])).n,`modern fixture covers ${table}`);
- return{contract,payment};
+ return{contract,payment,collaborator};
 }

@@ -22,7 +22,7 @@ const scopedTables = `organizations organization_members sessions events oauth_h
  agency_company_legal_profiles agency_contract_templates agency_contracts agency_contract_versions agency_contract_audit
  agency_internal_task_assignees agency_internal_task_comments
  agency_payment_links agency_account_openings agency_opening_receivables agency_payment_applications
- agency_payment_application_reversals agency_payment_date_corrections agency_finance_periods agency_finance_period_events`.trim().split(/\s+/);
+ agency_payment_application_reversals agency_payment_date_corrections agency_finance_periods agency_finance_period_events agency_salary_history`.trim().split(/\s+/);
 const switches = [
  ['agency_payments', 'agency_payments_sync'],
  ['agency_payment_reversals', 'payment_reversal_sync'],
@@ -32,6 +32,9 @@ const switches = [
  ['agency_inventory_verifications', 'inventory_verification_immutable'],
  ['agency_inventory_trace', 'inventory_trace_immutable'],
  ['agency_client_commercial_terms', 'agency_client_commercial_term_guard'],
+ ['agency_client_commercial_terms', 'agency_commercial_economics_immutable'],
+ ['agency_salary_history', 'agency_salary_history_immutable'],
+ ['agency_salary_month_overrides', 'agency_salary_override_period'],
  ['agency_expenses', 'agency_expense_sync'],
  ['agency_expense_reversals', 'expense_reversal_sync'],
  ['agency_contract_versions', 'issued_contract_immutable'],
