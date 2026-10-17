@@ -1,0 +1,149 @@
+{
+  "source": "2e792ccacd3353a8ed5e2d8b5b31fc0a04757a17",
+  "base": "http://127.0.0.1:3008",
+  "startedAt": "2026-10-17T08:04:03.482Z",
+  "checks": [
+    {
+      "name": "Synthetic tenant owner authenticated",
+      "passed": true
+    },
+    {
+      "name": "QA Salario Fijo: Balance UI saves201",
+      "passed": true
+    },
+    {
+      "name": "QA Salario Fijo: exactly one history entry for Balance edit",
+      "passed": true
+    },
+    {
+      "name": "Fixed Balance edit synchronizes fee and monthly amount/currency",
+      "passed": true
+    },
+    {
+      "name": "Equipo UI reads fixed750.25 USD after Balance save",
+      "passed": true
+    },
+    {
+      "name": "Equipo UI saves fixed amount/currency200",
+      "passed": true
+    },
+    {
+      "name": "Fixed Equipo edit synchronizes monthly900.50 EUR",
+      "passed": true
+    },
+    {
+      "name": "Exactly one history entry for Equipo fixed edit",
+      "passed": true
+    },
+    {
+      "name": "Balance UI reads fixed900.50 EUR after Equipo save",
+      "passed": true
+    },
+    {
+      "name": "Fixed prior month keeps initial USD salary",
+      "passed": true
+    },
+    {
+      "name": "Fixed current month resolves latest900.50 EUR",
+      "passed": true
+    },
+    {
+      "name": "QA Fee Variable: Balance UI saves201",
+      "passed": true
+    },
+    {
+      "name": "QA Fee Variable: exactly one history entry for Balance edit",
+      "passed": true
+    },
+    {
+      "name": "variable: monthly edit preserves fee, modality and fee currency",
+      "passed": true
+    },
+    {
+      "name": "variable: Equipo UI still displays original fee/currency",
+      "passed": true
+    },
+    {
+      "name": "variable: prior month monthly snapshot unchanged",
+      "passed": true
+    },
+    {
+      "name": "QA Fee Hora: Balance UI saves201",
+      "passed": true
+    },
+    {
+      "name": "QA Fee Hora: exactly one history entry for Balance edit",
+      "passed": true
+    },
+    {
+      "name": "hourly: monthly edit preserves fee, modality and fee currency",
+      "passed": true
+    },
+    {
+      "name": "hourly: Equipo UI still displays original fee/currency",
+      "passed": true
+    },
+    {
+      "name": "hourly: prior month monthly snapshot unchanged",
+      "passed": true
+    },
+    {
+      "name": "Contact-only profile edit200",
+      "passed": true
+    },
+    {
+      "name": "Contact-only edit creates no salary history",
+      "passed": true
+    },
+    {
+      "name": "Contact-only edit preserves all fixed monetary values",
+      "passed": true
+    }
+  ],
+  "snapshots": [
+    {
+      "label": "fixed after Balance",
+      "id": "25",
+      "compensation_type": "fixed",
+      "compensation_amount": "750.25",
+      "currency": "USD",
+      "monthly_salary_amount": "750.25",
+      "monthly_salary_currency": "USD"
+    },
+    {
+      "label": "fixed after Equipo",
+      "id": "25",
+      "compensation_type": "fixed",
+      "compensation_amount": "900.50",
+      "currency": "EUR",
+      "monthly_salary_amount": "900.50",
+      "monthly_salary_currency": "EUR"
+    },
+    {
+      "label": "variable after Balance",
+      "id": "26",
+      "compensation_type": "variable",
+      "compensation_amount": "50.00",
+      "currency": "USD",
+      "monthly_salary_amount": "600.10",
+      "monthly_salary_currency": "USD"
+    },
+    {
+      "label": "hourly after Balance",
+      "id": "27",
+      "compensation_type": "hourly",
+      "compensation_amount": "25.00",
+      "currency": "EUR",
+      "monthly_salary_amount": "601.20",
+      "monthly_salary_currency": "USD"
+    }
+  ],
+  "screenshots": [
+    "evidence/salary-sync-fixed-equipo-after-balance.webp",
+    "evidence/salary-sync-fixed-balance-after-equipo.webp"
+  ],
+  "blockedExternal": [],
+  "browserErrors": [],
+  "finishedAt": "2026-10-17T08:04:40.688Z",
+  "passed": true
+}
