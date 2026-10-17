@@ -596,7 +596,7 @@
     {
       "file": "app/scale-workspace.tsx",
       "changed": false,
-      "sha256": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e"
+      "sha256": "7aefb3fa2d6778f67165987af36d3bd8090bbcc2470888ad89cd840ea00fb413"
     },
     {
       "file": "app/search-field.tsx",
@@ -5368,9 +5368,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 724,
+      "line": 727,
       "column": 26,
-      "offset": 45054,
+      "offset": 48295,
       "kind": "canonical-button",
       "owner": "projectEntry",
       "status": "canonical",
@@ -5379,9 +5379,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 755,
+      "line": 758,
       "column": 28,
-      "offset": 48226,
+      "offset": 51467,
       "kind": "canonical-button",
       "owner": "projectRowEntry",
       "status": "canonical",
@@ -5390,9 +5390,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 926,
+      "line": 929,
       "column": 13,
-      "offset": 57123,
+      "offset": 60364,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5401,9 +5401,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 939,
+      "line": 942,
       "column": 380,
-      "offset": 59287,
+      "offset": 62528,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5412,9 +5412,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 986,
+      "line": 989,
       "column": 15,
-      "offset": 63255,
+      "offset": 66496,
       "kind": "native",
       "owner": "sidebarContent",
       "status": "structural",
@@ -5425,9 +5425,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1016,
+      "line": 1019,
       "column": 51,
-      "offset": 65738,
+      "offset": 68979,
       "kind": "native",
       "owner": "sidebarContent",
       "status": "structural",
@@ -5438,9 +5438,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1036,
+      "line": 1039,
       "column": 11,
-      "offset": 68373,
+      "offset": 71614,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5449,9 +5449,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1070,
+      "line": 1073,
       "column": 15,
-      "offset": 73322,
+      "offset": 76563,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5460,9 +5460,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1099,
+      "line": 1102,
       "column": 17,
-      "offset": 75138,
+      "offset": 78379,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",

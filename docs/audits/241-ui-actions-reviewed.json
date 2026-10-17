@@ -483,10 +483,10 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "sourceHash": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e",
+      "sourceHash": "7aefb3fa2d6778f67165987af36d3bd8090bbcc2470888ad89cd840ea00fb413",
       "sites": [
         {
-          "line": 986,
+          "line": 989,
           "column": 15,
           "siteHash": "a3eba3004887f205a6490a0f6eb1b4def6a9ad56e2bb99efca2306e8d64a2e85",
           "owner": "sidebarContent",
@@ -497,7 +497,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 1016,
+          "line": 1019,
           "column": 51,
           "siteHash": "804a69a8c0c0079396667a0e38bcc8760daed4a3c84e6fcee6b87af11551c4b4",
           "owner": "sidebarContent",

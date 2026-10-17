@@ -17,6 +17,10 @@ function sectionOrderFromShell(shell: string): string[] {
   for (const m of shell.matchAll(/import \{(\w+Section)\} from '\.\/sections\/([\w-]+)';/g)) {
     files.set(m[1], m[2] + '.tsx');
   }
+  // Sections loaded through next/dynamic keep the same mounted/render order.
+  for (const m of shell.matchAll(/const\s+(\w+Section)\s*=\s*dynamic\(\s*\(\)\s*=>\s*import\(['"]\.\/sections\/([\w-]+)['"]\)/g)) {
+    files.set(m[1], m[2] + '.tsx');
+  }
   const order: string[] = [];
   for (const m of shell.matchAll(/<(\w+Section)[\s/>]/g)) {
     const file = files.get(m[1]!);
