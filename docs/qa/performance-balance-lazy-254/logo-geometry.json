@@ -1,0 +1,423 @@
+{
+  "before": {
+    "compiledSource": "bf7ae398",
+    "alto": "24px (invalid CSS class)",
+    "viewports": [
+      {
+        "width": 1440,
+        "geometry": [
+          {
+            "tag": "IMG",
+            "classes": "block h-full w-full object-contain",
+            "rect": {
+              "x": 599,
+              "y": 625.703125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "block",
+              "position": "static",
+              "flexShrink": "1"
+            },
+            "naturalWidth": 201,
+            "naturalHeight": 40
+          },
+          {
+            "tag": "SPAN",
+            "classes": "absolute block",
+            "rect": {
+              "x": 599,
+              "y": 625.703125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "block",
+              "position": "absolute",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "relative block min-w-0 shrink overflow-hidden",
+            "rect": {
+              "x": 599,
+              "y": 625.703125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "block",
+              "position": "relative",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full max-h-full items-center justify-center dark:rounded-md dark:bg-white dark:px-1.5 24px",
+            "rect": {
+              "x": 599,
+              "y": 625.703125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full",
+            "rect": {
+              "x": 599,
+              "y": 625.703125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "geometry": [
+          {
+            "tag": "IMG",
+            "classes": "block h-full w-full object-contain",
+            "rect": {
+              "x": 361,
+              "y": 347.03125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "block",
+              "position": "static",
+              "flexShrink": "1"
+            },
+            "naturalWidth": 201,
+            "naturalHeight": 40
+          },
+          {
+            "tag": "SPAN",
+            "classes": "absolute block",
+            "rect": {
+              "x": 361,
+              "y": 347.03125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "block",
+              "position": "absolute",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "relative block min-w-0 shrink overflow-hidden",
+            "rect": {
+              "x": 361,
+              "y": 347.03125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "block",
+              "position": "relative",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full max-h-full items-center justify-center dark:rounded-md dark:bg-white dark:px-1.5 24px",
+            "rect": {
+              "x": 361,
+              "y": 347.03125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full",
+            "rect": {
+              "x": 361,
+              "y": 347.03125,
+              "width": 0,
+              "height": 0
+            },
+            "css": {
+              "height": "0px",
+              "width": "0px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "buildId": "idq89FzslJpah3GGyKU5u"
+  },
+  "afterSeparateVisualProbe": {
+    "compiledSource": "aabcaee3",
+    "alto": "h-6",
+    "timed": false,
+    "viewports": [
+      {
+        "width": 1440,
+        "geometry": [
+          {
+            "tag": "IMG",
+            "classes": "block h-full w-full object-contain",
+            "rect": {
+              "x": 546.5625,
+              "y": 432.34375,
+              "width": 52.4375,
+              "height": 10.4375
+            },
+            "css": {
+              "height": "10.4375px",
+              "width": "52.4375px",
+              "display": "block",
+              "position": "static",
+              "flexShrink": "1"
+            },
+            "naturalWidth": 201,
+            "naturalHeight": 40
+          },
+          {
+            "tag": "SPAN",
+            "classes": "absolute block",
+            "rect": {
+              "x": 546.5625,
+              "y": 432.34375,
+              "width": 52.4375,
+              "height": 10.4375
+            },
+            "css": {
+              "height": "10.4375px",
+              "width": "52.4375px",
+              "display": "block",
+              "position": "absolute",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "relative block min-w-0 shrink overflow-hidden",
+            "rect": {
+              "x": 546.5625,
+              "y": 432.34375,
+              "width": 52.4375,
+              "height": 10.4375
+            },
+            "css": {
+              "height": "10.4375px",
+              "width": "52.4375px",
+              "display": "block",
+              "position": "relative",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full max-h-full items-center justify-center dark:rounded-md dark:bg-white dark:px-1.5 h-6",
+            "rect": {
+              "x": 546.5625,
+              "y": 425.5625,
+              "width": 52.4375,
+              "height": 24
+            },
+            "css": {
+              "height": "24px",
+              "width": "52.4375px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full",
+            "rect": {
+              "x": 546.5625,
+              "y": 425.5625,
+              "width": 52.4375,
+              "height": 24
+            },
+            "css": {
+              "height": "24px",
+              "width": "52.4375px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "geometry": [
+          {
+            "tag": "IMG",
+            "classes": "block h-full w-full object-contain",
+            "rect": {
+              "x": 308.5625,
+              "y": 341.671875,
+              "width": 52.4375,
+              "height": 10.4375
+            },
+            "css": {
+              "height": "10.4375px",
+              "width": "52.4375px",
+              "display": "block",
+              "position": "static",
+              "flexShrink": "1"
+            },
+            "naturalWidth": 201,
+            "naturalHeight": 40
+          },
+          {
+            "tag": "SPAN",
+            "classes": "absolute block",
+            "rect": {
+              "x": 308.5625,
+              "y": 341.671875,
+              "width": 52.4375,
+              "height": 10.4375
+            },
+            "css": {
+              "height": "10.4375px",
+              "width": "52.4375px",
+              "display": "block",
+              "position": "absolute",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "relative block min-w-0 shrink overflow-hidden",
+            "rect": {
+              "x": 308.5625,
+              "y": 341.671875,
+              "width": 52.4375,
+              "height": 10.4375
+            },
+            "css": {
+              "height": "10.4375px",
+              "width": "52.4375px",
+              "display": "block",
+              "position": "relative",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full max-h-full items-center justify-center dark:rounded-md dark:bg-white dark:px-1.5 h-6",
+            "rect": {
+              "x": 308.5625,
+              "y": 334.890625,
+              "width": 52.4375,
+              "height": 24
+            },
+            "css": {
+              "height": "24px",
+              "width": "52.4375px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          },
+          {
+            "tag": "SPAN",
+            "classes": "inline-flex min-w-0 max-w-full",
+            "rect": {
+              "x": 308.5625,
+              "y": 334.890625,
+              "width": 52.4375,
+              "height": 24
+            },
+            "css": {
+              "height": "24px",
+              "width": "52.4375px",
+              "display": "flex",
+              "position": "static",
+              "flexShrink": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "buildId": "GqJFkxpQNFfrgoIPojWVw"
+  },
+  "afterTimedRun": {
+    "1440": {
+      "image": {
+        "x": 546.5625,
+        "y": 494.34375,
+        "width": 52.4375,
+        "height": 10.4375
+      },
+      "clip": {
+        "x": 546.5625,
+        "y": 494.34375,
+        "width": 52.4375,
+        "height": 10.4375
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    "390": {
+      "image": {
+        "x": 308.5625,
+        "y": 417.0625,
+        "width": 52.4375,
+        "height": 10.4375
+      },
+      "clip": {
+        "x": 308.5625,
+        "y": 417.0625,
+        "width": 52.4375,
+        "height": 10.4375
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "label": "precursor of release193; not exact published SHA",
+  "compiledSource": "21fe88ad",
+  "method": {
+    "downloadBitsPerSecond": 1600000,
+    "uploadBitsPerSecond": 750000,
+    "latencyMs": 150,
+    "cpuSlowdown": 4,
+    "coldBrowserCache": true,
+    "serverWarm": true,
+    "rounds": 1,
+    "authTiming": "authResponse.atMs is response-event wall time from navigation start, NOT request duration; no auth network-start split is claimed",
+    "hydrationProxy": "React-bound controls rendered and input responds to real keyboard; no claim of universal hydration completion",
+    "ready": "Login: password control. Resumen: task cards. Balance: both client/personnel tables. All: loading-page removed.",
+    "settleMs": 2000
+  },
+  "rows": [
+    {
+      "width": 1440,
+      "readyWallMs": 14442,
+      "jsEncodedNetworkBytes": 2255720,
+      "jsEncodedBodyBytes": 2219773,
+      "jsDecodedBodyBytes": 3930590,
+      "loaderGoneNavigationMs": 4297.39999999851,
+      "observedUntilWallMs": 16442,
+      "zeroByteScriptRequests": 0,
+      "largestScript": [
+        {
+          "path": "/_next/static/chunks/13326aec.19d10ae917ee88d6.js",
+          "encodedBodySize": 1824629,
+          "decodedBodySize": 2618537
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "readyWallMs": 14311,
+      "jsEncodedNetworkBytes": 2255720,
+      "jsEncodedBodyBytes": 2219773,
+      "jsDecodedBodyBytes": 3930590,
+      "loaderGoneNavigationMs": 4421.5,
+      "observedUntilWallMs": 16312,
+      "zeroByteScriptRequests": 0,
+      "largestScript": [
+        {
+          "path": "/_next/static/chunks/13326aec.19d10ae917ee88d6.js",
+          "encodedBodySize": 1824629,
+          "decodedBodySize": 2618537
+        }
+      ]
+    }
+  ]
+}
