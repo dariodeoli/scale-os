@@ -4,13 +4,14 @@ import {readFileSync} from 'node:fs';
 const registration=readFileSync(new URL('../app/registro/page.tsx',import.meta.url),'utf8');
 assert(registration.includes('Empecemos con tu identidad.'),'registration starts with identity selection');
 assert(registration.includes('Configurá tu agencia.'),'agency is collected after email');
-assert(registration.includes('Protegé tu acceso.'),'password is collected in its own final step');
+assert(registration.includes('Protegé tu acceso.'),'new identities confirm access before configuring the agency');
 assert(registration.includes('GoogleSignIn'),'registration uses the shared Google entry component');
-assert(registration.indexOf('GoogleSignIn onClick={continueWithGoogle}')<registration.indexOf('Nombre de tu agencia'),'Google starts before agency fields');
+const googleEntry=registration.indexOf('<GoogleSignIn disabled={submitting} onClick={continueWithGoogle}');
+assert(googleEntry>=0&&googleEntry<registration.indexOf('Nombre de tu agencia'),'Google starts before agency fields');
 assert(registration.includes("window.location.assign('/core-api/api/auth/google/start?signup=1')"),'Google start sends identity-only signup intent through the same-origin Core API route');
 assert(!registration.includes("company:company.trim(),currency,consent:'1'"),'Google OAuth start does not receive company or consent metadata');
 assert(registration.includes("params.get('pendingRegistration')"),'Google callback resumes registration at agency step');
-assert(registration.includes("setGoogleTicket(pending);setStep(2)"),'pending Google registration opens step 2');
+assert(registration.includes("setGoogleTicket(pending);setStep(3)"),'verified new Google identity opens agency step, skipping password confirmation');
 assert(registration.includes("'/core-api/api/auth/google/registration/complete'"),'agency details complete through the pending-registration endpoint');
 assert(registration.includes("JSON.stringify({ticket:googleTicket,company:company.trim(),currency,consent:true,privacy:privacyRecord()})"),'completion submits the ticket and required agency fields without an email override');
 // Datos personales (Ley 7593/2025, Refs #113): casilla explícita, arranca sin
