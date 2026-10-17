@@ -1,0 +1,480 @@
+{
+  "source": "e0eecafa",
+  "checks": [
+    {
+      "name": "date forwarded ref targets actual input",
+      "passed": true
+    },
+    {
+      "name": "date valid native keyboard edit emits changed ISO",
+      "passed": true,
+      "detail": {
+        "stage": "ArrowUp manual existing value",
+        "value": "2026-11-17",
+        "badInput": false,
+        "valid": true,
+        "rangeUnderflow": false,
+        "rangeOverflow": false,
+        "model": "2026-11-17",
+        "trace": [
+          {
+            "value": "2026-11-17",
+            "bad": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "date valid keyboard edit survives unrelated rerender",
+      "passed": true
+    },
+    {
+      "name": "date icon calls actual browser showPicker",
+      "passed": true
+    },
+    {
+      "name": "date picker leaves civil value intact",
+      "passed": true
+    },
+    {
+      "name": "date pending disables picker",
+      "passed": true
+    },
+    {
+      "name": "date pending native input state",
+      "passed": true
+    },
+    {
+      "name": "date disabled disables picker",
+      "passed": true
+    },
+    {
+      "name": "date disabled native input state",
+      "passed": true
+    },
+    {
+      "name": "date readOnly disables picker",
+      "passed": true
+    },
+    {
+      "name": "date readOnly native input state",
+      "passed": true
+    },
+    {
+      "name": "date native min constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "2026-10-17",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": true,
+        "rangeOverflow": false,
+        "model": "2026-10-17",
+        "trace": []
+      }
+    },
+    {
+      "name": "date native max constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "2026-10-17",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": false,
+        "rangeOverflow": true,
+        "model": "2026-10-17",
+        "trace": []
+      }
+    },
+    {
+      "name": "time forwarded ref targets actual input",
+      "passed": true
+    },
+    {
+      "name": "time valid native keyboard edit emits changed ISO",
+      "passed": true,
+      "detail": {
+        "stage": "ArrowUp manual existing value",
+        "value": "14:45",
+        "badInput": false,
+        "valid": true,
+        "rangeUnderflow": false,
+        "rangeOverflow": false,
+        "model": "14:45",
+        "trace": [
+          {
+            "value": "14:45",
+            "bad": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "time valid keyboard edit survives unrelated rerender",
+      "passed": true
+    },
+    {
+      "name": "time icon calls actual browser showPicker",
+      "passed": true
+    },
+    {
+      "name": "time picker leaves civil value intact",
+      "passed": true
+    },
+    {
+      "name": "time pending disables picker",
+      "passed": true
+    },
+    {
+      "name": "time pending native input state",
+      "passed": true
+    },
+    {
+      "name": "time disabled disables picker",
+      "passed": true
+    },
+    {
+      "name": "time disabled native input state",
+      "passed": true
+    },
+    {
+      "name": "time readOnly disables picker",
+      "passed": true
+    },
+    {
+      "name": "time readOnly native input state",
+      "passed": true
+    },
+    {
+      "name": "time native min constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "13:45",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": true,
+        "rangeOverflow": false,
+        "model": "13:45",
+        "trace": []
+      }
+    },
+    {
+      "name": "time native max constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "13:45",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": false,
+        "rangeOverflow": true,
+        "model": "13:45",
+        "trace": []
+      }
+    },
+    {
+      "name": "datetime forwarded ref targets actual input",
+      "passed": true
+    },
+    {
+      "name": "datetime valid native keyboard edit emits changed ISO",
+      "passed": true,
+      "detail": {
+        "stage": "ArrowUp manual existing value",
+        "value": "2026-11-17T13:45",
+        "badInput": false,
+        "valid": true,
+        "rangeUnderflow": false,
+        "rangeOverflow": false,
+        "model": "2026-11-17T13:45",
+        "trace": [
+          {
+            "value": "2026-11-17T13:45",
+            "bad": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "datetime valid keyboard edit survives unrelated rerender",
+      "passed": true
+    },
+    {
+      "name": "datetime icon calls actual browser showPicker",
+      "passed": true
+    },
+    {
+      "name": "datetime picker leaves civil value intact",
+      "passed": true
+    },
+    {
+      "name": "datetime pending disables picker",
+      "passed": true
+    },
+    {
+      "name": "datetime pending native input state",
+      "passed": true
+    },
+    {
+      "name": "datetime disabled disables picker",
+      "passed": true
+    },
+    {
+      "name": "datetime disabled native input state",
+      "passed": true
+    },
+    {
+      "name": "datetime readOnly disables picker",
+      "passed": true
+    },
+    {
+      "name": "datetime readOnly native input state",
+      "passed": true
+    },
+    {
+      "name": "datetime native min constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "2026-10-17T13:45",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": true,
+        "rangeOverflow": false,
+        "model": "2026-10-17T13:45",
+        "trace": []
+      }
+    },
+    {
+      "name": "datetime native max constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "2026-10-17T13:45",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": false,
+        "rangeOverflow": true,
+        "model": "2026-10-17T13:45",
+        "trace": []
+      }
+    },
+    {
+      "name": "month forwarded ref targets actual input",
+      "passed": true
+    },
+    {
+      "name": "month valid native keyboard edit emits changed ISO",
+      "passed": true,
+      "detail": {
+        "stage": "ArrowUp manual existing value",
+        "value": "2026-11",
+        "badInput": false,
+        "valid": true,
+        "rangeUnderflow": false,
+        "rangeOverflow": false,
+        "model": "2026-11",
+        "trace": [
+          {
+            "value": "2026-11",
+            "bad": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "month valid keyboard edit survives unrelated rerender",
+      "passed": true
+    },
+    {
+      "name": "month icon calls actual browser showPicker",
+      "passed": true
+    },
+    {
+      "name": "month picker leaves civil value intact",
+      "passed": true
+    },
+    {
+      "name": "month pending disables picker",
+      "passed": true
+    },
+    {
+      "name": "month pending native input state",
+      "passed": true
+    },
+    {
+      "name": "month disabled disables picker",
+      "passed": true
+    },
+    {
+      "name": "month disabled native input state",
+      "passed": true
+    },
+    {
+      "name": "month readOnly disables picker",
+      "passed": true
+    },
+    {
+      "name": "month readOnly native input state",
+      "passed": true
+    },
+    {
+      "name": "month native min constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "2026-10",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": true,
+        "rangeOverflow": false,
+        "model": "2026-10",
+        "trace": []
+      }
+    },
+    {
+      "name": "month native max constraint remains detectable",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "2026-10",
+        "badInput": false,
+        "valid": false,
+        "rangeUnderflow": false,
+        "rangeOverflow": true,
+        "model": "2026-10",
+        "trace": []
+      }
+    },
+    {
+      "name": "1366 light no overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 32
+      }
+    },
+    {
+      "name": "1366 light picker target",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 32
+      }
+    },
+    {
+      "name": "1366 dark no overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 32
+      }
+    },
+    {
+      "name": "1366 dark picker target",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 32
+      }
+    },
+    {
+      "name": "390 light no overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 44
+      }
+    },
+    {
+      "name": "390 light picker target",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 44
+      }
+    },
+    {
+      "name": "390 dark no overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 44
+      }
+    },
+    {
+      "name": "390 dark picker target",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "picker": 44
+      }
+    }
+  ],
+  "observations": [
+    {
+      "stage": "Attempt February31 via native keyboard",
+      "value": "",
+      "badInput": true,
+      "valid": false,
+      "rangeUnderflow": false,
+      "rangeOverflow": false,
+      "model": "",
+      "trace": [
+        {
+          "value": "",
+          "bad": true
+        },
+        {
+          "value": "2026-02-17",
+          "bad": false
+        },
+        {
+          "value": "2026-02-03",
+          "bad": false
+        },
+        {
+          "value": "",
+          "bad": true
+        }
+      ]
+    },
+    {
+      "stage": "Impossible date after rerender",
+      "value": "",
+      "badInput": true,
+      "valid": false,
+      "rangeUnderflow": false,
+      "rangeOverflow": false,
+      "model": "",
+      "trace": [
+        {
+          "value": "",
+          "bad": true
+        },
+        {
+          "value": "2026-02-17",
+          "bad": false
+        },
+        {
+          "value": "2026-02-03",
+          "bad": false
+        },
+        {
+          "value": "",
+          "bad": true
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    "evidence/before-390-dark.webp"
+  ],
+  "passed": true,
+  "method": "Actual keyboard, native input constraints and original showPicker instrumentation. Initial values/options are React props, not synthetic input events.",
+  "scope": "Base primitive controls excluding known failed partial-value contract",
+  "screenshotPolicy": "Four geometry/theme scenarios were checked; one representative pre-fix image is versioned."
+}
