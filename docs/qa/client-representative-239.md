@@ -8,18 +8,20 @@ El checkbox «El responsable legal es el mismo cliente» guarda `legal_represent
 
 La migración aditiva `20261017_client_representative_link.sql` mantiene registros anteriores en `false`, instala un trigger idempotente y conserva el vínculo en cualquier camino de escritura, incluyendo SQL/importaciones. Si una supresión de datos bloquea la ficha, desactiva la relación y vacía el representante para evitar reconstruir información desde una razón social retenida por obligaciones fiscales. No modifica documentos contractuales emitidos.
 
-El Editor compartido admite casillas y valores derivados; no se añadió un formulario paralelo. Como parte de #238, el mismo editor solicita vigencia del cambio y motivo, conserva el inicio comercial original y envía revisión optimista e identificador idempotente al modificar términos. Las ediciones exclusivas de contacto no exigen motivo. Reintentar el mismo contenido conserva el requestId; cambiar el contenido genera otro. El historial usa la vista común de Finanzas.
+El Editor compartido admite casillas y valores derivados; no se añadió un formulario paralelo. Como parte de #238, el mismo editor solicita vigencia del cambio y motivo, conserva el inicio comercial original y envía revisión optimista e identificador idempotente al modificar términos. Las ediciones exclusivas de contacto no exigen motivo. Reintentar el mismo contenido conserva el requestId; cambiar el contenido genera otro. El historial usa la vista común de Finanzas. El formulario existente de ClientReporting también envía este contexto sin cambiar su flujo de comisiones; ambos consumidores usan el validador común `commercial-change-context.ts`. Capturan el historial antes de leer términos y prefieren la revisión atómica incluida en la respuesta comercial, evitando asociar campos anteriores a un token posterior.
 
 La asignación masiva de plan de servicio usa `/reporting`, cambia clasificación y conserva su versión optimista. No modifica precios ni acuerdos de `/commercial-terms`; una prueba acredita esta separación.
 
 ## Pruebas focales
 
 - `node backend/test-agency-core-alta.mjs`: PASS. Handlers reales de alta/edición contra PGlite; boolean estricto, checkbox persistente, rename, cambio legal y respaldo al nombre comercial, edición independiente y revinculación, escritura SQL directa, razón social completa de160 caracteres, documentos independientes, restricciones por rol/tenant, minimización y snapshot de contrato emitido intacto. También prueba supresión con retención fiscal e idempotencia de la migración.
-- `tsx --test tests/client-editor-184.test.tsx`: 16 PASS. Incluye checkbox y derivación del Editor real, guardar/reabrir/desvincular, documentos omitidos en PATCH parcial, validación económica, fecha de vigencia separada de inicio comercial, idempotencia y edición exclusiva de contacto.
+- `tsx --test tests/client-editor-184.test.tsx`: 18 PASS. Incluye checkbox y derivación del Editor real, guardar/reabrir/desvincular, documentos omitidos en PATCH parcial, validación económica, fecha de vigencia separada de inicio comercial, idempotencia y edición exclusiva de contacto.
 - `tsc --noEmit --incremental false`: PASS.
 - Sintaxis backend y `git diff --check`: PASS.
 
 Logs locales: `/tmp/scale239-backend-final.log`, `/tmp/scale239-client-editor.log` y `/tmp/scale239-tsc-final.log`.
+
+También pasaron los39 casos focales de los cuatro consumidores (`client-reporting`, `com-responsive-tables`, `commercial-gates` y `client-editor`). Incluyen historial inválido/fallido sin PATCH parcial, reintento idempotente y actualización de la revisión después de guardar. Log: `/tmp/scale238-all-client-forms.log`.
 
 ## Integración y límites
 

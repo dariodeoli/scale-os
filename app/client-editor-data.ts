@@ -6,6 +6,7 @@ import type {Field} from './operations';
 import {PHONE_HELP} from './field-rules';
 import {clientLegalName} from './client-identity-data';
 import {todayAsuncion} from './client-format';
+import {commercialChangeContext} from './commercial-change-context';
 import {clientStatuses} from './client-status';
 import {isWholeTransport} from './amount-format';
 import {buildSocialLinks,clientLinksDefaults} from './client-links';
@@ -15,7 +16,7 @@ export type ClientSectionName=typeof CLIENT_SECTIONS[keyof typeof CLIENT_SECTION
 
 export type ClientRecord={id?:string;[key:string]:unknown};
 export type PlanTerms={planId:string;planName:string;recurringAmount:string|number;currency:'PYG'|'USD';startsOn:string;endsOn:string|null;cadence:'monthly'|'interval'|'once';intervalMonths:number;invoiceRequired:boolean;commissionRecipientId:string|null;commissionMode:'none'|'percentage'|'fixed';commissionValue:string|number|null;updatedAt:string};
-export type PlanTermsResponse={clientId:string;archived:boolean;terms:PlanTerms|null;historyRevision?:string;plans:{id:string;name:string}[];collaborators:{id:string;full_name:string}[]};
+export type PlanTermsResponse={clientId:string;archived:boolean;terms:PlanTerms|null;revision?:string;historyRevision?:string;plans:{id:string;name:string}[];collaborators:{id:string;full_name:string}[]};
 
 const isDate=(value:string)=>/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value));
 const str=(record:ClientRecord|null|undefined,key:string)=>String(record?.[key]??'');
@@ -123,13 +124,10 @@ export function clientPatchPayload(values:Record<string,string>,defaults:Record<
 
 /** Cuerpo del PATCH de /commercial-terms (mismo contrato de siempre); lanza el mensaje si falta algo. */
 export function planTermsPayload(values:Record<string,string>,plan:PlanTermsResponse,requestId:string){
-  if(!plan.historyRevision)throw Error('No se pudo cargar la revisión del plan. Cerrá y volvé a abrir la ficha antes de cambiarlo.');
-  if(!isDate(values.plan_effective_from)||!values.plan_effective_from.endsWith('-01'))throw Error('La vigencia del cambio debe ser el primer día de un mes.');
-  const reason=(values.plan_reason||'').trim();
-  if(reason.length<5||reason.length>1000)throw Error('Escribí un motivo del cambio de 5 a 1000 caracteres.');
+  const context=commercialChangeContext({effectiveFrom:values.plan_effective_from,reason:values.plan_reason||''},plan.historyRevision,requestId);
   if(!isWholeTransport(values.plan_amount,false))throw Error('Ingresá un importe mensual entero positivo.');
   if(!isDate(values.plan_starts_on))throw Error('Completá la fecha real de inicio comercial.');
   if(values.plan_ends_on&&(!isDate(values.plan_ends_on)||values.plan_ends_on<values.plan_starts_on))throw Error('La fecha de fin debe ser válida y posterior al inicio.');
   const active=plan.terms;
-  return {effectiveFrom:values.plan_effective_from,reason,requestId,expectedRevision:plan.historyRevision,planId:values.plan_plan_id,recurringAmount:values.plan_amount,currency:values.plan_currency,startsOn:values.plan_starts_on,endsOn:values.plan_ends_on||null,cadence:values.plan_cadence,intervalMonths:Number(values.plan_interval||1),invoiceRequired:values.plan_invoice_required==='true',commissionRecipientId:active?.commissionMode==='none'?null:active?.commissionRecipientId||null,commissionMode:active?.commissionMode||'none',commissionValue:active?.commissionMode==='none'?null:active?.commissionValue??null};
+  return {...context,planId:values.plan_plan_id,recurringAmount:values.plan_amount,currency:values.plan_currency,startsOn:values.plan_starts_on,endsOn:values.plan_ends_on||null,cadence:values.plan_cadence,intervalMonths:Number(values.plan_interval||1),invoiceRequired:values.plan_invoice_required==='true',commissionRecipientId:active?.commissionMode==='none'?null:active?.commissionRecipientId||null,commissionMode:active?.commissionMode||'none',commissionValue:active?.commissionMode==='none'?null:active?.commissionValue??null};
 }

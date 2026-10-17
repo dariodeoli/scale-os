@@ -313,14 +313,14 @@ test('responsable vinculado: checkbox deriva el nombre, persiste y permite volve
 
 test('cambio del plan valida vigencia/motivo y edición de contacto conserva términos',async()=>{
  const {planTermsPayload}=require('../app/client-editor-data') as typeof import('../app/client-editor-data');
- const plan={clientId:'4',archived:false,historyRevision:'revision-fixture',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG' as const,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
+ const plan={clientId:'4',archived:false,historyRevision:'3',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG' as const,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
  const defaults=clientEditDefaults({id:'4',name:'Cliente'},plan);
  assert.throws(()=>planTermsPayload({...defaults,plan_amount:'200000'},plan,'fixture-id'),/motivo/);
  assert.throws(()=>planTermsPayload({...defaults,plan_effective_from:'2026-10-15',plan_reason:'Acuerdo nuevo'},plan,'fixture-id'),/primer día/);
  const values={...defaults,plan_amount:'200000',plan_effective_from:'2026-10-01',plan_reason:'Acuerdo comercial nuevo'};
  const payload=planTermsPayload(values,plan,'fixed-request');
  assert.equal(payload.startsOn,'2026-01-15','inicio comercial no se reemplaza por vigencia');
- assert.equal(payload.effectiveFrom,'2026-10-01');assert.equal(payload.expectedRevision,'revision-fixture');assert.equal(payload.reason,'Acuerdo comercial nuevo');
+ assert.equal(payload.effectiveFrom,'2026-10-01');assert.equal(payload.expectedRevision,'3');assert.equal(payload.reason,'Acuerdo comercial nuevo');
  calls.length=0;route=()=>({});let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="4" record={{id:'4',name:'Cliente',lifecycle_status:'active'}} plan={plan}/>);});
  await change(renderer,'name','Cliente actualizado');
@@ -341,7 +341,7 @@ test('lote de plan de servicio conserva clasificación y nunca modifica término
 
  test('plan: reintento conserva idempotencia, nueva edición genera otra solicitud',async()=>{
  const {MoneyInput}=require('owncoding-ui');
- const plan={clientId:'4',archived:false,historyRevision:'revision-fixture',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG' as const,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
+ const plan={clientId:'4',archived:false,historyRevision:'3',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG' as const,startsOn:'2026-01-15',endsOn:null,cadence:'monthly' as const,intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none' as const,commissionValue:null,updatedAt:'2026-10-01'}};
  calls.length=0;route=url=>{if(url.endsWith('/commercial-terms'))throw Error('Conexión temporal de prueba');return{};};
  let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<ClientEditor mode="edit" clientId="4" record={{id:'4',name:'Cliente',lifecycle_status:'active'}} plan={plan}/>);});
@@ -353,10 +353,13 @@ test('lote de plan de servicio conserva clasificación y nunca modifica término
  assert.equal(changes().length,2);
  assert.match(String(changes()[0].body?.requestId),/^[a-f0-9-]{36}$/);
  assert.equal(changes()[0].body?.requestId,changes()[1].body?.requestId);
- assert.equal(changes()[0].body?.expectedRevision,'revision-fixture');
+ assert.equal(changes()[0].body?.expectedRevision,'3');
+ await change(renderer,'name','Cliente renombrado durante el reintento');
+ await submit(renderer);
+ assert.equal(changes()[2].body?.requestId,changes()[1].body?.requestId,'un cambio ajeno al plan no altera su idempotencia');
  await act(async()=>reason().props.onChange({target:{name:'plan_reason',value:'Acuerdo comercial revisado'},type:'change'}));
  await submit(renderer);
- assert.notEqual(changes()[1].body?.requestId,changes()[2].body?.requestId,'cambiar el contenido inicia otra solicitud');
+ assert.notEqual(changes()[2].body?.requestId,changes()[3].body?.requestId,'cambiar el contenido económico inicia otra solicitud');
  act(()=>renderer.unmount());
 });
 
@@ -379,4 +382,20 @@ test('historial ausente o fallido bloquea cambios económicos antes de cualquier
   assert.match(text(renderer.root),/revisión del plan/);
   act(()=>renderer.unmount());
  }
+});
+
+test('el editor usa la revisión atómica de los términos y captura historial antes del borrador',async()=>{
+ const {MoneyInput}=require('owncoding-ui');
+ const plan={clientId:'4',archived:false,revision:'11',plans:[],collaborators:[],terms:{planId:'',planName:'Manual',recurringAmount:'100000',currency:'PYG',startsOn:'2026-01-15',endsOn:null,cadence:'monthly',intervalMonths:1,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null,updatedAt:'2026-10-01'}};
+ calls.length=0;route=url=>url.endsWith('/plan-history')?{records:[],revision:'10'}:url.endsWith('/commercial-terms')?plan:url.endsWith('/clients/4')?{record:{id:'4',name:'Cliente',lifecycle_status:'active'}}:{};
+ let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditorDialog mode="edit" clientId="4" role="owner" close={()=>{}} refresh={async()=>{}}/>);});
+ await settle();
+ assert(calls.findIndex(call=>call.url.endsWith('/plan-history'))<calls.findIndex(call=>call.url.endsWith('/commercial-terms')));
+ await act(async()=>renderer.root.findByType(MoneyInput).props.onValueChange('200000'));
+ const reason=renderer.root.find(node=>node.type==='textarea'&&node.props.name==='plan_reason');
+ await act(async()=>reason.props.onChange({target:{name:'plan_reason',value:'Cambio comercial verificado'},type:'change'}));
+ await submit(renderer);
+ assert.equal(calls.find(call=>call.method==='PATCH'&&call.url.endsWith('/commercial-terms'))?.body?.expectedRevision,'11');
+ act(()=>renderer.unmount());
 });

@@ -5,6 +5,8 @@ import {useEffect,useRef,useState} from 'react';
 import {api} from './operations';
 import {currencyCodes,type Currency} from './currencies';
 import {todayAsuncion} from './client-format';
+import {financeHistory} from './finance-detail-data';
+import {commercialChangeContext} from './commercial-change-context';
 
 export type CustomerKind='unknown'|'company'|'professional'|'individual'|'other';
 // Los términos comerciales usan las mismas seis monedas que el resto del API.
@@ -14,7 +16,7 @@ export type CommissionMode='none'|'percentage'|'fixed';
 export type ClientReportingRecord={clientId:string;customerKind:CustomerKind;servicePlanId:string|null;relationshipStartedOn:string|null;version:string;updatedAt:string;archived:boolean};
 export type CommercialTerms={clientId:string;planId:string;planName:string;recurringAmount:SafeWhole;currency:MoneyCurrency;startsOn:string;endsOn:string|null;invoiceRequired:boolean;commissionRecipientId:string|null;commissionRecipientName:string|null;commissionMode:CommissionMode;commissionValue:SafeWhole|null;updatedAt:string};
 export type ReportingResponse={reporting:ClientReportingRecord;plans:{id:string;name:string}[]};
-export type TermsResponse={clientId:string;archived:boolean;terms:CommercialTerms|null;plans:{id:string;name:string;currency:MoneyCurrency}[];collaborators:{id:string;full_name:string}[]};
+export type TermsResponse={clientId:string;archived:boolean;revision?:string;terms:CommercialTerms|null;plans:{id:string;name:string;currency:MoneyCurrency}[];collaborators:{id:string;full_name:string}[]};
 export type ReportingDraft={customerKind:CustomerKind;servicePlanId:string;relationshipStartedOn:string};
 export type TermsDraft={planId:string;recurringAmount:string;currency:MoneyCurrency;startsOn:string;endsOn:string;invoiceRequired:''|'true'|'false';commissionRecipientId:string;commissionMode:CommissionMode;commissionValue:string};
 
@@ -62,10 +64,25 @@ type HookOptions={id:string;financial:boolean;writable:boolean;onSaved?:()=>void
 export function useClientReportingData({id,financial,writable,onSaved}:HookOptions){
  const [data,setData]=useState<ReportingResponse|null>(null),[termData,setTermData]=useState<TermsResponse|null>(null),[draft,setDraft]=useState<ReportingDraft>({customerKind:'unknown',servicePlanId:'',relationshipStartedOn:''}),[terms,setTerms]=useState<TermsDraft>({planId:'',recurringAmount:'',currency:'PYG',startsOn:'',endsOn:'',invoiceRequired:'',commissionRecipientId:'',commissionMode:'none',commissionValue:''});
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[retry,setRetry]=useState(0),[saving,setSaving]=useState(false);
+ const [audit,setAudit]=useState({effectiveFrom:todayAsuncion().slice(0,7)+'-01',reason:''}),[historyRevision,setHistoryRevision]=useState<string|null>(null),[historyError,setHistoryError]=useState('');
+ const economicRequest=useRef<{signature:string;id:string}|null>(null);
  const locked=useRef(false),mounted=useRef(true);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  function apply(reporting:ClientReportingRecord,responseTerms:TermsResponse|null){setDraft({customerKind:reporting.customerKind,servicePlanId:reporting.servicePlanId||'',relationshipStartedOn:reporting.relationshipStartedOn||''});setTerms(termsDraft(responseTerms?.terms||null,reporting));}
- useEffect(()=>{let alive=true;setData(null);setTermData(null);setError('');setNotice('');void Promise.all([api<ReportingResponse>(`/api/agency/clients/${id}/reporting`),financial?api<TermsResponse>(`/api/agency/clients/${id}/commercial-terms`):Promise.resolve(null)]).then(([reporting,commercial])=>{if(!reporting?.reporting||reporting.reporting.clientId!==id||typeof reporting.reporting.version!=='string'||!Array.isArray(reporting.plans)||financial&&!validTermsResponse(commercial,id))throw Error('No se pudo validar la ficha de reportes del cliente.');if(alive){setData(reporting);setTermData(commercial);apply(reporting.reporting,commercial);}}).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar la ficha.');});return()=>{alive=false;};},[id,retry,financial]);
+ useEffect(()=>{
+  let alive=true;setData(null);setTermData(null);setError('');setNotice('');setHistoryRevision(null);setHistoryError('');
+  const readTerms=async()=>{
+   let revision:string|null=null,historyError='';
+   if(financial&&writable){try{const history=financeHistory(await api(`/api/agency/clients/${id}/plan-history`));if(!history)throw Error('El historial recibió datos inválidos.');revision=history.revision;}catch(cause){historyError=cause instanceof Error?cause.message:'No se pudo cargar el historial.';}}
+   return {commercial:financial?await api<TermsResponse>(`/api/agency/clients/${id}/commercial-terms`):null,revision,historyError};
+  };
+  void Promise.all([api<ReportingResponse>(`/api/agency/clients/${id}/reporting`),readTerms()]).then(([reporting,context])=>{
+   const commercial=context.commercial;
+   if(!reporting?.reporting||reporting.reporting.clientId!==id||typeof reporting.reporting.version!=='string'||!Array.isArray(reporting.plans)||financial&&!validTermsResponse(commercial,id))throw Error('No se pudo validar la ficha de reportes del cliente.');
+   if(alive){setData(reporting);setTermData(commercial);setHistoryRevision(context.revision===null?null:commercial?.revision??context.revision);setHistoryError(context.historyError);setAudit({effectiveFrom:todayAsuncion().slice(0,7)+'-01',reason:''});apply(reporting.reporting,commercial);}
+  }).catch(e=>{if(alive)setError(e instanceof Error?e.message:'No se pudo cargar la ficha.');});
+  return()=>{alive=false;};
+ },[id,retry,financial,writable]);
  const record=data?.reporting,commercial=termData?.terms;
  const changes:Record<string,unknown>=record?reportingChanges(draft,record):{};
  const termsDirty=financial&&!!record&&!!termData&&!sameTerms(terms,commercial||null,record),dirty=Object.keys(changes).length>0||termsDirty,editable=writable&&!record?.archived,termsEditable=financial&&writable&&!record?.archived;
@@ -74,9 +91,11 @@ export function useClientReportingData({id,financial,writable,onSaved}:HookOptio
   const dateError=validateRelationshipDate(draft.relationshipStartedOn);
   if(dateError){setError(dateError);return;}
   if(termsDirty){const termsError=validateTermsDraft(terms);if(termsError){setError(termsError);return;}}
+  let economicContext:ReturnType<typeof commercialChangeContext>|null=null;
+  if(termsDirty){try{const signature=JSON.stringify({...completeTerms(terms),...audit,expectedRevision:historyRevision});if(economicRequest.current?.signature!==signature)economicRequest.current={signature,id:crypto.randomUUID()};economicContext=commercialChangeContext(audit,historyRevision,economicRequest.current.id);}catch(cause){setError(cause instanceof Error?cause.message:'Completá el motivo y la vigencia.');return;}}
   locked.current=true;setSaving(true);setError('');setNotice('');
-  try {let nextReporting=data,nextTerms=termData;if(Object.keys(changes).length){nextReporting=await api<ReportingResponse>(`/api/agency/clients/${id}/reporting`,{expectedVersion:record.version,...changes},'PATCH');if(!nextReporting?.reporting||nextReporting.reporting.clientId!==id||typeof nextReporting.reporting.version!=='string'||!Array.isArray(nextReporting.plans))throw Error('No se pudo verificar el guardado de reportes.');}if(termsDirty){nextTerms=await api<TermsResponse>(`/api/agency/clients/${id}/commercial-terms`,completeTerms(terms),'PATCH');if(!validTermsResponse(nextTerms,id)||!nextTerms.terms)throw Error('No se pudo verificar el guardado de términos.');}if(!mounted.current)return;setData(nextReporting);setTermData(nextTerms);apply(nextReporting.reporting,nextTerms);setNotice('Datos para reportes guardados.');if(onSaved)try{await onSaved();}catch{if(mounted.current)setError('Los datos se guardaron, pero no se pudo actualizar la vista. Recargá la ficha.');}}
+  try {let nextReporting=data,nextTerms=termData;if(Object.keys(changes).length){nextReporting=await api<ReportingResponse>(`/api/agency/clients/${id}/reporting`,{expectedVersion:record.version,...changes},'PATCH');if(!nextReporting?.reporting||nextReporting.reporting.clientId!==id||typeof nextReporting.reporting.version!=='string'||!Array.isArray(nextReporting.plans))throw Error('No se pudo verificar el guardado de reportes.');}if(termsDirty){nextTerms=await api<TermsResponse>(`/api/agency/clients/${id}/commercial-terms`,{...completeTerms(terms),...economicContext},'PATCH');if(!validTermsResponse(nextTerms,id)||!nextTerms.terms)throw Error('No se pudo verificar el guardado de términos.');}if(!mounted.current)return;setData(nextReporting);setTermData(nextTerms);apply(nextReporting.reporting,nextTerms);setNotice('Datos para reportes guardados.');if(termsDirty){setAudit({effectiveFrom:todayAsuncion().slice(0,7)+'-01',reason:''});setHistoryRevision(null);try{const history=financeHistory(await api(`/api/agency/clients/${id}/plan-history`));if(!history)throw Error('El historial recibió datos inválidos.');const refreshed=await api<TermsResponse>(`/api/agency/clients/${id}/commercial-terms`);if(!validTermsResponse(refreshed,id))throw Error('No se pudo validar la revisión del plan.');if(mounted.current){setHistoryRevision(refreshed.revision??history.revision);setTermData(refreshed);apply(nextReporting.reporting,refreshed);setHistoryError('');}}catch(cause){if(mounted.current)setHistoryError('El cambio se guardó, pero no se pudo actualizar su revisión. Recargá la ficha antes de volver a editar.');}}if(onSaved)try{await onSaved();}catch{if(mounted.current)setError('Los datos se guardaron, pero no se pudo actualizar la vista. Recargá la ficha.');}}
   catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudo guardar. Recargá la ficha si cambió su versión.');}finally{locked.current=false;if(mounted.current)setSaving(false);}
  }
- return {data,termData,record,commercial,draft,setDraft,terms,setTerms,error,notice,saving,dirty,editable,termsEditable,reload:()=>setRetry(value=>value+1),save};
+ return {data,termData,record,commercial,audit,setAudit,historyError,draft,setDraft,terms,setTerms,error,notice,saving,dirty,editable,termsEditable,reload:()=>setRetry(value=>value+1),save};
 }

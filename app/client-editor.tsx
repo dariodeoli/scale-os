@@ -62,9 +62,10 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
     const {client,planTouched}=clientPatchPayload(values,defaults);
     let terms:ReturnType<typeof planTermsPayload>|null=null;
     if(plan&&(planTouched||(planRequired&&!plan.terms))){
-      const signature=JSON.stringify(values);
+      const draft=planTermsPayload(values,plan,'');
+      const signature=JSON.stringify(draft);
       if(planRequest.current?.signature!==signature)planRequest.current={signature,id:crypto.randomUUID()};
-      terms=planTermsPayload(values,plan,planRequest.current.id);
+      terms={...draft,requestId:planRequest.current.id};
     }
     if(client)await api(`/api/agency/clients/${clientId}`,client,'PATCH');
     if(terms)await api(`/api/agency/clients/${clientId}/commercial-terms`,terms,'PATCH');
@@ -107,8 +108,11 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
     try{
       setRecord((await api<{record:ClientRecord}>(`/api/agency/clients/${clientId}`)).record);
       if(canPlan)try{
+        // Capturar primero la revisión: nunca asociar un token nuevo a un borrador anterior.
+        let revision:string|undefined;
+        try{const history=financeHistory(await api(`/api/agency/clients/${clientId}/plan-history`));if(!history)throw Error('El historial recibió datos inválidos.');revision=history.revision;}catch(cause){setPlanError(errorText(cause));}
         const terms=await api<PlanTermsResponse>(`/api/agency/clients/${clientId}/commercial-terms`);
-        try{const history=financeHistory(await api(`/api/agency/clients/${clientId}/plan-history`));if(!history)throw Error('El historial recibió datos inválidos.');terms.historyRevision=history.revision;}catch(cause){setPlanError(errorText(cause));}
+        terms.historyRevision=revision===undefined?undefined:terms.revision??revision;
         setPlan(terms);
       }catch(cause){setPlanError(errorText(cause));}
     }catch(cause){setError(errorText(cause));}
