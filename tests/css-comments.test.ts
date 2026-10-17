@@ -68,7 +68,7 @@ test('globals.css publica sus reglas base fuera de los comentarios', () => {
   for (const rule of [
     '.panel{min-width:0;padding:clamp(18px,2.2vw,26px)',
     '.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))',
-    '.text-button{padding:3px 0;',
+    '.text-button:not(:where([data-ui-button])){padding:3px 0;',
     '.work-card{padding:12px;',
     '.empty-state{padding:72px 20px;',
   ]) assert.ok(source.includes(rule), `falta la regla base ${rule.slice(0, 26)}… fuera de comentarios`);

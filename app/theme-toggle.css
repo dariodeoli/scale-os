@@ -1,7 +1,7 @@
-.theme-toggle{width:36px;min-width:36px;min-height:36px;display:grid;place-items:center;padding:0;border:1px solid var(--line-strong);border-radius:10px;background:transparent;color:var(--text-muted);cursor:pointer;transition:background var(--ease),color var(--ease),border-color var(--ease)}
+.theme-toggle{display:grid;place-items:center}.theme-toggle:not(:where([data-ui-button])){width:36px;min-width:36px;min-height:36px;padding:0;border:1px solid var(--line-strong);border-radius:10px;background:transparent;color:var(--text-muted);cursor:pointer;transition:background var(--ease),color var(--ease),border-color var(--ease)}
 /* Mobile/tablet: el mismo target de 44 px del resto de los controles del marco. */
-@media(max-width:767px){.theme-toggle{width:44px;min-width:44px;min-height:44px}}
-.theme-toggle:hover{background:var(--surface-subtle);color:var(--text);border-color:var(--brand-600)}
+@media(max-width:767px){.theme-toggle:not(:where([data-ui-button])){width:44px;min-width:44px;min-height:44px}}
+.theme-toggle:hover:not(:where([data-ui-button])){background:var(--surface-subtle);color:var(--text);border-color:var(--brand-600)}
 .theme-toggle svg{width:18px;height:18px}
 .login-page .login-card{position:relative}
 .login-theme-toggle{position:absolute;top:calc(var(--auth-pad,24px) + 4px);right:var(--auth-pad,24px);z-index:1;background:var(--surface-subtle);border-color:var(--line)}

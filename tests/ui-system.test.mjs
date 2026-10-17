@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import postcss from 'postcss';
+import {legacyButtonCss} from './helpers/legacy-button-css.mjs';
 import {themeTokens,hexColor} from './helpers/ui-token-values.mjs';
-const css=readFileSync('app/ui-system.css','utf8'),ast=postcss.parse(css);
+const css=legacyButtonCss(readFileSync('app/ui-system.css','utf8')),ast=postcss.parse(css);
 assert(readFileSync('app/layout.tsx','utf8').includes("import './ui-system.css'"));
 const tokenSource=readFileSync('app/ui-tokens.css','utf8');
 const tokens=themeTokens('light');
@@ -97,7 +98,7 @@ assert(css.includes('.team-directory-grid>.team-directory-card,'),'team director
 console.log('PASS team directory joins the shared card contract');
 
 // ── Sistema v2 (Tailwind + owncoding-ui) — 22-09-2026, campaña #41 ─────────
-const tailwind=readFileSync('app/tailwind.css','utf8');
+const tailwind=legacyButtonCss(readFileSync('app/tailwind.css','utf8'));
 const layoutV2=readFileSync('app/layout.tsx','utf8');
 assert(layoutV2.includes("import 'owncoding-ui/styles.css'"),'el layout carga los estilos de la librería');
 assert(layoutV2.indexOf("import 'owncoding-ui/styles.css'")<layoutV2.indexOf("import './globals.css'"),'la base de la librería entra antes que el CSS legado');

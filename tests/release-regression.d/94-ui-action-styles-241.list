@@ -1,0 +1,2 @@
+# CSS ownership with retained classes; native visual contracts remain separately tested
+node --test tests/ui-action-styles.test.mjs

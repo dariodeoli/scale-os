@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {legacyButtonCss} from "./helpers/legacy-button-css.mjs";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
@@ -11,10 +12,10 @@ const drawer = readFileSync(
   new URL("../app/mobile-navigation.tsx", import.meta.url),
   "utf8",
 );
-const globals = readFileSync(
+const globals = legacyButtonCss(readFileSync(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
-);
+));
 const uiSystem = readFileSync(
   new URL("../app/ui-system.css", import.meta.url),
   "utf8",
@@ -85,7 +86,7 @@ test("the company name truncates in the topbar and wraps inside the switcher", (
   );
   const operations = readFileSync(new URL("../app/operations.tsx", import.meta.url), "utf8");
   assert.match(operations, /<button className="workspace" title=\{name\}/, "the company switcher keeps its hover label");
-  const operationsCss = readFileSync(new URL("../app/operations.css", import.meta.url), "utf8");
+  const operationsCss = legacyButtonCss(readFileSync(new URL("../app/operations.css", import.meta.url), "utf8"));
   assert.match(operationsCss, /\.company-choice-row\{display:flex/, "the company switcher row wraps instead of overflowing the dialog");
   assert.match(operationsCss, /\.company-choice-row>\.choice\{flex:1 1 12rem;min-width:0;text-align:left;white-space:normal/, "the company option wraps its full name");
 });

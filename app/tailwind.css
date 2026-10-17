@@ -37,7 +37,7 @@
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
 }
-button {
+button:not(:where([data-ui-button])) {
   border-width: 0;
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
@@ -128,10 +128,10 @@ html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
    SVG (el grupo activo quedaba en `--brand-700` sobre el lila, 1.27:1). La
    hoja del sistema fija una sola vez los tonos del riel y del drawer
    (issue #70, QA de marco). */
-:is(.shell,.control-shell)>.desktop-sidebar nav button{color:rgb(255 255 255 / .78)}
-:is(.shell,.control-shell)>.desktop-sidebar nav button.active{background:rgb(255 255 255 / .14);color:#fff}
+:is(.shell,.control-shell)>.desktop-sidebar nav button:not(:where([data-ui-button])){color:rgb(255 255 255 / .78)}
+:is(.shell,.control-shell)>.desktop-sidebar nav button.active:not(:where([data-ui-button])){background:rgb(255 255 255 / .14);color:#fff}
 :is(.shell,.control-shell)>.desktop-sidebar nav button svg{color:currentColor}
-.mobile-sidebar nav button.active{background:rgb(var(--c-fono) / .1);color:rgb(var(--c-fono-light))}
+.mobile-sidebar nav button.active:not(:where([data-ui-button])){background:rgb(var(--c-fono) / .1);color:rgb(var(--c-fono-light))}
 .mobile-sidebar nav button svg{color:currentColor}
 
 /* Reduced motion: el riel, el topbar y el drawer no animan nada. Las reglas
@@ -188,7 +188,7 @@ h1,
 h2,
 h3,
 nav,
-button,
+button:not(:where([data-ui-button])),
 label {
   font-family: inherit;
 }

@@ -24,7 +24,8 @@
 .drawer-list .activity-line>.drawer-amounts small{white-space:nowrap}
 .drawer-list .activity-line>.payment-cell{justify-self:end;display:flex;align-items:center;gap:8px;min-width:0;max-width:100%;flex-wrap:wrap;justify-content:flex-end}
 .drawer-list .payment-cell small{white-space:nowrap;color:var(--text-subtle,var(--text-muted))}
-.drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px;min-height:44px;padding:8px 4px}
+.drawer-list .work-list-row{display:grid;grid-template-columns:var(--drawer-cols);align-items:center;gap:4px 8px}
+.drawer-list .work-list-row:not(:where([data-ui-button])){min-height:44px;padding:8px 4px}
 .drawer-list .work-list-row>span{justify-self:end;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* La celda de identidad de las listas del drawer recorta en una linea con title. */
@@ -46,9 +47,9 @@
 .work-order-link-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:8px;align-items:end}
 .work-order-link-form label{display:grid;gap:4px;min-width:0;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}
 .work-order-link-form input{min-width:0;min-height:38px;padding:8px 10px;border:1px solid var(--border-interactive,var(--line-strong));border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
-.work-order-link-form button{min-height:38px;white-space:nowrap}
+.work-order-link-form button:not(:where([data-ui-button])){min-height:38px;white-space:nowrap}
 @media(max-width:620px){.work-order-link-form{grid-template-columns:1fr}
-.work-order-link-form button{min-height:44px}
+.work-order-link-form button:not(:where([data-ui-button])){min-height:44px}
 }
 /* Client ficha: resumen comercial en grilla estable y acciones en barra. */
 @media(min-width:900px){.client-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -73,9 +74,9 @@
 .client-review-preview label{display:grid;gap:6px;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}
 .client-review-preview input,.client-review-preview textarea{border-radius:10px;background:var(--surface);opacity:.75}
 .review-preview-actions{justify-content:flex-start}
-.review-preview-actions button{min-height:42px}
+.review-preview-actions button:not(:where([data-ui-button])){min-height:42px}
 /* Vista previa inerte (#147): la réplica no ofrece CTAs ejecutables; el botón
    principal deshabilitado pierde el relleno de marca y el badge lo declara. */
 .review-preview-badge{margin:0;justify-self:start;padding:4px 9px;border:1px solid var(--warning);border-radius:999px;background:var(--warning-soft);color:var(--text);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
-.client-review-preview[data-preview="inert"] .review-preview-actions button.primary:disabled{border:1px solid var(--line);background:var(--surface-subtle);color:var(--text-muted);box-shadow:none}
-.client-review-preview[data-preview="inert"] .review-preview-actions button{opacity:.6;cursor:not-allowed}
+.client-review-preview[data-preview="inert"] .review-preview-actions button.primary:disabled:not(:where([data-ui-button])){border:1px solid var(--line);background:var(--surface-subtle);color:var(--text-muted);box-shadow:none}
+.client-review-preview[data-preview="inert"] .review-preview-actions button:not(:where([data-ui-button])){opacity:.6;cursor:not-allowed}

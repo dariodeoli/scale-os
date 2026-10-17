@@ -87,9 +87,9 @@
 .foto-perfil-xl{--foto-perfil-size:40px}
 .foto-perfil-2xl{--foto-perfil-size:48px}
 .foto-perfil-3xl{--foto-perfil-size:64px}
-button.foto-perfil{cursor:pointer}
-button.foto-perfil:disabled{cursor:wait;opacity:.7}
-button.foto-perfil:focus-visible{outline:3px solid var(--focus-ring,var(--brand-700));outline-offset:3px}
+button.foto-perfil:not(:where([data-ui-button])){cursor:pointer}
+button.foto-perfil:disabled:not(:where([data-ui-button])){cursor:wait;opacity:.7}
+button.foto-perfil:focus-visible:not(:where([data-ui-button])){outline:3px solid var(--focus-ring,var(--brand-700));outline-offset:3px}
 .foto-perfil-badge{position:absolute;right:0;bottom:0;display:grid;place-items:center;width:38%;height:38%;min-width:14px;min-height:14px;border-radius:50%;background:var(--brand-700);color:rgb(var(--c-onbrand))}
 .foto-perfil-badge>svg{width:64%;height:64%}
 /* Contextos densos: el mismo objeto, más chico donde el layout lo exige. */
@@ -147,7 +147,7 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
    mobile conservan el target táctil. `:where` deja ganar a los ajustes propios
    de cada lista (p. ej. Clientes, 28 px). */
 @media(min-width:768px){
- .control-shell .list-row .list-actions :where(button.icon-button){width:32px;min-width:32px;height:32px;min-height:32px}
+ .control-shell .list-row .list-actions :where(button.icon-button):not(:where([data-ui-button])){width:32px;min-width:32px;height:32px;min-height:32px}
 }
 
 /* ── Disparador del menú ⋯ (`MenuDesplegable`) ─────────────────────────────
@@ -155,10 +155,11 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
    tarjetas estiraba la línea a 44–56 px. En escritorio mide 32 px (botón de
    acción de lista); en mobile y con puntero táctil conserva el target de 44. */
 @media(min-width:768px){
- :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:32px;min-height:32px;justify-content:center}
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{justify-content:center}
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]:not(:where([data-ui-button])){min-width:32px;min-height:32px}
 }
 @media(min-width:768px) and (pointer:coarse){
- :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]{min-width:44px;min-height:44px}
+ :is(.control-shell,.unified-dialog) button.toque-44[aria-haspopup="menu"]:not(:where([data-ui-button])){min-width:44px;min-height:44px}
 }
 
 /* ── Tabs de sección (#89) ──────────────────────────────────────────────────
@@ -186,43 +187,48 @@ html[data-theme="dark"] .foto-perfil:not(.foto-perfil-logo){background:#8329c9;c
 .tab-scroller-track::-webkit-scrollbar{display:none}
 .tab-scroller-track>*{flex:none}
 .control-shell .tab-scroller-track>.section-tabs{width:max-content;max-width:none;margin-bottom:0;overflow:visible}
-.tab-scroller-button{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface));color:var(--text-muted);box-shadow:var(--shadow-xs,var(--shadow-sm));transition:border-color var(--ease),background var(--ease),color var(--ease)}
-.tab-scroller-button:hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
-.tab-scroller-button:disabled{opacity:.4;cursor:default}
-@media(max-width:760px){.tab-scroller-button{width:44px;height:44px}}
+.tab-scroller-button{flex:none;display:grid;place-items:center}
+.tab-scroller-button:not(:where([data-ui-button])){width:34px;height:34px;padding:0;border:1px solid var(--border-subtle,var(--line));border-radius:999px;background:var(--surface-raised,var(--surface));color:var(--text-muted);box-shadow:var(--shadow-xs,var(--shadow-sm));transition:border-color var(--ease),background var(--ease),color var(--ease)}
+.tab-scroller-button:hover:not(:disabled):not(:where([data-ui-button])){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
+.tab-scroller-button:disabled:not(:where([data-ui-button])){opacity:.4;cursor:default}
+@media(max-width:760px){.tab-scroller-button:not(:where([data-ui-button])){width:44px;height:44px}}
 
 /* Stable geometry: selection, hover and focus never change sizes or weights. */
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary,a.secondary){
- min-height:var(--ui-control-height);max-width:100%;padding:8px 14px;
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary,a.secondary){max-width:100%;
  display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-space-2);
+}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary,a.secondary):not(:where([data-ui-button])){
+ min-height:var(--ui-control-height);padding:8px 14px;
  border-radius:var(--radius-sm);font:600 13px/1.35 Outfit,Arial,sans-serif;
  white-space:nowrap;text-decoration:none;
 }
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary){box-shadow:none}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary):not(:where([data-ui-button])){box-shadow:none}
 /* Texto del CTA primario: una sola fuente semántica, `--c-onbrand` (claro en
    el tema claro, tinta oscura en el oscuro). Sin regla, el texto se heredaba
    (`--text`) y el violeta oscuro del tema claro quedaba en 1.17:1 (ronda 14,
    ítem 8: "CTAs violetas"); con el token queda en 14.07:1 en claro y 5.30:1 en
    oscuro (el blanco daría 3.36:1 sobre el violeta claro y no pasa AA). */
-:is(button.primary,a.primary){color:rgb(var(--c-onbrand))}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary):hover{transform:none}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary){border:1px solid var(--ui-field-border)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,a.secondary){background:var(--surface);color:var(--text)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary.record-remove,button.secondary.danger){color:var(--danger);border-color:var(--danger)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.choice.active{border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height);flex-shrink:0}
-:is(.control-shell,.unified-dialog,.photo-dialog) button:disabled{cursor:not-allowed;opacity:.55}
-:is(.control-shell,.unified-dialog,.photo-dialog) .text-button{display:inline-flex;align-items:center;gap:6px;line-height:1.4;min-height:32px;text-align:left}
+:is(button.primary,a.primary):not(:where([data-ui-button])){color:rgb(var(--c-onbrand))}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,button.secondary,button.choice,a.primary):hover:not(:where([data-ui-button])){transform:none}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary):not(:where([data-ui-button])){border:1px solid var(--ui-field-border)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,a.secondary):not(:where([data-ui-button])){background:var(--surface);color:var(--text)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary.record-remove,button.secondary.danger):not(:where([data-ui-button])){color:var(--danger);border-color:var(--danger)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.choice.active:not(:where([data-ui-button])){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{flex-shrink:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:not(:where([data-ui-button])){width:var(--ui-control-height);min-height:var(--ui-control-height)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button:disabled:not(:where([data-ui-button])){cursor:not-allowed;opacity:.55}
+:is(.control-shell,.unified-dialog,.photo-dialog) .text-button{display:inline-flex;align-items:center;gap:6px;text-align:left}
+:is(.control-shell,.unified-dialog,.photo-dialog) .text-button:not(:where([data-ui-button])){line-height:1.4;min-height:32px}
 /* AA en oscuro (#154): el texto de acción de marca usa el token de texto
    (5.27:1 sobre el tinte); con `--brand-600` quedaba en 3.77/2.98 sobre las
    superficies oscuras. El subrayado del hover conserva la señal. */
-html[data-theme="dark"] .text-button{color:rgb(var(--c-fono-text))}
-html[data-theme="dark"] .text-button:hover{color:rgb(var(--c-fono-light))}
+html[data-theme="dark"] .text-button:not(:where([data-ui-button])){color:rgb(var(--c-fono-text))}
+html[data-theme="dark"] .text-button:hover:not(:where([data-ui-button])){color:rgb(var(--c-fono-light))}
 /* Marca como texto chico en oscuro: brand-600/700 quedan en 3.1–4.4:1 sobre violet-soft y
    surface-raised; el hover interactivo (#d18ad9) pasa AA (≥5.8:1) en ambos. */
 html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--interactive-hover)}
-.control-shell .header-actions :is(.primary,.secondary){min-height:var(--ui-control-height)}
-.control-shell .header-actions .secondary{border:1px solid var(--ui-field-border);background:var(--surface);color:var(--text-muted)}
+.control-shell .header-actions :is(.primary,.secondary):not(:where([data-ui-button])){min-height:var(--ui-control-height)}
+.control-shell .header-actions .secondary:not(:where([data-ui-button])){border:1px solid var(--ui-field-border);background:var(--surface);color:var(--text-muted)}
 .control-shell .demo-tools>select{min-height:32px;padding:5px 8px;font-size:11px}
 :is(.control-shell,.unified-dialog) :is(.inline-actions,.quick-actions,.client-record-actions){gap:var(--ui-space-2) var(--ui-space-3);align-items:center}
 
@@ -230,7 +236,9 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
    SearchField owns a composite outer box: its inner input must stay unframed.
    :where keeps this exclusion from raising the specificity of native resets. */
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){
- min-width:0;max-width:100%;min-height:var(--ui-control-height);border:1px solid var(--ui-field-border);
+ min-width:0;max-width:100%;
+}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger):not(:where([data-ui-button])){min-height:var(--ui-control-height);border:1px solid var(--ui-field-border);
  border-radius:var(--radius-sm);padding:9px 12px;background:var(--surface);color:var(--text);
  font:400 14px/1.4 Outfit,Arial,sans-serif;
 }
@@ -242,7 +250,7 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 [data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pr-9{padding-right:2.25rem}
 [data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pr-10{padding-right:2.5rem}
 :is(.control-shell,.unified-dialog) :is(input:not(:where(.search-field input)),textarea,select):disabled,
-:is(.control-shell,.unified-dialog) .ops-select-trigger:disabled{background:var(--surface-subtle);color:var(--text-muted);cursor:not-allowed}
+:is(.control-shell,.unified-dialog) .ops-select-trigger:disabled:not(:where([data-ui-button])){background:var(--surface-subtle);color:var(--text-muted);cursor:not-allowed}
 :is(.control-shell,.unified-dialog) .form-stack{gap:var(--ui-space-3)}
 :is(.control-shell,.unified-dialog) :is(.form-stack label,.ops-label){font-size:12px;line-height:1.35;font-weight:600;color:var(--text-muted)}
 :is(.control-shell,.unified-dialog) .form-stack label{gap:6px}
@@ -297,7 +305,7 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 :is(.control-shell,.unified-dialog) .quote-preview .payment-row>span{flex:1 1 140px;min-width:0;overflow-wrap:anywhere}
 :is(.control-shell,.unified-dialog) .quote-preview .payment-row>b{flex:0 0 auto;max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 :is(.control-shell,.unified-dialog) .quote-item{grid-template-columns:var(--ui-control-height) minmax(0,1fr)}
-:is(.control-shell,.unified-dialog) .quote-item>.icon-button{width:var(--ui-control-height);min-height:var(--ui-control-height)}
+:is(.control-shell,.unified-dialog) .quote-item>.icon-button:not(:where([data-ui-button])){width:var(--ui-control-height);min-height:var(--ui-control-height)}
 .unified-dialog .subscription-panel[data-embedded=true]{padding:0;border:0;border-radius:0;background:transparent}
 
 /* Shared form density. A page or dialog never creates more than three columns:
@@ -314,9 +322,9 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 :is(.control-shell,.unified-dialog) .ops-profile-section>div,:is(.control-shell,.unified-dialog) .ops-profile-section>form{padding:var(--ui-space-2) var(--ui-space-4) var(--ui-space-4)}
 
 @media(max-width:760px){
- :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){font-size:16px}
- :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.text-button,button.secondary,button.primary,button.choice){min-height:44px}
- .control-shell .header-actions :is(.primary,.secondary){min-height:44px}
+ :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger):not(:where([data-ui-button])){font-size:16px}
+ :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.text-button,button.secondary,button.primary,button.choice):not(:where([data-ui-button])){min-height:44px}
+ .control-shell .header-actions :is(.primary,.secondary):not(:where([data-ui-button])){min-height:44px}
  .control-shell .panel-heading{gap:var(--ui-space-3)}
  .control-shell :is(.payment-row,.client-row){align-items:flex-start}
  .control-shell .payment-row>strong{max-width:100%;white-space:nowrap}
@@ -354,14 +362,14 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 .control-shell :is(.payment-row,.client-row,.activity-line):focus-within{background:var(--violet-soft)}
 
 /* Controls use a quiet default with a clear, stable selection state. */
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary){background:var(--interactive);box-shadow:0 2px 8px color-mix(in srgb,var(--interactive) 18%,transparent)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary):hover:not(:disabled){background:var(--interactive-hover);box-shadow:0 5px 14px color-mix(in srgb,var(--interactive) 22%,transparent)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary){border-color:var(--border-interactive);box-shadow:var(--shadow-xs)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary):hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:var(--shadow-xs)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not(:where(.search-field input)),textarea,select,.ops-select-trigger):focus{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary):not(:where([data-ui-button])){background:var(--interactive);box-shadow:0 2px 8px color-mix(in srgb,var(--interactive) 18%,transparent)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.primary,a.primary):hover:not(:disabled):not(:where([data-ui-button])){background:var(--interactive-hover);box-shadow:0 5px 14px color-mix(in srgb,var(--interactive) 22%,transparent)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary):not(:where([data-ui-button])){border-color:var(--border-interactive);box-shadow:var(--shadow-xs)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary):hover:not(:disabled):not(:where([data-ui-button])){border-color:var(--brand-600);background:var(--violet-soft)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:not(:where([data-ui-button])){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:var(--shadow-xs)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled):not(:where([data-ui-button])){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger):not(:where([data-ui-button])){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not(:where(.search-field input)),textarea,select,.ops-select-trigger):focus:not(:where([data-ui-button])){border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
 
 
 /* Dense tables preserve headers, scan lines and keyboard-visible row context. */
@@ -379,17 +387,17 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 .control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article):hover{box-shadow:0 10px 24px rgb(37 28 41 / 8%);transform:translateY(-1px)}
 .control-shell .panel-heading{align-items:flex-start}
 .control-shell .panel-heading h2{font-size:17px;letter-spacing:-.035em}
-.control-shell :is(button.primary,a.primary){border-radius:var(--ui-radius-control)}
-.control-shell :is(button.secondary,button.choice,a.secondary,.ops-select-trigger){border-radius:var(--ui-radius-control)}
-.control-shell :is(button.icon-button,.icon-button){border-radius:var(--ui-radius-control)}
+.control-shell :is(button.primary,a.primary):not(:where([data-ui-button])){border-radius:var(--ui-radius-control)}
+.control-shell :is(button.secondary,button.choice,a.secondary,.ops-select-trigger):not(:where([data-ui-button])){border-radius:var(--ui-radius-control)}
+.control-shell :is(button.icon-button,.icon-button):not(:where([data-ui-button])){border-radius:var(--ui-radius-control)}
 .control-shell .header-actions{gap:8px}
-.control-shell .header-actions .primary{padding-inline:12px}
+.control-shell .header-actions .primary:not(:where([data-ui-button])){padding-inline:12px}
 .control-shell .page-count{padding:3px 7px;border-radius:999px;background:var(--surface-sunken);font-size:11px}
 @media(max-width:760px){
  .control-shell .panel{border-radius:12px}
  .control-shell :is(.ops-card,.project-card,.inventory-equipment,.inventory-reservation,.reports-distribution,.reports-tiles article):hover{transform:none}
 }
-html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
+html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger):not(:where([data-ui-button])){box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
 
 /* Dropdowns with a visible label keep the label above the trigger and share
    the same start alignment everywhere (toolbars, forms and dialogs). */
@@ -400,7 +408,8 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
    Editor applies returned values into sibling fields. */
 :is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-row{display:flex;align-items:center;gap:8px;min-width:0}
 :is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-row input{flex:1;min-width:0}
-:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-button{flex:none;white-space:nowrap;margin:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-button{flex:none;margin:0}
+:is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-button:not(:where([data-ui-button])){white-space:nowrap}
 :is(.control-shell,.unified-dialog,.photo-dialog) .ops-lookup-note{color:var(--success);font-weight:600}
 
 /* Canonical capsules and state chips shared by every module. Use these in new markup. */
@@ -429,25 +438,27 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
    hoja compartida para que el primitivo funcione en toda ruta, incluso fuera del shell
    (superadmin, portal). Las hojas de módulo solo afinan color, radio o densidad. */
 .ops-select{position:relative;min-width:0}
-.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;text-align:left;padding:11px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit;font-size:14px}
+.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;text-align:left}
+.ops-select-trigger:not(:where([data-ui-button])){padding:11px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit;font-size:14px}
 .ops-select-options{position:absolute;z-index:1;top:100%;left:0;right:0;max-height:210px;overflow-x:hidden;overflow-y:auto;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-md);padding:4px}
-.ops-select-options button{display:block;width:100%;text-align:left;padding:10px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text);font:inherit;font-size:13px}
-.ops-select-options button:is(:hover,:focus-visible){background:var(--ui-hover-bg);color:var(--ui-hover-text)}
-.ops-select-options button[aria-selected="true"]{background:var(--ui-selected-bg);color:var(--ui-selected-text)}
-.ops-select-options button:disabled{opacity:.55;cursor:not-allowed}
+.ops-select-options button{display:block;width:100%;text-align:left}
+.ops-select-options button:not(:where([data-ui-button])){padding:10px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text);font:inherit;font-size:13px}
+.ops-select-options button:is(:hover,:focus-visible):not(:where([data-ui-button])){background:var(--ui-hover-bg);color:var(--ui-hover-text)}
+.ops-select-options button[aria-selected="true"]:not(:where([data-ui-button])){background:var(--ui-selected-bg);color:var(--ui-selected-text)}
+.ops-select-options button:disabled:not(:where([data-ui-button])){opacity:.55;cursor:not-allowed}
 .ops-select-options>input{position:relative;z-index:1;margin:0 0 4px;min-height:36px;border-color:var(--border-subtle,var(--line));font-size:13px}
 .ops-select-options.ops-select-floating{position:fixed;top:auto;right:auto;z-index:90;overscroll-behavior:contain;scroll-padding-block:4px;touch-action:pan-y}
-.ops-select-floating button{min-height:44px}
-@media(max-width:760px){.ops-select-options>input{min-height:44px;font-size:16px}.ops-select-floating button{min-height:44px}}
+.ops-select-floating button:not(:where([data-ui-button])){min-height:44px}
+@media(max-width:760px){.ops-select-options>input{min-height:44px;font-size:16px}.ops-select-floating button:not(:where([data-ui-button])){min-height:44px}}
 
 /* Iconos de acción (editar, borrar, archivar, verificar, mover): mismo set y tamaño;
    el cursor los oscurece levemente y el clic cambia el color con tono semántico. */
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{transition:background var(--ease),border-color var(--ease),color var(--ease),filter var(--ease)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled){filter:brightness(.97)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:active:not(:disabled){color:var(--brand-700)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button.positive:active:not(:disabled){color:var(--success)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button.warn:active:not(:disabled){color:var(--warning)}
-:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button.record-remove:active:not(:disabled){color:var(--danger)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:not(:where([data-ui-button])){transition:background var(--ease),border-color var(--ease),color var(--ease),filter var(--ease)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled):not(:where([data-ui-button])){filter:brightness(.97)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:active:not(:disabled):not(:where([data-ui-button])){color:var(--brand-700)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button.positive:active:not(:disabled):not(:where([data-ui-button])){color:var(--success)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button.warn:active:not(:disabled):not(:where([data-ui-button])){color:var(--warning)}
+:is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button.record-remove:active:not(:disabled):not(:where([data-ui-button])){color:var(--danger)}
 
 /* WhatsApp: botón compartido con su icono; sin número, no se renderiza. */
 .whatsapp-button{display:inline-flex;align-items:center;gap:6px}
@@ -461,7 +472,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .bulk-hint{color:var(--text-subtle,var(--text-muted));font-weight:500}
 .bulk-actions{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;min-width:0}
 .bulk-actions::-webkit-scrollbar{display:none}
-@media(max-width:760px){.bulk-bar{min-height:44px}.bulk-actions :is(button,a){min-height:44px}}
+@media(max-width:760px){.bulk-bar{min-height:44px}.bulk-actions :is(button,a):not(:where([data-ui-button])){min-height:44px}}
 
 
 /* Cápsulas en cuadrícula (fuente única): identidad · hechos por columnas ·
@@ -572,20 +583,23 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 [data-ui-button][data-ui-color=success]{--ui-button-tone:var(--success);--ui-button-ink:var(--on-success);--ui-button-text:rgb(var(--c-ok-text));--ui-button-soft:var(--success-soft)}
 [data-ui-button][data-ui-color=warning]{--ui-button-tone:var(--warning);--ui-button-ink:var(--on-warning);--ui-button-text:rgb(var(--c-warn-text));--ui-button-soft:var(--warning-soft)}
 [data-ui-button][data-ui-color=danger]{--ui-button-tone:var(--danger);--ui-button-ink:var(--on-danger);--ui-button-text:rgb(var(--c-bad-text));--ui-button-soft:var(--danger-soft)}
-[data-ui-button][data-ui-variant=secondary]{border-color:var(--ui-field-border);background:var(--ui-button-soft);color:var(--ui-button-text)}
-[data-ui-button][data-ui-variant=outline]{border-color:var(--ui-field-border);background:transparent;color:var(--ui-button-text)}
-[data-ui-button][data-ui-variant=ghost]{background:transparent;color:var(--ui-button-text)}
-[data-ui-button]:hover:not(:disabled){box-shadow:inset 0 0 0 999px rgb(0 0 0 / 4%)}
+[data-ui-button][data-ui-variant]{border:1px solid transparent;box-shadow:none;white-space:normal;overflow-wrap:anywhere}
+[data-ui-button][data-ui-variant=primary],[data-ui-button][data-ui-variant=danger],[data-ui-button][data-ui-variant=primary]:is(:hover,:active,:focus-visible),[data-ui-button][data-ui-variant=danger]:is(:hover,:active,:focus-visible){border-color:transparent;background:var(--ui-button-tone);color:var(--ui-button-ink)}
+[data-ui-button][data-ui-variant=secondary],[data-ui-button][data-ui-variant=secondary]:is(:hover,:active,:focus-visible){border-color:var(--ui-field-border);background:var(--ui-button-soft);color:var(--ui-button-text)}
+[data-ui-button][data-ui-variant=outline],[data-ui-button][data-ui-variant=outline]:is(:hover,:active,:focus-visible){border-color:var(--ui-field-border);background:transparent;color:var(--ui-button-text)}
+[data-ui-button][data-ui-variant=ghost],[data-ui-button][data-ui-variant=ghost]:is(:hover,:active,:focus-visible){border-color:transparent;background:transparent;color:var(--ui-button-text)}
+[data-ui-button][data-ui-variant]:hover:not(:disabled){box-shadow:inset 0 0 0 999px rgb(0 0 0 / 4%)}
 [data-ui-button][data-ui-variant=ghost]:hover:not(:disabled){background:var(--ui-button-soft);box-shadow:none}
-[data-ui-button]:active:not(:disabled){box-shadow:inset 0 0 0 999px rgb(0 0 0 / 8%)}
-[data-ui-button]:focus-visible{outline:var(--ui-focus-width) solid var(--focus-ring);outline-offset:var(--ui-focus-offset)}
-[data-ui-button]:disabled{cursor:not-allowed;opacity:.55}
+[data-ui-button][data-ui-variant]:active:not(:disabled){box-shadow:inset 0 0 0 999px rgb(0 0 0 / 8%)}
+[data-ui-button][data-ui-variant]:focus-visible{outline:var(--ui-focus-width) solid var(--focus-ring);outline-offset:var(--ui-focus-offset);box-shadow:none}
+[data-ui-button][data-ui-variant]:disabled{cursor:not-allowed;opacity:.55}
+[data-ui-button][data-ui-size]{min-height:var(--ui-button-height);height:auto;border-radius:var(--ui-radius-control);font:600 13px/1.35 var(--ui-font-body)}
+[data-ui-button][data-ui-size=medium]{--ui-button-height:var(--ui-control-height);padding:8px 14px}
 [data-ui-button][data-ui-size=compact]{--ui-button-height:32px;padding:5px 10px;font-size:12px}
 [data-ui-button][data-ui-size=large]{--ui-button-height:48px;padding:10px 18px;font-size:15px}
 [data-ui-button][data-ui-full-width=true]{width:100%}
-[data-ui-icon-button]{width:var(--ui-button-height);min-width:var(--ui-button-height);height:var(--ui-button-height);padding:0}
+[data-ui-button][data-ui-icon-button]{width:var(--ui-button-height);min-width:var(--ui-button-height);height:var(--ui-button-height);padding:0}
 [data-ui-button-icon],[data-ui-button-spinner]{display:inline-flex;flex:none;align-items:center;justify-content:center}
-[data-ui-button-label]{min-width:0;overflow-wrap:anywhere}
 [data-ui-button-spinner]{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ui-button-spin 900ms linear infinite}
 @keyframes ui-button-spin{to{transform:rotate(360deg)}}
 @media(max-width:760px),(pointer:coarse){[data-ui-button][data-ui-size=compact]{--ui-button-height:44px}}

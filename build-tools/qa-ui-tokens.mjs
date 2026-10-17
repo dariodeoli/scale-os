@@ -6,13 +6,19 @@ import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
 const require=createRequire(new URL('../backend/package.json',import.meta.url));
 const puppeteer=require('puppeteer-core');
+require('tsx/cjs');const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');const {Button,IconButton}=require('../app/ui/button.tsx');
+const action=props=>renderToStaticMarkup(React.createElement(Button,props,'Guardar'));
+const canonical=action({id:'canonical',variant:'primary',color:'brand',size:'medium'});
+const compact=action({id:'compact',variant:'ghost',color:'brand',size:'compact'});
+const danger=action({id:'filled-danger',variant:'danger',color:'danger',size:'medium'});
+const picker=renderToStaticMarkup(React.createElement(IconButton,{type:'button',size:'compact',variant:'ghost',label:'Abrir calendario',icon:React.createElement('span',null,'▦')}));
 const output=resolve(process.env.QA_OUT||'/tmp/scale241-tokens-browser');await mkdir(output,{recursive:true});
 const root=resolve(new URL('..',import.meta.url).pathname);
 const sheets=['fonts.css','ui-tokens.css','globals.css','qa-fixes.css','mobile-forms.css','ui-system.css','contrast.css'];
 let css=await readFile(require.resolve('owncoding-ui/styles.css'),'utf8');
 for(const sheet of sheets)css+='\n'+(await readFile(resolve(root,'app',sheet),'utf8')).replace(/@import[^;]+;/g,'');
 css+='\n'+await readFile(process.env.QA_TAILWIND_CSS||'/tmp/scale241-tailwind.css','utf8');
-const fixture=`<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body><main class="control-shell" style="min-height:100vh;padding:16px"><section class="panel"><h1>Tokens de Scale</h1><button id="legacy" class="primary">Guardar</button><button id="canonical" data-ui-button data-ui-variant="primary" data-ui-color="brand" data-ui-size="medium"><span data-ui-button-label>Guardar</span></button><button id="compact" data-ui-button data-ui-variant="ghost" data-ui-color="brand" data-ui-size="compact">Acción</button><button id="danger" class="record-remove">Borrar</button><button id="filled-danger" data-ui-button data-ui-variant="danger" data-ui-color="danger" data-ui-size="medium">Borrar</button><span class="ui-temporal" data-ui-temporal="date"><input id="date" type="date" value="2026-10-17"><button data-ui-button data-ui-icon-button data-ui-variant="ghost" data-ui-color="brand" data-ui-size="compact" aria-label="Abrir calendario">▦</button></span><div class="search-field"><span class="search-field-box"><input id="search" placeholder="Buscar"></span></div><div class="person-sheet"><div data-sheet-tab hidden class="grid">Oculto</div></div></section></main></body></html>`;
+const fixture=`<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>${css}</style></head><body><main class="control-shell" style="min-height:100vh;padding:16px"><section class="panel"><h1>Tokens de Scale</h1><button id="legacy" class="primary">Guardar</button>${canonical}${compact}<button id="danger" class="record-remove">Borrar</button>${danger}<span class="ui-temporal" data-ui-temporal="date"><input id="date" type="date" value="2026-10-17">${picker}</span><div class="search-field"><span class="search-field-box"><input id="search" placeholder="Buscar"></span></div><div class="person-sheet"><div data-sheet-tab hidden class="grid">Oculto</div></div></section></main></body></html>`;
 // Public font assets are the only requests served; no fixture contacts an API.
 const server=createServer(async(req,res)=>{
  if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end(fixture);return;}

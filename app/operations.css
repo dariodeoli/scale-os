@@ -92,7 +92,8 @@
 .ops-form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:14px 16px; }
 .ops-form-grid>div,.ops-form-grid>label,.ops-form-grid>fieldset{min-width:0}
 .ops-form-grid>fieldset{grid-column:1 / -1}
-.ops-form-grid .choice{max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal}
+.ops-form-grid .choice{max-width:100%;min-width:0}
+.ops-form-grid .choice:not(:where([data-ui-button])){overflow-wrap:anywhere;white-space:normal}
 .ops-form-grid>.form-actions,.ops-form-grid>.dialog-actions,.ops-form-grid>.error,.ops-form-grid>.form-note,.ops-form-grid>label:has(textarea),.ops-form-grid>label:has(input[type=url]){grid-column:1 / -1}
 .ops-wide { grid-column:1 / -1; }
 .ops-profile-section { border:1px solid var(--line); border-radius:var(--radius-sm); }
@@ -101,7 +102,7 @@
 .ops-label { display:block; margin-bottom:7px; font-size:12px; font-weight:500; color:var(--text-muted); }
 /* La geometría base de SelectCustom vive en ui-system.css: esta hoja solo la afina.
    El menú conserva scroll vertical: nunca recorta opciones sin salida. */
-.ops-select-trigger:focus-visible,.ops-profile-section summary:focus-visible { outline:2px solid var(--brand-600); outline-offset:2px; }
+.ops-select-trigger:focus-visible:not(:where([data-ui-button])),.ops-profile-section summary:focus-visible { outline:2px solid var(--brand-600); outline-offset:2px; }
 .ops-job-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; max-height:210px; overflow-y:auto; }
 .ops-person-card { padding:18px; gap:10px; }
 .ops-person-card h3 { margin:0 0 4px; font-size:17px; }
@@ -138,8 +139,8 @@
   overflow-wrap: anywhere;
   margin: 12px 0 0;
 }
-.comment-composer{display:grid;gap:.55rem;margin-top:1rem}.comment-composer textarea{min-height:7rem;resize:vertical}.mention-suggestions{border:1px solid var(--line);border-radius:.75rem;background:var(--surface);box-shadow:0 8px 22px rgba(30,18,43,.12);overflow:hidden}.mention-suggestions button{display:grid;grid-template-columns:auto 1fr;gap:.55rem;align-items:center;width:100%;padding:.55rem .7rem;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}.mention-suggestions button:last-of-type{border-bottom:0}.mention-suggestions button:hover,.mention-suggestions button:focus-visible{background:var(--surface-subtle)}.mention-suggestions button>span{font-size:.8rem;color:var(--text-muted)}.mention-selected{display:flex;gap:.4rem;flex-wrap:wrap}.mention-selected>span{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .5rem;border-radius:999px;background:var(--surface-subtle);color:var(--accent);font-size:.875rem}.mention-selected button{border:0;background:transparent;color:inherit;font-size:1.1rem;line-height:1;cursor:pointer}
-.ops-dialog .choice:disabled {
+.comment-composer{display:grid;gap:.55rem;margin-top:1rem}.comment-composer textarea{min-height:7rem;resize:vertical}.mention-suggestions{border:1px solid var(--line);border-radius:.75rem;background:var(--surface);box-shadow:0 8px 22px rgba(30,18,43,.12);overflow:hidden}.mention-suggestions button{display:grid;grid-template-columns:auto 1fr;gap:.55rem;align-items:center;width:100%;text-align:left}.mention-suggestions button:not(:where([data-ui-button])){padding:.55rem .7rem;border:0;border-bottom:1px solid var(--line);background:transparent}.mention-suggestions button:last-of-type:not(:where([data-ui-button])){border-bottom:0}.mention-suggestions button:hover:not(:where([data-ui-button])),.mention-suggestions button:focus-visible:not(:where([data-ui-button])){background:var(--surface-subtle)}.mention-suggestions button>span{font-size:.8rem;color:var(--text-muted)}.mention-selected{display:flex;gap:.4rem;flex-wrap:wrap}.mention-selected>span{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .5rem;border-radius:999px;background:var(--surface-subtle);color:var(--accent);font-size:.875rem}.mention-selected button:not(:where([data-ui-button])){border:0;background:transparent;color:inherit;font-size:1.1rem;line-height:1;cursor:pointer}
+.ops-dialog .choice:disabled:not(:where([data-ui-button])) {
   opacity: 0.5;
   cursor: wait;
 }
@@ -164,7 +165,7 @@
     padding-bottom: 14px;
     margin-bottom: 20px;
   }
-  .mobile-nav button {
+  .mobile-nav button:not(:where([data-ui-button])) {
     white-space: nowrap;
   }
   .ops-dialog {
@@ -187,10 +188,10 @@
 .ops-profile-section{border-color:var(--border-subtle);background:var(--surface-raised);overflow:hidden}
 .ops-profile-section summary{background:var(--surface-sunken);transition:background var(--ease),color var(--ease)}
 .ops-profile-section summary:hover{background:var(--violet-soft);color:var(--brand-700)}
-.ops-select-trigger{border-color:var(--border-interactive);box-shadow:var(--shadow-xs);transition:border-color var(--ease),box-shadow var(--ease),background var(--ease)}
-.ops-select-trigger:hover{border-color:var(--brand-600);background:var(--surface-subtle)}
+.ops-select-trigger:not(:where([data-ui-button])){border-color:var(--border-interactive);box-shadow:var(--shadow-xs);transition:border-color var(--ease),box-shadow var(--ease),background var(--ease)}
+.ops-select-trigger:hover:not(:where([data-ui-button])){border-color:var(--brand-600);background:var(--surface-subtle)}
 .ops-select-options{border-color:var(--border-subtle);background:var(--surface-raised);box-shadow:var(--shadow-card);padding:var(--ui-space-1,4px)}
-.ops-select-options button{min-height:36px;padding:8px 10px;transition:background var(--ease),color var(--ease)}
+.ops-select-options button:not(:where([data-ui-button])){min-height:36px;padding:8px 10px;transition:background var(--ease),color var(--ease)}
 .ops-comment{border-color:var(--border-subtle);background:var(--surface-sunken);box-shadow:inset 3px 0 0 color-mix(in srgb,var(--brand-600) 30%,transparent)}
 .ops-comment small{color:var(--text-subtle)}
 .ops-job-list{gap:var(--ui-space-2,8px)}
@@ -201,18 +202,19 @@
 }
 @media (max-width:760px){
  .ops-dialog{width:100%;max-height:calc(100dvh - 24px);padding:20px 16px}
- .ops-select-options button{min-height:44px}
+ .ops-select-options button:not(:where([data-ui-button])){min-height:44px}
 }
 
 /* Compact operational primitives: aligned controls, dense forms, and calm data surfaces. */
 .ops-stack{gap:12px}.ops-grid{gap:12px}.ops-card{border-radius:10px;border-color:var(--border-subtle,var(--line));background:var(--surface-raised,var(--surface));box-shadow:var(--shadow-xs);transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease)}.ops-card:hover{border-color:color-mix(in srgb,var(--brand-700) 25%,var(--border-subtle,var(--line)));box-shadow:var(--shadow-card);transform:translateY(-1px)}
-.ops-form-grid{gap:12px}.ops-form-grid label,.ops-label{gap:5px;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}.ops-form-grid :is(input,textarea,select),.ops-select-trigger{min-height:38px;border-radius:8px;background:var(--surface-raised,var(--surface));border-color:var(--border-interactive,var(--line-strong))}.ops-form-grid textarea{min-height:96px}.ops-form-grid :is(input,textarea,select):focus,.ops-select-trigger:focus-visible{border-color:var(--brand-600);box-shadow:0 0 0 3px var(--focus-halo,color-mix(in srgb,var(--brand-700) 20%,transparent))}
+.ops-form-grid{gap:12px}.ops-form-grid label,.ops-label{gap:5px;font-size:12px;font-weight:650;color:var(--text-subtle,var(--text-muted))}.ops-form-grid :is(input,textarea,select),.ops-select-trigger:not(:where([data-ui-button])){min-height:38px;border-radius:8px;background:var(--surface-raised,var(--surface));border-color:var(--border-interactive,var(--line-strong))}.ops-form-grid textarea{min-height:96px}.ops-form-grid :is(input,textarea,select):focus,.ops-select-trigger:focus-visible:not(:where([data-ui-button])){border-color:var(--brand-600);box-shadow:0 0 0 3px var(--focus-halo,color-mix(in srgb,var(--brand-700) 20%,transparent))}
 /* Selector de empresa: la fila reparte nombre y preferencia sin desbordar el diálogo. */
 .company-choice-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
-.company-choice-row>.choice{flex:1 1 12rem;min-width:0;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.company-choice-row>.choice{flex:1 1 12rem;min-width:0;text-align:left}
+.company-choice-row>.choice:not(:where([data-ui-button])){white-space:normal;overflow-wrap:anywhere}
 .company-choice-row>.text-button{flex:none}
-.ops-select{min-width:0}.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;font-size:12px;font-weight:600;text-align:left}.ops-select-options{border-radius:10px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%));overflow-x:hidden;overflow-y:auto}.ops-select-options button{min-height:36px;padding:8px 10px}
-.ops-dialog{border-radius:14px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%))}.ops-dialog .panel-heading{margin-bottom:14px}.ops-overlay{background:rgb(37 28 41 / 48%);backdrop-filter:blur(4px)}.dialog-actions,.form-actions{gap:8px;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}.dialog-actions :is(button,.primary,.secondary),.form-actions :is(button,.primary,.secondary){min-height:38px;border-radius:8px}
+.ops-select{min-width:0}.ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left}.ops-select-trigger:not(:where([data-ui-button])){padding:8px 10px;font-size:12px;font-weight:600}.ops-select-options{border-radius:10px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%));overflow-x:hidden;overflow-y:auto}.ops-select-options button:not(:where([data-ui-button])){min-height:36px;padding:8px 10px}
+.ops-dialog{border-radius:14px;border-color:var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay,0 28px 80px rgb(37 28 41 / 24%))}.ops-dialog .panel-heading{margin-bottom:14px}.ops-overlay{background:rgb(37 28 41 / 48%);backdrop-filter:blur(4px)}.dialog-actions,.form-actions{gap:8px;padding-top:12px;border-top:1px solid var(--border-subtle,var(--line))}.dialog-actions :is(button,.primary,.secondary):not(:where([data-ui-button])),.form-actions :is(button,.primary,.secondary):not(:where([data-ui-button])){min-height:38px;border-radius:8px}
 .ops-job-list,.ops-comments{gap:8px}.ops-comment{padding:12px;border-radius:10px;border-color:var(--border-subtle,var(--line));background:var(--surface-sunken,var(--surface-subtle))}.ops-person-card{padding:14px}.ops-person{gap:10px}.ops-note-preview{font-size:12px;line-height:1.45;color:var(--text-subtle,var(--text-muted))}.ops-profile-section{border-color:var(--border-subtle,var(--line));border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}.ops-profile-section>summary{min-height:42px;padding:10px 12px;font-size:13px;font-weight:700}.ops-profile-section[open]>summary{border-bottom-color:var(--border-subtle,var(--line))}
 /* Person edit dialog: photo and panel access share one row; sections keep one padded header. */
 .person-identity-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:4px;align-items:start}
@@ -227,12 +229,12 @@
 .ops-profile-section:not(:has(>summary))>h3+.form-note{padding:4px 14px 0;margin:0}
 .ops-profile-section:not(:has(>summary))>.form-stack{padding-top:10px}
 @media(max-width:640px){.person-identity-panel{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:760px){.ops-form-grid :is(input,textarea,select),.ops-select-trigger{min-height:44px}.ops-select-options button,.dialog-actions :is(button,.primary,.secondary),.form-actions :is(button,.primary,.secondary){min-height:44px}.ops-card:hover{transform:none}}
+@media(max-width:760px){.ops-form-grid :is(input,textarea,select),.ops-select-trigger:not(:where([data-ui-button])){min-height:44px}.ops-select-options button:not(:where([data-ui-button])),.dialog-actions :is(button,.primary,.secondary):not(:where([data-ui-button])),.form-actions :is(button,.primary,.secondary):not(:where([data-ui-button])){min-height:44px}.ops-card:hover{transform:none}}
 
 .commission-hub-facts,.budget-hub-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0;padding:11px 12px;border-radius:10px;background:var(--surface-sunken,var(--surface-subtle))}
 .commission-hub-facts dt,
 .commission-hub-facts dd,.budget-hub-facts dd{margin:3px 0 0;font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hub-chip.warn{border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
+.hub-chip.warn:not(:where([data-ui-button])){border-color:color-mix(in srgb,var(--warning) 26%,var(--line));background:var(--warning-soft);color:var(--warning)}
 .hub-chip.muted{font-weight:600}
 /* Tarjeta de equipo: el chip informativo largo envuelve en vez de estirar la tarjeta. */
 .team-directory-card .person-container-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
@@ -323,7 +325,7 @@
 .catalog-card{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:var(--ui-card-min-height,120px)}.catalog-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}.catalog-card-head h3{margin:0;font-size:14px;overflow-wrap:anywhere}.catalog-card-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0}.catalog-card-facts dt{margin:0;color:var(--text-subtle,var(--text-muted));font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}.catalog-card-facts dd{margin:3px 0 0;font-size:12.5px;overflow-wrap:anywhere}.catalog-card-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:auto;padding-top:8px;border-top:1px solid var(--border-subtle,var(--line))}.production-focus .work-card{padding:14px}
 /* A 768–1024 la grilla financiera de 2 columnas deja paneles de ~210 px: una sola columna. */
 @media(max-width:1024px){.control-shell .finance-grid{grid-template-columns:minmax(0,1fr)}}
-.ops-profile-section[hidden]{display:none}.ops-section-errors{color:var(--danger);font-weight:600}.form-error-summary .text-button{padding-inline:2px;font-weight:600}.ops-stepper{display:flex;align-items:center;justify-content:space-between;gap:8px}.ops-stepper>span{font-size:12px;color:var(--text-muted,var(--muted));white-space:nowrap}@media(max-width:540px){.ops-stepper>button{min-height:44px}}
+.ops-profile-section[hidden]{display:none}.ops-section-errors{color:var(--danger);font-weight:600}.form-error-summary .text-button:not(:where([data-ui-button])){padding-inline:2px;font-weight:600}.ops-stepper{display:flex;align-items:center;justify-content:space-between;gap:8px}.ops-stepper>span{font-size:12px;color:var(--text-muted,var(--muted));white-space:nowrap}@media(max-width:540px){.ops-stepper>button:not(:where([data-ui-button])){min-height:44px}}
 
 /* One semantic layout for the shared Editor and domain forms. Width follows
    the field's content, while mobile keeps a single readable column. */
