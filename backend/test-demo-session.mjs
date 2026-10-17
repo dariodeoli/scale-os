@@ -82,9 +82,9 @@ assert.equal((await c.query('select count(*)::int as n from organization_members
 const accounts=(await c.query("select balance from bank_accounts where organization_id=$1 and currency='PYG' order by id",[first])).rows;
 const pastReceipts=(await c.query("select coalesce(sum(p.amount),0)::text total from agency_payments p join agency_invoices i on i.id=p.invoice_id and i.organization_id=p.organization_id where p.organization_id=$1 and i.currency='PYG' and i.number like 'DEMO-REPORTS-V1-%'",[first])).rows[0];
 assert(BigInt(pastReceipts.total.split('.')[0])>0n,'new demo includes past receipts');
-assert.equal(BigInt(accounts[0].balance.split('.')[0]),35250000n+BigInt(pastReceipts.total.split('.')[0]),'current cash plus historical receipts reconcile exactly');
+assert.equal(BigInt(accounts[0].balance.split('.')[0]),35445000n+BigInt(pastReceipts.total.split('.')[0]),'current cash plus historical receipts reconcile exactly');
 assert.equal(Number(accounts[1].balance),1000000);
-const continental=(await c.query("select name,institution,account_number,holder_name from bank_accounts where organization_id=$1 and account_number='310056630007'",[first])).rows[0];
+const continental=(await c.query("select name,institution,account_number,holder_name from bank_accounts where organization_id=$1 and account_number='DEMO-PYG-0001'",[first])).rows[0];
 assert.equal(continental.name,'Banco Continental · Caja de ahorro en guaraníes');
 assert.equal(continental.institution,'Banco Continental');
 assert.equal(continental.holder_name,'Agencia Horizonte E.A.S.');
@@ -101,5 +101,9 @@ assert.equal((await c.query('select count(*)::int as n from organization_members
 assert.equal((await c.query('select count(*)::int as n from agency_clients where organization_id=$1',[personal])).rows[0].n,20);
 await assert.rejects(()=>demoOrganization(c,{userId:fresh,sourceId:first,demoKey:'fresh-login'}),{status:403});
 await c.query("insert into organization_members(organization_id,user_id,role,active) values($1,$2,'owner',false)",[source,fresh]);assert.equal(await privateDemoEntry(c,fresh),null);
+// A real owner returning with an old browser key receives a fresh demo after
+// expiration. The old tenant remains intact and retains its cleanup evidence.
+await c.query("update organizations set created_at=now()-interval '8 days',demo_expires_at=now()-interval '1 day' where id=$1",[first]);
+const expiredBefore=await snapshot(first),renewed=await open(users[0],'login-1');assert.notEqual(String(renewed),String(first));assert.equal(await open(users[0],'login-1'),renewed);assert.deepEqual(await snapshot(first),expiredBefore);assert.equal((await c.query("select count(*)::int as n from agency_demo_sessions where organization_id=$1 and demo_key like 'retired:%'",[first])).rows[0].n,1);
 console.log('PASS: new demos with linked categories, stage-aware assignees, 80 checklists/240 items, 2 non-overlapping future reservations; existing demos/other visitors/real data/roles/global identities unchanged; per-login reset and finance balances preserved');
 await pg.close();

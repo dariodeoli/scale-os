@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import {seedDemoReports} from './demo-reports.js';
+import {seedDemoModules} from './demo-modules.js';
 import {demoClients,demoStaff,demoPhone,demoPortrait} from './demo-identities.js';
 import {ensurePipelineStages} from './pipeline-stages.js';
 import {recordDemoEvent} from './public-analytics.js';
@@ -19,8 +20,13 @@ export async function demoOrganization(c,{userId,sourceId,demoKey}){
  if(!source)throw Object.assign(Error('No pertenecés a esa empresa'),{status:403});
  if(source.slug!==templateSlug)return sourceId;
  await c.query("select pg_advisory_xact_lock(hashtextextended($1,0))",['demo:'+demoKey+':'+userId]);
- const existing=(await c.query('select organization_id from agency_demo_sessions where demo_key=$1 and user_id=$2',[demoKey,userId])).rows[0];
- if(existing)return existing.organization_id;
+ const existing=(await c.query('select d.organization_id,o.active,o.demo_expires_at>now() as unexpired from agency_demo_sessions d join organizations o on o.id=d.organization_id where d.demo_key=$1 and d.user_id=$2',[demoKey,userId])).rows[0];
+ if(existing?.active&&existing.unexpired)return existing.organization_id;
+ if(existing){
+  // Preserve the expired tenant's cleanup evidence and edits. Rotate only its
+  // obsolete mapping so this browser can receive a new temporary fixture.
+  await c.query('update agency_demo_sessions set demo_key=$3 where demo_key=$1 and user_id=$2',[demoKey,userId,'retired:'+crypto.randomUUID()]);
+ }
  const org=(await c.query("insert into organizations(slug,name,demo_owner_user_id,demo_source_id,demo_expires_at) values($1,'Agencia Horizonte',$2,$3,now()+interval '7 days') returning id",['demo-session-'+crypto.randomUUID(),userId,sourceId])).rows[0].id;
  await c.query('insert into organization_members(organization_id,user_id,role) values($1,$2,$3)',[org,userId,source.role]);
  await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip','demo-fixture',true)",[String(userId)]);
@@ -33,13 +39,14 @@ export async function demoOrganization(c,{userId,sourceId,demoKey}){
 export async function seedPrivateDemo(c,org,userId){
  // Demo dates and report month cutoffs use the same calendar; transaction-local.
  await c.query("select set_config('TimeZone','America/Asuncion',true)");
+ const year=(await c.query("select extract(year from current_date)::text as year")).rows[0].year;
  await ensurePipelineStages(c,org);
- await c.query("insert into agency_settings(organization_id,legal_name,tax_id,address,phone,onboarding_completed) values($1,'Agencia Horizonte E.A.S.','80000000-0','Av. Mariscal López 120 · Asunción',$2,true) on conflict do nothing",[org,demoPhone(0)]);
+ await c.query("insert into agency_settings(organization_id,legal_name,tax_id,address,phone,onboarding_completed) values($1,'Agencia Horizonte E.A.S.','80000000-0','Av. Ejemplo 120 · dirección ficticia',$2,true) on conflict do nothing",[org,demoPhone(0)]);
  // Tenant-local demo identity only: never overwrite the visitor's real profile.
  await c.query("insert into agency_user_profiles(organization_id,user_id,full_name,photo_url) select $1,id,'Sebastián Benítez',$3 from users where id=$2 and is_demo_guest on conflict do nothing",[org,userId,demoPortrait('sebastian')]);
  await c.query('insert into agency_exchange_rates(organization_id,rate_date,usd_to_pyg) values($1,current_date,7500),($1,current_date-1,7480)',[org]);
  const account=[];
- for(const [name,type,currency,institution,number,holder] of [['Caja de oficina','cash','PYG','','','Agencia Horizonte E.A.S.'],['Banco Continental · Caja de ahorro en guaraníes','bank','PYG','Banco Continental','310056630007','Agencia Horizonte E.A.S.'],['Caja de ahorro en dólares','bank','USD','Banco Continental','010010000123','Agencia Horizonte E.A.S.']]){
+ for(const [name,type,currency,institution,number,holder] of [['Caja de oficina','cash','PYG','','','Agencia Horizonte E.A.S.'],['Banco Continental · Caja de ahorro en guaraníes','bank','PYG','Banco Continental','DEMO-PYG-0001','Agencia Horizonte E.A.S.'],['Caja de ahorro en dólares','bank','USD','Banco Continental','DEMO-USD-0001','Agencia Horizonte E.A.S.']]){
   account.push((await c.query('insert into bank_accounts(organization_id,name,account_type,currency,balance,custodian_user_id,holder_name,institution,account_number) values($1,$2,$3,$4,0,$5,$6,$7,$8) returning id',[org,name,type,currency,userId,holder,institution,number])).rows[0].id);
  }
  const staff=[],people=[];
@@ -80,9 +87,9 @@ export async function seedPrivateDemo(c,org,userId){
    }
   }
   await c.query("insert into agency_project_comments(organization_id,project_id,author_user_id,body) values($1,$2,$3,'Brief validado. Revisar guion y compartir enlace antes de entregar.')",[org,project,userId]);
-  const invoice=(await c.query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on,notes) values($1,$2,$3,$4,$5,current_date+$6::int,'Servicio mensual de estrategia y producción de contenidos.') returning id",[org,client,'FC-'+new Date().getFullYear()+'-'+String(i+1).padStart(4,'0'),total,currency,i===2?-10:10])).rows[0].id;
+  const invoice=(await c.query("insert into agency_invoices(organization_id,client_id,number,total,currency,due_on,notes) values($1,$2,$3,$4,$5,current_date+$6::int,'Servicio mensual de estrategia y producción de contenidos.') returning id",[org,client,'FC-'+year+'-'+String(i+1).padStart(4,'0'),total,currency,i===2?-10:10])).rows[0].id;
   if(i!==2)await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_by_user_id,reference) values($1,$2,$3,$4,$5,'Cobro del servicio mensual')",[org,invoice,currency==='USD'?account[2]:account[0],i===1?total:total/2,userId]);
-  const budget=(await c.query("insert into agency_budgets(organization_id,client_id,number,title,currency,subtotal,total,status,valid_until,notes) values($1,$2,$3,$4,$5,$6,$7,'draft',current_date+15,'Incluye planificación, producción y revisión. Vigencia de 15 días.') returning id",[org,client,'PRES-'+new Date().getFullYear()+'-'+String(i+1).padStart(4,'0'),'Plan mensual '+names[i],currency,total/1.1,total])).rows[0].id;
+  const budget=(await c.query("insert into agency_budgets(organization_id,client_id,number,title,currency,subtotal,total,status,valid_until,notes) values($1,$2,$3,$4,$5,$6,$7,'draft',current_date+15,'Incluye planificación, producción y revisión. Vigencia de 15 días.') returning id",[org,client,'PRES-'+year+'-'+String(i+1).padStart(4,'0'),'Plan mensual '+names[i],currency,total/1.1,total])).rows[0].id;
   await c.query('insert into agency_budget_items(budget_id,position,description,quantity,unit_price,total) values($1,0,$2,1,$3,$3)',[budget,'Producción de contenidos mensual',total/1.1]);
   await c.query('update agency_budgets set status=$1 where id=$2',[['draft','sent','accepted','rejected'][i%4],budget]);
   await c.query('insert into agency_leads(organization_id,name,stage,amount,currency,probability,notes,created_at) values($1,$2,$3,$4,$5,$6,$7,now()-$8::int*interval \'1 day\')',[org,'Prospecto '+names[i],['lead','contacted','proposal','negotiation','won'][i%5],total,currency,10+(i%5)*20,'Seguimiento de propuesta de gestión mensual de contenidos.',i%14]);
@@ -126,6 +133,7 @@ export async function seedPrivateDemo(c,org,userId){
  await c.query("insert into agency_internal_tasks(organization_id,title,description) values($1,'Preparar reunión de equipo','Revisar entregas de la semana, bloqueos y agenda de grabación.')",[org]);
  const archived=(await c.query("insert into agency_inventory(organization_id,name,category,category_id,value,storage_shelf,storage_row,notes) values($1,'Trípode de estudio','Accesorio',$2,150000,'Revisión técnica','1','Retirado del inventario activo; pendiente de revisión técnica.') returning id",[org,categories.get('Accesorio')])).rows[0].id;
  await c.query("insert into agency_archived_records(organization_id,kind,record_id,removed_by) values($1,'inventory',$2,$3)",[org,archived,userId]);
+ await seedDemoModules(c,{organizationId:org,userId});
  await seedDemoReports(c,{organizationId:org,userId});
  // Rolling history includes the current and previous month, never fixed calendar dates.
  for(let day=0;day<60;day++)for(const [name,count]of [['page_view',day<30?18+(day%8):9+(day%5)],['mobile_view',day<30?10:5],['whatsapp_click',day%3+1]]){
