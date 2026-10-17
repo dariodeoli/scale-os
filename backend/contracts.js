@@ -1,4 +1,6 @@
 import {roleCan} from './permissions.js';
+import {fillContractCommercial} from './contract-commercial.js';
+import {BUILTIN_CONTRACT_MODELS} from './contract-models.js';
 import {assertRecordAvailable,visibleRecord} from './record-lifecycle.js';
 import {fail,text,id,optId} from './suite-validation.js';
 import {renderBudgetPdf} from './budget-document.js';
@@ -10,8 +12,10 @@ export const CONTRACT_VARIABLES=[
  'company.name','company.legal_name','company.tax_id','company.address','company.city','company.department','company.phone',
  'company.legal_representative_name','company.legal_representative_document','company.legal_representative_role',
  'counterparty.name','counterparty.legal_name','counterparty.tax_id','counterparty.address','counterparty.city','counterparty.department',
- 'counterparty.legal_representative_name','counterparty.legal_representative_document','counterparty.email','counterparty.phone',
+ 'counterparty.legal_representative_name','counterparty.legal_representative_document','counterparty.legal_representative_role','counterparty.email','counterparty.phone',
+ 'counterparty.document_type','counterparty.document','counterparty.document_number','counterparty.party_type','counterparty.signer_name','counterparty.signer_document',
  'bank.institution','bank.account_number','bank.holder_name','bank.currency','agreement.type','agreement.amount','agreement.currency','agreement.starts_on','agreement.ends_on',
+ ...['signed_on','signing_city','title','scope','deliverables','exclusions','payment_terms','delivery_terms','renewal_terms','cancellation_terms','corrections_terms','client_obligations','intellectual_property','portfolio_terms','confidentiality_terms','jurisdiction','amount_in_words','tax_terms','plan_name','notes'].map(key=>'agreement.'+key),
 ];
 const bankKeys=CONTRACT_VARIABLES.filter(k=>k.startsWith('bank.'));
 const hasBank=(body,variables)=>bankKeys.some(k=>Object.hasOwn(variables,k)&&variables[k]!=='')||/\{\{\s*bank\./.test(body);
@@ -38,15 +42,35 @@ function hydrate(row){if(!row)return row;for(const key of ['variables','sources'
 async function audit(c,u,type,key,action,rev){await c.query('insert into agency_contract_audit(organization_id,actor_user_id,entity_type,entity_id,action,revision) values($1,$2,$3,$4,$5,$6)',[u.organization_id,u.id,type,String(key),action,rev??null]);}
 async function owned(c,table,key,u){const row=hydrate((await c.query(`select * from ${table} where id=$1 and organization_id=$2 for update`,[id(key),u.organization_id])).rows[0]);if(!row)fail('Documento no encontrado',404);return row;}
 async function fill(c,u,b){
- const variables={},sources={};const put=(key,value,source,record_id,verified_at)=>{if(value!=null&&String(value).trim()){variables[key]=String(value);sources[key]={source,...(record_id?{record_id:String(record_id)}:{}),...(verified_at?{verified_at:String(verified_at)}:{})};}};
+ const variables={},sources={};const put=(key,value,source,record_id,verified_at)=>{if(value!=null&&String(value).trim()){variables[key]=clean(String(value),4000);sources[key]={source,...(record_id?{record_id:String(record_id)}:{}),...(verified_at?{verified_at:String(verified_at)}:{})};}};
  const settings=(await c.query('select o.name,s.legal_name,s.tax_id,s.address,s.phone from organizations o left join agency_settings s on s.organization_id=o.id where o.id=$1',[u.organization_id])).rows[0]||{};
  for(const [key,value] of Object.entries(settings))put('company.'+key,value,'company-profile',u.organization_id);
+ if(!String(settings.legal_name??'').trim())put('company.legal_name',settings.name,'company-profile',u.organization_id);
  const profile=(await c.query('select * from agency_company_legal_profiles where organization_id=$1',[u.organization_id])).rows[0];
  if(profile)for(const key of ['city','department','legal_representative_name','legal_representative_document','legal_representative_role'])put('company.'+key,profile[key],parse(profile.provenance)?.[key]?.source||'manual',u.organization_id);
  if(b.client_id&&b.collaborator_id)fail('Elegí una sola contraparte');
- if(b.client_id){const row=await owned(c,'agency_clients',b.client_id,u);await assertRecordAvailable(c,'agency_clients',row);if(row.active===false)fail('El cliente está inactivo',409);for(const key of ['name','legal_name','tax_id','email','phone'])put('counterparty.'+key,row[key],'client',row.id);if(!String(row.legal_name??'').trim()&&row.ruc_legal_name)put('counterparty.legal_name',row.ruc_legal_name,row.ruc_source||'ruc-provider',row.id,row.ruc_refreshed_at);}
+ if(b.client_id){
+  const row=await owned(c,'agency_clients',b.client_id,u);await assertRecordAvailable(c,'agency_clients',row);if(row.active===false)fail('El cliente está inactivo',409);
+  for(const key of ['name','legal_name','tax_id','email','phone','address','city','department','document_type','document_number','party_type','legal_representative_name','legal_representative_document','legal_representative_role'])put('counterparty.'+key,row[key],'client',row.id);
+  put('counterparty.document_type',({ci:'CI',ruc:'RUC',passport:'Pasaporte',other:'Documento'})[row.document_type], 'client',row.id);
+  const partyDocument=row.document_number||(!row.document_type||row.document_type==='ruc'?row.tax_id:'');
+  put('counterparty.document',partyDocument,'client',row.id);
+  if(!row.document_type&&row.tax_id&&!row.document_number)put('counterparty.document_type','RUC','client',row.id);
+  if(!String(row.legal_name??'').trim()){
+   if(row.ruc_legal_name)put('counterparty.legal_name',row.ruc_legal_name,row.ruc_source||'ruc-provider',row.id,row.ruc_refreshed_at);
+   else put('counterparty.legal_name',row.name,'client',row.id);
+  }
+  if(row.party_type==='person'){
+   put('counterparty.signer_name',variables['counterparty.legal_name'],'client',row.id);
+   put('counterparty.signer_document',partyDocument,'client',row.id);
+  }else if(row.party_type==='company'){
+   put('counterparty.signer_name',row.legal_representative_name,'client',row.id);
+   put('counterparty.signer_document',row.legal_representative_document,'client',row.id);
+  }
+ }
  if(b.collaborator_id){const row=await owned(c,'agency_collaborators',b.collaborator_id,u);await assertRecordAvailable(c,'agency_collaborators',row);if(row.active===false)fail('El colaborador está inactivo',409);put('counterparty.name',row.full_name,'collaborator',row.id);put('counterparty.email',row.email,'collaborator',row.id);}
  if(b.bank_account_id){if(!bankAccess(u)||!roleCan(u,'finance.view'))fail('Sin permiso para seleccionar cuentas bancarias',403);const row=await owned(c,'bank_accounts',b.bank_account_id,u);if(!row.active)fail('Cuenta bancaria inactiva');for(const key of ['institution','account_number','holder_name','currency'])put('bank.'+key,row[key],'bank-account',row.id);}
+ await fillContractCommercial(c,u,b,put);
  return {variables,sources,missing:[]};
 }
 export function contractAiMetadata(contract){
@@ -75,8 +99,12 @@ export async function contracts({req,res,url,db,session,body,send,pdfRenderer=re
     const row=(await c.query('insert into agency_company_legal_profiles(organization_id,city,department,legal_representative_name,legal_representative_document,legal_representative_role,provenance,revision,updated_by) values($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9) on conflict(organization_id) do update set city=excluded.city,department=excluded.department,legal_representative_name=excluded.legal_representative_name,legal_representative_document=excluded.legal_representative_document,legal_representative_role=excluded.legal_representative_role,provenance=excluded.provenance,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=now() returning *',[u.organization_id,...values,JSON.stringify(provenance),old.revision+1,u.id])).rows[0];result={profile:hydrate(row)};await audit(c,u,'company-profile',u.organization_id,'update',row.revision);
    }else fail('Método no permitido',405);
   }else if(path==='/api/agency/contracts/config'&&req.method==='GET'){
-   const manage=roleCan(u,'contracts.manage'),bank=bankAccess(u)&&roleCan(u,'finance.view');
-   result={capabilities:{view:true,create:manage,edit:manage,templates_manage:manage,issue:roleCan(u,'contracts.issue'),bank_data_view:bankAccess(u),assist:manage&&Boolean(iaConfig())},clients:manage?(await c.query(`select r.id,r.name from agency_clients r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','clients')} order by r.name`,[u.organization_id])).rows:[],collaborators:manage?(await c.query(`select r.id,r.full_name as name from agency_collaborators r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','collaborators')} order by r.full_name`,[u.organization_id])).rows:[],bank_accounts:manage&&bank?(await c.query('select id,name from bank_accounts where organization_id=$1 and active=true order by name',[u.organization_id])).rows:[]};
+   const manage=roleCan(u,'contracts.manage'),bank=bankAccess(u)&&roleCan(u,'finance.view'),commercial=manage&&roleCan(u,'budgets.manage');
+   result={capabilities:{view:true,create:manage,edit:manage,templates_manage:manage,issue:roleCan(u,'contracts.issue'),bank_data_view:bankAccess(u),assist:manage&&Boolean(iaConfig())},clients:manage?(await c.query(`select r.id,r.name from agency_clients r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','clients')} order by r.name`,[u.organization_id])).rows:[],collaborators:manage?(await c.query(`select r.id,r.full_name as name from agency_collaborators r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','collaborators')} order by r.full_name`,[u.organization_id])).rows:[],budgets:commercial?(await c.query(`select r.id,r.title as name,r.client_id from agency_budgets r join agency_clients cl on cl.id=r.client_id and cl.organization_id=r.organization_id where r.organization_id=$1 and r.status not in ('rejected','expired') and cl.active=true and ${visibleRecord('r','budgets')} and ${visibleRecord('cl','clients')} order by r.id desc`,[u.organization_id])).rows:[],plans:commercial?(await c.query(`select r.id,r.name from agency_plans r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','plans')} order by r.name`,[u.organization_id])).rows:[],bank_accounts:manage&&bank?(await c.query('select id,name from bank_accounts where organization_id=$1 and active=true order by name',[u.organization_id])).rows:[]};
+  }else if(path==='/api/agency/contracts/models'&&req.method==='GET'){result={models:BUILTIN_CONTRACT_MODELS};}
+  else if(path==='/api/agency/contracts/templates/from-model'&&req.method==='POST'){
+   const b=object(await body(req)),model=BUILTIN_CONTRACT_MODELS.find(model=>model.key===b.model_key);if(!model)fail('Modelo no encontrado',404);
+   const row=(await c.query('insert into agency_contract_templates(organization_id,name,agreement_type,body,required_fields,created_by) values($1,$2,$3,$4,$5::jsonb,$6) returning *',[u.organization_id,clean(model.name,160),clean(model.agreement_type,120),contractBody(model.body),JSON.stringify(required(model.required_fields)),u.id])).rows[0];result={template:hydrate(row)};status=201;await audit(c,u,'template',row.id,'create',1);
   }else if(path==='/api/agency/contracts/autofill'&&req.method==='POST'){result=await fill(c,u,object(await body(req)));}
   else if(path==='/api/agency/contracts/templates'){
    if(req.method==='GET')result={templates:(await c.query('select * from agency_contract_templates where organization_id=$1 order by id desc',[u.organization_id])).rows.map(hydrate),variables:CONTRACT_VARIABLES};
