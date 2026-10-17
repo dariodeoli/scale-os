@@ -5,7 +5,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 const require=createRequire(new URL('../backend/package.json',import.meta.url)),puppeteer=require('puppeteer-core');
 const url=process.env.SCALE_CATALOG_URL||'http://127.0.0.1:3013/biblioteca-ui';
 assert(['127.0.0.1','localhost'].includes(new URL(url).hostname),'catalog QA must use a local server');
-const output=new URL('../docs/qa/ui-catalog-241/',import.meta.url);await mkdir(output,{recursive:true});
+const output=process.env.SCALE_CATALOG_OUTPUT?new URL(process.env.SCALE_CATALOG_OUTPUT.endsWith('/')?process.env.SCALE_CATALOG_OUTPUT:process.env.SCALE_CATALOG_OUTPUT+'/',`file://${process.cwd()}/`):new URL('../docs/qa/ui-catalog-241/',import.meta.url);await mkdir(output,{recursive:true});
 const browser=await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 const checks=[],errors=[],apiRequests=[],externalRequests=[],styleSamples=[];
 const check=(value,message)=>{assert(value,message);checks.push(message);};

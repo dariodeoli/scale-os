@@ -57,3 +57,30 @@ test('UI dependency SCCs find indirect and self cycles without rejecting old bus
  assert.deepEqual(codes({'app/ui/a.ts':"import type {B} from './b'",'app/ui/b.ts':"import './a'"}),[],'type-only edges cannot create runtime cycles');
  assert.deepEqual(codes({'app/ui/a.ts':"import {type B} from './b'",'app/ui/b.ts':"import './a'"}),[],'specifier-level type imports cannot create runtime cycles');
 });
+
+
+test('numeric package facades allow only declared symbols from exact subpaths',()=>{
+ assert.deepEqual(audit({
+  'app/ui/input.tsx':"export {InputBase, TextareaBase} from 'owncoding-ui/numeric'; export type {InputBaseProps} from 'owncoding-ui/numeric';",
+  'app/ui/number.tsx':"export {NumericControl, NumberInput, PercentageInput} from 'owncoding-ui/numeric'; export {numberInputProblem, numberInputValid, nativeNumberSettings} from 'owncoding-ui/number-utils';",
+ }),[]);
+ for(const symbol of ['InputBase','TextareaBase','NumericControl','NumberInput','PercentageInput'])for(const source of ['owncoding-ui','owncoding-ui/numeric','owncoding-ui/number-utils','owncoding-ui/numeric/deeper']){
+  assert.ok(codes({'app/consumer.tsx':`import {${symbol} as Alias} from '${source}'`}).includes('external-primitive'),`${symbol}/${source}`);
+ }
+ for(const [file,source]of [
+  ['app/ui/input.tsx',"export {InputBase} from 'owncoding-ui'"],
+  ['app/ui/input.tsx',"export {InputBase} from 'owncoding-ui/number-utils'"],
+  ['app/ui/input.tsx',"export {NumberInput} from 'owncoding-ui/numeric'"],
+  ['app/ui/number.tsx',"export {NumberInput as Alias} from 'owncoding-ui'"],
+  ['app/ui/number.tsx',"export {NumericControl} from 'owncoding-ui/numeric/deeper'"],
+  ['app/ui/number.tsx',"export {InputBase} from 'owncoding-ui/numeric'"],
+  ['app/ui/number.tsx',"export {numberInputProblem} from 'owncoding-ui/numeric'"],
+  ['app/ui/number.tsx',"export {Button} from 'owncoding-ui/numeric'"],
+  ['app/ui/number.tsx',"export {ImaginaryComponent} from 'owncoding-ui/numeric'"],
+  ['app/ui/number.tsx',"export {ImaginaryComponent} from 'owncoding-ui/numeric/deeper'"],
+  ['app/ui/number.tsx',"export {inventedValidator} from 'owncoding-ui/number-utils'"],
+ ])assert.ok(codes({[file]:source}).includes('external-primitive'),source);
+ for(const source of ['owncoding-ui/numeric','owncoding-ui/number-utils'])for(const text of [
+  `import * as all from '${source}'`, `import all from '${source}'`, `export * from '${source}'`, `const all=await import('${source}')`, `const all=require('${source}')`,
+ ])assert.ok(codes({'app/consumer.tsx':text}).includes('opaque-owncoding-import'),text);
+});

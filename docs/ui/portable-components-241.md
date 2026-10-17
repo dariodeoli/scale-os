@@ -2,6 +2,8 @@
 
 Estado: propuesta documental sobre Scale `17353f58`. No publica paquetes ni cambia componentes, imports, dependencias, estilos o contratos. La inspección de repositorio/código externo queda suspendida hasta que el coordinador confirme la regresión completa y revise los primeros hallazgos de QA. No se afirma que exista una API compatible en OwnCoding UI: todavía no se comprobó en esta fase.
 
+Actualización posterior: el piloto fue publicado como OwnCoding UI v0.68.17 y consumido sin motor duplicado en Scale. La evidencia y el pin reproducible están en [el informe del consumidor](../qa/numeric-package-consumer-241/README.md); el mapa y plan siguientes conservan la evaluación previa.
+
 La aplicación ya cuenta con entrada pública `app/ui/index.ts` y catálogo `/biblioteca-ui`. Que un símbolo aparezca en esa entrada no significa que sea un componente genérico listo para publicar.
 
 ## Mapa interno
@@ -63,7 +65,7 @@ type PercentageInputProps = Omit<NumberInputProps, 'policy'> & {
   policy: PercentagePolicy;
 };
 
-numberInputProblem(value: string, policy: NumberPolicy, rules: NumberRules): string;
+numberInputProblem(value: string, policy: NumberPolicy, rules?: NumberRules): string;
 numberInputValid(value: string, policy: NumberPolicy, rules?: NumberRules): boolean;
 nativeNumberSettings(props: {
   step?: string | number;
@@ -72,7 +74,7 @@ nativeNumberSettings(props: {
 }): {policy: NumberPolicy; step: string | number};
 ```
 
-`numberInputProblem` actualmente recibe rules de forma obligatoria; no agregar un valor por defecto al trasladarlo como si ya existiera. Los tres componentes usan forwardRef de HTMLInputElement. NumericControl hereda value/defaultValue/onChange y atributos nativos desde InputBaseProps; las fachadas NumberInput/PercentageInput son controladas y entregan string.
+La fuente de Scale `11affc1c` implementa `numberInputProblem` con `rules = {}`; ese default es parte del contrato y se acredita con un vector sin tercer argumento. Los tres componentes usan forwardRef de HTMLInputElement. NumericControl hereda value/defaultValue/onChange y atributos nativos desde InputBaseProps; las fachadas NumberInput/PercentageInput son controladas y entregan string.
 
 ### Invariantes de edición y formularios
 
