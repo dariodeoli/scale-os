@@ -5,6 +5,8 @@ import {fail,id} from './suite-validation.js';
 const parse=value=>typeof value==='string'?JSON.parse(value):value;
 const listing=value=>(parse(value)||[]).map(item=>typeof item==='string'?item:`${item.quantity ?? 1} × ${item.description ?? ''}`).join('\n');
 const date=value=>value instanceof Date?value.toISOString().slice(0,10):String(value??'').slice(0,10);
+const decimal=value=>['string','number'].includes(typeof value)&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(String(value))&&Number.isFinite(Number(value));
+const pricedItems=items=>Array.isArray(items)&&items.length>0&&items.every(item=>item&&typeof item==='object'&&!Array.isArray(item)&&decimal(item.quantity)&&Number(item.quantity)>0&&decimal(item.unitPrice??item.unit_price)&&Number(item.unitPrice??item.unit_price)>=0);
 
 // Commercial amounts remain decimal strings. PostgreSQL does the arithmetic;
 // no binary floating point or integer rounding enters a legal snapshot.
@@ -14,7 +16,7 @@ export async function fillContractCommercial(c,u,b,put){
  if(!roleCan(u,'budgets.manage'))fail('Sin permiso para presupuestos y planes',403);
  if(b.collaborator_id)fail('Un presupuesto o plan requiere una contraparte cliente');
  const table=b.budget_id?'agency_budgets':'agency_plans',key=id(b.budget_id||b.plan_id);
- const row=(await c.query(`select * from ${table} where id=$1 and organization_id=$2 for update`,[key,u.organization_id])).rows[0];
+ const row=(await c.query(`select *${b.budget_id?',(tax_rate*100)::text as contract_tax_percentage':''} from ${table} where id=$1 and organization_id=$2 for update`,[key,u.organization_id])).rows[0];
  if(!row)fail('Origen comercial no encontrado',404);
  await assertRecordAvailable(c,table,row);
  if(row.active===false)fail('El plan está inactivo',409);
@@ -25,14 +27,18 @@ export async function fillContractCommercial(c,u,b,put){
   putBudget('title',row.title);putBudget('scope',row.title);putBudget('amount',row.total);putBudget('currency',row.currency);putBudget('notes',row.notes);
   const items=(await c.query('select description,quantity from agency_budget_items where budget_id=$1 order by position',[row.id])).rows;
   putBudget('deliverables',listing(items));
-  putBudget('tax_terms',`IVA ${String(Number(row.tax_rate)*100)}%; total del presupuesto con impuestos incluidos.`);
+  const taxPercentage=row.contract_tax_percentage.replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+  putBudget('tax_terms',`IVA ${taxPercentage}%; total del presupuesto con impuestos incluidos.`);
   // valid_until is quotation validity, never the service's end date.
   return;
  }
  const putPlan=(key,value)=>put('agreement.'+key,value,'plan',row.id);
  putPlan('plan_name',row.name);putPlan('scope',row.name);putPlan('currency',row.currency);putPlan('notes',row.notes);putPlan('deliverables',listing(row.items));
- const amount=(await c.query(`select coalesce(sum(round((item->>'quantity')::numeric*coalesce(item->>'unitPrice',item->>'unit_price')::numeric,2)),0)::text as amount from jsonb_array_elements($1::jsonb) item`,[JSON.stringify(parse(row.items)||[])])).rows[0].amount;
- putPlan('amount',amount);
+ const items=parse(row.items);
+ if(pricedItems(items)){
+  const amount=(await c.query(`select sum(round((item->>'quantity')::numeric*coalesce(item->>'unitPrice',item->>'unit_price')::numeric,2))::text as amount from jsonb_array_elements($1::jsonb) item`,[JSON.stringify(items)])).rows[0].amount;
+  putPlan('amount',amount);
+ }
  // The selected client's negotiated terms are more sensitive than catalog
  // prices. Respect their independent permission and match the actual plan ID.
  if(!b.client_id||!roleCan(u,'commercial-terms.manage'))return;
