@@ -1,4 +1,6 @@
 "use client";
+import {validateMonth} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl as Input} from './ui/input-control';
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
@@ -47,7 +49,7 @@ const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>butt
 
 export function FinancialForecast({role,organizationId,navigate,onCreateInvoice}:{role:string;organizationId:string|number;navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {return ['owner','admin','finance'].includes(role)?<ForecastPanel key={String(organizationId)} navigate={navigate} onCreateInvoice={onCreateInvoice}/>:null;}
 function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {
- const [month,setMonth]=useState(()=>currentForecastMonth()),[horizon,setHorizon]=useState<Horizon>('1');
+ const [month,,monthDraft,setMonthDraft]=useTemporalFilter(currentForecastMonth,value=>validateMonth(value)&&value>='1900-01'&&value<='9998-12'?value:null),[horizon,setHorizon]=useState<Horizon>('1');
  const {data,error,reload,version,setError:setForecastError}=useForecast(month,horizon);
  const {accounts,expenses:realExpenses,error:realError,setError:setRealError}=useRealExpenses(month,data);
  const {payload:plannedExpenses,error:plannedError,reload:reloadPlanned}=usePlannedExpenses(month,data);
@@ -89,7 +91,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
   toolbar={<FilterToolbar className="mb-0">
    <div className="grid min-w-0 gap-1">
     <Label htmlFor="forecast-month" className="sr-only">Mes</Label>
-    <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/>
+    <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={monthDraft} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>setMonthDraft((event.target as HTMLInputElement).value)}/>
    </div>
    <SegmentedField className="[&>button]:min-h-11 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
   </FilterToolbar>}

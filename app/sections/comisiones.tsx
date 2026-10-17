@@ -1,4 +1,6 @@
 "use client";
+import {validateMonth} from '../ui/temporal-value';
+import {useTemporalFilter} from '../use-temporal-filter';
 import {InputControl as Input} from '../ui/input-control';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Plus, Undo2} from 'lucide-react';
@@ -57,7 +59,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const role = user?.role || 'viewer';
   const canManage = roleCan(role, 'commissions.manage');
   const canSeePayouts = roleCan(role, 'finance.view');
-  const [month, setMonth] = useState(currentForecastMonth);
+  const [month,,monthDraft,setMonthDraft]=useTemporalFilter(currentForecastMonth,value=>validateMonth(value)&&value>='1900-01'&&value<='9998-12'?value:null);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [monthly, setMonthly] = useState<MonthlyCommission[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
@@ -211,7 +213,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
       <div hidden={section!=='liquidacion'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Liquidación del mes">
         <p className="m-0 min-w-0 truncate text-xs text-mute" title="Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.">Esperado: acuerdos vigentes. Registrado, aprobado, pagado y pendiente: comisiones del mes según la factura vinculada.</p>
         <FilterToolbar className="mb-0">
-          <FormField label="Mes" htmlFor="commissions-month"><Input id="commissions-month" type="month" className="w-44" value={month} min="1900-01" max="9998-12" onChange={(event: React.ChangeEvent<HTMLInputElement>) => { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)) setMonth(event.target.value); }}/></FormField>
+          <FormField label="Mes" htmlFor="commissions-month"><Input id="commissions-month" type="month" className="w-44" value={monthDraft} min="1900-01" max="9998-12" onChange={(event: React.ChangeEvent<HTMLInputElement>) => setMonthDraft(event.target.value)}/></FormField>
         </FilterToolbar>
         {monthly.length
           ? <ListGrid label="Comisiones del mes por colaborador" template={SETTLEMENT_TEMPLATE} columns={SETTLEMENT_COLUMNS} minWidthClass="min-w-[55rem]">

@@ -30,6 +30,9 @@ async function mount(role:string){await act(async()=>{renderer=create(<WeeklyAut
 async function main(){
  // AR-3 team scope: per-collaborator rows with finished counts by type, orders and per-project lines.
  await mount('owner');
+ const beforeRaw=requests.length;
+ for(const raw of ['', '2026-', '2026-02-30']){await act(async()=>renderer.root.findAllByProps({type:'date'})[0].props.onChange({target:{value:raw}}));assert.equal(renderer.root.findAllByProps({type:'date'})[0].props.value,raw);assert.equal(requests.length,beforeRaw,'partial/impossible week never queries');}
+ await act(async()=>renderer.root.findAllByProps({type:'date'})[0].props.onChange({target:{value:'2026-09-24'}}));assert.match(requests.at(-1)!.path,/week=2026-09-21/,'complete Thursday queries Monday with unchanged UTC policy');assert.equal(renderer.root.findAllByProps({type:'date'})[0].props.value,'2026-09-24');
  assert.match(requests[0].path,/^\/core-api\/api\/agency\/weekly-reports\?week=\d{4}-\d{2}-\d{2}&scope=team$/);
  assert.match(text(renderer),/Ana López/);assert.match(text(renderer),/Bruno/);
  const teamRows=renderer.root.findAllByType('tbody').at(-1)!.findAllByType('tr');
@@ -46,7 +49,7 @@ async function main(){
  assert.match(text(renderer),/Sin horas/,'read-only section states no hours');
  assert.doesNotMatch(text(renderer),/Horas declaradas|declared_hours|Horas de trabajo/,'no hour fields render');
  // Week picker snaps to the Monday of the chosen week.
- await act(async()=>renderer.root.findAllByType('input').find(i=>i.props.type==='date')!.props.onChange({target:{value:'2026-09-24'}}));
+ await act(async()=>renderer.root.findAllByProps({type:'date'})[0].props.onChange({target:{value:'2026-09-24'}}));
  assert.match(requests.at(-1)!.path,/week=2026-09-21&scope=team$/,'any picked day is normalized to its Monday');
  renderer.unmount();
  // Own scope: single row for the viewing collaborator.
@@ -74,7 +77,7 @@ async function main(){
  await mount('owner');
  assert.match(text(renderer),/No se pudo cargar la producción semanal/);
  mode='ok';
- await act(async()=>renderer.root.findByType('button').props.onClick());
+ await act(async()=>renderer.root.findAllByType('button').find(button=>instanceText(button).includes('Reintentar'))!.props.onClick());
  assert.match(text(renderer),/Ana López/,'retry reloads the automatic section');
  renderer.unmount();
   console.log('PASS: weekly automatic section renders audit-derived type counts per collaborator, orders and per-project lines, own/team scope, Monday normalization, empty state, retry and no hour fields');

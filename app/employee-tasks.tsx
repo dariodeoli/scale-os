@@ -1,4 +1,6 @@
 'use client';
+import {validateCivilDate} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {PersonContainer} from './person-container';
@@ -19,7 +21,11 @@ export function EmployeeTasks(props:EmployeeTasksProps){
  return <TaskDashboard key={`${props.organizationId}:${props.userId}:${props.projectId||''}`} {...props}/>;
 }
 function TaskDashboard({projectId}:EmployeeTasksProps){
- const [context,setContext]=useState<TaskContext>(blankContext),[records,setRecords]=useState<Task[]>([]),[counts,setCounts]=useState<Record<string,number>>({}),[bucket,setBucket]=useState(projectId?'all':'today'),[assignee,setAssignee]=useState('me'),[project,setProject]=useState(projectId||''),[client,setClient]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[reload,setReload]=useState(0),[edit,setEdit]=useState<Task|'new'|null>(null),[detail,setDetail]=useState<Task|null>(null),[detailLoading,setDetailLoading]=useState(false);
+ const [context,setContext]=useState<TaskContext>(blankContext),[records,setRecords]=useState<Task[]>([]),[counts,setCounts]=useState<Record<string,number>>({}),[bucket,setBucket]=useState(projectId?'all':'today'),[assignee,setAssignee]=useState('me'),[project,setProject]=useState(projectId||''),[client,setClient]=useState(''),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[reload,setReload]=useState(0),[edit,setEdit]=useState<Task|'new'|null>(null),[detail,setDetail]=useState<Task|null>(null),[detailLoading,setDetailLoading]=useState(false);
+ const validRange=(range:{from:string;to:string})=>(!range.from||validateCivilDate(range.from))&&(!range.to||validateCivilDate(range.to))&&(!range.from||!range.to||range.from<=range.to);
+ const [range,,rangeDraft,setRangeDraft]=useTemporalFilter({from:'',to:''},value=>validRange(value)?value:null);
+ const {from,to}=range;
+ function dateFilter(key:'from'|'to',value:string){const next={...rangeDraft,[key]:value};setRangeDraft(next);if(validRange(next))setOffset(0);}
  const generation=useRef(0),mounted=useRef(true),controller=useRef<AbortController|null>(null);
  useEffect(()=>{mounted.current=true;const refresh=()=>setReload(value=>value+1);window.addEventListener(TASKS_CHANGED,refresh);return()=>{mounted.current=false;controller.current?.abort();window.removeEventListener(TASKS_CHANGED,refresh);};},[]);
  useEffect(()=>{const abort=new AbortController();taskRequest<TaskContext>('/context',undefined,'GET',abort.signal).then(value=>{if(!abort.signal.aborted&&mounted.current)setContext(value);}).catch(cause=>{if(!abort.signal.aborted)setError(message(cause));});return()=>abort.abort();},[reload]);
@@ -41,7 +47,7 @@ function TaskDashboard({projectId}:EmployeeTasksProps){
  {context.can_assign?<SelectCustom label="Empleado" value={assignee} onChange={filter(setAssignee)} choices={[{value:'me',label:'Mis tareas'},{value:'all',label:'Todo el equipo'},...context.people.map(person=>({value:String(person.id),label:person.full_name,photoUrl:person.photo_url,kind:'person' as const}))]}/>:null}
  {!projectId?<SelectCustom label="Proyecto" value={project} onChange={filter(setProject)} choices={[{value:'',label:'Todos los proyectos'},...context.projects.map(item=>({value:String(item.id),label:item.name}))]}/>:null}
  <SelectCustom label="Cliente" value={client} onChange={filter(setClient)} choices={[{value:'',label:'Todos los clientes'},...context.clients.map(item=>({value:String(item.id),label:item.name}))]}/>
- <label className="ops-label">Desde<InputControl className="ops-input" type="date" value={from} onChange={event=>filter(setFrom)(event.target.value)}/></label><label className="ops-label">Hasta<InputControl className="ops-input" type="date" value={to} min={from||undefined} onChange={event=>filter(setTo)(event.target.value)}/></label>
+ <label className="ops-label">Desde<InputControl className="ops-input" type="date" value={rangeDraft.from} onChange={event=>dateFilter('from',event.target.value)}/></label><label className="ops-label">Hasta<InputControl className="ops-input" type="date" value={rangeDraft.to} min={validateCivilDate(rangeDraft.from)?rangeDraft.from:undefined} onChange={event=>dateFilter('to',event.target.value)}/></label>
  </div></details>
  {error?<ErrorBlock title="No se pudieron cargar las tareas." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
  {loading||detailLoading?<LoadingBlock label="Cargando tareas…" lines={2}/>:null}
