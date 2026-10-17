@@ -8,3 +8,11 @@
 .search-field input:focus{border-color:transparent;box-shadow:none;outline:none}
 @media(max-width:760px){.search-field{gap:8px;font-size:14px}.search-field-box{min-height:48px;padding-inline:12px}.search-field input{min-height:46px;font-size:16px}}
 @media(prefers-reduced-motion:reduce){.search-field-box{transition:none}}
+/* #241: el botón no envía el formulario; lupa/limpiar reservan su propio ancho. */
+.search-field-clear{display:grid;place-items:center;flex:0 0 32px;width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:6px;background:transparent;color:var(--text-muted);cursor:pointer}
+.search-field-clear:hover:not(:disabled){background:var(--surface-subtle);color:var(--text)}
+.search-field-clear:focus-visible{outline:2px solid var(--focus-ring,var(--brand-600));outline-offset:1px}
+.search-field-clear:disabled{cursor:not-allowed;opacity:.55}
+.search-field input::-webkit-search-cancel-button{-webkit-appearance:none}
+.search-field-box:has(input:disabled){opacity:.65;cursor:not-allowed}
+@media(max-width:760px),(pointer:coarse){.search-field-clear{flex-basis:44px;width:44px;min-width:44px;height:44px;min-height:44px}}

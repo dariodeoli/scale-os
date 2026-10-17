@@ -3,7 +3,8 @@
 // El API no devuelve `before_state`/`after_state` (deuda registrada): solo se
 // muestran fecha, actor, acción, destino y los metadatos disponibles.
 import {useMemo, useState} from "react";
-import {SearchField, Select} from "owncoding-ui";
+import {Select} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {listDateFull} from "../list-format";
 import {EmptyBlock, FilterToolbar, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type AuditAction, type CollectionPage} from "./model";
@@ -39,7 +40,7 @@ export function PlatformAudit({audit, page, busy, onMore}: {audit: AuditAction[]
       <small className="text-[12px] leading-[1.35] text-mute">Cada operación sensible queda registrada con actor, acción y destino</small>
     </div>
     <FilterToolbar summary={`${visible.length} de ${audit.length}`}>
-      <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar en la auditoría" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Actor, acción o destino"/>
+      <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" ariaLabel="Buscar en la auditoría" value={query} onChange={value=> setQuery(value)} placeholder="Actor, acción o destino"/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Acción
         <Select aria-label="Filtrar por acción" value={action} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setAction(event.target.value)} className="min-w-[13rem]">

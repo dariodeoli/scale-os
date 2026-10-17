@@ -4,7 +4,7 @@ import {api,Editor} from './operations';
 import {teamRoleLabels} from './team-directory';
 import {dueTone,listDateShort} from './list-format';
 import {Copy,Link2,Trash2,UserCheck,X} from 'lucide-react';
-import {SearchField} from 'owncoding-ui';
+import {SearchField} from './search-field';
 import {notify} from './feedback';
 import {ActorIdentity} from './actor-identity';
 import {EmptyBlock,ErrorBlock,FilterToolbar,Kpi,KpiStrip,ListGrid,ListPage,ListRow,LoadingBlock,StateChip} from './ui-v2';
@@ -44,7 +44,7 @@ export function InviteLinks({role}:{role:string}){
  const pending=requests.filter(request=>request.status==='pending').length;
  return <ListPage aria-label="Invitaciones y solicitudes"
   toolbar={!loading&&(requests.length||links.length)?<FilterToolbar className="mb-0" summary={`${shownRequests.length} solicitud${shownRequests.length===1?'':'es'} · ${shownLinks.length} enlace${shownLinks.length===1?'':'s'}`}>
-   <SearchField className="w-full sm:w-72" ariaLabel="Buscar solicitudes y enlaces" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Persona, correo, permiso o autor…"/>
+   <SearchField className="w-full sm:w-72" ariaLabel="Buscar solicitudes y enlaces" value={query} onChange={value=>setQuery(value)} placeholder="Persona, correo, permiso o autor…"/>
   </FilterToolbar>:undefined}
   kpis={<KpiStrip>
    <Kpi label="Solicitudes pendientes" valor={pending} hint="Esperan aprobación o rechazo" destacado/>

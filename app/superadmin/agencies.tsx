@@ -2,7 +2,8 @@
 // Agencias y suscripciones del panel global (#102): toolbar única (búsqueda +
 // estado + contador) y lista densa con tarjetas cuando la plantilla no entra.
 import {useMemo, useState} from "react";
-import {SearchField, Select} from "owncoding-ui";
+import {Select} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {dueTone, listDateShort} from "../list-format";
 import {
   EmptyBlock,
@@ -145,7 +146,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
         <small className="text-[12px] leading-[1.35] text-mute">Gestioná el acceso manual junto a cada registro</small>
       </div>
       <FilterToolbar summary={`${visible.length} de ${state.agencies.length}`}>
-        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar agencia" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Nombre o identificador"/>
+        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" ariaLabel="Buscar agencia" value={query} onChange={value=> setQuery(value)} placeholder="Nombre o identificador"/>
         <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
           Estado
           <Select aria-label="Filtrar por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value)} className="min-w-[11rem]">

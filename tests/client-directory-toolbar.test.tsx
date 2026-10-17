@@ -168,7 +168,8 @@ test("client toolbar protects touch targets and small-screen layout with the v2 
   assert.match(source, /ViewSwitch/, "el selector de vista es el wrapper v2 del objeto compartido, sin variantes");
   assert.match(source, /flex-wrap/, "los controles bajan de fila a 360 px");
   assert.match(source, /aria-label="Controles del directorio de clientes"/);
-  assert.doesNotMatch(source, /SelectCustom|ViewToggle|search-field'|search-field"/, "los objetos legados quedaron atrás; las clases de la referencia de Clientes se conservan");
+  assert.doesNotMatch(source, /SelectCustom|ViewToggle/, "select y vista conservan su contrato");
+  assert.match(source, /import \{SearchField\} from '\.\/search-field'/, "#241: búsqueda usa el canónico local con callback de texto");
   assert.match(source, /directorySummaryText/, "el resumen sale de la capa de datos del dominio");
 });
 

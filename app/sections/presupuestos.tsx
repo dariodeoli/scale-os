@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,SearchField,SegmentedField} from 'owncoding-ui';
+import {Aviso, SegmentedField} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from '../list-format';
 import {Plus,Trash2} from 'lucide-react';
@@ -175,7 +176,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
       toolbar={<FilterToolbar className="mb-0" summary={`${shown.length} de ${windowState.total ?? budgets.length}`}>
         <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar por estado" value={filters.status} onChange={(value:string)=>setFilters(current=>({...current,status:value as BudgetFilters['status']}))} options={[['','Todos'],['draft','Borradores'],['sent','Enviados'],['accepted','Aceptados'],['rejected','Rechazados'],['expired','Vencidos']]}/>
         <div className="w-full sm:w-52"><SelectCustom label="Cliente" choices={clientChoices} value={filters.client} onChange={client=>setFilters(current=>({...current,client}))}/></div>
-        <SearchField className="w-full sm:w-72" ariaLabel="Buscar presupuesto" value={filters.query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setFilters(current=>({...current,query:event.target.value}))} placeholder="Número, título o cliente…"/>
+        <SearchField className="w-full sm:w-72" ariaLabel="Buscar presupuesto" value={filters.query} onChange={value=>setFilters(current=>({...current,query:value}))} placeholder="Número, título o cliente…"/>
         {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</button>:null}
       </FilterToolbar>}
       kpis={<KpiStrip aria-label="Métricas de presupuestos">
