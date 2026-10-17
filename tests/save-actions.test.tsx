@@ -73,7 +73,21 @@ test('all five legacy workspace form footers register their own submitting state
   const pending=footers[0].attributes.properties.find((node):node is ts.JsxAttribute=>ts.isJsxAttribute(node)&&node.name.getText(file)==='pending');
   assert(pending?.initializer&&ts.isJsxExpression(pending.initializer));
   assert.equal(pending.initializer.expression?.getText(file),'submission.pending');
-  assert(form.getText(file).includes('useSingleFlightSubmit(form.handleSubmit(submit))'),'lock starts before async validation');
+  const locks:ts.CallExpression[]=[];
+  const inspect=(node:ts.Node)=>{
+   if(ts.isCallExpression(node)&&node.expression.getText(file)==='useSingleFlightSubmit')locks.push(node);
+   ts.forEachChild(node,inspect);
+  };
+  inspect(form);assert.equal(locks.length,1,`${name} has one single-flight lock`);
+  let handlesSubmit=false;
+  const inspectLocked=(node:ts.Node)=>{
+   if(ts.isCallExpression(node)&&node.expression.getText(file)==='form.handleSubmit'&&node.arguments[0]?.getText(file)==='submit'){
+    handlesSubmit=node===locks[0].arguments[0]||(ts.isCallExpression(node.parent)&&node.parent.expression===node);
+   }
+   ts.forEachChild(node,inspectLocked);
+  };
+  assert(locks[0].arguments[0]);inspectLocked(locks[0].arguments[0]);
+  assert(handlesSubmit,'async RHF validation must execute inside the single-flight callback');
   assert(form.getText(file).includes('onSubmit={submission.onSubmit}'),'native submission uses the same lock as the footer');
  }
  assert.equal((source.match(/<SaveActions\b/g)||[]).length,5);

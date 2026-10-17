@@ -4,7 +4,6 @@ import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {reportsCsv} from '../app/reports-csv';
 import type {ReportMonth,ReportsData} from '../app/reports-data';
-const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 function row(month:string):ReportMonth{return {month,isPartial:true,clients:{active:null,added:0,lost:1,retentionPercent:null,averageTenureDays:12.5,tenureKnown:2,types:[],plans:[]},financial:[
  {currency:'USD',invoiced:'9007199254740993.123400',collected:'-0.0100',invoiceCount:2,billedClients:1,averageTicket:null,averageRevenuePerClient:'0.00'},
@@ -53,6 +52,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  const originalReact=Object.getOwnPropertyDescriptor(globalThis,'React'),originalDocument=Object.getOwnPropertyDescriptor(globalThis,'document');
  const originalFetch=globalThis.fetch,originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL,originalTimeout=globalThis.setTimeout;
  const css=require.extensions['.css'];require.extensions['.css']=()=>{};
+ const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
  Object.assign(globalThis,{React});
  const {ReportsWorkspace}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
  const requests:{url:string;resolve:(response:Response)=>void}[]=[],blobs:Blob[]=[],filenames:string[]=[],revoked:string[]=[],cleanup:(()=>void)[]=[];

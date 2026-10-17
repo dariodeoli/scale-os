@@ -13,6 +13,7 @@ function mock(path:string,exports:unknown){const id=require.resolve(path);requir
 mock('../app/dialog',{Dialog:Actions,FormActions:Actions,useDialogClose:()=>insideDialog?close:undefined,useDialogPending:(value:boolean,isDirty?:boolean)=>{pending=value;dirty=Boolean(isDirty);}});
 mock('../app/profile-controls',{SelectCustom:SelectStub,AmountInput:AmountStub});
 const {Editor}=require('../app/operations') as typeof import('../app/operations');
+const {OptionsSelect}=require('../app/ui/options-select') as typeof import('../app/ui/options-select');
 const event=()=>({preventDefault(){},persist(){}});
 const submit=(r:ReactTestRenderer)=>r.root.findByType('form').props.onSubmit(event());
 const buttons=(r:ReactTestRenderer)=>r.root.findAllByType('button');
@@ -93,7 +94,8 @@ async function main(){
   await act(async()=>{r=create(<Editor fields={[{key:'phone',label:'Teléfono',type:'phone',optional:true,help:'Elegí el país'}]} defaults={{phone:''}} save={async v=>{phoneWrites.push(v);}}/>);});
   const telInput=(()=>r!.root.findAllByType('input').find(node=>node.props.inputMode==='tel'))();
   assert(telInput,'the phone field renders a tel input');
-  assert.equal(r!.root.findByType('select').props['aria-label'],'Código de país');
+  assert.equal(r!.root.findByType(OptionsSelect).props.label,'Código de país');
+  assert.equal(r!.root.findByType(OptionsSelect).props.value,'+595');
   await act(async()=>{telInput!.props.onChange({target:{value:'0981 123 456'}});});
   await act(async()=>{await submit(r!);});
   assert.equal(phoneWrites.at(-1)!.phone,'+595 981123456','typed phone keeps the country code and strips the trunk zero');
@@ -101,6 +103,11 @@ async function main(){
   await act(async()=>{await submit(r!);});
   assert.equal(phoneWrites.length,1,'an incomplete phone never reaches the save');
   assert(JSON.stringify(r!.toJSON()).includes('Ingresá un teléfono válido'));
+  await act(async()=>{r!.root.findByType(OptionsSelect).props.onChange('+55');});
+  assert.equal(r!.root.findByType(OptionsSelect).props.value,'+55','country selection consumes a string callback');
+  await act(async()=>{r!.root.findAllByType('input').find(node=>node.props.inputMode==='tel')!.props.onChange({target:{value:'11912345678'}});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(phoneWrites.at(-1)!.phone,'+55 11912345678','the canonical selector changes the actual saved phone prefix');
   await act(async()=>r!.unmount());
   // Integer number fields request the numeric keypad and reject decimals.
   const numberWrites:Record<string,string>[]=[];
