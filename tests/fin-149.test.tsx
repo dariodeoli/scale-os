@@ -9,7 +9,8 @@ Object.defineProperty(globalThis,'document',{configurable:true,value:{activeElem
 
 const {EntityPicker}=require('../app/entity-picker') as typeof import('../app/entity-picker');
 const {InvoiceForm,PaymentForm,AccountForm}=require('../app/workspace-forms') as typeof import('../app/workspace-forms');
-const {AmountInput}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+const {BancoCombobox}=require('owncoding-ui') as typeof import('owncoding-ui');
+const {AmountInput,PersonSelect}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const {dateLabel}=require('../app/forecast-data') as typeof import('../app/forecast-data');
 const {listMonthLabel}=require('../app/month-format') as typeof import('../app/month-format');
 const {MoraSection}=require('../app/sections/mora') as typeof import('../app/sections/mora');
@@ -56,7 +57,7 @@ async function formulariosBloquean(){
  await act(async()=>{renderer!.unmount();});
 
  await act(async()=>{renderer=create(<PaymentForm invoices={invoices} accounts={accounts} custodians={custodians} request={request} done={()=>{}}/>);});
- assert.match(textOf(renderer!),/Lucía Acosta/,'el custodio demo muestra su nombre');
+ assert.equal(renderer!.root.findByType(PersonSelect).props.choices.find((choice:{value:string})=>choice.value==='u1').label,'Lucía Acosta','the canonical picker receives the person identity');
  assert.doesNotMatch(textOf(renderer!),/demo\.example\.invalid/,'nunca se muestra el correo técnico del demo');
  assert.equal(button(renderer!,'Registrar cobro')!.props.disabled,true,'sin factura, cuenta ni importe no se puede cobrar');
  const invoicePicker=()=>renderer!.root.findAllByType(EntityPicker).find(node=>node.props.legend==='Factura')!;
@@ -71,7 +72,7 @@ async function formulariosBloquean(){
  await act(async()=>{renderer!.unmount();});
 
  await act(async()=>{renderer=create(<AccountForm custodians={custodians} request={request} done={()=>{}}/>);});
- assert.match(textOf(renderer!),/Lucía Acosta/,'la custodia de la cuenta muestra el nombre');
+ assert.equal(renderer!.root.findByType(PersonSelect).props.choices.find((choice:{value:string})=>choice.value==='u1').label,'Lucía Acosta','account custody uses the same named person picker');
  assert.doesNotMatch(textOf(renderer!),/demo\.example\.invalid/,'la custodia no muestra el correo técnico');
  await act(async()=>{renderer!.unmount();});
  console.log('PASS #149 bloqueo: factura y cobro deshabilitados con obligatorios incompletos, errores inline, identidades demo con nombre');
@@ -99,7 +100,22 @@ async function etiquetasYEstado(){
  console.log('PASS #149 formatos: «Octubre 2026» en meses y «Sin mora» en cobranza');
 }
 
+async function cuentaConBancoCompartido(){
+ const writes:Record<string,unknown>[]=[];let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<AccountForm custodians={[]} request={async(_path,init)=>{writes.push(JSON.parse(String(init?.body)));return {account:{id:'new'}} as never;}} done={()=>{}}/>);});
+ const input=renderer.root.findAllByType('input').find(node=>node.props.name==='name')!;
+ await act(async()=>{await input.props.onChange({target:{name:'name',value:'Cuenta empresa'}});});
+ for(const institution of ['Banco Continental','Cooperativa personalizada']){
+  await act(async()=>{renderer.root.findByType(BancoCombobox).props.onChange!(institution);});
+  await act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){},persist(){}});});
+  assert.equal(writes.at(-1)?.institution,institution,'catalog selection and custom text persist without invented institution metadata');
+ }
+ await act(async()=>renderer.unmount());
+ console.log('PASS shared bank catalog: canonical selection and custom institutions persist through the real account form');
+}
+
 async function run(){
+ await cuentaConBancoCompartido();
  await pickersEscalan();
  await formulariosBloquean();
  await etiquetasYEstado();

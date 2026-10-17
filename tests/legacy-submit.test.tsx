@@ -49,6 +49,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
   const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
+   BancoCombobox:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    EntityPicker:({legend}:{legend:string})=>React.createElement('fieldset',{'aria-label':legend}),
    isPositiveInput:(value:string)=>/^[1-9]\d*$/.test(value),

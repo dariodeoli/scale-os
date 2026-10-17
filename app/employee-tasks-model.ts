@@ -2,7 +2,7 @@ import {clearDataCache,dataFetch} from './data-cache';
 export const TASKS_CHANGED='scale:employee-tasks-changed';
 export const TASKS_PATH='/api/agency/productivity/internal-tasks';
 export type Task={id:string;version:number;title:string;description?:string;status:string;priority:string;due_date?:string|null;due_time?:string|null;project_id?:string|null;client_id?:string|null;project_name?:string;client_name?:string;assigned_user_ids:string[];people?:{id:string;full_name:string}[];assignees?:{id:string;full_name:string}[];checklist:{id:string;text:string;completed:boolean}[];materials:{label:string;url:string}[];comments?:{id:string;body:string;author_name?:string;actor_name?:string;created_at:string}[];can_edit:boolean;can_complete:boolean;updated_at?:string;updated_by_name?:string};
-export type TaskContext={people:{id:string;full_name:string}[];projects:{id:string;name:string;client_id?:string}[];clients:{id:string;name:string}[];can_assign:boolean;can_edit:boolean};
+export type TaskContext={people:{id:string;full_name:string;photo_url?:string|null}[];projects:{id:string;name:string;client_id?:string}[];clients:{id:string;name:string}[];can_assign:boolean;can_edit:boolean};
 export const TASK_BUCKETS=[['today','Hoy'],['upcoming','Próximas'],['overdue','Vencidas'],['completed','Completadas'],['undated','Sin fecha'],['all','Todas']] as const;
 export const TASK_STATUSES=[{value:'pending',label:'Pendiente'},{value:'in_progress',label:'En curso'},{value:'done',label:'Completada'}];
 export const TASK_PRIORITIES=[{value:'low',label:'Baja'},{value:'normal',label:'Normal'},{value:'high',label:'Alta'},{value:'urgent',label:'Urgente'}];

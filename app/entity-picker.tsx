@@ -10,6 +10,7 @@ import {useMemo, useState, type ReactNode} from 'react';
 import {FotoPerfil} from './foto-perfil';
 import {PersonContainer} from './person-container';
 import {SearchField} from './search-field';
+import {PersonSelect} from './profile-controls';
 import './entity-picker.css';
 
 export type EntityOption = {
@@ -49,6 +50,7 @@ export function EntityPicker({legend, options, value, onChange, placeholder = 'B
   const query = search.trim().toLocaleLowerCase('es');
   const visible = useMemo(() => options.filter(option => !query || `${option.name} ${option.secondary || ''} ${option.searchText || ''}`.toLocaleLowerCase('es').includes(query)), [options, query]);
   const withSearch = options.length > 6;
+  if(options.length>0&&options.every(option=>option.person))return <div className={className}><PersonSelect label={legend} value={value} onChange={onChange} disabled={disabled} invalid={Boolean(error)} choices={[...(allowEmpty?[{value:'',label:emptyLabel}]:[]),...options.map(option=>({value:option.id,label:option.name,photoUrl:option.photoUrl,secondary:option.secondary,searchText:option.searchText,kind:'person' as const}))]}/>{error?<small className="error" role="alert">{error}</small>:null}</div>;
   return <fieldset className={className ? `entity-picker ${className}` : 'entity-picker'} disabled={disabled} aria-invalid={error ? true : undefined}>
     <legend>{legend}</legend>
     {withSearch ? <SearchField label={searchLabel} value={search} onChange={setSearch} placeholder={placeholder} disabled={disabled} className="w-full"/> : null}

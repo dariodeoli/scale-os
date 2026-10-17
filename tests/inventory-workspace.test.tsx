@@ -71,6 +71,9 @@ const byLabel=(value:string,tag:'input'|'select'|'textarea'='input'):ReactTestIn
 };
 const select=(value:string)=>renderer.root.findAllByType(SelectCustom).find(node=>node.props.label===value)!;
 const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')=>act(()=>{
+ // A searchable person picker is a combobox: typing searches; selecting calls
+ // its value contract. Keep this helper explicit about the intended operation.
+ if(tag==='select'&&renderer.root.findAllByType(SelectCustom).some(node=>node.props.label===label))return select(label).props.onChange(value);
  const field=byLabel(label,tag)||renderer.root.findAll(node=>node.props?.['aria-label']===label&&typeof node.type==='string'&&['input','textarea','select'].includes(String(node.type)))[0];
  if(field)return field.props.onChange({target:{value},currentTarget:{value,selectionStart:String(value).length}});
  return select(label).props.onChange(value);

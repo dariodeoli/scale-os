@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, MessageSquare, Star } from "lucide-react";
-import { AmountInput, SelectCustom } from './profile-controls';
+import { AmountInput, SelectCustom, type SelectChoice } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
 import {PasswordField} from './password-field';
 import {PhoneField} from './phone-field';
@@ -62,7 +62,7 @@ const message = (e: unknown) =>
   e instanceof Error ? e.message : "No se pudo completar la operación";
 export {money};
 export {Dialog} from './dialog';
-type Choice = { value: string; label: string };
+type Choice = SelectChoice;
 export type Field = {
   key: string;
   label: string;
@@ -71,6 +71,9 @@ export type Field = {
   optional?: boolean;
   section?: string;
   wide?: boolean;
+  /** Relative width in the canonical responsive form grid (12 columns). */
+  span?: 2|3|4|6|12;
+  placeholder?: string;
   help?: string;
   integer?: boolean;
   maxLength?: number;
@@ -163,11 +166,11 @@ export function Editor({
     // Un campo dependiente se deshabilita con los valores actuales (issue #152);
     // el guardado del formulario conserva el valor tal como se guardó antes.
     const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
-    return <div key={f.key} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
+    return <div key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
       {f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
