@@ -30,7 +30,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   data-ui-color={color ?? (variant==='danger'?'danger':'brand')}
   data-ui-loading={loading?'true':undefined} data-ui-full-width={fullWidth?'true':undefined}>
   {iconPosition==='start'?iconContent:null}
-  {children == null ? null : <span data-ui-button-label="">{children}</span>}
+  {children}
   {iconPosition==='end'?iconContent:null}
  </button>;
 });
