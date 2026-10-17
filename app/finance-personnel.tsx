@@ -9,6 +9,7 @@ import {isRealMoney} from './finance-money';
 import {FinanceHistoryDialog,FinanceHistoryPanel,financeHistoryUrl,useFinanceHistory} from './finance-history';
 import type {BalancePerson} from './finance-detail-data';
 import {financeMoneyColumns} from './finance-list-layout';
+import {financeNoticeHref,financePurposeNotice} from './finance-privacy';
 export const PERSONNEL_COLUMNS='grid-cols-[minmax(11rem,1.5fr)_var(--finance-amount-width)_var(--finance-amount-width)_var(--finance-amount-width)_var(--finance-amount-width)_var(--finance-amount-width)_8rem]';
 const columns:Column[]=[{key:'person',label:'Persona'},{key:'base',label:'Salario base',align:'end'},{key:'adjustment',label:'Ajuste del mes',align:'end'},{key:'expected',label:'Cierre previsto',align:'end'},{key:'paid',label:'Pagado en mes',align:'end'},{key:'difference',label:'Diferencia prevista',align:'end'},{key:'actions',label:'Acciones',align:'end'}];
 type Selection={kind:'salary'|'adjustment'|'history';person:BalancePerson}|null;
@@ -46,6 +47,7 @@ export function SalaryChangeDialog({person,month,close,onSaved,onRefresh}:{perso
  return <Dialog title={`Salario fijo mensual · ${person.name}`} close={close}>
   <p className="field-help">Editás el salario mensual en {person.currency}. Conserva la modalidad y el importe por hora, proyecto o servicio de la ficha; un ajuste puntual del mes se registra por separado.</p>
   {history.data?history.data.revision!==person.salary_revision?<ErrorBlock title="El salario cambió desde que abriste el balance" description="Recargá el balance antes de editar. No se combina un importe anterior con una revisión nueva." onRetry={()=>{close();onRefresh();}}/>:<Editor fields={fields} defaults={{amount:person.base_amount??'',effectiveFrom:`${month}-01`,reason:''}} label="Guardar salario" save={async values=>{await api(financeHistoryUrl('salary',String(person.collaborator_id)),{...values,currency:person.currency,requestId,expectedRevision:person.salary_revision});onSaved();}}/>:history.error?<ErrorBlock title="No se puede editar sin cargar el historial" description={history.error} onRetry={history.reload}/>:<LoadingBlock label="Cargando historial salarial…" lines={2}/>}
+  <p className="field-help">{financePurposeNotice('payroll')} · <a href={financeNoticeHref('payroll')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
   <FinanceHistoryPanel data={history.data} error={history.error} onRetry={history.reload}/>
  </Dialog>;
 }
@@ -58,5 +60,6 @@ function SalaryAdjustmentDialog({person,month,close,onSaved}:{person:BalancePers
    <Editor fields={[{key:'sign',label:'Tipo',choices:[{value:'extra',label:'Extra'},{value:'discount',label:'Descuento'}]},{key:'amount',label:'Importe del ajuste',type:'money',integer:true,currency:person.currency,validate:value=>isRealMoney(value,person.currency,true)?null:'Ingresá un importe mayor a cero.'},{key:'note',label:'Motivo',type:'textarea',maxLength:1000}]} defaults={{sign:data.amount.startsWith('-')?'discount':'extra',amount:data.amount.replace(/^-/,'')||'',note:data.note}} save={async values=>{await api(`/api/agency/collaborators/${person.collaborator_id}/salary-overrides`,{month,amount:`${values.sign==='discount'?'-':''}${values.amount}`,note:values.note},'PATCH');onSaved();}}/>
    {data.amount&&data.amount!=='0'?<Editor fields={[{key:'confirmation',label:'Escribí QUITAR',validate:value=>value==='QUITAR'?null:'Escribí QUITAR para quitar el ajuste.'}]} defaults={{confirmation:''}} label="Quitar ajuste del mes" save={async()=>{await api(`/api/agency/collaborators/${person.collaborator_id}/salary-overrides?month=${month}`,{},'DELETE');onSaved();}}/>:null}
   </>}
+  <p className="field-help">{financePurposeNotice('payroll')} · <a href={financeNoticeHref('payroll')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
  </Dialog>;
 }

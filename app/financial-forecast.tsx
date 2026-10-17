@@ -2,7 +2,6 @@
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
 import {formatRealMoney,isPositiveRealMoney} from './finance-money';
-import {financeNoticeHref,financePurposeNotice} from './finance-privacy';
 import {listDateFull,listDateShort} from './list-format';
 import {api} from './operations';
 import {AmountInput,SelectCustom} from './profile-controls';
