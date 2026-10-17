@@ -1,23 +1,23 @@
 "use client";
+import {forwardRef, useId} from 'react';
 import {emailSuggestions} from './field-rules';
+import {InputBase, type InputBaseProps} from './ui/input';
 
-type EmailFieldProps = {
-  id?: string;
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  invalid?: boolean;
-  describedBy?: string;
-  required?: boolean;
-  placeholder?: string;
+export type EmailFieldProps = Omit<InputBaseProps, 'onChange' | 'value' | 'type' | 'list'> & {
+  value: string; onChange: (value: string) => void;
 };
 
-/** Shared email input: native autofill plus domain suggestions that never intercept paste or submit. */
-export function EmailField({id, value, onChange, disabled = false, invalid = false, describedBy, required = false, placeholder = 'nombre@dominio.com'}: EmailFieldProps) {
+/** Suggestions only complete domains; native typing, paste and autofill remain available. */
+export const EmailField = forwardRef<HTMLInputElement, EmailFieldProps>(function EmailField(
+  {id, value, onChange, disabled, pending, placeholder = 'nombre@dominio.com', maxLength = 254, ...props}, ref,
+) {
+  const generatedId = useId();
+  const listId = `${id ?? generatedId}-domains`;
   const suggestions = emailSuggestions(value);
-  const listId = id ? `${id}-domains` : '';
   return <>
-    <input id={id} type="email" inputMode="email" autoComplete="email" maxLength={200} placeholder={placeholder} list={suggestions.length ? listId : undefined} value={value} disabled={disabled} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => onChange(event.target.value)}/>
+    <InputBase inputMode="email" autoComplete="email" {...props} ref={ref} id={id} type="email" maxLength={maxLength}
+      placeholder={placeholder} list={suggestions.length ? listId : undefined} value={value} disabled={disabled} pending={pending}
+      onChange={event => {if (!disabled && !pending) onChange(event.target.value);}}/>
     {suggestions.length ? <datalist id={listId}>{suggestions.map(option => <option key={option} value={option}/>)}</datalist> : null}
   </>;
-}
+});
