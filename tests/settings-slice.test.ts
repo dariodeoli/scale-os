@@ -17,7 +17,7 @@ test('settings slice keeps the server-backed company update and its full validat
  assert.match(suite,/setCurrency\(result\.default_currency\)/);
 });
 
-test('preferences remain scoped to local storage while settings use compact, accessible disclosure',()=>{
+test('preferences remain scoped to the authenticated user while settings use compact, accessible disclosure',()=>{
  assert.match(workspace,/useWorkspacePreferences\(signedIn\?String/);
  assert.match(workspace,/active==='Preferencias'/);
  assert.match(workspace,/updatePreferences\(\{startup:[^}]+ as StartupPreference\}\)/);
