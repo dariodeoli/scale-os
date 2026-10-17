@@ -40,6 +40,12 @@ No se acreditan OAuth/correo/RUC externos reales, dispositivos ni impresoras fí
 
 El workflow ahora instala esas dependencias con scripts desactivados antes de la regresión. La instalación limpia pasó las tres pruebas #147, incluido Chromium, sin omitir ni debilitar aserciones. No se agregó una dependencia nueva ni cambió el código funcional. Logs locales `scale192-ci-clean-{regression,dsn,dsn-fixed,browser-deps}.log` conservan la reproducción y corrección.
 
-CI del candidato corregido, merge, CI de main y smoke público pendientes al escribir este registro. Producción anterior acreditada: v1.0.191. No se disparó un segundo deploy ni se publicó desde una rama de agente.
+CI candidato corregido [39024251669](https://github.com/dariodeoli/scale-os/actions/runs/39024251669): frontend y backend PASS. PR #251 integrado a main `b965d9dd33113a27f6a53f3fc3cbec651e008922`. CI de main [39024703523](https://github.com/dariodeoli/scale-os/actions/runs/39024703523): frontend y backend PASS; confirmado10:29UTC.
+
+Smoke público `release:smoke` PASS el 17/10/2026 a las 10:27 UTC. Verificación adicional 10:27:43 UTC: `/status` y `/registro` HTTP200, versión visible1.0.192; API `/health` HTTP200, `ok:true`, `database:ready`, release1.0.192. Landing `/scale-os.html` HTTP200, SHA256 `b328da09a25458e04c6c0969a22b80bcb15ee1b13bcb847857acdb310b9e5b2d`, idéntico al archivo de main. Durante la transición hubo una lectura antigua de status; la repetición posterior acreditó los cuatro endpoints en la misma comprobación.
+
+El SHA interno del proveedor no está expuesto y no se infiere del número de versión. El merge disparó la publicación; no se llamó otro deploy. Main local sincronizado al merge, árbol limpio y dependencia instalada0.68.17. Logs `/tmp/scale192-production-smoke.log`, `/tmp/scale192-public-proof.json`, `/tmp/scale192-main-ci.log`.
+
+Este cierre posterior y la QA adicional de [sincronía de tareas #207](tasks-project-sync-207.md),22/22PASS, se conservan en una rama de evidencia para la próxima integración documental. No forman parte del SHA desplegado ni justifican un segundo deploy de192.
 
 Seguimiento: #241, #245, #247 y #248. #249/#250 y la mejora de primer pliegue de #206 son propuestas adicionales. #246 permanece bloqueado: cinco revisiones periódicas no programadas, cero ejecuciones.
