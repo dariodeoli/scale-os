@@ -133,3 +133,10 @@
 .client-hub-row .client-row-actions .client-record-actions{min-width:70px;gap:4px}
 .client-hub-row .client-row-actions .client-price-missing{margin-left:0;width:28px;height:20px}
 @media(max-width:767px){.client-hub-row .client-action-slot{width:44px;min-width:44px}}
+
+/* Multi-currency totals need their own row instead of competing with the main amount. */
+.control-shell .ui-kpi-strip-dense .ui-kpi.client-billing-kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"label" "value" "sub"}
+.control-shell .ui-kpi-strip-dense .client-billing-kpi>div:nth-child(2){white-space:normal;overflow-wrap:normal;font-size:clamp(17px,1.55vw,22px)}
+.control-shell .ui-kpi-strip-dense .client-billing-kpi>div:nth-child(3){overflow:visible}
+.client-billing-details{display:grid;gap:2px;min-width:0}
+.client-billing-details>span{white-space:normal;overflow-wrap:normal}

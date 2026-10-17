@@ -280,7 +280,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
         : billingEstado === 'sin-dato'
           ? {valor: '—', hint: 'Sin dato'}
           : billingEstado === 'listo'
-            ? {valor: <span>{moneyKpi(Number(billingBase.total), billingBase.currency)} <span className="text-[0.55em] font-medium text-mute">/ mes</span></span>, hint: <>{billingResto.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes · </span>)}Expectativa vigente por mes</>}
+            ? {valor: <span>{moneyKpi(Number(billingBase.total), billingBase.currency)} <span className="text-[0.55em] font-medium text-mute">/ mes</span></span>, hint: <div className="client-billing-details">{billingResto.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes</span>)}<span>Expectativa vigente por mes</span></div>}
             : {valor: '—', hint: <><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>{canManageTerms && sinPlan > 0 ? <> · <ScaleButton type="button" className="text-button min-h-11 md:min-h-0" onClick={() => setClientStatusFilter('sin_plan')} variant="ghost">{sinPlan === 1 ? 'Ver el cliente sin plan' : `Ver los ${sinPlan} sin plan`}</ScaleButton></> : null}</>};
 
   const mountedLive = windowSlice(liveClients, visible);
@@ -293,7 +293,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     {dataState === 'loading' && !clients.length ? <KpiStripSkeleton dense label="Cargando el directorio…"/> : <KpiStrip dense>
       <Kpi label="Clientes activos" valor={directoryKpis.active} hint="Con servicio en curso" destacado/>
       <Kpi label="Cobros al día" valor={cobrosKpis.alDia} hint={`${cobrosKpis.enMora} en mora · ${cobrosKpis.porVencer} por vencer · ${cobrosKpis.sinFactura} sin factura`}/>
-      <Kpi label="Facturación contratada" valor={billingKpi.valor} hint={billingKpi.hint}/>
+      <Kpi className="client-billing-kpi" label="Facturación contratada" valor={billingKpi.valor} hint={billingKpi.hint}/>
       <Kpi label="Entregas próximas" valor={directoryKpis.deliveries} hint="Piezas con vencimiento en 7 días"/>
     </KpiStrip>}
 
