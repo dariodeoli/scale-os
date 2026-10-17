@@ -106,7 +106,19 @@ export async function seedPrivateDemo(c,org,userId){
  for(let i=0;i<clients.length;i++)if(i%3===0||i%2===1){
   const [client,total,currency]=clients[i];
   const cadence=['monthly','interval','once'][i%3];
-  await c.query('insert into agency_client_commercial_terms(organization_id,client_id,plan_id,recurring_amount,currency,starts_on,invoice_required,commission_recipient_id,commission_mode,commission_value,cadence,interval_months,ends_on) values($1,$2,$3,$4,$5,current_date-20+$6::int,$7,$8,$9,$10,$11,$12,current_date+$13::int)',[org,client,demoPlans[i%4],total,currency,i,i%2===0,staff[3],'percentage',5+(i%5),cadence,cadence==='interval'?(i%2?3:2):1,cadence==='once'?90:null]);
+  // Monthly agreements populate both existing projections on the same row.
+  // Other cadences retain their own billing terms and never acquire a monthly price.
+  const plan=currency==='USD'?demoPlans[3]:demoPlans[i%3];
+  const term=await c.query(`insert into agency_client_commercial_terms(organization_id,client_id,plan_id,recurring_amount,currency,starts_on,invoice_required,commission_recipient_id,commission_mode,commission_value,cadence,interval_months,ends_on,activation_date,effective_from,plan_name,plan_version,monthly_price,deliverables)
+   select $1,$2,p.id,$4::bigint,$5,current_date-20+$6::int,$7,$8,$9,$10,$11,$12,current_date+$13::int,
+    case when $11='monthly' then current_date-20+$6::int end,
+    case when $11='monthly' then current_date-20+$6::int end,
+    case when $11='monthly' then p.name end,
+    case when $11='monthly' then 'DEMO-PLAN-V1' end,
+    case when $11='monthly' then $4::bigint::numeric end,
+    case when $11='monthly' then jsonb_build_array(p.items->0->>'description') else '[]'::jsonb end
+   from agency_plans p where p.id=$3 and p.organization_id=$1 and p.currency=$5 returning id`,[org,client,plan,total,currency,i,i%2===0,staff[3],'percentage',5+(i%5),cadence,cadence==='interval'?(i%2?3:2):1,cadence==='once'?90:null]);
+  if(term.rows.length!==1)throw Error('El plan de demo debe coincidir con la moneda del acuerdo');
  }
  await c.query("insert into agency_planned_expenses(organization_id,cadence,effective_month,category,amount,currency,kind,note,created_by_user_id) values($1,'recurring',date_trunc('month',current_date)::date,'Operación',2500000,'PYG','fixed','Servicios de nube y software mensual.',$2)",[org,userId]);
  await c.query("insert into agency_planned_expenses(organization_id,cadence,effective_month,category,amount,currency,kind,note,created_by_user_id) values($1,'monthly',date_trunc('month',current_date)::date,'Marketing',1200000,'PYG','variable','Pauta publicitaria del mes.',$2)",[org,userId]);

@@ -8,6 +8,8 @@ import {contracts} from './contracts.js';
 import {financeTreasury} from './finance-treasury.js';
 import {studioReservations} from './studio-reservations.js';
 import {seedDemoModules} from './demo-modules.js';
+import {commercialLifecycle} from './commercial-lifecycle.js';
+import {financialForecast} from './forecast.js';
 
 // Real handlers over in-memory PostgreSQL; external traffic is forbidden.
 const pg=new PGlite(),originalFetch=globalThis.fetch;
@@ -25,6 +27,10 @@ try{
  for(const {user} of [a,b]){
   const org=user.organization_id,r=await call(employeeTasks,user,tasks+'?bucket=today&assignee=me');assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.records.length,3,'Inicio has three of the visitor’s own tasks today regardless of the current hour');assert(r.records.every(task=>task.assigned_user_ids.includes(String(user.id))&&task.checklist.length===3));
   for(const bucket of ['overdue','upcoming','completed','undated'])assert((await call(employeeTasks,user,tasks+'?bucket='+bucket)).records.length>0,bucket);
+  const center=await call(commercialLifecycle,user,'/api/agency/control-center');assert.equal(center.status,200,JSON.stringify(center));
+  assert.deepEqual(center.contracted_billing.records,[{currency:'PYG',net_monthly:'22000000.00'},{currency:'USD',net_monthly:'2400.00'}],'Inicio shows only the seven monthly agreements, by their actual currency');
+  const forecast=await call(financialForecast,user,'/api/agency/forecast');assert.equal(forecast.status,200,JSON.stringify(forecast));assert.deepEqual(forecast.contracted_recurring.records.map(row=>({currency:row.currency,amount:row.amount})),[{currency:'PYG',amount:22000000},{currency:'USD',amount:2400}],'canonical monthly metadata does not reprice or duplicate the existing forecast');
+  assert.equal(Number((await one("select count(*) as n from agency_client_commercial_terms t join agency_plans p on p.organization_id=t.organization_id and p.id=t.plan_id where t.organization_id=$1 and (p.currency<>t.currency or (t.cadence='monthly' and (t.effective_from is distinct from t.starts_on or t.activation_date is distinct from t.starts_on or t.monthly_price is distinct from t.recurring_amount or t.plan_name is distinct from p.name or t.plan_version is null)) or (t.cadence<>'monthly' and (t.effective_from is not null or t.monthly_price is not null)))",[org])).n),0,'one coherent lifecycle snapshot per monthly agreement; intervals and one-off services stay outside the monthly KPI');
   const studio=await call(studioReservations,user,'/api/agency/studio-spaces');assert.equal(studio.status,200);assert.equal(studio.spaces.length,2);
   assert.equal(Number((await one("select count(*) as n from agency_studio_reservations where organization_id=$1 and (starts_at at time zone 'America/Asuncion')::date=(now() at time zone 'America/Asuncion')::date",[org])).n),2);
   assert.equal(Number((await one('select count(*) as n from agency_contract_templates where organization_id=$1',[org])).n),4);assert.equal(Number((await one('select count(*) as n from agency_contracts where organization_id=$1',[org])).n),4);assert.equal(Number((await one('select count(*) as n from agency_contract_versions where organization_id=$1',[org])).n),1);
