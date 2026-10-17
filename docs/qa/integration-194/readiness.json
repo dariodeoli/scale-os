@@ -1,9 +1,9 @@
 {
-  "backendSource": "2ecdc7f38f466f29a37194783726b985583a5b0e",
+  "backendSource": "6e43d30f5363fd656c1c281750ee836957da7194+release194-metadata",
   "health": {
     "status": 200,
     "database": "ready",
-    "version": "1.0.193"
+    "version": "1.0.194"
   },
   "frontendStarted": false,
   "reservedFrontendPort": 3013,
@@ -36,7 +36,8 @@
       "view": true,
       "create": false,
       "templates_manage": false,
-      "issue": false
+      "issue": false,
+      "clients.manage": false
     }
   },
   "localPorts": [
@@ -49,5 +50,13 @@
     4109,
     55449
   ],
-  "scope": "Preparation only; no frontend/browser/build/candidate approval"
+  "scope": "Preparation only; no frontend/browser/build/candidate approval",
+  "backendWorktree": "/workspace/.worktrees/integration194/backend",
+  "sdkVersion": "0.68.19",
+  "migrations": 116,
+  "contactFixture": {
+    "clientId": "81",
+    "sameTenantDeniedStatus": 403,
+    "synthetic": true
+  }
 }
