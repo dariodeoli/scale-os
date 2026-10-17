@@ -1,0 +1,53 @@
+{
+  "backendSource": "2ecdc7f38f466f29a37194783726b985583a5b0e",
+  "health": {
+    "status": 200,
+    "database": "ready",
+    "version": "1.0.193"
+  },
+  "frontendStarted": false,
+  "reservedFrontendPort": 3013,
+  "demoA": {
+    "authStatus": 200,
+    "todayTaskCount": 3,
+    "todayDate": "2026-10-17",
+    "overdueTaskCount": 1,
+    "overdueDate": "2026-10-16",
+    "studioReservations": {
+      "2026-10-17": 2,
+      "2026-10-18": 1
+    },
+    "templates": 4,
+    "contracts": 4
+  },
+  "ordinary": {
+    "templates": 0,
+    "contracts": 0
+  },
+  "contractOne": {
+    "templates": 1,
+    "contracts": 1,
+    "issuedVersionPreserved": true
+  },
+  "contractReadonly": {
+    "templates": 0,
+    "contracts": 0,
+    "effectiveCapabilities": {
+      "view": true,
+      "create": false,
+      "templates_manage": false,
+      "issue": false
+    }
+  },
+  "localPorts": [
+    4115,
+    4116,
+    55450
+  ],
+  "protectedOtherPorts": [
+    3008,
+    4109,
+    55449
+  ],
+  "scope": "Preparation only; no frontend/browser/build/candidate approval"
+}
