@@ -33,7 +33,8 @@ export {CardSurface} from './surface';
 export {DataTable} from './collection';
 export {OptionsSelect, optionsFromChildren} from './options-select';
 export type {OptionsSelectProps} from './options-select';
-export {PendingFields, useSingleFlightSubmit} from '../use-single-flight-submit';
+export {PendingFields} from './form-state';
+export {useSingleFlightSubmit} from '../use-single-flight-submit';
 export {useFormFocus, FormValidationErrors} from './form-focus';
 export {Checkbox, Switch} from './choice';
 

@@ -13,3 +13,5 @@ tsx tests/field-contract-limits.test.tsx
 tsx tests/access-form-lifecycle-241.test.tsx
 node --test tests/ui-field-migration.test.mjs
 node --test tests/migrate-ui-actions.test.mjs
+tsx tests/form-focus-paths-241.test.tsx
+tsx tests/temporal-filter.test.tsx
