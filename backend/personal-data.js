@@ -149,7 +149,7 @@ export async function buildPersonalDataExport(c,{organizationId,subjectKind,subj
   const activity=(await c.query('select table_name as entidad,action as accion,created_at from agency_operation_audit where organization_id=$1 and actor=$2::text order by id desc limit 200',[organizationId,String(subjectId)])).rows;
   section('actividad','Actividad registrada a tu nombre',activity);
  }else if(subjectKind==='client'){
-  const client=(await c.query(`select name,legal_name,email,phone,tax_id,notes,active,created_at,updated_at,personal_data_blocked_at,to_jsonb(c)->>'lifecycle_status' as lifecycle_status from agency_clients c where c.organization_id=$1 and c.id=$2`,[organizationId,subjectId])).rows[0]||{};
+  const client=(await c.query(`select to_jsonb(c)->>'address' as address,to_jsonb(c)->>'city' as city,to_jsonb(c)->>'department' as department,to_jsonb(c)->>'document_type' as document_type,to_jsonb(c)->>'document_number' as document_number,to_jsonb(c)->>'legal_representative_name' as legal_representative_name,to_jsonb(c)->>'legal_representative_document' as legal_representative_document,to_jsonb(c)->>'legal_representative_role' as legal_representative_role,to_jsonb(c)->>'party_type' as party_type,name,legal_name,email,phone,tax_id,notes,active,created_at,updated_at,personal_data_blocked_at,to_jsonb(c)->>'lifecycle_status' as lifecycle_status from agency_clients c where c.organization_id=$1 and c.id=$2`,[organizationId,subjectId])).rows[0]||{};
   section('ficha','Ficha del cliente',[client]);
   section('proyectos','Proyectos',(await c.query('select name,status,start_date,due_date,created_at from agency_projects where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
   section('presupuestos','Presupuestos',(await c.query('select number,title,status,currency,total,valid_until,created_at from agency_budgets where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
@@ -197,6 +197,7 @@ export async function applySuppression(c,{organizationId,subjectKind,subjectId,a
   return {action:'anonymized',details:{entity:'agency_leads'}};
  }
  if(subjectKind==='client'){
+  await c.query("update agency_clients set address='',city='',department='',document_type='',document_number='',legal_representative_name='',legal_representative_document='',legal_representative_role='',party_type='' where organization_id=$1 and id=$2",[org,key]);
   const fiscal=(await c.query("select 1 from agency_invoices where organization_id=$1 and client_id=$2 and status<>'draft' limit 1",[org,key])).rows.length>0;
   const row=fiscal
    ?(await c.query(`update agency_clients set email=null,phone=null,notes=null,social_links='{}'::jsonb,logo_url=null,personal_data_blocked_at=now(),updated_at=now() where organization_id=$1 and id=$2 returning id`,[org,key])).rows[0]

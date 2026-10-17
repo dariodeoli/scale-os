@@ -49,8 +49,8 @@ test('alta y edición usan el mismo ClientEditor con las mismas secciones y vali
   await act(async()=>{created=create(<ClientEditor mode="create"/>);});
   const record={id:'4',name:'ACME',email:'',phone:'',tax_id:'',legal_name:'',notes:'',lifecycle_status:'active',updated_at:'2026-09-20T12:00:00Z',social_links:{}};
   await act(async()=>{edited=create(<ClientEditor mode="edit" clientId="4" record={record}/>);});
-  assert.deepEqual(sections(created),['Identidad','Contacto','Fiscal']);
-  assert.deepEqual(sections(edited),['Identidad','Contacto','Fiscal','Enlaces']);
+  assert.deepEqual(sections(created),['Identidad','Contacto','Fiscal','Datos para contratos']);
+  assert.deepEqual(sections(edited),['Identidad','Contacto','Fiscal','Datos para contratos','Enlaces']);
   // Los campos compartidos salen de la misma definición (mismas reglas).
   const createFields=clientFields({mode:'create'}),editFields=clientFields({mode:'edit'});
   for(const key of ['name','email','phone','tax_id','legal_name','notes']){
@@ -258,4 +258,23 @@ test('«Cargar plan y pago» abre el editor con su propio título, no «Editar c
   assert.equal(clientEditorTitle('edit',true,'Acme'),'Plan y pago · Acme');
   assert.equal(clientEditorTitle('edit',true,''),'Plan y pago del cliente','mientras carga no muestra un nombre vacío');
   assert.match(read('app/client-editor.tsx'),/planMode\?<p className="form-note mb-3">\{CLIENT_PLAN_DESCRIPTION\}/,'el modo plan explica qué se carga');
+});
+
+// #220: la ficha se completa una sola vez y el contrato la reutiliza.
+test('ficha legal: mismos campos en alta y edición, datos guardados y PATCH parcial',()=>{
+ const {CLIENT_LEGAL_KEYS,clientCreatePayload,CLIENT_CREATE_DEFAULTS}=require('../app/client-editor-data') as typeof import('../app/client-editor-data');
+ const values={...CLIENT_CREATE_DEFAULTS,name:'Cliente de prueba',party_type:'company',document_type:'passport',document_number:' DOC-TEST ',address:' Domicilio de prueba ',city:'Ciudad de prueba',department:'Departamento de prueba',legal_representative_name:'Representante de prueba',legal_representative_document:'REP-TEST',legal_representative_role:'Apoderado'};
+ const payload=clientCreatePayload(values);
+ assert.equal(payload.document_number,'DOC-TEST');assert.equal(payload.address,'Domicilio de prueba');
+ const defaults=clientEditDefaults({...payload,id:'test'},null);
+ assert.equal(defaults.legal_representative_document,'REP-TEST');
+ assert.deepEqual(clientPatchPayload({...defaults,city:'Otra ciudad'},defaults).client,{city:'Otra ciudad'});
+ assert.deepEqual(clientPatchPayload({...defaults,document_number:''},defaults).client,{document_number:''});
+ assert.deepEqual(clientPatchPayload(defaults,defaults).client,null);
+ for(const mode of ['create','edit'] as const){
+  const fields=clientFields({mode});
+  for(const key of CLIENT_LEGAL_KEYS){assert.ok(fields.find(field=>field.key===key));assert.equal(clientFields({mode,restricted:true}).find(field=>field.key===key)?.disabled,true);}
+ }
+ assert.equal(clientFields({mode:'create'}).find(field=>field.key==='address')?.maxLength,400);
+ assert.equal(clientFields({mode:'edit'}).find(field=>field.key==='document_number')?.maxLength,80);
 });

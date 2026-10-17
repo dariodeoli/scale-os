@@ -8,7 +8,7 @@ import {clientStatuses} from './client-status';
 import {isWholeTransport} from './amount-format';
 import {buildSocialLinks,clientLinksDefaults} from './client-links';
 
-export const CLIENT_SECTIONS={identity:'Identidad',contact:'Contacto',tax:'Fiscal',plan:'Plan y pago',links:'Enlaces'} as const;
+export const CLIENT_SECTIONS={identity:'Identidad',contact:'Contacto',tax:'Fiscal',legal:'Datos para contratos',plan:'Plan y pago',links:'Enlaces'} as const;
 export type ClientSectionName=typeof CLIENT_SECTIONS[keyof typeof CLIENT_SECTIONS];
 
 export type ClientRecord={id?:string;[key:string]:unknown};
@@ -24,7 +24,8 @@ const httpsError=(value:string)=>{if(!value.trim())return null;try{const url=new
 
 const PLAN_KEYS=['plan_plan_id','plan_amount','plan_currency','plan_cadence','plan_interval','plan_starts_on','plan_ends_on','plan_invoice_required'];
 const LINK_KEYS=['website','instagram','whatsapp','other'];
-const CLIENT_KEYS=['name','email','phone','lifecycle_status','tax_id','legal_name','notes'];
+export const CLIENT_LEGAL_KEYS=['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type'] as const;
+const CLIENT_KEYS=[...CLIENT_LEGAL_KEYS,'name','email','phone','lifecycle_status','tax_id','legal_name','notes'];
 
 export type ClientFieldOptions={
   mode:'create'|'edit';
@@ -48,6 +49,15 @@ export function clientFields({mode,plan=null,planRequired=false,restricted=false
     {key:'phone',label:'Teléfono / WhatsApp',type:'phone',optional:true,section:S.contact,help:PHONE_HELP,disabled:restricted},
     {key:'tax_id',label:'RUC',optional:true,section:S.tax,maxLength:14,disabled:restricted,validate:taxIdError,help:'Podés pegarlo con puntos o espacios; se guarda normalizado. «Buscar» consulta al proveedor y pide tu confirmación antes de aplicar nada.',lookup:rucLookup,after:rucAfter},
     {key:'legal_name',label:'Razón social',optional:true,section:S.tax,maxLength:160,disabled:restricted,help:'Nombre legal para facturas y documentos. Si coincide con el nombre comercial, podés dejarla vacía.'},
+    {key:'party_type',label:'Tipo de parte contratante',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'person',label:'Persona física'},{value:'company',label:'Empresa / persona jurídica'}],help:'Se declara manualmente; no se deduce del RUC.'},
+    {key:'document_type',label:'Tipo de documento',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'ci',label:'Cédula de identidad'},{value:'ruc',label:'RUC'},{value:'passport',label:'Pasaporte'},{value:'other',label:'Otro'}]},
+    {key:'document_number',label:'Número de documento',optional:true,section:S.legal,maxLength:80,disabled:restricted},
+    {key:'address',label:'Domicilio contractual',optional:true,section:S.legal,maxLength:400,disabled:restricted},
+    {key:'city',label:'Ciudad',optional:true,section:S.legal,maxLength:120,disabled:restricted},
+    {key:'department',label:'Departamento',optional:true,section:S.legal,maxLength:120,disabled:restricted},
+    {key:'legal_representative_name',label:'Nombre del representante legal',optional:true,section:S.legal,maxLength:120,disabled:restricted},
+    {key:'legal_representative_document',label:'Documento del representante legal',optional:true,section:S.legal,maxLength:80,disabled:restricted},
+    {key:'legal_representative_role',label:'Cargo del representante legal',optional:true,section:S.legal,maxLength:120,disabled:restricted},
   ];
   if(mode==='edit'&&plan){
     const optional=!plan.terms&&!planRequired;
@@ -74,16 +84,17 @@ export function clientFields({mode,plan=null,planRequired=false,restricted=false
 }
 
 export function clientEditDefaults(record:ClientRecord|null,plan:PlanTermsResponse|null):Record<string,string>{
-  const base:Record<string,string>={name:str(record,'name'),email:str(record,'email'),phone:str(record,'phone'),lifecycle_status:str(record,'lifecycle_status'),tax_id:str(record,'tax_id'),legal_name:str(record,'legal_name'),notes:str(record,'notes'),...clientLinksDefaults(record?.social_links)};
+  const base:Record<string,string>={...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,str(record,key)])),name:str(record,'name'),email:str(record,'email'),phone:str(record,'phone'),lifecycle_status:str(record,'lifecycle_status'),tax_id:str(record,'tax_id'),legal_name:str(record,'legal_name'),notes:str(record,'notes'),...clientLinksDefaults(record?.social_links)};
   if(!plan)return base;
   const terms=plan.terms;
   return {...base,plan_plan_id:terms?.planId||'',plan_amount:terms?String(terms.recurringAmount):'',plan_currency:terms?.currency||'PYG',plan_cadence:terms?.cadence||'monthly',plan_interval:['2','3','4','6','12'].includes(String(terms?.intervalMonths||''))?String(terms?.intervalMonths):'3',plan_starts_on:terms?.startsOn||'',plan_ends_on:terms?.endsOn||'',plan_invoice_required:terms?String(terms.invoiceRequired):'true'};
 }
-export const CLIENT_CREATE_DEFAULTS:Record<string,string>={name:'',email:'',phone:'',tax_id:'',legal_name:'',notes:''};
+export const CLIENT_CREATE_DEFAULTS:Record<string,string>={...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,''])),name:'',email:'',phone:'',tax_id:'',legal_name:'',notes:''};
 
 /** Alta: mismo cuerpo que el formulario anterior (el API normaliza y revalida). */
 export function clientCreatePayload(values:Record<string,string>){
   const payload:Record<string,string>={name:(values.name||'').trim(),email:values.email||'',phone:values.phone||'',tax_id:normalizeTaxId(values.tax_id||'')||'',legal_name:(values.legal_name||'').trim()};
+  for(const key of CLIENT_LEGAL_KEYS)if((values[key]||'').trim())payload[key]=values[key].trim();
   if((values.notes||'').trim())payload.notes=values.notes.trim();
   return payload;
 }
@@ -97,7 +108,7 @@ export function clientPatchPayload(values:Record<string,string>,defaults:Record<
   const client:Record<string,unknown>={};
   for(const key of CLIENT_KEYS){
     if(!changed(key))continue;
-    client[key]=key==='tax_id'?(normalizeTaxId(values[key]||'')||''):key==='name'||key==='legal_name'?(values[key]||'').trim():values[key];
+    client[key]=key==='tax_id'?(normalizeTaxId(values[key]||'')||''):key==='name'||key==='legal_name'||CLIENT_LEGAL_KEYS.some(field=>field===key)?(values[key]||'').trim():values[key];
   }
   if(LINK_KEYS.some(changed))client.social_links=buildSocialLinks(values);
   return {client:Object.keys(client).length?client:null,planTouched:PLAN_KEYS.some(changed)};

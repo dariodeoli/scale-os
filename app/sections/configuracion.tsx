@@ -51,7 +51,7 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
         <a className="danger" href="#settings-danger">Zona de peligro</a>
       </nav>
 
-      <SettingsBlock id="settings-company" title="Empresa" description="Identidad de la empresa, valores predeterminados de los formularios y tus otras empresas." aside={user?<NewCompany/>:null}>
+      <SettingsBlock id="settings-company" title="Mi empresa" description="Editá la identidad, los datos fiscales, el domicilio y el representante legal que se precargan en los contratos." aside={user?<NewCompany/>:null}>
         <SettingsWorkspace/>
         {user?<CompanyLegalProfile key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/>:null}
       </SettingsBlock>

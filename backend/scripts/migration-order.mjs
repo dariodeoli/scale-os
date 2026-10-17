@@ -107,4 +107,5 @@ export const migrationOrder = [
   '20261016_platform_errors_reports.sql',
   '20261017_employee_tasks.sql',
   '20261017_contract_documents.sql',
+  '20261017_client_legal_profile.sql',
 ];
