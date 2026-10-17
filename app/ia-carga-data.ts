@@ -36,7 +36,7 @@ export const IA_CONFIANZA_ALTA = 90;
 export const IA_CONFIANZA_MEDIA = 60;
 
 /** Configuración del asistente tal como la sirve `GET /api/ia/carga`. */
-export type IaConfig = {configurada: boolean; modelo: string | null; tipos: IaTipo[]};
+export type IaConfig = {configurada: boolean; modelo: string | null; tipos: IaTipo[]; demoRestricted?:boolean};
 
 /** Estado de un registro detectado frente a lo ya cargado en la empresa. */
 export type EstadoMatch = 'nuevo' | 'coincide' | 'ambiguo';
@@ -276,6 +276,7 @@ export function normalizarIaConfig(value: unknown): IaConfig {
   const data = record(value);
   return {
     configurada: data.configurada === true,
+    ...(data.demoRestricted===true?{demoRestricted:true}:{}),
     modelo: nullableText(data.modelo, 120),
     // Puente de contrato con #117: el motor publica «equipos»; la UI lo llama
     // «inventario». Se acepta la forma del servidor y la propia (tolerancia).

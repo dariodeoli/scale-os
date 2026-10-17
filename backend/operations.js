@@ -1,3 +1,4 @@
+import {isDemoActor} from './demo-effects.js';
 import {financeError,lockFinanceMutation} from './finance-treasury.js';
 import {fail,text,id,optId,option,amount,date,email} from './suite-validation.js';
 import {currencies} from './currencies.js';
@@ -138,7 +139,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
     const photo=Object.hasOwn(incoming,'photo_url') ? await profilePhoto(incoming.photo_url) : previous.photo_url || null;
     const day=b.payment_day?Number(b.payment_day):null;if(day!==null&&(!Number.isInteger(day)||day<1||day>31)) fail('Día de pago inválido');
     const start=date(b.started_on),end=date(b.ended_on);if(start&&end&&end<start) fail('La salida no puede ser anterior al ingreso');
-    const access=await collaboratorAccess(c,{email:contact,org,actorRole:user.demo_owner_user_id?'finance':user.role,active:b.active!==false,previousUserId:uid});uid=access.userId;notifyEmail=access.notifyEmail;
+    const access=await collaboratorAccess(c,{email:contact,org,actorRole:isDemoActor(user)?'finance':user.role,active:b.active!==false,previousUserId:uid});uid=access.userId;notifyEmail=access.notifyEmail;
     // Administration may set the member photo from the team directory. The photo
     // lives in the personal identity, so an authorized org context updates it and
     // every organization copy syncs from there; removal keeps its tombstone.
