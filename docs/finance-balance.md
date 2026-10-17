@@ -30,6 +30,9 @@ proyecto y plan son opcionales y se pueden asociar después sin repetir caja.
 La aplicación parcial sí reduce una factura/deuda pendiente y nunca genera un
 segundo ingreso. La revisión de vínculos se envía como `expectedRevision`.
 
+El saldo de apertura se registra con fecha, importe y motivo sólo en una cuenta
+sin historial; no se considera venta ni cobro nuevo y queda en el mismo libro.
+
 Un UUID permanece estable durante los reintentos del mismo formulario de cobro,
 gasto, aplicación o corrección; un formulario nuevo genera uno distinto. La
 clave se envía desde el controlador del formulario porque la validación del
