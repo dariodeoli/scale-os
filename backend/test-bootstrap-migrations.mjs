@@ -21,7 +21,11 @@ const beforePrecision=throughPrecision.slice(0,-1);
 const economicUpgrade=['20261017_client_representative_link.sql','20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql'];
 assert.equal(beforePrecision.length,110,'the tracked 110-file fixture stays frozen');
 assert.equal(throughPrecision.length,111,'the precision upgrade remains migration 111');
-assert.deepEqual(migrationOrder.slice(precisionIndex+1),economicUpgrade,'new migrations follow the preserved 111-file baseline');
+const workspaceUpgrade=['20261018_workspace_preferences.sql','20261018_client_contacts.sql'];
+const throughEconomics=[...throughPrecision,...economicUpgrade];
+assert.equal(throughEconomics.length,114,'the economic upgrade remains migration 114');
+assert.deepEqual(migrationOrder.slice(precisionIndex+1),[...economicUpgrade,...workspaceUpgrade],'new migrations follow the preserved 111 and 114-file baselines');
+assert.equal(migrationOrder.length,116,'fresh and legacy fixtures cover every current curated file');
 async function copy(files){for(const file of files)await fs.writeFile(path.join(directory,file),await read('migrations/'+file));}
 async function stageOnly(files){
  // applyPendingMigrations scans the directory too: a shorter curated chain
@@ -58,8 +62,17 @@ async function snapshot(){
  result.accounts=(await query('select id,balance::text from bank_accounts order by id')).rows;
  result.audit=(await query('select * from agency_operation_audit order by id')).rows;
  if((await query("select to_regclass('public.agency_salary_history')::text as name")).rows[0].name)result.salaryHistory=(await query('select * from agency_salary_history order by id')).rows;
+ for(const table of ['agency_workspace_preferences','agency_client_contacts']){
+  if((await query('select to_regclass($1)::text as name',['public.'+table])).rows[0].name)result[table]=(await query(`select * from ${table} order by 1,2`)).rows;
+ }
  return result;
 }
+async function populatedWorkspace({org,uid},client){
+ if(!client)client=(await query("insert into agency_clients(organization_id,name,email,phone) values($1,'Workspace primary','primary@example.invalid','+595981123456') returning id",[org])).rows[0].id;
+ await query("insert into agency_workspace_preferences(organization_id,user_id,preferences) values($1,$2,$3::jsonb)",[org,uid,JSON.stringify({version:1,startup:'production',production:{clientId:String(client),mine:true,week:false}})]);
+ await query("insert into agency_client_contacts(organization_id,client_id,name,role,email,phone,version,created_by_user_id,updated_by_user_id) values($1,$2,'Secondary preserved','Coordination','secondary@example.invalid','+595981654321',3,$3,$3)",[org,client,uid]);
+}
+
 async function populatedEconomics({org,uid,account}){
  const person=(await query("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency,monthly_salary_amount,monthly_salary_currency,started_on) values($1,'Legacy salary fixture','fixed',500,'USD',500,'USD','2001-01-01') returning id",[org])).rows[0].id;
  const client=(await query("insert into agency_clients(organization_id,name,legal_name,legal_representative_name) values($1,'Legacy client','Legacy legal name','Explicit representative') returning id",[org])).rows[0].id;
@@ -102,7 +115,7 @@ try{
  // Fresh install records each curated file, then restarts with real modern data.
  await copy(migrationOrder);
  assert.deepEqual(await bootstrap(),{curated:migrationOrder,pending:[]});
- await populated('100.25');
+ await populatedWorkspace(await populated('100.25'));
  const freshState=await snapshot(),freshTracker=(await query('select * from schema_migrations order by filename')).rows;
  assert.deepEqual(await bootstrap(),{curated:[],pending:[]});
  assert.deepEqual(await snapshot(),freshState,'restart never changes USD cents, inventory trace, identity or seeds');
@@ -136,11 +149,11 @@ try{
  const beforeEconomic=await snapshot(),tracker111=(await query('select * from schema_migrations order by filename')).rows;
  assert.equal(tracker111.filter(row=>throughPrecision.includes(row.filename)).length,111);
  await restartConnection();await copy(economicUpgrade);
- assert.deepEqual(await bootstrap(),{curated:economicUpgrade,pending:[]},'111->114 executes exactly the three new migrations');
+ assert.deepEqual(await bootstrap(throughEconomics),{curated:economicUpgrade,pending:[]},'111->114 executes exactly the three new migrations');
  const afterEconomic=await snapshot();
  assertEconomicUpgradePreserves(beforeEconomic,afterEconomic);
  assert.deepEqual((await query('select * from schema_migrations where not(filename=any($1::text[])) order by filename',[economicUpgrade])).rows,tracker111,'all prior tracker timestamps survive 111->114');
- assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[migrationOrder])).rows[0].n,114);
+ assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[throughEconomics])).rows[0].n,114);
  assert.equal(afterEconomic.salaryHistory.length,beforeEconomic.agency_collaborators.length,'one baseline per existing person');
  const baseline=afterEconomic.salaryHistory.find(row=>String(row.collaborator_id)===String(economic.person));
  assert(baseline,'the legacy salary has a history baseline');
@@ -157,9 +170,27 @@ try{
  await rejectedWrite('update agency_client_commercial_terms set recurring_amount=999 where client_id=$1',[economic.client],/immutable|append/i);
  upgraded=await snapshot();const trackerLatest=(await query('select * from schema_migrations order by filename')).rows;
  for(let restart=0;restart<2;restart++){
-  await restartConnection();assert.deepEqual(await bootstrap(),{curated:[],pending:[]},'114-file process restart has no migration replay');
+  await restartConnection();assert.deepEqual(await bootstrap(throughEconomics),{curated:[],pending:[]},'114-file process restart has no migration replay');
   assert.deepEqual(await snapshot(),upgraded,'114 restart preserves baselines, invoices, payouts, cents and ownership trace');
   assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,trackerLatest);
+ }
+ // Upgrade 114->116 separately; no prior file or populated row may change.
+ const beforeWorkspace=await snapshot(),tracker114=(await query('select * from schema_migrations order by filename')).rows;
+ await restartConnection();await copy(workspaceUpgrade);
+ assert.deepEqual(await bootstrap(),{curated:workspaceUpgrade,pending:[]},'114->116 executes preferences and contacts once in curated order');
+ const afterWorkspace=await snapshot();
+ for(const [table,rows] of Object.entries(beforeWorkspace))assert.deepEqual(afterWorkspace[table],rows,`${table}: 114->116 preserves every historical value`);
+ assert.deepEqual(afterWorkspace.agency_workspace_preferences,[],'migration never invents user preferences');
+ assert.deepEqual(afterWorkspace.agency_client_contacts,[],'migration never duplicates principal contacts');
+ assert.deepEqual((await query('select * from schema_migrations where not(filename=any($1::text[])) order by filename',[workspaceUpgrade])).rows,tracker114,'114 tracker timestamps remain unchanged');
+ assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[migrationOrder])).rows[0].n,116);
+ await populatedWorkspace(old,economic.client);
+ upgraded=await snapshot();
+ const workspaceTracker=(await query('select * from schema_migrations order by filename')).rows;
+ for(let restart=0;restart<2;restart++){
+  await restartConnection();assert.deepEqual(await bootstrap(),{curated:[],pending:[]},'116-file restart has no replay');
+  assert.deepEqual(await snapshot(),upgraded,'116 restart preserves preferences, versioned contacts, principal and economic history');
+  assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,workspaceTracker);
  }
  // A later failure rolls back earlier new DDL AND tracker rows in the same TX.
  const beforeFailure='20271002_bootstrap_before_failure.sql',failure='20271003_bootstrap_failure.sql';
@@ -180,10 +211,10 @@ try{
  await stageOnly(beforePrecision);
  await bootstrap(beforePrecision);await query('drop table schema_migrations');
  await query("insert into agency_clients(organization_id,name) select id,'Legacy client preserved' from organizations where slug='scale'");
- await restartConnection();await copy([precision,...economicUpgrade]);
+ await restartConnection();await copy([precision,...economicUpgrade,...workspaceUpgrade]);
  assert.deepEqual(await bootstrap(),{curated:migrationOrder,pending:[]});
  assert.equal((await query("select count(*)::int as n from agency_clients where name='Legacy client preserved'")).rows[0].n,1);
  assert.equal((await query("select numeric_scale from information_schema.columns where table_name='agency_expenses' and column_name='amount'")).rows[0].numeric_scale,2);
  assert.deepEqual(await bootstrap(),{curated:[],pending:[]});
- console.log(`PASS bootstrap: ${migrationOrder.length} curated files fresh/legacy; tracked 110->111 and 111->114 upgrades preserve ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding`);
+ console.log(`PASS bootstrap: ${migrationOrder.length} curated files fresh/legacy; tracked 110->111 111->114 and 114->116 upgrades preserve preferences, secondary contacts, ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding`);
 }finally{await pg.close();await fs.rm(directory,{recursive:true,force:true});if(storage)await fs.rm(storage,{recursive:true,force:true});}
