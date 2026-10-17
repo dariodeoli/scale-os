@@ -4,7 +4,8 @@
 // plantilla no entra; las acciones mutantes quedan detrás de `writable`.
 import {useMemo, useState} from "react";
 import {Eye, ShieldCheck, Trash2} from "lucide-react";
-import {Nota, SearchField} from "owncoding-ui";
+import {Nota} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {EmptyBlock, FilterToolbar, ListActions, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from "./model";
 import {PersonContainer} from "../person-container";
@@ -130,7 +131,7 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
         <small className="text-[12px] leading-[1.35] text-mute">El acceso global no cambia los permisos de cada agencia</small>
       </div>
       <FilterToolbar summary={`${visible.length} de ${state.users.length}`}>
-        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar usuario" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Correo del usuario"/>
+        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72"  label="Buscar usuario" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Correo del usuario"/>
         {query ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setQuery("")}>Limpiar filtros</button> : null}
       </FilterToolbar>
       {!writable && (

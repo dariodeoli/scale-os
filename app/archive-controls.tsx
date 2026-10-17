@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from 'react';
-import {SearchField} from 'owncoding-ui';
+import {SearchField} from './search-field';
 import {SelectCustom} from './profile-controls';
 import {api} from './operations';
 import {ConfirmDialog} from './dialog';
@@ -110,7 +110,7 @@ export function TrashWorkspace({refresh,role}:{refresh:()=>Promise<void>;role?:s
   /* Reorganización IA: el total y los tipos viajan en el contador de la toolbar
      (la tira de dos KPIs dejaba media fila vacía y repetía el aviso de alcance). */
   toolbar={records.length?<FilterToolbar className="mb-0" summary={`${shown.length} de ${total} registros · ${kindsCount} tipo${kindsCount===1?'':'s'}`}>
-   <SearchField className="w-full sm:w-72" ariaLabel="Buscar en la papelera" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Nombre, tipo o quién lo movió…"/>
+   <SearchField className="w-full sm:w-72" label="Buscar en la papelera" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Nombre, tipo o quién lo movió…"/>
    <div className="w-full sm:w-52"><SelectCustom label="Tipo" choices={kindChoices} value={kindFilter} onChange={setKindFilter}/></div>
   </FilterToolbar>:undefined}
   bulk={<BulkBar count={bulk.count} label="seleccionado" role={role} busy={bulkBusy} onSelectVisible={()=>bulk.selectVisible(shown.map(keyOf))} onClear={bulk.clear}>

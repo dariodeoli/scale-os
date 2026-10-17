@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,Input,Label,SearchField,Select} from 'owncoding-ui';
+import {Aviso,AvisoPrivacidad,Button,Input,Label,Select} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
@@ -474,7 +475,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {/* Reorganización IA: el título y las acciones primarias comparten la fila
           del encabezado (ListPage); acá quedan filtros, vista y contador. */}
       <FilterToolbar>
-        <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar oportunidades" value={filters.query} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setFilter({query:event.target.value})} placeholder="Buscar por nombre, contacto o notas…"/>
+        <SearchField className="w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7"  label="Buscar oportunidades" hideLabel value={filters.query} onChange={(nextSearchValue)=>setFilter({query:nextSearchValue})} placeholder="Buscar por nombre, contacto o notas…"/>
         <div className="min-w-0">
           <Label htmlFor="pipeline-etapa" className="sr-only">Etapa</Label>
           <Select id="pipeline-etapa" aria-label="Etapa" value={filters.stage} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({stage:event.target.value})} className="min-w-[10rem]">

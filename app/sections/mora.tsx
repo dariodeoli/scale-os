@@ -3,7 +3,8 @@ import type {ChangeEvent, Dispatch, SetStateAction} from 'react';
 import {FinanceCollections} from '../finance-collections';
 import {Plus} from 'lucide-react';
 import {EmptyBlock, ErrorBlock, FilterToolbar, ListPage, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
-import {Aviso, SearchField, SegmentedField} from 'owncoding-ui';
+import {Aviso,SegmentedField} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
 import {buildMoraBuckets, filterMoraClients, moraAgeKey, moraKpis, MORA_AGE_LABELS, type ClientPaymentStatus, type MoraFilter} from '../mora-data';
@@ -123,7 +124,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
         pegada a la lista que filtra. */}
     <FilterToolbar className="mb-0" summary={`${visible.length} de ${paymentStatuses.length}`}>
       <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Sin mora'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
-      <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar cliente en cobranza" value={moraSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setMoraSearch(event.target.value)} placeholder="Buscar cliente…"/>
+      <SearchField className="w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7" label="Buscar cliente en cobranza" hideLabel value={moraSearch} onChange={(nextSearchValue)=>setMoraSearch(nextSearchValue)} placeholder="Buscar cliente…"/>
     </FilterToolbar>
 
 

@@ -7,7 +7,8 @@
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Nota,SearchField,fechaLista} from 'owncoding-ui';
+import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Nota,fechaLista} from 'owncoding-ui';
+import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
@@ -112,7 +113,7 @@ function StudioPanel(){
  </>:undefined;
  const showReservations=Boolean(spaces.length||reservations.length);
  const toolbar=!loading&&!error&&showReservations?<FilterToolbar className="mb-0" summary={`${shown.length} de ${reservations.length} reserva${reservations.length===1?'':'s'}`}>
-  <SearchField className="w-full sm:w-64" ariaLabel="Buscar reserva" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Reserva, espacio, proyecto o persona…"/>
+  <SearchField className="w-full sm:w-64" label="Buscar reserva" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Reserva, espacio, proyecto o persona…"/>
   <div className="w-full sm:w-52"><SelectCustom label="Espacio" choices={spaceChoices} value={spaceFilter} onChange={setSpaceFilter}/></div>
   <div className="w-full sm:w-44"><SelectCustom label="Estado" choices={statusChoices} value={statusFilter} onChange={setStatusFilter}/></div>
   <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>

@@ -1,7 +1,8 @@
 "use client";
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,Pencil} from 'lucide-react';
-import {Button,SearchField} from 'owncoding-ui';
+import {Button} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {api,Dialog} from '../operations';
 import {roleCan} from '../capabilities';
 import {QuoteComposer} from '../quote-composer';
@@ -68,7 +69,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       /* Reorganización IA: con dos indicadores la tira de KPIs dejaba media fila
          vacía; el conteo y el valor de ítems viajan en la misma fila del buscador. */
       toolbar={plans.length?<FilterToolbar className="mb-0">
-        <SearchField className="w-full sm:w-72" ariaLabel="Buscar plan" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Nombre o moneda…"/>
+        <SearchField className="w-full sm:w-72" label="Buscar plan" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Nombre o moneda…"/>
         <p className="m-0 ml-auto flex flex-wrap items-baseline justify-end gap-x-1.5 text-xs tabular-nums text-mute">
           <span className="whitespace-nowrap">{shown.length} de {windowState.total ?? plans.length}</span>
           <span className="whitespace-nowrap">· {active.length} activo{active.length===1?'':'s'} · {archived.length} archivado{archived.length===1?'':'s'}</span>

@@ -9,7 +9,8 @@ import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
 import {count, currentForecastMonth} from '../forecast-data';
 import {useForecast} from '../use-forecast';
-import {Aviso, FilaDato, SearchField, Subtabs} from 'owncoding-ui';
+import {Aviso,FilaDato,Subtabs} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {EmptyBlock, ErrorBlock, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar, ListPage} from '../ui-v2';
 import {notify} from '../feedback';
@@ -243,7 +244,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         <div className="flex flex-wrap gap-1">
           {INVOICE_FILTERS.map(([value, label]) => <button key={value} type="button" className={invoiceFilter === value ? 'choice active' : 'choice'} onClick={() => setInvoiceFilter(value)}>{label}</button>)}
         </div>
-        <SearchField className="w-full sm:w-64 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar factura o cliente" value={invoiceSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setInvoiceSearch(event.target.value)} placeholder="Número o cliente…"/>
+        <SearchField className="w-full sm:w-64 md:[&>button]:h-7 md:[&>button]:w-7" label="Buscar factura o cliente" hideLabel value={invoiceSearch} onChange={(nextSearchValue)=>setInvoiceSearch(nextSearchValue)} placeholder="Número o cliente…"/>
       </FilterToolbar>
       {visibleInvoices.length
         ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[60.5rem]">
