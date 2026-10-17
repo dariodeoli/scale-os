@@ -33,9 +33,9 @@ const snapshot=async()=>{
  return result;
 };
 const deliveries=[];
-async function register(input,{emailAvailable=true}={}){
+async function register(input,{emailAvailable=true,database:registrationDb=db}={}){
  let result;
- await emailPasswordAuth({req:{method:'POST',headers:{},socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('http://localhost/api/auth/password/register'),db,
+ await emailPasswordAuth({req:{method:'POST',headers:{},socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('http://localhost/api/auth/password/register'),db:registrationDb,
   body:async()=>input,send:(_,status,data,headers)=>result={status,data,headers},emailAvailable,
   sendVerification:async(email,token)=>{deliveries.push({email,token});return true},cookie:(n,v)=>`${n}=${v}`,id:()=>crypto.randomUUID()});
  return result;
@@ -102,6 +102,16 @@ try{
   r=await register({intent:'resolve',email:'pending-existing@example.invalid',password:'old'});assert.equal(r.status,403);await assert.rejects(trial('pending-existing@example.invalid'),{status:403});
  }
  console.log('PASS pending access uses only live invitation; revoked/expired/used links deny both password and Google trial resolution');
+
+ // New signup holds a transaction connection. A bounded pool must not be
+ // asked for a second connection for throttling while the first is retained.
+ let held=false;
+ const bounded={query:(sql,args)=>{assert.equal(held,false,'no nested pool query while retaining signup transaction');return db.query(sql,args);},connect:async()=>{
+  const c=await connect();held=true;
+  return {query:(sql,args)=>c.query(sql,args),release:()=>{held=false;c.release();}};
+ }};
+ r=await register({email:'bounded-pool@example.invalid',password,company:'Bounded pool agency',currency:'USD',consent:true},{database:bounded});assert.equal(r.status,202,JSON.stringify(r.data));assert.equal(held,false);
+ console.log('PASS new signup never requests a nested pool connection while retaining its transaction');
 
  // A legitimate unfinished password enrollment keeps its credential hash when
  // Google proves the same email. Pending first enrollment is the sole exception.

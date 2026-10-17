@@ -78,7 +78,7 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
    if(!emailAvailable)fail('El registro con correo todavía no está disponible. Usá Google o contactá al administrador.',503);
    validatePassword(password,email);
    const trial=trialDetailsFromInput(input);
-   if(!await throttleClient(db,req,'password-signup',10)||!await throttle(db,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
+   if(!await throttleClient(client,req,'password-signup',10)||!await throttle(client,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
    const user=await createUnverifiedUser(client,{email,password});
    const token=await issueVerification(client,{userId:user.id,purpose:'trial',payload:{company:trial.name,currency:trial.currency,full_name:nameOf(input.full_name)}});
    await client.query('commit');client.release();client=null;
