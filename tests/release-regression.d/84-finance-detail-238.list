@@ -1,0 +1,3 @@
+# Balance: detalle único, caja por fecha y cambios económicos auditables
+node --import tsx --test tests/finance-detail-data.test.ts
+node --import tsx --test tests/balance-columns.test.tsx
