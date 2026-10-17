@@ -17,7 +17,7 @@ test('la toolbar de Equipo usa ListPage + FilterToolbar con filtros segmentados 
  assert.match(team,/<FilterToolbar className="mb-0" summary=\{<span role="status" aria-atomic="true">\{summary\}<\/span>\}>/);
  assert.match(team,/<SegmentedField [\s\S]*?ariaLabel="Filtrar por estado laboral"/);
  assert.match(team,/options=\{\[\['all','Todos'\],\['active','Activos'\],\['inactive','Inactivos'\]\]\}/);
- assert.match(team,/<SearchField className="w-full sm:w-72" ariaLabel="Buscar persona"/);
+ assert.match(team,/<SearchField className="w-full sm:w-72" label="Buscar persona"/);
  assert.match(team,/<ViewSwitch value=\{view\} onChange=\{changeView\}\/>/);
  assert.match(team,/localStorage\.getItem\(TEAM_VIEW_KEY\)/,'la vista Lista/Cuadrícula se recuerda por usuario');
  assert.match(team,/const TEAM_VIEW_KEY='scale:team-view'/);

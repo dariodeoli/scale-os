@@ -1,0 +1,15 @@
+# Canonical UI contracts and syntax-preserving consumer migrations (#241)
+tsx tests/ui-fields.test.tsx
+tsx tests/ui-number-amount.test.tsx
+tsx tests/ui-search.test.tsx
+tsx tests/ui-temporal.test.ts
+tsx tests/ui-select.test.tsx
+tsx tests/options-select.test.tsx
+tsx tests/ui-button.test.tsx
+tsx tests/ui-icon-action.test.tsx
+tsx tests/editor-contracts-241.test.tsx
+tsx tests/smart-field-241.test.tsx
+tsx tests/field-contract-limits.test.tsx
+tsx tests/access-form-lifecycle-241.test.tsx
+node --test tests/ui-field-migration.test.mjs
+node --test tests/migrate-ui-actions.test.mjs
