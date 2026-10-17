@@ -1,3 +1,4 @@
+import {economicFixtureSchema} from './scripts/test-economic-schema.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -10,6 +11,7 @@ const read=name=>fs.readFile(new URL(name,import.meta.url),'utf8');
 await pg.exec(await read('./schema.sql'));
 for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_currencies.sql','20260910_client_lifecycle.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260915_optional_commission_terms.sql','20260915_billing_cadence_and_coupons.sql','20260915_client_terms_end_date.sql','20260919_pipeline_stages.sql'])await pg.exec(await read(`./migrations/${name}`));
 await pg.exec(await read('./migrations/20260914_client_commercial_lifecycle.sql'));
+await economicFixtureSchema(pg);
 const query=(sql,values)=>pg.query(sql,values),db={query,connect:async()=>({query,release(){}})};
 const insert=async(sql,values)=>(await query(sql+' returning id',values)).rows[0].id;
 const organization=(await query("select id from organizations where slug='scale'")).rows[0].id;
@@ -106,12 +108,12 @@ assert.equal(reportRow.effectiveOn,'2026-01-10','starts_on fills the effective d
 // La ficha (terms PATCH) respeta el ciclo: su edición cierra el término vigente y
 // anexa el nuevo, así que la versión optimista del ciclo avanza con ella.
 const fichaPlan=await insert("insert into agency_plans(organization_id,name,currency,items) values($1,'Plan ficha','PYG','[]'::jsonb)",[organization]);
-const fichaEdit=await call(`/api/agency/clients/${uiClient}/commercial-terms`,{method:'PATCH',handler:reports,payload:{planId:String(fichaPlan),recurringAmount:'900000',currency:'PYG',startsOn:'2026-09-01',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null}});
+const fichaEdit=await call(`/api/agency/clients/${uiClient}/commercial-terms`,{method:'PATCH',handler:reports,payload:{planId:String(fichaPlan),recurringAmount:'900000',currency:'PYG',effectiveFrom:'2026-09-01',startsOn:'2026-09-01',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null}});
 assert.equal(fichaEdit.status,200,'the ficha edits the current cycle term as an amendment');
 const afterFicha=await call(uiPath);
 assert.equal(afterFicha.commercial.amendments.length,3,'the ficha edit appends to the cycle history');
 assert.notEqual(afterFicha.commercial.version,second.commercial.version,'the cycle version advances with the ficha amendment');
-assert.deepEqual({plan:afterFicha.commercial.amendments[2].planName,price:afterFicha.commercial.amendments[2].monthlyPrice,on:afterFicha.commercial.amendments[2].effectiveOn},{plan:'Plan ficha',price:'900000',on:'2026-09-01'},'the appended term carries the ficha contract');
+assert.deepEqual({plan:afterFicha.commercial.amendments[2].planName,price:afterFicha.commercial.amendments[2].monthlyPrice,on:afterFicha.commercial.amendments[2].effectiveOn},{plan:'Plan ficha',price:'900000.00',on:'2026-09-01'},'the appended term carries the ficha contract');
 const fichaRows=(await query('select effective_until::text as effective_until,version,plan_name,monthly_price::text as monthly_price from agency_client_commercial_terms where organization_id=$1 and client_id=$2 order by coalesce(effective_from,starts_on),id',[organization,uiClient])).rows;
 assert.deepEqual({until:fichaRows[1].effective_until,version:fichaRows[1].version,plan:fichaRows[1].plan_name,price:fichaRows[1].monthly_price},{until:'2026-08-31',version:2,plan:'Contenido mensual',price:'1500000.00'},'the ficha closes the cycle term the day before and bumps its version, keeping the snapshot');
 assert.equal(fichaRows[2].effective_until,null,'the appended term stays open');

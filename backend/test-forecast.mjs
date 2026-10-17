@@ -1,3 +1,4 @@
+import {economicFixtureSchema} from './scripts/test-economic-schema.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -28,6 +29,10 @@ await pg.exec(await fs.readFile(new URL('./migrations/20260915_salary_override_s
 // las repeticiones de arriba para no volver al check PYG|USD.
 await pg.exec(await fs.readFile(new URL('./migrations/20260920_currency_widening.sql',import.meta.url),'utf8'));
 await identitySchema(pg);
+await economicFixtureSchema(pg);
+// These fixtures explicitly model agreed salaries from September; employment
+// dates alone no longer establish the financial agreement's effective date.
+await pg.exec("select set_config('app.salary_effective_from','2026-09-01',false)");
 const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const other=(await query("insert into organizations(slug,name) values('forecast-other','Other') returning id")).rows[0].id;
@@ -38,6 +43,7 @@ const client=(await query("insert into agency_clients(organization_id,name) valu
 const otherClient=(await query("insert into agency_clients(organization_id,name) values($1,'Other fixture') returning id",[other])).rows[0].id;
 let sent=0,number=0;
 async function call(path,method='GET',payload={},as=user) {
+ if(method==='PATCH'&&path.includes('/commercial-terms')&&payload.effectiveFrom===undefined)payload={...payload,effectiveFrom:payload.startsOn};
  let result;
  const args={req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>{result={status,...data};},sendInvitation:async()=>{sent++;return true;}};
   const handler=path.startsWith('/api/agency/forecast')?financialForecast:/^\/api\/agency\/(collaborators|commissions)/.test(path)?operations:/^\/api\/agency\/(reports|clients\/\d+\/(reporting|commercial-terms)|planned-expenses)/.test(path)?reports:/^\/api\/agency\/(expenses|payments|transfers|reconciliation)/.test(path)?financeControls:suite;
@@ -93,7 +99,7 @@ const euroSalary=await call(`/api/agency/collaborators/${salaryPyg.collaborator.
 assert.equal(euroSalary.status,200,'the monthly salary accepts EUR');
 assert.equal(euroSalary.collaborator.monthly_salary_currency,'EUR','the monthly salary stores EUR');
 assert.equal((await call(`/api/agency/collaborators/${salaryPyg.collaborator.id}`,'PATCH',{monthly_salary_amount:400000,monthly_salary_currency:'GBP'})).status,400,'a seventh currency is rejected on the monthly salary');
-await call(`/api/agency/collaborators/${salaryPyg.collaborator.id}`,'PATCH',{monthly_salary_amount:null,monthly_salary_currency:null});
+assert.equal((await call(`/api/agency/collaborators/${salaryPyg.collaborator.id}`,'PATCH',{monthly_salary_amount:null,monthly_salary_currency:null})).status,200,'the optional explicit monthly salary can be cleared');
 assert.equal((await call(overridePath,'PATCH',{month:'2026-09',amount:'1800',note:'Ajuste de administración'},{...user,role:'admin'})).override.amount,'1800','admin keeps editing salaries');
 assert.equal((await call(overridePath,'PATCH',{month:'2026-09',amount:'900',note:'Ajuste del dueño'})).override.amount,'900','owner keeps editing salaries');
 assert.equal((await call(`${overridePath}?month=2026-09`,'DELETE')).override,null);
@@ -377,7 +383,7 @@ assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,accountI
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,accountId:String(poorAccount),amount:'500'},financeUser)).status,409,'insufficient balance is rejected');
 assert.equal((await query('select balance from bank_accounts where id=$1',[poorAccount])).rows[0].balance,'100.00','rejected expenses never debit');
 const created=await call(realExpensesPath,'POST',realExpensePayload,financeUser);
-assert.equal(created.status,201);assert.equal(created.expense.amount,1500);assert.equal(created.expense.currency,'PYG');assert.equal(created.expense.kind,'fixed');assert.equal(new Date(created.expense.paid_on).toISOString().slice(0,10),'2026-09-12');assert.equal(created.expense.reference,'Licencia de edición');
+assert.equal(created.status,201);assert.equal(created.expense.amount,'1500.00');assert.equal(created.expense.currency,'PYG');assert.equal(created.expense.kind,'fixed');assert.equal(new Date(created.expense.paid_on).toISOString().slice(0,10),'2026-09-12');assert.equal(created.expense.reference,'Licencia de edición');
 assert.equal((await query('select balance from bank_accounts where id=$1',[expenseAccount])).rows[0].balance,'98500.00','the expense debits the account');
 const movement=(await query("select * from agency_cash_movements where movement_type='expense' and movement_id=$1",[created.expense.id])).rows[0];
 assert.equal(Number(movement.amount),-1500,'the expense appears as a negative cash movement');
@@ -438,7 +444,7 @@ const eurAccount=(await query("insert into bank_accounts(organization_id,name,ac
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,accountId:String(eurAccount),amount:'120'},financeUser)).status,400,'an expense must use its account currency');
 const eurExpense=await call(realExpensesPath,'POST',{...realExpensePayload,currency:'EUR',accountId:String(eurAccount),amount:'120'},financeUser);
 assert.equal(eurExpense.status,201,'an EUR expense registers on an EUR account');
-assert.equal(eurExpense.expense.currency,'EUR');assert.equal(eurExpense.expense.amount,120);
+assert.equal(eurExpense.expense.currency,'EUR');assert.equal(eurExpense.expense.amount,'120.00');
 assert.equal((await query('select balance from bank_accounts where id=$1',[eurAccount])).rows[0].balance,'780.00','the EUR expense debits its own account');
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,currency:'GBP',accountId:String(eurAccount),amount:'10'},financeUser)).status,400,'unknown currency codes stay rejected');
 assert.equal((await call(realExpensesPath,'GET',{},financeUser)).expenses.some(expense=>expense.currency==='EUR'),true,'the EUR expense stays in the month list');

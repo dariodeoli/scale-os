@@ -8,6 +8,9 @@ import {migrationOrder} from './scripts/migration-order.mjs';
 import {economicHistorySchema,economicHistoryCases} from './test-economic-history.mjs';
 import {economicHistory} from './economic-history.js';
 import {financeTreasury} from './finance-treasury.js';
+import {reports} from './reports.js';
+import {commercialLifecycle} from './commercial-lifecycle.js';
+import {fillContractCommercial} from './contract-commercial.js';
 import {randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 // This process owns an isolated Unix-socket cluster, never an application DB.
@@ -25,8 +28,8 @@ try{
  pool=new pg.Pool({host:socket,port,user,database:'postgres',password:'fixture-local-only',ssl:false,max:4,connectionTimeoutMillis:5000,idleTimeoutMillis:1000});
  const info=(await pool.query("select current_setting('data_directory') as data,current_setting('listen_addresses') as listen,inet_server_addr() as address,version() as version")).rows[0];assert.equal(realpathSync(info.data),data);assert.equal(info.listen,'');assert.equal(info.address,null);console.log(info.version+'; Unix socket only');
  await economicHistorySchema(pool);
- const {actor,person}=await economicHistoryCases(pool);
- async function call(path,method,payload,db=pool){let response;const args={req:{method,socket:{remoteAddress:'fixture'}},res:{},url:new URL('https://fixture.invalid/api/agency'+path),db,session:async()=>actor,body:async()=>payload,send:(_,status,data)=>response={status,...data}};for(const f of [economicHistory,financeTreasury])if(await f(args))return response;throw Error(path);}
+ const {actor,person,customer}=await economicHistoryCases(pool);
+ async function call(path,method,payload,db=pool){let response;const args={req:{method,socket:{remoteAddress:'fixture'}},res:{},url:new URL('https://fixture.invalid/api/agency'+path),db,session:async()=>actor,body:async()=>payload,send:(_,status,data)=>response={status,...data}};for(const f of [economicHistory,financeTreasury,reports,commercialLifecycle])if(await f(args))return response;throw Error(path);}
  const pathSalary='/collaborators/'+person+'/salary-history';
  let state=await call(pathSalary,'GET');
  const change={amount:'901.25',currency:'USD',compensationType:'fixed',effectiveFrom:'2026-11-01',reason:'Cambio concurrente acordado',requestId:randomUUID(),expectedRevision:state.revision};
@@ -34,6 +37,19 @@ try{
  assert.deepEqual(results.map(r=>r.status).sort(),[201,409],JSON.stringify(results));
  state=await call(pathSalary,'GET');const duplicate={...change,amount:'950.25',effectiveFrom:'2026-12-01',expectedRevision:state.revision,requestId:randomUUID()};
  const retries=await Promise.all([call(pathSalary,'POST',duplicate),call(pathSalary,'POST',duplicate)]);assert.deepEqual(retries.map(r=>r.status).sort(),[200,201]);
+ // Concurrent price corrections on the same effective month also use CAS.
+ const pathPlan='/clients/'+customer+'/commercial-terms',pathHistory='/clients/'+customer+'/plan-history';
+ const plan=(await pool.query('select plan_id from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null',[actor.organization_id,customer])).rows[0].plan_id;
+ let planHistory=await call(pathHistory,'GET');
+ const price={planId:String(plan),recurringAmount:'1800',currency:'USD',startsOn:'2026-07-01',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null,cadence:'monthly',intervalMonths:1,effectiveFrom:'2026-10-01',reason:'Corrección concurrente de precio',requestId:randomUUID(),expectedRevision:planHistory.revision};
+ const prices=await Promise.all([call(pathPlan,'PATCH',price),call(pathPlan,'PATCH',{...price,recurringAmount:'1900',requestId:randomUUID()})]);assert.deepEqual(prices.map(r=>r.status).sort(),[200,409],JSON.stringify(prices));
+ planHistory=await call(pathHistory,'GET');const correction={...price,recurringAmount:'2000',expectedRevision:planHistory.revision,requestId:randomUUID()};
+ assert.equal((await call(pathPlan,'PATCH',correction)).status,200);
+ assert.equal(Number((await pool.query("select sum(recurring_amount) as amount from agency_commercial_terms_for_month($1,'2026-10-01') where client_id=$2",[actor.organization_id,customer])).rows[0].amount),2000);
+ assert.equal(Number((await pool.query("select sum(recurring_amount) as amount from agency_commercial_terms_on($1,'2026-10-01') where client_id=$2",[actor.organization_id,customer])).rows[0].amount),2000);
+ const control=await call('/control-center','GET');assert.equal(control.status,200);assert.equal(control.contracted_billing.records.find(x=>x.currency==='USD').net_monthly,'2093.23');
+ const variables={};await fillContractCommercial(pool,actor,{client_id:customer,plan_id:plan},(key,value)=>variables[key]=value);assert.equal(variables['agreement.amount'],'2000.00','contracts use the winning current plan once');
+ console.log('PASS same-month commercial CAS: one winner, append-only correction, forecast/control-center/contracts consume one canonical revision');
  // A close and a salary agreement share the same organization mutex. Observe
  // PostgreSQL blocking while close owns it, then require the waiting backdate
  // to fail after the close commits.

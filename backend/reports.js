@@ -123,7 +123,7 @@ async function commercialTerms(db,org,id,canManageCommissions=true) {
   // served with the same contract: the plan name from the snapshot, no catalog id,
   // and the recurring amount net of discounts (the same projection the forecast and
   // the control center use).
-  const terms=(await db.query(`select t.client_id::text as "clientId",coalesce(t.plan_id::text,'') as "planId",coalesce(t.plan_name,p.name,'') as "planName",
+  const terms=(await db.query(`select t.id::text as "financialRevision",t.client_id::text as "clientId",coalesce(t.plan_id::text,'') as "planId",coalesce(t.plan_name,p.name,'') as "planName",
   coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)::text as "recurringAmount",t.currency,
   t.starts_on::text as "startsOn",t.ends_on::text as "endsOn",t.cadence,t.interval_months as "intervalMonths",t.invoice_required as "invoiceRequired",t.commission_recipient_id::text as "commissionRecipientId",c.full_name as "commissionRecipientName",
   coalesce(t.commission_mode,'none') as "commissionMode",t.commission_value::text as "commissionValue",t.updated_at as "updatedAt"
@@ -136,9 +136,11 @@ async function commercialTerms(db,org,id,canManageCommissions=true) {
  // La comisión (destinatario, modo y valor) es dato personal de un tercero:
  // sin `commissions.manage` el contrato se sirve enmascarado y sin el catálogo de
  // destinatarios. El PATCH preserva la comisión vigente (ver más abajo).
+ const revision=terms?.financialRevision||'0';
+ if(terms)delete terms.financialRevision;
  const projected=terms&&projectMoney(terms,['recurringAmount','commissionValue']);
  const visible=projected&&(canManageCommissions?projected:{...projected,commissionRecipientId:null,commissionRecipientName:null,commissionMode:'none',commissionValue:null});
- return {clientId:client.id,archived:client.archived,terms:visible,plans,collaborators};
+ return {clientId:client.id,archived:client.archived,terms:visible,plans,collaborators,revision};
 }
 async function ensureCustomPlan(db,org) {
  const existing=(await db.query(`select id from agency_plans p where p.organization_id=$1 and p.name='Plan personalizado' and p.active
@@ -265,16 +267,16 @@ export async function reports({req,res,url,db,session,body,send}) {
    if(!canManageCommissions&&open){value.recipientId=open.commission_recipient_id;value.commissionMode=open.commission_mode;value.commissionValue=open.commission_value;}
    // Close and append every commercial change, including reporting-only rows.
    // The relationship start remains separate from this agreement's effective date.
-   const effective=termsInput.effectiveFrom===undefined?value.startsOn:requiredDate(termsInput.effectiveFrom,'Vigencia');
+   const effective=termsInput.effectiveFrom===undefined?(open?(await c.query("select (clock_timestamp() at time zone 'America/Asuncion')::date::text as today")).rows[0].today:value.startsOn):requiredDate(termsInput.effectiveFrom,'Vigencia');
    const reason=termsInput.reason===undefined?'Cambio desde ficha; motivo no registrado':String(termsInput.reason).trim();
    if(reason.length<5||reason.length>1000)fail('Indicá el motivo del cambio de plan');
    await c.query('select assert_agency_finance_period_open($1,$2::date)',[user.organization_id,effective]);
    await c.query("select set_config('app.commercial_reason',$1,true),set_config('app.commercial_request_key',$2,true)",[reason,termsInput.requestId||'']);
    if(open){
     const priorStart=dateString(open.effective_from||open.starts_on);
-    if(priorStart&&effective<=priorStart)fail(`La nueva vigencia debe ser posterior al ${priorStart}`,409);
+    if(priorStart&&effective<priorStart)fail(`La nueva vigencia no puede preceder al ${priorStart}`,409);
     const closedOn=new Date(`${effective}T12:00:00Z`);closedOn.setUTCDate(closedOn.getUTCDate()-1);
-    const closed=(await c.query('update agency_client_commercial_terms set effective_until=$3::date,ends_on=$3::date,closed_at=now(),version=version+1,updated_at=clock_timestamp() where organization_id=$1 and client_id=$2 and id=$4 and effective_until is null and version=$5 returning id',[user.organization_id,id,closedOn.toISOString().slice(0,10),open.id,open.version])).rows[0];
+    const closed=(await c.query('update agency_client_commercial_terms set effective_until=$3::date,ends_on=$3::date,closed_at=now(),version=version+1,updated_at=clock_timestamp() where organization_id=$1 and client_id=$2 and id=$4 and effective_until is null and version=$5 returning id',[user.organization_id,id,effective===priorStart?priorStart:closedOn.toISOString().slice(0,10),open.id,open.version])).rows[0];
     if(!closed)fail('El término comercial cambió. Recargá antes de guardar.',409);
    }
    if(value.endsOn&&value.endsOn<effective)fail('La fecha de fin no puede preceder la vigencia');

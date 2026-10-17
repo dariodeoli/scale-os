@@ -1,3 +1,4 @@
+import {economicFixtureSchema} from './scripts/test-economic-schema.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
@@ -8,6 +9,7 @@ for(const file of ['20260908_treasury_ledger.sql','20260908_people_commissions_c
 // Every migration must safely apply twice.
 await pg.exec(await fs.readFile(new URL('./migrations/20261017_contract_documents.sql',import.meta.url),'utf8'));
 await pg.exec('create table if not exists auth_throttles(key text primary key,count integer not null default 1,expires_at timestamptz not null)');
+await economicFixtureSchema(pg);
 const query=(sql,args=[])=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})},one=async(sql,args)=>(await query(sql,args)).rows[0];
 const org=(await one("select id from organizations where slug='scale'")).id,other=(await one("insert into organizations(slug,name) values('contracts-other','Other') returning id")).id;
 const uid=(await one("insert into users(email,password_hash) values('contracts@example.invalid','unused') returning id")).id;
@@ -100,13 +102,13 @@ for(const items of [[],[{description:'Sin precio',quantity:1}],[{description:'Si
 await query('update agency_plans set items=$1::jsonb where id=$2',[JSON.stringify([{description:'Entregable sin cantidad',unitPrice:2},{description:'',quantity:1,unitPrice:5},{quantity:3,unitPrice:5},'  ',null]),incompletePlan]);r=await call(root+'/autofill','POST',{plan_id:incompletePlan});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.deliverables'],'Entregable sin cantidad','incomplete items never invent a quantity or a description');assert.equal(r.variables['agreement.amount'],undefined);
 await query('update agency_plans set items=$1::jsonb where id=$2',[JSON.stringify([{description:'Sin cargo pactado',quantity:1,unitPrice:0}]),incompletePlan]);r=await call(root+'/autofill','POST',{plan_id:incompletePlan});assert.equal(r.variables['agreement.amount'],'0.00','an explicitly priced free item preserves its actual zero');
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.amount'],'12.64');assert.equal(r.variables['agreement.plan_name'],'Plan piezas');assert.equal(r.variables['agreement.payment_terms'],undefined,'catalog has no assumed cadence');assert.equal(r.sources['agreement.amount'].source,'plan');
-const term=(await one(`insert into agency_client_commercial_terms(organization_id,client_id,activation_date,effective_from,starts_on,plan_name,plan_version,plan_id,monthly_price,currency,discount_type,discount_value,deliverables,cadence,interval_months,commission_mode) values($1,$2,'2020-01-01','2020-01-01','2020-01-01','Plan negociado','1',$3,99.99,'USD','percent',10,'["Dos piezas pactadas"]','interval',3,'none') returning id`,[org,client,plan])).id;
+const term=(await one(`insert into agency_client_commercial_terms(organization_id,client_id,activation_date,effective_from,starts_on,ends_on,plan_name,plan_version,plan_id,monthly_price,currency,discount_type,discount_value,deliverables,cadence,interval_months,commission_mode) values($1,$2,'2020-01-01','2020-01-01',${zoneTodaySql},${zoneTodaySql},'Plan negociado','1',$3,99.99,'USD','percent',10,'["Dos piezas pactadas"]','interval',3,'none') returning id`,[org,client,plan])).id;
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.amount'],'89.99');assert.equal(r.variables['agreement.payment_terms'],'Cobro cada 3 meses');assert.equal(r.variables['agreement.deliverables'],'Dos piezas pactadas');assert.equal(r.sources['agreement.amount'].source,'client-commercial-terms');assert.equal(String(r.sources['agreement.amount'].record_id),String(term));
 const catalogOnly={...sales,capabilities:{...sales.capabilities,'commercial-terms.manage':false}};r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client},catalogOnly);assert.equal(r.variables['agreement.amount'],'12.64','negotiated prices require their independent permission');
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:unnamed});assert.equal(r.variables['agreement.amount'],'12.64','never reuse another client terms');
 // The negotiated agreement is active on today's Asunción date even when
 // the database session has already crossed a different civil-day boundary.
-await query(`update agency_client_commercial_terms set starts_on=${zoneTodaySql},ends_on=${zoneTodaySql} where id=$1`,[term]);
+// The fixture is inserted with today's validity; immutable terms are never rewritten.
 let differentCivilDates=0;
 for(const timezone of ['Etc/GMT+12','Etc/GMT-14']){
  await query(`set time zone '${timezone}'`);const days=await one(`select current_date::text as database_date,${zoneTodaySql}::text as business_date`);if(days.database_date!==days.business_date)differentCivilDates++;

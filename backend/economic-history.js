@@ -5,7 +5,7 @@ import {attributeActors} from './actor-identity.js';
 import {mediaPhoto} from './agency-media.js';
 import {forecastMonth} from './forecast.js';
 import {financeError,lockFinanceMutation} from './finance-treasury.js';
-import {visibleRecord} from './record-lifecycle.js';
+import {visibleRecord,assertRecordAvailable} from './record-lifecycle.js';
 import {logPersonalDataAccess} from './personal-data.js';
 
 export function economicMoney(value,currency){
@@ -82,6 +82,8 @@ export async function economicHistory({req,res,url,db,session,body,send}){
   const read=salary?salaryHistory:planHistory;
   if(req.method==='GET'){const result=await read(c,user.organization_id,key);if(salary)await logPersonalDataAccess(c,{organizationId:user.organization_id,actorUserId:user.id,action:'salary.view',context:'salary-history',subjectKind:existing.user_id?'user':null,subjectId:existing.user_id?String(existing.user_id):null,details:{collaborator_id:String(key)}});await c.query('commit');send(res,200,result);return true;}
   if(!salary||req.method!=='POST')fail('Método no permitido',405);
+  if(!roleCan(user,'finance.view')&&!roleCan(user,'members.manage'))fail('Tu rol no permite editar salarios',403);
+  await assertRecordAvailable(c,table,existing);
   const b=await body(req),keyRequest=requestKey(b.requestId),expected=revision(b.expectedRevision),currency=option(b.currency,currencies),amount=salaryAmount(b.amount,currency);
   const effective=date(b.effectiveFrom);if(!effective||!effective.endsWith('-01'))fail('La vigencia debe ser el primer día del mes');
   const reason=text(b.reason,1000);if(reason.length<5)fail('Indicá el motivo del cambio salarial');
@@ -152,12 +154,12 @@ export async function balanceDetails(c,user,month){
  coalesce(e.base_amount,0)::text as base_amount,coalesce(e.override_amount,0)::text as override_amount,
  coalesce(e.base_amount+e.override_amount,0)::text as expected_amount,coalesce(p.amount,0)::text as paid_in_month,coalesce(p.payments,'[]'::jsonb) as payments,
  greatest(coalesce(e.base_amount+e.override_amount,0)-coalesce(p.amount,0),0)::text as outstanding_amount,
- coalesce((s.salary->>'history_known')::boolean,false) as history_known,(e.currency is not null) as salary_editable,case when s.salary->>'monthly_salary_amount' is not null then 'monthly' when s.salary->>'compensation_type'='fixed' then 'fixed' else 'none' end as salary_source
+ coalesce((s.salary->>'history_known')::boolean,false) as history_known,(select coalesce(max(h.id),0)::text from agency_salary_history h where h.organization_id=$1 and h.collaborator_id=k.id) as salary_revision,(e.currency is not null) as salary_editable,case when s.salary->>'monthly_salary_amount' is not null then 'monthly' when s.salary->>'compensation_type'='fixed' then 'fixed' else 'none' end as salary_source
  from keys k join salaries s on s.id=k.id left join expected e on e.id=k.id and e.currency=k.currency left join paid p on p.collaborator_id=k.id and p.currency=k.currency order by s.name,k.currency`,[org,from])).rows;
  const sensitive=['base_amount','override_amount','expected_amount','paid_in_month','outstanding_amount'];
- for(const row of personnel){for(const key of sensitive)row[key]=economicMoney(row[key],row.currency);for(const payment of row.payments)payment.amount=economicMoney(payment.amount,row.currency);row.photo_url=mediaPhoto(row.user_id?'person':'collaborator',row.user_id||row.collaborator_id,row.photo_url);if(!roleCan(user,'salary.view')){for(const key of sensitive)row[key]=null;row.payments=[];}}
+ for(const row of personnel){for(const key of sensitive)row[key]=economicMoney(row[key],row.currency);for(const payment of row.payments)payment.amount=economicMoney(payment.amount,row.currency);row.photo_url=mediaPhoto(row.user_id?'person':'collaborator',row.user_id||row.collaborator_id,row.photo_url);if(!roleCan(user,'salary.view')){for(const key of sensitive)row[key]=null;row.payments=[];row.salary_revision=null;}}
  const totals=(await c.query(`with contracted as (
- select distinct on(t.client_id) t.client_id,t.currency,case when t.cadence='monthly' then coalesce(t.recurring_amount,case t.discount_type when 'percent' then t.monthly_price*(1-t.discount_value/100) when 'fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end) else 0 end as amount
+ select distinct on(t.client_id) t.client_id,t.currency,round(case when t.cadence='monthly' then coalesce(t.recurring_amount,case t.discount_type when 'percent' then t.monthly_price*(1-t.discount_value/100) when 'fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end) else 0 end,case when t.currency='PYG' then 0 else 2 end) as amount
  from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id where t.organization_id=$1 and ${visibleRecord('c','clients')} and coalesce(t.effective_from,t.starts_on)<($2::date+interval '1 month')::date and (coalesce(t.effective_until,t.ends_on) is null or coalesce(t.effective_until,t.ends_on)>=$2::date) order by t.client_id,coalesce(t.effective_from,t.starts_on) desc,t.id desc),
  entries as (
  select currency,amount as contracted,0::numeric as received,0::numeric as outstanding,0::numeric as expected from contracted
@@ -166,6 +168,16 @@ export async function balanceDetails(c,user,month){
  union all select currency,0,0,outstanding_amount,case when forecast_included and expected_on>=$2::date and expected_on<($2::date+interval '1 month')::date then outstanding_amount else 0 end from agency_opening_receivable_balances where organization_id=$1
  union all select currency,0,0,0,greatest(total-paid_amount,0) from agency_invoices where organization_id=$1 and status not in ('draft','cancelled') and due_on>=$2::date and due_on<($2::date+interval '1 month')::date
  ) select currency,sum(contracted)::text as contracted_amount,sum(received)::text as received_in_month,sum(outstanding)::text as registered_outstanding,sum(expected)::text as expected_receipts from entries group by currency order by currency`,[org,from])).rows;
- for(const row of totals){for(const key of ['contracted_amount','received_in_month','registered_outstanding','expected_receipts'])row[key]=economicMoney(row[key],row.currency);const received=minor(row.received_in_month),assigned=clients.filter(x=>x.currency===row.currency).reduce((sum,x)=>sum+minor(x.received_in_month),0n),unassigned=received-assigned;row.received_unassigned=economicMoney(`${unassigned<0n?'-':''}${(unassigned<0n?-unassigned:unassigned)/100n}.${String((unassigned<0n?-unassigned:unassigned)%100n).padStart(2,'0')}`,row.currency);}
+ const unassigned=(await c.query(`with receipts as (
+ select p.id,p.organization_id,p.received_on,p.amount,a.currency from agency_payments p
+ join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id
+ left join agency_payment_links l on l.payment_id=p.id and l.organization_id=p.organization_id
+ where p.organization_id=$1 and p.invoice_id is null and l.client_id is null
+ and not exists(select 1 from agency_active_payment_applications ap where ap.organization_id=p.organization_id and ap.payment_id=p.id)
+ ), movements as (
+ select currency,amount,received_on as booked_on from receipts
+ union all select p.currency,-p.amount,r.reversed_on from receipts p join agency_payment_reversals r on r.payment_id=p.id and r.organization_id=p.organization_id
+ ) select currency,sum(amount)::text as amount from movements where booked_on>=$2::date and booked_on<($2::date+interval '1 month')::date group by currency`,[org,from])).rows;
+ for(const row of totals){for(const key of ['contracted_amount','received_in_month','registered_outstanding','expected_receipts'])row[key]=economicMoney(row[key],row.currency);row.received_unassigned=economicMoney(unassigned.find(x=>x.currency===row.currency)?.amount||'0',row.currency);}
  return {month,clients:{records:clients},personnel:{records:personnel},totals,definition:{received_in_month:'Cobros netos por fecha real de cobro/reversión del mes; pueden corresponder a otros períodos. Incluye cobros libres.',applied_to_month_invoices:'Pagado acumulado y aplicado a facturas emitidas en el mes; no incluye cobros libres.',registered_outstanding:'Saldo pendiente actual de facturas emitidas y deuda previa registrada. No se deduce del contrato ni se compensa con cobros libres.',expected_receipts:'Deuda registrada con vencimiento o fecha de previsión explícita dentro del mes; no se suma de nuevo a cobros reales.',personnel:'Salario acordado vigente al cierre del mes más ajustes del mes. Los pagos se muestran por fecha real; no acreditan un período salarial específico. Baselines legacy no acreditan vigencias pasadas.'}};
 }

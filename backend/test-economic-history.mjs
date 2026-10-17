@@ -39,7 +39,11 @@ export async function economicHistoryCases(db){
  let h=await call(history);assert.equal(h.records.length,1,JSON.stringify(h));t=terms(1200,'2026-08-01',h.revision,planB);r=await call(commercial,'PATCH',t);assert.equal(r.status,200,JSON.stringify(r));
  assert.equal((await call(commercial,'PATCH',t)).alreadyRecorded,true);h=await call(history);t=terms(1500,'2026-09-01',h.revision);assert.equal((await call(commercial,'PATCH',t)).status,200);
  h=await call(history);assert.equal(h.records.length,3);assert.equal(h.records[0].before_amount,'1200.00');assert.equal(h.records[0].after_amount,'1500.00');assert.equal(h.records[0].before_plan_name,'Plan B');
- for(const [month,base,contracted] of [['2026-07','500.00','1000'],['2026-08','600.00','1200'],['2026-09','750.00','1500']]){
+ const correction=terms(1600,'2026-09-01',h.revision,planB);r=await call(commercial,'PATCH',correction);assert.equal(r.status,200,JSON.stringify(r));
+ const sameMonth=await call(history);assert.equal(sameMonth.records.length,4);assert.equal(sameMonth.records[0].before_amount,'1500.00');assert.equal(sameMonth.records[0].after_amount,'1600.00');
+ assert.equal(Number((await one("select sum(recurring_amount) as amount from agency_commercial_terms_for_month($1,'2026-09-01') where client_id=$2",[org,customer])).amount),1600,'canonical month selects one revision');
+ assert.equal(Number((await one("select sum(recurring_amount) as amount from agency_commercial_terms_on($1,'2026-09-01') where client_id=$2",[org,customer])).amount),1600,'canonical day selects one revision');
+ for(const [month,base,contracted] of [['2026-07','500.00','1000'],['2026-08','600.00','1200'],['2026-09','750.00','1600']]){
   r=await call('/finance/balance-details?month='+month);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.personnel.records[0].base_amount,base);assert.equal(Number(r.clients.records[0].contracted_amount),Number(contracted));
   const forecast=await call('/forecast?month='+month);assert.equal(forecast.status,200,JSON.stringify(forecast));assert.equal(forecast.personnel.records[0].base_amount,Number(base));assert.equal(forecast.contracted_recurring.records[0].amount,Number(contracted));
  }
@@ -116,10 +120,11 @@ export async function economicHistoryCases(db){
 export async function economicHistorySchema(db){
  const exec=db.exec||((sql)=>db.query(sql)),read=file=>readFile(new URL(file,import.meta.url),'utf8');
  await exec(await read('schema.sql'));
- for(const file of migrationOrder)if(file!=='20261018_economic_history.sql')await exec(await read('migrations/'+file));
+ for(const file of migrationOrder)if(!['20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql'].includes(file))await exec(await read('migrations/'+file));
  const org=(await db.query("insert into organizations(slug,name) values('history-legacy','Legacy') returning id")).rows[0].id;
  const person=(await db.query("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency,started_on) values($1,'Legacy','fixed',123,'USD','2020-01-01') returning id",[org])).rows[0].id;
  await exec(await read('migrations/20261018_economic_history.sql'));await exec(await read('migrations/20261018_economic_history.sql'));
+ await exec(await read('migrations/20261018_commercial_same_month_revisions.sql'));await exec(await read('migrations/20261018_commercial_same_month_revisions.sql'));
  const baseline=(await db.query("select effective_from,source,after_state from agency_salary_history where organization_id=$1 and collaborator_id=$2",[org,person])).rows;
  assert.equal(baseline.length,1);assert.equal(baseline[0].effective_from,null);assert.equal(baseline[0].source,'legacy-baseline');assert.equal(baseline[0].after_state.amount,'123.00');
  const legacy=(await db.query("select agency_salary_at($1,$2,'2020-03-31') as salary",[org,person])).rows[0].salary;assert.equal(legacy.history_known,false);assert.equal(legacy.effective_from,null);
