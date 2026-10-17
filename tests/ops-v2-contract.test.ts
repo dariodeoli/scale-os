@@ -106,7 +106,7 @@ assert.match(studio,/<label className="flex h-11 min-w-11 items-center justify-c
 assert.match(studio,/\[--studio-cols:minmax\(13rem,1\.5fr\)_/,'la plantilla compartida aloja la selección dentro de la celda de la reserva');
 const capabilities=read('app/capabilities.ts');
 assert.match(capabilities,/studioReservations: 50/,'el tope del lote del estudio queda declarado');
-assert.match(studio,/\^\\d\{4\}-\(0\[1-9\]\|1\[0-2\]\)\$/,'el mes del estudio se valida antes de aplicarlo');
+assert.match(studio,/useTemporalFilter\([^\n]+value=>validateMonth\(value\)\?value:null\)/,'el mes del estudio conserva el borrador y sólo aplica un mes civil válido');
 
 // ── Producción (tablero, Mi día, calendario, lista y lotes).
 assert.match(board,/export const statuses/,'el diccionario de etapas sigue siendo la fuente única');
