@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "issue": 241,
-  "baseline": "0afdbd08",
-  "scope": "Snapshot final posterior a catálogo local, Balance247, header245, DialogFormState y preview neutra. Sólo55 excepciones estructurales vigentes;55 JSX/hashes exactos conservados. Historia167 preaplicación y refresh explícito se guardan separados.",
+  "baseline": "99e7f5c6",
+  "scope": "Snapshot de release tras layouts finales y fachadas OwnCoding0.68.17 publicadas.55 widgets conservan JSX/hash exacto, sin excepciones nuevas ni cambios de producto en esta revisión. Historia167 y revisiones previas separadas.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -214,7 +214,7 @@
     },
     {
       "file": "app/inventory-workspace.tsx",
-      "sourceHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
+      "sourceHash": "e801e158c086a4b3296938c1eb886c44e9d929d4ead671f78feaf2af960ef257",
       "sites": [
         {
           "line": 315,
@@ -432,7 +432,7 @@
     },
     {
       "file": "app/project-card.tsx",
-      "sourceHash": "c52125f5c53c986b8967b02e230c7b49db05efb681c58070aaa65bf075097661",
+      "sourceHash": "7c4251bf6ccee6f0e433dc8154aadf2b3ce06c7a0724b4e24d0747ee571b8bcb",
       "sites": [
         {
           "line": 153,
@@ -511,7 +511,7 @@
     },
     {
       "file": "app/sections/clientes.tsx",
-      "sourceHash": "6e7ce59e69c5cd9e4aec081fcbccee0b9e6f870793a0e0c874a552ca745727cf",
+      "sourceHash": "9376fab9fd7f3e01a5b11cb5ffb8c032fdcf6fecb9468333ace7984c17afabf7",
       "sites": [
         {
           "line": 86,

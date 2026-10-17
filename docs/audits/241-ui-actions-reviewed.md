@@ -1,6 +1,6 @@
 # #241 — Migración aplicada de acciones y excepciones estructurales
 
-Fecha: 17/10/2026. Baseline de aplicación: `1cc44010`; snapshot final revisado: `0afdbd08`. Sólo fuentes locales de Scale; sin inspeccionar fuentes externas de OwnCoding, cambiar negocio, versión, main ni deploy.
+Fecha: 17/10/2026. Baseline de aplicación: `1cc44010`; snapshot final revisado: `99e7f5c6`. Sólo fuentes locales de Scale; sin inspeccionar fuentes externas de OwnCoding, cambiar negocio, versión, main ni deploy.
 
 ## Resultado comprobado
 
@@ -20,6 +20,16 @@ El [registro explícito del refresh](241-ui-actions-refresh.json) revisa diez fu
 Se añaden **17 sitios canónicos revisados**: 14 del catálogo sintético (variantes/estados/formularios y diálogos locales), dos variantes del trigger de reporte y logout del encabezado. No hay nuevos botones nativos de acción. El nuevo inventario es **644 sitios JSX: 588 canónicos, 55 estructurales revisados, 1 renderer; manual=0 y UNREVIEWED=0**, sobre **211 TSX**. El catálogo importa Button/IconButton por exports nombrados de `../ui`. La herramienta reconoce ese entry y `../ui/index` por ruta local y símbolo exactos; los alias de esos símbolos conservan identidad. Fixtures negativos excluyen módulos parecidos, exports distintos renombrados Button y variables locales.
 
 El test concilia los deltas contra la aplicación histórica y las nuevas posiciones de acciones; comprueba retiros, motivos, unicidad, hashes finales reales e idempotencia. La comprobación de arquitectura valida los límites/exportaciones del barrel por separado. No se exige igualar artificialmente el conteo de la migración original a una app que incorporó un catálogo.
+
+## Refresh de release con el paquete numérico publicado
+
+Snapshot `99e7f5c6`, posterior al primer refresh `0afdbd08`. Se revisaron ocho TSX modificados: `finance-clients`, `finance-collections`, `finance-personnel`, `inventory-workspace`, `project-card`, `sections/clientes`, `ui/input` y `ui/number`. Los cambios de finanzas/KPI/pie son de composición; Inventario limita los cuadrados a IconButton/trigger de menú. **Los 55 widgets conservan exactamente su JSX/hash previo; no se añadieron ni retiraron sitios de acción.** CSS de Button/encabezado/logos se acredita en sus QA; no produce hashes TSX adicionales en esta auditoría.
+
+`app/ui/input.tsx` y `number.tsx` son fachadas de exports nombrados del paquete publicado **OwnCoding 0.68.17**: renderers en `owncoding-ui/numeric`, reglas puras en `owncoding-ui/number-utils`. No contienen renderers nativos ni lógica duplicada. La prueba de arquitectura verifica símbolos y subpaths exactos; no se amplió una excepción genérica. El typecheck de esta revisión usa esa dependencia instalada realmente en el worktree privado del integrador, sin modificarla.
+
+El inventario final permanece en **644 sitios: 588 canónicos, 55 estructurales revisados y 1 renderer, con cero UNREVIEWED**, sobre 211 TSX. `241-ui-actions-refresh.json` conserva la revisión anterior bajo `reviewHistory` y documenta estos ocho diffs en `latestReview`; los motivos/hashes acumulados corresponden a las fuentes finales. Los 167 registros originales y el reporte de aplicación no se modificaron. Auditoría repetida coincide byte a byte con `241-ui-actions-final.json`.
+
+Verificación de cierre: **20 fixtures de herramienta + 8 fixtures de arquitectura PASS**, architecture de 318 módulos PASS, TypeScript con OwnCoding 0.68.17 PASS y diff-check PASS. Sin cambios de producto, versión, main ni deploy en esta entrega.
 
 ## Compatibilidad y límites
 
