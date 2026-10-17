@@ -1,16 +1,9 @@
 "use client";
-import { MoneyInput, BuscadorPersonas } from 'owncoding-ui';
-import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
-import {createPortal} from 'react-dom';
-import {selectPosition} from './select-position';
-import {useDialogClose} from './dialog-context';
-import { ChevronDown } from 'lucide-react';
+import {MoneyInput} from 'owncoding-ui';
+import {Selector,type SelectKind,type SelectOption} from './ui/select';
 
 const currencyMarks: Record<string, string> = { PYG: 'Gs', USD: 'US$', EUR: '€', BRL: 'R$', ARS: '$', MXN: 'MX$' };
 const currencyMark = (currency: string) => currencyMarks[currency] || currency;
-// Guarda de entrada (issue #65): labels o búsquedas `null`/`undefined` no
-// pueden tirar `normalize`; se pliegan a texto vacío.
-const foldSearch = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 /**
  * Campo de monto de la app: puente sobre `MoneyInput` de owncoding-ui v0.39
  * (#75), que conserva el caret al tipear/pegar, acepta pegado es-PY/en-US y
@@ -33,51 +26,17 @@ export function AmountInput({ value, currency, onChange,disabled=false,id,invali
   />;
 }
 
-export type SelectChoice={value:string;label:string;photoUrl?:string|null;secondary?:string;searchText?:string;kind?:'person'|'entity'};
-export function SelectCustom(props: { label: string; value: string; choices: SelectChoice[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
- const {label,choices}=props;
- const people=choices.some(choice=>choice.kind==='person'||choice.photoUrl!==undefined)||/persona|custodio|responsable|empleado|integrante|asignad[oa]|vendedor|colaborador/i.test(label);
- if(people)return <PersonSelect {...props}/>;
- return <PlainSelect {...props}/>;
+export type SelectChoice={value:string;label:string;photoUrl?:string|null;secondary?:string;searchText?:string;kind?:'person'|'entity';disabled?:boolean};
+export type SelectCustomProps={label:string;value:string;choices:SelectChoice[];onChange:(value:string)=>void;variant?:SelectKind;disabled?:boolean;invalid?:boolean;describedBy?:string;loading?:boolean;error?:string};
+const optionsOf=(choices:SelectChoice[]):SelectOption[]=>choices.map(choice=>({value:String(choice.value),primary:String(choice.label??''),avatarUrl:choice.photoUrl,secondary:choice.secondary,searchText:choice.searchText,kind:choice.kind??(choice.value===''?'plain':undefined),disabled:choice.disabled}));
+/** Compatibility facade. Use explicit variant/kind; display labels never determine behavior. */
+export function SelectCustom(props:SelectCustomProps){
+ const variant=props.variant??(props.choices.some(choice=>choice.kind==='person')?'person':props.choices.some(choice=>choice.kind==='entity')?'entity':'plain');
+ return variant==='person'?<PersonSelect {...props}/>:<PlainSelect {...props} variant={variant}/>;
 }
-export function PersonSelect({label,value,choices,onChange,disabled=false,invalid,describedBy}:{label:string;value:string;choices:SelectChoice[];onChange:(value:string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string}){
- const id=useId(),requestClose=useDialogClose();
- const blank=choices.find(choice=>choice.value==='');
- return <div className="ops-select ops-person-select" onKeyDownCapture={event=>{
-  // The library owns Escape while its menu is open. Once closed, preserve the
-  // dialog's normal Escape dismissal, including its pending/dirty guards.
-  const input=event.target as HTMLElement;
-  if(event.key==='Escape'&&requestClose&&input.getAttribute?.('role')==='combobox'&&input.getAttribute('aria-expanded')==='false'){event.preventDefault();event.stopPropagation();requestClose();}
- }} aria-invalid={invalid||undefined} aria-describedby={describedBy}>
-  <label className="ops-label" htmlFor={id}>{label}</label>
-  <BuscadorPersonas id={id} personas={choices.filter(choice=>choice.value!=='').map(choice=>({id:String(choice.value),nombre:choice.label,fotoUrl:choice.photoUrl,detalle:choice.secondary,email:choice.searchText}))} valor={String(value)} onCambiar={person=>onChange(person?.id?String(person.id):'')} placeholder={blank?.label||'Buscar persona…'} opcionVacia={blank?.label} ariaLabel={label} etiquetaLista={label} avatarSeleccionado desplegable maxResultados={Math.max(30,choices.length)} disabled={disabled}/>
- </div>;
+export function PersonSelect(props:SelectCustomProps){
+ return <Selector label={props.label} value={props.value} options={optionsOf(props.choices)} onChange={props.onChange} variant="person" searchable disabled={props.disabled} invalid={props.invalid} describedBy={props.describedBy} loading={props.loading} error={props.error} placeholder={props.choices.find(choice=>choice.value==='')?.label||'Buscar persona…'} className="ops-select ops-person-select"/>;
 }
-function PlainSelect({ label, value, choices, onChange,disabled=false,invalid,describedBy }: { label: string; value: string; choices: SelectChoice[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
-  const [open,setOpen]=useState(false),[query,setQuery]=useState('');const root=useRef<HTMLDivElement>(null);const trigger=useRef<HTMLButtonElement>(null);const id=useId();
-  const menu=useRef<HTMLDivElement>(null);
-  const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
-  const filtered=choices.filter(c=>foldSearch(c.label).includes(foldSearch(query)));
-  const selectedLabel=choices.find(c=>String(c.value)===String(value))?.label||'Seleccionar…';
-  useEffect(()=>{if(!open)setQuery('');},[open]);
-  useEffect(()=>{if(disabled)setOpen(false);},[disabled]);
-  useLayoutEffect(()=>{if(!open){setFloating(null);return;}const update=()=>{if(!trigger.current)return;setFloating({target:root.current?.closest('[role="dialog"]')||document.body,style:selectPosition(trigger.current.getBoundingClientRect(),{width:window.innerWidth,height:window.innerHeight},Math.min(380,choices.length*44+12+(choices.length>8?48:0)))});};update();window.addEventListener('resize',update);const scroll=(event:Event)=>{if(!menu.current?.contains(event.target as Node))update();};window.addEventListener('scroll',scroll,true);return()=>{window.removeEventListener('resize',update);window.removeEventListener('scroll',scroll,true);};},[open,choices.length]);
-  useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node)&&!menu.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[open]);
-  const hasFloating=!!floating;
-  useEffect(()=>{if(open&&hasFloating)menu.current?.querySelector<HTMLElement>('[aria-selected="true"], [role="option"]')?.focus();},[open,hasFloating]);
-  return <div className="ops-select" ref={root} onKeyDown={e=>{
-    if(e.key==='Escape'&&open){e.preventDefault();e.stopPropagation();setOpen(false);trigger.current?.focus();}
-    if(e.key==='Tab'&&open){setOpen(false);trigger.current?.focus();}
-    if(open&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const options=Array.from(menu.current?.querySelectorAll<HTMLButtonElement>('[role="option"]')||[]);const current=options.indexOf(document.activeElement as HTMLButtonElement);const next=e.key==='Home'?0:e.key==='End'?options.length-1:(current+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;options[next]?.focus();}
-  }}>
-    <span className="ops-label" id={`${id}-label`}>{label}</span>
-    <button type="button" ref={trigger} disabled={disabled} title={selectedLabel} className="ops-select-trigger" aria-invalid={invalid||undefined} aria-describedby={describedBy} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!disabled} aria-controls={open&&!disabled?id:undefined} onClick={()=>{if(!disabled)setOpen(!open);}} onKeyDown={e=>{if(!disabled&&!open&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>
-      <span id={`${id}-value`}>{selectedLabel}</span><ChevronDown size={16}/>
-    </button>
-    {open&&!disabled&&floating&&createPortal(<div className="ops-select-options ops-select-floating" ref={menu} style={floating.style}>
-      {choices.length>8&&<input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(['Home','End'].includes(e.key))e.stopPropagation();}}/>}
-      <div role="listbox" id={id} aria-labelledby={`${id}-label`}>{filtered.map(c=><button type="button" role="option" aria-selected={String(value)===String(c.value)} key={c.value} onClick={()=>{onChange(String(c.value));setOpen(false);trigger.current?.focus();}}>{c.label}</button>)}</div>
-      {!filtered.length&&<p>No hay opciones disponibles.</p>}
-    </div>,floating.target)}
-  </div>;
+export function PlainSelect(props:SelectCustomProps){
+ return <Selector label={props.label} value={props.value} options={optionsOf(props.choices)} onChange={props.onChange} variant={props.variant??'plain'} disabled={props.disabled} invalid={props.invalid} describedBy={props.describedBy} loading={props.loading} error={props.error}/>;
 }
