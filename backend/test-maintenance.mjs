@@ -184,7 +184,7 @@ assert.ok(result.demos.find(d => d.organizationId === unknown).reason.startsWith
 assert.equal((await query("select site_key from live_visitor_sites where site_key='must-preserve'")).rows.length, 1);
 
 // Any failure after trigger suspension must roll back data, audit, and trigger DDL.
-const rollbackOrg = await fixture();
+const rollbackOrg = await fixture(true);
 await modernState(query,rollbackOrg,owner);
 await pg.exec(`create function maintenance_test_reject() returns trigger language plpgsql as $$ begin
  if old.id=${rollbackOrg} then raise exception 'test failure'; end if; return old; end $$;
