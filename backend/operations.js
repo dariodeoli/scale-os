@@ -1,3 +1,4 @@
+import {financeError,lockFinanceMutation} from './finance-treasury.js';
 import {fail,text,id,optId,option,amount,date,email} from './suite-validation.js';
 import {currencies} from './currencies.js';
 import {roleCan} from './permissions.js';
@@ -217,6 +218,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
     const row=(await c.query("update agency_commissions set status=$1 where id=$2 and organization_id=$3 and status in ('pending','approved') returning *",[next,commissionMatch[1],org])).rows[0];if(!row) fail('La comisión no está disponible para cambiar de estado',409);result={commission:row};
    } else fail('Método no permitido',405);
   } else if(payoutRoute) {
+   if(req.method!=='GET')await lockFinanceMutation(c,org);
    if(req.method==='GET') result={payouts:(await c.query('select p.*,a.name as account_name,a.currency,c.full_name as collaborator_name,x.beneficiary_name,u.email as created_by_email from agency_payouts p join bank_accounts a on a.id=p.account_id left join agency_collaborators c on c.id=p.collaborator_id left join agency_commissions x on x.id=p.commission_id left join users u on u.id=p.created_by_user_id where p.organization_id=$1 order by p.paid_on desc,p.id desc',[org])).rows};
    else if(req.method==='POST') {
     const b=await body(req),commission=optId(b.commission_id),collaborator=optId(b.collaborator_id),account=id(b.account_id);
@@ -238,7 +240,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
   await c.query('commit');
   if(notifyEmail)result.access.emailSent=await sendInvitation(notifyEmail,user.organization_name||'tu empresa','viewer').catch(()=>false);
   send(res,status,result);
- } catch(error) {await c.query('rollback');console.error(JSON.stringify({event:'operations_error',path:url.pathname,code:error.code||error.status||500}));send(res,error.code==='23505'?409:error.status||500,{error:error.code==='23505'?'Ya existe un registro con esos datos':error.status?error.message:'No se pudo completar la operación'});}
+ } catch(error) {await c.query('rollback');console.error(JSON.stringify({event:'operations_error',path:url.pathname,code:error.code||error.status||500}));const financial=financeError(error);send(res,error.code==='23505'?409:error.status||financial?.status||500,{error:error.code==='23505'?'Ya existe un registro con esos datos':error.status?error.message:financial?.message||'No se pudo completar la operación'});}
  finally {c.release();}
  return true;
 }
