@@ -138,7 +138,10 @@ export function Editor({
   const form = useForm<Record<string, string>>({
     resolver: zodResolver(z.object(shape)),
     defaultValues: defaults,
+    shouldFocusError: false, // El foco local también cubre controles que usan setValue sin register ref.
   });
+  const formElement=useRef<HTMLFormElement>(null);
+  const [invalidFocus,setInvalidFocus]=useState<string[]|null>(null);
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
@@ -170,6 +173,21 @@ export function Editor({
   const errorSections=sectionNames.filter(name=>sectionErrorCount(name)>0);
   const showSectionSummary=form.formState.submitCount>0&&errorSections.length>0;
   const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
+  useEffect(()=>{
+    if(!invalidFocus||pending)return;
+    setInvalidFocus(null);
+    // Después de abrir la sección y habilitar los campos en el commit actual.
+    const wrappers=Array.from(formElement.current?.querySelectorAll<HTMLElement>('[data-field]')||[]);
+    for(const key of invalidFocus){
+      const wrapper=wrappers.find(node=>node.getAttribute('data-field')===key);
+      const controls=Array.from(wrapper?.querySelectorAll<HTMLElement>('input,textarea,select,button,[tabindex]')||[]).filter(node=>
+        !node.hasAttribute('disabled')&&!node.hasAttribute('readonly')&&node.getAttribute('aria-disabled')!=='true'&&node.getAttribute('type')!=='hidden'&&!node.closest('[hidden],[inert]'));
+      const target=controls.find(node=>node.getAttribute('aria-invalid')==='true')||controls[0];
+      if(target){target.focus();return;}
+    }
+    // Conserva los consumidores registrados cuando el render de test no tiene DOM.
+    if(invalidFocus[0])form.setFocus(invalidFocus[0]);
+  },[invalidFocus,pending,form]);
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.({afterSave:true});}},[saved,pending,requestClose]);
   async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}dismissLookup(f.key);setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);const suggestions=Object.fromEntries(Object.entries(found).filter(([key])=>fields.some(field=>field.key===key)).map(([key,next])=>[key,String(next)]));if(Object.keys(suggestions).length&&f.lookup.confirmedByProvider){for(const [key,next] of Object.entries(suggestions)){const field=fields.find(field=>field.key===key);const locked=typeof field?.disabled==='boolean'?field.disabled:Boolean(field?.disabled?.(form.getValues()));if(!locked)form.setValue(key,next,{shouldValidate:true,shouldDirty:true});}setInteracted(true);setLookupNotices(current=>({...current,[f.key]:'Aplicaste los datos consultados. Revisá y guardá.'}));}else if(Object.keys(suggestions).length){setLookupSuggestions(current=>({...current,[f.key]:suggestions}));setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá los cambios y elegí Aplicar o Descartar.'}));}else{dismissLookup(f.key);setLookupNotices(current=>({...current,[f.key]:'Consulta completada. Revisá el resultado antes de guardar.'}));}}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
   const renderField = (f: Field) => {
@@ -222,12 +240,16 @@ export function Editor({
           setSavingNow(false);
         }
       },invalid=>{
-        // La primera sección con error se abre sola (y en móvil se salta a su paso).
-        const first=sectionNames.find(name=>fields.some(f=>f.section===name&&invalid[f.key]));
+        const values=form.getValues();
+        const editable=fields.filter(field=>invalid[field.key]&&!(typeof field.disabled==='boolean'?field.disabled:Boolean(field.disabled?.(values))));
+        // Abrir primero el campo corregible; después del commit se enfoca su control.
+        const first=editable[0]?.section||sectionNames.find(name=>fields.some(f=>f.section===name&&invalid[f.key]));
         if(first)revealSection(first);
+        setInvalidFocus(editable.map(field=>field.key));
       });
   return (
     <form
+      ref={formElement}
       className={columns ? "form-stack ops-form-grid" : "form-stack"}
       noValidate
       aria-busy={pending}
