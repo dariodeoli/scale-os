@@ -4,6 +4,10 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
 
 ## v1.0.190
 
+- **Precisión por moneda**: cobros, deuda, aplicaciones, gastos reales y saldos
+  de apertura admiten centavos donde corresponde; PYG y gastos planificados
+  conservan sus reglas de enteros. Reversiones y caja mantienen el importe exacto.
+
 - **Hover y selección legibles**: perfil de la barra lateral, menús, filas,
   selectores y Kanban conservan contraste en temas claro y oscuro.
 - **Controles móviles**: categorías y ubicaciones del inventario y el acceso a

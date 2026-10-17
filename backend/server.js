@@ -276,7 +276,8 @@ async function init() {
      "20261017_contract_documents.sql",
      "20261017_client_legal_profile.sql",
      "20261017_inventory_ownership.sql",
-     "20261017_finance_periods_receipts.sql"
+     "20261017_finance_periods_receipts.sql",
+     "20261017_expense_currency_precision.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
