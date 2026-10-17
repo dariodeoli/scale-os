@@ -94,7 +94,7 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryDetail item={baseItem} members={members} canManage onChanged={()=>{changed++;}}/>);});
  assert.equal(reads.at(-1),'/api/agency/inventory/1');
  assert.match(text(renderer.root),/Valor y depreciación/);assert.match(text(renderer.root),/Gs 800/);assert.match(text(renderer.root),/Gs 200/);assert.match(text(renderer.root),/Gs 42/,'el monto sale del formateador compartido (PYG sin decimales)');
- assert.match(text(renderer.root),/Lineal/);assert.match(text(renderer.root),/24 meses/);assert.match(text(renderer.root),/10-sept/);assert.match(text(renderer.root),/PYG 50000/);
+ assert.match(text(renderer.root),/Lineal/);assert.match(text(renderer.root),/24 meses/);assert.match(text(renderer.root),/10-sept/);assert.ok(text(renderer.root).includes(formatMoney('50000','PYG')),'maintenance cost uses the same canonical formatter');
  assert.match(text(renderer.root),/Anulado/);assert.match(text(renderer.root),/Anulado por Ana/);assert.match(text(renderer.root),/Sonido/);
  // Creating a maintenance row posts the contract payload, reloads the detail and notifies the workspace.
  const beforeCreate=writes.length;
