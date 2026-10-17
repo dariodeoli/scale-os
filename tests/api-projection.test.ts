@@ -13,7 +13,7 @@ assert.equal(projectionRejected('/api/agency/inventory-context',new Error('No au
 assert.equal(projectedPath('/api/agency/inventory-context','id'),'/api/agency/inventory-context?fields=id','otro endpoint sigue proyectando');
 
 for(const [name,fields,expected] of [
- ['inventario',INVENTORY_FIELDS,['id','name','photo_url','value','status','last_verified_at','notes']],
+ ['inventario',INVENTORY_FIELDS,['id','name','photo_url','value','status','last_verified_at','notes','ownership_kind','owner_user_id','owner_name','owner_photo_url']],
  ['reservas de inventario',INVENTORY_RESERVATION_FIELDS,['id','title','starts_at','ends_at','status','items','responsible_members','version']],
  ['espacios de estudio',STUDIO_SPACE_FIELDS,['id','name','scenario','notes','active']],
  ['reservas de estudio',STUDIO_RESERVATION_FIELDS,['id','space_id','space_name','title','production_type','starts_at','ends_at','status','project_name','responsible_members','version']],

@@ -199,3 +199,9 @@ test('propiedad personal exige persona y se guarda separada del custodio',async(
  assert.equal(body().ownership_kind,'person');assert.equal(body().owner_user_id,'11');assert.equal(body().custodian_user_id,'12');
  act(()=>form.renderer.unmount());
 });
+
+test('editar sin cambiar propiedad preserva el dueño recibido del catálogo',async()=>{
+ const form=await mount({...baseItem,ownership_kind:'person',owner_user_id:'11',owner_name:'Ana'});
+ await form.submit();assert.equal(body().ownership_kind,'person');assert.equal(body().owner_user_id,'11');
+ act(()=>form.renderer.unmount());
+});
