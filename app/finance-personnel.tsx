@@ -22,7 +22,7 @@ export function FinancePersonnelSection({members,month,canSalary,onReload,naviga
   <p className="finance-balance-help">Base y ajustes forman el cierre previsto. Pagado muestra pagos realizados en el mes; la diferencia es orientativa y no acredita la cancelación de un período salarial.</p>
   {!canSalary?<p className="finance-balance-help">Tu acceso no incluye información salarial.</p>:null}
   {members.length?<ListGrid label="Equipo y salarios del mes" template={PERSONNEL_COLUMNS} columns={columns} minWidthClass="min-w-[68rem]" className="finance-personnel-table">{members.map(member=><ListRow template={PERSONNEL_COLUMNS} className="forecast-person-row" key={`${member.collaborator_id}-${member.currency}`}>
-   <span className="min-w-0"><PersonContainer name={member.name} photoUrl={member.photo_url} verified secondary={member.history_known?undefined:'Vigencia anterior no registrada'} size="sm"/></span>
+   <span className="forecast-person-who min-w-0"><PersonContainer name={member.name} photoUrl={member.photo_url} verified secondary={member.history_known?undefined:'Vigencia anterior no registrada'} size="sm"/></span>
    <span className="forecast-person-base finance-detail-amount"><MoneyText valor={canSalary?member.base_amount:null} currency={member.currency}/></span>
    <span className="finance-detail-amount"><MoneyText valor={canSalary?member.override_amount:null} currency={member.currency}/></span>
    <span className="forecast-person-total finance-detail-amount"><MoneyText valor={canSalary?member.expected_amount:null} currency={member.currency}/></span>
