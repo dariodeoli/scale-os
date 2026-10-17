@@ -97,3 +97,27 @@ export function emailSuggestions(value: string): string[] {
   if (domain.includes('.')) return [];
   return EMAIL_DOMAINS.filter(entry => entry.startsWith(domain)).slice(0, 4).map(entry => `${local}@${entry}`);
 }
+
+export const DATE_ERROR = 'Ingresá una fecha válida (AAAA-MM-DD).';
+export const TIME_ERROR = 'Ingresá una hora válida de 00:00 a 23:59.';
+
+/** Fecha civil: no admite desbordes de calendario ni interpreta la zona del navegador. */
+export function civilDateValid(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+/** Entrada nueva común a taskTime: precisión de minutos, sin conversión de zona. */
+export function clockTimeValid(value: string): boolean {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+/** Sólo valida metadatos declarados; no agrega límites ni altera valores legados sin cambios. */
+export function fieldMetadataError(value: string, field: {type?: string; maxLength?: number}, originalValue?: string): string | null {
+  if (value === '' || value === originalValue) return null;
+  if (field.maxLength !== undefined && value.length > field.maxLength) return `Usá hasta ${field.maxLength} caracteres.`;
+  if (field.type === 'date' && !civilDateValid(value)) return DATE_ERROR;
+  if (field.type === 'time' && !clockTimeValid(value)) return TIME_ERROR;
+  return null;
+}

@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, MessageSquare, Star } from "lucide-react";
 import { AmountInput, SelectCustom, type SelectChoice } from './profile-controls';
-import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
+import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR, fieldMetadataError} from './field-rules';
 import {PasswordField} from './password-field';
 import {PhoneField} from './phone-field';
 import {EmailField} from './email-field';
@@ -125,6 +125,12 @@ export function Editor({
     if(f.integer)s=s.refine(value=>value===''||/^\d+$/.test(value),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
     if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
+    // Las reglas nuevas no bloquean legados intactos al editar otro campo.
+    // Se valida el borrador modificado sin truncarlo; el API sigue revalidando.
+    s=s.superRefine((value,ctx)=>{
+      const problem=fieldMetadataError(value,f,defaults[f.key]);
+      if(problem)ctx.addIssue({code:'custom',message:problem});
+    });
     const check=f.validate;
     shape[f.key] = check?s.superRefine((value,ctx)=>{const problem=value===''?null:check(value);if(problem)ctx.addIssue({code:'custom',message:problem});}):s;
   }
