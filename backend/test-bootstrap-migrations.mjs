@@ -69,13 +69,25 @@ async function populatedEconomics({org,uid,account}){
  await query("insert into agency_payouts(organization_id,collaborator_id,account_id,amount,paid_on,reference,created_by_user_id) values($1,$2,$3,12.34,'2026-07-03','Historical payout',$4)",[org,person,account,uid]);
  return{person,client};
 }
+function exactSalaryMinor(value){
+ const match=/^(-?)([0-9]+)(?:\.([0-9]*))?$/.exec(String(value));
+ assert(match,`salary amount is an exact decimal: ${value}`);
+ assert(!/[1-9]/.test((match[3]||'').slice(2)),`salary amount exceeds two minor digits: ${value}`);
+ return(match[1]?-1n:1n)*(BigInt(match[2])*100n+BigInt((match[3]||'').slice(0,2).padEnd(2,'0')));
+}
+function comparableRow(table,row){
+ // This one declared type migration changes bigint transport to numeric(22,2).
+ // Preserve null and compare its value exactly; all other columns stay strict.
+ return table==='agency_collaborators'&&row.monthly_salary_amount!==null
+  ?{...row,monthly_salary_amount:exactSalaryMinor(row.monthly_salary_amount)}:row;
+}
 function assertEconomicUpgradePreserves(before,after){
  const additions={agency_clients:['legal_representative_same_as_client'],agency_client_commercial_terms:['change_reason','changed_by_user_id','request_key']};
  for(const [table,rows] of Object.entries(before)){
   assert.equal(after[table].length,rows.length,`${table}: no row added or removed`);
   for(let index=0;index<rows.length;index++){
    const previous=rows[index],current=after[table][index];
-   assert.deepEqual(Object.fromEntries(Object.keys(previous).map(key=>[key,current[key]])),previous,`${table}: every pre-existing column preserved`);
+   assert.deepEqual(comparableRow(table,Object.fromEntries(Object.keys(previous).map(key=>[key,current[key]]))),comparableRow(table,previous),`${table}: every pre-existing column preserved`);
    assert.deepEqual(Object.keys(current).filter(key=>!Object.hasOwn(previous,key)).sort(),(additions[table]||[]).slice().sort(),`${table}: only declared schema additions`);
    for(const key of additions[table]||[])assert.equal(current[key],key==='legal_representative_same_as_client'?false:null,`${table}.${key}: safe explicit default`);
   }
@@ -135,7 +147,9 @@ try{
  assert.equal(baseline.source,'legacy-baseline');assert.equal(baseline.effective_from,null,'employment start never becomes invented salary effective date');
  assert.equal(baseline.actor_user_id,null);assert.equal(baseline.request_key,null);
  const originalSalary=beforeEconomic.agency_collaborators.find(row=>String(row.id)===String(economic.person));
- assert.deepEqual(baseline.after_state,{amount:String(originalSalary.compensation_amount),currency:'USD',compensation_type:'fixed',monthly_salary_amount:String(originalSalary.monthly_salary_amount),monthly_salary_currency:'USD'});
+ assert.deepEqual(baseline.after_state,{amount:String(originalSalary.compensation_amount),currency:'USD',compensation_type:'fixed',monthly_salary_amount:'500.00',monthly_salary_currency:'USD'});
+ assert.equal(exactSalaryMinor(baseline.after_state.monthly_salary_amount),exactSalaryMinor(originalSalary.monthly_salary_amount));
+ assert.deepEqual((await query("select numeric_precision,numeric_scale from information_schema.columns where table_name='agency_collaborators' and column_name='monthly_salary_amount'")).rows,[{numeric_precision:22,numeric_scale:2}]);
  const observed=(await query("select agency_salary_at($1,$2,'2001-01-01'::date) as state",[old.org,economic.person])).rows[0].state;
  assert.equal(observed.history_known,false);assert.equal(observed.effective_from,null);assert.equal(observed.amount,baseline.after_state.amount);
  await rejectedWrite('update agency_salary_history set reason=$1 where id=$2',['Rewritten history',baseline.id],/append-only/i);
