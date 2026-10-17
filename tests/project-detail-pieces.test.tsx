@@ -5,6 +5,7 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import ts from 'typescript';
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
+const {ClientIdentity}=require('../app/client-identity') as typeof import('../app/client-identity');
 const {fetchProjectPieces,resetProjectFilterSupport,PROJECT_PIECES_LIMIT,PROJECT_FILTER_PROBE_ID,remainingPiecesLabel}=require('../app/project-pieces') as typeof import('../app/project-pieces');
 
 // #146: el contador del detalle de proyecto sale de la MISMA consulta que la
@@ -31,7 +32,7 @@ const api=async(url:string)=>{
  if(url.endsWith('/assignees'))return {assignees:[]};
  return {record:{...baseProject,work_order_count:undefined}};
 };
-const scope={React,useState:React.useState,useEffect:React.useEffect,api,fetchProjectPieces,remainingPiecesLabel,PROJECT_PIECES_LIMIT,Drawer:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,ErrorBlock:()=>null,LoadingBlock:()=>null,StateChip:({children}:{children:React.ReactNode})=><span>{children}</span>,UrgencyBadge:()=>null,AssignedPeople:()=>null,DriveLinks:()=>null,hasDueWarning:()=>false,fechaLarga:(value:string)=>value,fechaListaCorta:(value:string)=>value||'Sin fecha',fechaLista:(value:string)=>value,OPS_TIME_ZONE:'America/Asuncion',statuses:[],pieceStatusLabel:(status:string)=>status,STATUS_TONE:{},statusLabel:(status:string)=>status,projectLinks:()=>({links:[],legacy:'',count:0})};
+const scope={React,ClientIdentity,useState:React.useState,useEffect:React.useEffect,api,fetchProjectPieces,remainingPiecesLabel,PROJECT_PIECES_LIMIT,Drawer:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,ErrorBlock:()=>null,LoadingBlock:()=>null,StateChip:({children}:{children:React.ReactNode})=><span>{children}</span>,UrgencyBadge:()=>null,AssignedPeople:()=>null,DriveLinks:()=>null,hasDueWarning:()=>false,fechaLarga:(value:string)=>value,fechaListaCorta:(value:string)=>value||'Sin fecha',fechaLista:(value:string)=>value,OPS_TIME_ZONE:'America/Asuncion',statuses:[],pieceStatusLabel:(status:string)=>status,STATUS_TONE:{},statusLabel:(status:string)=>status,projectLinks:()=>({links:[],legacy:'',count:0})};
 const Detail=new Function(...Object.keys(scope),`${compiled};return ProjectDetail;`)(...Object.values(scope)) as React.ComponentType<any>;
 
 let renderer:ReactTestRenderer;

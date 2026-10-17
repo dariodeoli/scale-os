@@ -13,18 +13,19 @@ import {notify} from './feedback';
 import {personLabel,technicalEmail} from './field-rules';
 import {BATCH_LIMITS,canOpenPeopleWorkspace,roleCan} from './capabilities';
 import {ActionMenu,BulkBar,CompactCard,EmptyBlock,FilterToolbar,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,ViewSwitch,useBulkSelection,type ChipTone,type CollectionView,type Column,type RecordMenuItem} from './ui-v2';
-import {teamDirectory,filterTeamEntries,teamRoleLabels,type ArchivedProfile,type TeamEntry,type TeamMember,type TeamStatusFilter} from './team-directory';
+import {teamDirectory,filterTeamEntries,teamRoleLabels,isCurrentTeamMember,type ArchivedProfile,type TeamEntry,type TeamMember,type TeamStatusFilter} from './team-directory';
 import {accessState} from './team-access';
 import {TeamPersonSheet,compensationTypes,type Person,type SheetTarget} from './team-person-sheet';
 
 const TEAM_VIEW_KEY='scale:team-view';
-// Una sola plantilla para el encabezado y las filas (Persona · Datos · Estado · Acceso · Acciones).
-const TEAM_TEMPLATE='grid-cols-[minmax(13rem,1.6fr)_minmax(12rem,1.3fr)_6rem_minmax(9rem,0.9fr)_4.5rem]';
+// Una sola plantilla para el encabezado y las filas (Persona · Datos · Estado laboral · Permiso · Acceso · Acciones).
+const TEAM_TEMPLATE='grid-cols-[minmax(13rem,1.6fr)_minmax(12rem,1.3fr)_7rem_8rem_7rem_4.5rem]';
 const TEAM_COLUMNS:Column[]=[
   {key:'person',label:'Persona'},
   {key:'data',label:'Datos'},
-  {key:'status',label:'Estado'},
-  {key:'access',label:'Acceso'},
+  {key:'status',label:'Estado laboral',align:'center'},
+  {key:'permission',label:'Permiso'},
+  {key:'access',label:'Acceso',align:'center'},
   {key:'actions',label:'Acciones'},
 ];
 const errorText=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación';
@@ -76,13 +77,14 @@ function factsOf(entry:Entry,salaryView:boolean):Facts{
   return {key:entry.key,name:m.full_name||'Integrante sin ficha',photo:m.photo_url??null,secondary:null,email:technical?`Acceso de demostración · ${teamRoleLabels[m.role]||'Integrante'}`:m.email,emailTitle:technical?undefined:m.email,meta:[],status:{tone:'mute',label:'Sin ficha',title:'Agregá la ficha laboral para registrar fechas y pagos.'},access,memberId:String(m.id)};
 }
 
-export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail?:string}){
+export function PeopleWorkspace({role,currentEmail='',currentUserId=''}:{role:string;currentEmail?:string;currentUserId?:string}){
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[people,setPeople]=useState<Person[]>([]);
   const [search,setSearch]=useState(''),[teamFilter,setTeamFilter]=useState<TeamStatusFilter>('all');
   const [loading,setLoading]=useState(true),[error,setError]=useState('');
   const [permissionsOpen,setPermissionsOpen]=useState(false);
   const [sheet,setSheet]=useState<SheetTarget|null>(null);
+  const [revokeTarget,setRevokeTarget]=useState<TeamMember|null>(null);
   const [removeTarget,setRemoveTarget]=useState<{id:string;name:string}|null>(null);
   const [purgeTarget,setPurgeTarget]=useState<TeamMember|null>(null),[purgeBusy,setPurgeBusy]=useState(false),[purgeError,setPurgeError]=useState('');
   const [view,setView]=useState<CollectionView>('list');
@@ -112,8 +114,8 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
 
   const directory=useMemo(()=>teamDirectory(people,members,archivedProfiles),[people,members,archivedProfiles]);
   const visible=useMemo(()=>filterTeamEntries(directory,search,teamFilter),[directory,search,teamFilter]);
-  const selectable=(entry:Entry)=>Boolean(canManageAccess&&entry.member&&!entry.member.removed_at&&entry.member.email!==currentEmail);
-  const selectableIds=useMemo(()=>directory.filter(selectable).map(entry=>String(entry.member!.id)),[directory,canManageAccess,currentEmail]);
+  const selectable=(entry:Entry)=>Boolean(canManageAccess&&entry.member&&!entry.member.removed_at&&!isCurrentTeamMember(entry.member,currentUserId));
+  const selectableIds=useMemo(()=>directory.filter(selectable).map(entry=>String(entry.member!.id)),[directory,canManageAccess,currentUserId]);
   const {prune}=bulk;
   useEffect(()=>{prune(selectableIds);},[selectableIds,prune]);
 
@@ -165,8 +167,9 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
       items.push({id:'profile',label:'Perfil',onClick:()=>openSheet({memberId:String(m!.id),seedEmail:m!.email&&!technicalEmail(m!.email)?m!.email:''})});
     }
     if(canManageAccess&&(m||p))items.push({id:'access',label:'Acceso',onClick:()=>openSheet({personId:p?String(p.id):null,memberId:m?String(m.id):null,seedEmail:!p&&m&&!technicalEmail(m.email)?m.email:'',tab:'acceso'})});
+    if(m&&!m.removed_at&&canManageAccess&&!isCurrentTeamMember(m,currentUserId)&&!(m.role==='owner'&&role!=='owner'))items.push({id:'revoke',label:'Quitar acceso',peligro:true,onClick:()=>setRevokeTarget(m)});
     if(p&&canRemoveRecord('collaborators',role))items.push({id:'remove',label:'Eliminar',peligro:true,onClick:()=>setRemoveTarget({id:String(p.id),name:p.full_name})});
-    else if(!p&&m&&canManageAccess&&(!m.active||Boolean(m.removed_at))&&m.email!==currentEmail&&!(m.role==='owner'&&role!=='owner'))items.push({id:'purge',label:'Eliminar',peligro:true,onClick:()=>{setPurgeError('');setPurgeTarget(m);}});
+    else if(!p&&m&&canManageAccess&&(!m.active||Boolean(m.removed_at))&&!isCurrentTeamMember(m,currentUserId)&&!(m.role==='owner'&&role!=='owner'))items.push({id:'purge',label:'Eliminar',peligro:true,onClick:()=>{setPurgeError('');setPurgeTarget(m);}});
     return items;
   }
   const menuLabel=(facts:Facts)=>`Acciones de ${facts.name}`;
@@ -180,11 +183,12 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
     return <ListRow key={facts.key} template={TEAM_TEMPLATE} className="team-row">
       <div role="cell" className="flex min-w-0 items-center gap-1">
         {check(entry,facts,true)}
-        <div className="min-w-0" title={facts.name}><PersonContainer size="md" name={facts.name} photoUrl={facts.photo||undefined} secondary={facts.secondary} verified/></div>
+        <div className="min-w-0" title={facts.name}><PersonContainer size="md" name={facts.name} photoUrl={facts.photo||undefined} secondary={facts.secondary} verified/></div>{isCurrentTeamMember(entry.member,currentUserId)?<StateChip tone="mute">vos</StateChip>:null}
       </div>
       <span role="cell" className="flex min-w-0 items-baseline gap-x-1.5 text-[12px] leading-tight text-mute" title={[facts.emailTitle||facts.email,...facts.meta].join(' · ')}><span className="min-w-0 truncate">{facts.email}</span>{facts.meta.map(item=><span key={item} className="shrink-0 whitespace-nowrap text-[11px] opacity-80">· {item}</span>)}</span>
-      <span role="cell" className="min-w-0"><StateChip tone={facts.status.tone} title={facts.status.title}>{facts.status.label}</StateChip></span>
-      <span role="cell" className="flex min-w-0 items-center gap-1.5" title={facts.access.title}>{facts.access.role?<span className="min-w-0 truncate text-[12px] text-mute">{facts.access.role}</span>:null}<StateChip tone={facts.access.tone}>{facts.access.label}</StateChip></span>
+      <span role="cell" className="team-state-cell flex min-w-0 justify-center"><StateChip tone={facts.status.tone} title={facts.status.title}>{facts.status.label}</StateChip></span>
+      <span role="cell" className="min-w-0 truncate text-[12px] text-mute" title={facts.access.role}>{facts.access.role||'Sin permiso'}</span>
+      <span role="cell" className="team-state-cell flex min-w-0 justify-center" title={facts.access.title}><StateChip tone={facts.access.tone}>{facts.access.label}</StateChip></span>
       <ListActions>{items.length?<ActionMenu label={menuLabel(facts)} items={items}/>:null}</ListActions>
     </ListRow>;
   };
@@ -201,7 +205,7 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
       actions={items}
       menuLabel={menuLabel(facts)}
       context={<><span className="min-w-0 truncate" title={facts.emailTitle||facts.email}>{facts.email}</span>{facts.meta.map(item=><span key={item} className="whitespace-nowrap">· {item}</span>)}</>}
-      chips={<><StateChip tone={facts.status.tone} title={facts.status.title}>{facts.status.label}</StateChip>{facts.access.role?<span className="text-[11.5px] text-mute">{facts.access.role}</span>:null}<StateChip tone={facts.access.tone} title={facts.access.title}>{facts.access.label}</StateChip></>}
+      chips={<>{isCurrentTeamMember(entry.member,currentUserId)?<StateChip tone="mute">vos</StateChip>:null}<StateChip tone={facts.status.tone} title={facts.status.title}>{facts.status.label}</StateChip>{facts.access.role?<span className="text-[11.5px] text-mute">{facts.access.role}</span>:null}<StateChip tone={facts.access.tone} title={facts.access.title}>{facts.access.label}</StateChip></>}
       data-team-card={p?'profile':'member'}
     />;
   };
@@ -234,14 +238,16 @@ export function PeopleWorkspace({role,currentEmail=''}:{role:string;currentEmail
       {loading?<LoadingBlock label="Cargando equipo…" lines={4}/>
         :!visible.length?<EmptyBlock compact title={hasFilters?'Sin coincidencias':'Todavía no hay personas'} description={hasFilters?'Probá con otro nombre, correo o cargo, o cambiá el filtro.':'Agregá la primera persona del equipo para registrar accesos y remuneraciones.'} action={hasFilters?<button type="button" className="text-button" onClick={clearFilters}>Limpiar filtros</button>:<button type="button" className="primary" onClick={()=>openSheet()}><Plus size={16} aria-hidden="true"/>Agregar primera persona</button>}/>
         :view==='list'
-          ?<ListGrid label="Equipo" template={TEAM_TEMPLATE} columns={TEAM_COLUMNS} minWidthClass="min-w-[48rem]" pinnedActions>{visible.map(row)}</ListGrid>
+          ?<ListGrid label="Equipo" template={TEAM_TEMPLATE} columns={TEAM_COLUMNS} minWidthClass="min-w-[56rem]" pinnedActions>{visible.map(row)}</ListGrid>
           :<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{visible.map(card)}</div>}
     </ListPage>
+    {revokeTarget?<RemoveRecordDialog kind="members" id={String(revokeTarget.id)} name={personLabel(revokeTarget,'Esta persona')} role={role} done={load} open onClose={()=>setRevokeTarget(null)}/>:null}
     {removeTarget?<RemoveRecordDialog kind="collaborators" id={removeTarget.id} name={removeTarget.name} role={role} done={load} open onClose={()=>setRemoveTarget(null)}/>:null}
     {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{personLabel(purgeTarget,'Esta persona')}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
     {sheet&&sheetReady?<TeamPersonSheet
       role={role}
       currentEmail={currentEmail}
+      currentUserId={currentUserId}
       person={sheetPerson}
       member={sheetMember}
       ambiguous={Boolean(sheetEntry?.ambiguous)}

@@ -1,0 +1,127 @@
+{
+  "source": "969c4a989e92216f2b6a0b6a0799095893afc263",
+  "checks": [
+    {
+      "name": "keyboard60ms 100.25",
+      "passed": true,
+      "display": "100,25"
+    },
+    {
+      "name": "keyboard60ms 100,25",
+      "passed": true,
+      "display": "100,25"
+    },
+    {
+      "name": "insertText 100.25",
+      "passed": true,
+      "display": "100,25"
+    },
+    {
+      "name": "insertText 100,25",
+      "passed": true,
+      "display": "100,25"
+    },
+    {
+      "name": "Decimal separator advances caret: 100.25",
+      "passed": true,
+      "caret": 4
+    },
+    {
+      "name": "Decimal separator advances caret: 100,25",
+      "passed": true,
+      "caret": 4
+    }
+  ],
+  "results": [
+    {
+      "input": "100.25",
+      "trace": [
+        {
+          "value": "1,00",
+          "start": 1,
+          "end": 1
+        },
+        {
+          "value": "10,00",
+          "start": 2,
+          "end": 2
+        },
+        {
+          "value": "100,00",
+          "start": 3,
+          "end": 3
+        },
+        {
+          "value": "100,00",
+          "start": 4,
+          "end": 6
+        },
+        {
+          "value": "100,20",
+          "start": 5,
+          "end": 5
+        },
+        {
+          "value": "100,25",
+          "start": 6,
+          "end": 6
+        }
+      ]
+    },
+    {
+      "mode": "keyboard60ms",
+      "input": "100.25",
+      "display": "100,25"
+    },
+    {
+      "input": "100,25",
+      "trace": [
+        {
+          "value": "1,00",
+          "start": 1,
+          "end": 1
+        },
+        {
+          "value": "10,00",
+          "start": 2,
+          "end": 2
+        },
+        {
+          "value": "100,00",
+          "start": 3,
+          "end": 3
+        },
+        {
+          "value": "100,00",
+          "start": 4,
+          "end": 6
+        },
+        {
+          "value": "100,20",
+          "start": 5,
+          "end": 5
+        },
+        {
+          "value": "100,25",
+          "start": 6,
+          "end": 6
+        }
+      ]
+    },
+    {
+      "mode": "keyboard60ms",
+      "input": "100,25",
+      "display": "100,25"
+    },
+    {
+      "mode": "insertText",
+      "input": "100.25",
+      "display": "100,25"
+    },
+    {
+      "mode": "insertText",
+      "input": "100,25",
+      "display": "100,25"
+    }
+  ]
+}

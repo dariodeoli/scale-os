@@ -14,6 +14,7 @@ import {throttleClient} from './request-guard.js';
 import {emailPasswordAuth} from './email-password-auth.js';
 import {loginOrganization} from './default-organization.js';
 import { financeControls } from './finance-controls.js';
+import {financeTreasury} from './finance-treasury.js';
 import { contentReview } from './content-review.js';
 import { recordLifecycle, visibleRecord } from './record-lifecycle.js';
 import { invitationEmail,accessGrantedEmail,resetEmail,verificationEmail,destructiveReauthEmail } from './invitation-email.js';
@@ -40,6 +41,7 @@ import {rucLookup,assertUniqueClientRuc,rucLookupConfig,configuredRucProvider} f
 import {workOrderLinks} from './work-order-links.js';
 import {presence} from './presence.js';
 import {demoOrganization} from './demo-session.js';
+import {demoEffectGate} from './demo-effects.js';
 import {inviteLinks,resolveInvite,claimInvite,accessRequestState} from './invite-links.js';
 import {publicExperience} from './public-experience.js';
 import {notifyInquiry,platformContactEmail} from './platform-inquiries.js';
@@ -55,7 +57,7 @@ import {platformTraffic} from './platform-traffic.js';
 import {publicAnalytics} from './public-analytics.js';
 import {platformAnnouncements,agencyAnnouncements} from './platform-announcements.js';
 import {platformMaintenance,maintenanceGate} from './platform-maintenance.js';
-import {applyPendingMigrations} from './migrations-runner.mjs';
+import {applyCuratedMigrations,applyPendingMigrations} from './migrations-runner.mjs';
 import {rolePermissions,roleCan} from './permissions.js';
 import {redactPiiText} from './pii-safety.js';
 import {createEmailDelivery,publicEmailDeliveryStatus} from './email-delivery.js';
@@ -160,10 +162,9 @@ async function init() {
     await migration.query("select pg_advisory_xact_lock(hashtextextended('scale-core-schema',0))");
     await migration.query(await fs.readFile(path.join(root,'schema.sql'),'utf8'));
     await runOptionalMigration('20260908_dadoo_hub.sql',migration);
-    // Cadena curada: mismo orden que `scripts/migration-order.mjs`. Se pasa
-    // como `knownFiles` para que el baseline de una base nueva no registre como
-    // aplicados archivos que nunca corrieron (p. ej. migraciones sumadas
-    // después de la última entrada de esta cadena).
+    // Curated dependency order: registered files never replay against newer
+    // data/constraints. Each pending file and its tracker row share this
+    // transaction; unlisted future files run only after the curated chain.
     const migrationChain=[
      "20260908_client_payment_status.sql",
      "20260908_treasury_ledger.sql",
@@ -272,10 +273,13 @@ async function init() {
      "20261016_platform_errors_reports.sql",
      "20261017_employee_tasks.sql",
      "20261017_contract_documents.sql",
-     "20261017_client_legal_profile.sql"
+     "20261017_client_legal_profile.sql",
+     "20261017_inventory_ownership.sql",
+     "20261017_finance_periods_receipts.sql",
+     "20261017_expense_currency_precision.sql"
     ];
-    for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
-    await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
+    await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
+    await applyPendingMigrations(migration,path.join(root,'migrations'));
     await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}
   async function provisionOwner(email, password) {
@@ -364,6 +368,8 @@ const server = http.createServer(async (req,res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
+    // Check demo effects before any handler can send invitations or call a provider.
+    if(await demoEffectGate({req,res,url,session,send}))return;
     // Mantenimiento (panel global): corta solo /api/agency/* y lecturas hermanas a
     // quien no es administrador global; auth, panel, health, públicos y webhooks pasan.
     if(await maintenanceGate({req,res,url,db,session,send}))return;
@@ -414,6 +420,7 @@ const server = http.createServer(async (req,res) => {
     if(await emailPasswordAuth({req,res,url,db,body,send,sendVerification,emailAvailable:emailDelivery.status.available,cookie,id}))return;
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
+    if(await financeTreasury({req,res,url,db,session,body,send}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;
     if(await contentReview({req,res,url,db,session,body,send}))return;

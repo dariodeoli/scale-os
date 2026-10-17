@@ -2,6 +2,49 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.190
+
+- **Landing y acceso renovados**: recorrido de las funciones actuales con capturas
+  del producto; login y registro con el mismo ancho, acciones visibles en escritorio,
+  botones rectangulares con esquinas suaves y enlaces y pie fuera de la tarjeta.
+
+- **Arranque seguro**: las migraciones ya registradas no se vuelven a ejecutar;
+  las pendientes se aplican de forma atómica y conservan auditoría e importes.
+
+- **Edición con validación estable**: los formularios conservan el foco al
+  mostrar errores y el campo monetario permite teclear, editar y pegar centavos.
+
+- **Precisión por moneda**: cobros, deuda, aplicaciones, gastos reales y saldos
+  de apertura admiten centavos donde corresponde; PYG y gastos planificados
+  conservan sus reglas de enteros. Reversiones y caja mantienen el importe exacto.
+
+- **Hover y selección legibles**: perfil de la barra lateral, menús, filas,
+  selectores y Kanban conservan contraste en temas claro y oscuro.
+- **Controles móviles**: categorías y ubicaciones del inventario y el acceso a
+  plan/pago del cliente tienen un objetivo táctil de al menos 44 px.
+- **Demo para probar el trabajo diario**: tareas propias para hoy, checklists,
+  materiales, reservas de estudio, contratos de ejemplo, fichas legales,
+  propiedad del inventario y finanzas con cobros, deuda, gastos y caja coherente.
+- **Visitas privadas**: cada visitante tiene su propia demo temporal, sin
+  compartir los cambios; al recargar sigue en su sesión activa.
+- **Acciones externas protegidas**: la demo no contacta proveedores del tenant;
+  crear una cuenta real y recuperar acceso desde los formularios públicos sigue
+  disponible. La limpieza de datos vencidos distingue expiración y borrado físico.
+
+- **Más espacio útil**: encabezados y filtros compactos, proyectos en cuadrícula
+  reorganizados y logos de clientes circulares, también en las listas.
+- **Formularios y personas compartidos**: campos proporcionados al contenido,
+  importes nuevos vacíos, selección de personas con foto y acciones de diálogo coherentes.
+- **Equipo y propiedad del inventario**: identificación «vos», estado de acceso
+  alineado y retiro de otro dueño; editar desde cuadrícula y distinguir propietario
+  del custodio, con atribución masiva explícita y trazabilidad.
+- **Balance y caja por cuenta**: contratado, facturado, cobrado, salarios y gastos;
+  gastos personalizables fijos/variables y recurrentes, bancos del catálogo y custodia.
+- **Cobranza flexible**: pagos sin cliente ni factura, asociaciones posteriores,
+  aplicaciones parciales, deuda anterior con motivo y fecha esperada de cobro.
+- **Control por mes**: fechas efectivas, correcciones auditadas, saldos de apertura,
+  cierres y reaperturas que protegen los movimientos y conservan el historial.
+
 ## v1.0.189
 
 - **Modelos de contrato listos para adaptar**: marketing mensual, condición preferencial,

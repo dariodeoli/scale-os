@@ -24,8 +24,9 @@ function assertProductFooter(html:string,surface:string){
 
 test('panel: shell, suscripción bloqueada, error y superadmin montan el pie',()=>{
  const shell=file('app/scale-workspace.tsx');
- assert.equal((shell.match(/<WorkspaceFooter\s*\/>/g)||[]).length,3,'shell, login y suscripción bloqueada');
+ assert.equal((shell.match(/<WorkspaceFooter\s*\/>/g)||[]).length,2,'shell y suscripción bloqueada; login delega al marco de acceso');
  assert(shell.includes("from './workspace-footer'"),'el shell usa el puente único');
+ assert(shell.includes('<AccessLayout eyebrow="Ingresá a tu espacio"'),'login monta el marco con pie compartido');
  assert(file('app/superadmin/page.tsx').includes('<WorkspaceFooter />'),'el panel global monta el pie');
  assert(file('app/error.tsx').includes('<WorkspaceFooter/>'),'el lienzo de error del panel monta el pie');
  assertProductFooter(renderToStaticMarkup(<WorkspaceFooter/>),'panel');
@@ -66,4 +67,14 @@ test('puente sin lógica y excepciones documentadas de impresión',()=>{
  const label=file('app/inventory-label.tsx');
  assert(!/<footer/.test(label),'la etiqueta 80×50 mm no lleva pie (excepción documentada)');
  assert(file('docs/ADOPCION-V2.md').includes('inventory-label'),'la excepción de la etiqueta queda documentada');
+});
+
+ test('acceso: enlaces y pie están fuera de la tarjeta, con un solo pie canónico',()=>{
+ const html=renderToStaticMarkup(<AccessLayout links={<a href="/registro">Crear cuenta</a>}><p>Formulario</p></AccessLayout>);
+ const closeCard=html.indexOf('</section>');
+ assert(closeCard>0);
+ assert(html.indexOf('aria-label="Opciones de acceso"')>closeCard,'la navegación no ocupa el formulario');
+ assert(html.indexOf('data-testid="product-footer"')>closeCard,'el pie no ocupa el formulario');
+ assert.equal((html.match(/data-testid="product-footer"/g)||[]).length,1);
+ assertProductFooter(html,'marco de acceso');
 });

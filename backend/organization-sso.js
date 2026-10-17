@@ -1,3 +1,4 @@
+import {assertDemoEffectAllowed} from './demo-effects.js';
 import crypto from 'node:crypto';
 import dns from 'node:dns/promises';
 import {roleCan} from './permissions.js';
@@ -252,6 +253,7 @@ export async function organizationSso({req,res,url,db,session,body,send,resolveT
   const providerRoute=url.pathname.match(/^\/api\/agency\/sso\/providers(?:\/(\d+))?$/);
   const domainRoute=url.pathname.match(/^\/api\/agency\/sso\/domains(?:\/(\d+))?$/);
   if(verifyRoute){
+   assertDemoEffectAllowed(user,'lookup');
    if(req.method!=='POST')fail('Método no permitido',405);
    const domain=(await db.query('select * from organization_email_domains where id=$1 and organization_id=$2',[verifyRoute[1],org])).rows[0];
    if(!domain)fail('Dominio no encontrado',404,'DOMINIO_NO_ENCONTRADO');

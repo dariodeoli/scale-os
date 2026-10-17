@@ -1,3 +1,4 @@
+import {lockMemberManager} from './member-access.js';
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import {currencies} from './currencies.js';
@@ -464,15 +465,16 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const target = Number(url.pathname.split('/')[4]);
       if (!Number.isSafeInteger(target) || target <= 0) return send(res,400,{error:'Miembro inválido'});
-      if (target === user.id) return send(res,400,{error:'No podés eliminarte a vos mismo del equipo'});
+      if (String(target) === String(user.id)) return send(res,400,{error:'No podés eliminarte a vos mismo del equipo'});
       const client = await db.connect();
       try {
         await client.query('begin');
         await auditContext(client,user,req);
+        const manager=await lockMemberManager(client,user);
         const member = (await client.query('select role,active,removed_at from organization_members where organization_id=$1 and user_id=$2 and purged_at is null for update',[user.organization_id,target])).rows[0];
         if (!member) { await client.query('rollback'); return send(res,404,{error:'Miembro no encontrado'}); }
+        if (member.role === 'owner' && manager.role !== 'owner') { await client.query('rollback'); return send(res,403,{error:'Solo un dueño puede eliminar a otro dueño'}); }
         if (member.active && !member.removed_at) { await client.query('rollback'); return send(res,409,{error:'Solo se elimina definitivamente a integrantes con el acceso retirado o suspendido'}); }
-        if (member.role === 'owner' && user.role !== 'owner') { await client.query('rollback'); return send(res,403,{error:'Solo un dueño puede eliminar a otro dueño'}); }
         await client.query('update organization_members set active=false,removed_at=coalesce(removed_at,now()),purged_at=now() where organization_id=$1 and user_id=$2',[user.organization_id,target]);
         await client.query('delete from sessions where organization_id=$1 and user_id=$2',[user.organization_id,target]);
         await client.query('commit');
@@ -490,6 +492,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       try {
         await client.query('begin');
         await auditContext(client,user,req);
+        const manager=await lockMemberManager(client,user);
+        if(role==='owner'&&manager.role!=='owner'){await client.query('rollback');return send(res,403,{error:'Solo un dueño puede invitar a otro dueño'});}
         // Un huésped del Demo no puede iniciar sesión: crearle una membresía real
         // sería un acceso inutilizable. Se pide otro correo.
         const priorAccount=(await client.query('select id,is_demo_guest from users where email=$1',[normalizedEmail])).rows[0];
@@ -499,7 +503,6 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
           const hash = await bcrypt.hash(password || id(),12);
           account = await client.query('insert into users(email,password_hash,role) values($1,$2,$3) returning id',[normalizedEmail,hash,role]);
         }
-        await client.query('select id from organizations where id=$1 for update',[user.organization_id]);
         const existing = await client.query('select removed_at from organization_members where organization_id=$1 and user_id=$2 for update',[user.organization_id,account.rows[0].id]);
         if (existing.rows[0]&&!existing.rows[0].removed_at) { await client.query('rollback'); return send(res,409,{error:'Ese usuario ya pertenece a esta empresa'}); }
         const membership = await client.query('insert into organization_members(organization_id,user_id,role) values($1,$2,$3) on conflict(organization_id,user_id) do update set role=excluded.role,active=true,removed_at=null,purged_at=null,created_at=now() returning organization_id,user_id,role,created_at',[user.organization_id,account.rows[0].id,role]);

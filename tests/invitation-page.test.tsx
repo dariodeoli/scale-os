@@ -10,6 +10,9 @@ const listFormatId=require.resolve('../app/list-format');
 require.cache[listFormatId]={id:listFormatId,filename:listFormatId,loaded:true,exports:{listDateShort:(value:unknown)=>String(value??''),listDateFull:(value:unknown)=>String(value??''),dueTone:()=>undefined,SerialTexto:()=>null}} as NodeModule;
 const footerId=require.resolve('../app/workspace-footer');
 require.cache[footerId]={id:footerId,filename:footerId,loaded:true,exports:{WorkspaceFooter:()=>null}} as NodeModule;
+// El tema depende del DOM; estos casos conservan el flujo real de invitación.
+const themeId=require.resolve('../app/theme-toggle');
+require.cache[themeId]={id:themeId,filename:themeId,loaded:true,exports:{ThemeToggle:()=>null}} as NodeModule;
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const InvitationPage=require('../app/invitacion/page').default;

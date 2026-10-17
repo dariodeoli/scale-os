@@ -3,12 +3,20 @@ import {assertRecordAvailable} from './record-lifecycle.js';
 import {currencies} from './currencies.js';
 import {roleCan} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
+import {createUnassignedReceipt,financeError,lockFinanceMutation} from './finance-treasury.js';
 // `date` columns must travel as text (YYYY-MM-DD): node-pg parses them into a
 // local-midnight Date and JSON serializes an instant, which the agency UI renders
 // one day earlier in Asunción. The last alias wins in the pg row object, so the
 // wildcard stays and the date column is re-projected after it.
 const dateText=(alias,column)=>`${alias}.${column}::text as ${column}`;
-function wholeAmount(value){const raw=typeof value==='string'?value.trim():value;if((typeof raw!=='number'&&typeof raw!=='string')||(typeof raw==='string'&&!/^\d+$/.test(raw)))fail('El importe debe ser un entero positivo');const n=Number(raw);if(!Number.isSafeInteger(n)||n<=0||n>999999999999)fail('El importe debe ser un entero positivo');return n;}
+function expenseAmount(value,currency){
+ const raw=typeof value==='string'?value.trim():String(value);
+ if(!['string','number'].includes(typeof value)||raw.length>32||!/^\d+(?:\.\d{1,2})?$/.test(raw))fail(currency==='PYG'?'El importe en guaraníes debe ser un entero positivo':'El importe debe ser positivo y tener hasta dos decimales');
+ const [integer,fraction='']=raw.split('.'),cents=BigInt(integer)*100n+BigInt(fraction.padEnd(2,'0'));
+ if(cents<=0n||cents>99999999999900n)fail('El importe debe ser mayor a cero y no superar 999999999999');
+ if(currency==='PYG'&&cents%100n!==0n)fail('El importe en guaraníes debe ser un entero positivo');
+ return cents%100n===0n?String(cents/100n):`${cents/100n}.${String(cents%100n).padStart(2,'0')}`;
+}
 async function retryRecord(c,table,org,key,dateColumn){
  if(!key)return null;if(typeof key!=='string'||! /^[a-f0-9-]{36}$/.test(key))fail('Identificador de operación inválido');
  await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`${table}:${org}:${key}`]);
@@ -46,22 +54,23 @@ export async function financeControls({req,res,url,db,session,body,send}){
   c=await db.connect();await c.query('begin');tx=true;
   await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket.remoteAddress||'']);
   const org=user.organization_id,kind=route?.[1],key=route?.[2],action=route?.[3];let result,status=200;
+  if(req.method!=='GET')await lockFinanceMutation(c,org);
   if(expenseRoute){
    if(req.method==='GET'){
     const month=url.searchParams.get('month');
     if(month!==null&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))fail('Elegí un mes válido (AAAA-MM)');
     const bounds=month?` and e.paid_on>=$2::date and e.paid_on<($2::date+interval '1 month')::date`:``;
-    result={month,expenses:(await c.query(`select e.*,a.name as account_name,u.email as created_by_email,${dateText('e','paid_on')} from agency_expenses e join bank_accounts a on a.id=e.account_id left join users u on u.id=e.created_by_user_id where e.organization_id=$1${bounds} order by e.paid_on desc,e.id desc`,month?[org,`${month}-01`]:[org])).rows};
+    result={month,expenses:(await c.query(`select e.*,a.name as account_name,u.email as created_by_email,(select r.id from agency_expense_reversals r where r.expense_id=e.id) as reversal_id,${dateText('e','paid_on')} from agency_expenses e join bank_accounts a on a.id=e.account_id left join users u on u.id=e.created_by_user_id where e.organization_id=$1${bounds} order by e.paid_on desc,e.id desc`,month?[org,`${month}-01`]:[org])).rows};
    }else if(req.method==='POST'){
-    const b=await body(req),paid=wholeAmount(b.amount);
-    const category=option(b.category,['Operación','Herramientas','Marketing','Administración','Otro']);
+    const b=await body(req),currency=option(b.currency,currencies),paid=expenseAmount(b.amount,currency);
+    const category=text(b.category,80);if(!category)fail('Ingresá una categoría');
     const kind=b.kind===undefined||b.kind===null?null:option(b.kind,['fixed','variable']);
-    const currency=option(b.currency,currencies);
+    const retry=await retryRecord(c,'agency_expenses',org,b.requestId,'paid_on');if(retry){if(String(retry.account_id)!==id(b.accountId)||Number(retry.amount)!==Number(paid)||retry.category!==category||retry.currency!==currency||b.paidOn&&retry.paid_on!==date(b.paidOn))fail('El identificador ya fue usado para otro gasto',409);await c.query('commit');tx=false;send(res,200,{expense:retry,alreadyRecorded:true});return true;}
     const account=(await c.query('select * from bank_accounts where id=$1 and organization_id=$2 for update',[id(b.accountId),org])).rows[0];
     if(!account||!account.active)fail('La cuenta debe estar activa y pertenecer a la empresa');
     if(account.currency!==currency)fail('La moneda debe coincidir con la cuenta');
     if(Number(account.balance)<paid)fail('Saldo insuficiente en la cuenta',409);
-    result={expense:(await c.query("insert into agency_expenses(organization_id,account_id,category,kind,amount,currency,paid_on,reference,created_by_user_id) values($1,$2,$3,$4,$5,$6,coalesce($7::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$8,$9) returning *,paid_on::text as paid_on",[org,account.id,category,kind,paid,currency,date(b.paidOn),text(b.reference||'',180),user.id])).rows[0]};status=201;
+    result={expense:(await c.query(`insert into agency_expenses(organization_id,account_id,category,kind,amount,currency,paid_on,reference,created_by_user_id${b.requestId?',request_key':''}) values($1,$2,$3,$4,$5,$6,coalesce($7::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$8,$9${b.requestId?',$10':''}) returning *,paid_on::text as paid_on`,[org,account.id,category,kind,paid,currency,date(b.paidOn),text(b.reference||'',180),user.id,...(b.requestId?[b.requestId]:[])])).rows[0]};status=201;
    }else if(req.method==='DELETE'&&expenseRoute[1]){
     const b=await body(req),reason=text(b.reason,500);if(reason.length<5)fail('Explicá el motivo de la reversión');
     const e=await owned(c,'agency_expenses',expenseRoute[1],org);
@@ -81,6 +90,7 @@ export async function financeControls({req,res,url,db,session,body,send}){
    }
    else if(req.method==='POST'&&!key){
     const b=await body(req),paid=amount(b.amount);if(!paid)fail('El importe debe ser mayor a cero');
+    if(b.mode==='unassigned'){result=await createUnassignedReceipt(c,user,b);status=result.alreadyRecorded?200:201;}else{
     const hasInvoice=b.invoiceId!==undefined&&b.invoiceId!==null&&b.invoiceId!=='';
     const hasClient=b.clientId!==undefined&&b.clientId!==null&&b.clientId!=='';
     if(hasInvoice&&hasClient)fail('Elegí la factura o el cliente del cobro, no ambos');
@@ -157,13 +167,14 @@ export async function financeControls({req,res,url,db,session,body,send}){
      if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
      result={payment:(await c.query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,coalesce($5::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$6,$7,$8) returning *,received_on::text as received_on",[org,invoice.id,account.id,paid,date(b.receivedOn),text(b.reference||'',120),receiver,b.requestId||null])).rows[0]};status=201;
     }
+    }
    }else if(req.method==='POST'&&key&&action==='reverse'){
     const b=await body(req),reason=text(b.reason,500);if(reason.length<5)fail('Explicá el motivo de la reversión');
     const p=await owned(c,'agency_payments',key,org);
     const existing=(await c.query('select *,reversed_on::text as reversed_on from agency_payment_reversals where payment_id=$1',[p.id])).rows[0];
     if(existing)result={reversal:existing,alreadyReversed:true};
-    else{await owned(c,'agency_invoices',p.invoice_id,org);const a=await owned(c,'bank_accounts',p.account_id,org);if(Number(a.balance)<Number(p.amount))fail('Saldo insuficiente en la cuenta original. Registrá primero el retorno del dinero.',409);
-     result={reversal:(await c.query("insert into agency_payment_reversals(organization_id,payment_id,reason,reversed_on,created_by_user_id) values($1,$2,$3,coalesce($4::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$5) returning *,reversed_on::text as reversed_on",[org,p.id,reason,date(b.reversed_on),user.id])).rows[0]};status=201;}
+    else{if(p.invoice_id)await owned(c,'agency_invoices',p.invoice_id,org);const a=await owned(c,'bank_accounts',p.account_id,org);if(Number(a.balance)<Number(p.amount))fail('Saldo insuficiente en la cuenta original. Registrá primero el retorno del dinero.',409);
+     result={reversal:(await c.query("insert into agency_payment_reversals(organization_id,payment_id,reason,reversed_on,created_by_user_id) values($1,$2,$3,coalesce($4::date,(clock_timestamp() at time zone 'America/Asuncion')::date),$5) returning *,reversed_on::text as reversed_on",[org,p.id,reason,date(b.reversedOn??b.reversed_on),user.id])).rows[0]};status=201;}
    }else fail('Método no permitido',405);
   }else if(kind==='transfers'){
    if(req.method==='GET'&&!key)result={transfers:(await c.query(`select t.*,f.name as from_account_name,d.name as to_account_name,f.currency as from_currency,d.currency as to_currency,coalesce(t.received_amount,t.amount) as received_amount,u.email as created_by_email,${dateText('t','transferred_on')} from account_transfers t join bank_accounts f on f.id=t.from_account_id join bank_accounts d on d.id=t.to_account_id left join users u on u.id=t.created_by_user_id where t.organization_id=$1 order by t.transferred_on desc,t.id desc`,[org])).rows};
@@ -220,6 +231,6 @@ export async function financeControls({req,res,url,db,session,body,send}){
   const paymentRows=[...(Array.isArray(result.payments)?result.payments:[]),...(result.payment?[result.payment]:[])];
   for(const row of paymentRows) if(row.received_by_name&&row.actor_name===row.received_by_email){row.actor_name=row.received_by_name;row.actor_photo_url=row.received_by_photo_url||row.actor_photo_url;}
   await c.query('commit');tx=false;send(res,status,result);
- }catch(e){if(tx)await c.query('rollback');const status=e.status||(e.code==='23505'?409:500);console.error(JSON.stringify({event:'finance_controls_error',status,code:e.code}));send(res,status,{error:e.status?e.message:e.code==='23505'?'El movimiento ya está conciliado o registrado.':'No se pudo completar la operación financiera'});}finally{c?.release();}
+ }catch(e){if(tx)await c.query('rollback');const financial=financeError(e),status=e.status||financial?.status||(e.code==='23505'?409:500);console.error(JSON.stringify({event:'finance_controls_error',status,code:e.code}));send(res,status,{error:e.status?e.message:financial?.message|| (e.code==='23505'?'El movimiento ya está conciliado o registrado.':'No se pudo completar la operación financiera')});}finally{c?.release();}
  return true;
 }

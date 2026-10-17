@@ -25,6 +25,7 @@ export type InventoryItem={
  serial_number:string|null;photo_url?:string|null;value:string;currency:string;status:string;
  storage_shelf:string;storage_row:string;storage_location_id?:string|null;storage_location_name?:string|null;
  storage_location_active?:boolean;location_changed_at?:string|null;
+ ownership_kind?:'unspecified'|'company'|'person';owner_user_id?:string|null;owner_name?:string|null;owner_photo_url?:string|null;
  custodian_user_id:string|null;location_type?:string;
  current_custodian_name?:string;current_custodian_user_id?:string|null;
  production_name?:string;project_name?:string;active_reservation_id?:string|null;
@@ -95,7 +96,7 @@ export const equipmentStatusLabel=(status:string)=>equipmentStatusLabels[status]
 const verificationLabels:Record<string,string>={confirmed:'Confirmado',difference:'Con diferencias',missing:'No encontrado'};
 export const verificationLabel=(result?:InventoryItem['last_verification_result'])=>verificationLabels[result||'']||'Sin control';
 const traceLabels:Record<string,string>={
- 'inventory.created':'Equipo registrado','inventory.updated':'Ficha actualizada','stock.verified':'Verificación física',
+ 'ownership.changed':'Propiedad actualizada','inventory.created':'Equipo registrado','inventory.updated':'Ficha actualizada','stock.verified':'Verificación física',
  'reservation.reserved':'Reserva creada','reservation.updated':'Reserva actualizada','reservation.cancelled':'Reserva cancelada',
  'loan.checked_out':'Retiro registrado','loan.checked_in':'Devolución registrada','location.changed':'Ubicación actualizada',
 };

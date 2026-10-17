@@ -2,6 +2,10 @@
 // JavaScript sin declaraciones. Se declaran los símbolos que ScaleOS adopta;
 // al sumar otro, se agrega acá con su firma.
 declare module 'owncoding-ui' {
+  export function BancoLogo(props:{banco?:string;variante?:'compacto'|'horizontal'|'compact';alto?:string;className?:string;soloCatalogo?:boolean;decorativo?:boolean}):import('react').ReactElement|null;
+  export function BancoCombobox(props:{id?:string;value?:string;onChange?:(value:string)=>void;placeholder?:string;showSelectedLogo?:boolean;showHorizontalLogo?:boolean;disabled?:boolean}):import('react').ReactElement;
+  export function BuscadorPersonas(props:{personas?:Array<{id:string;nombre:string;fotoUrl?:string|null;detalle?:string;email?:string}>;valor?:string;onCambiar?:(persona:{id?:string}|null)=>void;placeholder?:string;opcionVacia?:string;ariaLabel?:string;etiquetaLista?:string;avatarSeleccionado?:boolean;desplegable?:boolean;maxResultados?:number;disabled?:boolean;id?:string}):import('react').ReactElement;
+
   // Lógica pura (fase 1, issue #39).
   export function soloDigitos(value: string, max?: number): string;
   export function parseTelefono(value: string, countryCodePorDefecto?: string): {countryCode: string; phone: string};

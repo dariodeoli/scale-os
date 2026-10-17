@@ -1,3 +1,4 @@
+import {assertDemoEffectAllowed} from './demo-effects.js';
 import {fail} from './suite-validation.js';
 import {requireClientBudget} from './request-guard.js';
 import crypto from 'node:crypto';
@@ -87,7 +88,7 @@ export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendA
   if(!match){if(req.method!=='GET')fail('Método no permitido',405);await requireClientBudget(db,req,'invite-preview',60);send(res,200,await resolveInvite(db,url.searchParams.get('token'),{countVisit:true}));return true;}
   const user=await session(req);if(!user)fail('Ingresá a tu cuenta',401);
   if(!roleCan(user,'members.manage'))fail('Sin permiso para gestionar accesos',403);
-  if(user.demo_owner_user_id)fail('El Demo no crea enlaces ni accesos externos',403);
+  if(req.method!=='GET')assertDemoEffectAllowed(user,'invitation');
   c=await db.connect();await c.query('begin');
   await c.query("select set_config('app.current_user',$1,true)",[String(user.id)]);
   const [ ,kind,key]=match,org=user.organization_id;let result;

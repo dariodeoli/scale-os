@@ -1,0 +1,529 @@
+{
+  "base": "http://127.0.0.1:3007",
+  "run": "QA-1792217400059",
+  "started_at": "2026-10-17T06:10:00.059Z",
+  "checks": [
+    {
+      "name": "A starts without session cookie",
+      "passed": true
+    },
+    {
+      "name": "B starts without session cookie",
+      "passed": true
+    },
+    {
+      "name": "B anonymous demo start201",
+      "passed": true
+    },
+    {
+      "name": "A anonymous demo start201",
+      "passed": true
+    },
+    {
+      "name": "Both anonymous demo identities readable",
+      "passed": true
+    },
+    {
+      "name": "User IDs differ",
+      "passed": true
+    },
+    {
+      "name": "Organization IDs differ",
+      "passed": true
+    },
+    {
+      "name": "Private session cookies differ",
+      "passed": true
+    },
+    {
+      "name": "Demo clients endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo clients has useful rows",
+      "passed": true,
+      "count": 20
+    },
+    {
+      "name": "Demo projects endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo projects has useful rows",
+      "passed": true,
+      "count": 20
+    },
+    {
+      "name": "Demo inventory endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo inventory has useful rows",
+      "passed": true,
+      "count": 6
+    },
+    {
+      "name": "Demo studioSpaces endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo studioSpaces has useful rows",
+      "passed": true,
+      "count": 2
+    },
+    {
+      "name": "Demo studioReservations endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo studioReservations has useful rows",
+      "passed": true,
+      "count": 3
+    },
+    {
+      "name": "Demo contracts endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo contracts has useful rows",
+      "passed": true,
+      "count": 4
+    },
+    {
+      "name": "Demo balance endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Balance contains funded accounts and ledger movements",
+      "passed": true
+    },
+    {
+      "name": "Demo receipts endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo receipts has useful rows",
+      "passed": true,
+      "count": 20
+    },
+    {
+      "name": "Demo debts endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo debts has useful rows",
+      "passed": true,
+      "count": 1
+    },
+    {
+      "name": "Demo expenses endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo expenses has useful rows",
+      "passed": true,
+      "count": 2
+    },
+    {
+      "name": "Demo transfers endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo transfers has useful rows",
+      "passed": true,
+      "count": 1
+    },
+    {
+      "name": "Demo tasks endpoint200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "Demo tasks has useful rows",
+      "passed": true,
+      "count": 3
+    },
+    {
+      "name": "At least 20 fictional clients",
+      "passed": true
+    },
+    {
+      "name": "Three own tasks due today",
+      "passed": true
+    },
+    {
+      "name": "Seeded task has checklist and local material",
+      "passed": true
+    },
+    {
+      "name": "Four contract drafts available",
+      "passed": true
+    },
+    {
+      "name": "Contract example has complete fields",
+      "passed": true
+    },
+    {
+      "name": "Prior debt demonstrates partial payment and expected collection",
+      "passed": true
+    },
+    {
+      "name": "B has its own three tasks today",
+      "passed": true
+    },
+    {
+      "name": "Same illustrative task uses different private IDs",
+      "passed": true
+    },
+    {
+      "name": "Checklist UI save200",
+      "passed": true
+    },
+    {
+      "name": "A checklist edit persisted",
+      "passed": true
+    },
+    {
+      "name": "B cannot read A task",
+      "passed": true
+    },
+    {
+      "name": "B cannot mutate A task",
+      "passed": true
+    },
+    {
+      "name": "B own checklist remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "A reload retains its user and organization",
+      "passed": true
+    },
+    {
+      "name": "A reload retains its task edit",
+      "passed": true
+    },
+    {
+      "name": "Demo guard blocks IA",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks Contract AI",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks Invite",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks Client portal invite",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks RUC",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks RUC refresh",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks Create real organization",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo guard blocks Event side effect",
+      "passed": true,
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "name": "Demo AI configuration explicitly restricted",
+      "passed": true
+    },
+    {
+      "name": "Contract AI hidden by demo capability",
+      "passed": true
+    },
+    {
+      "name": "Seeded demo has an issued contract example",
+      "passed": true
+    },
+    {
+      "name": "Demo PDF downloads through UI",
+      "passed": true
+    },
+    {
+      "name": "Demo PDF binary signature valid",
+      "passed": true
+    },
+    {
+      "name": "Demo PDF is actual A4 document",
+      "passed": true
+    },
+    {
+      "name": "Demo PDF contains fictional legal text",
+      "passed": true
+    },
+    {
+      "name": "light Sidebar profile has hover feedback",
+      "passed": true,
+      "before": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(37, 28, 41)"
+      },
+      "after": {
+        "background": "rgba(255, 255, 255, 0.1)",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "light Client row has hover feedback",
+      "passed": true,
+      "before": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(29, 21, 32)"
+      },
+      "after": {
+        "background": "color(srgb 0.971961 0.954706 0.976274)",
+        "color": "rgb(29, 21, 32)"
+      }
+    },
+    {
+      "name": "light sidebar link has hover feedback",
+      "passed": true,
+      "before": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgba(255, 255, 255, 0.75)"
+      },
+      "after": {
+        "bg": "rgba(255, 255, 255, 0.016)",
+        "color": "rgba(255, 255, 255, 0.792)"
+      }
+    },
+    {
+      "name": "light active sidebar item remains active",
+      "passed": true
+    },
+    {
+      "name": "light action menu has hover feedback",
+      "passed": true,
+      "before": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(110, 102, 114)"
+      },
+      "after": {
+        "bg": "rgb(251, 250, 252)",
+        "color": "rgb(110, 102, 114)"
+      }
+    },
+    {
+      "name": "light selected client remains selected on hover",
+      "passed": true
+    },
+    {
+      "name": "dark Sidebar profile has hover feedback",
+      "passed": true,
+      "before": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(245, 239, 247)"
+      },
+      "after": {
+        "background": "rgba(255, 255, 255, 0.1)",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "dark Client row has hover feedback",
+      "passed": true,
+      "before": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(245, 239, 247)"
+      },
+      "after": {
+        "background": "color(srgb 0.163725 0.14 0.194706)",
+        "color": "rgb(245, 239, 247)"
+      }
+    },
+    {
+      "name": "dark sidebar link has hover feedback",
+      "passed": true,
+      "before": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgba(255, 255, 255, 0.75)"
+      },
+      "after": {
+        "bg": "rgba(255, 255, 255, 0.016)",
+        "color": "rgba(255, 255, 255, 0.792)"
+      }
+    },
+    {
+      "name": "dark active sidebar item remains active",
+      "passed": true
+    },
+    {
+      "name": "dark action menu has hover feedback",
+      "passed": true,
+      "before": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "color": "rgb(177, 170, 182)"
+      },
+      "after": {
+        "bg": "rgb(33, 33, 40)",
+        "color": "rgb(177, 170, 182)"
+      }
+    },
+    {
+      "name": "dark selected client remains selected on hover",
+      "passed": true
+    },
+    {
+      "name": "Mobile client plan CTA is44px",
+      "passed": true
+    },
+    {
+      "name": "Mobile inventory Ubicaciones de guardado is44px",
+      "passed": true
+    },
+    {
+      "name": "Mobile inventory Categorías de equipos is44px",
+      "passed": true
+    },
+    {
+      "name": "demo-inventory-390: no document overflow",
+      "passed": true,
+      "dimensions": {
+        "width": 390,
+        "overflow": 0,
+        "dialog": null,
+        "scrollable_regions": 0,
+        "small_targets": [
+          {
+            "label": "Privacidad",
+            "height": 15
+          }
+        ]
+      }
+    },
+    {
+      "name": "No browser requests were made to external hosts",
+      "passed": true,
+      "blocked_hosts": []
+    }
+  ],
+  "screenshots": [
+    "demo-a-home-checklist-1440.png",
+    "demo-contract-issued-1440.png",
+    "demo-clients-hover-light-1440.png",
+    "demo-clients-hover-dark-1440.png",
+    "demo-inventory-390.png"
+  ],
+  "blocked_external": [],
+  "limitations": [
+    "demo-inventory-390: [{\"label\":\"Privacidad\",\"height\":15}]",
+    "Local origin header adapted only for /api/demo/start to simulate the canonical production origin. Cookies adapted by dev-local proxy. No production network calls.",
+    "Browser outbound interception and demo403 responses do not independently prove server packet-level absence of external calls; pair with backend provider-spy tests.",
+    "TTL is access expiry, not proof of physical deletion; no global cleanup worker was run."
+  ],
+  "private_contexts": {
+    "count": 2,
+    "user_ids_distinct": true,
+    "organization_ids_distinct": true,
+    "session_tokens_distinct": true
+  },
+  "provider_guard_attempts": [
+    {
+      "label": "IA",
+      "path": "/api/ia/carga",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "Contract AI",
+      "path": "/api/agency/contracts/20/assist",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "Invite",
+      "path": "/api/agency/members",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "Client portal invite",
+      "path": "/api/agency/clients/105/client-portal-invites",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "RUC",
+      "path": "/api/agency/ruc-lookup",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "RUC refresh",
+      "path": "/api/agency/clients/105/ruc-refresh",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "Create real organization",
+      "path": "/api/auth/organizations",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    },
+    {
+      "label": "Event side effect",
+      "path": "/api/events",
+      "status": 403,
+      "code": "DEMO_EXTERNAL_ACTION_FORBIDDEN"
+    }
+  ],
+  "started_without_credentials": true,
+  "demo_start_requests": [
+    {
+      "context": "A",
+      "anonymous": true,
+      "origin_adaptation": true
+    },
+    {
+      "context": "B",
+      "anonymous": true,
+      "origin_adaptation": true
+    }
+  ],
+  "finished_at": "2026-10-17T06:10:28.873Z",
+  "passed": true,
+  "candidate_sha": "8b5b0efe3af06d6ed0666b5e7c1ec04073e39b85",
+  "planned_release": "1.0.190",
+  "publication_verified": false,
+  "observed_browser_errors": 0,
+  "local_mailbox_messages_created": 0
+}

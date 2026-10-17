@@ -9,7 +9,7 @@ import {inventoryReservations} from './inventory-reservations.js';
 const pg=new PGlite();await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_currencies.sql','20260910_company_currency.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
 await identitySchema(pg);
-for(const name of ['20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260913_inventory_advanced_traceability.sql','20260914_inventory_storage_locations.sql','20260929_inventory_location_position.sql','20260915_inventory_location_pipeline.sql','20260915_inventory_photos.sql','20260915_inventory_category_icons.sql','20260924_inventory_photo_stamp.sql','20260919_inventory_value_maintenance.sql']){
+for(const name of ['20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260913_inventory_advanced_traceability.sql','20260914_inventory_storage_locations.sql','20260929_inventory_location_position.sql','20260915_inventory_location_pipeline.sql','20260915_inventory_photos.sql','20260915_inventory_category_icons.sql','20260924_inventory_photo_stamp.sql','20260919_inventory_value_maintenance.sql','20261017_inventory_ownership.sql']){
  const migration=await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8');
  await pg.exec(migration);await pg.exec(migration);
 }
@@ -109,4 +109,39 @@ assert.equal(crossTenant.status,400,'cross-tenant inventory ids never resolve');
 assert.equal((await call('inventory-maintenance','GET',{}, {...owner,organization_id:other})).maintenance.length,0,'maintenance history is tenant-scoped');
 
 assert.equal((await call(`inventory-maintenance/${log.id}`,'PATCH',{cost:1},{...owner,organization_id:other})).status,404,'a foreign maintenance row is not editable');
+assert((await call('inventory-context','GET',{},finance)).members.length>0,'inventory managers can select an owner without reservation permission');
+// Ownership is explicit, tenant-scoped, independently audited, and distinct from custody.
+assert.equal(unknown.ownership_kind,'unspecified','existing/new records do not invent ownership');
+const owned=(await call('inventory','POST',{name:'Micrófono prestado',ownership_kind:'person',owner_user_id:producer.id,custodian_user_id:owner.id},producer)).record;
+assert.equal(String(owned.owner_user_id),String(producer.id));
+assert.equal(String(owned.custodian_user_id),String(owner.id));
+assert.equal(owned.owner_name,`value-production1@example.invalid`);
+assert.equal((await call('inventory','POST',{name:'Sin propietario',ownership_kind:'person'},producer)).status,400);
+assert.equal((await call('inventory','POST',{name:'Propietario ajeno',ownership_kind:'person',owner_user_id:'999999'},producer)).status,400);
+assert.equal((await call('inventory','POST',{name:'Modo inválido',ownership_kind:'other'},producer)).status,400);
+assert.equal((await call(`inventory/${owned.id}`,'PATCH',{ownership_kind:'company',owner_user_id:producer.id},producer)).status,400);
+const company=(await call(`inventory/${owned.id}`,'PATCH',{ownership_kind:'company'},producer)).record;
+assert.equal(company.owner_user_id,null);assert.equal(company.ownership_kind,'company');
+assert.equal(String(company.custodian_user_id),String(owner.id),'ownership change never moves custody');
+const audit=(await query("select context from agency_inventory_trace where inventory_id=$1 and event_type='ownership.changed' order by id",[owned.id])).rows;
+assert.equal(audit.length,2);assert.equal(audit[1].context.before.kind,'person');assert.equal(audit[1].context.after.kind,'company');
+assert.equal((await call('inventory/batch','POST',{ids:[owned.id,unknown.id],change:{ownership:{kind:'person',owner_user_id:producer.id}}},producer)).ownership_updated,2);
+const projection=(await call('inventory?fields=id,ownership_kind,owner_user_id,owner_name,owner_photo_url')).records;
+assert(projection.find(row=>String(row.id)===String(owned.id)).owner_name);
+const beforeAudit=(await query('select count(*)::int as count from agency_inventory_trace')).rows[0].count;
+assert.equal((await call('inventory/batch','POST',{ids:[owned.id,unknown.id],change:{ownership:{kind:'person',owner_user_id:'999999'}}},producer)).status,400);
+assert.equal((await query('select count(*)::int as count from agency_inventory_trace')).rows[0].count,beforeAudit,'a rejected batch writes no partial audit');
+assert.equal((await call('inventory/batch','POST',{ids:[owned.id],change:{ownership:{kind:'company'}}},viewer)).status,403);
+assert.equal((await call(`inventory/${owned.id}`,'PATCH',{ownership_kind:'company'},{...owner,organization_id:other})).status,400);
+const historicalCustody=(await call('inventory','POST',{name:'Custodia histórica',custodian_user_id:producer.id},owner)).record;
+await query('update organization_members set active=false where organization_id=$1 and user_id=$2',[org,producer.id]);
+assert.equal((await call(`inventory/${owned.id}`,'PATCH',{name:'Nombre actualizado',ownership_kind:'person',owner_user_id:producer.id},owner)).status,200,'an unchanged historical owner survives membership removal');
+assert.equal((await call('inventory','POST',{name:'Nueva atribución inactiva',ownership_kind:'person',owner_user_id:producer.id},owner)).status,400,'a newly selected owner must still be active');
+const preserved=await call(`inventory/${historicalCustody.id}`,'PATCH',{name:'Ficha actualizada',value:'250',custodian_user_id:producer.id},owner);
+assert.equal(preserved.status,200,'a full edit may preserve the same inactive custodian');
+assert.equal(preserved.record.name,'Ficha actualizada');assert.equal(Number(preserved.record.value),250);assert.equal(String(preserved.record.custodian_user_id),String(producer.id));
+assert.equal((await call(`inventory/${unknown.id}`,'PATCH',{custodian_user_id:producer.id},owner)).status,400,'a new attribution to an inactive custodian remains forbidden');
+assert.equal((await call('inventory','POST',{name:'Nueva custodia inactiva',custodian_user_id:producer.id},owner)).status,400);
+assert.equal((await call(`inventory/${historicalCustody.id}`,'PATCH',{name:'Intento ajeno',custodian_user_id:producer.id},{...owner,organization_id:other})).status,400,'historical-custody preservation never bypasses tenant scoping');
+assert.equal((await call(`inventory/${unknown.id}`,'PATCH',{custodian_user_id:producer.id,ownership_kind:'person',owner_user_id:producer.id},owner)).status,400,'an inactive identity cannot be newly assigned to either relationship');
 await pg.close();console.log('PASS: inventory value, linear depreciation caps, maintenance log with audit/void, validation and tenant isolation');

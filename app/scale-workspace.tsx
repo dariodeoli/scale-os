@@ -1,4 +1,5 @@
 "use client";
+import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
@@ -7,7 +8,7 @@ import Link from 'next/link';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
-import {AuthBrandPanel} from './auth-brand-panel';
+import {AccessLayout} from './access-layout';
 import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
@@ -86,6 +87,7 @@ import {PreferenciasSection} from './sections/preferencias';
 import {PapeleraSection} from './sections/papelera';
 import {InformesSection} from './sections/informes';
 import {PrevisionSection} from './sections/prevision';
+import {BalanceSection} from './finance-balance';
 import {PresupuestosSection} from './sections/presupuestos';
 import {FinanzasSection} from './sections/finanzas';
 import {ProduccionSection} from './sections/produccion';
@@ -734,6 +736,7 @@ export default function Home() {
     return <>
       <span className="flex min-w-0 items-center gap-2">
         {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
+        <ClientLogo name={client?.name||project.client_name||'Sin cliente'} logo={identityLoading?undefined:client?.logo_url} color={client?.color_key} size="sm"/>
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
           <small className="min-w-0 shrink-[2] truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
@@ -881,15 +884,7 @@ export default function Home() {
   if (loading) return <LoadingScreen name={signedIn?(user?.full_name||user?.email||''):''} photoUrl={signedIn?(user?.photo_url??undefined):undefined} roleLabel={signedIn?assignableRoles.find(role=>role.id===user?.role)?.label:undefined}/>;
   if (!signedIn)
     return (
-      <div className="login-page">
-       <div className="auth-split">
-        <AuthBrandPanel/>
-        <div className="login-card">
-          <ThemeToggle className="login-theme-toggle"/>
-          <div className="login-header">
-            <div className="login-brand"><WorkspaceBrand/></div>
-            <span className="login-badge">30 DÍAS GRATIS</span>
-          </div>
+      <AccessLayout eyebrow="Ingresá a tu espacio" cardClassName="login-card" links={<><Link href="/registro">Crear mi agencia · 30 días gratis</Link><a href="https://sistema.scaleparaguay.com/demo">Explorar demo</a></>}>
           <div className="login-intro">
             <h1>Qué bueno verte de nuevo.</h1>
             <p className="login-copy">
@@ -924,16 +919,12 @@ export default function Home() {
             {toast && <p className="error" role="alert">{toast}</p>}
             <button className="primary login-button">Continuar</button>
           </form>
-          <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
-          <AvisoPrivacidad compact finalidad="Usamos tu correo para autenticarte y darte acceso a tu espacio." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
-          <WorkspaceFooter/>
-        </div>
-       </div>
-      </div>
+          <AvisoPrivacidad compact finalidad="Privacidad de tus datos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
+      </AccessLayout>
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
   // primaria) y los apartados, así que el shell no repite ninguno de los dos.
-  const ownsHeader = ['Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
+  const ownsHeader = ['Contratos','Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Balance','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
@@ -1121,7 +1112,7 @@ export default function Home() {
         {active==='Estudio'&&<EstudioSection user={user}/>}
         {active==='Actividad'&&<ActividadSection user={user}/>}
         {active==='Configuración'&&<ConfiguracionSection user={user} subscriptionError={subscriptionError} refreshSubscription={refreshSubscription} exitDemoSimulation={exitDemoSimulation} deletionSignedOut={deletionSignedOut}/>}
-        {active==='Contratos'&&user&&<ContractsWorkspace key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/>}
+        {active==='Contratos'&&user&&<PageTitleContext.Provider value=""><ContractsWorkspace key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/></PageTitleContext.Provider>}
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail} onCreateOrder={canCreateRecord('Resumen')?()=>setModal('order'):undefined}/>}
@@ -1132,6 +1123,7 @@ export default function Home() {
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={replaceBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} navigate={setActive} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment}/>}
+        {active==='Balance'&&<BalanceSection key={String(user?.organization_id)} user={user} navigate={setActive}/>}
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
         <div className="mt-auto pt-6"><WorkspaceFooter/></div>
         </div>

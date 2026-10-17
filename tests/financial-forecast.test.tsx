@@ -155,6 +155,38 @@ async function run(){
  assert(clientsCta,'el vacío de contratos lleva a Clientes');act(()=>clientsCta!.props.onClick());
  assert.deepEqual(navigations,['Equipo','Clientes']);
  act(()=>renderer.unmount());
+ // A date correction/reversal in another month can leave only negative net
+ // collections. Preserve the currency, validate the signed projection transport,
+ // and display the minus sign instead of dropping the aggregate or «Sin dato».
+ const negativeStart=requests.length;
+ await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="negative-collections"/>);});
+ const negativeRequest=requests.slice(negativeStart).find(request=>request.url.includes('/forecast?'))!;
+ const negativeFixture:ForecastData={...emptyForecast,collected_actual:{month:'2026-09',records:[{currency:'USD',amount:-400}]},projection:{months:1,records:[{month:'2026-09',currency:'USD',projected_cash:250,projected_result:0,collected:-400,expected:0,personnel:0,planned_expenses:0,commission_forecast:0}]}};
+ await respond(negativeRequest,negativeFixture);
+ assert.equal(byClass('forecast-currency'),1,'only negative collections still render their currency card');
+ assert(rendered().includes(formatSignedMoney(-400,'USD')),'reversed net collections render their signed amount');
+ assert.doesNotMatch(rendered(),/La previsión recibió datos inválidos/);
+ act(()=>renderer.unmount());
+ // Real expenses retain their cents through transport, summary, list and POST;
+ // the planned expense form and forecast snapshots remain whole-money only.
+ const decimalStart=requests.length;
+ await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="real-cents"/>);});
+ await respond(requests.slice(decimalStart).find(request=>request.url.includes('/forecast?'))!,emptyForecast);
+ await respond(requests.slice(decimalStart).find(request=>request.url==='/core-api/api/agency/accounts')!,{accounts:[{id:'101',name:'Banco USD',currency:'USD',active:true,balance:'1000.00'}]});
+ const decimalRow={id:'cent-1',account_id:'101',account_name:'Banco USD',category:'Servicio con centavos',kind:'variable',amount:'100.25',currency:'USD',paid_on:'2026-09-12',reference:'Gasto exacto',created_by_email:null};
+ await respond(requests.slice(decimalStart).find(request=>request.url.includes('/expenses?'))!,{expenses:[decimalRow,{...decimalRow,id:'cent-2',amount:'0.10'},{...decimalRow,id:'cent-3',amount:'0.20'}]});
+ const {formatRealMoney}=require('../app/finance-money') as typeof import('../app/finance-money');
+ assert.match(rendered(),/Gasto exacto/);assert(rendered().includes(formatRealMoney('100.25','USD')),'the actual expense remains visible with cents');
+ assert(rendered().includes(formatRealMoney('100.55','USD')),'the paid-expense balance uses exact fixed-point summation');
+ assert.equal(byClass('forecast-balance-card'),1,'a currency with only paid expenses still has a summary');
+ act(()=>renderer.root.findAllByType(SelectCustom).find(node=>node.props.label==='Cuenta')!.props.onChange('101'));
+ const realAmount=renderer.root.findAllByType(ExpenseAmountInput).find(node=>node.props.id==='forecast-real-amount')!;
+ assert.equal(realAmount.props.value,'');assert.equal(realAmount.props.integerOnly,undefined);
+ act(()=>renderer.root.findAllByType('input').find(node=>node.props.id==='forecast-real-amount')!.props.onChange({currentTarget:{value:'100.25',selectionStart:6}}));
+ const paidForm=renderer.root.findAllByType('form').find(form=>form.findAllByType(ExpenseAmountInput).some(node=>node.props.id==='forecast-real-amount'))!;
+ act(()=>{void paidForm.props.onSubmit({preventDefault(){}});});
+ const paidPost=requests.at(-1)!;assert.equal(paidPost.url,'/core-api/api/agency/expenses');assert.equal(JSON.parse(String(paidPost.init.body)).amount,'100.25');
+ await respond(paidPost,{expense:decimalRow});act(()=>renderer.unmount());
  console.log('PASS financial forecast: role gating, canonical numeric/string response transport, top-level segregated aggregates, per-currency rendering, exact planned-expense POST, refresh, horizon selection with multi-month projection tables, contracted versus invoiced per client, masked per-person salaries (salary.view), the six company currencies with the salary kept in the record currency, and empty states with contextual exits (#62)');
 }
 void run();

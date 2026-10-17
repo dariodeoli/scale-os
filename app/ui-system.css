@@ -12,6 +12,8 @@
  --ui-panel-padding:20px;--ui-card-padding:16px;--ui-card-min-height:120px;
  --ui-page-padding:16px;--ui-section-gap:var(--ui-space-4);
  --ui-field-border:var(--border-interactive);--ui-focus:var(--brand-700);
+ --ui-hover-bg:color-mix(in srgb,var(--violet-soft) 55%,var(--surface-raised));--ui-hover-text:var(--text);
+ --ui-selected-bg:var(--violet-soft);--ui-selected-text:var(--brand-700);
 }
 @media(min-width:768px){:root{--ui-page-padding:24px;--ui-control-gap:var(--ui-space-3)}}
 @media(min-width:1280px){:root{--ui-page-padding:32px}}
@@ -40,27 +42,36 @@
 .control-shell :is(.panel,.ops-card)>.form-note{margin-top:var(--ui-space-2)}
 .control-shell :is(.panel,.ops-card)>.form-stack{margin-top:var(--ui-space-4)}
 .control-shell .panel+.panel{margin-top:var(--ui-space-4)}
-.control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}
+.control-shell :is(.ops-stack,.finance-grid,.contracts-cards)>.panel+.panel{margin-top:0}
 
-/* ── Encabezado de página (#89) ─────────────────────────────────────────────
-   El shell (`workspace-page-header`) y `PageHeader` de ui-v2 comparten un solo
-   contrato: en ≥1280 px es UNA fila de 56–64 px —título, contador/contexto y
-   acciones—; el subtítulo auxiliar queda en una línea (el texto completo va en
-   el tooltip). En mobile conserva el apilado y el alto de siempre. */
-@media(min-width:1280px){
- /* `.control-shell` sube la especificidad por encima de las utilidades Tailwind
-    del markup (`items-start`, `flex-wrap`): el contrato vive acá una sola vez. */
- .control-shell :is(.workspace-page-header,.ui-page-header){flex-wrap:nowrap;align-items:center;gap:var(--ui-space-4);min-height:56px;margin-bottom:var(--ui-space-4)}
- /* `center` (no `baseline`): el subtítulo recorta en una línea con
-    `overflow:hidden`, y un contenedor scrolleable sintetiza su baseline desde
-    el borde inferior, lo que estiraba la fila. */
- .control-shell :is(.workspace-page-header,.ui-page-header) .page-heading,
- .control-shell :is(.workspace-page-header,.ui-page-header) .ui-page-header-main{flex-wrap:nowrap;align-items:center;gap:var(--ui-space-3);min-width:0;overflow:hidden}
- /* El `h1` conserva el margen del navegador (preflight apagado) en mobile; en
-    la fila compacta se anula para que no infle el alto. */
- .control-shell :is(.workspace-page-header,.ui-page-header) h1{margin:0;white-space:nowrap}
- .control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-subtitle,.ui-page-header-subtitle){display:block;min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-block:0}
- .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex-wrap:nowrap;flex:0 0 auto;width:auto}
+/* ── Encabezado de página (#89) — ritmo natural (#222) ────────────────────
+   Título, contexto y acciones comparten espacio cuando caben. Ninguna fila
+   reserva un alto: los controles y el texto deciden; en móvil pueden envolver. */
+.control-shell :is(.workspace-page-header,.ui-page-header){display:flex;flex-wrap:wrap;align-items:center;gap:8px var(--ui-space-4);min-height:0;max-width:100%;margin:0 0 var(--ui-space-3);align-self:start}
+.control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-heading,.ui-page-header-main){display:flex;flex:1 1 18rem;flex-wrap:wrap;align-items:center;gap:4px var(--ui-space-3);min-width:0}
+.control-shell :is(.workspace-page-header,.ui-page-header) h1{margin:0;max-width:100%;font-size:22px;line-height:1.25;overflow-wrap:anywhere}
+.control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-subtitle,.ui-page-header-subtitle){margin:0;min-width:0;font-size:13px;line-height:1.5}
+.control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{display:flex;flex:0 1 auto;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;max-width:100%;width:auto}
+.control-shell :is(.workspace-page-header,.ui-page-header) .header-actions>*{max-width:100%}
+.control-shell :is(.workspace-page-header,.ui-page-header) .header-actions:empty{display:none}
+.control-shell :is([data-list-page],.contracts-workspace){align-content:start}
+.control-shell :is([data-list-page],.contracts-workspace)>.ui-page-header{margin:0}
+.control-shell [data-list-page]{gap:var(--ui-space-3)}
+.control-shell .ui-list-page-chrome{gap:var(--ui-space-2)}
+.control-shell .ui-list-page-chrome>.ui-page-header{margin:0}
+.control-shell .ui-filter-toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px var(--ui-space-3);min-width:0;max-width:100%;margin:0}
+.control-shell .ui-filter-toolbar>*{min-width:0;max-width:100%}
+.control-shell .ui-filter-summary{display:flex;align-items:center;min-height:var(--ui-control-height);margin:0 0 0 auto;white-space:nowrap}
+@media(min-width:1024px){
+ .control-shell .ui-page-header-main{flex-wrap:nowrap}
+ .control-shell .ui-page-header-subtitle{flex:1 1 15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@media(max-width:767px){
+ .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex:1 1 100%}
+ .control-shell .ui-filter-toolbar>:is(.ops-select,.search-field){flex:1 1 10rem}
+ .control-shell .ui-filter-summary{min-height:0;line-height:1.5}
+ :is(.control-shell,.unified-dialog,.photo-dialog) summary{min-height:44px;align-content:center}
+ .control-shell a.text-button{display:inline-flex;align-items:center;min-height:44px}
 }
 
 /* ── Foto de perfil (#107) ───────────────────────────────────────────────────
@@ -75,6 +86,8 @@
 .foto-perfil-cuadrado{border-radius:min(var(--ui-radius-control,10px),calc(var(--foto-perfil-size) * .25))}
 .foto-perfil-logo{background:var(--surface-raised,var(--surface));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line-strong) 70%,transparent)}
 .foto-perfil-logo img{object-fit:contain;object-position:center;padding:calc(var(--foto-perfil-size) * .08)}
+/* Un cuadrado completo cabe dentro del círculo con ~15 % de margen por lado. */
+.foto-perfil-logo.foto-perfil-circulo img{padding:15%}
 .foto-perfil-xs{--foto-perfil-size:22px}
 .foto-perfil-sm{--foto-perfil-size:24px}
 .foto-perfil-md{--foto-perfil-size:28px}
@@ -221,8 +234,10 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 .control-shell .demo-tools>select{min-height:32px;padding:5px 8px;font-size:11px}
 :is(.control-shell,.unified-dialog) :is(.inline-actions,.quick-actions,.client-record-actions){gap:var(--ui-space-2) var(--ui-space-3);align-items:center}
 
-/* Native and custom fields use the same border, height and readable label. */
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){
+/* Native and custom fields use the same border, height and readable label.
+   SearchField owns a composite outer box: its inner input must stay unframed.
+   :where keeps this exclusion from raising the specificity of native resets. */
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){
  min-width:0;max-width:100%;min-height:var(--ui-control-height);border:1px solid var(--ui-field-border);
  border-radius:var(--radius-sm);padding:9px 12px;background:var(--surface);color:var(--text);
  font:400 14px/1.4 Outfit,Arial,sans-serif;
@@ -234,7 +249,7 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 [data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pl-12{padding-left:3rem}
 [data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pr-9{padding-right:2.25rem}
 [data-oc-campo]>input[data-oc-control]:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]).pr-10{padding-right:2.5rem}
-:is(.control-shell,.unified-dialog) :is(input,textarea,select):disabled,
+:is(.control-shell,.unified-dialog) :is(input:not(:where(.search-field input)),textarea,select):disabled,
 :is(.control-shell,.unified-dialog) .ops-select-trigger:disabled{background:var(--surface-subtle);color:var(--text-muted);cursor:not-allowed}
 :is(.control-shell,.unified-dialog) .form-stack{gap:var(--ui-space-3)}
 :is(.control-shell,.unified-dialog) :is(.form-stack label,.ops-label){font-size:12px;line-height:1.35;font-weight:600;color:var(--text-muted)}
@@ -257,6 +272,10 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 .control-shell .payment-row{flex-wrap:wrap}
 .control-shell :is(.payment-row,.client-row) :is(b,strong,small){overflow-wrap:anywhere}
 .control-shell .payment-row :is(b,small){white-space:normal}
+/* Estados de filas compartidos: el foco de un control orienta igual que el mouse;
+   una selección explícita conserva su relleno al pasar por hover/foco. */
+.control-shell :is(.list-row,.client-hub-row,[data-list-row="equipment"]):is(:hover,:focus-within){background:var(--ui-hover-bg)}
+.control-shell :is(.list-row,.client-hub-row,[data-list-row="equipment"],.client-hub-card,.project-entry,[data-grid-card="equipment"]):has(input[type="checkbox"][aria-label^="Seleccionar"]:checked){background:var(--ui-selected-bg)}
 .control-shell :is(.client-status,.inventory-status){display:inline-flex;align-items:center;min-height:26px;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:600}
 .control-shell :is(.payment-row>strong,.metric strong,.financial-amounts,.reports-tiles article>strong){font-variant-numeric:tabular-nums}
 .control-shell :is(.payment-row>strong,.client-row>span){white-space:nowrap}
@@ -304,7 +323,7 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 
 @media(max-width:760px){
  :root{--ui-control-height:44px;--ui-panel-padding:16px;--ui-card-padding:14px}
- :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){font-size:16px}
+ :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){font-size:16px}
  :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.text-button,button.secondary,button.primary,button.choice){min-height:44px}
  .control-shell .header-actions :is(.primary,.secondary){min-height:44px}
  .control-shell .panel-heading{gap:var(--ui-space-3)}
@@ -350,15 +369,15 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 :is(.control-shell,.unified-dialog,.photo-dialog) :is(button.secondary,button.choice,a.secondary):hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft)}
 :is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button{border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:var(--shadow-xs)}
 :is(.control-shell,.unified-dialog,.photo-dialog) button.icon-button:hover:not(:disabled){border-color:var(--brand-600);background:var(--violet-soft);color:var(--brand-700)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}
-:is(.control-shell,.unified-dialog,.photo-dialog) :is(input,textarea,select,.ops-select-trigger):focus{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){border-color:var(--border-interactive);background:var(--surface-raised);box-shadow:inset 0 1px 0 rgb(255 255 255 / 70%)}
+:is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not(:where(.search-field input)),textarea,select,.ops-select-trigger):focus{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
 
 
 /* Dense tables preserve headers, scan lines and keyboard-visible row context. */
 :is(.control-shell,.unified-dialog) :is(.reports-table-scroll,.growth-table,.plan-comparison-wrap){border-color:var(--border-subtle);border-radius:var(--radius-sm)}
 :is(.control-shell,.unified-dialog) table :is(th,td){border-color:var(--border-subtle)}
 :is(.control-shell,.unified-dialog) table th{background:var(--surface-sunken);color:var(--text-subtle);font-size:11px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
-:is(.control-shell,.unified-dialog) table tbody tr:hover>td{background:color-mix(in srgb,var(--violet-soft) 42%,var(--surface-raised))}
+:is(.control-shell,.unified-dialog) table tbody tr:hover>td{background:var(--ui-hover-bg)}
 .control-shell :is(.client-status,.inventory-status){border:1px solid color-mix(in srgb,currentColor 18%,transparent);letter-spacing:.015em}
 .control-shell :is(.form-status,.form-error-summary){box-shadow:inset 3px 0 0 currentColor}
 
@@ -387,7 +406,7 @@ html[data-theme="dark"] :is(.login-badge,.finance-compare-currency){color:var(--
 }
 
 html[data-theme="dark"]{--ui-shell-canvas:linear-gradient(180deg,#17171c 0%,var(--canvas) 360px);--ui-shadow-surface:0 10px 30px rgb(0 0 0 / 40%),0 1px 2px rgb(0 0 0 / 30%)}
-html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]),textarea,select,.ops-select-trigger){box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
+html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not(:where(.search-field input)),textarea,select,.ops-select-trigger){box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%)}
 
 /* Dropdowns with a visible label keep the label above the trigger and share
    the same start alignment everywhere (toolbars, forms and dialogs). */
@@ -430,7 +449,8 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 .ops-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;text-align:left;padding:11px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font:inherit;font-size:14px}
 .ops-select-options{position:absolute;z-index:1;top:100%;left:0;right:0;max-height:210px;overflow-x:hidden;overflow-y:auto;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-md);padding:4px}
 .ops-select-options button{display:block;width:100%;text-align:left;padding:10px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text);font:inherit;font-size:13px}
-.ops-select-options button:hover,.ops-select-options button:focus-visible,.ops-select-options button[aria-selected="true"]{background:var(--violet-soft);color:var(--brand-700)}
+.ops-select-options button:is(:hover,:focus-visible){background:var(--ui-hover-bg);color:var(--ui-hover-text)}
+.ops-select-options button[aria-selected="true"]{background:var(--ui-selected-bg);color:var(--ui-selected-text)}
 .ops-select-options button:disabled{opacity:.55;cursor:not-allowed}
 .ops-select-options>input{position:relative;z-index:1;margin:0 0 4px;min-height:36px;border-color:var(--border-subtle,var(--line));font-size:13px}
 .ops-select-options.ops-select-floating{position:fixed;top:auto;right:auto;z-index:90;overscroll-behavior:contain;scroll-padding-block:4px;touch-action:pan-y}

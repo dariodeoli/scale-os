@@ -1,8 +1,9 @@
 "use client";
-import { MoneyInput } from 'owncoding-ui';
+import { MoneyInput, BuscadorPersonas } from 'owncoding-ui';
 import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
 import {createPortal} from 'react-dom';
 import {selectPosition} from './select-position';
+import {useDialogClose} from './dialog-context';
 import { ChevronDown } from 'lucide-react';
 
 const currencyMarks: Record<string, string> = { PYG: 'Gs', USD: 'US$', EUR: '€', BRL: 'R$', ARS: '$', MXN: 'MX$' };
@@ -16,9 +17,10 @@ const foldSearch = (value: unknown) => String(value ?? '').normalize('NFD').repl
  * `integerOnly`. La API local (`onChange(value:string)`, `invalid`,
  * `describedBy`, `required`) se mantiene para los consumidores existentes.
  */
-export function AmountInput({ value, currency, onChange,disabled=false,id,invalid,describedBy,integerOnly=false,required=false }: { value: string|number; currency: string; onChange: (value: string) => void;disabled?:boolean;id?:string;invalid?:boolean;describedBy?:string;integerOnly?:boolean;required?:boolean }) {
+export function AmountInput({ value, currency, onChange,disabled=false,id,invalid,describedBy,integerOnly=false,required=false,placeholder='0' }: { value: string|number; currency: string; onChange: (value: string) => void;disabled?:boolean;id?:string;invalid?:boolean;describedBy?:string;integerOnly?:boolean;required?:boolean;placeholder?:string }) {
   return <MoneyInput
     id={id}
+    placeholder={placeholder}
     disabled={disabled}
     required={required}
     aria-invalid={invalid||undefined}
@@ -31,7 +33,27 @@ export function AmountInput({ value, currency, onChange,disabled=false,id,invali
   />;
 }
 
-export function SelectCustom({ label, value, choices, onChange,disabled=false,invalid,describedBy }: { label: string; value: string; choices: {value: string;label: string}[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
+export type SelectChoice={value:string;label:string;photoUrl?:string|null;secondary?:string;searchText?:string;kind?:'person'|'entity'};
+export function SelectCustom(props: { label: string; value: string; choices: SelectChoice[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
+ const {label,choices}=props;
+ const people=choices.some(choice=>choice.kind==='person'||choice.photoUrl!==undefined)||/persona|custodio|responsable|empleado|integrante|asignad[oa]|vendedor|colaborador/i.test(label);
+ if(people)return <PersonSelect {...props}/>;
+ return <PlainSelect {...props}/>;
+}
+export function PersonSelect({label,value,choices,onChange,disabled=false,invalid,describedBy}:{label:string;value:string;choices:SelectChoice[];onChange:(value:string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string}){
+ const id=useId(),requestClose=useDialogClose();
+ const blank=choices.find(choice=>choice.value==='');
+ return <div className="ops-select ops-person-select" onKeyDownCapture={event=>{
+  // The library owns Escape while its menu is open. Once closed, preserve the
+  // dialog's normal Escape dismissal, including its pending/dirty guards.
+  const input=event.target as HTMLElement;
+  if(event.key==='Escape'&&requestClose&&input.getAttribute?.('role')==='combobox'&&input.getAttribute('aria-expanded')==='false'){event.preventDefault();event.stopPropagation();requestClose();}
+ }} aria-invalid={invalid||undefined} aria-describedby={describedBy}>
+  <label className="ops-label" htmlFor={id}>{label}</label>
+  <BuscadorPersonas id={id} personas={choices.filter(choice=>choice.value!=='').map(choice=>({id:String(choice.value),nombre:choice.label,fotoUrl:choice.photoUrl,detalle:choice.secondary,email:choice.searchText}))} valor={String(value)} onCambiar={person=>onChange(person?.id?String(person.id):'')} placeholder={blank?.label||'Buscar persona…'} opcionVacia={blank?.label} ariaLabel={label} etiquetaLista={label} avatarSeleccionado desplegable maxResultados={Math.max(30,choices.length)} disabled={disabled}/>
+ </div>;
+}
+function PlainSelect({ label, value, choices, onChange,disabled=false,invalid,describedBy }: { label: string; value: string; choices: SelectChoice[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
   const [open,setOpen]=useState(false),[query,setQuery]=useState('');const root=useRef<HTMLDivElement>(null);const trigger=useRef<HTMLButtonElement>(null);const id=useId();
   const menu=useRef<HTMLDivElement>(null);
   const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);

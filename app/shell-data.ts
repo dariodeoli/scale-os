@@ -166,6 +166,7 @@ const SECTION_SCOPE: Record<string, ShellScope> = {
   Finanzas: CHROME_SCOPE,
   Informes: CHROME_SCOPE,
   'Previsión': CHROME_SCOPE,
+  'Balance': CHROME_SCOPE,
   Comisiones: CHROME_SCOPE,
   Equipo: PLT_SCOPE,
   Invitaciones: PLT_SCOPE,

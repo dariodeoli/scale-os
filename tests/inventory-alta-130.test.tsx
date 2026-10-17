@@ -180,3 +180,44 @@ test('el shell conserva el diálogo abierto cuando la carga sigue',()=>{
 });
 
 console.log('PASS: alta de equipos #130 — básico + Más datos, cantidad por unidad reservable, guardar y agregar otro con defaults previos y errores junto al campo.');
+
+
+test('valor inicial vacío con placeholder y edición conserva cero explícito',async()=>{
+ const first=await mount(null);
+ const fresh=first.renderer.root.findAll(node=>node.props?.id==='inventory-item-value'&&typeof node.props?.onValueChange==='function')[0];
+ assert.equal(fresh.props.value,'');assert.equal(fresh.props.placeholder,'0');
+ act(()=>first.renderer.unmount());
+ const edit=await mount({...baseItem,value:'0'});
+ const input=edit.renderer.root.findAll(node=>node.props?.id==='inventory-item-value'&&typeof node.props?.onValueChange==='function')[0];
+ assert.equal(input.props.value,'0','a real saved zero is preserved');
+ act(()=>edit.renderer.unmount());
+});
+test('propiedad personal exige persona y se guarda separada del custodio',async()=>{
+ const form=await mount();await form.change('Nombre del equipo','Micrófono de usuario');
+ await form.select('Pertenece a','person');await form.submit();assert.equal(writes.length,0);
+ await form.select('Persona propietaria','11');await form.select('Custodio registrado','12');await form.submit();
+ assert.equal(body().ownership_kind,'person');assert.equal(body().owner_user_id,'11');assert.equal(body().custodian_user_id,'12');
+ act(()=>form.renderer.unmount());
+});
+
+test('editar sin cambiar propiedad preserva el dueño recibido del catálogo',async()=>{
+ const form=await mount({...baseItem,ownership_kind:'person',owner_user_id:'11',owner_name:'Ana'});
+ await form.submit();assert.equal(body().ownership_kind,'person');assert.equal(body().owner_user_id,'11');
+ act(()=>form.renderer.unmount());
+});
+
+test('custodio histórico ausente del equipo activo conserva nombre, foto real e identificador',async()=>{
+ const form=await mount({...baseItem,custodian_user_id:'99',current_custodian_user_id:'99',current_custodian_name:'Persona histórica',owner_user_id:'99',owner_photo_url:'https://example.invalid/historical.webp'});
+ const select=form.renderer.root.findAll(node=>node.props?.label==='Custodio registrado'&&Array.isArray(node.props.choices))[0];
+ const historical=select.props.choices.find((choice:{value:string})=>choice.value==='99');
+ assert.equal(select.props.value,'99');assert.equal(historical.label,'Persona histórica');assert.equal(historical.photoUrl,'https://example.invalid/historical.webp');
+ await form.submit();assert.equal(body().custodian_user_id,'99');
+ act(()=>form.renderer.unmount());
+});
+test('custodio histórico sin identidad conocida muestra su ID sin atribuir otra persona',async()=>{
+ const form=await mount({...baseItem,custodian_user_id:'99',current_custodian_user_id:'88',current_custodian_name:'Otra persona',owner_user_id:'88',owner_photo_url:'https://example.invalid/other.webp'});
+ const select=form.renderer.root.findAll(node=>node.props?.label==='Custodio registrado'&&Array.isArray(node.props.choices))[0];
+ const historical=select.props.choices.find((choice:{value:string})=>choice.value==='99');
+ assert.equal(historical.label,'Custodio registrado · ID 99');assert.equal(historical.photoUrl,null);
+ act(()=>form.renderer.unmount());
+});

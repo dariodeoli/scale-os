@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import {attributeActors} from './actor-identity.js';
+import {mediaPhoto,mediaPeople} from './agency-media.js';
 import {roleCan} from './permissions.js';
 import {fail,text,amount,date,option,serial} from './suite-validation.js';
 import {profilePhoto} from './media-policy.js';
@@ -17,7 +18,7 @@ const identifier=value=>{
 };
 const optionalId=value=>value===null||value===undefined||value===''?null:identifier(value);
 const categoryIcons=['camera','video','mic','lamp','lightbulb','monitor','laptop','speaker','hard-drive','battery-charging','package','home'];
-const inventoryPayload=row=>({...row,photo_url:photoHref(row),barcode_payload:`SCALE-INVENTORY:${row.inventory_code}`});
+const inventoryPayload=row=>({...row,...(Object.hasOwn(row,'owner_photo_url')?{owner_photo_url:mediaPhoto('person',row.owner_user_id,row.owner_photo_url)}:{}),photo_url:photoHref(row),barcode_payload:`SCALE-INVENTORY:${row.inventory_code}`});
 // La foto embebida (data URL ~180 KB) queda fuera de listas y fichas: viaja la
 // URL del propio API y la imagen se sirve en `GET inventory/<id>/photo` (#58).
 // Los enlaces externos se respetan tal cual.
@@ -103,7 +104,7 @@ const depotComputed=`case when i.purchase_value is null then null
 // El catálogo lee todas las columnas menos la imagen embebida: el `photo_url`
 // viaja como URL del API (href) calculado en SQL, así la foto no sale de la base
 // en cada listado (#58). Las externas se respetan tal cual.
-const inventoryColumns=`i.id,i.organization_id,i.name,i.serial_number,i.category,i.custodian_user_id,i.value,i.currency,i.status,i.acquired_on,i.notes,i.created_at,i.category_id,i.storage_shelf,i.storage_row,i.inventory_code,i.last_verified_at,i.last_verified_by_user_id,i.last_verification_result,i.last_verification_differences,i.last_verified_counted_quantity,i.storage_location_id,i.location_changed_at,i.purchase_value,i.purchase_date,i.depreciation_method,i.useful_life_months,i.residual_value`;
+const inventoryColumns=`i.id,i.organization_id,i.ownership_kind,i.owner_user_id,i.name,i.serial_number,i.category,i.custodian_user_id,i.value,i.currency,i.status,i.acquired_on,i.notes,i.created_at,i.category_id,i.storage_shelf,i.storage_row,i.inventory_code,i.last_verified_at,i.last_verified_by_user_id,i.last_verification_result,i.last_verification_differences,i.last_verified_counted_quantity,i.storage_location_id,i.location_changed_at,i.purchase_value,i.purchase_date,i.depreciation_method,i.useful_life_months,i.residual_value`;
 const photoExpression=`case when i.photo_url is null or i.photo_url='' then null when i.photo_url like 'data:%' then '/api/agency/inventory/'||i.id||'/photo?v='||coalesce(round(extract(epoch from i.photo_updated_at)*1000)::bigint,0) else i.photo_url end as photo_url`;
 const inventoryFrom=`from agency_inventory i left join agency_inventory_categories cat on cat.id=i.category_id and cat.organization_id=i.organization_id
   left join agency_inventory_storage_locations loc on loc.id=i.storage_location_id and loc.organization_id=i.organization_id
@@ -111,14 +112,16 @@ const inventoryFrom=`from agency_inventory i left join agency_inventory_categori
   left join agency_inventory_reservations live on live.id=ri.reservation_id and live.organization_id=i.organization_id
   left join agency_projects p on p.id=live.project_id and p.organization_id=i.organization_id
   left join users u on u.id=coalesce(live.custodian_user_id,i.custodian_user_id)
-  left join agency_user_profiles up on up.user_id=u.id and up.organization_id=i.organization_id
+  left join organization_person_identity up on up.user_id=u.id and up.organization_id=i.organization_id
+  left join organization_person_identity oi on oi.user_id=i.owner_user_id and oi.organization_id=i.organization_id
   left join users ru on ru.id=live.return_user_id
-  left join agency_user_profiles rp on rp.user_id=ru.id and rp.organization_id=i.organization_id
+  left join organization_person_identity rp on rp.user_id=ru.id and rp.organization_id=i.organization_id
   left join users vu on vu.id=i.last_verified_by_user_id
-  left join agency_user_profiles vp on vp.user_id=vu.id and vp.organization_id=i.organization_id
+  left join organization_person_identity vp on vp.user_id=vu.id and vp.organization_id=i.organization_id
   left join lateral (select greatest((extract(year from age(current_date,i.purchase_date))*12+extract(month from age(current_date,i.purchase_date)))::int,0) as months) el on i.purchase_date is not null
   where i.organization_id=$1`;
 const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as category_name,cat.active as category_active,cat.icon as category_icon,loc.name as storage_location_name,loc.active as storage_location_active,
+  coalesce(nullif(oi.full_name,''),oi.email) as owner_name,oi.photo_url as owner_photo_url,
   live.id as active_reservation_id,live.title as production_name,p.name as project_name,
   live.custodian_user_id as current_custodian_user_id,coalesce(nullif(up.full_name,''),u.email) as current_custodian_name,
   live.return_user_id,coalesce(nullif(rp.full_name,''),ru.email) as return_user_name,live.ends_at as expected_return_at,
@@ -128,9 +131,10 @@ const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as
 
 // `?fields=` del catálogo (#71): lista blanca explícita con la expresión de cada
 // campo; los alias calculados se recortan al final (projectRows).
-const inventoryListFields=[...inventoryColumns.split(',').map(field=>field.trim().replace(/^i\./,'')),'photo_url','category_name','category_active','category_icon','storage_location_name','storage_location_active','active_reservation_id','production_name','project_name','current_custodian_user_id','current_custodian_name','return_user_id','return_user_name','expected_return_at','location_type','last_verifier_name','last_verifier_photo_url','current_value','accumulated_depreciation','monthly_depreciation','barcode_payload'];
+const inventoryListFields=[...inventoryColumns.split(',').map(field=>field.trim().replace(/^i\./,'')),'owner_name','owner_photo_url','photo_url','category_name','category_active','category_icon','storage_location_name','storage_location_active','active_reservation_id','production_name','project_name','current_custodian_user_id','current_custodian_name','return_user_id','return_user_name','expected_return_at','location_type','last_verifier_name','last_verifier_photo_url','current_value','accumulated_depreciation','monthly_depreciation','barcode_payload'];
 const inventoryColumnSql=aliasColumns({
  ...Object.fromEntries(inventoryColumns.split(',').map(field=>field.trim()).map(field=>[field.replace(/^i\./,''),field])),
+ owner_name:"coalesce(nullif(oi.full_name,''),oi.email)",owner_photo_url:'oi.photo_url',
  photo_url:photoExpression,category_name:'cat.name',category_active:'cat.active',category_icon:'cat.icon',
  storage_location_name:'loc.name',storage_location_active:'loc.active',active_reservation_id:'live.id',
  production_name:'live.title',project_name:'p.name',current_custodian_user_id:'live.custodian_user_id',
@@ -145,6 +149,7 @@ function inventorySelectFor(fields){
  const wanted=new Set(fields);
  // `barcode_payload` se arma en memoria desde el código: se pide la columna igual.
  if(wanted.has('barcode_payload'))wanted.add('inventory_code');
+ if(wanted.has('owner_photo_url'))wanted.add('owner_user_id');
  const expressions=[...new Set([...wanted].map(field=>inventoryColumnSql[field]).filter(Boolean))];
  return `select ${expressions.join(', ')} ${inventoryFrom}`;
 }
@@ -162,8 +167,8 @@ async function maintenanceHistory(c,org,key=null){
   coalesce(nullif(p.full_name,''),u.email) as responsible_name,p.photo_url as responsible_photo_url,
   coalesce(nullif(vp.full_name,''),vu.email) as voided_by_name
   from agency_inventory_maintenance m join agency_inventory i on i.id=m.inventory_id and i.organization_id=m.organization_id
-  left join users u on u.id=m.responsible_user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id
-  left join users vu on vu.id=m.voided_by_user_id left join agency_user_profiles vp on vp.user_id=vu.id and vp.organization_id=m.organization_id
+  left join users u on u.id=m.responsible_user_id left join organization_person_identity p on p.user_id=u.id and p.organization_id=m.organization_id
+  left join users vu on vu.id=m.voided_by_user_id left join organization_person_identity vp on vp.user_id=vu.id and vp.organization_id=m.organization_id
   where m.organization_id=$1 and ($2::bigint is null or m.inventory_id=$2)
   order by m.maintenance_date desc,m.id desc limit 100`,[org,key])).rows;
 }
@@ -206,8 +211,8 @@ const reservationColumnSql=aliasColumns({
  project_name:'p.name',return_user_name:"coalesce(nullif(rp.full_name,''),ru.email)",custodian_name:"coalesce(nullif(cp.full_name,''),cu.email)",
  items:`coalesce((select jsonb_agg(jsonb_build_object('id',i.id::text,'name',i.name,'inventory_code',i.inventory_code,'storage_location_id',i.storage_location_id::text,'storage_location_name',loc.name,'storage_shelf',i.storage_shelf,'storage_row',i.storage_row) order by i.name)
    from agency_inventory_reservation_items ri join agency_inventory i on i.id=ri.inventory_id and i.organization_id=ri.organization_id left join agency_inventory_storage_locations loc on loc.id=i.storage_location_id and loc.organization_id=i.organization_id where ri.reservation_id=r.id and ri.organization_id=r.organization_id),'[]')`,
- responsible_members:`coalesce((select jsonb_agg(jsonb_build_object('id',m.user_id::text,'name',coalesce(nullif(up.full_name,''),u.email)) order by m.user_id)
-   from agency_inventory_reservation_members m join users u on u.id=m.user_id left join agency_user_profiles up on up.user_id=m.user_id and up.organization_id=m.organization_id where m.reservation_id=r.id and m.organization_id=r.organization_id),'[]')`,
+ responsible_members:`coalesce((select jsonb_agg(jsonb_build_object('id',m.user_id::text,'name',coalesce(nullif(up.full_name,''),u.email),'photo_url',up.photo_url) order by m.user_id)
+   from agency_inventory_reservation_members m join users u on u.id=m.user_id left join organization_person_identity up on up.user_id=m.user_id and up.organization_id=m.organization_id where m.reservation_id=r.id and m.organization_id=r.organization_id),'[]')`,
 });
 function reservationSelect(fields){
  if(fields===null)return `select r.*,${reservationColumnSql.project_name},${reservationColumnSql.return_user_name},${reservationColumnSql.custodian_name},${reservationColumnSql.items},${reservationColumnSql.responsible_members}`;
@@ -219,8 +224,8 @@ function reservationSelect(fields){
 }
 async function listReservations(c,org,from,to,key=null,fields=null){
  return (await c.query(`${reservationSelect(fields)} from agency_inventory_reservations r join agency_projects p on p.id=r.project_id and p.organization_id=r.organization_id
-  join users ru on ru.id=r.return_user_id left join agency_user_profiles rp on rp.user_id=ru.id and rp.organization_id=r.organization_id
-  left join users cu on cu.id=r.custodian_user_id left join agency_user_profiles cp on cp.user_id=cu.id and cp.organization_id=r.organization_id
+  join users ru on ru.id=r.return_user_id left join organization_person_identity rp on rp.user_id=ru.id and rp.organization_id=r.organization_id
+  left join users cu on cu.id=r.custodian_user_id left join organization_person_identity cp on cp.user_id=cu.id and cp.organization_id=r.organization_id
   where r.organization_id=$1 and ($4::bigint is null or r.id=$4)
    and ($4::bigint is not null or (r.starts_at<$3::timestamptz and r.ends_at>$2::timestamptz) or r.status='checked_out')
   order by r.starts_at,r.id`,[org,from,to,key])).rows;
@@ -362,7 +367,13 @@ async function saveItem(c,user,org,key,payload){
  if(status==='in_use'&&old.status!=='in_use')fail('Usá Registrar retiro para indicar quién lleva el equipo');
  const custodian=sent('custodian_user_id')?optionalId(payload.custodian_user_id):old.custodian_user_id??null;
  // Solo se valida la pertenencia cuando el PATCH envía un custodio nuevo.
- if(sent('custodian_user_id')&&custodian)await activeMembers(c,org,[custodian]);
+ if(sent('custodian_user_id')&&custodian&&(!key||String(custodian)!==String(old.custodian_user_id)))await activeMembers(c,org,[custodian]);
+ const ownership=option(sent('ownership_kind')?payload.ownership_kind:old.ownership_kind||'unspecified',['unspecified','company','person']);
+ const owner=sent('owner_user_id')?optionalId(payload.owner_user_id):old.owner_user_id??null;
+ if(ownership==='person'&&!owner)fail('Elegí la persona propietaria del equipo');
+ if(ownership!=='person'&&sent('owner_user_id')&&owner)fail('La propiedad de empresa no admite una persona propietaria');
+ if(ownership==='person'&&(!key||ownership!==old.ownership_kind||String(owner)!==String(old.owner_user_id)))await activeMembers(c,org,[owner]);
+ const resolvedOwner=ownership==='person'?owner:null;
  const location=await storageLocation(c,org,old,payload,key);const shelf=location.shelf,storageRow=sent('storage_row')?text(payload.storage_row,80):old.storage_row??'';
  const incoming=Object.hasOwn(payload,'photo_url')?payload.photo_url:undefined;
  const photo=incoming===undefined?(old.photo_url||null):((old&&isOwnPhotoHref(incoming,old))?old.photo_url:await profilePhoto(incoming));
@@ -391,8 +402,10 @@ async function saveItem(c,user,org,key,payload){
  const values=[name,category.name,sent('serial_number')?serial(payload.serial_number||''):old.serial_number??'',custodian,sent('value')?amount(payload.value):old.value??0,sent('currency')?option(payload.currency,currencies):old.currency??await companyCurrency(c,org),status,sent('acquired_on')?date(payload.acquired_on):old.acquired_on??null,sent('notes')?text(payload.notes||''):old.notes??'',category.id,location.id,shelf,storageRow,code,photo,purchaseValue,purchaseDate,depreciationMethod,usefulLife,residual,org];
  const photoChanged=photo!==(old.photo_url||null);
  const result=key?await c.query(`update agency_inventory set name=$1,category=$2,serial_number=$3,custodian_user_id=$4,value=$5,currency=$6,status=$7,acquired_on=$8,notes=$9,category_id=$10,storage_location_id=$11,storage_shelf=$12,storage_row=$13,inventory_code=$14,photo_url=$15,purchase_value=$16,purchase_date=$17,depreciation_method=$18,useful_life_months=$19,residual_value=$20${locationChanged?',location_changed_at=now()':''}${photoChanged?',photo_updated_at=now()':''} where organization_id=$21 and id=$22 returning *`,[...values,key]):await c.query('insert into agency_inventory(name,category,serial_number,custodian_user_id,value,currency,status,acquired_on,notes,category_id,storage_location_id,storage_shelf,storage_row,inventory_code,photo_url,purchase_value,purchase_date,depreciation_method,useful_life_months,residual_value,organization_id,location_changed_at,photo_updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,now(),case when $15::text is null then null else now() end) returning *',values);
+ await c.query('update agency_inventory set ownership_kind=$1,owner_user_id=$2 where organization_id=$3 and id=$4',[ownership,resolvedOwner,org,result.rows[0].id]);
  const saved=(await inventoryRecord(c,org,String(result.rows[0].id)))||inventoryPayload(result.rows[0]);
  await traceInventory(c,org,[String(saved.id)],key?'inventory.updated':'inventory.created',user.id,null,{inventory_code:saved.inventory_code,name:saved.name,status:saved.status});
+ if(!key&&ownership!=='unspecified'||key&&(ownership!==old.ownership_kind||String(resolvedOwner||'')!==String(old.owner_user_id||'')))await traceInventory(c,org,[String(saved.id)],'ownership.changed',user.id,null,{before:{kind:old.ownership_kind||'unspecified',owner_user_id:old.owner_user_id||null},after:{kind:ownership,owner_user_id:resolvedOwner}});
  if(key&&locationChanged)await traceInventory(c,org,[String(saved.id)],'location.changed',user.id,null,{inventory_code:saved.inventory_code,from_shelf:old.storage_shelf||null,to_shelf:shelf,storage_location_id:location.id});
  return saved;
 }
@@ -427,10 +440,11 @@ async function batchItems(c,user,org,payload){
  const ids=[...new Set((Array.isArray(payload.ids)?payload.ids:[]).map(value=>identifier(value)))];
  if(!ids.length||ids.length>50)fail('Elegí entre 1 y 50 equipos');
  const change=payload.change&&typeof payload.change==='object'&&!Array.isArray(payload.change)?payload.change:fail('Cambio inválido');
- const verify=change.verify===true,location=change.location;
- if(!verify&&location===undefined)fail('Indicá qué cambiar en los equipos seleccionados');
+ const verify=change.verify===true,location=change.location,ownership=change.ownership;
+ if(!verify&&location===undefined&&ownership===undefined)fail('Indicá qué cambiar en los equipos seleccionados');
  if(location!==undefined&&(typeof location!=='object'||!location||Array.isArray(location)))fail('Ubicación inválida');
- const rows=(await c.query('select id from agency_inventory where organization_id=$1 and id = any($2::bigint[]) order by id for update',[org,ids])).rows;
+ if(ownership!==undefined&&(typeof ownership!=='object'||!ownership||Array.isArray(ownership)))fail('Propiedad inválida');
+ const rows=(await c.query(`select id from agency_inventory i where organization_id=$1 and id = any($2::bigint[]) and ${visibleRecord('i','inventory')} order by id for update`,[org,ids])).rows;
  if(rows.length!==ids.length)fail('Algún equipo no pertenece a esta empresa',404);
  // A checked-out unit travels with its custodian: its landing place is fixed when
  // the return is registered, exactly like the single-equipment edit enforces.
@@ -453,21 +467,22 @@ async function batchItems(c,user,org,payload){
     moved+=1;
    }
   }
+  if(ownership!==undefined)await saveItem(c,user,org,String(item.id),{ownership_kind:ownership.kind,owner_user_id:ownership.owner_user_id??null});
   if(verify){await verifyItem(c,user,org,String(item.id),{result:'confirmed',differences:'',note:''});verified+=1;}
  }
- return {updated:rows.length,moved,verified};
+ return {updated:rows.length,moved,verified,ownership_updated:ownership===undefined?0:rows.length};
 }
 
 async function verificationHistory(c,org,key){
  return (await c.query(`select v.*,coalesce(nullif(p.full_name,''),u.email) as verifier_name,p.photo_url as verifier_photo_url
   from agency_inventory_verifications v join users u on u.id=v.verified_by_user_id
-  left join agency_user_profiles p on p.user_id=u.id and p.organization_id=v.organization_id
+  left join organization_person_identity p on p.user_id=u.id and p.organization_id=v.organization_id
   where v.organization_id=$1 and v.inventory_id=$2 order by v.verified_at desc,v.id desc limit 30`,[org,key])).rows;
 }
 async function traceHistory(c,org,key){
  return (await c.query(`select t.*,i.inventory_code,coalesce(nullif(p.full_name,''),u.email) as actor_name,p.photo_url as actor_photo_url
   from agency_inventory_trace t join agency_inventory i on i.id=t.inventory_id and i.organization_id=t.organization_id
-  left join users u on u.id=t.actor_user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=t.organization_id
+  left join users u on u.id=t.actor_user_id left join organization_person_identity p on p.user_id=u.id and p.organization_id=t.organization_id
   where t.organization_id=$1 and t.inventory_id=$2 order by t.event_at desc,t.id desc limit 100`,[org,key])).rows;
 }
 
@@ -489,7 +504,7 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
   if(kind==='inventory-context'&&req.method==='GET'&&!key&&!action){
    result={user_id:String(user.id),role:user.role,time_zone:'America/Asuncion',can_manage:roleCan(user,'inventory.manage'),can_reserve:roleCan(user,'inventory.book'),
     // Viewer retains catalogue/calendar access, without gaining the member picker.
-    members:roleCan(user,'inventory.book')?(await c.query(`select m.user_id::text as id,coalesce(nullif(p.full_name,''),u.email) as name from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=m.user_id and p.organization_id=m.organization_id where m.organization_id=$1 and m.active and m.removed_at is null order by name`,[org])).rows:[],
+    members:roleCan(user,'inventory.book')||roleCan(user,'inventory.manage')?(await c.query(`select m.user_id::text as id,coalesce(nullif(p.full_name,''),u.email) as name,p.photo_url from organization_members m join users u on u.id=m.user_id left join organization_person_identity p on p.user_id=m.user_id and p.organization_id=m.organization_id where m.organization_id=$1 and m.active and m.removed_at is null order by name`,[org])).rows:[],
     projects:roleCan(user,'inventory.book')?(await c.query(`select p.id::text as id,p.name from agency_projects p join agency_clients a on a.id=p.client_id and a.organization_id=p.organization_id where p.organization_id=$1 and p.status='active' and a.active and ${visibleRecord('p','projects')} and ${visibleRecord('a','clients')} order by p.name`,[org])).rows:[]};
   }else if(kind==='inventory-categories'&&!action){
    if(req.method==='GET'&&!key)result={categories:(await c.query('select * from agency_inventory_categories where organization_id=$1 order by active desc,name',[org])).rows};
@@ -609,6 +624,8 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
    for(const record of result.records||[])absolutize(record);
    absolutize(result.record);
   }
+  if(result.members)result.members=mediaPeople(result.members);
+  for(const record of result.reservations||[result.reservation].filter(Boolean))record.responsible_members=mediaPeople(record.responsible_members);
   await attributeActors(c,org,[
    {rows:result.reservations||result.reservation,userId:'created_by_user_id'},
    {rows:result.reservations||result.reservation,userId:'checked_out_by_user_id',prefix:'checkout_actor'},

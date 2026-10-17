@@ -1,0 +1,16 @@
+{
+  "server_rows": [
+    {
+      "ttl_hours": "24.0000",
+      "remaining_hours": "23.9950",
+      "future": true
+    },
+    {
+      "ttl_hours": "24.0000",
+      "remaining_hours": "23.9950",
+      "future": true
+    }
+  ],
+  "checked_only_local_database": true,
+  "physical_cleanup_executed": false
+}

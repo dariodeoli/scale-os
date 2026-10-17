@@ -26,6 +26,6 @@ export function WorkspaceFooter({variant='workspace',year}:{variant?:'workspace'
    <a href="https://scaleparaguay.com/">Un producto de Scale Strategy Group ↗</a>
   </ProductFooter>;
  return <ProductFooter {...props} className="workspace-footer">
-  <Link href="/privacidad">Privacidad</Link>
+  <Link href="/privacidad" className="text-fono underline underline-offset-4">Privacidad</Link>
  </ProductFooter>;
 }

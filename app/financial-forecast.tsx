@@ -2,6 +2,7 @@
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {ActorAvatar,safePhoto} from './actor-identity';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
+import {formatRealMoney,isPositiveRealMoney} from './finance-money';
 import {financeNoticeHref,financePurposeNotice} from './finance-privacy';
 import {listDateFull,listDateShort} from './list-format';
 import {Dialog,api} from './operations';
@@ -17,6 +18,7 @@ import {
   financialCurrencies,
   forecastAggregates,
   forecastBalanceRows,
+  forecastBalanceExactRows,
   isCurrency,
   isPositiveInput,
   isRecord,
@@ -24,7 +26,7 @@ import {
   personnelAmounts,
   plannedExpenseCounts,
   projectionCurrencies,
-  realExpenseTotal,
+  realExpenseTotalExact,
   todayAsuncion,
   undatedBudgets,
   type Horizon,
@@ -96,10 +98,13 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
  const financialCurrenciesInMonth=useMemo(()=>data?financialCurrencies(data):[],[data]);
  const projectionCurrenciesInHorizon=useMemo(()=>data?projectionCurrencies(data):[],[data]);
  const balanceRows=useMemo(()=>data?forecastBalanceRows(data,realExpenses):[],[data,realExpenses]);
+ const exactBalanceRows=useMemo(()=>data?forecastBalanceExactRows(data,realExpenses):[],[data,realExpenses]);
+ const realCurrency=accounts.find(item=>String(item.id)===realExpense.accountId)?.currency||companyCurrency;
+ const validRealAmount=isPositiveRealMoney(realExpense.amount,realCurrency);
  async function saveExpense(event:FormEvent<HTMLFormElement>){event.preventDefault();if(expenseSaving)return;if(!isPositiveInput(expense.amount)){setExpenseError('Ingresá un importe entero positivo y seguro, sin separadores ni decimales.');return;}setExpenseSaving(true);setExpenseError('');try{await api('/api/agency/planned-expenses',{cadence:expense.cadence,effectiveMonth:month,category:expense.category,amount:expense.amount,currency:expense.currency,kind:expense.kind,note:expense.note.trim()||null});setExpense({cadence:'monthly',category:'Operación',kind:'variable',amount:'',currency:'PYG',note:''});reload();}catch(error){setExpenseError(error instanceof Error?error.message:'No se pudo guardar el gasto planificado.');}finally{setExpenseSaving(false);}}
  async function removePlannedExpense(id:string){if(plannedDeleting)return false;setPlannedDeleting(id);setExpenseError('');try{await api(`/api/agency/planned-expenses/${id}`,{},'DELETE');reload();return true;}catch(error){setExpenseError(error instanceof Error?error.message:'No se pudo quitar el gasto planificado.');return false;}finally{setPlannedDeleting('');}}
- const realFor=(currency:MoneyCurrency)=>realExpenseTotal(realExpenses,currency);
- async function saveRealExpense(event:FormEvent<HTMLFormElement>){event.preventDefault();if(realSaving)return;const account=accounts.find(item=>String(item.id)===realExpense.accountId);if(!account){setRealError('Elegí una cuenta activa de la empresa.');return;}if(!isPositiveInput(realExpense.amount)){setRealError('Ingresá un importe entero positivo y seguro, sin separadores ni decimales.');return;}setRealSaving(true);setRealError('');try{await api('/api/agency/expenses',{accountId:realExpense.accountId,category:realExpense.category,kind:realExpense.kind,amount:realExpense.amount,currency:account.currency,paidOn:realExpense.paidOn,reference:realExpense.reference.trim()});setRealExpense(current=>({...current,amount:'',reference:''}));reload();}catch(error){setRealError(error instanceof Error?error.message:'No se pudo guardar el gasto real.');}finally{setRealSaving(false);}}
+ const realFor=(currency:MoneyCurrency)=>realExpenseTotalExact(realExpenses,currency);
+ async function saveRealExpense(event:FormEvent<HTMLFormElement>){event.preventDefault();if(realSaving)return;const account=accounts.find(item=>String(item.id)===realExpense.accountId);if(!account){setRealError('Elegí una cuenta activa de la empresa.');return;}if(!isPositiveRealMoney(realExpense.amount,account.currency)){setRealError('Ingresá un importe positivo: PYG entero y otras monedas con hasta dos decimales.');return;}setRealSaving(true);setRealError('');try{await api('/api/agency/expenses',{accountId:realExpense.accountId,category:realExpense.category,kind:realExpense.kind,amount:realExpense.amount,currency:account.currency,paidOn:realExpense.paidOn,reference:realExpense.reference.trim()});setRealExpense(current=>({...current,amount:'',reference:''}));reload();}catch(error){setRealError(error instanceof Error?error.message:'No se pudo guardar el gasto real.');}finally{setRealSaving(false);}}
  async function removeRealExpense(rowId:string|number){if(realDeleting)return false;setRealDeleting(String(rowId));setRealError('');try{await api(`/api/agency/expenses/${rowId}`,{reason:'Gasto registrado por error'},'DELETE');reload();return true;}catch(error){setRealError(error instanceof Error?error.message:'No se pudo revertir el gasto real.');return false;}finally{setRealDeleting('');}}
  function openSalary(member:PersonnelMember){setSalaryPerson(member);setSalaryAmount(String(Number(member.base_amount)));setSalaryError('');}
  async function saveSalary(event:FormEvent<HTMLFormElement>){event.preventDefault();if(salarySaving||!salaryPerson)return;if(!isPositiveInput(salaryAmount)){setSalaryError('Ingresá un importe entero positivo y seguro, sin separadores ni decimales.');return;}setSalarySaving(true);setSalaryError('');try{await api(`/api/agency/collaborators/${salaryPerson.collaborator_id}`,{compensation_type:'fixed',compensation_amount:salaryAmount},'PATCH');setSalaryPerson(null);reload();}catch(error){setSalaryError(error instanceof Error?error.message:'No se pudo guardar el salario.');}finally{setSalarySaving(false);}}
@@ -136,23 +141,23 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore" title={`${data.definition.issued} ${data.definition.accepted_uninvoiced}`}>Ingresos vs gastos</h3><span className="text-xs font-medium text-mute">Resumen del mes</span></div>
      <p className="m-0 max-w-3xl text-xs leading-relaxed text-mute">Ingresos = emitido más aceptado sin factura. Gastos = personal, comisiones, gastos planificados y gastos reales. Resultado = ingresos menos gastos.</p>
     </div>
-    {financialCurrenciesInMonth.length?<div className="grid gap-3 lg:grid-cols-2">
+    {balanceRows.length?<div className="grid gap-3 lg:grid-cols-2">
      {balanceRows.map(row=><article className="forecast-balance-card grid gap-2 rounded-xl border border-ink-600 bg-ink-900 p-3 sm:p-4" key={row.currency}>
       <div className="flex items-center justify-between gap-3"><span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{row.currency}</span><span className="text-xs text-mute">Movimiento del mes</span></div>
       <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2">
        <span className="text-xs font-medium text-mute">Ingresos</span>
        <BarraProgreso valor={row.income} max={row.max} tono="ok" etiqueta={`Ingresos en ${row.currency}`}/>
-       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-ok">{formatWholeMoney(row.income,row.currency)}</strong>
+       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-ok">{formatRealMoney(exactBalanceRows.find(item=>item.currency===row.currency)?.income,row.currency)}</strong>
       </div>
       <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2">
        <span className="text-xs font-medium text-mute">Gastos</span>
        <BarraProgreso valor={row.expense} max={row.max} tono="bad" etiqueta={`Gastos en ${row.currency}`}/>
-       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.expense,row.currency)}</strong>
+       <strong className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-fore">{formatRealMoney(exactBalanceRows.find(item=>item.currency===row.currency)?.expense,row.currency)}</strong>
       </div>
       <div className="grid grid-cols-[4.75rem_minmax(0,1fr)_8.5rem] items-center gap-2 border-t border-ink-600 pt-2">
        <span className="text-xs font-semibold text-fore">Resultado</span>
        <BarraProgreso valor={Math.abs(row.result)} max={row.max} tono={row.result<0?'bad':'fono'} etiqueta={`Resultado en ${row.currency}`}/>
-       <strong className={cn('whitespace-nowrap text-right text-base font-bold tabular-nums',row.result<0?'text-bad':row.result>0?'text-ok':'text-fore')}>{formatSignedMoney(row.result,row.currency)}</strong>
+       <strong className={cn('whitespace-nowrap text-right text-base font-bold tabular-nums',row.result<0?'text-bad':row.result>0?'text-ok':'text-fore')}>{formatRealMoney(exactBalanceRows.find(item=>item.currency===row.currency)?.result,row.currency)}</strong>
       </div>
      </article>)}
     </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
@@ -164,12 +169,12 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <div className="flex items-center justify-between gap-3 border-b border-ink-600 pb-2"><span className="font-mono text-[10px] font-bold uppercase tracking-[.14em] text-mute">{currency}</span><span className="text-xs text-mute">Planificación del mes</span></div>
       <FilaDato etiqueta="Recurrente contratado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.contracted,currency),currency))}/>
       <FilaDato etiqueta={`Emitido / facturado (${count(row?.invoice_count)} ${count(row?.invoice_count)===1?'factura':'facturas'})`} valor={moneyNowrap(formatWholeMoney(row?.issued_total,currency))}/>
-      <FilaDato etiqueta="Cobrado" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.collected,currency),currency))}/>
+      <FilaDato etiqueta="Cobrado" valor={moneyNowrap(formatSignedMoney(amountFor(aggregates?.collected,currency),currency))}/>
       <FilaDato etiqueta="Saldo inicial de caja" valor={moneyNowrap(formatWholeMoney(opening,currency))}/>
       <FilaDato etiqueta="Personal" valor={moneyNowrap(formatWholeMoney(personnel?.expected_end_of_month_expense,currency))}/>
       <FilaDato etiqueta="Comisiones de clientes" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.commissions,currency),currency))}/>
       <FilaDato etiqueta={`Gastos planificados (${count(plannedFor(currency)?.expense_count)})`} valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.expenses,currency),currency))}/>
-      <FilaDato etiqueta="Gastos reales" valor={moneyNowrap(formatWholeMoney(realFor(currency),currency))}/>
+      <FilaDato etiqueta="Gastos reales" valor={moneyNowrap(formatRealMoney(realFor(currency),currency))}/>
       <FilaDato etiqueta={`Aceptado sin factura (${count(row?.budget_count)} presupuestos${count(row?.undated_budget_count)>0?` · ${count(row?.undated_budget_count)} sin fecha`:''})`} valor={moneyNowrap(formatWholeMoney(row?.accepted_uninvoiced_total,currency))}/>
      </article>;})}
     </div></details>:<EmptyState compact title="Sin datos financieros para este mes."/>}
@@ -300,10 +305,10 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <SelectCustom label="Cuenta" choices={[{value:'',label:'Elegí una cuenta'},...accounts.filter(account=>account.active).map(account=>({value:String(account.id),label:`${account.name} · ${account.currency}`}))]} value={realExpense.accountId} disabled={realSaving} onChange={value=>setRealExpense(current=>({...current,accountId:value}))}/>
       <SelectCustom label="Categoría" choices={['Operación','Herramientas','Marketing','Administración','Otro'].map(category=>({value:category,label:category}))} value={realExpense.category} disabled={realSaving} onChange={value=>setRealExpense(current=>({...current,category:value}))}/>
       <SelectCustom label="Tipo" choices={[{value:'variable',label:'Variable'},{value:'fixed',label:'Fijo'}]} value={realExpense.kind} disabled={realSaving} onChange={value=>setRealExpense(current=>({...current,kind:value==='fixed'?'fixed':'variable'}))}/>
-      <FormField label="Monto entero" htmlFor="forecast-real-amount" error={realExpense.amount!==''&&!isPositiveInput(realExpense.amount)?'El monto debe ser mayor a cero.':undefined}><AmountInput id="forecast-real-amount" integerOnly value={realExpense.amount} currency={accounts.find(item=>String(item.id)===realExpense.accountId)?.currency||'PYG'} disabled={realSaving} invalid={realExpense.amount!==''&&!isPositiveInput(realExpense.amount)} onChange={value=>setRealExpense(current=>({...current,amount:soloDigitos(value)}))}/></FormField>
+      <FormField label="Monto" htmlFor="forecast-real-amount" error={realExpense.amount!==''&&!validRealAmount?'El monto debe ser mayor a cero.':undefined}><AmountInput id="forecast-real-amount" value={realExpense.amount} currency={realCurrency} disabled={realSaving} invalid={realExpense.amount!==''&&!validRealAmount} onChange={value=>setRealExpense(current=>({...current,amount:value}))}/></FormField>
       <FormField label="Fecha" htmlFor="forecast-real-date"><Input id="forecast-real-date" type="date" className="w-full" value={realExpense.paidOn} disabled={realSaving} onChange={(event:FormEvent<HTMLInputElement>)=>setRealExpense(current=>({...current,paidOn:(event.target as HTMLInputElement).value}))}/></FormField>
       <FormField label="Referencia" htmlFor="forecast-real-reference"><Input id="forecast-real-reference" type="text" maxLength={180} value={realExpense.reference} disabled={realSaving} onChange={(event:FormEvent<HTMLInputElement>)=>setRealExpense(current=>({...current,reference:(event.target as HTMLInputElement).value}))}/></FormField>
-      <Button type="submit" disabled={realSaving||!realExpense.accountId||!isPositiveInput(realExpense.amount)} className="w-full sm:w-auto xl:col-span-6 xl:justify-self-end">{realSaving?'Guardando…':'Registrar gasto real'}</Button>
+      <Button type="submit" disabled={realSaving||!realExpense.accountId||!validRealAmount} className="w-full sm:w-auto xl:col-span-6 xl:justify-self-end">{realSaving?'Guardando…':'Registrar gasto real'}</Button>
      </form>
     </div>
     {realExpenses.length?<>
@@ -311,7 +316,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     <ListGrid label="Gastos reales del mes" template={EXPENSE_COLS} columns={EXPENSE_COLUMNS} minWidthClass="min-w-[27.5rem]">
      {realExpenses.map(row=><ListRow template={EXPENSE_COLS} key={String(row.id)}>
       <span className="min-w-0 truncate text-sm leading-snug" title={`${row.category}${row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''} · ${listDateShort(row.paid_on)} · ${row.account_name}${row.reference?` · ${row.reference}`:''}${row.created_by_email?` · registró ${row.created_by_email}`:''}`}><b className="font-semibold text-fore">{row.category}{row.kind?` · ${row.kind==='fixed'?'Fijo':'Variable'}`:''}</b><small className="ml-2 whitespace-nowrap text-xs text-mute">{listDateShort(row.paid_on)} · {row.account_name}{row.reference?` · ${row.reference}`:''}{row.created_by_email?` · registró ${row.created_by_email}`:''}</small></span>
-      <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatWholeMoney(row.amount,row.currency)}</span></span>
+      <span className="min-w-0 text-right"><span className="whitespace-nowrap text-sm font-semibold tabular-nums text-fore">{formatRealMoney(row.amount,row.currency)}</span></span>
       <span className="min-w-0 flex justify-end"><span className={ICON_TARGETS}><IconAction icon="refresh" tone="bad" label={`Revertir gasto real: ${row.category}`} disabled={realDeleting===String(row.id)} onClick={()=>setRealTarget({id:row.id,category:row.category,amount:String(row.amount),currency:row.currency})}/></span></span>
      </ListRow>)}
     </ListGrid>
@@ -332,7 +337,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
 
    {plannedTarget?<ConfirmDialog open busy={plannedDeleting===plannedTarget.id} variant="danger" title="Quitar gasto planificado" confirmLabel="Quitar gasto planificado" description={<>{`Se quitará ${plannedTarget.category} por ${formatWholeMoney(plannedTarget.amount,plannedTarget.currency)} de la planificación de ${dateLabel(month)}. No toca pagos reales ni cuentas.`}{expenseError?<span role="alert" className="mt-2 block font-semibold text-bad">{expenseError}</span>:null}</>} onCancel={()=>{if(!plannedDeleting)setPlannedTarget(null);}} onConfirm={()=>void removePlannedExpense(plannedTarget.id).then(ok=>{if(ok)setPlannedTarget(null);})}/>:null}
 
-   {realTarget?<ConfirmDialog open busy={realDeleting===String(realTarget.id)} variant="danger" title="Revertir gasto real" confirmLabel="Revertir gasto real" description={<>{`Se revertirá ${realTarget.category} por ${formatWholeMoney(realTarget.amount,realTarget.currency)}: el importe se acredita de nuevo en la cuenta y el pago sale del mes. El movimiento permanece en el historial.`}{realError?<span role="alert" className="mt-2 block font-semibold text-bad">{realError}</span>:null}</>} onCancel={()=>{if(!realDeleting)setRealTarget(null);}} onConfirm={()=>void removeRealExpense(realTarget.id).then(ok=>{if(ok)setRealTarget(null);})}/>:null}
+   {realTarget?<ConfirmDialog open busy={realDeleting===String(realTarget.id)} variant="danger" title="Revertir gasto real" confirmLabel="Revertir gasto real" description={<>{`Se revertirá ${realTarget.category} por ${formatRealMoney(realTarget.amount,realTarget.currency)}: el importe se acredita de nuevo en la cuenta y el pago sale del mes. El movimiento permanece en el historial.`}{realError?<span role="alert" className="mt-2 block font-semibold text-bad">{realError}</span>:null}</>} onCancel={()=>{if(!realDeleting)setRealTarget(null);}} onConfirm={()=>void removeRealExpense(realTarget.id).then(ok=>{if(ok)setRealTarget(null);})}/>:null}
   </>}
  </ListPage>;
 }

@@ -1,0 +1,14 @@
+/* Proyecto: identidad, calendario, volumen, responsables y acciones en una tarjeta. */
+.project-card-v3,.project-grid>.project-entry.project-card-v3{border-top:3px solid var(--client-accent,var(--brand-600));gap:12px;background:var(--surface-raised,var(--surface));padding:16px;min-width:0}
+.project-card-v3 .project-card-header{align-items:flex-start}
+.project-card-v3 .project-card-title{margin:0;line-height:1.4;overflow-wrap:anywhere}
+.project-card-v3 .project-card-facts{margin:0;gap:10px 16px;padding:12px;background:var(--surface-subtle);border-radius:var(--radius-sm,8px)}
+.project-card-v3 .project-card-facts :is(dt,dd){margin:0}
+.project-card-v3 .project-card-facts dt{font-size:10px;line-height:1.4;color:var(--text-muted)}
+.project-card-v3 .project-card-facts dd{font-size:13px;line-height:1.5;font-variant-numeric:tabular-nums;color:var(--text)}
+.project-card-v3 .project-card-context{flex-wrap:wrap}
+.project-card-v3 .project-card-context>button{flex:1 1 14rem}
+.project-card-v3 .client-identity.compact{font-size:12px}
+.project-card-v3 .client-identity.compact .identity-avatar{width:32px;height:32px}
+.project-list .project-card-v3 .project-card-facts{margin:0;padding:0;background:transparent}
+@media(max-width:767px){.project-card-v3{padding:14px}.project-card-v3 button,.project-card-v3 a{min-height:44px}}

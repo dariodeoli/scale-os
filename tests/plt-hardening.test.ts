@@ -12,8 +12,8 @@ const missing = (path: string) => !existsSync(new URL(`../${path}`, import.meta.
 const operations = read('app/team-workspace.tsx');
 assert.match(
   operations,
-  /const selectable=\(entry:Entry\)=>Boolean\(canManageAccess&&entry\.member&&!entry\.member\.removed_at&&entry\.member\.email!==currentEmail\)/,
-  'la selección masiva excluye los accesos retirados',
+  /const selectable=\(entry:Entry\)=>Boolean\(canManageAccess&&entry\.member&&!entry\.member\.removed_at&&!isCurrentTeamMember\(entry\.member,currentUserId\)\)/,
+  'la selección masiva excluye accesos retirados y el acceso propio por ID',
 );
 assert.ok(
   (operations.match(/selectable\(entry\)|\.filter\(selectable\)/g) ?? []).length >= 3,

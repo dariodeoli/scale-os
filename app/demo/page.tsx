@@ -12,7 +12,7 @@ export default function DemoStart(){
    <h1 className="text-2xl font-bold tracking-tight text-fore">{busy?'Preparando tu Demo…':'No pudimos abrir el Demo.'}</h1>
    {busy?<LoadingBlock label="Preparando tu Demo…" lines={2}/>:null}
    {error?<><p role="alert" className="text-sm text-bad">{error}</p><button className="primary" type="button" onClick={()=>void start()}>Reintentar</button></>:null}
-   <p className="text-[11.5px] text-mute">La Demo usa datos de ejemplo y no crea accesos externos. Al terminar podés volver a tu empresa real desde la barra superior.</p>
+   <p className="text-[11.5px] text-mute">Tu Demo es privada y temporal. Usa datos ficticios: tus cambios no afectan tu empresa ni las demos de otras personas. Al terminar podés volver a tu empresa desde la barra superior.</p>
   </div>
  </AccessLayout>;
 }

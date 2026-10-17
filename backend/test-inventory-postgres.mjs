@@ -37,10 +37,11 @@ assert(!/\bdadoo_/i.test(schema),'HEAD schema contains Dadoo; do not silently lo
 // Freeze the baseline to HEAD while loading this worktree migration directly,
 // so this focused test exercises an uncommitted inventory change without
 // absorbing unrelated worktree migrations from other tasks.
-const sources=[['schema.sql',schema],...migrations.map(name=>[`migrations/${name}`,name===storageLocationsMigration?readFileSync(path.join(repo,'migrations',name),'utf8'):committed(`migrations/${name}`)])];
+const ownershipMigration='20261017_inventory_ownership.sql';
+const sources=[['schema.sql',schema],...migrations.filter(name=>name!==ownershipMigration).map(name=>[`migrations/${name}`,name===storageLocationsMigration?readFileSync(path.join(repo,'migrations',name),'utf8'):committed(`migrations/${name}`)]),[`migrations/${ownershipMigration}`,readFileSync(path.join(repo,'migrations',ownershipMigration),'utf8')]];
 
 let temporary=null,pool=null,cleaned=false;
-const port=55432,user='scale_inventory_fixture';
+const port=Number(process.env.SCALE_TEST_PG_PORT||55432),user='scale_inventory_fixture';
 // Never inherit libpq/service/password/database configuration into subprocesses.
 const localEnv={PATH:`${bin}:/usr/bin:/bin:/usr/sbin:/sbin`,LANG:'C',LC_ALL:'C',TZ:'UTC'};
 const pgTool=(name,args,timeout=30000)=>execFileSync(path.join(bin,name),args,{env:localEnv,encoding:'utf8',timeout,maxBuffer:4*1024*1024});
@@ -134,11 +135,34 @@ async function runCases(){
  const a=await tenant('pg-fixture-a'),b=await tenant('pg-fixture-b');
  const item=async(name,tenant=a)=>ok(await call('inventory','POST',{name,category:'Concurrency fixture',storage_shelf:'Initial'},tenant.actor),201).record.id;
  const camera=await item('Camera fixture'),audio=await item('Audio fixture'),adjacent=await item('Adjacent fixture'),foreign=await item('Tenant B fixture',b);
+ const historicalUser=await insert('insert into users(email,password_hash) values($1,$2)',['historical-custodian@example.invalid','fixture-not-a-password']);
+ await pool.query("insert into organization_members(organization_id,user_id,role) values($1,$2,'production')",[a.actor.organization_id,historicalUser]);
+ const historicalAsset=ok(await call('inventory','POST',{name:'Historical custody',custodian_user_id:historicalUser},a.actor),201).record;
+ await pool.query('update organization_members set active=false where organization_id=$1 and user_id=$2',[a.actor.organization_id,historicalUser]);
+ const retained=ok(await call(`inventory/${historicalAsset.id}`,'PATCH',{name:'Updated historical asset',value:'275',custodian_user_id:historicalUser},a.actor)).record;
+ assert.equal(Number(retained.value),275);assert.equal(String(retained.custodian_user_id),String(historicalUser));
+ assert.equal((await call(`inventory/${camera}`,'PATCH',{custodian_user_id:historicalUser},a.actor)).status,400,'a new inactive custodian cannot be assigned');
+ assert.equal((await call(`inventory/${camera}`,'PATCH',{custodian_user_id:b.actor.id},a.actor)).status,400,'a foreign member cannot be assigned as custodian');
+ assert.equal((await call(`inventory/${historicalAsset.id}`,'PATCH',{name:'Foreign attempt',custodian_user_id:historicalUser},b.actor)).status,400,'preserving the same identity cannot bypass tenant checks');
+ console.log('PASS historical inactive custody: unchanged identity edits return 200; new inactive/foreign assignments remain 400');
  const aLocation=ok(await call('inventory-locations','POST',{name:'PostgreSQL template'},a.actor),201).location;
  const bLocation=ok(await call('inventory-locations','POST',{name:'PostgreSQL template'},b.actor),201).location;
  const templateItem=ok(await call('inventory','POST',{name:'Composite FK fixture',category:'Concurrency fixture',storage_location_id:aLocation.id},a.actor),201).record;
  assert.equal(String(templateItem.storage_location_id),String(aLocation.id));
  await assert.rejects(pool.query('update agency_inventory set storage_location_id=$1 where id=$2',[bLocation.id,templateItem.id]),error=>error.code==='23503','composite location FK rejects a template from another tenant');
+ // Concurrent ownership updates serialize on company/items and each audit links
+ // to the committed predecessor. Custody remains independent throughout.
+ const ownershipRace=await race('ownership person versus company',[
+  db=>call(`inventory/${camera}`,'PATCH',{ownership_kind:'person',owner_user_id:a.actor.id},a.actor,db),
+  db=>call(`inventory/${camera}`,'PATCH',{ownership_kind:'company'},a.actor,db),
+ ]);
+ expectStatuses(ownershipRace,[200,200]);
+ const ownerLog=(await pool.query("select context from agency_inventory_trace where inventory_id=$1 and event_type='ownership.changed' order by id",[camera])).rows;
+ assert.equal(ownerLog.length,2);assert.deepEqual(ownerLog[1].context.before,ownerLog[0].context.after,'second transaction sees the committed predecessor');
+ const beforeOwner=(await pool.query('select ownership_kind,owner_user_id,custodian_user_id from agency_inventory where id=$1',[camera])).rows[0];
+ const invalidOwner=await call('inventory/batch','POST',{ids:[camera,audio],change:{ownership:{kind:'person',owner_user_id:b.actor.id}}},a.actor);
+ assert.equal(invalidOwner.status,400);
+ assert.deepEqual((await pool.query('select ownership_kind,owner_user_id,custodian_user_id from agency_inventory where id=$1',[camera])).rows[0],beforeOwner,'a foreign owner cannot partially change a batch');
  const code=ok(await call(`inventory/${camera}`,'GET',{},a.actor)).record.inventory_code;
  assert.match(code,/^INV-\d{4,}$/,'every physical unit receives a printable inventory code');
  const verification=ok(await call(`inventory/${camera}/verify`,'POST',{result:'difference',differences:'Encontrado en estante verificado',note:'Conteo físico',adjustment:{storage_shelf:'Verified shelf',storage_row:'A-1',status:'available'}},a.actor));
@@ -252,7 +276,7 @@ async function main(){
    await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}
   await runCases();
-  console.log('PASS real PostgreSQL: six handler races plus direct constraint race; no PGlite, HTTP, UI or production connection');
+  console.log('PASS real PostgreSQL: seven handler races plus direct constraint race; no PGlite, HTTP, UI or production connection');
  }finally{
   // Bound pool draining too: leaked/failed leases must not prevent pg_ctl stop.
   let timer;

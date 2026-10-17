@@ -47,7 +47,7 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
     <button className="text-button shrink-0" onClick={()=>{setOffset(0);setSource(v=>!v);}}><History size={14}/>{source?'Ver actividad en Scale OS':'Ver historial importado de Trello'}</button>
   </div>
   <FilterToolbar className="mb-0" summary={range}>
-   {!source&&managers?<div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Persona" value={who} onChange={v=>{setWho(v);setOffset(0);}} choices={[{value:'',label:'Todo el equipo'},...people.map(p=>({value:String(p.id),label:str(p,'full_name')||str(p,'email')}))]}/></div>:null}
+   {!source&&managers?<div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Persona" value={who} onChange={v=>{setWho(v);setOffset(0);}} choices={[{value:'',label:'Todo el equipo'},...people.map(p=>({value:String(p.id),label:str(p,'full_name')||str(p,'email'),photoUrl:str(p,'photo_url'),kind:'person' as const}))]}/></div>:null}
    <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Registros por página" value={limit} onChange={v=>{setLimit(v);setOffset(0);}} choices={['10','50','100'].map(value=>({value,label:value}))}/></div>
    {peopleError?<Nota tono="warn" className="w-full basis-full">No se pudo cargar la lista del equipo: {peopleError} <button type="button" className="text-button" onClick={()=>setPeopleVersion(v=>v+1)}>Reintentar</button></Nota>:null}
   </FilterToolbar>

@@ -64,7 +64,7 @@ assert(css.includes('.list-row:hover .list-actions'),'la columna fija acompaña 
 console.log('PASS tabla densa: acciones fijas con fondo por superficie y hover de fila');
 
 assert(css.includes('.control-shell .panel .panel{padding:0;border:0;box-shadow:none}'));
-assert(css.includes('.control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}'));
+assert(css.includes('.control-shell :is(.ops-stack,.finance-grid,.contracts-cards)>.panel+.panel{margin-top:0}'));
 assert(css.includes('.control-shell .production-panel,.control-shell .production-focus{padding:0;border:0;background:transparent}'));
 assert(css.includes('font-variant-numeric:tabular-nums'));
 assert(css.includes('.quote-preview{position:static;top:auto;width:auto;height:auto;display:block;min-width:0;max-width:100%'),'document aside must not inherit sidebar height/width/stickiness');

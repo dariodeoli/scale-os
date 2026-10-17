@@ -12,7 +12,9 @@ const team=teamWorkspaceSource();
 const template=team.match(/const TEAM_TEMPLATE='grid-cols-\[([^']+)\]'/)?.[1];
 assert.ok(template,'la lista declara su plantilla única');
 const columns=template!.split('_');
-assert.equal(columns.length,5,'la plantilla mantiene sus 5 columnas (Persona · Datos · Estado · Acceso · Acciones)');
+assert.equal(columns.length,6,'la plantilla mantiene sus 6 columnas (Persona · Datos · Estado laboral · Permiso · Acceso · Acciones)');
+const header=team.match(/const TEAM_COLUMNS:Column\[\]=\[([\s\S]*?)\];/)?.[1]||'';
+assert.deepEqual([...header.matchAll(/label:'([^']+)'/g)].map(match=>match[1]),['Persona','Datos','Estado laboral','Permiso','Acceso','Acciones'],'seis encabezados en el mismo orden que las celdas');
 
 // Persona: la mayor porción relativa y un mínimo que no corta nombres de dos
 // palabras con su cargo al lado.

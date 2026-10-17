@@ -157,7 +157,7 @@ const MONEY_TONE: Record<string, string> = {ok: 'text-ok', warn: 'text-warn', ba
  */
 export function MoneyText({valor, currency = 'PYG', tono = '', className, title}: {valor: number | string | null | undefined; currency?: string; tono?: 'ok' | 'warn' | 'bad' | 'mute' | 'info' | ''; className?: string; title?: string}) {
   const vacio = valor === null || valor === undefined || valor === '';
-  return <span title={title} className={`inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className ?? ''}`}>{vacio ? '—' : money(Number(valor), currency)}</span>;
+  return <span title={title} className={`inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className ?? ''}`}>{vacio ? '—' : money(valor??0, currency)}</span>;
 }
 
 /** Vista de una colección: único tipo del selector lista/cuadrícula. */
@@ -439,10 +439,10 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  * y acciones. El título no se trunca (regla de deuda: nada de elipsis en
  * nombres); si no cabe, envuelve.
  *
- * Compactación desktop (#89): en ≥1280 px es UNA fila de 56–64 px —título,
- * contexto/contador y acciones—; el subtítulo auxiliar queda en una línea con
- * su texto completo en el tooltip. En mobile conserva el apilado y el alto de
- * siempre. `workspace-page-header` (shell) comparte el mismo contrato desde
+ * Altura natural (#222): título, contexto y acciones comparten fila cuando
+ * caben y envuelven según el espacio disponible. El subtítulo auxiliar tiene
+ * su texto completo en el tooltip. En móvil se preservan los targets de 44 px.
+ * `workspace-page-header` (shell) comparte el mismo contrato desde
  * `ui-system.css`.
  *
  * Densidad (#97): `title` es opcional y se omite cuando repite el título de la
@@ -456,6 +456,7 @@ export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyeb
   const subtitleText = typeof subtitle === 'string' ? subtitle : undefined;
   const repetido = Boolean(title && pageTitle) && title!.trim().toLowerCase() === pageTitle.trim().toLowerCase();
   const heading = repetido ? undefined : title;
+  if (!eyebrow && !heading && !subtitle && !actions) return null;
   return <header className={`ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
     <div className="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
       {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">{eyebrow}</p>}
@@ -516,7 +517,7 @@ export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis
   const pageTitle = useContext(PageTitleContext);
   const tabs = useContext(PageChromeContext);
   return <section ref={rootRef} data-list-page className={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ${className ?? ''}`} {...props}>
-    <div className="grid min-w-0 gap-3">
+    <div className="ui-list-page-chrome grid min-w-0 gap-3">
       <PageTitleContext.Provider value="">
         <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} className="!mb-0"/>
       </PageTitleContext.Provider>
@@ -531,15 +532,15 @@ export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis
 
 /**
  * Toolbar de filtros/búsqueda: los controles son objetos de la librería.
- * Compactación desktop (#89): una sola fila en ≥1280 px con `gap` 12 px y el
- * resumen a la derecha; sin card contenedora (vive sobre el lienzo del panel o
- * de la página) y con wrap sólo en los breakpoints reales. El hook
+ * Filtros de altura natural (#222): resumen a la derecha y wrap según el
+ * ancho real, sin card contenedora ni un segundo margen sobre el gap de página.
+ * El hook
  * `data-toolbar="filtros"` identifica al primitivo en tests y mediciones.
  */
 export function FilterToolbar({children, summary, className}: {children: ReactNode; summary?: ReactNode; className?: string}) {
-  return <div data-toolbar="filtros" className={`mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap ${className ?? ''}`}>
+  return <div data-toolbar="filtros" className={`ui-filter-toolbar mb-4 flex flex-wrap items-end gap-3 ${className ?? ''}`}>
     {children}
-    {summary !== undefined && summary !== null && <p className="ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{summary}</p>}
+    {summary !== undefined && summary !== null && <p className="ui-filter-summary ml-auto whitespace-nowrap text-xs tabular-nums text-mute">{summary}</p>}
   </div>;
 }
 

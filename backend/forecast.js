@@ -1,6 +1,7 @@
 import {fail} from './suite-validation.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {roleCan} from './permissions.js';
+import {openingReceivableForecast} from './forecast-opening-receivables.js';
 
 export const forecastRoles = ['owner','admin','finance'];
 export const forecastTimezone = 'America/Asuncion';
@@ -114,22 +115,25 @@ const forecastSnapshot=async(db,organizationId,label)=>{
    where organization_id=$1 and ((cadence='monthly' and effective_month=$2::date) or (cadence='recurring' and effective_month<=$2::date))
    group by currency order by currency`,[organizationId,`${label}-01`])
  ]);
- return {records,personnel,contractedRecurring,collectedActual,commissionForecast,plannedExpenses};
+ const unpaidInvoices=await db.query(`select currency,coalesce(sum(greatest(total-paid_amount,0)),0)::text as amount from agency_invoices where organization_id=$1 and status in ('issued','partial','overdue') and issued_on>=$2::date and issued_on<($2::date+interval '1 month')::date group by currency`,[organizationId,`${label}-01`]);
+ return {records,personnel,contractedRecurring,collectedActual,commissionForecast,plannedExpenses,unpaidInvoices};
 };
 
-const projectionFor=(snapshots,openingBalance)=>{
- const months=snapshots.map(({label,records,personnel,collectedActual,commissionForecast,plannedExpenses})=>({
+const projectionFor=(snapshots,openingBalance,openingReceivables)=>{
+ const months=snapshots.map(({label,records,personnel,collectedActual,commissionForecast,plannedExpenses,unpaidInvoices})=>({
   label,
   issued:records.rows.map(row=>projectMoney(row,['issued_total','accepted_uninvoiced_total','expected_total'])),
   personnel:projectPersonnelTotals(personnel.rows),
   collected:collectedActual.rows.map(row=>projectMoney(row,['amount'])),
   commissions:commissionForecast.rows.map(row=>projectMoney(row,['amount'])),
-  planned:plannedExpenses.rows.map(row=>projectMoney(row,['amount']))
+  planned:plannedExpenses.rows.map(row=>projectMoney(row,['amount'])),
+  unpaid:unpaidInvoices.rows.map(row=>projectMoney(row,['amount'])),
+  prior:openingReceivables.records.filter(row=>row.month===label).map(row=>({...row,amount:wholeMoney(row.amount)}))
  }));
  const amount=(rows,currency,key='amount')=>Number(rows.find(row=>row.currency===currency)?.[key]??0);
  const opening=(currency)=>Number(openingBalance.find(row=>row.currency===currency)?.amount??0);
- const currencies=[...new Set([...months.flatMap(snapshot=>[...snapshot.issued,...snapshot.personnel,...snapshot.collected,...snapshot.commissions,...snapshot.planned].map(row=>row.currency)),...openingBalance.map(row=>row.currency)])].sort();
- const relevant=currencies.filter(currency=>months.some(snapshot=>amount(snapshot.issued,currency,'issued_total')+amount(snapshot.issued,currency,'accepted_uninvoiced_total')!==0||amount(snapshot.personnel,currency,'expected_end_of_month_expense')!==0||amount(snapshot.collected,currency)!==0||amount(snapshot.commissions,currency)!==0||amount(snapshot.planned,currency)!==0||opening(currency)!==0));
+ const currencies=[...new Set([...months.flatMap(snapshot=>[...snapshot.issued,...snapshot.personnel,...snapshot.collected,...snapshot.commissions,...snapshot.planned,...snapshot.prior].map(row=>row.currency)),...openingBalance.map(row=>row.currency)])].sort();
+ const relevant=currencies.filter(currency=>months.some(snapshot=>amount(snapshot.issued,currency,'issued_total')+amount(snapshot.issued,currency,'accepted_uninvoiced_total')!==0||amount(snapshot.personnel,currency,'expected_end_of_month_expense')!==0||amount(snapshot.collected,currency)!==0||amount(snapshot.commissions,currency)!==0||amount(snapshot.planned,currency)!==0||amount(snapshot.prior,currency)!==0||opening(currency)!==0));
  const carry=new Map(),records=[];
  for(const snapshot of months)for(const currency of relevant){
   const expected=amount(snapshot.issued,currency,'issued_total')+amount(snapshot.issued,currency,'accepted_uninvoiced_total');
@@ -137,12 +141,12 @@ const projectionFor=(snapshots,openingBalance)=>{
   const planned=amount(snapshot.planned,currency);
   const commission=amount(snapshot.commissions,currency);
   const collected=amount(snapshot.collected,currency);
-  // Los cobros registrados ya están dentro del saldo de las cuentas (cada pago
-  // acredita su cuenta al registrarse), así que el saldo inicial los incluye sin
-  // importar su fecha. Por mes y moneda solo se suma lo que falta cobrar de la
-  // facturación esperada: max(0, esperado − cobrado en el mes). Así un cobro
-  // cuenta una sola vez (en el saldo) y un cobro parcial no borra el saldo pendiente.
-  const inflow=Math.max(0,expected-collected);
+  // Cash already contains every received payment, including unapplied receipts.
+  // Only the actual unpaid invoices and accepted uninvoiced quotes remain as
+  // expected new cash. An unrelated receipt must never settle an invoice here.
+  // Prior debt only enters cash planning at an explicitly chosen expected date;
+  // it is not recognized a second time as this month's contractual revenue.
+  const inflow=amount(snapshot.unpaid,currency)+amount(snapshot.issued,currency,'accepted_uninvoiced_total')+amount(snapshot.prior,currency);
   const projectedCash=(carry.get(currency)??opening(currency))+inflow-personnel-planned-commission;
   carry.set(currency,projectedCash);
   records.push({month:snapshot.label,currency,projected_cash:projectedCash,projected_result:expected-personnel-planned-commission,collected,expected,personnel,planned_expenses:planned,commission_forecast:commission});
@@ -197,7 +201,8 @@ export async function financialForecast({req,res,url,db,session,send}) {
    from all_terms t join agency_clients c on c.id=t.client_id and c.organization_id=$1
    left join invoiced i on i.client_id=t.client_id and i.currency=t.currency
    order by c.name,t.currency`,[user.organization_id,`${month}-01`,await companyCurrency(db,user.organization_id)])).rows.map(row=>projectMoney(row,['contracted_amount','invoiced_amount']));
-  const projection=projectionFor(snapshots,openingBalance);
+  const openingReceivables=await openingReceivableForecast(db,user.organization_id,month,months);
+  const projection=projectionFor(snapshots,openingBalance,openingReceivables);
   send(res,200,{month,months,time_zone:forecastTimezone,records:projectedRecords,
    contracted_recurring:{month,records:projectedSeries(first.contractedRecurring)},
    invoiced:{month,records:invoiced},
@@ -206,6 +211,7 @@ export async function financialForecast({req,res,url,db,session,send}) {
    commission_forecast:{month,records:projectedSeries(first.commissionForecast)},
    planned_expenses:{month,records:projectedSeries(first.plannedExpenses)},
    opening_balance:{month,records:openingBalance},
+   opening_receivables:openingReceivables,
    contracted_clients:{month,records:contractedClients},
    projection:{months,records:projection},definition:{
     issued:'Totales con impuestos de facturas emitidas en el mes, incluidas las cobradas; excluye borradores y canceladas.',
@@ -218,8 +224,9 @@ export async function financialForecast({req,res,url,db,session,send}) {
     commission_forecast:'Comisiones previstas de acuerdos vigentes de clientes y destinatarios activos; las porcentuales se redondean al entero más cercano.',
     planned_expenses:'Gastos mensuales del mes seleccionado y gastos recurrentes vigentes desde su mes efectivo; no son pagos reales.',
     opening_balance:'Saldo actual de las cuentas activas por moneda; es la base de caja del primer mes de la proyección.',
-    projected_cash:'Caja proyectada: parte del saldo de cuentas activas, que ya incluye los cobros registrados, y acumula cada mes la facturación esperada que falta cobrar (esperado menos cobrado en el mes, nunca negativo), menos personal, gastos planificados y comisiones. Un cobro registrado cuenta una sola vez.',
+    projected_cash:'Caja proyectada: parte del saldo de cuentas activas, que ya incluye los cobros registrados, y acumula cada mes la facturación esperada pendiente real de sus facturas y presupuestos aceptados sin factura, más deuda previa incluida explícitamente con fecha estimada, menos personal, gastos planificados y comisiones. Un cobro registrado cuenta una sola vez.',
     projected_result:'Resultado estimado: emitido más aceptado sin factura del mes, menos personal, gastos planificados y comisiones; sigue el resultado estimado del panel.',
+    opening_receivables:'Deuda previa pendiente por moneda, agendada sólo si se marcó para previsión y tiene fecha estimada explícita. No suma facturación ni ingreso nuevo; sin fecha se informa aparte.',
     contracted_clients:'Todos los clientes activos con su plan y monto mensual vigente (los que no tienen plan figuran sin plan) y lo facturado en el mes seleccionado. Sin factura marca contratos con facturación requerida y sin factura emitida en el mes.'
    }});
  }catch(error){send(res,error.status||500,{error:error.status?error.message:'No se pudo cargar la previsión'});}

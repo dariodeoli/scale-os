@@ -16,8 +16,7 @@ import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
 import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
-import {ClientIdentity,identityColor} from './client-identity';
-import {FotoPerfil} from './foto-perfil';
+import {ClientIdentity,ClientLogo,identityColor} from './client-identity';
 import {ClientEditorDialog} from './client-editor';
 import './productivity.css';
 
@@ -67,7 +66,7 @@ const localDay=todayAsuncion;
 function usePeople(){
  const [people,setPeople]=useState<Row[]>([]),[error,setError]=useState(''),[reload,setReload]=useState(0);
  useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive){setPeople(d.people);setError('');}}).catch(cause=>{if(alive)setError(errorText(cause));});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[reload]);
- return {choices:[{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))],error,retry:()=>setReload(value=>value+1)};
+ return {choices:[{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email'),photoUrl:s(p,'photo_url'),kind:'person' as const}))],error,retry:()=>setReload(value=>value+1)};
 }
 /** La lista de personas puede fallar: se dice y se ofrece reintento, nunca "Sin asignar" mudo. */
 function PeopleNotice({error,retry}:{error:string;retry:()=>void}){
@@ -150,7 +149,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder,open
       WhatsApp (ícono) + Editar; las notas siguen debajo, sin márgenes sueltos. */}
   <header className="client-detail-head mb-3 grid min-w-0 gap-2">
    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-    <span className={`client-identity identity-${identityColor(s(data.client,'color_key'))} inline-flex shrink-0`}><FotoPerfil nombre={s(data.client,'name')} foto={s(data.client,'logo_url')} tamano="xl" variante="logo" className="identity-avatar"/></span>
+    <span className={`client-identity identity-${identityColor(s(data.client,'color_key'))} inline-flex shrink-0`}><ClientLogo name={s(data.client,'name')} logo={s(data.client,'logo_url')} color={s(data.client,'color_key')}/></span>
     {data.client.contact_restricted===true
      ? <p className="m-0 min-w-0 flex-1 text-[13px] text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
      : <p className="m-0 min-w-0 flex-1 text-[13px] text-fore [overflow-wrap:anywhere]"><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/><span className="text-mute"> · </span><PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>}

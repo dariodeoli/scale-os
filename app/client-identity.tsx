@@ -7,7 +7,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
 import {Aviso} from 'owncoding-ui';
 import {ProfilePhoto} from './profile-photo';
-import {FotoPerfil} from './foto-perfil';
+import {FotoPerfil,type FotoPerfilTamano} from './foto-perfil';
 import {api} from './operations';
 import {notify} from './feedback';
 import {CLIENT_COLOR_VALUES,clientColors,identityColor,type ClientColorKey} from './client-identity-data';
@@ -16,11 +16,16 @@ import './client-identity.css';
 export {CLIENT_COLOR_VALUES,clientColorLabels,clientColors,identityColor} from './client-identity-data';
 export type {ClientColorKey,ClientIdentityRecord} from './client-identity-data';
 
+/** Logo de cliente único: círculo, imagen completa e iniciales seguras. */
+export function ClientLogo({name,logo,color,size='xl',className=''}:{name:string;logo?:string|null;color?:string|null;size?:FotoPerfilTamano;className?:string}){
+ return <FotoPerfil nombre={name} foto={logo} tamano={size} forma="circulo" variante="logo" className={`identity-avatar identity-${identityColor(color)} ${className}`}/>;
+}
+
 export function ClientIdentity({name,logo,color,compact=false}:{name:string;logo?:string|null;color?:string|null;compact?:boolean}){
  // El logo del cliente usa el objeto único de foto (#107) en variante logo:
  // se ve entero (`contain`) y conserva el color de identidad del cliente.
  return <span className={`client-identity identity-${identityColor(color)} ${compact?'compact':''} inline-flex min-w-0 items-center gap-2.5 text-fore`}>
-  <FotoPerfil nombre={name} foto={logo} tamano="xl" variante="logo" className="identity-avatar"/>
+  <ClientLogo name={name} logo={logo} color={color}/>
   <span className="identity-name min-w-0 font-bold leading-snug" title={name}>{name}</span>
  </span>;
 }

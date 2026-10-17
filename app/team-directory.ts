@@ -37,3 +37,6 @@ export function filterTeamEntries<E extends FilterableTeamEntry>(entries:E[],sea
   return status==='active'?active:!active;
  });
 }
+
+/** La identidad del acceso se determina por ID, nunca por correo. */
+export const isCurrentTeamMember=(member:TeamMember|null,currentUserId:string)=>Boolean(member&&currentUserId&&String(member.id)===String(currentUserId));

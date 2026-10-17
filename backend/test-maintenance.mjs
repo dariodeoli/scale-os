@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {randomUUID, createHash} from 'node:crypto';
-import {PGlite} from '@electric-sql/pglite';
+import {maintenanceTestDatabase} from './scripts/test-maintenance-database.mjs';
 import {demoOrganization} from './demo-session.js';
 import {runMaintenance as maintenance, maintenanceSettings, startMaintenance} from './maintenance.js';
 import {migrationOrder} from './scripts/migration-order.mjs';
+import {modernState,modernTables} from './scripts/test-maintenance-modern.mjs';
 
 // Synthetic receipt is exclusively a unit-test fixture; no external backup was verified.
 const fixtureDatabase = 'postgres://fixture:fixture@fixture.invalid/fixture';
@@ -14,7 +15,7 @@ const fixtureEvidence = {event: 'r2_restore_verified', externalBackupVerified: t
 const runMaintenance = (db, options = {}) => maintenance(db, {...options, demoDryRun: false,
  verifiedBackup: fixtureEvidence, env: {DATABASE_URL: fixtureDatabase, ...options.env}});
 
-const pg = new PGlite();
+const pg = await maintenanceTestDatabase();
 await pg.exec(await fs.readFile('schema.sql', 'utf8'));
 for (const name of migrationOrder) await pg.exec(await fs.readFile(`migrations/${name}`, 'utf8'));
 const query = (s, v) => pg.query(s, v), c = {query};
@@ -27,6 +28,7 @@ const real = await insert("insert into organizations(slug,name) values('maintena
 const template = await insert("insert into organizations(slug,name) values('scale-demo-controles-20260908','Template')");
 await query("insert into organization_members(organization_id,user_id,role) values($1,$3,'owner'),($2,$3,'owner')", [real, template, owner]);
 await query("insert into organizations(id,slug,name) values(22,'protected-other','Protected 22')");
+await query("select setval(pg_get_serial_sequence('organizations','id'),(select max(id) from organizations))");
 await query("insert into sessions(id,user_id,organization_id,expires_at) values('real-session',$1,$2,now()+interval '7 days')", [owner, real]);
 const expired = async org => query("update organizations set created_at=now()-interval '20 days',demo_expires_at=now()-interval '2 days' where id=$1", [org]);
 async function fixture(full = false) {
@@ -58,7 +60,8 @@ for (const table of ['agency_clients','agency_payments','account_transfers','age
  assert.ok(await count(table, real), `protected fixture must contain ${table}`);
 await query("insert into user_personal_identities(user_id,full_name) values($1,'Canonical identity')", [owner]);
 const identitiesBefore = (await query('select * from user_personal_identities order by user_id')).rows;
-const protectedTables = ['organizations','users','organization_members','sessions','agency_clients','agency_projects','agency_work_orders','bank_accounts','agency_invoices','agency_payments','account_transfers','agency_reporting_coverage','agency_client_reporting_events','agency_inventory_categories','agency_inventory','agency_inventory_reservations','agency_work_checklists','agency_work_checklist_items'];
+await modernState(query,real,owner);
+const protectedTables = [...modernTables,'organizations','users','organization_members','sessions','agency_clients','agency_projects','agency_work_orders','bank_accounts','agency_invoices','agency_payments','account_transfers','agency_reporting_coverage','agency_client_reporting_events','agency_inventory_categories','agency_inventory','agency_inventory_reservations','agency_work_checklists','agency_work_checklist_items'];
 const capture = async () => Object.fromEntries(await Promise.all(protectedTables.filter(t => t !== 'users').map(async t =>
  [t, (await query(`select * from ${t} where ${t === 'organizations' ? 'id' : 'organization_id'} in ($1,$2,22) order by 1`, [real, template])).rows])));
 const baseline = await capture();
@@ -82,11 +85,14 @@ assert.equal(await count('agency_work_checklists', full), 80);
 assert.equal(await count('agency_work_checklist_items', full), 241);
 const payment = (await query('select id from agency_payments where organization_id=$1 order by id limit 1', [full])).rows[0].id;
 await query("insert into agency_payment_reversals(organization_id,payment_id,reason,created_by_user_id) values($1,$2,'Test reversal',$3)", [full, payment, owner]);
+const fullState=await modernState(query,full,owner);
+await assert.rejects(query('delete from agency_contract_versions where organization_id=$1',[full]),/immutable/);
+await assert.rejects(query('delete from agency_payments where id=$1',[fullState.payment]),/cerrado/);
 const auditBefore = await count('agency_operation_audit', full);
 const usersBefore = (await query('select * from users order by id')).rows;
 let result = await runMaintenance(db, {env: {}});
 assert.equal(result.dryRun, true);
-assert.equal(result.demos.find(d => d.organizationId === full)?.status, 'eligible');
+assert.equal(result.demos.find(d => d.organizationId === full)?.status, 'eligible',JSON.stringify(result));
 assert.ok(await count('agency_payments', full));
 const scheduledMode = await maintenance(db, {dryRun: false, env: {}});
 assert.equal(scheduledMode.demoDryRun, true);
@@ -99,6 +105,7 @@ await assert.rejects(maintenance(db, {dryRun: false, demoDryRun: false, env: {DA
 result = await runMaintenance(db, {dryRun: false, env: {}});
 assert.equal(result.demos.find(d => d.organizationId === full)?.status, 'deleted', JSON.stringify(result));
 assert.equal(await count('agency_payments', full), 0);
+for(const table of modernTables)assert.equal(await count(table,full),0,`expired demo removes ${table}`);
 assert.equal((await query('select id from organizations where id=$1', [full])).rows.length, 0);
 assert.ok(await count('agency_operation_audit', full) > auditBefore);
 assert.deepEqual((await query('select * from users order by id')).rows, usersBefore);
@@ -109,8 +116,10 @@ assert.equal(await count('agency_work_checklist_items', full), 0);
 assert.equal(await count('agency_work_checklists', full), 0);
 assert.deepEqual(await capture(), baseline);
 assert.deepEqual((await runMaintenance(db, {dryRun: false, env: {}})).demos, []);
+await assert.rejects(query('delete from agency_contract_versions where organization_id=$1',[real]),/immutable/);
+await assert.rejects(query('delete from agency_finance_period_events where organization_id=$1',[real]),/immutable/);
 for (const sql of ["delete from agency_payments where organization_id=$1", "delete from account_transfers where organization_id=$1"])
- await assert.rejects(query(sql, [real]), /immutable/);
+ await assert.rejects(query(sql, [real]), /immutable|cerrado/);
 
 // Missing markers, active sessions, grace period, other members and protected ID.
 const keep = [];
@@ -134,8 +143,8 @@ await query("insert into organization_members(organization_id,user_id,role) valu
 await query("insert into agency_demo_sessions(demo_key,user_id,organization_id) values('protected-template',$1,22)", [owner]);
 await expired(22);
 const eligibleRun = await maintenance(db, {dryRun: true, demoDryRun: true, env: {}});
-assert.equal(eligibleRun.demos.filter(demo => demo.organizationId === 22).length, 1, 'sin protección configurada el demo elegible se evalúa');
-assert.equal(eligibleRun.demos.find(demo => demo.organizationId === 22).status, 'eligible');
+assert.equal(eligibleRun.demos.filter(demo => String(demo.organizationId) === '22').length, 1, 'sin protección configurada el demo elegible se evalúa');
+assert.equal(eligibleRun.demos.find(demo => String(demo.organizationId) === '22').status, 'eligible');
 assert.equal((await runMaintenance(db, {dryRun: false, env: {DEMO_CLEANUP_PROTECTED_ORG_IDS: '22'}})).demos.length, 0, 'la organización protegida por entorno nunca se toca');
 assert.equal((await query('select id from organizations where id=22')).rows.length, 1);
 // Se desmarca para que el resto de la corrida no la considere un demo.
@@ -240,5 +249,51 @@ await new Promise(resolve => setImmediate(resolve));
 assert.equal(connects, 1); assert.deepEqual(logs, ['{"event":"maintenance_failed"}']);
 callback(); callback(); await new Promise(resolve => setImmediate(resolve)); assert.equal(connects, 2);
 stop(); assert.equal(cleared, 1); callback(); assert.equal(connects, 2);
+// Retired private-demo mappings stay eligible while a new clone for the SAME
+// real owner remains active. Cleanup scope is organization_id, never user_id.
+const retiredDemo=await fixture(),replacementDemo=await fixture();
+const renewedKey='current-private-key-'+randomUUID();
+await query("update agency_demo_sessions set demo_key=$1 where organization_id=$2",['retired:'+randomUUID(),retiredDemo]);
+await query("update agency_demo_sessions set demo_key=$1 where organization_id=$2",[renewedKey,replacementDemo]);
+await query("update organizations set demo_expires_at=now()+interval '7 days' where id=$1",[replacementDemo]);
+await query("insert into sessions(id,user_id,organization_id,expires_at) values('replacement-private-demo',$1,$2,now()+interval '7 days')",[owner,replacementDemo]);
+const beforeRetiredUser=(await query('select * from users where id=$1',[owner])).rows[0];
+const retiredResult=await runMaintenance(db,{dryRun:false,env:{DEMO_CLEANUP_BATCH_SIZE:'20'}});
+assert.equal(retiredResult.demos.find(d=>d.organizationId===retiredDemo)?.status,'deleted');
+assert.equal((await query('select demo_key from agency_demo_sessions where organization_id=$1',[replacementDemo])).rows[0].demo_key,renewedKey);
+assert.equal((await query("select organization_id from sessions where id='replacement-private-demo'")).rows[0].organization_id,replacementDemo);
+assert.deepEqual((await query('select * from users where id=$1',[owner])).rows[0],beforeRetiredUser);
+
+// The existing worker can delete only with explicit opt-in and a fresh verified
+// backup receipt. All receipt values below are synthetic local test fixtures.
+assert.equal(maintenanceSettings({}).demoCleanupEnabled,false);
+assert.throws(()=>maintenanceSettings({DEMO_CLEANUP_ENABLED:'yes'}),/INVALID_DEMO_CLEANUP_ENABLED/);
+const beforeWorker=await capture();
+const scheduledDemo=await fixture();
+const workerEnv={MAINTENANCE_ENABLED:'true',DEMO_CLEANUP_ENABLED:'true',DEMO_CLEANUP_BATCH_SIZE:'20',DATABASE_URL:fixtureDatabase};
+async function workerOnce(env,readBackupEvidence){
+ let complete;const done=new Promise(resolve=>complete=resolve),entries=[];
+ const stop=startMaintenance(db,{env,readBackupEvidence,timers:{setInterval(){return{unref(){}};},clearInterval(){}},log:text=>{const entry=JSON.parse(text);entries.push(entry);if(['maintenance_complete','maintenance_failed'].includes(entry.event))complete();}});
+ const timeout=setTimeout(()=>complete(),20000);
+ try{await done;assert(entries.some(entry=>entry.event==='maintenance_complete'),JSON.stringify(entries));return entries;}finally{clearTimeout(timeout);stop();}
+}
+let workerLogs=await workerOnce(workerEnv,async()=>{assert.fail('no evidence path must not read files');});
+assert.equal(workerLogs.find(entry=>entry.event==='maintenance_complete').demoDryRun,true);
+assert.equal(workerLogs[0].reason,'verified_backup_unavailable');
+assert.equal((await query('select id from organizations where id=$1',[scheduledDemo])).rows.length,1);
+workerLogs=await workerOnce({...workerEnv,DEMO_CLEANUP_BACKUP_EVIDENCE_FILE:'/fixture/verified.json'},async()=>({...fixtureEvidence,verifiedAt:'2020-01-01'}));
+assert.equal(workerLogs.find(entry=>entry.event==='maintenance_complete').demoDryRun,true,'stale receipt keeps simulation');
+assert.equal((await query('select id from organizations where id=$1',[scheduledDemo])).rows.length,1);
+workerLogs=await workerOnce({...workerEnv,DEMO_CLEANUP_BACKUP_EVIDENCE_FILE:'/fixture/verified.json'},async()=>fixtureEvidence);
+assert.equal(workerLogs.find(entry=>entry.event==='maintenance_complete').demoDryRun,false);
+assert.equal(workerLogs.find(entry=>entry.event==='maintenance_complete').demos.find(d=>d.organizationId===scheduledDemo)?.status,'deleted');
+assert.equal((await query('select id from organizations where id=$1',[scheduledDemo])).rows.length,0);
+assert.equal((await query("select id from sessions where id='active-demo'")).rows.length,1,'other visitor active session survives scheduled cleanup');
+assert.deepEqual(await capture(),beforeWorker,'configured scheduler preserves every protected real row');
+const beforeGrace=await fixture();await query("update organizations set demo_expires_at=now()-interval '23 hours 59 minutes' where id=$1",[beforeGrace]);
+const afterGrace=await fixture();await query("update organizations set demo_expires_at=now()-interval '24 hours 1 minute' where id=$1",[afterGrace]);
+const boundary=await maintenance(db,{dryRun:true,env:{DEMO_CLEANUP_BATCH_SIZE:'20'}});
+assert.equal(boundary.demos.some(d=>d.organizationId===beforeGrace),false,'TTL expiry alone does not skip the 24h grace');
+assert.equal(boundary.demos.find(d=>d.organizationId===afterGrace)?.status,'eligible');
 await pg.close();
-console.log('PASS: expired private/public demos, grace and markers, canonical users and real finance preserved, FK/cascade refusal, rollback restores immutable guards, bounded configurable retention, dry-run, idempotency and scheduling');
+console.log('PASS: 16 modern demo tables, issued contract/closed-period guards, verified-receipt scheduled cleanup, grace boundaries; expired private/public demos, grace and markers, canonical users and real finance preserved, FK/cascade refusal, rollback restores immutable guards, bounded configurable retention, dry-run, idempotency and scheduling');

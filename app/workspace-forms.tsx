@@ -1,5 +1,6 @@
 "use client";
 import {useState} from 'react';
+import {BancoCombobox} from 'owncoding-ui';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
@@ -312,14 +313,14 @@ export function AccountForm({
       noValidate
       onSubmit={submission.onSubmit}
     >
-      <label>
+      <label data-span="6">
         Nombre de la cuenta
         <input
           {...form.register("name")}
           placeholder="Banco Regional — Operativa"
         />
       </label>
-      <fieldset>
+      <fieldset data-span="6">
         <legend>Tipo</legend>
         <div className="choice-list compact">
           {(
@@ -345,18 +346,16 @@ export function AccountForm({
           ))}
         </div>
       </fieldset>
-      <label>
-        Banco, billetera o institución
-        <input
-          {...form.register("institution")}
-          placeholder="Ej. Banco Regional / Efectivo"
-        />
-      </label>
-      <label>
+      <div data-span="6">
+        <label htmlFor="account-institution">Banco, billetera o institución</label>
+        <BancoCombobox id="account-institution" value={form.watch('institution')||''} onChange={(value:string)=>form.setValue('institution',value,{shouldValidate:true,shouldDirty:true})} placeholder="Buscar banco de Paraguay o escribir otra institución" showSelectedLogo showHorizontalLogo/>
+        <small className="field-help">Catálogo compartido de Paraguay. También admite una institución personalizada o efectivo.</small>
+      </div>
+      <label data-span="3">
         Número de cuenta o referencia
         <input {...form.register("accountNumber")} placeholder="Opcional" />
       </label>
-      <label>
+      <label data-span="3">
         Titular de la cuenta
         <input
           {...form.register("holderName")}
@@ -373,7 +372,7 @@ export function AccountForm({
         allowEmpty
         emptyLabel="Sin asignar"
       />
-      <fieldset>
+      <fieldset data-span="6">
         <legend>Moneda</legend>
         <div className="choice-list compact">
           {currencyCodes.map((currency) => (

@@ -13,6 +13,9 @@ require.cache[footerId]={id:footerId,filename:footerId,loaded:true,exports:{Work
 // next/link usa `self`/requestIdleCallback del navegador: se reemplaza por un <a>.
 const linkId=require.resolve('next/link');
 require.cache[linkId]={id:linkId,filename:linkId,loaded:true,exports:{__esModule:true,default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}} as NodeModule;
+// El control de tema pertenece al marco; estos casos verifican el alta sin DOM.
+const themeId=require.resolve('../app/theme-toggle');
+require.cache[themeId]={id:themeId,filename:themeId,loaded:true,exports:{ThemeToggle:()=>null}} as NodeModule;
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
 const Registration=require('../app/registro/page').default;
@@ -48,8 +51,8 @@ afterEach(async()=>{
 
 test('alta por correo: un 401 del registro complementario no presenta como fallida una cuenta creada',async()=>{
  stubWindow('');
- const calls:string[]=[];
- globalThis.fetch=(async(url:string)=>{calls.push(String(url));
+ const calls:string[]=[],bodies:Record<string,any>[]=[];
+ globalThis.fetch=(async(url:string,init?:RequestInit)=>{calls.push(String(url));if(init?.body)bodies.push(JSON.parse(String(init.body)));
   if(String(url)==='/core-api/api/auth/password/register')return json(202,{message:'Revisá tu correo para verificar tu cuenta y activar la prueba de 30 días.'});
   if(String(url)==='/core-api/api/privacy/consents')return json(401,{error:'Sesión requerida'});
   throw Error(`fetch inesperado ${url}`);
@@ -62,6 +65,10 @@ test('alta por correo: un 401 del registro complementario no presenta como falli
  for(const field of renderer!.root.findAllByType(PasswordField))await act(async()=>field.props.onChange('ClaveLocal-2026!'));
  await act(async()=>renderer!.root.findByType('form').props.onSubmit({preventDefault(){}}));
  assert.deepEqual(calls.slice(0,1),['/core-api/api/auth/password/register'],'el alta viaja al API con el consentimiento en el cuerpo');
+ assert.equal(bodies[0].consent,true,'la aceptación de las condiciones viaja en el alta');
+ assert.equal(bodies[0].privacy.aceptado,true,'la aceptación de datos viaja en el alta');
+ assert.equal(bodies[0].privacy.finalidad,'cuenta-y-prestacion');
+ assert.equal(bodies[0].privacy.version,require('../app/privacy-notice').PRIVACY_NOTICE.version);
  assert(text().includes('Revisá tu correo'),'la pantalla confirma el alta');
  assert(!text().includes('No se pudo registrar el consentimiento'),'el registro complementario nunca tapa el alta exitosa');
 });

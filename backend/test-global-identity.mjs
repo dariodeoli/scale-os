@@ -9,7 +9,8 @@ const pg=new PGlite();
 await pg.exec("set timezone='UTC'");
 const sql=async file=>pg.exec(await fs.readFile(new URL(file,import.meta.url),'utf8'));
 await sql('schema.sql');
-for(const file of ['20260908_treasury_ledger','20260908_google_oauth','20260908_people_commissions_comments','20260908_operations_complete','20260908_collaborator_profiles','20260908_agency_suite','20260908_daily_controls','20260910_productivity','20260910_profile_identity','20260910_demo_sessions','20260910_invite_links'])await sql(`migrations/${file}.sql`);
+// History includes private-task scope: load the same task-assignee schema as startup.
+for(const file of ['20260908_treasury_ledger','20260908_google_oauth','20260908_people_commissions_comments','20260908_operations_complete','20260908_collaborator_profiles','20260908_agency_suite','20260908_daily_controls','20260910_productivity','20260910_profile_identity','20260910_demo_sessions','20260910_invite_links','20261017_employee_tasks'])await sql(`migrations/${file}.sql`);
 const query=(s,v)=>pg.query(s,v),db={connect:async()=>({query,release(){}})};
 const insert=async(s,v)=>(await query(s+' returning id',v)).rows[0].id;
 const org=await insert("insert into organizations(slug,name) values('identity-a','A')");

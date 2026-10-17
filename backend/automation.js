@@ -1,3 +1,4 @@
+import {isDemoActor} from './demo-effects.js';
 import {fail,id,optId,date,owned} from './suite-validation.js';
 import {roleCan} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
@@ -27,7 +28,7 @@ export async function automationApi({req,res,url,db,session,body,send}){
  }catch(e){if(c)await c.query('rollback');console.error(JSON.stringify({event:'schedule_error',status:e.status||500}));send(res,e.status||500,{error:e.status?e.message:'No se pudo guardar la programación'});return true;}finally{c?.release();}
 }
 export async function runMonthly(c){
- const plans=(await c.query(`select s.*,t.items from agency_recurring_plans s join agency_work_templates t on t.id=s.template_id and t.organization_id=s.organization_id join organizations org on org.id=s.organization_id join organization_members m on m.organization_id=s.organization_id and m.user_id=s.created_by join agency_projects p on p.id=s.project_id and p.organization_id=s.organization_id where s.active and org.active and org.demo_owner_user_id is null and m.active and m.removed_at is null and m.role=any($1) and p.status='active' and ${visibleRecord('p','projects')} and s.next_month<=date_trunc('month',now() at time zone 'America/Asuncion')::date order by s.id limit 30 for update of s skip locked`,[['owner','admin','management','production','collaborator']])).rows;
+ const plans=(await c.query(`select s.*,t.items from agency_recurring_plans s join agency_work_templates t on t.id=s.template_id and t.organization_id=s.organization_id join organizations org on org.id=s.organization_id join organization_members m on m.organization_id=s.organization_id and m.user_id=s.created_by join agency_projects p on p.id=s.project_id and p.organization_id=s.organization_id where s.active and org.active and org.demo_owner_user_id is null and org.demo_source_id is null and org.slug<>'scale-demo-controles-20260908' and m.active and m.removed_at is null and m.role=any($1) and p.status='active' and ${visibleRecord('p','projects')} and s.next_month<=date_trunc('month',now() at time zone 'America/Asuncion')::date order by s.id limit 30 for update of s skip locked`,[['owner','admin','management','production','collaborator']])).rows;
  let created=0;
  const month=(await c.query("select to_char(now() at time zone 'America/Asuncion','YYYY-MM') as month")).rows[0].month;
  for(const s of plans){
@@ -54,9 +55,9 @@ export async function deliverNotifications(db,mail){
  for(let i=0;i<20;i++){
   const c=await db.connect();try{
    await c.query('begin');await c.query("select set_config('app.current_user','system:notifications',true),set_config('app.current_ip','notification-worker',true)");
-   const n=(await c.query("select n.*,u.email,org.name as organization_name,coalesce(p.email_enabled,false) as email_enabled,case n.kind when 'assignment' then coalesce(p.assignment,true) when 'comment' then coalesce(p.comment,true) else coalesce(p.due,true) end as kind_enabled,m.active as member_active,m.removed_at,org.active as org_active,org.demo_owner_user_id from agency_notifications n join users u on u.id=n.user_id join organizations org on org.id=n.organization_id join organization_members m on m.user_id=n.user_id and m.organization_id=n.organization_id left join agency_notification_preferences p on p.user_id=n.user_id and p.organization_id=n.organization_id where n.email_status='encolado' and n.next_attempt_at<=now() order by n.id limit 1 for update of n skip locked")).rows[0];
+   const n=(await c.query("select n.*,u.email,org.name as organization_name,coalesce(p.email_enabled,false) as email_enabled,case n.kind when 'assignment' then coalesce(p.assignment,true) when 'comment' then coalesce(p.comment,true) else coalesce(p.due,true) end as kind_enabled,m.active as member_active,m.removed_at,org.active as org_active,org.demo_owner_user_id,org.demo_source_id,org.slug as organization_slug from agency_notifications n join users u on u.id=n.user_id join organizations org on org.id=n.organization_id join organization_members m on m.user_id=n.user_id and m.organization_id=n.organization_id left join agency_notification_preferences p on p.user_id=n.user_id and p.organization_id=n.organization_id where n.email_status='encolado' and n.next_attempt_at<=now() order by n.id limit 1 for update of n skip locked")).rows[0];
    if(!n){await c.query('commit');break;}
-   if(n.read_at||!n.email_enabled||!n.kind_enabled||!n.member_active||n.removed_at||!n.org_active||n.demo_owner_user_id||n.email.endsWith('.invalid')||Date.now()-new Date(n.created_at).getTime()>23*3600000){
+   if(n.read_at||!n.email_enabled||!n.kind_enabled||!n.member_active||n.removed_at||!n.org_active||isDemoActor(n)||n.email.endsWith('.invalid')||Date.now()-new Date(n.created_at).getTime()>23*3600000){
     await c.query("update agency_notifications set email_status='duplicado' where id=$1",[n.id]);await c.query('commit');continue;
    }
    try{

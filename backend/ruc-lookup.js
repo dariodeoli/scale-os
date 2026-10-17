@@ -1,3 +1,4 @@
+import {assertDemoEffectAllowed} from './demo-effects.js';
 import {roleCan} from './permissions.js';
 import {fail,text} from './suite-validation.js';
 import {throttle} from './request-guard.js';
@@ -130,7 +131,7 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
  try{
   const user=await session(req);if(!user)fail('No autenticado',401);
   if(!roleCan(user,'clients.manage'))fail('Sin permiso para gestionar clientes',403);
-  if(user.demo_owner_user_id)fail('El Demo no consume consultas reales de RUC. Usá esta función en tu agencia.',403);
+  if(!url.pathname.endsWith('from-ruc'))assertDemoEffectAllowed(user,'lookup');
   if(req.method!=='POST')fail('Método no permitido',405);
   if(!url.pathname.endsWith('from-ruc')&&!await throttle(db,'ruc-lookup:'+user.id,RUC_LOOKUPS_PER_WINDOW))fail('Hiciste muchas consultas de RUC seguidas. Esperá unos minutos.',429);
   const b=await body(req);

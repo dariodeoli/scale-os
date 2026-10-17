@@ -1,5 +1,8 @@
-// Explicitly generated, expired fixtures only. Never deletes users or audit history.
+// Explicitly generated, expired fixtures only. Canonical users and central
+// agency_operation_audit history survive; fictional per-demo contract audit
+// rows expire with their temporary documents.
 import {createHash} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 const templateSlug = 'scale-demo-controles-20260908';
 const uuid = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 const scopedTables = `organizations organization_members sessions events oauth_handoffs
@@ -15,7 +18,11 @@ const scopedTables = `organizations organization_members sessions events oauth_h
  agency_project_assignees agency_work_order_assignees agency_inventory_categories
  agency_inventory_reservations agency_inventory_reservation_members agency_inventory_reservation_items
  agency_work_checklists agency_work_checklist_items
- agency_reporting_coverage agency_client_reporting_events agency_assignment_notification_state agency_client_commercial_terms agency_planned_expenses agency_expenses agency_expense_reversals agency_salary_month_overrides agency_role_permissions agency_inventory_storage_locations agency_inventory_trace agency_inventory_verifications agency_order_comment_mentions agency_project_comment_mentions agency_work_order_links agency_studio_spaces agency_studio_reservations agency_studio_reservation_members agency_weekly_reports client_portal_deliveries client_portal_delivery_comments client_portal_delivery_decisions client_portal_delivery_downloads client_portal_grants client_portal_invites`.trim().split(/\s+/);
+ agency_reporting_coverage agency_client_reporting_events agency_assignment_notification_state agency_client_commercial_terms agency_planned_expenses agency_expenses agency_expense_reversals agency_salary_month_overrides agency_role_permissions agency_inventory_storage_locations agency_inventory_trace agency_inventory_verifications agency_order_comment_mentions agency_project_comment_mentions agency_work_order_links agency_studio_spaces agency_studio_reservations agency_studio_reservation_members agency_weekly_reports client_portal_deliveries client_portal_delivery_comments client_portal_delivery_decisions client_portal_delivery_downloads client_portal_grants client_portal_invites
+ agency_company_legal_profiles agency_contract_templates agency_contracts agency_contract_versions agency_contract_audit
+ agency_internal_task_assignees agency_internal_task_comments
+ agency_payment_links agency_account_openings agency_opening_receivables agency_payment_applications
+ agency_payment_application_reversals agency_payment_date_corrections agency_finance_periods agency_finance_period_events`.trim().split(/\s+/);
 const switches = [
  ['agency_payments', 'agency_payments_sync'],
  ['agency_payment_reversals', 'payment_reversal_sync'],
@@ -27,6 +34,12 @@ const switches = [
  ['agency_client_commercial_terms', 'agency_client_commercial_term_guard'],
  ['agency_expenses', 'agency_expense_sync'],
  ['agency_expense_reversals', 'expense_reversal_sync'],
+ ['agency_contract_versions', 'issued_contract_immutable'],
+ ...['agency_payments','agency_payment_reversals','account_transfers','agency_expenses','agency_expense_reversals','agency_payouts','agency_account_openings'].map(table=>[table,'aa_finance_period_guard']),
+ ['agency_account_openings', 'account_opening_sync'],
+ ['agency_payment_applications', 'payment_application_guard'],
+ ['agency_payment_application_reversals', 'payment_application_reversal_sync'],
+ ...['agency_opening_receivables','agency_finance_period_events','agency_payment_date_corrections'].map(table=>[table,'immutable_entry']),
 ];
 const ident = value => '"' + value.replaceAll('"', '""') + '"';
 const tableName = table => 'public.' + ident(table);
@@ -37,7 +50,10 @@ function integer(value, fallback, min, max, name) {
  return n;
 }
 export function maintenanceSettings(env = process.env) {
+ if(!['true','false',undefined].includes(env.DEMO_CLEANUP_ENABLED))throw failure('INVALID_DEMO_CLEANUP_ENABLED');
  return {
+  demoCleanupEnabled: env.DEMO_CLEANUP_ENABLED==='true',
+  backupEvidenceFile: typeof env.DEMO_CLEANUP_BACKUP_EVIDENCE_FILE==='string'?env.DEMO_CLEANUP_BACKUP_EVIDENCE_FILE.trim():'',
   graceHours: integer(env.DEMO_CLEANUP_GRACE_HOURS, 24, 24, 8760, 'GRACE_HOURS'),
   maxDemos: integer(env.DEMO_CLEANUP_BATCH_SIZE, 3, 1, 20, 'DEMO_BATCH'),
   maxDemoRows: integer(env.DEMO_CLEANUP_MAX_ROWS, 10000, 1, 50000, 'DEMO_ROWS'),
@@ -96,9 +112,9 @@ async function deletionPlan(c, org, maxRows) {
  const edges = (await c.query(`select cn.nspname as child_schema,cl.relname as child,
   pn.nspname as parent_schema,pl.relname as parent,
   array(select a.attname from unnest(f.conkey) with ordinality k(n,pos)
-   join pg_attribute a on a.attrelid=f.conrelid and a.attnum=k.n order by k.pos) as child_cols,
+   join pg_attribute a on a.attrelid=f.conrelid and a.attnum=k.n order by k.pos)::text[] as child_cols,
   array(select a.attname from unnest(f.confkey) with ordinality k(n,pos)
-   join pg_attribute a on a.attrelid=f.confrelid and a.attnum=k.n order by k.pos) as parent_cols
+   join pg_attribute a on a.attrelid=f.confrelid and a.attnum=k.n order by k.pos)::text[] as parent_cols
   from pg_constraint f join pg_class cl on cl.oid=f.conrelid join pg_namespace cn on cn.oid=cl.relnamespace
   join pg_class pl on pl.oid=f.confrelid join pg_namespace pn on pn.oid=pl.relnamespace
   where f.contype='f' and pn.nspname='public' and pl.relname=any($1::text[])`, [tables])).rows;
@@ -248,7 +264,7 @@ export async function runMaintenance(db, {dryRun = true, demoDryRun = true, veri
  finally { raw.release(); }
 }
 const workers = new WeakMap();
-export function startMaintenance(db, {env = process.env, log = console.log, timers = globalThis} = {}) {
+export function startMaintenance(db, {env = process.env, log = console.log, timers = globalThis, readBackupEvidence=async file=>JSON.parse(await readFile(file,'utf8'))} = {}) {
  if (workers.has(db)) return workers.get(db);
  if (!['true', 'false', undefined].includes(env.MAINTENANCE_ENABLED)) throw failure('INVALID_ENABLED');
  if (env.MAINTENANCE_ENABLED !== 'true') return () => {};
@@ -257,9 +273,18 @@ export function startMaintenance(db, {env = process.env, log = console.log, time
  const tick = async () => {
   if (running || stopped) return;
   running = true;
-  // Demo deletion stays disabled in the scheduled entrypoint pending a verified
-  // external backup and a separate, explicitly reviewed integration.
-  try { log(JSON.stringify({event: 'maintenance_complete', ...await runMaintenance(db, {dryRun: false, demoDryRun: true, env})})); }
+  // Re-read the receipt every tick so a stale/mismatched backup never enables
+  // deletion. Missing configuration keeps demo cleanup in explicit simulation;
+  // ordinary bounded session/presence retention still runs.
+  let verifiedBackup=null,demoDryRun=true;
+  if(settings.demoCleanupEnabled){
+   try{
+    if(!settings.backupEvidenceFile)throw failure('VERIFIED_BACKUP_REQUIRED');
+    verifiedBackup=await readBackupEvidence(settings.backupEvidenceFile);
+    verifyDeletionEvidence(verifiedBackup,env);demoDryRun=false;
+   }catch{log(JSON.stringify({event:'demo_cleanup_simulation',reason:'verified_backup_unavailable'}));}
+  }
+  try { log(JSON.stringify({event: 'maintenance_complete', ...await runMaintenance(db, {dryRun: false, demoDryRun, verifiedBackup, env})})); }
   catch { log(JSON.stringify({event: 'maintenance_failed'})); }
   finally { running = false; }
  };
