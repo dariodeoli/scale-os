@@ -2,6 +2,21 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## Próxima entrega — en validación
+
+- **Balance primero**: contratado y pagado de clientes a la izquierda, equipo
+  y salarios a la derecha, en dos mitades iguales. Totales por moneda; salario
+  base y pago realizado diferenciados. Planes con iconos y requisito de factura
+  con check o X, conservando edición e historial.
+- **Acciones en la cabecera**: reportar un problema y cerrar sesión junto a las
+  notificaciones, con etiquetas accesibles y controles táctiles en móvil.
+- **Biblioteca de objetos compartida**: botones, campos, selectores, diálogos,
+  avisos y tablas con APIs comunes, temas y tamaños coherentes. El catálogo
+  `/biblioteca-ui` permite explorar estados y ejemplos sin modificar datos.
+- **Formularios más estables**: conservan borradores, errores y foco, protegen
+  el cierre y evitan envíos duplicados. Fechas, horas y números admiten edición
+  manual sin perder valores parciales ni convertir monedas o zonas horarias.
+
 ## v1.0.191
 
 - **Crear cuenta también reconoce tu acceso**: con Google o con correo y
