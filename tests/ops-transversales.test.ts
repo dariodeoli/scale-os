@@ -85,8 +85,10 @@ assert.match(history,/export const internalTaskStatusLabel=\(status:string\)=>in
 
 // ── §15.11 Rendimiento: las listas sin paginación del API se acotan igual.
 assert.match(history,/export const INTERNAL_TASKS_WINDOW=50;/);
-assert.match(history,/const visible=rows\.slice\(0,INTERNAL_TASKS_WINDOW\);/);
-assert.match(history,/Mostrando \{visible\.length\} de \{rows\.length\} pendientes internos\./,'el resto de la lista se avisa');
+assert.match(history,/export function InternalTasks\(props:EmployeeTasksProps\)/,'el dashboard se comparte con proyectos');
+const tasks=readFileSync(new URL('../app/employee-tasks.tsx',import.meta.url),'utf8');
+assert.match(tasks,/limit:'10'/,'las tareas usan páginas acotadas del API');
+assert.match(tasks,/Siguiente<\/button>/,'la ventana siguiente tiene acción explícita');
 assert.match(planner,/visible\.slice\(0,100\)/,'el planificador no monta más de 100 filas');
 assert.match(planner,/Mostrando 100 de \{visible\.length\}/);
 assert.match(kanban,/\{hasMore && onLoadMore \? <button/, 'el tablero conserva «Ver más» por columna');

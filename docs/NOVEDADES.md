@@ -2,6 +2,17 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.188
+
+- **Tareas del equipo en Inicio y proyectos**: responsables, prioridad, fecha y hora,
+  checklist, enlaces de materiales y comentarios, con permisos y control de cambios.
+- **Contratos reutilizables**: plantillas, datos con procedencia, revisión humana,
+  versiones emitidas inmutables y exportación PDF privada.
+- **Perfil legal de empresa**: ciudad, departamento y representante para completar
+  documentos, con revisión y permisos de datos bancarios.
+- **Seguimiento de entrega**: plan registrado en issues y protocolo de agentes,
+  PR, CI y publicación adaptado a Scale. OwnData queda opcional y sin activar.
+
 ## v1.0.174
 
 ### Blog

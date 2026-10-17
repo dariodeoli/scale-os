@@ -152,6 +152,7 @@ export type ClientPaymentStatus = {
   has_invoice: boolean;
 };
 export type User = {
+  capabilities?: Record<string,boolean>;
   subscription?:SubscriptionState;
   id:string;
   organization_id:string;

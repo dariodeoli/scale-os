@@ -126,5 +126,5 @@ test('resumen: sin métricas duplicadas de los módulos y un solo CTA (#100)',()
  assert.doesNotMatch(resumen, /href="\/produccion"/, 'un solo camino a Producción (el del panel de piezas)');
  assert.match(resumen, /<ControlCenter role=\{user\?\.role\|\|'viewer'\} orders=\{orders\} refresh=\{load\} navigate=\{setActive\} signals=\{summary\} work=\{/, 'las señales siguen enlazando al módulo');
  // Reorganización IA: el trabajo del día va antes de los resúmenes de consulta.
- assert(resumen.indexOf('aria-label="Piezas por etapa"')<resumen.indexOf('<InternalTasks'), 'piezas por etapa y planificador dentro del bloque de trabajo');
+ assert(resumen.indexOf('<InternalTasks')<resumen.indexOf('<ControlCenter'), 'las tareas propias aparecen primero, antes de los resúmenes de consulta');
 });

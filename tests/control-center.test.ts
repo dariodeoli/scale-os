@@ -30,7 +30,12 @@ const permissionsMatrix=readFileSync(new URL('../app/permissions-matrix.tsx',imp
 assert(permissionsMatrix.includes("String(row?.id??'')")&&permissionsMatrix.includes("String(row?.label??'')"),'la matriz de permisos arma el texto con guarda');
 for(const [old,path] of Object.entries(legacyRoutes)){assert.equal(sectionPath(sectionLabel(path)),path);assert(!path.startsWith('/'+old+'/'),'no redirect loops');}
 assert.equal(parentSection('Mora'),'Finanzas');assert.equal(parentSection('Planes'),'Presupuestos');assert.equal(parentSection('Comisiones'),'Equipo');assert.equal(parentSection('Papelera'),'Configuración');
-assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,12);
+assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,13);
+assert.equal(sectionPath('Contratos'),'/contratos');
+assert(visibleModule('Contratos','admin'));
+assert(!visibleModule('Contratos','sales'));
+assert(visibleModule('Contratos','sales',{'contracts.view':true}),'el acceso concedido por la empresa llega a la navegación');
+assert(!visibleModule('Contratos','admin',{'contracts.view':false}),'la navegación respeta una revocación efectiva');
 assert.equal(sectionPath('Tablero de producción'),'/produccion');assert.equal(sectionLabel('/produccion'),'Producción');
 assert.equal(legacyDestination('constructor'),undefined);assert.equal(legacyDestination('toString'),undefined);assert.equal(legacyDestination('mora'),'/pagos/mora');
 const nextConfig=readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
@@ -60,7 +65,7 @@ const recursos=navGroups.find(([group])=>group==='Recursos');
 assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Equipo','Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
 // Contrato del encabezado navegable (#72): el clic de un grupo va a su primer módulo.
 const firstModule=(group:string)=>navGroups.find(([label])=>label===group)?.[1][0];
-assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producción (primer módulo del grupo)');assert.deepEqual(navGroups.find(([group])=>group==='Flujo')?.[1],['Producción','Pipeline','Clientes','Presupuestos','Proyectos'],'Flujo lista Producción primero y Pipeline segundo (issue #78)');
+assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producción (primer módulo del grupo)');assert.deepEqual(navGroups.find(([group])=>group==='Flujo')?.[1],['Producción','Pipeline','Clientes','Presupuestos','Contratos','Proyectos'],'Flujo mantiene producción y pipeline primero y agrega contratos al circuito comercial');
 assert.equal(firstModule('Recursos'),'Inventario','clic en Recursos navega a Inventario');
 assert.equal(firstModule('Finanzas'),'Finanzas','clic en Finanzas navega a Finanzas');
 assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');

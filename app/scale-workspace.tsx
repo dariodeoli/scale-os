@@ -51,7 +51,7 @@ import './suite.css';
 import {RecordEditor} from './suite';
 import {AssignedPeople} from './assigned-people';
 import {listDateShort,dueTone} from './list-format';
-import {ListActions,PageChromeContext,PageTitleContext,StateChip,useBulkSelection} from './ui-v2';
+import {ListActions,PageChromeContext,PageTitleContext,SectionLoading,StateChip,useBulkSelection} from './ui-v2';
 import {TabScroller} from './tab-scroller';
 import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
@@ -93,6 +93,7 @@ import {ClientesSection} from './sections/clientes';
 import {MoraSection} from './sections/mora';
 import {ProyectosSection} from './sections/proyectos';
 import {ResumenSection} from './sections/resumen';
+const ContractsWorkspace=dynamic(()=>import('./contracts-workspace').then(m=>m.ContractsWorkspace),{loading:()=> <SectionLoading label="Cargando contratos…"/>});
 import {AccountForm,InvoiceForm,OrderForm,PaymentForm,ProjectForm} from './workspace-forms';
 import {notify} from './feedback';
 import {AvisoPrivacidad} from 'owncoding-ui';
@@ -263,7 +264,7 @@ export default function Home() {
     void prefetchSectionMetrics(requestedSection,workspaceScope,user.role);
   },[operationalAccess,user?.id,user?.role,workspaceScope,requestedSection]);
   function prefetchSection(label:string){
-    if(!operationalAccess||!user||!visibleModule(label,user.role))return;
+    if(!operationalAccess||!user||!visibleModule(label,user.role,user.capabilities))return;
     // Only warm the sections whose module the role can open: the same capability
     // InventoryWorkspace and StudioWorkspace check, so menu visibility alone (which
     // includes Sales) never triggers a denied read.
@@ -328,14 +329,14 @@ export default function Home() {
     window.addEventListener('focus',refreshIdentity);
     return()=>{active=false;window.removeEventListener('scale:identity-changed',refreshIdentity);window.removeEventListener('focus',refreshIdentity);};
   },[]);
-  const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer')?'Sin acceso':requestedSection;
+  const active=signedIn&&!visibleModule(requestedSection,user?.role||'viewer',user?.capabilities)?'Sin acceso':requestedSection;
   useEffect(()=>{
     if(!signedIn||!user)return;
     const query=new URLSearchParams(window.location.search),billing=query.get('scaleBilling')||query.get('billing');
     if(billing==='success'||billing==='cancelled')setSubscriptionOpen(true);
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
-  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer'));
+  const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer',user?.capabilities));
   const visibleNavGroups=navGroups.map(([group,modules])=>({group,modules:modules.filter(module=>allowedChildren(module).length>0)})).filter(group=>group.modules.length>0);
   // Acordeón del nav v3: por defecto el grupo del módulo activo y sólo uno
   // expandido a la vez; al navegar se reabre el grupo de la sección nueva.
@@ -710,7 +711,7 @@ export default function Home() {
     finally{setBulkBusy(false);}
   }
   function projectEntry(project:Project){
-    return <ProjectCard key={project.id} project={project} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
+    return <ProjectCard key={project.id} project={project} taskIdentity={user?{organizationId:String(user.organization_id),userId:String(user.id),canView:user.role==='owner'||user.capabilities?.['tasks.view']!==false}:undefined} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
       {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
@@ -1120,6 +1121,7 @@ export default function Home() {
         {active==='Estudio'&&<EstudioSection user={user}/>}
         {active==='Actividad'&&<ActividadSection user={user}/>}
         {active==='Configuración'&&<ConfiguracionSection user={user} subscriptionError={subscriptionError} refreshSubscription={refreshSubscription} exitDemoSimulation={exitDemoSimulation} deletionSignedOut={deletionSignedOut}/>}
+        {active==='Contratos'&&user&&<ContractsWorkspace key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/>}
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail} onCreateOrder={canCreateRecord('Resumen')?()=>setModal('order'):undefined}/>}

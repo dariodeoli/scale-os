@@ -105,4 +105,6 @@ export const migrationOrder = [
   '20261016_platform_announcements_maintenance.sql',
   '20261016_public_analytics.sql',
   '20261016_platform_errors_reports.sql',
+  '20261017_employee_tasks.sql',
+  '20261017_contract_documents.sql',
 ];

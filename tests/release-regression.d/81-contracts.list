@@ -1,0 +1,2 @@
+# Contratos legales: permisos, aislamiento entre empresas, texto y concurrencia
+node --import tsx --test tests/contracts-workspace.test.tsx

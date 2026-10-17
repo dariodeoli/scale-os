@@ -4,6 +4,9 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
 const root=fileURLToPath(new URL('..',import.meta.url));
+const args=process.argv.slice(2);
+if(args.some(arg=>arg!=='--prepare'))throw new Error('Uso: npm run release:patch [-- --prepare]');
+const prepareOnly=args.includes('--prepare');
 const envFile=path.join(root,'.release.env');
 if(existsSync(envFile))for(const line of readFileSync(envFile,'utf8').split(/\r?\n/)){const match=/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);if(match&&!process.env[match[1]])process.env[match[1]]=match[2].replace(/^['"]|['"]$/g,'');}
 // Monorepo: el API vive en backend/ y se despliega desde este mismo repositorio.
@@ -27,8 +30,16 @@ assertCleanTracked('el repositorio');
 // Contexto de build acotado antes de bumpear y buildear (web en la raíz, API con base backend/).
 run('node',['scripts/verificar-contexto-build.mjs']);run('node',['scripts/verificar-contexto-build.mjs','--context','backend']);
 const releasePath=path.join(root,'release/version.json'),release=readJson(releasePath),next=bumpPatch(release.version);release.version=next;writeJson(releasePath,release);run('node',['build-tools/sync-release-version.mjs']);
-run('npm',['run','footer:sync']);run('npm',['run','footer:check']);run('npm',['run','test:release-regression']);run('npm',['run','build']);run('npm',['--prefix','backend','run','test:release']);
+run('npm',['run','footer:sync']);run('npm',['run','footer:check']);run('npm',['run','test:release-regression']);run('npm',['run','build']);
+const buildId=path.join(root,'.next/BUILD_ID');
+if(!existsSync(buildId)||!readFileSync(buildId,'utf8').trim())fail('El build no dejó un .next/BUILD_ID válido.');
+run('npm',['--prefix','backend','run','test:release']);
 run('git',['add','.gitignore','.release.env.example','release/version.json','app/app-version.ts','app/access-layout.tsx','app/brand-metadata.ts','app/google-sign-in.tsx','app/layout.tsx','app/registro/page.tsx','app/cliente/ingresar/page.tsx','app/scale-workspace.tsx','app/robots.ts','next.config.mjs','build-tools/sync-release-version.mjs','build-tools/release-smoke.mjs','build-tools/release-patch.mjs','tests/release-version.test.mjs','tests/web-presence.test.mjs','package.json','package-lock.json','public/app.webmanifest','public/robots.txt','public/sitemap.xml','public/scale-os.html','backend/release-version.json','backend/package.json','backend/package-lock.json'],root);
-run('git',['commit','-m',`chore(release): Scale OS v${next}`],root);run('git',['push','origin','HEAD:main'],root);
-if(apiWebhook&&webWebhook){await webhook('API',apiWebhook);await webhook('frontend',webWebhook);}else console.log('Deploy solicitado por el webhook GitHub → Coolify configurado en el repositorio (web + API).');
-await import('./release-smoke.mjs');
+run('git',['commit','-m',`chore(release): Scale OS v${next}`],root);
+if(prepareOnly){
+ console.log(`Release v${next} preparado. Publicá la rama en un PR y esperá CI antes de integrar; el merge a main dispara Coolify.`);
+}else{
+ run('git',['push','origin','HEAD:main'],root);
+ if(apiWebhook&&webWebhook){await webhook('API',apiWebhook);await webhook('frontend',webWebhook);}else console.log('Deploy solicitado por el webhook GitHub → Coolify configurado en el repositorio (web + API).');
+ await import('./release-smoke.mjs');
+}

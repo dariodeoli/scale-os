@@ -7,6 +7,7 @@ import {NewCompany} from '../workspace-guide';
 import {PrivacyPanel} from '../privacy-panel';
 import type {User} from '../workspace-types';
 const DeletionDangerZone=dynamic(()=>import('../deletion-danger-zone').then(m=>m.DeletionDangerZone),{loading:()=> <SectionLoading label="Cargando la configuración…"/>});
+const CompanyLegalProfile=dynamic(()=>import('../company-legal-profile').then(m=>m.CompanyLegalProfile),{loading:()=> <SectionLoading label="Cargando los datos legales…"/>});
 
 // Configuración por bloques (issue #152): empresa · facturación/cotización ·
 // integraciones · suscripción · seguridad, con la zona de peligro aparte. El
@@ -52,6 +53,7 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
 
       <SettingsBlock id="settings-company" title="Empresa" description="Identidad de la empresa, valores predeterminados de los formularios y tus otras empresas." aside={user?<NewCompany/>:null}>
         <SettingsWorkspace/>
+        {user?<CompanyLegalProfile key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/>:null}
       </SettingsBlock>
 
       <SettingsBlock id="settings-billing" title="Facturación y cotización" description="Referencia del dólar y cupones de suscripción. La facturación de tus clientes vive en Comercial y Finanzas.">

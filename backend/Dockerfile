@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql18-client aws-cli curl

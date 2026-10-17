@@ -1,0 +1,29 @@
+import React from 'react';
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {create,act,type ReactTestRenderer} from 'react-test-renderer';
+Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+const {ContractsWorkspace}=require('../app/contracts-workspace') as typeof import('../app/contracts-workspace');
+const {contractRequest,ContractRequestError,renderContractText,contractMissing,manualContractSources}=require('../app/contracts-data') as typeof import('../app/contracts-data');
+const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+const config={capabilities:{view:true,create:true,edit:true,templates_manage:true,issue:true,bank_data_view:false,assist:false},clients:[],collaborators:[],bank_accounts:[]};
+const template={id:'t1',name:'Servicios',agreement_type:'Servicios',body:'Hola {{company.legal_name}}',required_fields:['company.legal_name'],revision:1};
+function respond(value:unknown,status=200){return new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});}
+test('plain text rendering never interprets HTML and preserves missing/unknown tokens',()=>{
+ const result=renderContractText('<script>{{company.legal_name}}</script> {{secret}} {{client.name}}',{'company.legal_name':'<img onerror=evil>','secret':'PRIVATE'},['company.legal_name','client.name']);
+ assert.equal(result,'<script><img onerror=evil></script> {{secret}} {{client.name}}');
+ assert.deepEqual(contractMissing('{{company.legal_name}} {{client.name}} {{client.name}}',{'company.legal_name':'Empresa'},['agreement.date']),['agreement.date','client.name']);
+ assert.deepEqual(manualContractSources({'company.legal_name':{source:'organization'},'client.name':{source:'client'}},{'company.legal_name':'Empresa','client.name':'Ana'},{'company.legal_name':'Empresa','client.name':'Ada'}),{'company.legal_name':{source:'organization'},'client.name':{source:'manual'}});
+});
+test('requests use authenticated no-store proxy and expose conflict status without losing caller draft',async()=>{
+ const previous=globalThis.fetch;let options:RequestInit|undefined;let path='';globalThis.fetch=async(input,init)=>{path=String(input);options=init;return respond({error:'conflict'},409);};
+ try{const draft={title:'Mi edición',expected_revision:2};await assert.rejects(()=>contractRequest('/api/agency/contracts/1',draft,'PATCH'),(error:unknown)=>error instanceof ContractRequestError&&error.status===409&&/edición se conserva/.test(error.message));assert.equal(path,'/core-api/api/agency/contracts/1');assert.equal(options?.credentials,'include');assert.equal(options?.cache,'no-store');assert.equal(options?.method,'PATCH');assert.equal(draft.title,'Mi edición');}finally{globalThis.fetch=previous;}
+});
+test('view denial never fetches contracts or renders creation actions',async()=>{
+ const previous=globalThis.fetch;const calls:string[]=[];globalThis.fetch=async input=>{calls.push(String(input));return respond({...config,capabilities:{...config.capabilities,view:false}});};let renderer:ReactTestRenderer|undefined;
+ try{await act(async()=>{renderer=create(<ContractsWorkspace organizationId="org-a" userId="u1"/>);await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/Sin acceso a contratos/);assert.deepEqual(calls,['/core-api/api/agency/contracts/config']);assert.equal(renderer!.root.findAllByType('button').length,0);}finally{act(()=>renderer?.unmount());globalThis.fetch=previous;}
+});
+test('changing organization clears old data and ignores late responses from previous organization',async()=>{
+ const previous=globalThis.fetch;let release:((response:Response)=>void)|undefined;let configCalls=0;globalThis.fetch=async input=>{const path=String(input);if(path.endsWith('/config')){configCalls++;return respond(config);}if(configCalls===1&&path.endsWith('/contracts'))return new Promise<Response>(resolve=>{release=resolve;});if(path.endsWith('/templates'))return respond({templates:[template],variables:['company.legal_name']});return respond({contracts:[{id:'b',title:'Contrato empresa B',revision:1,template_id:'t1'}]});};let renderer:ReactTestRenderer|undefined;
+ try{await act(async()=>{renderer=create(<ContractsWorkspace organizationId="org-a" userId="u1"/>);await tick();});await act(async()=>{renderer!.update(<ContractsWorkspace organizationId="org-b" userId="u1"/>);await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/Contrato empresa B/);await act(async()=>{release!(respond({contracts:[{id:'a',title:'CONFIDENCIAL empresa A',revision:1}]}));await tick();});assert.doesNotMatch(JSON.stringify(renderer!.toJSON()),/CONFIDENCIAL/);assert.match(JSON.stringify(renderer!.toJSON()),/Contrato empresa B/);}finally{act(()=>renderer?.unmount());globalThis.fetch=previous;}
+});

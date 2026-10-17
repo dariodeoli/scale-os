@@ -1,0 +1,142 @@
+{
+  "repository": "dariodeoli/scale-os",
+  "marker_prefix": "scale-plan-20261017",
+  "issues": [
+    {
+      "key": "plan",
+      "title": "[Plan Scale] Tareas, contratos y seguimiento operativo",
+      "body_file": "00-plan.md",
+      "depends_on": []
+    },
+    {
+      "key": "audit",
+      "title": "[Diseño] Auditar módulos, proveedores, datos y permisos",
+      "body_file": "01-audit.md",
+      "depends_on": [
+        "plan"
+      ]
+    },
+    {
+      "key": "task-api",
+      "title": "[Tareas] Ampliar API y modelo de tareas de empleados",
+      "body_file": "02-task-api.md",
+      "depends_on": [
+        "audit"
+      ]
+    },
+    {
+      "key": "task-ui",
+      "title": "[Tareas] Dashboard personal, checklist y edición",
+      "body_file": "03-task-ui.md",
+      "depends_on": [
+        "task-api",
+        "task-security"
+      ]
+    },
+    {
+      "key": "task-project",
+      "title": "[Tareas] Sincronizar inicio y ficha del proyecto",
+      "body_file": "04-task-project.md",
+      "depends_on": [
+        "task-api",
+        "task-ui"
+      ]
+    },
+    {
+      "key": "task-security",
+      "title": "[Tareas] Permisos, auditoría y conflictos concurrentes",
+      "body_file": "05-task-security.md",
+      "depends_on": [
+        "task-api"
+      ]
+    },
+    {
+      "key": "company",
+      "title": "[Empresa] Perfil legal y datos trazables para contratos",
+      "body_file": "06-company.md",
+      "depends_on": [
+        "audit"
+      ]
+    },
+    {
+      "key": "templates",
+      "title": "[Contratos] Plantillas editables y variables permitidas",
+      "body_file": "07-templates.md",
+      "depends_on": [
+        "company"
+      ]
+    },
+    {
+      "key": "contracts",
+      "title": "[Contratos] Borradores, emisión humana e historial inmutable",
+      "body_file": "08-contracts.md",
+      "depends_on": [
+        "templates"
+      ]
+    },
+    {
+      "key": "pdf",
+      "title": "[Contratos] PDF estable desde versiones emitidas",
+      "body_file": "09-pdf.md",
+      "depends_on": [
+        "contracts"
+      ]
+    },
+    {
+      "key": "ai",
+      "title": "[Contratos] Asistencia Groq con revisión humana",
+      "body_file": "10-ai.md",
+      "depends_on": [
+        "templates",
+        "contracts"
+      ]
+    },
+    {
+      "key": "integrations",
+      "title": "[Integraciones] Verificar OwnData, Ocoin, bancos, ciudades y owncoding-ui",
+      "body_file": "11-integrations.md",
+      "depends_on": [
+        "audit"
+      ]
+    },
+    {
+      "key": "ops",
+      "title": "[Operaciones] Revisar carga de clientes, proyectos y trabajos",
+      "body_file": "12-ops.md",
+      "depends_on": [
+        "plan"
+      ]
+    },
+    {
+      "key": "paper",
+      "title": "[Compra operativa] Papel adhesivo para impresora existente",
+      "body_file": "13-paper.md",
+      "depends_on": [
+        "plan"
+      ]
+    },
+    {
+      "key": "labels",
+      "title": "[Activos] Verificar códigos e impresión y lectura de etiquetas",
+      "body_file": "14-labels.md",
+      "depends_on": [
+        "ops",
+        "paper"
+      ]
+    },
+    {
+      "key": "qa",
+      "title": "[QA] Móvil, regresiones, evidencia y despliegue gradual",
+      "body_file": "15-qa.md",
+      "depends_on": [
+        "task-project",
+        "task-security",
+        "company",
+        "contracts",
+        "pdf",
+        "ai",
+        "integrations"
+      ]
+    }
+  ]
+}
