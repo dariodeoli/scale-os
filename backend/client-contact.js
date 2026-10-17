@@ -6,7 +6,7 @@ import {roleCan} from './permissions.js';
 // para proyectos y piezas con `contact_restricted:true`, de modo que la
 // interfaz muestre un estado honesto ("contacto reservado") en lugar de un
 // vacío que parezca un dato faltante.
-const restrictedFields = ['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type','email', 'phone', 'tax_id', 'legal_name', 'notes', 'social_links', 'ruc_legal_name', 'ruc_tax_state', 'ruc_source'];
+const restrictedFields = ['legal_representative_same_as_client','address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type','email', 'phone', 'tax_id', 'legal_name', 'notes', 'social_links', 'ruc_legal_name', 'ruc_tax_state', 'ruc_source'];
 
 /** Copia la fila con los campos de contacto en null si el rol no los necesita. */
 export function redactClientContact(row, user) {

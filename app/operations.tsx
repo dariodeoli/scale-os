@@ -66,7 +66,7 @@ type Choice = SelectChoice;
 export type Field = {
   key: string;
   label: string;
-  type?: "number" | "date" | "time" | "email" | "url" | "textarea" | "money" | "password" | "phone";
+  type?: "number" | "date" | "time" | "email" | "url" | "textarea" | "money" | "password" | "phone" | "checkbox";
   choices?: Choice[];
   optional?: boolean;
   section?: string;
@@ -80,6 +80,8 @@ export type Field = {
   currencyKey?: string;
   currency?: string;
   currencyFrom?: (values: Record<string, string>) => string;
+  /** Valor dependiente; undefined conserva la edición independiente del campo. */
+  valueFrom?: (values: Record<string, string>) => string | undefined;
   lookup?: {label: string; run: (value: string) => Promise<Record<string, string>>};
   /** Deshabilita el campo según los valores actuales del formulario (p. ej. dependientes de un interruptor maestro). */
   disabled?: boolean | ((values: Record<string, string>) => boolean);
@@ -128,6 +130,13 @@ export function Editor({
     resolver: zodResolver(z.object(shape)),
     defaultValues: defaults,
   });
+  const currentValues=form.watch();
+  useEffect(()=>{
+    for(const field of fields){
+      const next=field.valueFrom?.(currentValues);
+      if(next!==undefined&&next!==form.getValues(field.key))form.setValue(field.key,next,{shouldDirty:form.formState.isDirty,shouldValidate:true});
+    }
+  },[fields,currentValues,form]);
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
@@ -167,7 +176,7 @@ export function Editor({
     // el guardado del formulario conserva el valor tal como se guardó antes.
     const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
     return <div key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
-      {f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
+      {f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><input id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
         ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}

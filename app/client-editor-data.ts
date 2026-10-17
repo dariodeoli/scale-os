@@ -4,6 +4,8 @@
 import {MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 import type {Field} from './operations';
 import {PHONE_HELP} from './field-rules';
+import {clientLegalName} from './client-identity-data';
+import {todayAsuncion} from './client-format';
 import {clientStatuses} from './client-status';
 import {isWholeTransport} from './amount-format';
 import {buildSocialLinks,clientLinksDefaults} from './client-links';
@@ -13,7 +15,7 @@ export type ClientSectionName=typeof CLIENT_SECTIONS[keyof typeof CLIENT_SECTION
 
 export type ClientRecord={id?:string;[key:string]:unknown};
 export type PlanTerms={planId:string;planName:string;recurringAmount:string|number;currency:'PYG'|'USD';startsOn:string;endsOn:string|null;cadence:'monthly'|'interval'|'once';intervalMonths:number;invoiceRequired:boolean;commissionRecipientId:string|null;commissionMode:'none'|'percentage'|'fixed';commissionValue:string|number|null;updatedAt:string};
-export type PlanTermsResponse={clientId:string;archived:boolean;terms:PlanTerms|null;plans:{id:string;name:string}[];collaborators:{id:string;full_name:string}[]};
+export type PlanTermsResponse={clientId:string;archived:boolean;terms:PlanTerms|null;historyRevision?:string;plans:{id:string;name:string}[];collaborators:{id:string;full_name:string}[]};
 
 const isDate=(value:string)=>/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value));
 const str=(record:ClientRecord|null|undefined,key:string)=>String(record?.[key]??'');
@@ -22,10 +24,11 @@ export const nameError=(value:string)=>value.trim().length<2?'Escribí el nombre
 export const taxIdError=(value:string)=>!value.trim()||taxIdValid(normalizeTaxId(value)||'')?null:MENSAJE_RUC;
 const httpsError=(value:string)=>{if(!value.trim())return null;try{const url=new URL(value.trim());return url.protocol==='https:'&&!url.username&&!url.password?null:'Pegá un enlace HTTPS válido.';}catch{return 'Pegá un enlace HTTPS válido.';}};
 
-const PLAN_KEYS=['plan_plan_id','plan_amount','plan_currency','plan_cadence','plan_interval','plan_starts_on','plan_ends_on','plan_invoice_required'];
+const PLAN_KEYS=['plan_plan_id','plan_amount','plan_currency','plan_cadence','plan_interval','plan_starts_on','plan_ends_on','plan_invoice_required','plan_effective_from','plan_reason'];
 const LINK_KEYS=['website','instagram','whatsapp','other'];
 export const CLIENT_LEGAL_KEYS=['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type'] as const;
-const CLIENT_KEYS=[...CLIENT_LEGAL_KEYS,'name','email','phone','lifecycle_status','tax_id','legal_name','notes'];
+export const CLIENT_REPRESENTATIVE_LINK='legal_representative_same_as_client';
+const CLIENT_KEYS=[CLIENT_REPRESENTATIVE_LINK,...CLIENT_LEGAL_KEYS,'name','email','phone','lifecycle_status','tax_id','legal_name','notes'];
 
 export type ClientFieldOptions={
   mode:'create'|'edit';
@@ -42,20 +45,21 @@ export type ClientFieldOptions={
 export function clientFields({mode,plan=null,planRequired=false,restricted=false,rucLookup,rucAfter}:ClientFieldOptions):Field[]{
   const S=CLIENT_SECTIONS;
   const fields:Field[]=[
-    {key:'name',label:'Nombre',section:S.identity,maxLength:120,validate:nameError},
+    {key:'name',label:'Nombre del cliente',section:S.identity,span:6,maxLength:120,validate:nameError},
     ...(mode==='edit'?[{key:'lifecycle_status',label:'Estado del servicio',section:S.identity,choices:clientStatuses,help:'Pausar o cancelar el cliente pausa o cancela sus proyectos activos.'} as Field]:[]),
+    {key:'legal_name',label:'Razón social / nombre legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted,help:'Si está vacío, se usa el nombre del cliente.'},
+    {key:'legal_representative_name',label:'Responsable legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted||(values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'),valueFrom:values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'?clientLegalName(values):undefined},
+    {key:CLIENT_REPRESENTATIVE_LINK,label:'El responsable legal es el mismo cliente',type:'checkbox',section:S.identity,span:12,disabled:restricted,help:'Vincula sólo los nombres: usa la razón social si está completa, o el nombre del cliente. Los documentos y el cargo se editan por separado.'},
     {key:'notes',label:'Notas',type:'textarea',optional:true,section:S.identity,maxLength:2000},
     {key:'email',label:'Correo',type:'email',optional:true,section:S.contact,disabled:restricted},
     {key:'phone',label:'Teléfono / WhatsApp',type:'phone',optional:true,section:S.contact,help:PHONE_HELP,disabled:restricted},
     {key:'tax_id',label:'RUC',optional:true,section:S.tax,maxLength:14,disabled:restricted,validate:taxIdError,help:'Podés pegarlo con puntos o espacios; se guarda normalizado. «Buscar» consulta al proveedor y pide tu confirmación antes de aplicar nada.',lookup:rucLookup,after:rucAfter},
-    {key:'legal_name',label:'Razón social',optional:true,section:S.tax,maxLength:160,disabled:restricted,help:'Nombre legal para facturas y documentos. Si coincide con el nombre comercial, podés dejarla vacía.'},
     {key:'party_type',label:'Tipo de parte contratante',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'person',label:'Persona física'},{value:'company',label:'Empresa / persona jurídica'}],help:'Se declara manualmente; no se deduce del RUC.'},
     {key:'document_type',label:'Tipo de documento',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'ci',label:'Cédula de identidad'},{value:'ruc',label:'RUC'},{value:'passport',label:'Pasaporte'},{value:'other',label:'Otro'}]},
     {key:'document_number',label:'Número de documento',optional:true,section:S.legal,maxLength:80,disabled:restricted},
     {key:'address',label:'Domicilio contractual',optional:true,section:S.legal,maxLength:400,disabled:restricted},
     {key:'city',label:'Ciudad',optional:true,section:S.legal,maxLength:120,disabled:restricted},
     {key:'department',label:'Departamento',optional:true,section:S.legal,maxLength:120,disabled:restricted},
-    {key:'legal_representative_name',label:'Nombre del representante legal',optional:true,section:S.legal,maxLength:120,disabled:restricted},
     {key:'legal_representative_document',label:'Documento del representante legal',optional:true,section:S.legal,maxLength:80,disabled:restricted},
     {key:'legal_representative_role',label:'Cargo del representante legal',optional:true,section:S.legal,maxLength:120,disabled:restricted},
   ];
@@ -69,6 +73,8 @@ export function clientFields({mode,plan=null,planRequired=false,restricted=false
       {key:'plan_interval',label:'Cada cuántos meses',choices:['2','3','4','6','12'].map(value=>({value,label:`${value} meses`})),section:S.plan,help:'Aplica solo con "Cada varios meses".'},
       {key:'plan_starts_on',label:'Inicio comercial',type:'date',optional,section:S.plan},
       {key:'plan_ends_on',label:'Fin del plan · Opcional',type:'date',optional:true,section:S.plan},
+      {key:'plan_effective_from',label:'Vigente desde',type:'date',optional:true,section:S.plan,help:'Primer día del mes desde el que rige este cambio; no reemplaza el inicio comercial.'},
+      {key:'plan_reason',label:'Motivo del cambio',type:'textarea',optional:true,section:S.plan,maxLength:1000,help:'Obligatorio al modificar el plan o sus condiciones (5 a 1000 caracteres).'},
       {key:'plan_invoice_required',label:'Factura comercial del cliente',choices:[{value:'true',label:'Sí'},{value:'false',label:'No'}],section:S.plan},
     );
   }
@@ -84,17 +90,18 @@ export function clientFields({mode,plan=null,planRequired=false,restricted=false
 }
 
 export function clientEditDefaults(record:ClientRecord|null,plan:PlanTermsResponse|null):Record<string,string>{
-  const base:Record<string,string>={...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,str(record,key)])),name:str(record,'name'),email:str(record,'email'),phone:str(record,'phone'),lifecycle_status:str(record,'lifecycle_status'),tax_id:str(record,'tax_id'),legal_name:str(record,'legal_name'),notes:str(record,'notes'),...clientLinksDefaults(record?.social_links)};
+  const base:Record<string,string>={[CLIENT_REPRESENTATIVE_LINK]:record?.[CLIENT_REPRESENTATIVE_LINK]===true?'true':'false',...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,str(record,key)])),name:str(record,'name'),email:str(record,'email'),phone:str(record,'phone'),lifecycle_status:str(record,'lifecycle_status'),tax_id:str(record,'tax_id'),legal_name:str(record,'legal_name'),notes:str(record,'notes'),...clientLinksDefaults(record?.social_links)};
   if(!plan)return base;
   const terms=plan.terms;
-  return {...base,plan_plan_id:terms?.planId||'',plan_amount:terms?String(terms.recurringAmount):'',plan_currency:terms?.currency||'PYG',plan_cadence:terms?.cadence||'monthly',plan_interval:['2','3','4','6','12'].includes(String(terms?.intervalMonths||''))?String(terms?.intervalMonths):'3',plan_starts_on:terms?.startsOn||'',plan_ends_on:terms?.endsOn||'',plan_invoice_required:terms?String(terms.invoiceRequired):'true'};
+  return {...base,plan_effective_from:todayAsuncion().slice(0,7)+'-01',plan_reason:'',plan_plan_id:terms?.planId||'',plan_amount:terms?String(terms.recurringAmount):'',plan_currency:terms?.currency||'PYG',plan_cadence:terms?.cadence||'monthly',plan_interval:['2','3','4','6','12'].includes(String(terms?.intervalMonths||''))?String(terms?.intervalMonths):'3',plan_starts_on:terms?.startsOn||'',plan_ends_on:terms?.endsOn||'',plan_invoice_required:terms?String(terms.invoiceRequired):'true'};
 }
-export const CLIENT_CREATE_DEFAULTS:Record<string,string>={...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,''])),name:'',email:'',phone:'',tax_id:'',legal_name:'',notes:''};
+export const CLIENT_CREATE_DEFAULTS:Record<string,string>={[CLIENT_REPRESENTATIVE_LINK]:'false',...Object.fromEntries(CLIENT_LEGAL_KEYS.map(key=>[key,''])),name:'',email:'',phone:'',tax_id:'',legal_name:'',notes:''};
 
 /** Alta: mismo cuerpo que el formulario anterior (el API normaliza y revalida). */
 export function clientCreatePayload(values:Record<string,string>){
-  const payload:Record<string,string>={name:(values.name||'').trim(),email:values.email||'',phone:values.phone||'',tax_id:normalizeTaxId(values.tax_id||'')||'',legal_name:(values.legal_name||'').trim()};
+  const payload:Record<string,unknown>={[CLIENT_REPRESENTATIVE_LINK]:values[CLIENT_REPRESENTATIVE_LINK]==='true',name:(values.name||'').trim(),email:values.email||'',phone:values.phone||'',tax_id:normalizeTaxId(values.tax_id||'')||'',legal_name:(values.legal_name||'').trim()};
   for(const key of CLIENT_LEGAL_KEYS)if((values[key]||'').trim())payload[key]=values[key].trim();
+  if(values[CLIENT_REPRESENTATIVE_LINK]==='true')payload.legal_representative_name=clientLegalName(values);
   if((values.notes||'').trim())payload.notes=values.notes.trim();
   return payload;
 }
@@ -108,17 +115,21 @@ export function clientPatchPayload(values:Record<string,string>,defaults:Record<
   const client:Record<string,unknown>={};
   for(const key of CLIENT_KEYS){
     if(!changed(key))continue;
-    client[key]=key==='tax_id'?(normalizeTaxId(values[key]||'')||''):key==='name'||key==='legal_name'||CLIENT_LEGAL_KEYS.some(field=>field===key)?(values[key]||'').trim():values[key];
+    client[key]=key===CLIENT_REPRESENTATIVE_LINK?values[key]==='true':key==='tax_id'?(normalizeTaxId(values[key]||'')||''):key==='name'||key==='legal_name'||CLIENT_LEGAL_KEYS.some(field=>field===key)?(values[key]||'').trim():values[key];
   }
   if(LINK_KEYS.some(changed))client.social_links=buildSocialLinks(values);
   return {client:Object.keys(client).length?client:null,planTouched:PLAN_KEYS.some(changed)};
 }
 
 /** Cuerpo del PATCH de /commercial-terms (mismo contrato de siempre); lanza el mensaje si falta algo. */
-export function planTermsPayload(values:Record<string,string>,plan:PlanTermsResponse){
+export function planTermsPayload(values:Record<string,string>,plan:PlanTermsResponse,requestId:string){
+  if(!plan.historyRevision)throw Error('No se pudo cargar la revisión del plan. Cerrá y volvé a abrir la ficha antes de cambiarlo.');
+  if(!isDate(values.plan_effective_from)||!values.plan_effective_from.endsWith('-01'))throw Error('La vigencia del cambio debe ser el primer día de un mes.');
+  const reason=(values.plan_reason||'').trim();
+  if(reason.length<5||reason.length>1000)throw Error('Escribí un motivo del cambio de 5 a 1000 caracteres.');
   if(!isWholeTransport(values.plan_amount,false))throw Error('Ingresá un importe mensual entero positivo.');
   if(!isDate(values.plan_starts_on))throw Error('Completá la fecha real de inicio comercial.');
   if(values.plan_ends_on&&(!isDate(values.plan_ends_on)||values.plan_ends_on<values.plan_starts_on))throw Error('La fecha de fin debe ser válida y posterior al inicio.');
   const active=plan.terms;
-  return {planId:values.plan_plan_id,recurringAmount:values.plan_amount,currency:values.plan_currency,startsOn:values.plan_starts_on,endsOn:values.plan_ends_on||null,cadence:values.plan_cadence,intervalMonths:Number(values.plan_interval||1),invoiceRequired:values.plan_invoice_required==='true',commissionRecipientId:active?.commissionMode==='none'?null:active?.commissionRecipientId||null,commissionMode:active?.commissionMode||'none',commissionValue:active?.commissionMode==='none'?null:active?.commissionValue??null};
+  return {effectiveFrom:values.plan_effective_from,reason,requestId,expectedRevision:plan.historyRevision,planId:values.plan_plan_id,recurringAmount:values.plan_amount,currency:values.plan_currency,startsOn:values.plan_starts_on,endsOn:values.plan_ends_on||null,cadence:values.plan_cadence,intervalMonths:Number(values.plan_interval||1),invoiceRequired:values.plan_invoice_required==='true',commissionRecipientId:active?.commissionMode==='none'?null:active?.commissionRecipientId||null,commissionMode:active?.commissionMode||'none',commissionValue:active?.commissionMode==='none'?null:active?.commissionValue??null};
 }

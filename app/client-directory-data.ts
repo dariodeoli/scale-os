@@ -32,6 +32,7 @@ export type DirectoryClientRecord = {
   document_type?: '' | 'ci' | 'ruc' | 'passport' | 'other' | null;
   document_number?: string | null;
   party_type?: '' | 'person' | 'company' | null;
+  legal_representative_same_as_client?: boolean | null;
   legal_representative_name?: string | null;
   legal_representative_document?: string | null;
   legal_representative_role?: string | null;
