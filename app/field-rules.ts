@@ -1,4 +1,4 @@
-import {parseTelefono, soloDigitos, telefonoValido} from 'owncoding-ui';
+import {parseTelefono, soloDigitos} from 'owncoding-ui';
 
 export const PHONE_COUNTRIES = [
   { code: '+595', label: '🇵🇾 +595' },
@@ -6,6 +6,13 @@ export const PHONE_COUNTRIES = [
   { code: '+54', label: '🇦🇷 +54' },
   { code: '+1', label: '🇺🇸 +1' },
   { code: '+34', label: '🇪🇸 +34' },
+  { code: '+598', label: '🇺🇾 +598' },
+  { code: '+56', label: '🇨🇱 +56' },
+  { code: '+57', label: '🇨🇴 +57' },
+  { code: '+51', label: '🇵🇪 +51' },
+  { code: '+52', label: '🇲🇽 +52' },
+  { code: '+591', label: '🇧🇴 +591' },
+  { code: '+351', label: '🇵🇹 +351' },
 ];
 export const DEFAULT_PHONE_COUNTRY = '+595';
 export const PHONE_ERROR = 'Ingresá un teléfono válido: código de país y número, por ejemplo +595 981 123 456.';
@@ -23,20 +30,24 @@ export function phoneNational(value: string): string {
   return soloDigitos(value).replace(/^0+/, '').slice(0, 12);
 }
 
-/**
- * Regla de ScaleOS sobre `telefonoValido` de owncoding-ui: Paraguay acepta
- * móvil (9 dígitos) y fijo (8), y solo los códigos del selector; el resto de
- * los países usa la longitud compartida de 6 a 12. La generalización del fijo
- * se propone en owncoding-ui#2.
- */
-export function phoneValid(value: string): boolean {
-  if (!String(value || '').trim()) return false;
+/** Parse only Scale's published API codes. Unknown international values stay raw and editable. */
+export function phoneParts(value: string): {country: string; national: string; raw: boolean} {
   const parsed = parseTelefono(value, DEFAULT_PHONE_COUNTRY);
-  if (!PHONE_COUNTRIES.some(entry => entry.code === parsed.countryCode)) return false;
-  const national = phoneNational(parsed.phone);
-  if (!national) return false;
-  if (parsed.countryCode === DEFAULT_PHONE_COUNTRY) return telefonoValido(national, DEFAULT_PHONE_COUNTRY) || national.length === 8;
-  return telefonoValido(national, parsed.countryCode);
+  const supported = PHONE_COUNTRIES.some(entry => entry.code === parsed.countryCode);
+  const partialInternational = value.trimStart().startsWith('+') && parsed.phone.trimStart().startsWith('+');
+  if (!supported || partialInternational) return {country: '', national: value, raw: true};
+  return {country: parsed.countryCode, national: parsed.phone, raw: false};
+}
+
+/** Scale API contract: Paraguay 8–9 digits, supported other countries 6–12; no truncation before validation. */
+export function phoneValid(value: string): boolean {
+  if (!String(value || '').trim() || value.length > 50) return false;
+  const parsed = phoneParts(value);
+  if (parsed.raw) return false;
+  const national = soloDigitos(parsed.national).replace(/^0+/, '');
+  return parsed.country === DEFAULT_PHONE_COUNTRY
+    ? national.length === 8 || national.length === 9
+    : national.length >= 6 && national.length <= 12;
 }
 
 export function normalizeSerial(value: string): string {

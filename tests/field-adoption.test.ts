@@ -35,8 +35,8 @@ for (const retired of ['digitsOnly', 'parsePhone', 'internationalPhone', 'normal
 
 const phoneField = read('app/phone-field.tsx');
 assert(phoneField.includes("from 'owncoding-ui'"), 'phone field uses the shared parse/compose helpers');
-assert(phoneField.includes('parseTelefono(') && phoneField.includes('componerTelefono('), 'phone field parses and composes with the library');
-assert(phoneField.includes('parsed.countryCode') && phoneField.includes('parsed.phone'), 'phone field usa la firma real del runtime ({countryCode, phone})');
+assert(rules.includes('parseTelefono(') && phoneField.includes('phoneParts(') && phoneField.includes('componerTelefono('), 'phone adapter preserves unsupported values around shared parse/compose');
+assert(rules.includes('parsed.countryCode') && rules.includes('parsed.phone'), 'phone adapter uses the real shared parser signature');
 assert(phoneField.includes('componerTelefono({countryCode'), 'phone field composes with the object signature');
 for (const retired of ['parsePhone(', 'internationalPhone(', 'digitsOnly(']) {
   assert(!phoneField.includes(retired), `phone field no longer hand-rolls ${retired}`);
