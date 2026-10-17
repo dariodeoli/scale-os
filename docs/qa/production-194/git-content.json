@@ -1,0 +1,10 @@
+{
+  "mergeSha": "f2d52f5ecd42d4aa629a80bb353ab1e39cc44dd0",
+  "candidateSha": "ecf27c7d34a123fcd94da5ae31a24474e9135b54",
+  "previousMain": "2ecdc7f38f466f29a37194783726b985583a5b0e",
+  "mergeTree": "a01d84eee45a00d41b7a95c421740468d9880467",
+  "candidateTree": "a01d84eee45a00d41b7a95c421740468d9880467",
+  "sameTree": true,
+  "releaseVersion": "1.0.194",
+  "providerContainerSha": null
+}

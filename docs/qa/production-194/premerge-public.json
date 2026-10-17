@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-17T22:11:48.420Z",
+  "rows": [
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "web",
+        "status": 200,
+        "version": "v1.0.193"
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "api",
+        "status": 200,
+        "health": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.193",
+            "application": "Scale OS"
+          }
+        }
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "name": "auth",
+        "status": 401
+      }
+    }
+  ]
+}

@@ -1,0 +1,614 @@
+[
+  {
+    "checkedAt": "2026-10-17T22:15:34.007Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:15:54.802Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:16:15.123Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:16:35.390Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:16:55.657Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:17:16.389Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:17:36.663Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:17:56.912Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:18:17.150Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:18:37.401Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:18:58.032Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:19:18.283Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:19:38.605Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:19:58.897Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:20:19.640Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:20:39.928Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:21:00.559Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:21:21.279Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:21:41.528Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:22:01.776Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:22:22.492Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:22:43.172Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.193",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:23:03.405Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:23:23.726Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:23:44.407Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:24:04.680Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:24:24.965Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:24:45.680Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:25:05.926Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:25:26.648Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:25:46.890Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:26:07.581Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:26:27.829Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.193"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": false
+  },
+  {
+    "checkedAt": "2026-10-17T22:26:48.057Z",
+    "rows": [
+      {
+        "name": "web",
+        "status": 200,
+        "version": "1.0.194"
+      },
+      {
+        "name": "api",
+        "status": 200,
+        "version": "1.0.194",
+        "ok": true,
+        "database": "ready"
+      }
+    ],
+    "ready": true
+  }
+]
