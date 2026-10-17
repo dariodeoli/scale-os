@@ -17,7 +17,8 @@ import {fechaLista,fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from './list-format';
 import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,type ChipTone} from './ui-v2';
 import {UrgencyBadge} from './urgency';
-import {ClientIdentity} from './client-identity';
+import {ClientIdentity,identityColor} from './client-identity';
+import './project-card.css';
 import {AssignedPeople,type AssignedPerson} from './assigned-people';
 import {DriveLinks,driveLinksText} from './drive-links';
 import {DueDate} from './due-date';
@@ -54,7 +55,7 @@ export const projectLinks=(project:Pick<ProjectView,'drive_links'|'drive_url'>)=
   return {links,legacy:project.drive_url||'',count:links.length||(project.drive_url?1:0)};
 };
 
-function ProjectDetail({project,onClose,taskIdentity}:{project:ProjectView;onClose:()=>void;taskIdentity?:EmployeeTasksProps}){
+function ProjectDetail({project,client,onClose,taskIdentity}:{project:ProjectView;client?:{logo_url?:string|null;color_key?:string};onClose:()=>void;taskIdentity?:EmployeeTasksProps}){
   const [data,setData]=useState<{record:ProjectView;assignees:ProjectAssignee[]}|null>(null);
   const [pieces,setPieces]=useState<{id:string;title:string;status:string;due_date?:string|null;due_time?:string|null;effective_assignees?:ProjectAssignee[]}[]|null>(null);
   const [error,setError]=useState('');const [reload,setReload]=useState(0);const [assigneesError,setAssigneesError]=useState(false);
@@ -88,7 +89,7 @@ function ProjectDetail({project,onClose,taskIdentity}:{project:ProjectView;onClo
           {record.approval_levels?<StateChip tone="info" title={`Niveles de aprobación interna: ${record.approval_levels}`}>{record.approval_levels} nivel{record.approval_levels===1?'':'es'} de aprobación</StateChip>:null}
         </div>
         <dl className="grid gap-1 text-[13px]">
-          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Cliente</dt><dd className="min-w-0 shrink overflow-hidden"><span className="block truncate text-right" title={record.client_name}>{record.client_name}</span></dd></div>
+          <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Cliente</dt><dd className="min-w-0 shrink overflow-hidden"><ClientIdentity name={record.client_name} logo={client?.logo_url} color={client?.color_key} compact/></dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Inicio</dt><dd className="shrink-0 whitespace-nowrap">{fechaListaCorta(record.start_date,'')||'Sin fecha'}</dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Entrega</dt><dd className="shrink-0 whitespace-nowrap" data-tone={hasDueWarning(record.due_date)?'warn':undefined}>{fechaListaCorta(record.due_date,'')||'Sin fecha'}</dd></div>
           <div className="flex min-w-0 items-center justify-between gap-3"><dt className="min-w-0 text-mute">Piezas</dt><dd className="shrink-0 tabular-nums" data-pieces-count={piecesCount}>{piecesCount}</dd></div>
@@ -137,26 +138,26 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
   // columnas, responsables en una línea y acciones al pie. La altura la define
   // el contenido; la fila de la cuadrícula la iguala por `stretch`. La línea
   // «Actualizado …» es auditoría y vive en el detalle (como en Producción, #99).
-  return <article id={anchor} ref={card} tabIndex={-1} className="project-entry group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1">
-    <div className="flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
+  return <article id={anchor} ref={card} tabIndex={-1} className={`project-entry project-card-v3 identity-${identityColor(client?.color_key)} group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1`}>
+    <div className="project-card-header flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
       {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-5 md:min-w-5" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
       <div className="min-w-0 flex-1 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">
         <div className="flex min-w-0 items-start gap-2 [.project-list_&]:contents">
-          <h3 className="break-words line-clamp-2 min-w-0 flex-1 text-[13.5px] font-semibold leading-5 text-fore [.project-list_&]:flex-none [.project-list_&]:truncate" title={project.name}>{project.name}</h3>
-          <StateChip tone={STATUS_TONE[project.status]||'mute'} className="shrink-0">{statusLabel(project.status)}</StateChip>
+          <h3 className="break-words project-card-title min-w-0 flex-1 text-[15px] font-semibold leading-5 text-fore [.project-list_&]:flex-none [.project-list_&]:truncate" title={project.name}>{project.name}</h3>
+          <StateChip tone={project.active===false?'mute':STATUS_TONE[project.status]||'mute'} className="shrink-0">{project.active===false?'Archivado':statusLabel(project.status)}</StateChip>
         </div>
-        <div className="flex min-w-0 items-center justify-between gap-2 [.project-list_&]:contents">
+        <div className="project-card-context flex min-w-0 items-center justify-between gap-2 [.project-list_&]:contents">
           <button type="button" className="mt-0.5 flex min-h-11 min-w-0 items-center text-left text-[11.5px] leading-4 text-mute hover:text-fono-light md:min-h-0 [.project-list_&]:hidden" onClick={()=>setDetail(true)} aria-label={`Abrir detalle del proyecto ${project.name}`}><ClientIdentity name={project.client_name} logo={client?.logo_url} color={client?.color_key} compact/></button>
           <span className="shrink-0 [.project-list_&]:hidden"><UrgencyBadge value={project.urgency}/></span>
         </div>
         <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:inline" title={project.client_name}>· {project.client_name}</span>
       </div>
     </div>
-    <dl className="grid grid-cols-4 gap-x-2 rounded-lg bg-ink-700/40 px-2.5 py-1.5 text-[12px] [.project-list_&]:flex [.project-list_&]:flex-nowrap [.project-list_&]:items-center [.project-list_&]:gap-x-3 [.project-list_&]:overflow-hidden [.project-list_&]:whitespace-nowrap [.project-list_&]:bg-transparent [.project-list_&]:p-0" title={`Inicio ${fechaListaCorta(project.start_date,'')||'sin fecha'} · Entrega ${fechaListaCorta(project.due_date,'')||'sin fecha'} · ${project.work_order_count||0} piezas${project.approval_levels?` · ${project.approval_levels} niveles de aprobación`:''} · ${count} enlaces de Drive`}>
+    <dl className="project-card-facts grid grid-cols-2 gap-x-2 rounded-lg bg-ink-700/40 px-2.5 py-1.5 text-[12px] [.project-list_&]:flex [.project-list_&]:flex-nowrap [.project-list_&]:items-center [.project-list_&]:gap-x-3 [.project-list_&]:overflow-hidden [.project-list_&]:whitespace-nowrap [.project-list_&]:bg-transparent [.project-list_&]:p-0" title={`Inicio ${fechaListaCorta(project.start_date,'')||'sin fecha'} · Entrega ${fechaListaCorta(project.due_date,'')||'sin fecha'} · ${project.work_order_count||0} piezas${project.approval_levels?` · ${project.approval_levels} niveles de aprobación`:''} · ${count} enlaces de Drive`}>
       <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Inicio</dt><dd className="list-date whitespace-nowrap">{fechaListaCorta(project.start_date,'')||'Sin fecha'}</dd></div>
       <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Entrega</dt><dd className="list-date whitespace-nowrap" data-tone={hasDueWarning(project.due_date)?'warn':undefined}>{fechaListaCorta(project.due_date,'')||'Sin fecha'}</dd></div>
-      <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Piezas</dt><dd className="font-semibold tabular-nums">{project.work_order_count}{project.approval_levels?<span className="font-normal text-mute" title={`Niveles de aprobación interna: ${project.approval_levels}`}> · {project.approval_levels} niv.</span>:null}</dd><span className="hidden [.project-list_&]:inline [.project-list_&]:text-mute"> piezas</span></div>
-      <div className="grid min-w-0 gap-0.5 [.project-list_&]:hidden"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Drive</dt><dd className="tabular-nums">{count||'—'}</dd></div>
+      <div className="grid min-w-0 gap-0.5 [.project-list_&]:block"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute [.project-list_&]:hidden">Piezas</dt><dd className="font-semibold tabular-nums">{Number(project.work_order_count||0)}</dd><span className="hidden [.project-list_&]:inline [.project-list_&]:text-mute"> piezas</span></div>
+      <div className="grid min-w-0 gap-0.5 [.project-list_&]:hidden"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Aprobación</dt><dd className="tabular-nums">{project.approval_levels?`${project.approval_levels} nivel${project.approval_levels===1?'':'es'}`:'Sin niveles'}</dd></div>
     </dl>
     <div className="min-w-0 text-[11.5px] [.project-list_&]:hidden"><AssignedPeople people={project.assignees}/></div>
     <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:block" title={(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||undefined}>{(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||'Sin responsables'}</span>
@@ -165,6 +166,6 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
       <span className={`ml-auto ${ICON_TARGETS}`}><IconAction icon="eye" tone="fono" label={`Ver detalle del proyecto: ${project.name}`} onClick={()=>setDetail(true)}/></span>
       {children}
     </div>
-    {detail?<ProjectDetail project={project} taskIdentity={taskIdentity} onClose={()=>setDetail(false)}/>:null}
+    {detail?<ProjectDetail project={project} client={client} taskIdentity={taskIdentity} onClose={()=>setDetail(false)}/>:null}
   </article>;
 }

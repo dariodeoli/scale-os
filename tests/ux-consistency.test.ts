@@ -275,14 +275,14 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  // ui-system.css (medido con el harness: work/visual-harness/compact-*.json).
  const uiSystem=read('app/ui-system.css'),controlCenter=read('app/control-center.css');
  assert.match(uiSystem,/\/\* ── Encabezado de página \(#89\)/, 'el encabezado de página declara su contrato en la hoja del sistema');
- assert.match(uiSystem,/@media\(min-width:1280px\)\{[\s\S]{0,600}?\.control-shell :is\(\.workspace-page-header,\.ui-page-header\)\{flex-wrap:nowrap;align-items:center;gap:var\(--ui-space-4\);min-height:56px/,'en ≥1280 el encabezado es una sola fila de 56 px');
- assert.match(uiSystem,/\.control-shell :is\(\.workspace-page-header,\.ui-page-header\) h1\{margin:0;white-space:nowrap\}/,'el título no envuelve ni aporta margen en la fila compacta');
+ assert.match(uiSystem,/\.control-shell :is\(\.workspace-page-header,\.ui-page-header\)\{[^}]*flex-wrap:wrap[^}]*min-height:0/,'el encabezado usa altura natural y envuelve si es necesario');
+ assert.match(uiSystem,/\.control-shell :is\(\.workspace-page-header,\.ui-page-header\) h1\{margin:0;max-width:100%/,'el título no aporta margen ni desborda su columna');
  assert.match(uiSystem,/\.control-shell \.section-tabs>a\{flex:none;display:inline-flex;align-items:center;min-height:34px/,'las tabs son una barra compacta en escritorio');
  assert.match(uiSystem,/@media\(max-width:760px\)\{[\s\S]{0,240}?\.control-shell \.section-tabs>a\{min-height:44px/,'en móvil cada tab conserva el target de 44 px');
  assert.match(uiSystem,/\.control-shell \.section-tabs\{[^}]*overflow-x:auto;overflow-y:hidden/,'la barra de tabs scrollea en horizontal sin apilarse');
  assert.match(uiSystem,/@media\(min-width:768px\)\{[\s\S]{0,160}?\.control-shell \.ui-kpi>div:nth-child\(2\)\{font-size:28px;line-height:1\.15\}/,'el KPI compacta su valor en escritorio');
  assert.doesNotMatch(controlCenter,/\.control-shell \.section-tabs\{/,'las reglas legadas de tabs se retiraron: fuente única en ui-system.css');
- assert.match(read('app/ui-v2.tsx'),/data-toolbar="filtros" className=\{`mb-4 flex flex-wrap items-end gap-3 xl:flex-nowrap/,'la toolbar declara su hook y una fila desde xl');
+ assert.match(read('app/ui-v2.tsx'),/data-toolbar="filtros" className=\{`ui-filter-toolbar mb-4 flex flex-wrap items-end gap-3/,'la toolbar declara su hook y permite envolver controles');
  assert.match(read('app/ui-v2.tsx'),/ui-kpi-strip grid \$\{dense \? 'ui-kpi-strip-dense grid-cols-2 gap-2 md:gap-3' : 'grid-cols-1 gap-3'\} \$\{kpiStripColumns\(count\)\}/,'el strip de KPIs deriva sus columnas de la cantidad (1/2/4 con cuatro; la variante densa va 2/2/4)');
  assert.match(read('app/ui-v2.tsx'),/return 'sm:grid-cols-2 xl:grid-cols-4';/,'cuatro o más KPIs van en filas de 4');
  // FOUT (#76): las fuentes críticas del marco se precargan y no hacen swap.

@@ -7,7 +7,7 @@ import {AmountInput,SelectCustom} from './profile-controls';
 import {EmailField} from './email-field';
 import {PhoneField} from './phone-field';
 import {EmptyBlock,LoadingBlock,MoneyText,StateChip} from './ui-v2';
-import {FotoPerfil} from './foto-perfil';
+import {ClientLogo} from './client-identity';
 import {EquipmentPhoto} from './equipment-photo';
 import {useCompanyCurrency} from './currency-provider';
 import {roleCan} from './capabilities';
@@ -432,7 +432,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           const elegida=cliente.decision==='vincular'?candidatas.find((candidata)=>candidata.id===cliente.elegidoId)??mejor:null;
           return <article key={cliente.clave} className={CARD} data-off={!cliente.incluir} data-origen={cliente.origen??'texto'}>
             <CardHead titulo={cliente.nombre} estado={cliente.estado} confianza={cliente.confianza??mejor?.confianza??null} incluir={cliente.incluir} decision={cliente.decision} origen={cliente.origen}
-              imagen={<FotoPerfil nombre={cliente.nombre||'Cliente'} foto={elegida?.fotoUrl??null} tamano="lg" forma="cuadrado" variante="logo"/>}
+              imagen={<ClientLogo name={cliente.nombre||'Cliente'} logo={elegida?.fotoUrl??null} size="lg"/>}
               onIncluir={(incluir)=>cambiarInclusion('cliente',cliente.clave,incluir)} onDuplicar={()=>duplicarCliente(cliente.clave)}/>
             <MatchBlock estado={cliente.estado} coincidencias={candidatas} confianza={cliente.confianza??mejor?.confianza??null} decision={cliente.decision} elegidoId={cliente.elegidoId} tipo="cliente"
               onDecidir={(decision,elegidoId)=>setClientes((actuales)=>actuales.map((fila)=>fila.clave===cliente.clave?{...fila,decision,elegidoId}:fila))}/>
@@ -614,7 +614,7 @@ function MatchBlock({estado,coincidencias,confianza,decision,elegidoId,tipo,onDe
   {candidatas.length?<div className="flex flex-wrap gap-2" role="group" aria-label="Elegir la ficha existente">
    {candidatas.map((candidata,indice)=><button key={candidata.id} type="button" aria-pressed={decision==='vincular'&&elegidoId===candidata.id} className={OPCION} title={candidata.nombre} onClick={()=>onDecidir('vincular',candidata.id)}>
     {tipo==='cliente'
-     ?<FotoPerfil nombre={candidata.nombre} foto={candidata.fotoUrl??null} tamano="sm" forma="cuadrado" variante="logo"/>
+     ?<ClientLogo name={candidata.nombre} logo={candidata.fotoUrl??null} size="sm"/>
      :<EquipmentPhoto nombre={candidata.nombre} foto={candidata.fotoUrl??null} icono="package" size="chip"/>}
     <span className="min-w-0 max-w-[14rem] flex-1 truncate">Usar «{candidata.nombre}»{indice===0?' · mejor':''}</span>
     {candidata.confianza!==null&&candidata.confianza!==undefined?<b className="whitespace-nowrap text-[10px] tabular-nums">{candidata.confianza} %</b>:null}
@@ -639,7 +639,7 @@ function ClienteDeAccion({fila,onElegir}:{fila:AccionEdit; onElegir:(clienteId:s
   <p className="text-[11.5px] leading-5 text-mute">No sabemos con certeza a qué cliente se refiere. Elegí uno de los candidatos para poder confirmar:</p>
   <div className="flex flex-wrap gap-2" role="group" aria-label="Elegir el cliente del cobro">
    {candidatos.map((candidato)=><button key={candidato.id} type="button" className={OPCION} title={candidato.nombre} aria-pressed={fila.clienteId===candidato.id} onClick={()=>onElegir(candidato.id)}>
-    <FotoPerfil nombre={candidato.nombre} foto={candidato.fotoUrl??null} tamano="sm" forma="cuadrado" variante="logo"/>
+    <ClientLogo name={candidato.nombre} logo={candidato.fotoUrl??null} size="sm"/>
     <span className="min-w-0 max-w-[14rem] flex-1 truncate">{candidato.nombre}{candidato.activo?'':' · inactivo'}</span>
     {candidato.confianza!==null&&candidato.confianza!==undefined?<b className="whitespace-nowrap text-[10px] tabular-nums">{candidato.confianza} %</b>:null}
     {candidato.senales.length?<span className="w-full whitespace-nowrap text-[10px] uppercase tracking-wide text-mute sm:w-auto">{candidato.senales.map(senalMatchLabel).join(' · ')}</span>:null}

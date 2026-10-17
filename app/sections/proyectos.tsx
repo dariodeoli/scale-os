@@ -55,7 +55,7 @@ export function ProyectosSection({bulkBusy, bulk, projectRow, projectsState, can
   const changeView=(next:CollectionView)=>{setProjectView(next);try{localStorage.setItem(PROJECT_VIEW_KEY,next);}catch{/* Preferencia opcional de la interfaz. */}};
   const clientChoices=[{value:'',label:'Todos los clientes'},...clients.map(client=>({value:String(client.id),label:client.name}))];
   const collection=(list: Project[], label: string)=>projectView==='grid'
-    ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{list.map(project => projectEntry(project))}</div>
+    ? <div className="project-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{list.map(project => projectEntry(project))}</div>
     : <ListGrid label={label} template="grid-cols-[var(--project-cols)]" columns={PROJECT_COLUMNS} className={`project-list ${PROJECT_COLS}`} minWidthClass="min-w-[60rem]" pinnedActions>{list.map(project => <ListRow key={project.id} template="grid-cols-[var(--project-cols)]">{projectRow(project)}</ListRow>)}</ListGrid>;
   const empty = !visibleProjects.length;
   return (

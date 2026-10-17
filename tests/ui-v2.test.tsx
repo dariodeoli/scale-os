@@ -126,7 +126,7 @@ test('patrones v2: encabezado, toolbar, lista y estados salen de una sola pieza'
  assert(toolbar.includes('Buscar')&&toolbar.includes('4 de 4'),'la toolbar agrupa controles y contador');
  const toolbarTree=(renderer.toJSON() as any);
  assert.equal(toolbarTree.props['data-toolbar'],'filtros','la toolbar se identifica para tests y mediciones (#89)');
- assert(String(toolbarTree.props.className).includes('gap-3')&&String(toolbarTree.props.className).includes('xl:flex-nowrap'),'una fila con gap 12 desde xl (#89)');
+ assert(String(toolbarTree.props.className).includes('ui-filter-toolbar')&&String(toolbarTree.props.className).includes('flex-wrap'),'los filtros envuelven cuando hace falta, sin desbordar');
 
  const template='grid-cols-[minmax(11rem,1.6fr)_8rem_auto]';
  await act(async()=>{renderer=create(<ListGrid label="Clientes" template={template} columns={[{key:'name',label:'Cliente'},{key:'state',label:'Estado'},{key:'actions',label:'Acciones'}]}><ListRow template={template}><span>Estudio</span><span>Activo</span><span>Editar</span></ListRow></ListGrid>);});

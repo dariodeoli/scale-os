@@ -42,3 +42,5 @@ location.hash='#project-42';act(()=>listeners.forEach(listener=>listener()));
 assert.equal(scrolls,2,'hash navigation works after mount too');
 act(()=>target!.unmount());assert.equal(listeners.size,0);
 console.log('PASS: project row grouping, status, assignment names/photos/principal and missing data');
+
+let withLogo:ReturnType<typeof create>;act(()=>{withLogo=create(<ProjectCard project={{...project,active:false,approval_levels:3,start_date:'2026-10-01',due_date:'2026-12-31'}} client={{logo_url:'https://example.invalid/client.webp',color_key:'teal'}}><button>Editar</button></ProjectCard>);});const json=JSON.stringify(withLogo!.toJSON());assert.match(json,/Archivado/);assert.match(json,/3 niveles/);assert.match(json,/Aprobación/);const logo=withLogo!.root.findAllByType('span').find(node=>String(node.props.className).includes('foto-perfil-logo'))!;assert.match(logo.props.className,/foto-perfil-circulo/);assert.equal(logo.findByType('img').props.src,'https://example.invalid/client.webp');act(()=>withLogo!.unmount());

@@ -106,10 +106,10 @@ test('preselección con % visible y decisiones siempre cambiables', () => {
 test('imágenes de confirmación y vinculación sin escritura', () => {
  const dialog = file('app/ia-carga.tsx');
  const fotos = file('app/equipment-photo.tsx');
- assert(dialog.includes("import {FotoPerfil} from './foto-perfil'") && dialog.includes("import {EquipmentPhoto} from './equipment-photo'"), 'las imágenes salen de los objetos compartidos');
- assert(dialog.includes("variante=\"logo\"") && dialog.includes('foto={elegida?.fotoUrl??null}'), 'el logo del cliente (monograma de fallback) usa la foto del candidato elegido');
+ assert(dialog.includes("import {ClientLogo} from './client-identity'") && dialog.includes("import {EquipmentPhoto} from './equipment-photo'"), 'las imágenes salen de los objetos compartidos');
+ assert(file('app/client-identity.tsx').includes('forma="circulo" variante="logo"') && dialog.includes('logo={elegida?.fotoUrl??null}'), 'el logo del cliente (monograma de fallback) usa la foto del candidato elegido');
  assert(dialog.includes('icono="package"') && fotos.includes('Sin foto:'), 'el equipo usa foto o placeholder limpio');
- assert(dialog.includes('<FotoPerfil nombre={candidata.nombre} foto={candidata.fotoUrl??null} tamano="sm"'), 'los candidatos muestran su imagen');
+ assert(dialog.includes('<ClientLogo name={candidata.nombre} logo={candidata.fotoUrl??null} size="sm"'), 'los candidatos muestran su imagen');
  assert(dialog.includes('Vincular no modifica la ficha existente.'), 'la tarjeta lo declara');
  assert(!/api\(`?\/api\/agency\/clients\/\$\{/.test(dialog), 'vincular no escribe la ficha existente');
  const link=file('app/ia-carga-data.ts');
