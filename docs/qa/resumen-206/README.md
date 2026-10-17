@@ -5,7 +5,9 @@
 La vista inicial muestra una tarea real de la consulta propia de Hoy, con estado,
 prioridad, contexto, vencimiento y avance. «Ver checklist y detalle» abre el
 mismo diálogo y mutación existentes. «Ver todas mis tareas» despliega el dashboard
-completo, conservando categorías, filtros, paginación y borradores de filtro.
+completo, conservando categorías, filtros, paginación y borradores de filtro. La vista
+completa permite alternar Lista/Cuadrícula con ViewSwitch canónico y el mismo
+mapa de tarjetas: datos, IDs y acciones idénticos, sin persistencia alternativa.
 Volver al resumen conserva la vista seleccionada: no cambia IDs ni consulta por
 otra persona. La ficha de Proyecto conserva la variante completa predeterminada.
 La guía inicial pasa después de las señales y resúmenes, sin retirar sus acciones.
@@ -33,8 +35,8 @@ Comparación controlada, tema claro (los tres temas conservan estas medidas):
 
 | Viewport | Alto tareas antes → después | Y de urgencia antes → después |
 |---|---|---|
-| 1440×1000 | 597.70 → 268.59 px | 888.58 → 481.47 px |
-| 390×844 | 1357.58 → 351.44 px | 1792.02 → 707.88 px |
+| 1440×1000 | 651.70 → 268.59 px | 942.58 → 481.47 px |
+| 390×844 | 1411.58 → 351.44 px | 1846.02 → 707.88 px |
 
 La prioridad elegida deja una tarea propia y su acceso al checklist, el contador
 Hoy y el enlace Vencidas antes de las señales y la factura vencida. La lista

@@ -12,3 +12,7 @@
 .employee-tasks.employee-tasks-preview{gap:8px;padding:12px}
 .employee-tasks-preview .employee-tasks-head h3,.employee-tasks-preview .employee-task-card h4,.employee-tasks-preview .employee-task-preview-context{margin:0}
 .employee-tasks-preview .employee-task-actions{margin-top:0}
+
+.employee-tasks-view{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.employee-tasks-list{grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){.employee-tasks-list .employee-task-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;align-items:start;gap:8px 16px}.employee-tasks-list .employee-task-card h4{grid-column:1;margin:0}.employee-tasks-list .employee-task-card>div:not(.employee-task-actions){grid-column:1}.employee-tasks-list .employee-task-card dl{grid-column:2;grid-row:1/span 2;margin:0}.employee-tasks-list .employee-task-actions{grid-column:3;grid-row:1/span 2;margin:0;max-width:200px}}
