@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-10-17T10:27:43.003Z",
+  "mainSha": "b965d9dd33113a27f6a53f3fc3cbec651e008922",
+  "candidateCi": "39024251669",
+  "mainCi": "39024703523",
+  "providerSha": null,
+  "responses": {
+    "status": {
+      "url": "https://app.scaleparaguay.com/status",
+      "status": 200,
+      "visibleVersion": true
+    },
+    "registro": {
+      "url": "https://app.scaleparaguay.com/registro",
+      "status": 200,
+      "visibleVersion": true
+    },
+    "health": {
+      "url": "https://api.scaleparaguay.com/health",
+      "status": 200,
+      "health": {
+        "ok": true,
+        "database": "ready",
+        "release": {
+          "version": "1.0.192",
+          "application": "Scale OS"
+        }
+      }
+    },
+    "landing": {
+      "url": "https://app.scaleparaguay.com/scale-os.html",
+      "status": 200,
+      "remoteSha256": "b328da09a25458e04c6c0969a22b80bcb15ee1b13bcb847857acdb310b9e5b2d",
+      "mainSha256": "b328da09a25458e04c6c0969a22b80bcb15ee1b13bcb847857acdb310b9e5b2d"
+    }
+  }
+}
