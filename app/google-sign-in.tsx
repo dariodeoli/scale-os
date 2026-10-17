@@ -26,7 +26,7 @@ export function ProviderSignIn({provider, href, onClick, disabled=false, compact
   const Mark=marks[provider], text=label||labels[provider];
   const classes=[compact?'portal-google-icon':'google-login-button',className].filter(Boolean).join(' ');
   const content=<><Mark/>{compact?<span className="sr-only">{text}</span>:text}</>;
-  if(href)return <a data-provider={provider} className={classes} href={href} aria-label={compact?text:undefined} title={compact?text:undefined} onClick={onClick}>{content}</a>;
+  if(href&&!disabled)return <a data-provider={provider} className={classes} href={href} aria-label={compact?text:undefined} title={compact?text:undefined} onClick={onClick}>{content}</a>;
   if(onClick||disabled)return <button type="button" data-provider={provider} className={classes} disabled={disabled} onClick={onClick}>{content}</button>;
   return <a data-provider={provider} className={classes} href={href} aria-label={compact?text:undefined} title={compact?text:undefined}>{content}</a>;
 }

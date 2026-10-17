@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
@@ -28,7 +29,7 @@ assert.match(readFileSync(new URL('../app/ui-v2.tsx',import.meta.url),'utf8'),/\
 assert.match(source,/aria-expanded=\{attentionHelp\}/,'la explicación tiene estado expandible');
 assert.match(source,/attentionHelp\?<Nota tono="info" compact/,'la explicación es una nota compacta y condicional');
 assert.doesNotMatch(source,/basis-full text-\[11px\] leading-4 text-mute">Control pendiente/,'la explicación no vuelve a ser un párrafo fijo');
-assert.match(source,/className="text-button" onClick=\{selectVisible\}>Seleccionar visibles<\/button>/,'Seleccionar visibles es una acción secundaria discreta');
+assert(actionElements(source).some(action=>action.children==='Seleccionar visibles'&&action.attribute('onClick')==='selectVisible'&&action.attribute('variant')==='ghost'),'Seleccionar visibles es una acción secundaria discreta');
 assert.match(source,/ariaLabel="Vista de inventario"/,'el selector de vista sigue siendo el objeto compartido');
 assert.match(source,/\{visible\.length\} de \{items\.length\}\{updatedAt\?` · \$\{updatedAt\}`:''\}/,'el contador es compacto');
 assert.match(source,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.length\} equipos/,'el detalle del contador vive en el tooltip');

@@ -3,6 +3,8 @@ import {useEffect,useState} from 'react';
 import {RefreshCw} from 'lucide-react';
 import {hayVersionNueva} from 'owncoding-ui';
 import {APP_VERSION} from './app-version';
+import {Button as ScaleButton} from "./ui/button";
+
 
 // Aviso de versión nueva (§15 regla 10, Refs #82): la versión publicada sale de
 // la fuente pública del API (`/health` → `release.version`) y se compara con la
@@ -33,6 +35,6 @@ export function VersionNotice(){
  if(!publicada||!hayVersionNueva(APP_VERSION,publicada))return null;
  const version=publicada.replace(/^v/i,'');
  return <section className="version-notice inline-flex min-w-0 items-center" aria-label={`Versión ${version} disponible`}>
-  <button type="button" className="inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full bg-fono/15 px-3 text-[11px] font-bold leading-tight text-fono-light hover:bg-fono/25" title={`Hay una versión nueva (v${version}). Recargá para actualizarla.`} onClick={()=>window.location.reload()}><RefreshCw size={13} aria-hidden="true"/>Versión nueva · Recargar</button>
+  <ScaleButton type="button" className="inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full bg-fono/15 px-3 text-[11px] font-bold leading-tight text-fono-light hover:bg-fono/25" title={`Hay una versión nueva (v${version}). Recargá para actualizarla.`} onClick={()=>window.location.reload()} variant="ghost" size="compact"><RefreshCw size={13} aria-hidden="true"/>Versión nueva · Recargar</ScaleButton>
  </section>;
 }

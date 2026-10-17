@@ -1,11 +1,15 @@
 "use client";
-// «Reportar un problema» (panel global → Reportes). Se abre desde el pie del
-// menú lateral del workspace; exige sesión (el API devuelve 401 sin ella),
+import {TextareaBase} from './ui/input';
+import {Button,IconButton} from './ui/button';
+// «Reportar un problema» (panel global → Reportes). Se abre desde el
+// encabezado del workspace; exige sesión (el API devuelve 401 sin ella),
 // admite hasta 1000 caracteres y una categoría, y adjunta la ruta visible (sin
 // query) y la versión de la app. El API limita a 5 reportes por hora.
-import {useId, useState} from "react";
+import {useId, useLayoutEffect, useRef, useState} from "react";
 import {MessageSquareWarning} from "lucide-react";
 import {ConfirmDialog} from "./dialog";
+import {DialogFormState,PendingFields} from "./ui/form-state";
+import {useSingleFlightSubmit} from "./use-single-flight-submit";
 import {SelectCustom} from "./profile-controls";
 import {api} from "./operations";
 import {notify} from "./feedback";
@@ -42,23 +46,32 @@ const defaultSend: Send = (payload) => api("/api/support/reports", payload, "POS
 export function ReportProblemDialog({onClose, route, send = defaultSend}: {onClose: () => void; route?: string; send?: Send}) {
   const [category, setCategory] = useState<ReportCategory | "">("");
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const sent=useRef(false),fields=useRef<HTMLDivElement>(null);
+  const [focusTarget,setFocusTarget]=useState<"category"|"message"|"error"|null>(null);
+  const [errorField,setErrorField]=useState<"category"|"message"|null>(null);
   const [error, setError] = useState("");
   const textId = useId(), helpId = useId();
-  async function submit() {
+  const submission=useSingleFlightSubmit(async()=>{
+    if(sent.current)return;
     const problem = reportProblemError(message, category);
-    if (problem) { setError(problem); return; }
-    setBusy(true);
-    setError("");
+    if (problem) { const target=category in REPORT_CATEGORY_LABELS?"message":"category";setError(problem);setErrorField(target);setFocusTarget(target);return; }
+    setError("");setErrorField(null);
     try {
       await send(reportProblemPayload(message, category as ReportCategory, route ?? (typeof window !== "undefined" ? window.location.pathname : "/")));
-      notify({tone: "success", message: "Gracias. Recibimos tu reporte."});
-      onClose();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No pudimos enviar el reporte. Intentá nuevamente.");
-      setBusy(false);
+      setFocusTarget("error");return;
     }
-  }
+    sent.current=true;
+    notify({tone: "success", message: "Gracias. Recibimos tu reporte."});
+    onClose();
+  });
+  const busy=submission.pending;
+  useLayoutEffect(()=>{
+    if(busy||!focusTarget)return;
+    const target=focusTarget==="category"?fields.current?.querySelector<HTMLElement>('[aria-haspopup="listbox"]'):focusTarget==="message"?fields.current?.querySelector<HTMLTextAreaElement>("textarea"):fields.current?.closest("form")?.querySelector<HTMLElement>(".form-error-summary[role=alert]");
+    target?.focus();setFocusTarget(null);
+  },[busy,focusTarget]);
   return <ConfirmDialog
     title="Reportar un problema"
     description={<p className="form-note">Lo recibe el equipo de Scale OS junto con la pantalla en la que estás y la versión de la app.</p>}
@@ -66,24 +79,28 @@ export function ReportProblemDialog({onClose, route, send = defaultSend}: {onClo
     busy={busy}
     error={error}
     onCancel={() => { if (!busy) onClose(); }}
-    onConfirm={() => void submit()}
+    onConfirm={() => void submission.onSubmit()}
   >
-    <SelectCustom label="Categoría" choices={(Object.keys(REPORT_CATEGORY_LABELS) as ReportCategory[]).map((value) => ({value, label: REPORT_CATEGORY_LABELS[value]}))} value={category} disabled={busy} onChange={(value: string) => setCategory(value as ReportCategory)}/>
+    <DialogFormState pending={busy} dirty={!sent.current&&(category!==""||message!=="")}/>
+    <PendingFields pending={busy}><div ref={fields}>
+    <SelectCustom label="Categoría" choices={(Object.keys(REPORT_CATEGORY_LABELS) as ReportCategory[]).map((value) => ({value, label: REPORT_CATEGORY_LABELS[value]}))} value={category} disabled={busy} onChange={(value: string) => {setCategory(value as ReportCategory);if(errorField==="category"&&value in REPORT_CATEGORY_LABELS){setError("");setErrorField(null);}}}/>
     <label className="grid gap-1.5 text-[11px] font-semibold text-mute" htmlFor={textId}>
       Qué pasó
-      <textarea id={textId} value={message} disabled={busy} maxLength={REPORT_MAX} rows={5} aria-describedby={helpId} placeholder="Ej.: al guardar el presupuesto aparece un error y no se guarda." onChange={(event) => setMessage(event.target.value)}/>
+      <TextareaBase id={textId} value={message} disabled={busy} maxLength={REPORT_MAX} rows={5} aria-describedby={helpId} placeholder="Ej.: al guardar el presupuesto aparece un error y no se guarda." onChange={(event) => {const value=event.target.value;setMessage(value);if(errorField==="message"&&!reportProblemError(value,category)){setError("");setErrorField(null);}}}/>
     </label>
+    </div></PendingFields>
     <p id={helpId} className="field-help">{message.length}/{REPORT_MAX} caracteres · no incluyas contraseñas ni datos de tarjetas.</p>
   </ConfirmDialog>;
 }
 
-/** Entrada del menú del usuario (pie del menú lateral). */
-export function ReportProblemButton({className, iconClassName}: {className: string; iconClassName: string}) {
+/** Acceso al mismo diálogo desde el encabezado; conserva la variante con texto. */
+export function ReportProblemButton({className, iconClassName, iconOnly=false}: {className?: string; iconClassName?: string; iconOnly?: boolean}) {
   const [open, setOpen] = useState(false);
+  const trigger={type:'button' as const,onClick:()=>setOpen(true),title:'Reportar un problema'};
   return <>
-    <button type="button" className={`nav-report ${className}`} onClick={() => setOpen(true)} aria-label="Reportar un problema" title="Reportar un problema">
-      <span className={iconClassName}><MessageSquareWarning size={16}/></span><span className="nav-label">Reportar un problema</span>
-    </button>
+    {iconOnly
+      ? <IconButton {...trigger} className={className} size="compact" label="Reportar un problema" icon={<MessageSquareWarning size={16}/>}/>
+      : <Button {...trigger} className={className} variant="ghost" aria-label="Reportar un problema"><span className={iconClassName}><MessageSquareWarning size={16}/></span><span>Reportar un problema</span></Button>}
     {open ? <ReportProblemDialog onClose={() => setOpen(false)}/> : null}
   </>;
 }

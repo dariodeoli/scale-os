@@ -11,9 +11,10 @@ require.extensions['.css'] = () => {};
 Object.assign(globalThis, {React});
 const reactDOM = require('react-dom');
 reactDOM.createPortal = (children: React.ReactNode) => children;
-const hostDocument = {body: {style: {overflow: ''}}, activeElement: null as unknown, addEventListener() {}, removeEventListener() {}};
+const documentListeners=new Map<string,Set<(event:any)=>void>>();
+const hostDocument = {body: {style: {overflow: ''}}, activeElement: null as unknown, addEventListener(type:string,listener:(event:any)=>void) {if(!documentListeners.has(type))documentListeners.set(type,new Set());documentListeners.get(type)!.add(listener);}, removeEventListener(type:string,listener:(event:any)=>void) {documentListeners.get(type)?.delete(listener);}};
 Object.defineProperty(globalThis, 'document', {configurable: true, value: hostDocument});
-const hostNode = () => ({tagName: 'DIV', tabIndex: -1, isConnected: true, clientWidth: 1600, querySelectorAll: () => [], querySelector: () => null, closest: () => null, contains: () => true, focus() {}});
+const hostNode = () => ({value:'',setCustomValidity(_message:string){},tagName: 'DIV', tabIndex: -1, isConnected: true, clientWidth: 1600, querySelectorAll: () => [], querySelector: () => null, closest: () => null, contains: () => true, focus() {}});
 
 const bus = new EventTarget();
 const store = new Map<string, string>();
@@ -82,7 +83,9 @@ test('cupones: columnas Vence, Empresa, Usos y Estado con vigente, vencido y pau
   assert.ok(body.includes('Agency Two') && body.includes('Todas'), 'empresa o «Todas»');
   assert.equal(root.findAllByProps({role: 'columnheader'}).length, 7);
   // El alta suma Vence (date), Empresa (selector) y Nota (textarea).
-  assert.ok(root.findAllByType('input').some((node) => node.props.type === 'date'), 'Vence es type=date');
+  const {DateInput}=require('../app/ui/temporal') as typeof import('../app/ui/temporal');
+  assert.ok(root.findAllByType(DateInput).length>0, 'Vence usa la fecha civil canónica con edición parcial y calendario');
+  assert.ok(root.findAllByType('input').some(node=>node.props.placeholder==='AAAA-MM-DD'),'Formato esperado visible al escribir');
   assert.ok(root.findAllByType('textarea').length === 1, 'Nota es un textarea');
   assert.ok(root.findAllByType(SelectCustom).some((node) => node.props.label === 'Empresa · Opcional'), 'Empresa es un SelectCustom');
   await unmount();
@@ -210,4 +213,61 @@ test('eliminar usuario con Google: vuelve con ticket, confirma con la palabra co
     location.search = '';
     await unmount();
   }
+});
+
+const escape=()=>{const event={key:'Escape',defaultPrevented:false,target:{tagName:'INPUT'},preventDefault(){this.defaultPrevented=true;},stopImmediatePropagation(){}};for(const listener of [...documentListeners.get('keydown')||[]])listener(event);};
+
+test('cupón: Escape protege borrador, doble submit envía un canje y refresh fallido conserva éxito',async()=>{
+ const previous=globalThis.fetch;let requests=0,closed=0,resolvePost!:(value:Response)=>void;
+ globalThis.fetch=(async(input:RequestInfo|URL)=>String(input).includes('/coupons/apply')?(requests++,new Promise<Response>(resolve=>{resolvePost=resolve;})):new Response(JSON.stringify({coupons:[coupons[0]]}))) as typeof fetch;
+ try{
+  const root=await mount(<ApplyCouponDialog agency={agency(20)} onClose={()=>closed++} onApplied={async()=>{throw Error('refresh offline');}} onFailure={()=>false}/>);
+  await act(async()=>root.findByType(SelectCustom).props.onChange('1'));
+  await act(async()=>escape());assert.equal(closed,0);assert(text(root).includes('¿Descartar los cambios?'));
+  await act(async()=>button(root,'Seguir editando').props.onClick());assert.equal(root.findByType(SelectCustom).props.value,'1');
+  const form=root.findByType('form');
+  await act(async()=>{form.props.onSubmit({preventDefault(){}});form.props.onSubmit({preventDefault(){}});});
+  assert.equal(requests,1);assert(root.findAllByType('fieldset').some(n=>n.props.disabled===true));assert.equal(root.findByType(SelectCustom).props.disabled,true);
+  await act(async()=>escape());assert.equal(closed,0,'pending blocks dismissal');
+  await act(async()=>resolvePost(new Response(JSON.stringify({message:'Cupón aplicado.'}))));await flush();
+  assert.equal(closed,1);assert.equal(requests,1);assert(toasts.some(t=>t.tone==='warning'&&t.message.includes('ya fue aplicado')));assert(!text(root).includes('No pudimos aplicar el cupón'));
+ }finally{globalThis.fetch=previous;await unmount();}
+});
+
+test('catálogo: doble submit usa una operación, bloquea campos y conserva el borrador',async()=>{
+ const draft={code:'RETRY',discount_value:'10',discount_type:'percent' as const,currency:'USD',expires_at:'',organization_id:'',note:'Conservar'};let calls=0;
+ let release!:()=>void;const next=await mount(<PlatformCatalog busy={false} state={state()} page={page} onMore={()=>{}} writable coupon={draft} setCoupon={()=>{}} toggleCoupon={async()=>{}} createCoupon={async()=>{calls++;await new Promise<void>(resolve=>{release=resolve;});}}/>);
+ await act(async()=>{next.findByType('form').props.onSubmit({preventDefault(){}});next.findByType('form').props.onSubmit({preventDefault(){}});});assert.equal(calls,1);assert(next.findAllByType('fieldset').some(n=>n.props.disabled));
+ await act(async()=>release());assert(next.findAllByType('input').some(n=>n.props.value==='RETRY'));assert(next.findAllByType('textarea').some(n=>n.props.value==='Conservar'));await unmount();
+});
+
+test('catálogo: error del callback conserva nodo/valores y permite reintentar',async()=>{
+ const draft={code:'RETRY',discount_value:'10',discount_type:'percent' as const,currency:'USD',expires_at:'',organization_id:'',note:'Conservar'};let calls=0;
+ const root=await mount(<PlatformCatalog busy={false} state={state()} page={page} onMore={()=>{}} writable coupon={draft} setCoupon={()=>{}} toggleCoupon={async()=>{}} createCoupon={async()=>{calls++;throw Error('Conflicto recuperable');}}/>);
+ const input=root.findAllByType('input').find(n=>n.props.value==='RETRY')!;
+ await act(async()=>root.findByType('form').props.onSubmit({preventDefault(){}}));assert(text(root).includes('Conflicto recuperable'));assert.equal(root.findAllByType('input').find(n=>n.props.value==='RETRY'),input);
+ assert(root.findAllByType('fieldset').every(n=>!n.props.disabled));
+ await act(async()=>root.findByType('form').props.onSubmit({preventDefault(){}}));assert.equal(calls,2);await unmount();
+});
+
+test('gracia: doble confirmación comparte vuelo, motivo pendiente y error quedan para retry',async()=>{
+ let calls=0,finish!:(failure:string)=>void;const noop=()=>{};
+ const props={busy:false,subscriptionAgency:agency(20),setSubscriptionAgency:noop,subscription:{internal_state:'active' as const,internal_reason:null,internal_expires_at:'2099-03-10T15:00:00Z'},setSubscription:noop,subscriptionLoaded:true,setSubscriptionLoaded:noop,subscriptionError:'',setSubscriptionError:noop,subscriptionRequest:{current:0},subscriptionState:'active' as const,setSubscriptionState:noop,subscriptionReason:'Original',setSubscriptionReason:noop,subscriptionExpiryValue:'',setSubscriptionExpiryValue:noop,extendDays:'30',setExtendDays:noop,extendReason:'Pago manual',setExtendReason:noop,manageSubscription:async()=>{},saveSubscription:async()=>{},saveExtension:async()=>{},grantGrace:async()=>{calls++;return await new Promise<string>(resolve=>{finish=resolve;});},applyCoupon:noop};
+ const root=await mount(<SubscriptionDialog {...props}/>);
+ await act(async()=>button(root,'+7 días').props.onClick());
+ const reason=root.findAllByType('input').find(n=>n.props.value===GRACE_REASON)!;await act(async()=>reason.props.onChange({target:{value:'Mantener motivo'}}));
+ const form=root.findAllByType('form').find(n=>n.props.className==='confirm-dialog')!;
+ await act(async()=>{form.props.onSubmit({preventDefault(){}});form.props.onSubmit({preventDefault(){}});});assert.equal(calls,1);assert(root.findAllByType('fieldset').some(n=>n.props.disabled));
+ await act(async()=>finish('Gracia no guardada'));assert(text(root).includes('Gracia no guardada'));assert(root.findAllByType('input').some(n=>n.props.value==='Mantener motivo'));
+ await act(async()=>form.props.onSubmit({preventDefault(){}}));assert.equal(calls,2);await act(async()=>finish(''));await unmount();
+});
+
+test('estado avanzado: cambios sobreviven Escape y error; dos submits comparten el mismo guard',async()=>{
+ const noop=()=>{};let calls=0,fail!:(cause:Error)=>void;
+ const props={busy:false,subscriptionAgency:agency(20),setSubscriptionAgency:noop,subscription:{internal_state:'active' as const,internal_reason:null,internal_expires_at:'2099-03-10T15:00:00Z'},setSubscription:noop,subscriptionLoaded:true,setSubscriptionLoaded:noop,subscriptionError:'',setSubscriptionError:noop,subscriptionRequest:{current:0},subscriptionState:'active' as const,setSubscriptionState:noop,subscriptionReason:'Original',setSubscriptionReason:noop,subscriptionExpiryValue:'',setSubscriptionExpiryValue:noop,extendDays:'30',setExtendDays:noop,extendReason:'Pago manual',setExtendReason:noop,manageSubscription:async()=>{},saveSubscription:async()=>{calls++;await new Promise<void>((resolve,reject)=>{fail=reject;});},saveExtension:async()=>{},grantGrace:async()=>'',applyCoupon:noop};
+ const root=await mount(<SubscriptionDialog {...props}/>);
+ await act(async()=>renderer!.update(<SubscriptionDialog {...props} subscriptionReason="Motivo editado"/>));
+ await act(async()=>escape());assert(text(root).includes('¿Descartar los cambios?'));await act(async()=>button(root,'Seguir editando').props.onClick());
+ const form=root.findAllByType('form')[0];await act(async()=>{form.props.onSubmit({preventDefault(){}});form.props.onSubmit({preventDefault(){}});});assert.equal(calls,1);assert(root.findAllByType('fieldset').some(n=>n.props.disabled));
+ await act(async()=>fail(Error('Estado no guardado')));assert(text(root).includes('Estado no guardado'));assert(root.findAllByType('textarea').some(n=>n.props.value==='Motivo editado'));assert(root.findAllByType('fieldset').every(n=>!n.props.disabled));await unmount();
 });

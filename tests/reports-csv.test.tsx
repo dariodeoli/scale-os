@@ -1,10 +1,10 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {reportsCsv} from '../app/reports-csv';
 import type {ReportMonth,ReportsData} from '../app/reports-data';
-const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 function row(month:string):ReportMonth{return {month,isPartial:true,clients:{active:null,added:0,lost:1,retentionPercent:null,averageTenureDays:12.5,tenureKnown:2,types:[],plans:[]},financial:[
  {currency:'USD',invoiced:'9007199254740993.123400',collected:'-0.0100',invoiceCount:2,billedClients:1,averageTicket:null,averageRevenuePerClient:'0.00'},
@@ -53,6 +53,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  const originalReact=Object.getOwnPropertyDescriptor(globalThis,'React'),originalDocument=Object.getOwnPropertyDescriptor(globalThis,'document');
  const originalFetch=globalThis.fetch,originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL,originalTimeout=globalThis.setTimeout;
  const css=require.extensions['.css'];require.extensions['.css']=()=>{};
+ const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
  Object.assign(globalThis,{React});
  const {ReportsWorkspace}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
  const requests:{url:string;resolve:(response:Response)=>void}[]=[],blobs:Blob[]=[],filenames:string[]=[],revoked:string[]=[],cleanup:(()=>void)[]=[];
@@ -63,7 +64,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  globalThis.setTimeout=((fn:()=>void,ms?:number)=>{if(ms===1000){cleanup.push(fn);return 0;}return originalTimeout(fn,ms);}) as typeof setTimeout;
  Object.defineProperty(globalThis,'document',{configurable:true,value:{body:{appendChild(){}},createElement(tag:string){assert.equal(tag,'a');return {href:'',download:'',click(){filenames.push(this.download);},remove(){removed++;}};}}});
  // El botón CSV de la cabecera siempre está presente (acción primaria de ListPage) y queda deshabilitado sin datos cargados.
- const button=()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).startsWith('CSV'));
+ const button=()=>renderer!.root.findAllByType('button').find(b=>renderedText(b).startsWith('CSV'));
  const live=()=>{const found=button();return found&&!found.props.disabled?found:undefined;};
   const respond=async()=>{const req=requests.filter(r=>r.url?.includes('/reports?')).at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
  try{

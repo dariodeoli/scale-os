@@ -1,0 +1,793 @@
+{
+  "schema": 1,
+  "issue": 241,
+  "baseline": "99e7f5c6",
+  "scope": "Snapshot de release tras layouts finales y fachadas OwnCoding0.68.17 publicadas.55 widgets conservan JSX/hash exacto, sin excepciones nuevas ni cambios de producto en esta revisión. Historia167 y revisiones previas separadas.",
+  "files": [
+    {
+      "file": "app/assignee-picker.tsx",
+      "sourceHash": "0da5f1efca076b4a86a9ba758622cfbd4015887830a8cc5a1990cc4747223fcb",
+      "sites": [
+        {
+          "line": 54,
+          "column": 4,
+          "siteHash": "f70e8bb446a3638b17070b1ffea91cbbfd72798bfee450209b4899515ed288ec",
+          "owner": "AssigneePicker",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/assignee-picker.tsx → SelectionBase/AssignedChip",
+          "rationale": "Control de principal/eliminación dentro del selector múltiple: chips y selección conservan límites, principal y targets; compartir engine de selección, sin tamaño de acción global.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 55,
+          "column": 4,
+          "siteHash": "ec6b91ee60b94191db1d87783bc21126f6a2d9479b0f14c21f1f507ca4893ae1",
+          "owner": "AssigneePicker",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/assignee-picker.tsx → SelectionBase/AssignedChip",
+          "rationale": "Control de principal/eliminación dentro del selector múltiple: chips y selección conservan límites, principal y targets; compartir engine de selección, sin tamaño de acción global.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/comment-composer.tsx",
+      "sourceHash": "9b3dc52c421ea77363bb45153a6438b22b878727766d3fe083d46d5ec2d9f27b",
+      "sites": [
+        {
+          "line": 53,
+          "column": 187,
+          "siteHash": "133353beefd4047035d5cebfc59a1ebdb140550ffacc0845f3b9f37dc5a01438",
+          "owner": "CommentComposer",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/commenting.tsx + app/comment-composer.tsx → MentionOption/SelectionBase",
+          "rationale": "Opciones de menciones con role=option, aria-selected y onMouseDown que evita perder foco; el motor de selección puede compartir navegación, no el callback de negocio.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/commenting.tsx",
+      "sourceHash": "abfca73b99d6915501a00aded4302b5d176ac4552f8b65f2e3fac125e28ed20e",
+      "sites": [
+        {
+          "line": 65,
+          "column": 142,
+          "siteHash": "d66cad67645cfcb8dbe7687f19f6658c5e95031f3ec76aa4967a30e8f6ac14e5",
+          "owner": "CommentComposer",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/commenting.tsx + app/comment-composer.tsx → MentionOption/SelectionBase",
+          "rationale": "Opciones de menciones con role=option, aria-selected y onMouseDown que evita perder foco; el motor de selección puede compartir navegación, no el callback de negocio.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/control-center.tsx",
+      "sourceHash": "c035a47d79300e59f3a6d2d722bb6bc48e7dc77a4c13675f438c71e4b794e181",
+      "sites": [
+        {
+          "line": 71,
+          "column": 52,
+          "siteHash": "0a6d322226e7facbebbfc3558ec0fb158e14b32469d190172196815908a7bcf1",
+          "owner": "ControlCenter",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 72,
+          "column": 51,
+          "siteHash": "41534e5b5b0b3674eaa29eb2264437d339123dd88771db2de373eed35c21525e",
+          "owner": "ControlCenter",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 73,
+          "column": 53,
+          "siteHash": "7e84d0bc3666e0131f7b2e66dfeb0cac0536094550c4243d0284b379df6de73e",
+          "owner": "ControlCenter",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/desktop-sidebar.tsx",
+      "sourceHash": "605ee0f77810ec4a0b9e03a7ec32f619bfe4deae377e6c8530edee2240e853df",
+      "sites": [
+        {
+          "line": 33,
+          "column": 23,
+          "siteHash": "d49c1412db4479fc89878b1ea63ec150d7544cb3711ab78a96fb0fc3b022210f",
+          "owner": "DesktopSidebar",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/employee-tasks.tsx",
+      "sourceHash": "4176e22e96b7a17e5c5f0e291661483f6e1e0f29bab79f841397c13b01308056",
+      "sites": [
+        {
+          "line": 47,
+          "column": 104,
+          "siteHash": "3a123131e4f3f2d537ea73d23cdfe424ba0b0322c7064c6f4b6187776b7727ba",
+          "owner": "TaskDashboard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/foto-perfil.tsx",
+      "sourceHash": "e8208bac12e2a18974a7e9254fe92eacddea61ae5f9179ed0091ea5ce199c85f",
+      "sites": [
+        {
+          "line": 49,
+          "column": 12,
+          "siteHash": "a9bbd7e12d48bd5d379c3d88196fb45ea9a2b95af8d0f44b2ca47ed5c5077cd5",
+          "owner": "FotoPerfil",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/foto-perfil.tsx::FotoPerfil",
+          "rationale": "El botón es la propia superficie avatar/logo con badge/fallback/forma: no se aplica padding CTA. Mantener un renderer de avatar interactivo, separado de foto de equipo y marca.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/google-sign-in.tsx",
+      "sourceHash": "21c043367edbc2df43a852b1848d697114728529076907e73cedf2f7e62bdefe",
+      "sites": [
+        {
+          "line": 30,
+          "column": 31,
+          "siteHash": "e563b143ad8c02ea876c130a4af80df6c7a51a0a45969a60cdceab1d2e3e3a4d",
+          "owner": "ProviderSignIn",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/google-sign-in.tsx::ProviderSignIn",
+          "rationale": "Botón de identidad con marcas proveedor y variante compacta del portal; canon local ProviderSignIn conserva anatomía/branding, disponibilidad y callback OAuth. No inferir política de autenticación desde Button.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/ia-carga.tsx",
+      "sourceHash": "b8e15e105d75f57810306b0e27e6f45dd1b9b22fd75db47ed06d43f689a706e5",
+      "sites": [
+        {
+          "line": 625,
+          "column": 40,
+          "siteHash": "603689022a465f94142b37ee4daf0bdc21b83022abc1a726c516676b5dd849ab",
+          "owner": "MatchBlock",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 636,
+          "column": 4,
+          "siteHash": "d504c5c460389ffd61c4eb341f7817b7ea32eb672ee83f2b7092f88f0f9f541e",
+          "owner": "MatchBlock",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 651,
+          "column": 33,
+          "siteHash": "52a9e8444fe4d61fc31adfbd14dc73717b0b74b877f66d9d4306b08f2221d0e3",
+          "owner": "ClienteDeAccion",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/inventory-workspace.tsx",
+      "sourceHash": "e801e158c086a4b3296938c1eb886c44e9d929d4ead671f78feaf2af960ef257",
+      "sites": [
+        {
+          "line": 315,
+          "column": 3,
+          "siteHash": "de4b32302bd060126f4e531a28d7896099b13633395008bb7210408a40d91132",
+          "owner": "PipelineCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 431,
+          "column": 5,
+          "siteHash": "d35423ac520866ae57f8e33965cf7d8a5db0f82d72053027f9c729ad888adb5f",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 432,
+          "column": 5,
+          "siteHash": "26c5f6db86fe6222167f9ad0b7745d4846c4da1c4ab8ce7dde2d47b129a47115",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 434,
+          "column": 5,
+          "siteHash": "89c9903bf87a98c6027f819016f8ddc6c5daff25db4e732de388807725d42c58",
+          "owner": "InventoryPanel",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/navigation/DisclosureTrigger (propuesto)",
+          "rationale": "Control de expansión ligado a su panel, composición y aria-expanded/controls; unificar trigger estructural de disclosure sin modificar estado, foco ni borrador del panel.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 676,
+          "column": 225,
+          "siteHash": "be3124178dc4ec6efcccd58ff782df7d1838d23e3bce709332c086d453ed6966",
+          "owner": "CategoryForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 676,
+          "column": 579,
+          "siteHash": "18e873c043a1a43e53ffbc64117daef8a0d4a2b6cc6adeff69c2393b11130abd",
+          "owner": "CategoryForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/mobile-navigation.tsx",
+      "sourceHash": "ef3202caa09c750338ed0229b917a5233eec78196d0882b0554554443277a31a",
+      "sites": [
+        {
+          "line": 40,
+          "column": 3,
+          "siteHash": "5100609923b3b560f21597ce3af4790741de6ad2813843f972031aff7615aa88",
+          "owner": "MobileNavigation",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/operations.tsx",
+      "sourceHash": "339f8ae4162211619870e9cab30bc17bf35934b728bb806fd361337e66e73dcd",
+      "sites": [
+        {
+          "line": 520,
+          "column": 9,
+          "siteHash": "1bcd0b1460c383f1ee46412f4e371e69a85087a9c3ad6902e612ed273db6e223",
+          "owner": "CompanySelector",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/operations.tsx::CompanySelector → SelectionBase presenter",
+          "rationale": "Selector de empresa: identidad y lista autorizada; conserva switch-organization, default, bloqueo y navegación. Compartir presenter de opción con SelectBase manteniendo orquestación fuera del control.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 534,
+          "column": 15,
+          "siteHash": "85eb87c03cace0848216c77f29e04cdc37a16c0fb9d1a74ed3c3f26fdd87eda0",
+          "owner": "CompanySelector",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/operations.tsx::CompanySelector → SelectionBase presenter",
+          "rationale": "Selector de empresa: identidad y lista autorizada; conserva switch-organization, default, bloqueo y navegación. Compartir presenter de opción con SelectBase manteniendo orquestación fuera del control.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/password-field.tsx",
+      "sourceHash": "b61e3f2e78eb22f83d71515066cd9cd862019fb0ab19ece6a35dc5beeeedd026",
+      "sites": [
+        {
+          "line": 22,
+          "column": 5,
+          "siteHash": "d9fcfd2762af6613172ee6ee2f4d107256272a0eb0c260c7569a30ce79ac881d",
+          "owner": "control",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/password-field.tsx::PasswordField.Visibility",
+          "rationale": "Accesorio superpuesto dentro del campo; onMouseDown conserva foco/caret, aria-pressed y toggle sólo cambian visibilidad. Base de field-accessory común sin padding de CTA.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/permissions-matrix.tsx",
+      "sourceHash": "85df456b36f0ad0aa4f5bde99a06b2acfdc8ed18ad9adef0292ffc75142edb8a",
+      "sites": [
+        {
+          "line": 104,
+          "column": 76,
+          "siteHash": "1b4153c67ea9afcba0e4c979228e36376049b7c8d68eac88aafc9d8fcdb0bbb4",
+          "owner": "ModulePermissions",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/production-board.tsx",
+      "sourceHash": "765316b765d016f50bdb6108b9c3705703829fe0f55b42f9e2eb0e90c201c6ce",
+      "sites": [
+        {
+          "line": 88,
+          "column": 9,
+          "siteHash": "62e04082e705b629cd4ca5e2b790efb5aea642103f1b1d95c64f1c346309f266",
+          "owner": "DraggableOrder",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/productivity-ui.tsx",
+      "sourceHash": "92fe7b639da762cc865a84a7b25ec4eacea3175a184cbff8671b178a6530f7da",
+      "sites": [
+        {
+          "line": 174,
+          "column": 171,
+          "siteHash": "64768ad900ba1bbe932fb0bd9c4e7f6afed3e85ce228926623f27819d13deb11",
+          "owner": "ClientDetail",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/tab-scroller.tsx + ViewTabs/TabList (propuesto)",
+          "rationale": "Selector de pestañas del detalle con paneles persistidos; migrar conjuntamente navegación/paneles al canon tabs, sin reinterpretarlo como acción o perder contenido visitado.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 175,
+          "column": 932,
+          "siteHash": "f5e41661b01d032d55c67227adce20298f2b04cf02d6274ba59bd6655f7e9129",
+          "owner": "ClientDetail",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 214,
+          "column": 597,
+          "siteHash": "3b9f36feed0ce6f7544f84e53eb78d9901591216472f071b0c66f8f18787fce6",
+          "owner": "WorkPlanner",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/productivity-ui.tsx::WorkPlanner → CalendarEventSurface",
+          "rationale": "Celda/evento del calendario con título y cliente/hora, altura limitada por grilla; conservar composición y callback de pieza, compartiendo sólo foco/tokens de superficie interactiva.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 222,
+          "column": 6,
+          "siteHash": "f69c2ec077f1ab44acf401eec0ce85bc6f22afb44ae1f96f9c6a512691188553",
+          "owner": "WorkPlanner",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/project-card.tsx",
+      "sourceHash": "7c4251bf6ccee6f0e433dc8154aadf2b3ce06c7a0724b4e24d0747ee571b8bcb",
+      "sites": [
+        {
+          "line": 153,
+          "column": 11,
+          "siteHash": "cc05dcfc1815381a14596940b8a02bc500b1bfead59ab89c3ba505f7f29450bf",
+          "owner": "ProjectCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/quote-composer.tsx",
+      "sourceHash": "f81cac65ebec0bf0b288ac35990a9f6a184afa9284feb4979e175da4eae6b915",
+      "sites": [
+        {
+          "action": "retain",
+          "canonical": "app/quote-composer.tsx::ItemShell drag handle (dnd-kit)",
+          "rationale": "Asa estructural de drag con drag.attributes y drag.listeners de dnd-kit; disabled pending va después de los spreads. Preservar sensores teclado/puntero, touchAction:none y geometría del asa, sin padding CTA.",
+          "canonicalOwner": "DSN: anatomía del asa; QuoteComposer conserva permisos, single-flight y reordenación",
+          "line": 55,
+          "column": 17,
+          "siteHash": "1e0999d7339ff959010f9cfd042d7fc1f30876c0dd23686511bf05f442812cd0",
+          "owner": "ItemShell",
+          "originalStatus": "manual"
+        }
+      ]
+    },
+    {
+      "file": "app/record-assignees.tsx",
+      "sourceHash": "3a6d87d5ed90929ce7e8d1fb1cfcea4d9da5abea4c800d0eac84f1a7ab60702a",
+      "sites": [
+        {
+          "line": 94,
+          "column": 91,
+          "siteHash": "5e8537bebed66434031108c668664aa3384893fb15f8acb7028eb1afc8092655",
+          "owner": "RecordAssigneesForm",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/navigation/DisclosureTrigger (propuesto)",
+          "rationale": "Control de expansión ligado a su panel, composición y aria-expanded/controls; unificar trigger estructural de disclosure sin modificar estado, foco ni borrador del panel.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "sourceHash": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e",
+      "sites": [
+        {
+          "line": 986,
+          "column": 15,
+          "siteHash": "a3eba3004887f205a6490a0f6eb1b4def6a9ad56e2bb99efca2306e8d64a2e85",
+          "owner": "sidebarContent",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 1016,
+          "column": 51,
+          "siteHash": "804a69a8c0c0079396667a0e38bcc8760daed4a3c84e6fcee6b87af11551c4b4",
+          "owner": "sidebarContent",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/sections/clientes.tsx",
+      "sourceHash": "9376fab9fd7f3e01a5b11cb5ffb8c032fdcf6fecb9468333ace7984c17afabf7",
+      "sites": [
+        {
+          "line": 86,
+          "column": 7,
+          "siteHash": "f9ba2cc131be54d6d5cf34df22446276e40afd9f62d4ec518dae9837111c3a14",
+          "owner": "ClientLine",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 138,
+          "column": 9,
+          "siteHash": "2f3eb6081ac5b5169282c1840962f96730f035da3e46befb76504b1fb6488f60",
+          "owner": "ClientTile",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/sections/comisiones.tsx",
+      "sourceHash": "285e950d4a7420bb99112957fafb317846b97dbbcd7e24fe79c085ea04139ae9",
+      "sites": [
+        {
+          "line": 241,
+          "column": 82,
+          "siteHash": "60085713738856d9a39a13d5aeb49b578a06d0e5f54f6e0a10b6e04ff1a677eb",
+          "owner": "ComisionesSection",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/sections/finanzas.tsx",
+      "sourceHash": "5042f127ae2f182add403f3a4a94587fe7e4dc9acf739b7dc6de21d5f8bb7acf",
+      "sites": [
+        {
+          "line": 250,
+          "column": 52,
+          "siteHash": "9c5817fc09e5dc093f81d42cf7e32fb045ea59c4ee21457f0250deaedb85f445",
+          "owner": "FinanzasSection",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/sections/pipeline.tsx",
+      "sourceHash": "1aa085c050b223e5dcbce4dccfeb3637610d46ee2917e24d322477c01b3eb268",
+      "sites": [
+        {
+          "line": 145,
+          "column": 28,
+          "siteHash": "9dd61d0788d309ea8f807863c28893f30a488e7cad27370eb2f3459c1f52ccf0",
+          "owner": "LeadCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/drag/DragHandle (propuesto)",
+          "rationale": "Únicos dos spreads pendientes: drag.attributes y drag.listeners de useDraggable de dnd-kit. Sensor teclado/puntero, aria/ref y touchAction:none requieren asa dedicada, sin padding CTA ni reordenar spreads.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 207,
+          "column": 21,
+          "siteHash": "81a8d07abf557d0bf816375dfa40fad1f13f8b9f04399ff033f2a90c8021116f",
+          "owner": "LeadListRow",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/superadmin/overview.tsx",
+      "sourceHash": "ec28f4cff11b054ac224af9e10b8de5f808c76538376ef0f8c307a1cf6438a37",
+      "sites": [
+        {
+          "line": 141,
+          "column": 58,
+          "siteHash": "9fd1343ce4145ab59e0b784b4ce152a25717da3b55f007d040df7331711bbfc2",
+          "owner": "PlatformOverview",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 153,
+          "column": 36,
+          "siteHash": "ac6e140cb3dbf3f78da43671b7206490a234ecc30d91aae15ab58760d39b3bbc",
+          "owner": "PlatformOverview",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/superadmin/sidebar.tsx",
+      "sourceHash": "c36051566f4a53960105ab91aa7cf1b2c26076ab5513a1e1ce1dcaa1d660cf6f",
+      "sites": [
+        {
+          "line": 28,
+          "column": 16,
+          "siteHash": "29d9ae730d1a49060d1c7b7e85a85f33417ad9253c2bdd0528e9e1a24e99756f",
+          "owner": "PlatformSidebar",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/ui-v2.tsx",
+      "sourceHash": "fcc08c96e08d3db98dbf1b56c20a73c610c578ccabc79d0df187f308215f0974",
+      "sites": [
+        {
+          "line": 341,
+          "column": 11,
+          "siteHash": "2c5b35db2fdc4fdc7ae50f0f4efbdc87ba3a78b9117cc63d4818b7b279b18bc0",
+          "owner": "CompactCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/ui/select.tsx",
+      "sourceHash": "4a41b2afaa10e7df0f53b65ac8db22ff59968c613a1790e990c2973c3e394108",
+      "sites": [
+        {
+          "action": "retain",
+          "canonical": "app/ui/select.tsx::Selector (trigger / optionNode)",
+          "rationale": "Opción canónica single/multi: role option/aria-selected o inline aria-pressed, disabled, choose y contenido provienen del mismo engine. Mantener anatomía de opción, no convertir en acción CTA.",
+          "canonicalOwner": "DSN: Selector comparte presenter/engine; dominio conserva opciones y callback",
+          "line": 95,
+          "column": 14,
+          "siteHash": "62d8a4b5ca2ef8815f8ddba40fd3a35fc846edd6a2d52c1b7381c1087e740188",
+          "owner": "optionNode",
+          "originalStatus": "structural"
+        },
+        {
+          "action": "retain",
+          "canonical": "app/ui/select.tsx::Selector (trigger / optionNode)",
+          "rationale": "Trigger canónico de selector: ref, aria-controls/listbox, expanded, keyboard ArrowUp/Down y foco pertenecen al engine compartido. Mantener anatomía y geometría, sin padding de acción.",
+          "canonicalOwner": "DSN: Selector comparte presenter/engine; dominio conserva opciones y callback",
+          "line": 109,
+          "column": 4,
+          "siteHash": "5f832d2f0dbf47014859ed7d50990892c700f54348c024974f1df9782e886d7e",
+          "owner": "Selector",
+          "originalStatus": "structural"
+        }
+      ]
+    },
+    {
+      "file": "app/workspace-forms.tsx",
+      "sourceHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
+      "sites": [
+        {
+          "action": "retain",
+          "canonical": "app/workspace-forms.tsx::OrderForm choice group",
+          "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
+          "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
+          "line": 242,
+          "column": 13,
+          "siteHash": "df3b8bfa97d21a0b52c12f636a4d11d9160d50f943e5d63737e1f8d42aef0c11",
+          "owner": "OrderForm",
+          "originalStatus": "manual"
+        },
+        {
+          "action": "retain",
+          "canonical": "app/workspace-forms.tsx::AccountForm choice group",
+          "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
+          "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
+          "line": 380,
+          "column": 13,
+          "siteHash": "3b6ba0f3aafacff712d6c643e64f94ccdd43c321070aece2168516ea1e7cb914",
+          "owner": "AccountForm",
+          "originalStatus": "manual"
+        },
+        {
+          "action": "retain",
+          "canonical": "app/workspace-forms.tsx::AccountForm choice group",
+          "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
+          "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
+          "line": 426,
+          "column": 13,
+          "siteHash": "0e1d4c81a4c749ac5a827ecf4de4eea27876e00f5bcfcb2e65b07af63f5694d2",
+          "owner": "AccountForm",
+          "originalStatus": "manual"
+        },
+        {
+          "action": "retain",
+          "canonical": "app/workspace-forms.tsx::InvoiceForm choice group",
+          "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
+          "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
+          "line": 525,
+          "column": 13,
+          "siteHash": "0e1d4c81a4c749ac5a827ecf4de4eea27876e00f5bcfcb2e65b07af63f5694d2",
+          "owner": "InvoiceForm",
+          "originalStatus": "manual"
+        },
+        {
+          "action": "retain",
+          "canonical": "app/workspace-forms.tsx::PaymentForm choice group",
+          "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
+          "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
+          "line": 659,
+          "column": 13,
+          "siteHash": "b372b3adc411d9906774894126d4706aeb04f17c053724d2b129a1dbe401888a",
+          "owner": "PaymentForm",
+          "originalStatus": "manual"
+        }
+      ]
+    },
+    {
+      "file": "app/workspace-guide.tsx",
+      "sourceHash": "3fe3a0ce73bc18693d6ca3dae6c319e756612f3ab524b645a4be245fac3e2270",
+      "sites": [
+        {
+          "line": 61,
+          "column": 120,
+          "siteHash": "ab8ff020ccaaeee3d639768a5e1054b0a9f28a68ac662eeca9bedd9c53e1f74d",
+          "owner": "directory",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/workspace-guide.tsx::directory → NavigationTile",
+          "rationale": "Directorio de módulos como grilla navegable; presenter NavigationTile mantiene layout choice y callback go, no se trata como selector de datos ni submit.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 87,
+          "column": 5,
+          "siteHash": "1876e2f2ecd3b31dab2e00177d697e8e2d527880a44e6b5ac28b8c04049f066a",
+          "owner": "ScopedWorkspaceGuide",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/navigation/DisclosureTrigger (propuesto)",
+          "rationale": "Control de expansión ligado a su panel, composición y aria-expanded/controls; unificar trigger estructural de disclosure sin modificar estado, foco ni borrador del panel.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 99,
+          "column": 7,
+          "siteHash": "904148000583e13e6240b7955db28ac351d1c2af0f6ee63655758e9b3fdac1d3",
+          "owner": "ScopedWorkspaceGuide",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    }
+  ]
+}

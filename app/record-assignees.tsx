@@ -8,6 +8,8 @@ import {clearDataCache} from './data-cache';
 import {notifyMutation} from './feedback';
 import {Pencil,RefreshCw,X} from 'lucide-react';
 import {roleCan} from './capabilities';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type RecordAssigneesProps={
  kind:'projects'|'work-orders';
@@ -96,11 +98,11 @@ function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAss
   }):<span>Sin responsables asignados.</span>}</div>:null}
   {expanded&&editable&&saved?<div id={panelId} className="record-assignees-editor">
    <AssigneePicker members={members} value={draft} onChange={value=>{setDraft(value);setNotice('');}} disabled={busy||conflict} loading={loading} error={error}/>
-   <div className="record-assignees-actions">{children?<small>Los cambios se guardan con Guardar, junto con los detalles.</small>:<button type="button" className="secondary" disabled={loading||busy||conflict||unavailable||!changed} onClick={()=>{void save();}}>{busy?'Guardando…':'Guardar responsables'}</button>}
-   <button type="button" className="text-button" disabled={busy} onClick={()=>{setDraft(assigneeSelection(saved.assigned_user_ids,saved.assigned_user_id));setExpanded(false);if(!conflict)setError('');}}><X size={14}/>Cancelar</button></div>
+   <div className="record-assignees-actions">{children?<small>Los cambios se guardan con Guardar, junto con los detalles.</small>:<ScaleButton type="button" className="secondary" disabled={loading||busy||conflict||unavailable||!changed} onClick={()=>{void save();}} variant="secondary">{busy?'Guardando…':'Guardar responsables'}</ScaleButton>}
+   <ScaleButton type="button" className="text-button" disabled={busy} onClick={()=>{setDraft(assigneeSelection(saved.assigned_user_ids,saved.assigned_user_id));setExpanded(false);if(!conflict)setError('');}} variant="ghost"><X size={14}/>Cancelar</ScaleButton></div>
   </div>:error?<p role="alert" className="error">{error}</p>:null}
   {conflict?<p role="status">{children?'El registro cambió. Tu borrador sigue aquí y no se guardó. Conservá los cambios que necesites antes de cerrar y volver a abrir para revisar la versión actual.':'Otra persona cambió la asignación. Recargá para revisar la selección actual antes de guardar.'}</p>:null}
-  {!loading&&(!saved||!children&&(conflict||error))?<button type="button" className="text-button" disabled={busy} onClick={()=>{if(!saving.current){setDraft({assigned_user_ids:[],assigned_user_id:null});setReload(value=>value+1);}}}><RefreshCw size={14}/>{conflict?'Recargar responsables':'Reintentar carga'}</button>:null}
+  {!loading&&(!saved||!children&&(conflict||error))?<ScaleButton type="button" className="text-button" disabled={busy} onClick={()=>{if(!saving.current){setDraft({assigned_user_ids:[],assigned_user_id:null});setReload(value=>value+1);}}} variant="ghost"><RefreshCw size={14}/>{conflict?'Recargar responsables':'Reintentar carga'}</ScaleButton>:null}
   {notice?<p role="status">{notice}</p>:null}
   {children?.(save)}
  </section>;

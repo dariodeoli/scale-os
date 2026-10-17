@@ -33,7 +33,7 @@ async function main(){
   if(renderer)await act(async()=>{renderer!.unmount();});
   await act(async()=>{renderer=create(<SubscriptionPanel state={next} onRefresh={async()=>{refreshes++;}} {...extra}/>);});
  };
- const consent=async()=>{await act(async()=>{renderer!.root.findByProps({type:'checkbox'}).props.onChange({target:{checked:true}});});};
+ const consent=async()=>{await act(async()=>{renderer!.root.findAllByType('input').find(node=>node.props.type==='checkbox')!.props.onChange({target:{checked:true}});});};
  try{
   for(const [status,label] of [['unmanaged','Sin suscripción gestionada'],['demo','Demo · sin cobros'],['trialing','Prueba gratuita'],['active','Suscripción activa'],['grace','período de gracia'],['suspended','Acceso suspendido']] as const){
    await render({...state,status,hasAccess:status!=='suspended'});assert(text().includes(label));
@@ -65,7 +65,7 @@ async function main(){
   await render({...state,status:'active',dueAt:null});assert(text().includes('Días para vencer'));
   for(const status of ['trialing','active','grace','suspended'] as const){
    await render({...state,status,canManage:false});assert(text().includes('Contactá al dueño'));
-   assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0);assert(!findButton('Activar'));assert(!findButton('Gestionar'));
+   assert.equal(renderer!.root.findAllByType('input').filter(node=>node.props.type==='checkbox').length,0);assert(!findButton('Activar'));assert(!findButton('Gestionar'));
   }
   assert.equal(requests.length,0);
   await render({...state,checkoutReady:false,billingReadiness:'disabled'},{organizationName:'Agencia Horizonte'});assert(text().includes('cobro en línea todavía no fue habilitado'));assert.equal(byClass('subscription-setup').props['data-billing-readiness'],'disabled');
@@ -73,7 +73,7 @@ async function main(){
   assert(text().includes('Activación con pago coordinado'));assert(!findButton('Activar suscripción mensual'),'Assisted activation replaces the dead checkout');
   assert(text().includes('310056630007'));assert(text().includes('SCALE STRATEGY GROUP E.A.S.'));assert(text().includes('80168807-8'));assert(text().includes('Banco Continental'));assert(text().includes('Enviar comprobante por WhatsApp'));
   assert(text().includes('Canjealo en Configuración')||text().includes('Cupones'));assert(text().includes('libera el mes'));
-  assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0,'Assisted activation does not ask for checkout consent');
+  assert.equal(renderer!.root.findAllByType('input').filter(node=>node.props.type==='checkbox').length,0,'Assisted activation does not ask for checkout consent');
   await render({...state,checkoutReady:false,billingReadiness:'configuration_pending'});assert(text().includes('Falta validar la configuración de Stripe'));
   await render({...state,checkoutReady:false,billingReadiness:'webhook_pending'});assert(text().includes('falta comprobar una entrega firmada del webhook'));
   await render({...state,checkoutReady:false});assert(text().includes('configuración de Stripe está pendiente'));
@@ -89,12 +89,12 @@ async function main(){
   await render(state);assert.equal(findButton('Activar').props.disabled,true);
   await click('Activar');assert.equal(requests.length,0,'Consent is required even if handler is called directly');
   await consent();assert.equal(findButton('Activar').props.disabled,false);
-  const usdSegments=renderer!.root.findAllByProps({type:'radio'});assert.equal(usdSegments.length,2);assert.equal(usdSegments[0].props.checked,true);assert.equal(usdSegments[1].props.checked,false);assert(usdSegments.every(input=>input.props.disabled),'Backend contract locks signup currency');
+  const usdSegments=renderer!.root.findAllByType('input').filter(node=>node.props.type==='radio');assert.equal(usdSegments.length,2);assert.equal(usdSegments[0].props.checked,true);assert.equal(usdSegments[1].props.checked,false);assert(usdSegments.every(input=>input.props.disabled),'Backend contract locks signup currency');
   await click('Activar');assert.deepEqual(JSON.parse(String(requests.at(-1)!.init!.body)),{currency:'USD'});
   await render({...state,currency:'PYG',amount:50000});
   assert(text().includes('queda fija para esta suscripción'));assert(findButton('Activar suscripción mensual'));
   assert(byClass('subscription-consent').findByType('span').children.join('').includes('Gs. 50.000 por mes'));
-  const pygSegments=renderer!.root.findAllByProps({type:'radio'});assert.equal(pygSegments.length,2);assert.equal(pygSegments[0].props.checked,false);assert.equal(pygSegments[1].props.checked,true);
+  const pygSegments=renderer!.root.findAllByType('input').filter(node=>node.props.type==='radio');assert.equal(pygSegments.length,2);assert.equal(pygSegments[0].props.checked,false);assert.equal(pygSegments[1].props.checked,true);
   await consent();await click('Activar');
   assert.deepEqual(JSON.parse(String(requests.at(-1)!.init!.body)),{currency:'PYG'});
   assert.deepEqual(redirects,['https://checkout.stripe.com/c/pay/cs_test_local','https://checkout.stripe.com/c/pay/cs_test_local']);
@@ -174,7 +174,7 @@ async function main(){
   await render({...state,portalReady:true});
   assert(text().includes('Prueba gratuita'));assert(text().includes('Fin de prueba'));assert(!text().includes('Suscripción activa'));
   assert.equal(findButton('Gestionar').props.disabled,false);assert(!findButton('Activar'));
-  assert.equal(renderer!.root.findAllByProps({type:'checkbox'}).length,0,'Linked trials do not offer a duplicate subscription');
+  assert.equal(renderer!.root.findAllByType('input').filter(node=>node.props.type==='checkbox').length,0,'Linked trials do not offer a duplicate subscription');
   await click('Gestionar');
   assert.equal(requests.at(-1)!.url,'/core-api/api/billing/portal');assert.deepEqual(JSON.parse(String(requests.at(-1)!.init!.body)),{});
   assert.equal(redirects.at(-1),'https://billing.stripe.com/p/session/bound-trial');assert(text().includes('Prueba gratuita'));

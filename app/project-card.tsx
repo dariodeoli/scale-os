@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from './ui/input-control';
 /**
  * Proyectos (dominio OPS) — tarjeta/lista y detalle v2 (campaña #41, spec #44).
  *
@@ -10,7 +11,7 @@
  * y comparte la plantilla `--project-cols` con el encabezado de la sección.
  */
 import {useEffect,useRef,useState} from 'react';
-import {IconAction} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
 import {Dialog} from './dialog';
 import {EmployeeTasks,type EmployeeTasksProps} from './employee-tasks';
 import {fechaLista,fechaListaCorta} from 'owncoding-ui';
@@ -26,6 +27,8 @@ import {OPS_TIME_ZONE} from './ops-time';
 import {PROJECT_PIECES_LIMIT,fetchProjectPieces,remainingPiecesLabel,type ProjectPiece} from './project-pieces';
 import {api} from './operations';
 import {statuses} from './production-board';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type ProjectAssignee=AssignedPerson;
 
@@ -99,7 +102,7 @@ function ProjectDetail({project,client,onClose,taskIdentity}:{project:ProjectVie
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Responsables</h4>
-        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <button type="button" className="text-button" onClick={()=>setReload(value=>value+1)}>Reintentar</button></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
+        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <ScaleButton type="button" className="text-button" onClick={()=>setReload(value=>value+1)} variant="ghost">Reintentar</ScaleButton></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4>
@@ -140,7 +143,7 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
   // «Actualizado …» es auditoría y vive en el detalle (como en Producción, #99).
   return <article id={anchor} ref={card} tabIndex={-1} className={`project-entry project-card-v3 identity-${identityColor(client?.color_key)} group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1`}>
     <div className="project-card-header flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
-      {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-5 md:min-w-5" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
+      {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-5 md:min-w-5" title="Seleccionar proyecto"><InputControl type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
       <div className="min-w-0 flex-1 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">
         <div className="flex min-w-0 items-start gap-2 [.project-list_&]:contents">
           <h3 className="break-words project-card-title min-w-0 flex-1 text-[15px] font-semibold leading-5 text-fore [.project-list_&]:flex-none [.project-list_&]:truncate" title={project.name}>{project.name}</h3>
@@ -161,7 +164,7 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
     </dl>
     <div className="min-w-0 text-[11.5px] [.project-list_&]:hidden"><AssignedPeople people={project.assignees}/></div>
     <span className="hidden min-w-0 truncate text-[11.5px] text-mute [.project-list_&]:block" title={(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||undefined}>{(project.assignees||[]).map(person=>person.full_name||person.email||'').filter(Boolean).join(', ')||'Sin responsables'}</span>
-    <div className="mt-auto flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto border-t border-ink-600 pt-1.5 silent-scroll [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">
+    <div className="project-card-actions mt-auto flex min-w-0 flex-wrap items-center gap-1.5 border-t border-ink-600 pt-1.5 silent-scroll [.project-list_&]:mt-0 [.project-list_&]:flex-nowrap [.project-list_&]:overflow-x-auto [.project-list_&]:border-t-0 [.project-list_&]:pt-0">
       {count?<a className="inline-flex min-h-11 items-center whitespace-nowrap text-[11.5px] font-semibold text-fono-light hover:underline md:min-h-0" href={links[0]?.url||legacy||undefined} target="_blank" rel="noreferrer" title={driveLinksText(links,legacy)}>Abrir Drive{count>1?` (${count})`:''} ↗</a>:<small className="whitespace-nowrap text-[11.5px] text-mute">Sin Drive</small>}
       <span className={`ml-auto ${ICON_TARGETS}`}><IconAction icon="eye" tone="fono" label={`Ver detalle del proyecto: ${project.name}`} onClick={()=>setDetail(true)}/></span>
       {children}

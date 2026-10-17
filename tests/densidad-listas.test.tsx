@@ -41,9 +41,9 @@ assert.match(JSON.stringify(create(<AssignedPeople people={undefined} compact/>)
 
 // Fila fina: íconos de 32 px y disparador ⋯ sin el min-h-11 de la librería (escritorio).
 const ui=read('app/ui-system.css');
-assert.match(ui,/@media\(min-width:768px\)\{\n \.control-shell \.list-row \.list-actions :where\(button\.icon-button\)\{width:32px;min-width:32px;height:32px;min-height:32px\}/,'acciones de ícono de 32 px en la fila');
-assert.match(ui,/@media\(min-width:768px\) and \(pointer:coarse\)\{\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]\{min-width:44px;min-height:44px\}/,'táctil conserva 44 px');
-assert.match(ui,/@media\(min-width:768px\)\{\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]\{min-width:32px;min-height:32px;justify-content:center\}/,'el ⋯ mide 32 px en escritorio y 44 en táctil');
+assert.match(ui,/@media\(min-width:768px\)\{\n \.control-shell \.list-row \.list-actions :where\(button\.icon-button\):not\(:where\(\[data-ui-button\]\)\)\{width:32px;min-width:32px;height:32px;min-height:32px\}/,'acciones de ícono de 32 px en la fila');
+assert.match(ui,/@media\(min-width:768px\) and \(pointer:coarse\)\{\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]:not\(:where\(\[data-ui-button\]\)\)\{min-width:44px;min-height:44px\}/,'táctil conserva 44 px');
+assert.match(ui,/@media\(min-width:768px\)\{\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]\{justify-content:center\}\n :is\(\.control-shell,\.unified-dialog\) button\.toque-44\[aria-haspopup="menu"\]:not\(:where\(\[data-ui-button\]\)\)\{min-width:32px;min-height:32px\}/,'el ⋯ mide 32 px en escritorio y 44 en táctil');
 assert.match(ui,/\.control-shell \.ui-kpi-strip-dense \.ui-kpi\{display:grid;/,'la tira densa define su grilla');
 
 // Pantallas: adoptan las primitivas y el orden por importancia.

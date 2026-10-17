@@ -37,7 +37,7 @@
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
 }
-button {
+button:not(:where([data-ui-button])) {
   border-width: 0;
   border-style: solid;
   border-color: rgb(var(--c-ink-600));
@@ -128,10 +128,10 @@ html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
    SVG (el grupo activo quedaba en `--brand-700` sobre el lila, 1.27:1). La
    hoja del sistema fija una sola vez los tonos del riel y del drawer
    (issue #70, QA de marco). */
-:is(.shell,.control-shell)>.desktop-sidebar nav button{color:rgb(255 255 255 / .78)}
-:is(.shell,.control-shell)>.desktop-sidebar nav button.active{background:rgb(255 255 255 / .14);color:#fff}
+:is(.shell,.control-shell)>.desktop-sidebar nav button:not(:where([data-ui-button])){color:rgb(255 255 255 / .78)}
+:is(.shell,.control-shell)>.desktop-sidebar nav button.active:not(:where([data-ui-button])){background:rgb(255 255 255 / .14);color:#fff}
 :is(.shell,.control-shell)>.desktop-sidebar nav button svg{color:currentColor}
-.mobile-sidebar nav button.active{background:rgb(var(--c-fono) / .1);color:rgb(var(--c-fono-light))}
+.mobile-sidebar nav button.active:not(:where([data-ui-button])){background:rgb(var(--c-fono) / .1);color:rgb(var(--c-fono-light))}
 .mobile-sidebar nav button svg{color:currentColor}
 
 /* Reduced motion: el riel, el topbar y el drawer no animan nada. Las reglas
@@ -174,8 +174,8 @@ html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
   outline: none;
 }
 .silent-scroll:focus-visible {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-focus-width) solid var(--focus-ring);
+  outline-offset: var(--ui-focus-offset);
 }
 
 /* ── Convivencia con la base de la librería ─────────────────────────────────
@@ -188,7 +188,7 @@ h1,
 h2,
 h3,
 nav,
-button,
+button:not(:where([data-ui-button])),
 label {
   font-family: inherit;
 }
@@ -208,88 +208,7 @@ body {
   min-height: 0;
 }
 
-/* ── Paleta Scale OS → tokens de la librería (`--c-*`, canales RGB) ─────────
-   Claro (default). Valores tomados de globals.css (brand plum + semánticos). */
-:root {
-  --c-paper: 247 246 248; /* canvas #F7F6F8 */
-  --c-fore: 29 21 32; /* text-strong #1d1520 */
-  --c-ink: 255 255 255; /* surface #FFFFFF */
-  --c-ink-950: 243 240 244; /* surface-sunken #F3F0F4 */
-  --c-ink-900: 251 250 252; /* surface-subtle #FBFAFC */
-  --c-ink-800: 255 255 255; /* surface-raised #FFFFFF */
-  --c-ink-700: 251 250 252; /* superficies suaves de hover */
-  --c-ink-600: 232 227 234; /* line #E8E3EA */
-  --c-ink-500: 217 208 221; /* line-strong #D9D0DD */
-  --c-mute: 98 90 102; /* text-subtle #625a66 */
-  --c-fono: 77 6 91; /* brand-700 #4D065B */
-  --c-fono-dark: 56 2 67; /* interactive-pressed #380243 */
-  --c-fono-light: 143 17 132; /* brand-600 #8F1184 */
-  --c-fono-glow: 77 6 91;
-  --c-ok: 29 122 98; /* success #1D7A62 */
-  --c-bad: 180 59 76; /* danger #B43B4C */
-  --c-warn: 138 98 7; /* warning #8A6207 (AA sobre ámbar suave) */
-  --c-info: 54 93 178; /* info #365DB2 */
-  /* Familia de TEXTO AA para chips/avisos (owncoding-ui #5): el tono base queda
-     para rellenos, puntos y bordes; estos valores se miden ≥4.5:1 sobre los
-     tintes al 15 % de la paleta Scale OS (claro). */
-  --c-ok-text: 17 107 53; /* #116B35 sobre el tinte ok (a11y ronda 13, #124) */
-  --c-warn-text: 126 90 6; /* #7E5A06 sobre el tinte warn */
-  --c-bad-text: 162 44 62; /* #A23042 sobre el tinte bad (el base daba 4.18 en lienzo) */
-  --c-info-text: 54 93 178; /* info #365DB2 */
-  --c-fono-text: 143 17 132; /* brand-600 #8F1184 sobre el tinte de marca */
-  --c-pass-text: 29 122 98; /* success #1D7A62 */
-  /* Borde interactivo de los objetos de la librería (Button outline, IconAction):
-     el mismo valor AA del borde de control del sistema. */
-  --c-interactivo: 155 132 164; /* #9b84a4 (≥3:1 sobre las superficies) */
-  --c-onbrand: 255 255 255; /* texto sobre marca */
-  /* Texto sobre rellenos semánticos llenos (owncoding-ui #13): viaja con el
-     relleno; en claro los tonos ok/bad son oscuros → tinta clara. */
-  --c-on-ok: 255 255 255;
-  --c-on-bad: 255 255 255;
-}
-
-/* Oscuro (mismo contrato que globals.css). */
-html[data-theme="dark"] {
-  --c-paper: 18 18 22; /* canvas #121216 */
-  --c-fore: 245 239 247; /* text #f5eff7 */
-  --c-ink: 27 27 33; /* surface #1b1b21 */
-  --c-ink-950: 14 14 18; /* surface-sunken #0e0e12 */
-  --c-ink-900: 23 23 28; /* canvas-elevated #17171c */
-  --c-ink-800: 39 39 48; /* surface-raised #272730 */
-  --c-ink-700: 33 33 40; /* surface-subtle #212128 */
-  --c-ink-600: 62 62 76; /* line #3e3e4c */
-  --c-ink-500: 90 90 108; /* line-strong #5a5a6c */
-  --c-mute: 177 170 182; /* text-muted #b1aab6 (4.65:1 sobre ink-600: chips neutros AA) */
-  --c-fono: 192 107 208; /* brand-700 #c06bd0 */
-  --c-fono-dark: 160 79 175; /* brand-600 #a04faf */
-  --c-fono-light: 209 138 217; /* interactive-hover #d18ad9 */
-  --c-fono-glow: 192 107 208;
-  --c-ok: 79 181 150; /* success #4fb596 */
-  --c-bad: 224 106 128; /* danger #e06a80 */
-  --c-warn: 224 165 58; /* warning #e0a53a */
-  --c-info: 143 168 232; /* info #8fa8e8 */
-  --c-ok-text: 79 181 150; /* success #4fb596 (5.32:1 sobre el tinte) */
-  --c-warn-text: 224 165 58; /* warning #e0a53a (5.92:1) */
-  --c-bad-text: 232 139 158; /* #E88B9E (5.73:1; el danger base queda en 4.35) */
-  --c-info-text: 143 168 232; /* info #8fa8e8 (5.58:1) */
-  --c-fono-text: 209 138 217; /* #d18ad9 (5.27:1) */
-  --c-pass-text: 79 181 150; /* success #4fb596 */
-  --c-interactivo: 134 116 147; /* #867493 (≥3:1 sobre las superficies oscuras) */
-  --c-onbrand: 29 21 32; /* tinta oscura sobre marca clara */
-  /* En oscuro los rellenos ok/bad son claros → tinta oscura (misma del par de
-     marca); el blanco de la librería daba 2.5:1 sobre el ok de Scale OS. */
-  --c-on-ok: 29 21 32;
-  --c-on-bad: 29 21 32;
-  color-scheme: dark;
-}
-
-/* Borde interactivo en oscuro (WCAG 1.4.11, issue #71): `#5d4b66` quedaba en
-   2.0–2.4:1 contra las superficies (campos, `.secondary`, `.icon-button`);
-   `#867493` pasa ≥3:1 en surface/raised/ink-700/canvas. Claro ya usa
-   `#9b84a4` (3.1–3.4:1). */
-html[data-theme="dark"] {
-  --border-interactive: #867493;
-}
+/* Theme roles and the compatible --c-* channel bridge live in ui-tokens.css. */
 
 /* ── Modo Producción del shell ──────────────────────────────────────────────
    Reglas de `app/production-focus.css` (hoja retirada 23-09 y archivo

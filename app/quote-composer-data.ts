@@ -17,7 +17,7 @@ export type QuoteValues=z.infer<typeof quoteSchema>;
 export type QuoteItemDraft={description:string;quantity:string;unitPrice:string};
 
 /** Campos reales que el compositor usa del API para elegir cliente/plan. */
-export type QuoteClientOption={id:string|number;name:string};
+export type QuoteClientOption={id:string|number;name:string;logo_url?:string|null};
 export type QuotePlanRecord={id:string|number;name:string;currency:string;items?:QuoteItemDraft[]|null;notes?:string|null;active?:boolean};
 
 export const SECTION_TYPE_LABELS:Record<QuoteSection['type'],string>={meta:'Cliente y vigencia',items:'Detalle de ítems',totals:'Totales',notes:'Condiciones',text:'Texto personalizado'};

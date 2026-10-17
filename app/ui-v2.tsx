@@ -1,4 +1,8 @@
 'use client';
+import {FieldLabel as Label} from './ui/field';
+import {SegmentedField} from './ui/navigation';
+
+import {OptionsSelect as Select} from './ui/options-select';
 // Primitivas únicas v2 (campaña #41, DESIGN-SYSTEM.md §Sistema v2).
 //
 // Envuelven objetos de `owncoding-ui` para fijar la semántica de Scale OS:
@@ -6,14 +10,16 @@
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge, BarraProgreso, EmptyState, ErrorState, Label, ListGridToggle, MenuDesplegable, SegmentedField, Select, Skeleton, Stat} from 'owncoding-ui';
+import {Badge,BarraProgreso,EmptyState,ErrorState,ListGridToggle,MenuDesplegable,Skeleton,Stat} from 'owncoding-ui';
 import {TabScroller} from './tab-scroller';
 import {ConfirmDialog} from './dialog';
 import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
-import {money} from './operations';
-import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ChangeEvent,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
+import {money} from './money-format';
+import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
 
@@ -175,7 +181,7 @@ export function ViewSwitch({value, onChange, className}: {value: CollectionView;
 export function CurrencyField({id, label, value, onChange, disabled = false, className}: {id: string; label: string; value: string; onChange: (value: string) => void; disabled?: boolean; className?: string}) {
   return <div className={`grid gap-1.5 ${className ?? ''}`}>
     <Label htmlFor={id}>{label}</Label>
-    <Select id={id} value={value} disabled={disabled} onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)} className="max-w-[11rem]">
+    <Select hideLabel label={label} id={id} value={value} disabled={disabled} onChange={(value:string)=>onChange(value)} className="max-w-[11rem]">
       {currencyChoices.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
     </Select>
   </div>;
@@ -353,7 +359,7 @@ export function CompactCard({
 
 /** Acción rápida canónica de una tarjeta compacta (mismo target que el ⋯). */
 export function CompactQuickAction({label, onClick, icon, disabled = false}: {label: string; onClick: () => void; icon: ReactNode; disabled?: boolean}) {
-  return <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-7 md:w-7" title={label} aria-label={label} disabled={disabled} onClick={onClick}>{icon}</button>;
+  return <ScaleIconButton type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-7 md:w-7" title={label} label={label} disabled={disabled} onClick={onClick} icon={<>{icon}</>} variant="ghost" size="compact"></ScaleIconButton>;
 }
 
 /** Carga con esqueleto: anuncia con `role="status"` y no inventa datos. */
@@ -404,7 +410,7 @@ export function EmptyBlock({title, description, action, icon, compact = false, c
  * (mismo objeto, mismo target de 44 px en móvil y mismo texto sobre marca).
  */
 export function EmptyCta({label, onClick, icon, className}: {label: string; onClick: () => void; icon?: ReactNode; className?: string}) {
-  return <button type="button" className={`primary ${className ?? ''}`} onClick={onClick}>{icon}{label}</button>;
+  return <ScaleButton type="button" className={`primary ${className ?? ''}`} onClick={onClick} variant="primary">{icon}{label}</ScaleButton>;
 }
 
 /**
@@ -419,7 +425,7 @@ export function EmptyCompact({message, action, onDismiss, dismissLabel = 'Oculta
     {icon ? <span className="shrink-0 text-mute" aria-hidden="true">{icon}</span> : null}
     <p className="min-w-0 flex-1">{message}</p>
     {action ? <span className="shrink-0">{action}</span> : null}
-    {onDismiss ? <button type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-8 md:w-8" title={dismissLabel} aria-label={dismissLabel} onClick={onDismiss}><X size={15} aria-hidden="true"/></button> : null}
+    {onDismiss ? <ScaleIconButton type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fono md:h-8 md:w-8" title={dismissLabel} label={dismissLabel} onClick={onDismiss} icon={<><X size={15} aria-hidden="true"/></>} variant="ghost" size="compact"></ScaleIconButton> : null}
   </div>;
 }
 
@@ -481,9 +487,9 @@ export function BulkBar({count, total, label = 'seleccionado', children, onSelec
   return <div role="status" aria-live="polite" data-bulk-bar className={`bulk-bar ${sticky ? 'bulk-bar-sticky' : ''} ${className ?? ''}`}>
     <span className="bulk-count"><b>{count}</b>{total !== undefined ? <> de {total}</> : null} {label}{count === 1 ? '' : 's'}</span>
     <div className="inline-actions bulk-actions">
-      {onSelectVisible && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</button>}
+      {onSelectVisible && <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible} variant="ghost">{selectVisibleLabel}</ScaleButton>}
       {children}
-      {onClear && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear}>Limpiar</button>}
+      {onClear && <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear} variant="ghost">Limpiar</ScaleButton>}
     </div>
   </div>;
 }

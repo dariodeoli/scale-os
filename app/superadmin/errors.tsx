@@ -1,11 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 // «Errores» del panel global: errores del API y de la web agrupados por huella
 // (mensaje normalizado + primer frame). Lista densa v2 (Mensaje · Origen · Ruta
 // · Ocurrencias · Última vez · Estado · Acciones) con tarjetas cuando no entra,
 // filtros por estado y origen (en el API) y detalle con el stack de muestra.
 // La muestra ya llega limpia de PII desde el API; acá solo se muestra.
 import {Fragment, useEffect, useRef, useState} from "react";
-import {Select} from "owncoding-ui";
+
 import {listDateFull} from "../list-format";
 import {Dialog} from "../dialog";
 import {notify} from "../feedback";
@@ -15,6 +16,8 @@ import {formatPlatformMetric, type ErrorCounts, type ErrorGroup, type ErrorPage,
 import {PlatformMore} from "./states";
 import {EdgeAwareMenu} from "./edge-menu";
 import {MetricNote} from "./metric-kpi";
+import {Button as ScaleButton} from "../ui/button";
+
 
 export const ERROR_STATUS: Record<ErrorStatus, {label: string; plural: string; tone: "bad" | "ok" | "mute"}> = {
   new: {label: "Nuevo", plural: "Nuevos", tone: "bad"},
@@ -125,7 +128,7 @@ export function PlatformErrors({writable, onError, onCounts, initialData}: Props
     ...(writable && group.status !== "new" ? [{id: "reopen", label: "Reabrir como nuevo", icono: "refresh", onClick: () => void patch(group, "new", "Error reabierto.")}] : []),
   ];
   const actions = (group: ErrorGroup) => <>
-    <button type="button" className="text-button platform-admin-inline-action" onClick={() => void openDetail(group)}>Ver detalle</button>
+    <ScaleButton type="button" className="text-button platform-admin-inline-action" onClick={() => void openDetail(group)} variant="ghost">Ver detalle</ScaleButton>
     <EdgeAwareMenu><ActionMenu label={`Acciones del error: ${group.message.slice(0, 60)}`} items={items(group).filter((item) => item.id !== "detail")}/></EdgeAwareMenu>
   </>;
   const chip = (group: ErrorGroup) => <StateChip tone={ERROR_STATUS[group.status]?.tone ?? "mute"} title={group.resolved_at ? `${ERROR_STATUS[group.status]?.label} · ${listDateFull(group.resolved_at)}${group.resolved_by_email ? ` · ${group.resolved_by_email}` : ""}` : undefined}>{ERROR_STATUS[group.status]?.label ?? group.status}</StateChip>;
@@ -146,19 +149,19 @@ export function PlatformErrors({writable, onError, onCounts, initialData}: Props
     <FilterToolbar summary={data ? `${formatPlatformMetric(list.length)} de ${formatPlatformMetric(data.total)}` : undefined}>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Estado
-        <Select aria-label="Filtrar errores por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value as ErrorStatus | "")} className="min-w-[11rem]">
+        <Select hideLabel label="Filtrar errores por estado" value={status} onChange={(value:string)=>setStatus(value as ErrorStatus | "")} className="min-w-[11rem]">
           <option value="">Todos{counts ? ` (${formatPlatformMetric(counts.new + counts.resolved + counts.ignored)})` : ""}</option>
           {(Object.keys(ERROR_STATUS) as ErrorStatus[]).map((key) => <option key={key} value={key}>{ERROR_STATUS[key].plural}{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>
       </label>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Origen
-        <Select aria-label="Filtrar errores por origen" value={source} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSource(event.target.value as ErrorSource | "")} className="min-w-[9rem]">
+        <Select hideLabel label="Filtrar errores por origen" value={source} onChange={(value:string)=>setSource(value as ErrorSource | "")} className="min-w-[9rem]">
           <option value="">API y web</option>
           {(Object.keys(ERROR_SOURCE) as ErrorSource[]).map((key) => <option key={key} value={key}>{ERROR_SOURCE[key]}</option>)}
         </Select>
       </label>
-      {status || source ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => { setStatus(""); setSource(""); }}>Limpiar filtros</button> : null}
+      {status || source ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => { setStatus(""); setSource(""); }} variant="ghost">Limpiar filtros</ScaleButton> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar los errores" description={error} onRetry={() => void load()}/>
@@ -218,9 +221,9 @@ export function ErrorDetailDialog({group, error, writable, busy, onClose, onStat
           : <p className="form-note">Sin stack: el error llegó solo con el mensaje.</p>}
       </div>
       {writable ? <div className="inline-actions">
-        {group.status !== "resolved" ? <button type="button" className="primary" disabled={busy} onClick={() => onStatus("resolved", "Error marcado como resuelto.")}>Marcar resuelto</button> : null}
-        {group.status !== "ignored" ? <button type="button" className="secondary" disabled={busy} onClick={() => onStatus("ignored", "Error ignorado.")}>Ignorar</button> : null}
-        {group.status !== "new" ? <button type="button" className="secondary" disabled={busy} onClick={() => onStatus("new", "Error reabierto.")}>Reabrir</button> : null}
+        {group.status !== "resolved" ? <ScaleButton type="button" className="primary" disabled={busy} onClick={() => onStatus("resolved", "Error marcado como resuelto.")} variant="primary">Marcar resuelto</ScaleButton> : null}
+        {group.status !== "ignored" ? <ScaleButton type="button" className="secondary" disabled={busy} onClick={() => onStatus("ignored", "Error ignorado.")} variant="secondary">Ignorar</ScaleButton> : null}
+        {group.status !== "new" ? <ScaleButton type="button" className="secondary" disabled={busy} onClick={() => onStatus("new", "Error reabierto.")} variant="secondary">Reabrir</ScaleButton> : null}
       </div> : null}
     </div>
   </Dialog>;
@@ -241,7 +244,7 @@ export function ErrorsKpi({onError, onGoTo}: {onError?: (cause: unknown) => bool
     return () => { active = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const hint = <span className="platform-kpi-hint">
-    {onGoTo ? <button type="button" className="text-button platform-kpi-delta" onClick={() => onGoTo("errores")}>{last24h ? `${formatPlatformMetric(last24h.new_groups)} nuevos · ver errores` : "Ver errores"}</button>
+    {onGoTo ? <ScaleButton type="button" className="text-button platform-kpi-delta" onClick={() => onGoTo("errores")} variant="ghost">{last24h ? `${formatPlatformMetric(last24h.new_groups)} nuevos · ver errores` : "Ver errores"}</ScaleButton>
       : <span className="platform-kpi-delta">{last24h ? `${formatPlatformMetric(last24h.new_groups)} nuevos` : "—"}</span>}
     <MetricNote source="Errores agrupados" calc="grupos con actividad en 24 h, API y web"/>
   </span>;

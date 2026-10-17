@@ -8,6 +8,7 @@ import pg from 'pg';
 import { operations } from './operations.js';
 import { agencyMedia } from './agency-media.js';
 import { agencyCore } from './agency-core.js';
+import {clientMatches} from './client-matches.js';
 import { suite } from './agency-suite.js';
 import { passwordAccess, throttle } from './password-access.js';
 import {throttleClient} from './request-guard.js';
@@ -442,6 +443,7 @@ const server = http.createServer(async (req,res) => {
     if(await automationApi({req,res,url,db,session,body,send}))return;
     if(await studioReservations({req,res,url,db,session,body,send}))return;
     if(await pipelineStages({req,res,url,db,session,body,send}))return;
+    if(await clientMatches({req,res,url,db,session,body,send}))return;
     if(await suite({req,res,url,db,session,body,send,sendInvitation,sendAccessGranted}))return;
     if (await operations({req,res,url,db,session,body,send,sendInvitation})) return;
     if (url.pathname === '/' && req.method === 'GET') {

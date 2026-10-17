@@ -1,4 +1,5 @@
 "use client";
+import {OptionsSelect as Select} from './ui/options-select';
 import {useEffect,useState,type ReactNode} from 'react';
 import {BadgeCheck,CircleX,Download,Landmark,Plus,RefreshCw,ShieldCheck,ShieldOff} from 'lucide-react';
 import {api,Dialog,Editor,type Field} from './operations';
@@ -7,6 +8,8 @@ import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListActions,ListGrid,ListRow,LoadingB
 import {roleCan} from './capabilities';
 import {notify} from './feedback';
 import type {User} from './workspace-types';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 // Protección de datos (Ley 7593/2025, scale-os#112): cola de solicitudes de
 // titulares con SLA ≤30 días, consentimientos verificables y retención declarada.
@@ -166,16 +169,16 @@ export function PrivacyPanel({user}:{user:User|null}){
   <Section title="Solicitudes de titulares (Ley 7593/2025)"
    action={<div className="flex flex-wrap items-center gap-2">
     <label className="flex items-center gap-2 text-[11.5px] text-mute">Ver
-     <select className="h-8 rounded-lg border border-ink-500 bg-ink-900 px-2 text-[12px] text-fore" value={filter} onChange={event=>setFilter(event.target.value)} aria-label="Filtrar solicitudes por estado">
+     <Select hideLabel className="h-8 rounded-lg border border-ink-500 bg-ink-900 px-2 text-[12px] text-fore" value={filter} onChange={(value:string)=>setFilter(value)} label="Filtrar solicitudes por estado">
       <option value="open">Abiertas</option><option value="all">Todas</option><option value="resolved">Resueltas</option><option value="rejected">Rechazadas</option>
-     </select>
+     </Select>
     </label>
-    <button type="button" className="secondary" disabled={busy} onClick={()=>setReloadKey(value=>value+1)} title="Actualizar la cola" aria-label="Actualizar la cola"><RefreshCw size={15}/>Actualizar</button>
-    <button type="button" className="primary" disabled={busy} onClick={()=>setCreating(true)}><Plus size={15}/>Nueva solicitud</button>
+    <ScaleButton type="button" className="secondary" disabled={busy} onClick={()=>setReloadKey(value=>value+1)} title="Actualizar la cola" aria-label="Actualizar la cola" variant="secondary"><RefreshCw size={15}/>Actualizar</ScaleButton>
+    <ScaleButton type="button" className="primary" disabled={busy} onClick={()=>setCreating(true)} variant="primary"><Plus size={15}/>Nueva solicitud</ScaleButton>
    </div>}>
    <p className="mb-3 flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/><span className="min-w-0">La respuesta a cada derecho es gratuita y vence a los 30 días naturales. Cada acción queda en la bitácora de datos personales.{queue?<> Aviso vigente: <b className="text-fore">{queue.notice.version}</b> · <a className="text-fono underline-offset-2 hover:underline" href={queue.notice.url} target="_blank" rel="noreferrer">Política de privacidad</a></>:null}</span></p>
    {error?<ErrorBlock title="No pudimos completar la gestión" description={error} onRetry={()=>void load()}/>:null}
-   {loading&&!queue?<LoadingBlock label="Cargando la cola…" lines={4}/>:!queue?<EmptyBlock title="Sin datos de la cola" description="El API no devolvió solicitudes de titulares." action={<button type="button" className="secondary" onClick={()=>setReloadKey(value=>value+1)}>Reintentar</button>}/>:<>
+   {loading&&!queue?<LoadingBlock label="Cargando la cola…" lines={4}/>:!queue?<EmptyBlock title="Sin datos de la cola" description="El API no devolvió solicitudes de titulares." action={<ScaleButton type="button" className="secondary" onClick={()=>setReloadKey(value=>value+1)} variant="secondary">Reintentar</ScaleButton>}/>:<>
     <KpiStrip className="mb-4">
      <Kpi label="Abiertas" valor={open} hint="Dentro del plazo de 30 días" destacado/>
      <Kpi label="Vencidas" valor={Number(counts.overdue||0)} hint="Deben resolverse ya"/>
@@ -193,10 +196,10 @@ export function PrivacyPanel({user}:{user:User|null}){
       <div className="min-w-0 whitespace-nowrap text-[12px] tabular-nums text-mute" title={`Recibida el ${listDateFull(request.received_at)||''}${request.resolved_at?` · Resuelta el ${listDateFull(request.resolved_at)||''}`:''}`} data-tone={!['resolved','rejected','cancelled'].includes(request.status)&&dueTone(request.due_at,3)?'warn':undefined}>{slaLabel(request)}<small className="mt-0.5 block text-[10.5px]">Recibida {listDateShort(request.received_at)}</small></div>
       <ListActions>
        {request.subject_kind!=='other'&&request.subject_id?<a className="icon-button" href={`/core-api/api/privacy/requests/${request.id}/export`} target="_blank" rel="noreferrer" title="Descargar copia del titular" aria-label={`Descargar copia del titular de la solicitud #${request.id}`}><Download size={16}/></a>:null}
-       {request.status==='received'?<button type="button" className="icon-button" disabled={busy} title="Verificar identidad" aria-label={`Verificar identidad de la solicitud #${request.id}`} onClick={()=>void mutate(`/api/privacy/requests/${request.id}`,{action:'verify'},'PATCH','Identidad verificada.')}><BadgeCheck size={16}/></button>:null}
+       {request.status==='received'?<ScaleIconButton type="button" className="icon-button" disabled={busy} title="Verificar identidad" label={`Verificar identidad de la solicitud #${request.id}`} onClick={()=>void mutate(`/api/privacy/requests/${request.id}`,{action:'verify'},'PATCH','Identidad verificada.')} icon={<><BadgeCheck size={16}/></>} variant="ghost" size="compact"></ScaleIconButton>:null}
        {['received','identity_verified','in_review'].includes(request.status)?<>
-        <button type="button" className="text-button" disabled={busy} onClick={()=>setResolving(request)}><ShieldCheck size={15}/>Resolver</button>
-        <button type="button" className="icon-button" disabled={busy} title="Rechazar con motivo" aria-label={`Rechazar la solicitud #${request.id}`} onClick={()=>setRejecting(request)}><CircleX size={16}/></button>
+        <ScaleButton type="button" className="text-button" disabled={busy} onClick={()=>setResolving(request)} variant="ghost"><ShieldCheck size={15}/>Resolver</ScaleButton>
+        <ScaleIconButton type="button" className="icon-button" disabled={busy} title="Rechazar con motivo" label={`Rechazar la solicitud #${request.id}`} onClick={()=>setRejecting(request)} icon={<><CircleX size={16}/></>} variant="ghost" size="compact"></ScaleIconButton>
        </>:null}
       </ListActions>
      </ListRow>)}
@@ -212,7 +215,7 @@ export function PrivacyPanel({user}:{user:User|null}){
      <span className="truncate text-[11.5px] text-mute" title={`${row.notice_version} · ${basisLabel(row.basis)}`}>{row.notice_version}<small className="block text-[10.5px]">{basisLabel(row.basis)}</small></span>
      <span className="truncate text-[11.5px] text-mute" title={row.source}>{row.source}</span>
      <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{listDateShort(row.granted_at)||'—'}</span>
-     <div className="flex items-center justify-end"><button type="button" className="text-button" disabled={busy} title="Revocar este consentimiento" aria-label={`Revocar el consentimiento de ${purposeLabel(row.purpose)} de ${kindLabel(row.subject_kind)} #${row.subject_id}`} onClick={()=>void revokeConsent(row)}><ShieldOff size={15}/>Revocar</button></div>
+     <div className="flex items-center justify-end"><ScaleButton type="button" className="text-button" disabled={busy} title="Revocar este consentimiento" aria-label={`Revocar el consentimiento de ${purposeLabel(row.purpose)} de ${kindLabel(row.subject_kind)} #${row.subject_id}`} onClick={()=>void revokeConsent(row)} variant="ghost"><ShieldOff size={15}/>Revocar</ScaleButton></div>
     </ListRow>)}
    </ListGrid>:<EmptyBlock compact title="Sin consentimientos vigentes" description="Los consentimientos capturados en registro, invitaciones, CRM, landing y portal aparecen acá."/>}
   </Section>

@@ -1,0 +1,1338 @@
+{
+  "source": "2bda8178",
+  "checks": [
+    {
+      "name": "date America/Asuncion: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "date Asia/Tokyo: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "date: main ref reaches text input",
+      "passed": true
+    },
+    {
+      "name": "date: partial raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "partial after rerender",
+        "value": "2026-02-",
+        "type": "text",
+        "model": "2026-02-",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 9,
+        "lastEvents": [
+          {
+            "value": "2026-02",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-02-",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": null
+      }
+    },
+    {
+      "name": "date: partial cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "partial submit",
+        "value": "2026-02-",
+        "type": "text",
+        "model": "2026-02-",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 9,
+        "lastEvents": [
+          {
+            "value": "2026-02",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-02-",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-02-",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "date: impossible raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "impossible after rerender",
+        "value": "2026-02-31",
+        "type": "text",
+        "model": "2026-02-31",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 20,
+        "lastEvents": [
+          {
+            "value": "2026-02-3",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-02-31",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-02-",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "date: impossible cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "impossible submit",
+        "value": "2026-02-31",
+        "type": "text",
+        "model": "2026-02-31",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 20,
+        "lastEvents": [
+          {
+            "value": "2026-02-3",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-02-31",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-02-31",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "date: picker Cancel preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "date: picker Escape preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "date: incomplete staged picker cannot Apply",
+      "passed": true
+    },
+    {
+      "name": "date: invalid staged draft never replaces main value",
+      "passed": true
+    },
+    {
+      "name": "date: staged Apply commits a new valid civil value",
+      "passed": true,
+      "detail": {
+        "stage": "Apply",
+        "value": "2026-11-17",
+        "type": "text",
+        "model": "2026-11-17",
+        "badInput": false,
+        "valid": true,
+        "customError": false,
+        "eventCount": 32,
+        "lastEvents": [
+          {
+            "value": "2026-10-17",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-11-17",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": false
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-02-31",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "date: Apply callback has actual DOM target and native Event",
+      "passed": true,
+      "detail": {
+        "value": "2026-11-17",
+        "targetIsInput": true,
+        "nativeEvent": true,
+        "isTrusted": false
+      }
+    },
+    {
+      "name": "date: intentional complete clear remains supported",
+      "passed": true
+    },
+    {
+      "name": "date: pending disables main and icon",
+      "passed": true
+    },
+    {
+      "name": "date: disabled prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "date: readOnly prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "date: min range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "2026-10-17",
+        "type": "text",
+        "model": "2026-10-17",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "2026-10-17",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "date: max range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "2026-10-17",
+        "type": "text",
+        "model": "2026-10-17",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "2026-10-17",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "time America/Asuncion: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "time Asia/Tokyo: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "time: main ref reaches text input",
+      "passed": true
+    },
+    {
+      "name": "time: partial raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "partial after rerender",
+        "value": "13:",
+        "type": "text",
+        "model": "13:",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 4,
+        "lastEvents": [
+          {
+            "value": "13",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "13:",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": null
+      }
+    },
+    {
+      "name": "time: partial cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "partial submit",
+        "value": "13:",
+        "type": "text",
+        "model": "13:",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 4,
+        "lastEvents": [
+          {
+            "value": "13",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "13:",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "13:",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "time: impossible raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "impossible after rerender",
+        "value": "25:70",
+        "type": "text",
+        "model": "25:70",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 10,
+        "lastEvents": [
+          {
+            "value": "25:7",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "25:70",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "13:",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "time: impossible cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "impossible submit",
+        "value": "25:70",
+        "type": "text",
+        "model": "25:70",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 10,
+        "lastEvents": [
+          {
+            "value": "25:7",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "25:70",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "25:70",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "time: picker Cancel preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "time: picker Escape preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "time: incomplete staged picker cannot Apply",
+      "passed": true
+    },
+    {
+      "name": "time: invalid staged draft never replaces main value",
+      "passed": true
+    },
+    {
+      "name": "time: staged Apply commits a new valid civil value",
+      "passed": true,
+      "detail": {
+        "stage": "Apply",
+        "value": "23:59",
+        "type": "text",
+        "model": "23:59",
+        "badInput": false,
+        "valid": true,
+        "customError": false,
+        "eventCount": 17,
+        "lastEvents": [
+          {
+            "value": "13:45",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "23:59",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": false
+          }
+        ],
+        "lastAttempt": {
+          "value": "25:70",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "time: Apply callback has actual DOM target and native Event",
+      "passed": true,
+      "detail": {
+        "value": "23:59",
+        "targetIsInput": true,
+        "nativeEvent": true,
+        "isTrusted": false
+      }
+    },
+    {
+      "name": "time: intentional complete clear remains supported",
+      "passed": true
+    },
+    {
+      "name": "time: pending disables main and icon",
+      "passed": true
+    },
+    {
+      "name": "time: disabled prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "time: readOnly prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "time: min range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "13:45",
+        "type": "text",
+        "model": "13:45",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "13:45",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "time: max range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "13:45",
+        "type": "text",
+        "model": "13:45",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "13:45",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "datetime America/Asuncion: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "datetime Asia/Tokyo: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "datetime: main ref reaches text input",
+      "passed": true
+    },
+    {
+      "name": "datetime: partial raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "partial after rerender",
+        "value": "2026-10-17T13:",
+        "type": "text",
+        "model": "2026-10-17T13:",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 15,
+        "lastEvents": [
+          {
+            "value": "2026-10-17T13",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-10-17T13:",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": null
+      }
+    },
+    {
+      "name": "datetime: partial cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "partial submit",
+        "value": "2026-10-17T13:",
+        "type": "text",
+        "model": "2026-10-17T13:",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 15,
+        "lastEvents": [
+          {
+            "value": "2026-10-17T13",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-10-17T13:",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-10-17T13:",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "datetime: impossible raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "impossible after rerender",
+        "value": "2026-02-31T13:45",
+        "type": "text",
+        "model": "2026-02-31T13:45",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 32,
+        "lastEvents": [
+          {
+            "value": "2026-02-31T13:4",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-02-31T13:45",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-10-17T13:",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "datetime: impossible cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "impossible submit",
+        "value": "2026-02-31T13:45",
+        "type": "text",
+        "model": "2026-02-31T13:45",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 32,
+        "lastEvents": [
+          {
+            "value": "2026-02-31T13:4",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-02-31T13:45",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-02-31T13:45",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "datetime: picker Cancel preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "datetime: picker Escape preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "datetime: incomplete staged picker cannot Apply",
+      "passed": true
+    },
+    {
+      "name": "datetime: invalid staged draft never replaces main value",
+      "passed": true
+    },
+    {
+      "name": "datetime: staged Apply commits a new valid civil value",
+      "passed": true,
+      "detail": {
+        "stage": "Apply",
+        "value": "2026-11-17T13:45",
+        "type": "text",
+        "model": "2026-11-17T13:45",
+        "badInput": false,
+        "valid": true,
+        "customError": false,
+        "eventCount": 50,
+        "lastEvents": [
+          {
+            "value": "2026-10-17T13:45",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-11-17T13:45",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": false
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-02-31T13:45",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "datetime: Apply callback has actual DOM target and native Event",
+      "passed": true,
+      "detail": {
+        "value": "2026-11-17T13:45",
+        "targetIsInput": true,
+        "nativeEvent": true,
+        "isTrusted": false
+      }
+    },
+    {
+      "name": "datetime: intentional complete clear remains supported",
+      "passed": true
+    },
+    {
+      "name": "datetime: pending disables main and icon",
+      "passed": true
+    },
+    {
+      "name": "datetime: disabled prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "datetime: readOnly prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "datetime: min range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "2026-10-17T13:45",
+        "type": "text",
+        "model": "2026-10-17T13:45",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "2026-10-17T13:45",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "datetime: max range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "2026-10-17T13:45",
+        "type": "text",
+        "model": "2026-10-17T13:45",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "2026-10-17T13:45",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "month America/Asuncion: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "month Asia/Tokyo: civil ISO unchanged",
+      "passed": true
+    },
+    {
+      "name": "month: main ref reaches text input",
+      "passed": true
+    },
+    {
+      "name": "month: partial raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "partial after rerender",
+        "value": "2026-",
+        "type": "text",
+        "model": "2026-",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 6,
+        "lastEvents": [
+          {
+            "value": "2026",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": null
+      }
+    },
+    {
+      "name": "month: partial cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "partial submit",
+        "value": "2026-",
+        "type": "text",
+        "model": "2026-",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 6,
+        "lastEvents": [
+          {
+            "value": "2026",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "month: impossible raw survives other field",
+      "passed": true,
+      "detail": {
+        "stage": "impossible after rerender",
+        "value": "2026-13",
+        "type": "text",
+        "model": "2026-13",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 14,
+        "lastEvents": [
+          {
+            "value": "2026-1",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-13",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "month: impossible cannot submit as optional empty",
+      "passed": true,
+      "detail": {
+        "stage": "impossible submit",
+        "value": "2026-13",
+        "type": "text",
+        "model": "2026-13",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 14,
+        "lastEvents": [
+          {
+            "value": "2026-1",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-13",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-13",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "month: picker Cancel preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "month: picker Escape preserves impossible raw",
+      "passed": true
+    },
+    {
+      "name": "month: incomplete staged picker cannot Apply",
+      "passed": true
+    },
+    {
+      "name": "month: invalid staged draft never replaces main value",
+      "passed": true
+    },
+    {
+      "name": "month: staged Apply commits a new valid civil value",
+      "passed": true,
+      "detail": {
+        "stage": "Apply",
+        "value": "2026-11",
+        "type": "text",
+        "model": "2026-11",
+        "badInput": false,
+        "valid": true,
+        "customError": false,
+        "eventCount": 23,
+        "lastEvents": [
+          {
+            "value": "2026-10",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": true
+          },
+          {
+            "value": "2026-11",
+            "targetIsInput": true,
+            "nativeEvent": true,
+            "isTrusted": false
+          }
+        ],
+        "lastAttempt": {
+          "value": "2026-13",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "month: Apply callback has actual DOM target and native Event",
+      "passed": true,
+      "detail": {
+        "value": "2026-11",
+        "targetIsInput": true,
+        "nativeEvent": true,
+        "isTrusted": false
+      }
+    },
+    {
+      "name": "month: intentional complete clear remains supported",
+      "passed": true
+    },
+    {
+      "name": "month: pending disables main and icon",
+      "passed": true
+    },
+    {
+      "name": "month: disabled prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "month: readOnly prevents picker editing",
+      "passed": true
+    },
+    {
+      "name": "month: min range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "min",
+        "value": "2026-10",
+        "type": "text",
+        "model": "2026-10",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "2026-10",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "month: max range blocks out-of-range raw submission",
+      "passed": true,
+      "detail": {
+        "stage": "max",
+        "value": "2026-10",
+        "type": "text",
+        "model": "2026-10",
+        "badInput": false,
+        "valid": false,
+        "customError": true,
+        "eventCount": 0,
+        "lastEvents": [],
+        "lastAttempt": {
+          "value": "2026-10",
+          "accepted": false
+        }
+      }
+    },
+    {
+      "name": "Tokyo datetime Apply keeps civil date and 24h time without offset conversion",
+      "passed": true
+    },
+    {
+      "name": "1366 light: no page/dialog overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 520,
+        "ampm": false
+      }
+    },
+    {
+      "name": "1366 light: clock has no AM/PM",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 520,
+        "ampm": false
+      }
+    },
+    {
+      "name": "1366 dark: no page/dialog overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 520,
+        "ampm": false
+      }
+    },
+    {
+      "name": "1366 dark: clock has no AM/PM",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 520,
+        "ampm": false
+      }
+    },
+    {
+      "name": "390 light: no page/dialog overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 390,
+        "ampm": false
+      }
+    },
+    {
+      "name": "390 light: clock has no AM/PM",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 390,
+        "ampm": false
+      }
+    },
+    {
+      "name": "390 dark: no page/dialog overflow",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 390,
+        "ampm": false
+      }
+    },
+    {
+      "name": "390 dark: clock has no AM/PM",
+      "passed": true,
+      "detail": {
+        "overflow": 0,
+        "dialogWidth": 390,
+        "ampm": false
+      }
+    },
+    {
+      "name": "Editor date: partial raw is preserved and never saved empty",
+      "passed": true
+    },
+    {
+      "name": "Editor time: partial raw is preserved and never saved empty",
+      "passed": true
+    },
+    {
+      "name": "No JavaScript page errors",
+      "passed": true
+    },
+    {
+      "name": "No external requests or API writes",
+      "passed": true
+    }
+  ],
+  "observations": [
+    {
+      "kind": "date",
+      "stage": "partial submit",
+      "value": "2026-02-",
+      "type": "text",
+      "model": "2026-02-",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 9,
+      "lastEvents": [
+        {
+          "value": "2026-02",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "2026-02-",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "2026-02-",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "date",
+      "stage": "impossible submit",
+      "value": "2026-02-31",
+      "type": "text",
+      "model": "2026-02-31",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 20,
+      "lastEvents": [
+        {
+          "value": "2026-02-3",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "2026-02-31",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "2026-02-31",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "time",
+      "stage": "partial submit",
+      "value": "13:",
+      "type": "text",
+      "model": "13:",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 4,
+      "lastEvents": [
+        {
+          "value": "13",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "13:",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "13:",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "time",
+      "stage": "impossible submit",
+      "value": "25:70",
+      "type": "text",
+      "model": "25:70",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 10,
+      "lastEvents": [
+        {
+          "value": "25:7",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "25:70",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "25:70",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "datetime",
+      "stage": "partial submit",
+      "value": "2026-10-17T13:",
+      "type": "text",
+      "model": "2026-10-17T13:",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 15,
+      "lastEvents": [
+        {
+          "value": "2026-10-17T13",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "2026-10-17T13:",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "2026-10-17T13:",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "datetime",
+      "stage": "impossible submit",
+      "value": "2026-02-31T13:45",
+      "type": "text",
+      "model": "2026-02-31T13:45",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 32,
+      "lastEvents": [
+        {
+          "value": "2026-02-31T13:4",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "2026-02-31T13:45",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "2026-02-31T13:45",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "month",
+      "stage": "partial submit",
+      "value": "2026-",
+      "type": "text",
+      "model": "2026-",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 6,
+      "lastEvents": [
+        {
+          "value": "2026",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "2026-",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "2026-",
+        "accepted": false
+      }
+    },
+    {
+      "kind": "month",
+      "stage": "impossible submit",
+      "value": "2026-13",
+      "type": "text",
+      "model": "2026-13",
+      "badInput": false,
+      "valid": false,
+      "customError": true,
+      "eventCount": 14,
+      "lastEvents": [
+        {
+          "value": "2026-1",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        },
+        {
+          "value": "2026-13",
+          "targetIsInput": true,
+          "nativeEvent": true,
+          "isTrusted": true
+        }
+      ],
+      "lastAttempt": {
+        "value": "2026-13",
+        "accepted": false
+      }
+    }
+  ],
+  "screenshots": [
+    "evidence/final-1366-light.webp",
+    "evidence/final-1366-dark.webp",
+    "evidence/final-390-light.webp",
+    "evidence/final-390-dark.webp"
+  ],
+  "browserErrors": [],
+  "blockedRequests": [],
+  "method": "Actual keyboard and click. Initial/default values are React fixture props. Component Apply dispatches a programmatic DOM event; recorded as isTrusted:false when present, never described as user typing.",
+  "passed": true,
+  "tracePolicy": "Versioned snapshots retain event counts and final two events; complete local traces were inspected before compaction."
+}

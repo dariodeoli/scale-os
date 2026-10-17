@@ -1,12 +1,22 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField} from './ui/field';
+
+import {InputControl as Input,InputControl} from './ui/input-control';
+import {TextareaBase} from './ui/input';
 import {ActorIdentity} from './actor-identity';
+import {PendingFields} from './ui/form-state';
+import {useFormFocus,FormValidationErrors} from './ui/form-focus';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {SaveActions} from './save-actions';
 import {completeSave} from './save-completion';
-import {useRef,useState,type ChangeEvent,type FormEvent} from 'react';
+import {useState,type ChangeEvent} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
-import {api,Dialog,Editor} from './operations';
+import {api,Dialog,Editor,ApiFieldError} from './operations';
 import {ConfirmDialog} from './dialog';
 import {EmailField} from './email-field';
 import {SelectCustom,AmountInput} from './profile-controls';
@@ -15,10 +25,14 @@ import {listDateShort} from './list-format';
 import {movementValue,matchingMovements,reconciliationPending,transferPreview,type StatementLine} from './treasury-data';
 import {useReconciliation} from './use-reconciliation';
 import {todayAsuncion} from './client-format';
-import {Aviso,Button,Card,EmptyState,ErrorState,FormField,IconAction,Input,Nota,cn,AvisoPrivacidad} from 'owncoding-ui';
+import {cn,AvisoPrivacidad} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
+import {Button} from "./ui/button";
 import {LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_PORTAL_FINALITY} from './privacy-links';
+import {Button as ScaleButton} from "./ui/button";
+
 type Account={id:string;name:string;currency:string;active:boolean};
 type Row={id:string;[key:string]:unknown};
 const str=(r:Row,k:string)=>String(r[k]??'');
@@ -27,36 +41,40 @@ export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void
  const schema=z.object({fromAccountId:z.string().min(1),toAccountId:z.string().min(1),amount:z.string().refine(v=>Number(v)>0),receivedAmount:z.string().refine(v=>Number(v)>0),transferredOn:z.string().min(1),reference:z.string().max(120)});
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{fromAccountId:'',toAccountId:'',amount:'',receivedAmount:'',transferredOn:todayAsuncion(),reference:''}});
  const [requestId]=useState(()=>crypto.randomUUID()),[error,setError]=useState('');const v=form.watch(),from=accounts.find(a=>a.id===v.fromAccountId),to=accounts.find(a=>a.id===v.toAccountId);const transfer=transferPreview({fromCurrency:from?.currency,toCurrency:to?.currency,amount:v.amount,receivedAmount:v.receivedAmount});
- const saving=useRef(false),[savingNow,setSavingNow]=useState(false);
- const pending=form.formState.isSubmitting||savingNow;
- async function submit(event:FormEvent<HTMLFormElement>){
-  event.preventDefault();
-  // Lock before asynchronous validation: a second submit cannot clear RHF's
-  // isSubmitting state or start another write while the first is unresolved.
-  if(saving.current)return;
-  saving.current=true;setSavingNow(true);setError('');
+ const submission=useSingleFlightSubmit(async event=>{
+  setError('');
   try{
    await form.handleSubmit(async values=>{
     if(transfer.mismatch)throw new Error('En la misma moneda, los importes deben coincidir');
     await api('/api/agency/transfers',{...values,requestId});
-    await done();
-   })(event);
-  }catch(e){setError(errorText(e));}
-  finally{saving.current=false;setSavingNow(false);}
- }
- return <form className="grid gap-3 sm:grid-cols-2" noValidate aria-busy={pending} onSubmit={submit}>
+    await completeSave(()=>{},done);
+   },focus.onInvalid)(event);
+  }catch(e){
+   if(e instanceof ApiFieldError){
+    const accepted:Record<string,{message:string}>={};
+    for(const [key,message] of Object.entries(e.fieldErrors))if(key in form.getValues()){
+     form.setError(key as keyof typeof v,{type:'server',message});accepted[key]={message};
+    }
+    focus.onInvalid(accepted);
+   }
+   setError(errorText(e));
+  }
+ });
+ const pending=submission.pending;
+ const focus=useFormFocus(pending);
+ return <form className="grid gap-3 sm:grid-cols-2" noValidate aria-busy={pending} onSubmit={submission.onSubmit} ref={focus.formRef}><PendingFields pending={pending}>
   <Nota tono="neutro" className="sm:col-span-2">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</Nota>
-  <SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value)}/>
-  <SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value)}/>
-  <FormField label={`Sale (${from?.currency||'moneda de origen'})`} htmlFor="transfer-amount"><AmountInput id="transfer-amount" disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value)}/></FormField>
-  <FormField label={`Llega (${to?.currency||'moneda de destino'})`} htmlFor="transfer-received"><AmountInput id="transfer-received" disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value)}/></FormField>
+  <div data-form-field="fromAccountId" className="contents"><SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value,{shouldDirty:true,shouldValidate:true})}/></div>
+  <div data-form-field="toAccountId" className="contents"><SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value,{shouldDirty:true,shouldValidate:true})}/></div>
+  <FormField label={`Sale (${from?.currency||'moneda de origen'})`} htmlFor="transfer-amount"><AmountInput name="amount" id="transfer-amount" disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value,{shouldDirty:true,shouldValidate:true})}/></FormField>
+  <FormField label={`Llega (${to?.currency||'moneda de destino'})`} htmlFor="transfer-received"><AmountInput name="receivedAmount" id="transfer-received" disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value,{shouldDirty:true,shouldValidate:true})}/></FormField>
   <FormField label="Fecha" htmlFor="transfer-date"><Input id="transfer-date" type="date" className="w-40" disabled={pending} {...form.register('transferredOn')}/></FormField>
   <FormField label="Referencia" htmlFor="transfer-reference"><Input id="transfer-reference" maxLength={120} disabled={pending} {...form.register('reference')}/></FormField>
   {from&&to&&Number(v.amount)>0&&Number(v.receivedAmount)>0?<Nota tono="info" className="sm:col-span-2"><span className="inline-flex flex-wrap items-baseline gap-1"><MoneyText valor={v.amount} currency={from.currency}/> → <MoneyText valor={v.receivedAmount} currency={to.currency}/>{transfer.rate!==null?` · Cambio: 1 ${from.currency} = ${new Intl.NumberFormat('es-PY',{maximumFractionDigits:8}).format(transfer.rate)} ${to.currency}`:''}</span></Nota>:null}
   {Object.keys(form.formState.errors).length>0?<Aviso tono="error" className="sm:col-span-2">Elegí ambas cuentas, fecha e importes positivos.</Aviso>:null}
   {error?<Aviso tono="error" className="sm:col-span-2">{error}</Aviso>:null}
-  <SaveActions pending={pending}><Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending?'Guardando…':'Registrar transferencia'}</Button></SaveActions>
- </form>;
+  <FormValidationErrors errors={form.formState.errors}/><SaveActions pending={pending} dirty={form.formState.isDirty}><Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending?'Guardando…':'Registrar transferencia'}</Button></SaveActions>
+ </PendingFields></form>;
 }
 export function ReceiptReversal({payment,refresh}:{payment:{id:string;amount:string;currency:string;reversal_id?:string|null;reversal_reason?:string|null};refresh:()=>Promise<void>}){
  const [open,setOpen]=useState(false),[reason,setReason]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -69,19 +87,19 @@ export function ReceiptReversal({payment,refresh}:{payment:{id:string;amount:str
   catch(cause){setError(cause instanceof Error?cause.message:'No se pudo completar la operación');}
   finally{setBusy(false);}
  };
- return <><button className="text-button warn" onClick={()=>setOpen(true)}><Undo2 size={14}/>Revertir cobro</button>{open&&<ConfirmDialog open variant="danger" title="Revertir cobro" confirmLabel="Revertir cobro" requireText="REVERTIR" busy={busy} error={error} onCancel={()=>{if(!busy)setOpen(false);}} onConfirm={()=>void confirm()} description={<p>Se descontarán <MoneyText valor={payment.amount} currency={payment.currency}/> de la cuenta original y volverá a quedar pendiente en la factura. El cobro y esta corrección permanecerán en el historial.</p>}>
-  <label><span>Motivo</span><textarea name="reason" value={reason} disabled={busy} maxLength={2000} onChange={event=>setReason(event.target.value)}/></label>
+ return <><ScaleButton className="text-button warn" onClick={()=>setOpen(true)} variant="ghost"><Undo2 size={14}/>Revertir cobro</ScaleButton>{open&&<ConfirmDialog open variant="danger" title="Revertir cobro" confirmLabel="Revertir cobro" requireText="REVERTIR" busy={busy} error={error} onCancel={()=>{if(!busy)setOpen(false);}} onConfirm={()=>void confirm()} description={<p>Se descontarán <MoneyText valor={payment.amount} currency={payment.currency}/> de la cuenta original y volverá a quedar pendiente en la factura. El cobro y esta corrección permanecerán en el historial.</p>}>
+  <label><span>Motivo</span><TextareaBase name="reason" value={reason} disabled={busy} maxLength={2000} onChange={event=>setReason(event.target.value)}/></label>
  </ConfirmDialog>}</>;
 }
 export function ClientReviewControl({orderId}:{orderId:string}){
  const [open,setOpen]=useState(false),[rows,setRows]=useState<Row[]>([]),[url,setUrl]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[confirming,setConfirming]=useState('');
  async function load(){setRows((await api<{reviews:Row[]}>(`/api/agency/work-orders/${orderId}/client-review`)).reviews);}
  async function perform(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(e){setError(errorText(e));}finally{setBusy(false);}}
- return <><button className="secondary" onClick={()=>{setOpen(true);setConfirming('');void perform(load);}}>Revisión del cliente</button>{open&&<Dialog title="Compartir pieza para aprobación" close={()=>setOpen(false)}><p className="form-note">Primero completá las aprobaciones internas y agregá el enlace del archivo. El enlace de revisión vence en siete días. No se envía automáticamente.</p><button className="primary" disabled={busy} onClick={()=>void perform(async()=>{const d=await api<{url:string}>(`/api/agency/work-orders/${orderId}/client-review`,{});setUrl(d.url);await load();})}>Crear enlace para esta versión</button>{url&&<p><a href={url} target="_blank" rel="noreferrer">{url}</a></p>}{error&&<p role="alert" className="error">{error}</p>}{busy&&!rows.length?<p role="status">Cargando enlaces de revisión…</p>:null}{!rows.length&&!busy&&<p className="empty-copy">Todavía no hay enlaces de revisión para esta pieza.</p>}{rows.map(r=><article className="ops-card" key={r.id}><h3>{({pending:'Pendiente',approved:'Aprobado',changes:'Cambios solicitados',revoked:'Desactivado'} as Record<string,string>)[str(r,'status')]}</h3><p>Enlace creado por <ActorIdentity name={str(r,'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} timestamp={str(r,'created_at')}/></p>{str(r,'reviewer_name')&&<p>Respuesta del cliente <ActorIdentity name={str(r,'reviewer_name')} timestamp={str(r,'responded_at')}/></p>}<p>{str(r,'feedback')}</p><small>Vence: {listDateShort(str(r,'expires_at'))}</small>{r.status==='pending'&&<><button className="text-button danger" disabled={busy} onClick={()=>setConfirming(String(r.id))}><Link2Off size={14}/>Desactivar enlace</button>{confirming===String(r.id)&&<ConfirmDialog open variant="danger" title="Desactivar enlace" description="¿Desactivar este enlace?" confirmLabel="Confirmar" busy={busy} onCancel={()=>setConfirming('')} onConfirm={()=>void perform(async()=>{await api(`/api/agency/work-orders/${orderId}/client-review/${r.id}/revoke`,{});setUrl('');setConfirming('');await load();})}/>}</>}</article>)}</Dialog>}</>;
+ return <><ScaleButton className="secondary" onClick={()=>{setOpen(true);setConfirming('');void perform(load);}} variant="secondary">Revisión del cliente</ScaleButton>{open&&<Dialog title="Compartir pieza para aprobación" close={()=>setOpen(false)}><p className="form-note">Primero completá las aprobaciones internas y agregá el enlace del archivo. El enlace de revisión vence en siete días. No se envía automáticamente.</p><ScaleButton className="primary" disabled={busy} onClick={()=>void perform(async()=>{const d=await api<{url:string}>(`/api/agency/work-orders/${orderId}/client-review`,{});setUrl(d.url);await load();})} variant="primary">Crear enlace para esta versión</ScaleButton>{url&&<p><a href={url} target="_blank" rel="noreferrer">{url}</a></p>}{error&&<p role="alert" className="error">{error}</p>}{busy&&!rows.length?<p role="status">Cargando enlaces de revisión…</p>:null}{!rows.length&&!busy&&<p className="empty-copy">Todavía no hay enlaces de revisión para esta pieza.</p>}{rows.map(r=><article className="ops-card" key={r.id}><h3>{({pending:'Pendiente',approved:'Aprobado',changes:'Cambios solicitados',revoked:'Desactivado'} as Record<string,string>)[str(r,'status')]}</h3><p>Enlace creado por <ActorIdentity name={str(r,'actor_name')} photoUrl={str(r,'actor_photo_url')} verified={r.actor_verified===true} timestamp={str(r,'created_at')}/></p>{str(r,'reviewer_name')&&<p>Respuesta del cliente <ActorIdentity name={str(r,'reviewer_name')} timestamp={str(r,'responded_at')}/></p>}<p>{str(r,'feedback')}</p><small>Vence: {listDateShort(str(r,'expires_at'))}</small>{r.status==='pending'&&<><ScaleButton className="text-button danger" disabled={busy} onClick={()=>setConfirming(String(r.id))} variant="ghost" color="danger"><Link2Off size={14}/>Desactivar enlace</ScaleButton>{confirming===String(r.id)&&<ConfirmDialog open variant="danger" title="Desactivar enlace" description="¿Desactivar este enlace?" confirmLabel="Confirmar" busy={busy} onCancel={()=>setConfirming('')} onConfirm={()=>void perform(async()=>{await api(`/api/agency/work-orders/${orderId}/client-review/${r.id}/revoke`,{});setUrl('');setConfirming('');await load();})}/>}</>}</article>)}</Dialog>}</>;
 }
 export function ClientReviewPreview({title,assetUrl}:{title:string;assetUrl?:string|null}){
  const [open,setOpen]=useState(false);
- return <><button className="secondary" type="button" onClick={()=>setOpen(true)}><Eye size={14}/>Ver como cliente</button>{open&&<Dialog title="Vista previa del cliente" close={()=>setOpen(false)}>
+ return <><ScaleButton className="secondary" type="button" onClick={()=>setOpen(true)} variant="secondary"><Eye size={14}/>Ver como cliente</ScaleButton>{open&&<Dialog title="Vista previa del cliente" close={()=>setOpen(false)}>
   <p className="form-note">Así ve el cliente el enlace de revisión. <strong>Vista previa: no realiza acciones</strong>; no se envía nada ni cambia el estado de la pieza.</p>
   <article className="client-review-preview" data-preview="inert" aria-label="Vista previa de la revisión del cliente">
    <p className="review-preview-badge" role="note">Vista previa: no realiza acciones</p>
@@ -89,9 +107,9 @@ export function ClientReviewPreview({title,assetUrl}:{title:string;assetUrl?:str
    <h3>{title}</h3>
    <p>Revisá la pieza y dejá tu respuesta. El archivo se abre en su servicio de origen.</p>
    {assetUrl?<a className="secondary justify-self-start" href={assetUrl} target="_blank" rel="noreferrer">Abrir pieza</a>:<p className="form-note">Esta versión todavía no tiene enlace de archivo. Agregalo en Enlaces para que el cliente pueda abrirla.</p>}
-   <label>Nombre completo<input disabled placeholder="Nombre y apellido" autoComplete="off"/></label>
-   <label>Comentarios o cambios<textarea disabled rows={3} placeholder="Qué te gustaría ajustar"/></label>
-   <div className="inline-actions review-preview-actions"><button className="primary" type="button" disabled aria-disabled="true">Aprobar esta versión</button><button className="secondary" type="button" disabled aria-disabled="true">Solicitar cambios</button></div>
+   <label>Nombre completo<InputControl disabled placeholder="Nombre y apellido" autoComplete="off"/></label>
+   <label>Comentarios o cambios<TextareaBase disabled rows={3} placeholder="Qué te gustaría ajustar"/></label>
+   <div className="inline-actions review-preview-actions"><ScaleButton className="secondary" type="button" disabled aria-disabled="true" variant="secondary" color="neutral">Aprobar esta versión</ScaleButton><ScaleButton className="secondary" type="button" disabled aria-disabled="true" variant="secondary" color="neutral">Solicitar cambios</ScaleButton></div>
    <p className="form-note">El enlace real vence a los siete días. El nombre declarado no equivale a una firma digital verificada.</p>
   </article>
  </Dialog>}</>;
@@ -100,7 +118,7 @@ export function ClientPortalDeliveryControl({orderId,title,assetUrl}:{orderId:st
  const [open,setOpen]=useState(false),[delivery,setDelivery]=useState<Row|null>(null),[loaded,setLoaded]=useState(false),[error,setError]=useState(''),[confirming,setConfirming]=useState(false);
  async function load(){setDelivery((await api<{delivery:Row|null}>(`/api/agency/work-orders/${orderId}/client-portal-delivery`)).delivery);setLoaded(true);}
  function start(){setOpen(true);setDelivery(null);setLoaded(false);setError('');setConfirming(false);void load().catch(e=>setError(errorText(e)));}
- return <><button className="secondary" onClick={start}>Portal del cliente</button>{open&&<Dialog title="Entregable para el portal" close={()=>setOpen(false)}><p className="form-note">Sólo se publica esta pieza aprobada. El cliente ve este enlace y puede comentar, aprobar o pedir cambios; no accede al panel interno.</p>{!loaded?(error?null:<p role="status">Cargando entregable…</p>):delivery?.visible?<><p className="success">Publicado · versión {str(delivery,'version')}</p><button className="text-button danger" onClick={()=>setConfirming(true)}><Link2Off size={14}/>Quitar del portal</button>{confirming&&<ConfirmDialog open variant="danger" title="Quitar del portal" description="¿Quitar esta pieza del portal?" confirmLabel="Confirmar" error={error} onCancel={()=>setConfirming(false)} onConfirm={async()=>{try{await api(`/api/agency/work-orders/${orderId}/client-portal-delivery`,{visible:false},'PATCH');setConfirming(false);await load();}catch(e){setError(errorText(e));}}}/>}</>:<Editor fields={[{key:'title',label:'Título'},{key:'summary',label:'Contexto para el cliente',type:'textarea',optional:true},{key:'assetName',label:'Nombre del enlace'},{key:'assetUrl',label:'Enlace HTTPS del archivo',type:'url'}]} defaults={{title,summary:'',assetName:'Abrir archivo',assetUrl}} save={async values=>{await api(`/api/agency/work-orders/${orderId}/client-portal-delivery`,values);await load();}}/>}{error&&<p className="error" role="alert">{error}</p>}</Dialog>}</>;
+ return <><ScaleButton className="secondary" onClick={start} variant="secondary">Portal del cliente</ScaleButton>{open&&<Dialog title="Entregable para el portal" close={()=>setOpen(false)}><p className="form-note">Sólo se publica esta pieza aprobada. El cliente ve este enlace y puede comentar, aprobar o pedir cambios; no accede al panel interno.</p>{!loaded?(error?null:<p role="status">Cargando entregable…</p>):delivery?.visible?<><p className="success">Publicado · versión {str(delivery,'version')}</p><ScaleButton className="text-button danger" onClick={()=>setConfirming(true)} variant="ghost" color="danger"><Link2Off size={14}/>Quitar del portal</ScaleButton>{confirming&&<ConfirmDialog open variant="danger" title="Quitar del portal" description="¿Quitar esta pieza del portal?" confirmLabel="Confirmar" error={error} onCancel={()=>setConfirming(false)} onConfirm={async()=>{try{await api(`/api/agency/work-orders/${orderId}/client-portal-delivery`,{visible:false},'PATCH');setConfirming(false);await load();}catch(e){setError(errorText(e));}}}/>}</>:<Editor fields={[{key:'title',label:'Título'},{key:'summary',label:'Contexto para el cliente',type:'textarea',optional:true},{key:'assetName',label:'Nombre del enlace'},{key:'assetUrl',label:'Enlace HTTPS del archivo',type:'url'}]} defaults={{title,summary:'',assetName:'Abrir archivo',assetUrl}} save={async values=>{await api(`/api/agency/work-orders/${orderId}/client-portal-delivery`,values);await load();}}/>}{error&&<p className="error" role="alert">{error}</p>}</Dialog>}</>;
 }
 export function ClientPortalAccess({clientId}:{clientId:string}){
  const [open,setOpen]=useState(false),[email,setEmail]=useState(''),[url,setUrl]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[confirming,setConfirming]=useState(''),[grants,setGrants]=useState<Row[]>([]),[invites,setInvites]=useState<Row[]>([]);
@@ -113,7 +131,7 @@ export function ClientPortalAccess({clientId}:{clientId:string}){
  const active=grants.filter(g=>g.active===true);
  const pendingInvites=invites.filter(invite=>!invite.accepted_at&&!invite.revoked_at);
  const inviteExpired=(invite:Row)=>Boolean(invite.expires_at)&&new Date(String(invite.expires_at)).getTime()<=Date.now();
- return <><button className="secondary" onClick={()=>{setOpen(true);setConfirming('');void perform(load);}}>Acceso del cliente</button>{open&&<Dialog title="Acceso del cliente" close={()=>setOpen(false)}><div className="form-stack"><AvisoPrivacidad finalidad={PRIVACY_PORTAL_FINALITY} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact/><p className="form-note">Generá un enlace personal para el correo elegido. Copialo y envialo sólo a esa persona.</p><label>Correo del cliente<EmailField value={email} onChange={setEmail} disabled={busy}/></label><button className="primary" disabled={!email||busy} onClick={()=>void perform(async()=>{const result=await api<{url:string}>(`/api/agency/clients/${clientId}/client-portal-invites`,{email});setUrl(result.url);setEmail('');await load();})}>Generar invitación</button>{url&&<><p className="success">Invitación creada. Vence en siete días.</p><input aria-label="Enlace de invitación" value={url} readOnly onFocus={event=>event.currentTarget.select()}/><button className="text-button" onClick={()=>void navigator.clipboard?.writeText(url)}><Copy size={14}/>Copiar enlace</button></>}{busy&&!grants.length&&!invites.length?<p role="status">Cargando accesos…</p>:null}{pendingInvites.length>0&&<section aria-label="Invitaciones pendientes"><h3>Invitaciones pendientes</h3>{pendingInvites.map(invite=><article className="ops-card" key={`invite-${String(invite.id)}`}><h3>{str(invite,'email_normalized')}</h3><small>{inviteExpired(invite)?'Vencida':'Pendiente de ingreso'} · vence {listDateShort(str(invite,'expires_at'))}</small>{inviteExpired(invite)?null:<button className="text-button danger" disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/client-portal-invites/${String(invite.id)}/revoke`,{},'POST');await load();})}><Link2Off size={14}/>Revocar invitación</button>}</article>)}</section>}{active.length>0&&active.map(g=><article className="ops-card" key={String(g.id)}><h3>{str(g,'full_name')||str(g,'email')}</h3><p>{str(g,'email')}</p><small>Acceso desde {listDateShort(str(g,'granted_at'))}</small><button className="text-button danger" disabled={busy} onClick={()=>setConfirming(String(g.id))}><Link2Off size={14}/>Revocar acceso</button>{confirming===String(g.id)&&<ConfirmDialog open variant="danger" title="Revocar acceso" description="¿Revocar este acceso?" confirmLabel="Confirmar" busy={busy} error={error} onCancel={()=>setConfirming('')} onConfirm={()=>void perform(async()=>{await api(`/api/agency/clients/${clientId}/portal-access/grants/${String(g.id)}/revoke`,{});setConfirming('');await load();})}/>}</article>)}{!active.length&&!pendingInvites.length&&!busy&&<p className="empty-copy">Todavía no hay accesos activos al portal.</p>}{error&&<p className="error" role="alert">{error}</p>}</div></Dialog>}</>;
+ return <><ScaleButton className="secondary" onClick={()=>{setOpen(true);setConfirming('');void perform(load);}} variant="secondary">Acceso del cliente</ScaleButton>{open&&<Dialog title="Acceso del cliente" close={()=>setOpen(false)}><div className="form-stack"><AvisoPrivacidad finalidad={PRIVACY_PORTAL_FINALITY} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact/><p className="form-note">Generá un enlace personal para el correo elegido. Copialo y envialo sólo a esa persona.</p><label>Correo del cliente<EmailField value={email} onChange={setEmail} disabled={busy}/></label><ScaleButton className="primary" disabled={!email||busy} onClick={()=>void perform(async()=>{const result=await api<{url:string}>(`/api/agency/clients/${clientId}/client-portal-invites`,{email});setUrl(result.url);setEmail('');await load();})} variant="primary">Generar invitación</ScaleButton>{url&&<><p className="success">Invitación creada. Vence en siete días.</p><InputControl aria-label="Enlace de invitación" value={url} readOnly onFocus={event=>event.currentTarget.select()}/><ScaleButton className="text-button" onClick={()=>void navigator.clipboard?.writeText(url)} variant="ghost"><Copy size={14}/>Copiar enlace</ScaleButton></>}{busy&&!grants.length&&!invites.length?<p role="status">Cargando accesos…</p>:null}{pendingInvites.length>0&&<section aria-label="Invitaciones pendientes"><h3>Invitaciones pendientes</h3>{pendingInvites.map(invite=><article className="ops-card" key={`invite-${String(invite.id)}`}><h3>{str(invite,'email_normalized')}</h3><small>{inviteExpired(invite)?'Vencida':'Pendiente de ingreso'} · vence {listDateShort(str(invite,'expires_at'))}</small>{inviteExpired(invite)?null:<ScaleButton className="text-button danger" disabled={busy} onClick={()=>void perform(async()=>{await api(`/api/agency/client-portal-invites/${String(invite.id)}/revoke`,{},'POST');await load();})} variant="ghost" color="danger"><Link2Off size={14}/>Revocar invitación</ScaleButton>}</article>)}</section>}{active.length>0&&active.map(g=><article className="ops-card" key={String(g.id)}><h3>{str(g,'full_name')||str(g,'email')}</h3><p>{str(g,'email')}</p><small>Acceso desde {listDateShort(str(g,'granted_at'))}</small><ScaleButton className="text-button danger" disabled={busy} onClick={()=>setConfirming(String(g.id))} variant="ghost" color="danger"><Link2Off size={14}/>Revocar acceso</ScaleButton>{confirming===String(g.id)&&<ConfirmDialog open variant="danger" title="Revocar acceso" description="¿Revocar este acceso?" confirmLabel="Confirmar" busy={busy} error={error} onCancel={()=>setConfirming('')} onConfirm={()=>void perform(async()=>{await api(`/api/agency/clients/${clientId}/portal-access/grants/${String(g.id)}/revoke`,{});setConfirming('');await load();})}/>}</article>)}{!active.length&&!pendingInvites.length&&!busy&&<p className="empty-copy">Todavía no hay accesos activos al portal.</p>}{error&&<p className="error" role="alert">{error}</p>}</div></Dialog>}</>;
 }
 // Plantilla compartida por el encabezado y las filas del extracto (fila finita,
 // con scroll horizontal silencioso cuando no entra).

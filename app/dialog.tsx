@@ -1,11 +1,14 @@
 "use client";
-import {Children,cloneElement,createContext,isValidElement,useCallback,useContext,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import {InputBase} from './ui/input';
+import {Children,Fragment,cloneElement,createContext,isValidElement,useCallback,useContext,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import type {ButtonHTMLAttributes,ReactNode,RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import {X} from 'lucide-react';
 import {createLayerStack} from './overlay-stack';
 import './dialog.css';
-import {DialogContext,type DialogCloseOptions} from './dialog-context';
+import {DialogContext,useDialogClose,type DialogCloseOptions} from './dialog-context';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 export {useDialogClose,type DialogCloseOptions} from './dialog-context';
 const layers=createLayerStack();
 let originalOverflow='';
@@ -133,7 +136,7 @@ export function Dialog({title,close,children,variant='modal',busy=false,size:req
  const controls=useMemo(()=>({requestClose:contextClose,setPending,setDirty}),[contextClose,setPending,setDirty]);
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
  return createPortal(<div className={`ops-overlay${drawer?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
-  <div className="dialog-heading"><h2 id={heading}>{title}</h2><button className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} aria-label="Cerrar"><X size={18}/></button></div>
+  <div className="dialog-heading"><h2 id={heading}>{title}</h2><ScaleIconButton className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} label="Cerrar" icon={<><X size={18}/></>} variant="ghost" size="compact"></ScaleIconButton></div>
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
   {discardAsked?<OverlayContext.Provider value={ancestry}><ConfirmDialog title="¿Descartar los cambios?" description="Hay datos sin guardar en este formulario. Si cerrás ahora, se pierden." confirmLabel="Descartar cambios" cancelLabel="Seguir editando" variant="danger" onCancel={()=>setDiscardAsked(false)} onConfirm={()=>{setDiscardAsked(false);dirtyForms.current.clear();closeRef.current();}}/></OverlayContext.Provider>:null}
@@ -165,14 +168,17 @@ export function FormActions({children}:{children:ReactNode}){
  // The footer is mounted after the form. Re-check when it becomes available so
  // a dialog that closes and reopens immediately never keeps a stale form target.
  useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(!form){setFormId('');return;}if(!form.id)form.id=id;setFormId(form.id);},[id,footer]);
- const actions=<div className="dialog-actions">{Children.map(children,child=>{
-  if(!isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child)||child.props.form)return child;
-  // Los objetos de la librería (`<Button type="submit">`) también se asocian: sin
-  // el atributo `form`, el portal del pie deja el submit fuera del formulario y el
-  // clic no guarda. Los `<button>` crudos conservan el comportamiento anterior.
-  const associate=child.type==='button'||child.props.type==='submit';
+ function associateActions(nodes:ReactNode):ReactNode{return Children.map(nodes,child=>{
+  if(!isValidElement<ButtonHTMLAttributes<HTMLButtonElement>>(child))return child;
+  if(child.type===Fragment)return cloneElement(child,{},associateActions(child.props.children));
+  if(child.props.form!==undefined)return child;
+  // Only canonical objects have a known native button contract. Preserve omitted
+  // type (native submit) without guessing the DOM rendered by arbitrary wrappers.
+  const canonical=child.type===ScaleButton||child.type===ScaleIconButton;
+  const associate=child.type==='button'||canonical&&(child.props.type===undefined||child.props.type==='submit');
   return associate?cloneElement(child,{form:formId||undefined}):child;
- })}</div>;
+ });}
+ const actions=<div className="dialog-actions">{associateActions(children)}</div>;
  return <><span hidden ref={anchor}/>{footer&&visible?createPortal(actions,footer):actions}</>;
 }
 
@@ -187,6 +193,11 @@ export type ConfirmDialogProps={
  confirmLabel?:string;cancelLabel?:string;variant?:'danger'|'primary';busy?:boolean;error?:string;
  requireText?:string;requireLabel?:string;onCancel:()=>void;onConfirm:()=>void;
 };
+/** Cancel participates in the same draft/pending guard as X, Escape and backdrop. */
+function ConfirmDialogCancel({busy,label}:{busy:boolean;label:string}){
+ const requestClose=useDialogClose();
+ return <ScaleButton type="button" className="secondary" disabled={busy} onClick={()=>requestClose?.()} variant="secondary">{label}</ScaleButton>;
+}
 export function ConfirmDialog({open=true,title,description,children,confirmLabel='Confirmar',cancelLabel='Cancelar',variant='primary',busy=false,error,requireText,requireLabel,onCancel,onConfirm}:ConfirmDialogProps){
  const [typed,setTyped]=useState(''),inputId=useId();
  useEffect(()=>{if(!open)setTyped('');},[open]);
@@ -196,11 +207,11 @@ export function ConfirmDialog({open=true,title,description,children,confirmLabel
   <form className="confirm-dialog" data-variant={variant} noValidate onSubmit={event=>{event.preventDefault();if(!busy&&!blocked)onConfirm();}}>
    {description?<div className="confirm-dialog-body">{description}</div>:null}
    {children}
-   {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><input id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
-   {error?<p className="error form-error-summary" role="alert">{error}</p>:null}
+   {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><InputBase id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
+   {error?<p className="error form-error-summary" role="alert" tabIndex={-1}>{error}</p>:null}
    <FormActions>
-    <button type="button" className="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</button>
-    <button type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked}>{busy?'Procesando…':confirmLabel}</button>
+    <ConfirmDialogCancel busy={busy} label={cancelLabel}/>
+    <ScaleButton type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked} variant={variant==='danger'?'outline':'primary'} color={variant==='danger'?'danger':'brand'}>{busy?'Procesando…':confirmLabel}</ScaleButton>
    </FormActions>
   </form>
  </Dialog>;

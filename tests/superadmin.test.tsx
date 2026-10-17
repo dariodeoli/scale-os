@@ -1,6 +1,8 @@
+import {actionElements} from './helpers/action-source';
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import ts from "typescript";
 
 // Fuente concatenada del panel global (issue #46): la pantalla se descompuso en
 // page + model (tipos y helpers) + states + audit, y los contratos siguen valiendo.
@@ -55,10 +57,10 @@ test("superadmin hides every mutation control from a viewer and keeps the panel 
   assert.match(page, /\{writable && subscriptionAgency \? \(/);
   assert.match(page, /\{confirming && writable && \(/);
   assert.match(page, /\{writable && \(\s*<form className="platform-admin-coupon/);
-  assert.match(page, /\{writable \? <ListActions>\s*<button\s+type="button"\s+className=\{"text-button " \+/);
+  const couponActions=actionElements(page).filter(action=>action.attribute('onClick')==='() => void run(()=>toggleCoupon(item))');assert.equal(couponActions.length,2);assert(couponActions.every(action=>action.guardedBy('writable')&&action.attribute('type')==='button'&&action.attribute('variant')==='ghost'),'both coupon layouts keep writable gate and native non-submit action');
   // El acceso manual vive en un solo helper con gate de escritura y se reusa
   // en la tabla y en las tarjetas (una definición, dos contenedores).
-  assert.equal((page.match(/\{writable && \(\s*<button\s+type="button"\s+className="text-button platform-admin-inline-action"/g) ?? []).length, 1, "el acceso manual queda detrás de writable");
+  const manualAccess=actionElements(page).filter(action=>action.attribute('className')==='text-button platform-admin-inline-action');assert.equal(manualAccess.length,1);assert(manualAccess[0].guardedBy('writable'));assert.equal(manualAccess[0].attribute('type'),'button');assert.equal(manualAccess[0].attribute('onClick'),'() => void manageSubscription(agency)');
   assert.equal((page.match(/\{actions\(agency\)\}/g) ?? []).length, 2, "la tabla y las tarjetas comparten las acciones");
   assert.match(page, /\{writable \? <ListActions>\{actions\(agency\)\}<\/ListActions> : null\}/);
   assert.match(page, /\{writable \? <div className="mt-auto/);
@@ -81,10 +83,13 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
     /subscription\/extend/,
   );
   assert.match(page, /Marcar pago manual/);
-  // Las acciones de «Opciones avanzadas» no se portan al pie: con la sección cerrada
-  // quedaban visibles y apuntaban a un formulario oculto.
+  // El motor común observa details/hidden antes de portar acciones al pie.
+  // La prueba Chromium superadmin-form-browser verifica cerrado→abierto→cerrado.
   const dialog = readFileSync(new URL("../app/superadmin/subscription-dialog.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(dialog, /<SaveActions|<FormActions/, "el estado manual no porta acciones del <details> al pie");
+  assert.match(dialog, /<SaveActions pending=\{busy\} dirty=\{dirty\}/, "acciones registradas en el motor común con pending/dirty");
+  const dialogEngine=readFileSync(new URL("../app/dialog.tsx",import.meta.url),"utf8");
+  assert.match(dialogEngine,/node.tagName==='DETAILS'&&.*?\.open/);
+  assert.match(dialogEngine,/footer&&visible\?createPortal/);
   assert.match(page, /Días a sumar/);
   assert.match(page, /Number\.isFinite\(number\)[\s\S]*?: fallback;/);
   assert.match(page, /const total = formatPlatformMetric\(item\.total, ""\);/);
@@ -95,11 +100,20 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
 test("superadmin keeps its operational controls accessible and responsive", () => {
   assert.match(
     styles,
-    /\.platform-admin-page :is\(button, a, input, select, textarea\):focus-visible \{[\s\S]*?outline: 3px solid/,
+    /\.platform-admin-page :is\(button, a, input, select, textarea\):focus-visible:not\(:where\(\[data-ui-button\]\)\) \{[\s\S]*?outline: 3px solid/,
   );
+  // Canonical actions own their focus styling; the legacy rule excludes them.
+  // Both routes still require a real 3px focus outline rather than dropping it.
+  const uiStyles=readFileSync(new URL("../app/ui-system.css",import.meta.url),"utf8");
+  const tokens=readFileSync(new URL("../app/ui-tokens.css",import.meta.url),"utf8");
+  assert.match(uiStyles,/\[data-ui-button\]\[data-ui-variant\]:focus-visible\{outline:var\(--ui-focus-width\) solid var\(--focus-ring\);outline-offset:var\(--ui-focus-offset\)/);
+  assert.match(tokens,/--ui-focus-width:3px;/);
   assert.match(styles, /\.platform-admin-page \{[\s\S]*?overflow-x: clip;/);
   // Targets móviles del panel (el escritorio usa el control de 40 px del sistema).
-  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: none; min-height: 44px; min-width: 44px;/);
+  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: none; justify-content: center/);
+  assert.match(styles, /\.platform-admin-actions \.secondary:not\(:where\(\[data-ui-button\]\)\) \{ min-height: 44px; min-width: 44px;/);
+  assert.match(uiStyles,/@media\(max-width:760px\),\(pointer:coarse\)\{\[data-ui-button\]\[data-ui-size=compact\]\{--ui-button-height:44px/);
+  assert.match(uiStyles,/\[data-ui-button\]\[data-ui-icon-button\]\{width:var\(--ui-button-height\);min-width:var\(--ui-button-height\)/);
   assert.match(
     styles,
     /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
@@ -184,7 +198,7 @@ test("shell (guía §2/§7): riel lateral desde la lista única de secciones + b
   assert.match(styles, /@media \(min-width: 1200px\) \{\s*\.platform-admin-page\.platform-shell \{ grid-template-columns: 14rem minmax\(0, 1fr\) \}/);
   assert.match(styles, /@media \(max-width: 760px\) \{\s*\.platform-shell > \.platform-sidebar \{ position: sticky; top: 0;/);
   assert.match(styles, /\.platform-shell nav\.platform-sidebar-nav \{ flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none \}/);
-  assert.match(styles, /\.platform-shell \.platform-nav-item\[aria-current="page"\] \{ background: var\(--violet-soft\)/);
+  assert.match(styles, /\.platform-shell \.platform-nav-item\[aria-current="page"\]:not\(:where\(\[data-ui-button\]\)\) \{ background: var\(--violet-soft\)/);
 });
 
 test("rediseño #102: ninguna capacidad del panel se pierde", () => {
@@ -220,8 +234,35 @@ test("rediseño #102: ninguna capacidad del panel se pierde", () => {
   assert.match(page, /requireText=\{PLATFORM_DELETE_WORD\}/);
   assert.match(page, /export const PLATFORM_DELETE_WORD = "ELIMINAR"/);
   assert.match(page, /PlatformConfirmDialog/);
-  assert.match(page, /ariaLabel="Buscar en la auditoría"/);
-  assert.match(page, /<Select aria-label="Filtrar por acción"/);
+  const auditSource=readFileSync(new URL("../app/superadmin/audit.tsx",import.meta.url),"utf8");
+  const audit=ts.createSourceFile('audit.tsx',auditSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  function localImport(exported:string,module:string){
+    for(const statement of audit.statements){
+      if(!ts.isImportDeclaration(statement)||!ts.isStringLiteral(statement.moduleSpecifier)||statement.moduleSpecifier.text!==module)continue;
+      const bindings=statement.importClause?.namedBindings;
+      if(bindings&&ts.isNamedImports(bindings)){const entry=bindings.elements.find(spec=>(spec.propertyName||spec.name).text===exported);if(entry)return entry.name.text;}
+    }
+    assert.fail(`Missing local ${exported} import from ${module}`);
+  }
+  function namedControl(tag:string,label:string,setter:string){
+    let found:ts.JsxOpeningElement|ts.JsxSelfClosingElement|undefined;
+    function walk(node:ts.Node){if((ts.isJsxOpeningElement(node)||ts.isJsxSelfClosingElement(node))&&node.tagName.getText(audit)===tag&&node.attributes.properties.some(prop=>ts.isJsxAttribute(prop)&&prop.name.getText(audit)==='label'&&prop.initializer&&ts.isStringLiteral(prop.initializer)&&prop.initializer.text===label))found=node;ts.forEachChild(node,walk);}
+    walk(audit);assert(found,`${label}: control with its exact accessible label`);
+    const properties=found.attributes.properties;
+    assert(properties.some(prop=>ts.isJsxAttribute(prop)&&prop.name.getText(audit)==='hideLabel'&&!prop.initializer),'hidden visual label remains declared for accessible naming');
+    const change=properties.find(prop=>ts.isJsxAttribute(prop)&&prop.name.getText(audit)==='onChange') as ts.JsxAttribute;
+    assert(change?.initializer&&ts.isJsxExpression(change.initializer)&&change.initializer.expression&&ts.isArrowFunction(change.initializer.expression));
+    const callback=change.initializer.expression;
+    assert(ts.isCallExpression(callback.body)&&callback.body.expression.getText(audit)===setter);
+    assert.equal(callback.body.arguments[0].getText(audit),callback.parameters[0].name.getText(audit),'controlled value is forwarded without a synthetic event proxy');
+    return found;
+  }
+  namedControl(localImport('SearchField','../search-field'),'Buscar en la auditoría','setQuery');
+  namedControl(localImport('OptionsSelect','../ui/options-select'),'Filtrar por acción','setAction');
+  assert.match(auditSource,/<option value="">Todas las acciones<\/option>/);
+  assert.match(auditSource,/if \(action && entry.action !== action\) return false;/);
+  assert.match(auditSource,/\(query \|\| action\)/);
+  assert.match(auditSource,/setQuery\(""\); setAction\(""\)/);
   // Permisos: viewer nunca ve controles mutantes (mismo gate de siempre).
   assert.match(page, /const writable = myRole === "admin"/);
 });

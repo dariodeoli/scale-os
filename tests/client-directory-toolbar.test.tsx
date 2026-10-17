@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import React from "react";
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -126,7 +127,9 @@ test("client toolbar exposes accessible search, count, view controls, and role-g
   const summary = root.findByProps({ role: "status" });
   assert.equal(summary.props.title, "Mostrando 1 cliente de 2 clientes", "el resumen completo queda en el tooltip");
   assert.equal(summary.parent!.findAllByType("h1").length, 1, "el resumen vive junto al título, no como bloque propio");
-  assert.equal(root.findByProps({ id: "clientes-estado" }).props["aria-label"], "Estado", "el estado conserva su nombre accesible");
+  const statusTrigger=root.findAllByType("button").find(node=>node.props.id==="clientes-estado")!;
+  assert.equal(statusTrigger.props["aria-haspopup"], "listbox");
+  assert.match(statusTrigger.props["aria-labelledby"], /clientes-estado-label/, "el estado conserva su nombre accesible");
   assert.match(String(createButton!.props.className || ""), /max-md:w-full/, "la acción primaria va a lo ancho en mobile");
   await act(async () => search.props.onChange({ target: { value: "Árbol" } }));
   assert.equal(query, "Árbol");
@@ -163,12 +166,12 @@ test("client toolbar exposes accessible search, count, view controls, and role-g
 
 test("client toolbar protects touch targets and small-screen layout with the v2 objects", () => {
   const source = readFileSync("app/client-directory-toolbar.tsx", "utf8");
-  assert.match(source, /from ['"]owncoding-ui['"]/, "el toolbar usa los objetos compartidos");
+  const create=actionElements(source).find(action=>action.children.includes('Nuevo cliente'));assert(create,'creation uses the canonical local action import');assert.equal(create.attribute('variant'),undefined,'the existing Button uses the canonical primary default');assert.equal(create.attribute('className'),'client-directory-create max-md:w-full');assert(create.guardedBy('canCreate'));assert.equal(create.attribute('type'),'button');assert.equal(create.attribute('onClick'),'onCreate');
   assert.match(source, /SearchField/, "la búsqueda es el campo compartido");
   assert.match(source, /ViewSwitch/, "el selector de vista es el wrapper v2 del objeto compartido, sin variantes");
   assert.match(source, /flex-wrap/, "los controles bajan de fila a 360 px");
   assert.match(source, /aria-label="Controles del directorio de clientes"/);
-  assert.doesNotMatch(source, /SelectCustom|ViewToggle|search-field'|search-field"/, "los objetos legados quedaron atrás; las clases de la referencia de Clientes se conservan");
+  assert.doesNotMatch(source, /SelectCustom|ViewToggle/, "los objetos legados quedaron atrás; las clases de la referencia de Clientes se conservan");
   assert.match(source, /directorySummaryText/, "el resumen sale de la capa de datos del dominio");
 });
 
@@ -195,7 +198,7 @@ test("el header de Clientes vive en una fila con el resumen auxiliar (#91)", () 
     /<Label htmlFor="clientes-estado" className="sr-only">Estado<\/Label>/,
     "el rótulo del estado queda accesible sin ocupar una línea",
   );
-  assert.match(source, /aria-label="Estado"/, "el select conserva su nombre accesible");
+  assert.match(source, /<Select[^>]*label="Estado"/, "el select conserva su nombre accesible");
   assert.match(source, /title=\{loading \? undefined : summary\}/, "el resumen completo queda disponible en el tooltip y se calla mientras carga (#109)");
   assert.match(source, /loading \? 'Cargando el directorio…' : summary/, "mientras el shell carga no se afirma un directorio de cero (#109)");
 });

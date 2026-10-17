@@ -1,17 +1,21 @@
 "use client";
+import {TextareaBase} from '../ui/input';
+import {InputControl} from '../ui/input-control';
 // Modo mantenimiento del panel global: interruptor + mensaje + fin estimado.
 // Con el modo activo, el espacio de trabajo muestra la pantalla de mantenimiento y
 // /api/agency/* responde 503 a quien no es administrador global; el panel, el
 // login, la landing, los webhooks y /health siguen andando. Cada cambio queda en la
 // auditoría. Sección independiente: se registra con una sola entrada.
 import {useEffect, useState} from "react";
-import {Switch} from "owncoding-ui";
+import {Switch} from '../ui/choice';
 import {OptionalMark} from "../field-label";
 import {ConfirmDialog} from "../dialog";
 import {notify} from "../feedback";
 import {listDateFull} from "../list-format";
 import {asuncionInput, platformApi, subscriptionExpiry} from "../platform-admin-api";
 import {ErrorBlock, LoadingBlock, StateChip} from "../ui-v2";
+import {Button as ScaleButton} from "../ui/button";
+
 
 export const MAINTENANCE_MESSAGE_MAX = 500;
 /** Contrato de `GET/PATCH /api/platform/maintenance`. */
@@ -115,15 +119,15 @@ export function MaintenanceControls({state, message, until, writable, busy, form
     </div>
     <label className="grid min-w-0 gap-1.5 text-[11px] font-semibold text-mute">
       <span className="flex justify-between gap-2">Mensaje para las agencias<span className="tabular-nums" aria-hidden="true">{left}</span></span>
-      <textarea value={message} rows={3} maxLength={MAINTENANCE_MESSAGE_MAX} disabled={!writable || busy} placeholder="Ej.: Estamos actualizando la base de datos. Volvemos en unos minutos." onChange={(event) => onMessage(event.target.value)}/>
+      <TextareaBase value={message} rows={3} maxLength={MAINTENANCE_MESSAGE_MAX} disabled={!writable || busy} placeholder="Ej.: Estamos actualizando la base de datos. Volvemos en unos minutos." onChange={(event) => onMessage(event.target.value)}/>
     </label>
     <label className="grid min-w-0 gap-1.5 text-[11px] font-semibold text-mute">
       <span>Fin estimado<OptionalMark/></span>
-      <input type="datetime-local" className="max-w-[14rem]" value={until} disabled={!writable || busy} onChange={(event) => onUntil(event.target.value)}/>
+      <InputControl type="datetime-local" className="max-w-[14rem]" value={until} disabled={!writable || busy} onChange={(event) => onUntil(event.target.value)}/>
     </label>
     {formError ? <p className="error form-error-summary" role="alert">{formError}</p> : null}
     {writable ? <div className="flex flex-wrap justify-end gap-2">
-      <button type="button" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={onSave}>Guardar mensaje</button>
+      <ScaleButton type="button" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={onSave} variant="secondary">Guardar mensaje</ScaleButton>
     </div> : null}
   </div>;
 }

@@ -1,10 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 // Uso de la plataforma (#191): solo administradores globales (el API revalida).
 // Todo sale de `GET /api/platform/usage`; no hay métricas inventadas ni datos
 // financieros. Días y horas en America/Asuncion; el período sale de los chips
 // compartidos con el Resumen. Sin demos en ningún KPI, tabla ni gráfico.
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {SearchField, Select} from "owncoding-ui";
+
+import {SearchField} from '../search-field';
 import {platformApi} from "../platform-admin-api";
 import {listDateFull} from "../list-format";
 import {PersonContainer} from "../person-container";
@@ -118,9 +120,9 @@ function UsageAgencies({agencies}: {agencies: UsagePayload["agencies"]}) {
     <div className="mb-2 flex min-w-0 items-center gap-2"><h3 className="text-[13px] font-semibold text-fore">Uso por agencia</h3><StateChip tone="mute" title="Agencias reales">{formatPlatformMetric(agencies.length)}</StateChip></div>
     <MetricNote className="mb-2 block" source="Sesiones de uso" calc="usuarios activos a 7 y 30 días y sesiones del período por agencia real"/>
     <FilterToolbar summary={`${visible.length} de ${agencies.length}`}>
-      <SearchField className="min-w-[12rem] flex-1 sm:max-w-72 [&>input]:!pl-9" type="search" ariaLabel="Buscar agencias en el uso" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Agencia o responsable"/>
+      <SearchField className="min-w-[12rem] flex-1 sm:max-w-72"  label="Buscar agencias en el uso" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Agencia o responsable"/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">Ordenar por
-        <Select aria-label="Ordenar agencias" value={sort} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSort(event.target.value)} className="min-w-[11rem]">
+        <Select hideLabel label="Ordenar agencias" value={sort} onChange={(value:string)=>setSort(value)} className="min-w-[11rem]">
           <option value="active30">Activos 30 días</option>
           <option value="last">Último acceso</option>
         </Select>

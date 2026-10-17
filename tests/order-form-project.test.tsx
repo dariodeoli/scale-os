@@ -25,17 +25,17 @@ test('Nueva orden elige el proyecto en un combobox y recién ahí muestra el res
   {value:'1',label:'Árbol Studio · Campaña otoño'},
   {value:'2',label:'Norte · Reels mensuales'},
  ],'cada opción nombra cliente y proyecto');
- assert.equal(root().findAllByType('fieldset').length,0,'el estado inicial no se muestra antes de elegir');
+ assert.equal(root().findAllByType('legend').filter(legend=>legend.children.join('')==='Estado inicial').length,0,'el grupo Estado inicial no se muestra antes de elegir (PendingFields es infraestructura)');
  assert.equal(root().findAllByType('textarea').length,0,'las notas no se muestran antes de elegir');
  assert.equal(root().findAllByType('input').length,0,'no hay campos de la orden antes de elegir');
  assert.equal(root().findAllByProps({placeholder:'https://drive.google.com/...'}).length,0);
  assert.equal(root().findAllByType('button').some(button=>button.children.join('').includes('Crear orden')),false,'no hay envío sin proyecto');
 
  await act(async()=>combos[0]!.props.onChange('1'));
- const title=root().findAllByProps({name:'title'});
+ const title=root().findAllByType('input').filter(node=>node.props.name==='title');
  assert.equal(title.length,1,'elegido el proyecto aparece el resto del formulario');
  assert.equal(title[0]!.props.autoFocus,true,'el foco arranca en la orden de trabajo');
- assert.equal(root().findAllByType('fieldset').length,1);
+ const stateGroups=root().findAllByType('legend').filter(legend=>legend.children.join('')==='Estado inicial');assert.equal(stateGroups.length,1);assert.equal(stateGroups[0].parent?.type,'fieldset','el grupo de estado conserva su fieldset semántico');
  assert.equal(root().findAllByType('textarea').length,1);
  const tipos=root().findAllByType(SelectCustom);
  assert.equal(tipos.length,2,'además del proyecto se ofrece el tipo de trabajo');

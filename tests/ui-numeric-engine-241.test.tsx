@@ -1,0 +1,52 @@
+import React,{createRef} from 'react';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {act,create,type ReactTestRenderer} from 'react-test-renderer';
+import {numberInputValid,nativeNumberSettings,NumericControl} from '../app/ui/number';
+Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+const {Editor}=require('../app/operations') as typeof import('../app/operations');
+test('exact step, precision, range and sign remain explicit caller contracts',()=>{
+ for(const value of ['-','.','-.','1,2','NaN','Infinity'])assert.equal(numberInputValid(value,'decimal'),false,value);
+ for(const value of ['-1','0','.5','1.'])assert.equal(numberInputValid(value,'decimal'),true,value);
+ assert.equal(numberInputValid('-1','integer'),true);assert.equal(numberInputValid('1.5','integer'),false);
+ assert.equal(numberInputValid('0.3','decimal',{step:'0.1'}),true);
+ assert.equal(numberInputValid('0.31','decimal',{step:'0.1'}),false);
+ assert.equal(numberInputValid('-1.5','decimal',{min:'-2',max:'0',step:'.5'}),true);
+ assert.equal(numberInputValid('1.5','decimal',{min:'.5',step:'1'}),true);
+ assert.equal(numberInputValid('1','decimal',{min:'.5',step:'1'}),false);
+ assert.equal(numberInputValid('1.2','decimal',{step:'1',stepBase:'.2'}),true);
+ assert.equal(numberInputValid('9007199254740993.01','decimal',{step:'.01'}),true);
+ assert.equal(numberInputValid('9007199254740993.01','decimal',{step:'.02'}),false);
+ assert.equal(numberInputValid('0.125','decimal',{step:'any',precision:3}),true);
+ assert.equal(numberInputValid('0.125','decimal',{step:'any',precision:2}),false);
+ assert.equal(numberInputValid('1e3','decimal',{notation:'native',step:'1'}),true);
+ assert.equal(numberInputValid('1e-2','decimal',{notation:'native',step:'1e-2'}),true);
+ assert.equal(numberInputValid('1e-3','decimal',{notation:'native',step:'.01'}),false);
+ assert.equal(numberInputValid('1e309','decimal',{notation:'native'}),false);
+ assert.equal(numberInputValid('1e-','decimal',{notation:'native'}),false);
+ assert.equal(numberInputValid('1e3','decimal'),false,'plain facade contract remains unchanged');
+ assert.equal(numberInputValid('1','integer',{notation:'native',min:'invalid'}),true,'native ignores an invalid bound');
+ assert.deepEqual(nativeNumberSettings({}),{policy:'integer',step:1});
+ assert.deepEqual(nativeNumberSettings({step:'any'}),{policy:'decimal',step:'any'});
+ assert.deepEqual(nativeNumberSettings({min:'.5',step:1}),{policy:'decimal',step:1});
+});
+test('numeric event and ref are real objects, with no coercion or fabricated change event',()=>{
+ const ref=createRef<HTMLInputElement>(),node={value:'-',setCustomValidity(){},focus(){}};let received:unknown;
+ const r=create(<NumericControl ref={ref} name="amount" policy="decimal" step="any" value="-" onChange={event=>{received=event;}}/>,{createNodeMock:()=>node});
+ assert.equal(ref.current,node);const event={target:{value:'-.',setCustomValidity(){}},currentTarget:node};
+ act(()=>r.root.findByType('input').props.onChange(event));assert.equal(received,event);assert.equal(event.target.value,'-.');
+ assert.equal(r.root.findByType('input').props.type,'text');assert.equal(r.root.findByType('input').props['aria-invalid'],true);
+ act(()=>r.update(<NumericControl policy="decimal" value="-" pending onChange={()=>assert.fail('pending callback')}/>));
+ act(()=>r.root.findByType('input').props.onChange(event));act(()=>r.unmount());
+});
+test('Editor numeric adapter blocks raw invalid drafts before save and preserves valid transport',async()=>{
+ let r:ReactTestRenderer;const writes:Record<string,string>[]=[];
+ const fields=[{key:'count',label:'Cantidad',type:'number' as const,integer:true},{key:'decimal',label:'Valor',type:'number' as const,min:'-2',max:'2'},{key:'percent',label:'Porcentaje',type:'number' as const,optional:true}];
+ await act(async()=>{r=create(<Editor fields={fields} defaults={{count:'0',decimal:'-',percent:'0.25'}} save={async values=>{writes.push(values);}}/>);});
+ const submit=()=>r!.root.findByType('form').props.onSubmit({preventDefault(){},persist(){}});
+ const change=async(key:string,value:string)=>act(async()=>r!.root.findAllByType('input').find(input=>input.props.name===key)!.props.onChange({target:{name:key,value,setCustomValidity(){}},type:'change'}));
+ for(const value of ['-','.','-.','2.01','-2.01','0.001']){await change('decimal',value);await act(async()=>{await submit();});assert.equal(writes.length,0,value);}
+ await change('decimal','-1.25');await change('count','-1');await act(async()=>{await submit();});assert.equal(writes.length,0,'existing unsigned integer schema remains authoritative');
+ await change('count','0');await act(async()=>{await submit();});assert.deepEqual(writes[0],{count:'0',decimal:'-1.25',percent:'0.25'});
+ await act(async()=>r!.unmount());
+});

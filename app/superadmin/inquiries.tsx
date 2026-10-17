@@ -1,10 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
+import {TextareaBase} from '../ui/input';
 // Consultas de la landing (formulario «¿Tenés alguna duda?»): bandeja del panel
 // global. Lista densa v2 (Fecha · Nombre/empresa · Contacto · Mensaje · Estado ·
 // Acciones) con tarjetas cuando la plantilla no entra, filtro por estado (en el
 // API) y acciones de seguimiento solo para el administrador global.
 import {useEffect, useRef, useState} from "react";
-import {Select} from "owncoding-ui";
+
 import {listDateFull} from "../list-format";
 import {ConfirmDialog} from "../dialog";
 import {notify} from "../feedback";
@@ -13,6 +15,8 @@ import {ActionMenu, EmptyBlock, ErrorBlock, FilterToolbar, ListActions, ListGrid
 import {formatPlatformMetric, type Inquiry, type InquiryCounts, type InquiryPage, type InquiryStatus} from "./model";
 import {PlatformMore} from "./states";
 import {EdgeAwareMenu} from "./edge-menu";
+import {Button as ScaleButton} from "../ui/button";
+
 
 export const INQUIRY_STATUS: Record<InquiryStatus, {label: string; tone: "warn" | "info" | "mute"}> = {
   new: {label: "Nueva", tone: "warn"},
@@ -123,7 +127,7 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
     ...(whatsappHref(inquiry.whatsapp) ? [{id: "whatsapp", label: "Abrir WhatsApp", icono: "phone", onClick: () => openExternal(whatsappHref(inquiry.whatsapp))}] : []),
   ];
   const primary = (inquiry: Inquiry) => writable && inquiry.status === "new"
-    ? <button type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(inquiry, {status: "contacted"}, "Consulta marcada como contactada.")}>Marcar contactada</button>
+    ? <ScaleButton type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(inquiry, {status: "contacted"}, "Consulta marcada como contactada.")} variant="ghost">Marcar contactada</ScaleButton>
     : null;
   const actions = (inquiry: Inquiry) => <>
     {primary(inquiry)}
@@ -163,12 +167,12 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
     <FilterToolbar summary={data ? `${formatPlatformMetric(list.length)} de ${formatPlatformMetric(data.total)}` : undefined}>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Estado
-        <Select aria-label="Filtrar consultas por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value as InquiryStatus | "")} className="min-w-[12rem]">
+        <Select hideLabel label="Filtrar consultas por estado" value={status} onChange={(value:string)=>setStatus(value as InquiryStatus | "")} className="min-w-[12rem]">
           <option value="">Todas{counts ? ` (${formatPlatformMetric(counts.new + counts.contacted + counts.closed)})` : ""}</option>
           {(Object.keys(INQUIRY_STATUS) as InquiryStatus[]).map((key) => <option key={key} value={key}>{INQUIRY_STATUS[key].label}s{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>
       </label>
-      {status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")}>Limpiar filtro</button> : null}
+      {status ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")} variant="ghost">Limpiar filtro</ScaleButton> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar las consultas" description={error} onRetry={() => void load()}/>
@@ -209,7 +213,7 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
     >
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Nota interna
-        <textarea value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: llamar el lunes, pidió demo para 5 usuarios" onChange={(event) => setNote(event.target.value)}/>
+        <TextareaBase value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: llamar el lunes, pidió demo para 5 usuarios" onChange={(event) => setNote(event.target.value)}/>
       </label>
     </ConfirmDialog> : null}
   </section>;

@@ -1,0 +1,391 @@
+{
+  "schema": 1,
+  "issue": 241,
+  "migrationBaseline": "1cc44010",
+  "sourceSnapshot": "99e7f5c6",
+  "previousAudit": "38ef3704",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones.",
+  "changedFiles": [
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "beforeHash": null,
+      "afterHash": "82da06dd0d08e278b987f77e26d510eb92d0f819276df5ff5e2cbc33c7c79720",
+      "rationale": "Catálogo sintético nuevo: 14 sitios canónicos desde entry ../ui, incluidos variantes, loading, simulación form y diálogos. Sin botones nativos nuevos."
+    },
+    {
+      "file": "app/biblioteca-ui/page.tsx",
+      "beforeHash": null,
+      "afterHash": "c84ac3a2864a00d585fcef3984c6570e21f8c249785599ac11980feead471217",
+      "rationale": "Ruta pública de biblioteca monta Catalog; sin sitio de acción JSX propio."
+    },
+    {
+      "file": "app/daily-controls.tsx",
+      "beforeHash": "e1a481ad6d5d93b1cae1240cc649bf2dc545a73fe94db08ca6976c3271e54ff3",
+      "afterHash": "bc7f09c97dd5903c8538303637ce0ea9236a1a9914f645b7441a208ce0b4b40c",
+      "rationale": "Dos acciones inertes de preview ahora secondary/neutral; disabled/aria-disabled y ausencia de callbacks acreditados por AST y Chromium. Ningún nuevo widget."
+    },
+    {
+      "file": "app/dialog.tsx",
+      "beforeHash": "486b236a4383d20b99b7f95a8f5b03196c2ea4210795c9aee0ec2caff8bc6169",
+      "afterHash": "34d232f4bedab30d9836ebb0cc12424e751279ec72fd28c980a9a1005928dbed",
+      "rationale": "FormActions asocia native/canonical/Fragment a su form; ConfirmDialogCancel delega en useDialogClose guardado y mantiene Button canónico. Mismo número de acciones, sin excepción nueva."
+    },
+    {
+      "file": "app/finance-balance.tsx",
+      "beforeHash": "bca3babdf8616d20c30699b153cf81078de9af76b5248f630a2511918283e977",
+      "afterHash": "06c0fd2a32eca1acbf779fe277ac44c2dbbabcf5f655f676d1219088e7122fca",
+      "rationale": "Reordenación clientes/equipo antes del resumen; mismos botones, permisos y callbacks del balance."
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "beforeHash": "68534a18c91d071e17263c805775a6edb53339c611560d6da529678f8f39551b",
+      "afterHash": "2a324f56764eb710b57a84ac3ae47d311164b1befdc054aa69fe44a5440bac15",
+      "rationale": "Totales y columnas/íconos con labels del plan/factura; mismas acciones Button/IconAction y gates de términos/historial. Revisión99e7: Clase finance-panel-note para contener notas del Balance; mismos Button/IconAction, gates y callbacks."
+    },
+    {
+      "file": "app/finance-collections.tsx",
+      "beforeHash": "9893d0c391819f01edf9751683ccdc9ce7a8c97dd2198b4fd9065b5962cb85ef",
+      "afterHash": "27b79e93f923a140b1ef54032f1672ad53ec8e8b258b1998c737428fa6a66524",
+      "rationale": "Contención min-w-0/minmax en filas de deuda previa; las acciones y reglas de cobros no cambian."
+    },
+    {
+      "file": "app/finance-personnel.tsx",
+      "beforeHash": "e1529268e50d48338f63f09868990a80dcd144c07830f8d688b9aad9ab310f52",
+      "afterHash": "7b2193c9aa34c6b12e32f9f9a9fc1548e56181c7b5f16cca193c8c0d8bd9a8e8",
+      "rationale": "Presentación de totales/columnas y etiquetas; conserva acciones canónicas de edición/historial y autorización salarial. Revisión99e7: Composición de notas/panel de equipo en Balance; conserva acciones canónicas e información salarial bajo sus gates."
+    },
+    {
+      "file": "app/inventory-workspace.tsx",
+      "beforeHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
+      "afterHash": "e801e158c086a4b3296938c1eb886c44e9d929d4ead671f78feaf2af960ef257",
+      "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto."
+    },
+    {
+      "file": "app/project-card.tsx",
+      "beforeHash": "c52125f5c53c986b8967b02e230c7b49db05efb681c58070aaa65bf075097661",
+      "afterHash": "7c4251bf6ccee6f0e433dc8154aadf2b3ce06c7a0724b4e24d0747ee571b8bcb",
+      "rationale": "Pie permite flex-wrap en tarjeta y conserva nowrap/scroll en lista; mismo contenido, permisos y acciones. El widget de apertura conserva hash exacto."
+    },
+    {
+      "file": "app/report-problem.tsx",
+      "beforeHash": "3f45269075918d6c4410a6b1539fd7fb000c1d356c2bb06a1692aff74006f5db",
+      "afterHash": "06877f56a640524b9e747c2282d24eba32de241734d34f50bf1f8590093b57f3",
+      "rationale": "Trigger sidebar reemplazado por dos variantes canónicas header; SingleFlight/DialogFormState/PendingFields y foco conservan negocio del reporte fuera de UI."
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "beforeHash": "aa04a5bbe002630b942c0440ea5f509f0c09329671d0b3a0b4babb71e385487b",
+      "afterHash": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e",
+      "rationale": "#245 retira report/logout del sidebar y ThemeToggle del header; monta report y logout iconos canónicos. Dos widgets propios del sidebar conservan JSX/hash exacto."
+    },
+    {
+      "file": "app/sections/clientes.tsx",
+      "beforeHash": "6e7ce59e69c5cd9e4aec081fcbccee0b9e6f870793a0e0c874a552ca745727cf",
+      "afterHash": "9376fab9fd7f3e01a5b11cb5ffb8c032fdcf6fecb9468333ace7984c17afabf7",
+      "rationale": "KPI facturación contratado compuesto con filas separadas; dos widgets de identidad y todas las acciones conservan JSX/hash e intención."
+    },
+    {
+      "file": "app/ui/form-state.tsx",
+      "beforeHash": "76e280e02001f833d7c87820b609e65b259e6c6989fa37b1d678215db8d62c8b",
+      "afterHash": "264cee94be576786cf6a5bb688ff42428b785bdc53a44002a3b5df54db8f00b5",
+      "rationale": "Nuevo DialogFormState registra pending/dirty sin DOM y sin renderizar botones; no añade acciones al inventario."
+    },
+    {
+      "file": "app/ui/input.tsx",
+      "beforeHash": "f88637914d7b91891cef0394b9008e4cac4caee38153748874931cb6a8621505",
+      "afterHash": "e0b471e9c86ff450544bb090c6ea708ae6899a8b0436d8cb8832a7a127422d72",
+      "rationale": "Fachada sólo reexports nombrados InputBase/TextareaBase y tipos desde owncoding-ui/numeric publicado0.68.17; no renderer/acción local nuevo."
+    },
+    {
+      "file": "app/ui/number.tsx",
+      "beforeHash": "198fc761675edf32df41829b30bf6a64a6cf5a835f25e793c6737391bbb05b2b",
+      "afterHash": "60c054deb003b3ea3e0c2439c93149314f2e82fcc88775ee54cfaa732d596710",
+      "rationale": "Fachada sólo reexports del motor visual numeric y reglas puras number-utils de owncoding-ui0.68.17; sin renderers/botones ni lógica local añadida."
+    }
+  ],
+  "addedCanonical": [
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 35,
+      "column": 67,
+      "owner": "SyntheticForm",
+      "siteHash": "7e0a8e9bea3bb3ee2d129b59479946aca064712de1fc2b2b6073983762c1bf07",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 47,
+      "column": 181,
+      "owner": "OverlayExamples",
+      "siteHash": "01379ae39289d5c13eb5b89f2c4835cd9751fc4b3648c5e5b1102ef87f6924cb",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 49,
+      "column": 675,
+      "owner": "CollectionExample",
+      "siteHash": "7b6a6eb3b8674fc1ff983c811e6c1b0b48428385dca029d1be32feeff6b692e3",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 179,
+      "owner": "Demo",
+      "siteHash": "c00a368382dd28d227f7f1b320a371eace11c7e5b391c16c8a4c324353426a85",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 378,
+      "owner": "Demo",
+      "siteHash": "b055c2ceafb3223e0a0e855485dfaa206026fe84568ab8bed88dd078f7762ec8",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 513,
+      "owner": "Demo",
+      "siteHash": "15e4beb86addf0712e3b446c2e3ec342d2da4f5f45584afc0f6e2bcadd30b00f",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 566,
+      "owner": "Demo",
+      "siteHash": "80b85224153a352274c7e3c9a12f6186286d97bef50b168b670e81c783b39479",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 732,
+      "owner": "Demo",
+      "siteHash": "5f21bf7f2d7933b9a2c0b8e54a267ad973bb973cd77e1b1d114afa2e68ea1c72",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 832,
+      "owner": "Demo",
+      "siteHash": "d6ec5982268cb829da072f043c90cc4a81efa9d0092bd33b8942fc0715722486",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 55,
+      "column": 60,
+      "owner": "Demo",
+      "siteHash": "a303d60a8d579257e58f4344c9de1c059a3624ec71b851dafc00fa2ce1e10994",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 55,
+      "column": 169,
+      "owner": "Demo",
+      "siteHash": "09b40623570dcda8aa9e1aeacbedf8fcd9f77095dcf3a3dc0dac15a0d9904e47",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 55,
+      "column": 292,
+      "owner": "Demo",
+      "siteHash": "4e0aa3250dcad3cad439aa42cdb2bc28d463af3c55ec5bd28bd7ea5235ef3b98",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 60,
+      "column": 258,
+      "owner": "Demo",
+      "siteHash": "8dd05ba4de52326aa4d661bd4d6df14f7f2b192a96d5730cc735e24f244bcb99",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 70,
+      "column": 398,
+      "owner": "Catalog",
+      "siteHash": "4c33577ff180ed41150fee49e59d6c23adf70bbcdf1d222b208ad51b33ff6926",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+    },
+    {
+      "file": "app/report-problem.tsx",
+      "line": 102,
+      "column": 9,
+      "owner": "ReportProblemButton",
+      "siteHash": "c49a4c41b5b60ed96a734049a6314faaf0898fd35d2d33da0b36bea078edc8cb",
+      "rationale": "Trigger del reporte en encabezado, variantes iconOnly/texto sobre IconButton/Button; callbacks del dominio permanecen fuera de la base. Sustituye el control nativo anterior del sidebar."
+    },
+    {
+      "file": "app/report-problem.tsx",
+      "line": 103,
+      "column": 9,
+      "owner": "ReportProblemButton",
+      "siteHash": "58580200db721d4e5765d4e05fa422e864c34ac5c3bf00c1c6408d885b1e0c85",
+      "rationale": "Trigger del reporte en encabezado, variantes iconOnly/texto sobre IconButton/Button; callbacks del dominio permanecen fuera de la base. Sustituye el control nativo anterior del sidebar."
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "line": 1070,
+      "column": 15,
+      "owner": "Home",
+      "siteHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",
+      "rationale": "Cerrar sesión trasladado del sidebar al header por #245: IconButton local, size compact, type button y callback logout original."
+    }
+  ],
+  "retiredStructural": [
+    {
+      "file": "app/report-problem.tsx",
+      "siteHash": "e1ebd9fda41a368139d320dcb0d5488576a24454d2a1b75192c4b4e223563e57",
+      "owner": "ReportProblemButton",
+      "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+      "rationale": "El nativo del sidebar ya no existe: trigger header ahora dos variantes Button/IconButton canónicas."
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "siteHash": "b8d22c24aae020be68c5f0ff6f6e4a3394f9caddbc36fb8e96583a5455f1402a",
+      "owner": "sidebarContent",
+      "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+      "rationale": "El logout nativo del sidebar fue retirado; el encabezado monta IconButton canónico con el mismo callback."
+    }
+  ],
+  "reviewHistory": [
+    {
+      "sourceSnapshot": "0afdbd08",
+      "changedFiles": [
+        {
+          "file": "app/biblioteca-ui/catalog.tsx",
+          "beforeHash": null,
+          "afterHash": "82da06dd0d08e278b987f77e26d510eb92d0f819276df5ff5e2cbc33c7c79720",
+          "rationale": "Catálogo sintético nuevo: 14 sitios canónicos desde entry ../ui, incluidos variantes, loading, simulación form y diálogos. Sin botones nativos nuevos."
+        },
+        {
+          "file": "app/biblioteca-ui/page.tsx",
+          "beforeHash": null,
+          "afterHash": "c84ac3a2864a00d585fcef3984c6570e21f8c249785599ac11980feead471217",
+          "rationale": "Ruta pública de biblioteca monta Catalog; sin sitio de acción JSX propio."
+        },
+        {
+          "file": "app/daily-controls.tsx",
+          "beforeHash": "e1a481ad6d5d93b1cae1240cc649bf2dc545a73fe94db08ca6976c3271e54ff3",
+          "afterHash": "bc7f09c97dd5903c8538303637ce0ea9236a1a9914f645b7441a208ce0b4b40c",
+          "rationale": "Dos acciones inertes de preview ahora secondary/neutral; disabled/aria-disabled y ausencia de callbacks acreditados por AST y Chromium. Ningún nuevo widget."
+        },
+        {
+          "file": "app/dialog.tsx",
+          "beforeHash": "486b236a4383d20b99b7f95a8f5b03196c2ea4210795c9aee0ec2caff8bc6169",
+          "afterHash": "34d232f4bedab30d9836ebb0cc12424e751279ec72fd28c980a9a1005928dbed",
+          "rationale": "FormActions asocia native/canonical/Fragment a su form; ConfirmDialogCancel delega en useDialogClose guardado y mantiene Button canónico. Mismo número de acciones, sin excepción nueva."
+        },
+        {
+          "file": "app/finance-balance.tsx",
+          "beforeHash": "bca3babdf8616d20c30699b153cf81078de9af76b5248f630a2511918283e977",
+          "afterHash": "06c0fd2a32eca1acbf779fe277ac44c2dbbabcf5f655f676d1219088e7122fca",
+          "rationale": "Reordenación clientes/equipo antes del resumen; mismos botones, permisos y callbacks del balance."
+        },
+        {
+          "file": "app/finance-clients.tsx",
+          "beforeHash": "68534a18c91d071e17263c805775a6edb53339c611560d6da529678f8f39551b",
+          "afterHash": "cc13aef30c34a04bedcb9be0cbb1d5305c6f5802983bf8761b850d9b42b2b810",
+          "rationale": "Totales y columnas/íconos con labels del plan/factura; mismas acciones Button/IconAction y gates de términos/historial."
+        },
+        {
+          "file": "app/finance-personnel.tsx",
+          "beforeHash": "e1529268e50d48338f63f09868990a80dcd144c07830f8d688b9aad9ab310f52",
+          "afterHash": "17f2fc87a11be4a2dcfa40ee05a4f368ab7f0af72b86f80a2d567945a2dcd571",
+          "rationale": "Presentación de totales/columnas y etiquetas; conserva acciones canónicas de edición/historial y autorización salarial."
+        },
+        {
+          "file": "app/report-problem.tsx",
+          "beforeHash": "3f45269075918d6c4410a6b1539fd7fb000c1d356c2bb06a1692aff74006f5db",
+          "afterHash": "06877f56a640524b9e747c2282d24eba32de241734d34f50bf1f8590093b57f3",
+          "rationale": "Trigger sidebar reemplazado por dos variantes canónicas header; SingleFlight/DialogFormState/PendingFields y foco conservan negocio del reporte fuera de UI."
+        },
+        {
+          "file": "app/scale-workspace.tsx",
+          "beforeHash": "aa04a5bbe002630b942c0440ea5f509f0c09329671d0b3a0b4babb71e385487b",
+          "afterHash": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e",
+          "rationale": "#245 retira report/logout del sidebar y ThemeToggle del header; monta report y logout iconos canónicos. Dos widgets propios del sidebar conservan JSX/hash exacto."
+        },
+        {
+          "file": "app/ui/form-state.tsx",
+          "beforeHash": "76e280e02001f833d7c87820b609e65b259e6c6989fa37b1d678215db8d62c8b",
+          "afterHash": "264cee94be576786cf6a5bb688ff42428b785bdc53a44002a3b5df54db8f00b5",
+          "rationale": "Nuevo DialogFormState registra pending/dirty sin DOM y sin renderizar botones; no añade acciones al inventario."
+        }
+      ]
+    }
+  ],
+  "previousReviewSnapshot": "0afdbd08",
+  "latestReview": {
+    "sourceSnapshot": "99e7f5c6",
+    "previousSnapshot": "0afdbd08",
+    "changedFiles": [
+      {
+        "file": "app/finance-clients.tsx",
+        "beforeHash": "cc13aef30c34a04bedcb9be0cbb1d5305c6f5802983bf8761b850d9b42b2b810",
+        "afterHash": "2a324f56764eb710b57a84ac3ae47d311164b1befdc054aa69fe44a5440bac15",
+        "rationale": "Clase finance-panel-note para contener notas del Balance; mismos Button/IconAction, gates y callbacks."
+      },
+      {
+        "file": "app/finance-collections.tsx",
+        "beforeHash": "9893d0c391819f01edf9751683ccdc9ce7a8c97dd2198b4fd9065b5962cb85ef",
+        "afterHash": "27b79e93f923a140b1ef54032f1672ad53ec8e8b258b1998c737428fa6a66524",
+        "rationale": "Contención min-w-0/minmax en filas de deuda previa; las acciones y reglas de cobros no cambian."
+      },
+      {
+        "file": "app/finance-personnel.tsx",
+        "beforeHash": "17f2fc87a11be4a2dcfa40ee05a4f368ab7f0af72b86f80a2d567945a2dcd571",
+        "afterHash": "7b2193c9aa34c6b12e32f9f9a9fc1548e56181c7b5f16cca193c8c0d8bd9a8e8",
+        "rationale": "Composición de notas/panel de equipo en Balance; conserva acciones canónicas e información salarial bajo sus gates."
+      },
+      {
+        "file": "app/inventory-workspace.tsx",
+        "beforeHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
+        "afterHash": "e801e158c086a4b3296938c1eb886c44e9d929d4ead671f78feaf2af960ef257",
+        "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto."
+      },
+      {
+        "file": "app/project-card.tsx",
+        "beforeHash": "c52125f5c53c986b8967b02e230c7b49db05efb681c58070aaa65bf075097661",
+        "afterHash": "7c4251bf6ccee6f0e433dc8154aadf2b3ce06c7a0724b4e24d0747ee571b8bcb",
+        "rationale": "Pie permite flex-wrap en tarjeta y conserva nowrap/scroll en lista; mismo contenido, permisos y acciones. El widget de apertura conserva hash exacto."
+      },
+      {
+        "file": "app/sections/clientes.tsx",
+        "beforeHash": "6e7ce59e69c5cd9e4aec081fcbccee0b9e6f870793a0e0c874a552ca745727cf",
+        "afterHash": "9376fab9fd7f3e01a5b11cb5ffb8c032fdcf6fecb9468333ace7984c17afabf7",
+        "rationale": "KPI facturación contratado compuesto con filas separadas; dos widgets de identidad y todas las acciones conservan JSX/hash e intención."
+      },
+      {
+        "file": "app/ui/input.tsx",
+        "beforeHash": "f88637914d7b91891cef0394b9008e4cac4caee38153748874931cb6a8621505",
+        "afterHash": "e0b471e9c86ff450544bb090c6ea708ae6899a8b0436d8cb8832a7a127422d72",
+        "rationale": "Fachada sólo reexports nombrados InputBase/TextareaBase y tipos desde owncoding-ui/numeric publicado0.68.17; no renderer/acción local nuevo."
+      },
+      {
+        "file": "app/ui/number.tsx",
+        "beforeHash": "198fc761675edf32df41829b30bf6a64a6cf5a835f25e793c6737391bbb05b2b",
+        "afterHash": "60c054deb003b3ea3e0c2439c93149314f2e82fcc88775ee54cfaa732d596710",
+        "rationale": "Fachada sólo reexports del motor visual numeric y reglas puras number-utils de owncoding-ui0.68.17; sin renderers/botones ni lógica local añadida."
+      }
+    ],
+    "unchangedStructuralSites": 55,
+    "addedCanonicalSites": 0,
+    "retiredStructuralSites": 0,
+    "package": {
+      "name": "owncoding-ui",
+      "version": "0.68.17",
+      "visualEntry": "owncoding-ui/numeric",
+      "pureEntry": "owncoding-ui/number-utils"
+    }
+  }
+}

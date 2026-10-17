@@ -1,10 +1,14 @@
 "use client";
+import {TextareaBase} from './ui/input';
+import {InputControl} from './ui/input-control';
 
 import {useEffect,useRef,useState} from 'react';
 import {api} from './operations';
 import {PersonContainer} from './person-container';
 import {personLabel, technicalEmail} from './field-rules';
 import './commenting.css';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export type CommentPerson={id:string;full_name?:string|null;email?:string|null;photo_url?:string|null};
 const displayName=(person:CommentPerson)=>personLabel(person);
@@ -51,7 +55,7 @@ export function CommentComposer({label='Comentario',save}:{label?:string;save:(b
  }
  function addLink(){try{const link=namedHttpsLink(linkLabel,linkUrl);setBody(current=>`${current}${current&& !/\s$/.test(current)?' ':''}${link}`);setLinkLabel('');setLinkUrl('');setError('');textarea.current?.focus();}catch(cause){setError(cause instanceof Error?cause.message:'No se pudo agregar el enlace.');}}
  return <form className="comment-composer" onSubmit={async event=>{event.preventDefault();const content=body.trim();if(!content||busy)return;setBusy(true);setError('');try{const mentionedUserIds=Array.from(mentions).filter(([,name])=>content.includes('@'+name)).map(([id])=>id);await save(content,mentionedUserIds);setBody('');setMentions(new Map());}catch(e){setError(e instanceof Error?e.message:'No se pudo publicar el comentario.');}finally{setBusy(false);}}}>
-  <label>{label}<textarea ref={textarea} value={body} disabled={busy} placeholder="Escribí una actualización. Usá @ para mencionar a alguien." onChange={event=>{setBody(event.target.value);setMentions(previous=>new Map(Array.from(previous).filter(([,name])=>event.target.value.includes('@'+name))));}} onKeyDown={event=>{
+  <label>{label}<TextareaBase ref={textarea} value={body} disabled={busy} placeholder="Escribí una actualización. Usá @ para mencionar a alguien." onChange={event=>{setBody(event.target.value);setMentions(previous=>new Map(Array.from(previous).filter(([,name])=>event.target.value.includes('@'+name))));}} onKeyDown={event=>{
    if(!suggestions.length)return;
    if(event.key==='ArrowDown'){event.preventDefault();setActive(value=>(value+1)%suggestions.length);}
    if(event.key==='ArrowUp'){event.preventDefault();setActive(value=>(value-1+suggestions.length)%suggestions.length);}
@@ -59,8 +63,8 @@ export function CommentComposer({label='Comentario',save}:{label?:string;save:(b
    if(event.key==='Escape'){event.preventDefault();textarea.current?.setSelectionRange(body.length,body.length);}
   }}/></label>
    {suggestions.length>0&&<div className="mention-menu" role="listbox" aria-label="Personas para mencionar">{suggestions.map((person,index)=><button type="button" role="option" aria-selected={active===index} className={active===index?'active':''} key={person.id} onMouseDown={event=>{event.preventDefault();choose(person);}}><PersonContainer size="sm" name={displayName(person)} photoUrl={person.photo_url} secondary={visibleEmail(person)} verified/></button>)}</div>}
-  <fieldset className="comment-link-fields"><legend>Enlace con nombre</legend><label>Nombre visible<input value={linkLabel} maxLength={120} disabled={busy} onChange={event=>setLinkLabel(event.target.value)} placeholder="Brief aprobado"/></label><label>URL HTTPS<input value={linkUrl} type="url" inputMode="url" disabled={busy} onChange={event=>setLinkUrl(event.target.value)} placeholder="https://…"/></label><button type="button" className="secondary" disabled={busy||!linkLabel.trim()||!linkUrl.trim()} onClick={addLink}>Agregar enlace</button></fieldset>
-  <div className="inline-actions"><small className="form-note">Enter agrega la mención elegida · Shift + Enter crea una línea.</small><button className="primary" disabled={busy||!body.trim()}>{busy?'Publicando…':'Publicar comentario'}</button></div>
+  <fieldset className="comment-link-fields"><legend>Enlace con nombre</legend><label>Nombre visible<InputControl value={linkLabel} maxLength={120} disabled={busy} onChange={event=>setLinkLabel(event.target.value)} placeholder="Brief aprobado"/></label><label>URL HTTPS<InputControl value={linkUrl} type="url" inputMode="url" disabled={busy} onChange={event=>setLinkUrl(event.target.value)} placeholder="https://…"/></label><ScaleButton type="button" className="secondary" disabled={busy||!linkLabel.trim()||!linkUrl.trim()} onClick={addLink} variant="secondary">Agregar enlace</ScaleButton></fieldset>
+  <div className="inline-actions"><small className="form-note">Enter agrega la mención elegida · Shift + Enter crea una línea.</small><ScaleButton className="primary" disabled={busy||!body.trim()} variant="primary">{busy?'Publicando…':'Publicar comentario'}</ScaleButton></div>
   {error&&<p role="alert" className="error">{error}</p>}
  </form>;
 }

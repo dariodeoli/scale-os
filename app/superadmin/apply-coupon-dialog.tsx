@@ -1,7 +1,10 @@
 "use client";
+import {InputControl} from '../ui/input-control';
 // «Aplicar cupón» desde el panel global (#189): el superadmin canjea un cupón
 // aplicable en nombre de la agencia (vigente, con cupo, global o dirigido a ella
 // y todavía no usado por ella). El API reutiliza el mismo canje que la empresa.
+import {PendingFields} from '../ui/form-state';
+import {PlatformFormState,usePlatformFlight} from './confirm';
 import {OptionalMark} from '../field-label';
 import {useEffect, useRef, useState} from "react";
 import {Dialog, ConfirmDialog} from "../dialog";
@@ -10,6 +13,8 @@ import {LoadingBlock} from "../ui-v2";
 import {notify} from "../feedback";
 import {platformApi} from "../platform-admin-api";
 import {formatPlatformMetric, money, newExtendKey, type Agency, type Coupon} from "./model";
+import {Button as ScaleButton} from "../ui/button";
+
 
 type ApplyCouponDialogProps = {
   agency: Agency;
@@ -35,7 +40,9 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
   const [reason, setReason] = useState("");
   const [loadError, setLoadError] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const flight=usePlatformFlight();
+  const busy=flight.pending;
+  const applied=useRef(false);
   // Misma clave durante toda la apertura: un reintento no vuelve a canjear.
   const key = useRef(newExtendKey());
   useEffect(() => {
@@ -46,9 +53,9 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
     return () => { active = false; };
   }, [agency.id]);
   async function apply() {
+    if(applied.current)return;
     const couponId = Number(selected);
     if (!couponId) { setError("Elegí el cupón a aplicar."); return; }
-    setBusy(true);
     setError("");
     try {
       const result = await platformApi<{message?: string}>(`/api/platform/agencies/${agency.id}/coupons/apply`, {
@@ -57,12 +64,14 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
         body: JSON.stringify({coupon_id: couponId, ...(reason.trim() ? {reason: reason.trim()} : {})}),
       });
       notify({tone: "success", message: result.message || `Cupón aplicado a ${agency.name}.`});
-      await onApplied();
-      onClose();
+      applied.current=true;
     } catch (cause) {
       if (!onFailure(cause)) setError(cause instanceof Error ? cause.message : "No pudimos aplicar el cupón.");
-      setBusy(false);
+      return;
     }
+    try { await onApplied(); }
+    catch { notify({tone:'warning',message:'El cupón ya fue aplicado. No pudimos actualizar la lista; recargala para ver el estado.'}); }
+    onClose();
   }
   const title = `Aplicar cupón · ${agency.name}`;
   if (loadError || coupons === null || !coupons.length) {
@@ -71,7 +80,7 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
         {loadError ? <p className="error" role="alert">{loadError}</p>
           : coupons === null ? <LoadingBlock label="Cargando cupones aplicables…" lines={2}/>
           : <p className="form-note">No hay cupones aplicables a esta agencia: deben estar vigentes, con cupo, ser globales o dirigidos a ella y no haber sido usados por ella.</p>}
-        <div className="inline-actions"><button type="button" className="secondary" onClick={onClose}>Cerrar</button></div>
+        <div className="inline-actions"><ScaleButton type="button" className="secondary" onClick={onClose} variant="secondary">Cerrar</ScaleButton></div>
       </Dialog>
     );
   }
@@ -83,13 +92,16 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
       busy={busy}
       error={error}
       onCancel={onClose}
-      onConfirm={() => void apply()}
+      onConfirm={() => void flight.run(apply)}
     >
+      <PlatformFormState pending={busy} dirty={Boolean(selected||reason)}/>
+      <PendingFields pending={busy}>
       <SelectCustom label="Cupón" choices={coupons.map((item) => ({value: String(item.id), label: couponChoiceLabel(item)}))} value={selected} disabled={busy} onChange={setSelected}/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Motivo<OptionalMark/>
-        <input value={reason} disabled={busy} maxLength={500} placeholder="Ej.: gracia acordada con el cliente" onChange={(event) => setReason(event.target.value)}/>
+        <InputControl value={reason} disabled={busy} maxLength={500} placeholder="Ej.: gracia acordada con el cliente" onChange={(event) => setReason(event.target.value)}/>
       </label>
+      </PendingFields>
     </ConfirmDialog>
   );
 }

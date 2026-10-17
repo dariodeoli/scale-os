@@ -1,0 +1,6763 @@
+{
+  "compiledSource": "0afdbd08",
+  "base": "http://127.0.0.1:3013",
+  "startedAt": "2026-10-17T09:34:12.554Z",
+  "themeMethod": "QA sets scale-theme localStorage and html data-theme after navigation; no application preferences/session changed.",
+  "pageErrors": [],
+  "httpErrors": [
+    {
+      "route": "/resumen",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/produccion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pipeline",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/clientes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/presupuestos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/contratos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/proyectos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/inventario",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/estudio",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/equipo",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/live-visitors/count",
+      "status": 403
+    },
+    {
+      "route": "/configuracion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/balance",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/mora",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/prevision",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/resumen",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/produccion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pipeline",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/clientes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/presupuestos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/contratos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/proyectos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/inventario",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/estudio",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/equipo",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/live-visitors/count",
+      "status": 403
+    },
+    {
+      "route": "/configuracion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/balance",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/mora",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/prevision",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/resumen",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/produccion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pipeline",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/clientes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/presupuestos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/contratos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/proyectos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/inventario",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/estudio",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/equipo",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/live-visitors/count",
+      "status": 403
+    },
+    {
+      "route": "/configuracion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/balance",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/mora",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/prevision",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/resumen",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/produccion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pipeline",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/clientes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/presupuestos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/contratos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/proyectos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/inventario",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/estudio",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/equipo",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/live-visitors/count",
+      "status": 403
+    },
+    {
+      "route": "/configuracion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/balance",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/mora",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/prevision",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/resumen",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/produccion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pipeline",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/clientes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/presupuestos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/contratos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/proyectos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/inventario",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/estudio",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/equipo",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/live-visitors/count",
+      "status": 403
+    },
+    {
+      "route": "/configuracion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/balance",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/mora",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/prevision",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/resumen",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/produccion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pipeline",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/clientes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/presupuestos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/contratos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/proyectos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/inventario",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/estudio",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/equipo",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/informes",
+      "path": "/core-api/api/public/live-visitors/count",
+      "status": 403
+    },
+    {
+      "route": "/configuracion",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/balance",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/mora",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    },
+    {
+      "route": "/pagos/prevision",
+      "path": "/core-api/api/public/analytics/collect",
+      "status": 403
+    }
+  ],
+  "blockedExternal": [],
+  "finishedAt": "2026-10-17T09:36:01.780Z",
+  "passed": false,
+  "scope": "Read-only route/render/overflow matrix. Passing does not certify every action or financial calculation.",
+  "textExcerptNote": "Text excerpt is not viewport-filtered; screenshots and heading coordinates establish first-fold placement.",
+  "records": [
+    {
+      "module": "Resumen",
+      "width": 1440,
+      "theme": "light",
+      "path": "/resumen",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Centro de control",
+          "x": 224,
+          "y": 83.25,
+          "width": 166.17,
+          "height": 27.5
+        },
+        {
+          "text": "Mis tareas",
+          "x": 245,
+          "y": 150,
+          "width": 270.69,
+          "height": 21.28
+        },
+        {
+          "text": "Piezas por etapa",
+          "x": 241,
+          "y": 952.47,
+          "width": 121.48,
+          "height": 22.09
+        },
+        {
+          "text": "Trabajo diario",
+          "x": 224,
+          "y": 1024.47,
+          "width": 102.42,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen comercial",
+          "x": 224,
+          "y": 1804.64,
+          "width": 144.86,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen financiero",
+          "x": 224,
+          "y": 2026.95,
+          "width": 148.31,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Piezas",
+          "x": 224,
+          "y": 1204.64,
+          "width": 1184,
+          "height": 570.09,
+          "rows": 12
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-resumen.png",
+      "passed": true
+    },
+    {
+      "module": "Producción",
+      "width": 1440,
+      "theme": "light",
+      "path": "/produccion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Producción",
+          "x": 224,
+          "y": 99.25,
+          "width": 107.59,
+          "height": 27.5
+        },
+        {
+          "text": "Bloqueado",
+          "x": 237,
+          "y": 256,
+          "width": 68.64,
+          "height": 28
+        },
+        {
+          "text": "Por grabar",
+          "x": 536,
+          "y": 256,
+          "width": 69.47,
+          "height": 28
+        },
+        {
+          "text": "Grabado",
+          "x": 835,
+          "y": 256,
+          "width": 61.44,
+          "height": 28
+        },
+        {
+          "text": "Editando",
+          "x": 1134,
+          "y": 256,
+          "width": 60.53,
+          "height": 28
+        },
+        {
+          "text": "Revisión",
+          "x": 1433,
+          "y": 256,
+          "width": 55.91,
+          "height": 28
+        },
+        {
+          "text": "Aprobado",
+          "x": 1732,
+          "y": 256,
+          "width": 66.63,
+          "height": 28
+        },
+        {
+          "text": "Publicado",
+          "x": 2031,
+          "y": 256,
+          "width": 63.8,
+          "height": 28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-produccion.png",
+      "passed": true
+    },
+    {
+      "module": "Pipeline",
+      "width": 1440,
+      "theme": "light",
+      "path": "/pipeline",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Pipeline",
+          "x": 224,
+          "y": 83.25,
+          "width": 76.44,
+          "height": 27.5
+        },
+        {
+          "text": "Lead",
+          "x": 237,
+          "y": 419.03,
+          "width": 46.13,
+          "height": 18.19
+        },
+        {
+          "text": "Contactado",
+          "x": 489,
+          "y": 419.03,
+          "width": 87.36,
+          "height": 18.19
+        },
+        {
+          "text": "Propuesta",
+          "x": 741,
+          "y": 419.03,
+          "width": 77.97,
+          "height": 18.19
+        },
+        {
+          "text": "Negociación",
+          "x": 993,
+          "y": 419.03,
+          "width": 90.45,
+          "height": 18.19
+        },
+        {
+          "text": "Ganado",
+          "x": 1245,
+          "y": 419.03,
+          "width": 65.13,
+          "height": 18.19
+        },
+        {
+          "text": "Perdido",
+          "x": 1497,
+          "y": 419.03,
+          "width": 62.92,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en la web",
+          "x": 245,
+          "y": 1418.56,
+          "width": 176.45,
+          "height": 27.3
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-pipeline.png",
+      "passed": true
+    },
+    {
+      "module": "Clientes",
+      "width": 1440,
+      "theme": "light",
+      "path": "/clientes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Clientes · 20",
+          "x": 224,
+          "y": 91.25,
+          "width": 113.05,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes",
+          "x": 224,
+          "y": 287,
+          "width": 1184,
+          "height": 992.84,
+          "rows": 20
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-clientes.png",
+      "passed": true
+    },
+    {
+      "module": "Presupuestos",
+      "width": 1440,
+      "theme": "light",
+      "path": "/presupuestos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Presupuestos",
+          "x": 224,
+          "y": 83.25,
+          "width": 128.69,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Presupuestos",
+          "x": 224,
+          "y": 417.31,
+          "width": 1184,
+          "height": 1009.5,
+          "rows": 16
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-presupuestos.png",
+      "passed": true
+    },
+    {
+      "module": "Contratos",
+      "width": 1440,
+      "theme": "light",
+      "path": "/contratos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Contratos",
+          "x": 224,
+          "y": 83.25,
+          "width": 97.36,
+          "height": 27.5
+        },
+        {
+          "text": "Ejemplo ficticio · Servicios por proyecto",
+          "x": 245,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Producción audiovisual · paquete único",
+          "x": 545,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Contenido mensual con condición preferencial",
+          "x": 845,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Marketing digital y contenido mensual",
+          "x": 1145,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-contratos.png",
+      "passed": true
+    },
+    {
+      "module": "Proyectos",
+      "width": 1440,
+      "theme": "light",
+      "path": "/proyectos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Proyectos",
+          "x": 224,
+          "y": 83.25,
+          "width": 95.8,
+          "height": 27.5
+        },
+        {
+          "text": "Campaña · Aurora Café",
+          "x": 269,
+          "y": 237.3,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Bosque Hogar",
+          "x": 667.66,
+          "y": 237.3,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Órbita Fitness",
+          "x": 1066.33,
+          "y": 237.3,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nube Software",
+          "x": 269,
+          "y": 628.89,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Luna Moda",
+          "x": 667.66,
+          "y": 628.89,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Brisa Viajes",
+          "x": 1066.33,
+          "y": 628.89,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Prisma Diseño",
+          "x": 269,
+          "y": 1020.48,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Raíz Orgánica",
+          "x": 667.66,
+          "y": 1020.48,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Faro Inmuebles",
+          "x": 1066.33,
+          "y": 1020.48,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Menta Salud",
+          "x": 269,
+          "y": 1412.08,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sur Automotores",
+          "x": 667.66,
+          "y": 1412.08,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Pixel Academy",
+          "x": 1066.33,
+          "y": 1412.08,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Alma Cocina",
+          "x": 269,
+          "y": 1803.67,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Ruta Outdoor",
+          "x": 667.66,
+          "y": 1803.67,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nova Energía",
+          "x": 1066.33,
+          "y": 1803.67,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Marea Cosmética",
+          "x": 269,
+          "y": 2195.27,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Roble Muebles",
+          "x": 667.66,
+          "y": 2195.27,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Cumbre Seguros",
+          "x": 1066.33,
+          "y": 2195.27,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Punto Libros",
+          "x": 269,
+          "y": 2586.86,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sol Pet",
+          "x": 667.66,
+          "y": 2586.86,
+          "width": 264.8,
+          "height": 21
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-proyectos.png",
+      "passed": true
+    },
+    {
+      "module": "Inventario",
+      "width": 1440,
+      "theme": "light",
+      "path": "/inventario",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Inventario",
+          "x": 224,
+          "y": 77,
+          "width": 99.02,
+          "height": 27.5
+        },
+        {
+          "text": "Batería Sony",
+          "x": 341,
+          "y": 320.8,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Cámara",
+          "x": 739.66,
+          "y": 320.8,
+          "width": 168.53,
+          "height": 18.19
+        },
+        {
+          "text": "DJI Mic 2",
+          "x": 1138.33,
+          "y": 320.8,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Luces",
+          "x": 341,
+          "y": 625.97,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Micrófono",
+          "x": 739.66,
+          "y": 625.97,
+          "width": 168.53,
+          "height": 18.19
+        },
+        {
+          "text": "Monitor de campo",
+          "x": 1138.33,
+          "y": 625.97,
+          "width": 168.52,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-inventario.png",
+      "passed": true
+    },
+    {
+      "module": "Estudio",
+      "width": 1440,
+      "theme": "light",
+      "path": "/estudio",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Estudio",
+          "x": 224,
+          "y": 83.25,
+          "width": 71.91,
+          "height": 27.5
+        },
+        {
+          "text": "Calendario del estudio",
+          "x": 245,
+          "y": 278.19,
+          "width": 162.25,
+          "height": 22.09
+        },
+        {
+          "text": "Estudio principal",
+          "x": 262,
+          "y": 1042.69,
+          "width": 97.23,
+          "height": 18.19
+        },
+        {
+          "text": "Sala podcast",
+          "x": 645.33,
+          "y": 1042.69,
+          "width": 75.73,
+          "height": 18.19
+        }
+      ],
+      "tables": [
+        {
+          "label": "Reservas del estudio",
+          "x": 245,
+          "y": 724.47,
+          "width": 1142,
+          "height": 217.31,
+          "rows": 4
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-estudio.png",
+      "passed": true
+    },
+    {
+      "module": "Equipo",
+      "width": 1440,
+      "theme": "light",
+      "path": "/equipo",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Personas y accesos",
+          "x": 224,
+          "y": 83.25,
+          "width": 182.56,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Equipo",
+          "x": 224,
+          "y": 245,
+          "width": 1184,
+          "height": 476.86,
+          "rows": 10
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-equipo.png",
+      "passed": true
+    },
+    {
+      "module": "Finanzas",
+      "width": 1440,
+      "theme": "light",
+      "path": "/pagos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cuentas y movimientos",
+          "x": 224,
+          "y": 83.25,
+          "width": 221.72,
+          "height": 27.5
+        },
+        {
+          "text": "Balances",
+          "x": 241,
+          "y": 216.95,
+          "width": 66,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros urgentes",
+          "x": 750.7,
+          "y": 216.95,
+          "width": 119.59,
+          "height": 22.09
+        },
+        {
+          "text": "Proyección",
+          "x": 1095.84,
+          "y": 208,
+          "width": 80.27,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros pendientes",
+          "x": 241,
+          "y": 639.05,
+          "width": 300.45,
+          "height": 22.09
+        },
+        {
+          "text": "Transferencias",
+          "x": 241,
+          "y": 2083.59,
+          "width": 108.66,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros pendientes",
+          "x": 241,
+          "y": 742.09,
+          "width": 1150,
+          "height": 1149.5,
+          "rows": 21
+        },
+        {
+          "label": "Transferencias entre cuentas",
+          "x": 241,
+          "y": 2117.69,
+          "width": 1150,
+          "height": 74,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-pagos.png",
+      "passed": true
+    },
+    {
+      "module": "Informes",
+      "width": 1440,
+      "theme": "light",
+      "path": "/informes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Evolución mensual",
+          "x": 295.2,
+          "y": 83.25,
+          "width": 176.69,
+          "height": 27.5
+        },
+        {
+          "text": "Resumen del período",
+          "x": 241,
+          "y": 284.19,
+          "width": 151.7,
+          "height": 22.09
+        },
+        {
+          "text": "Evolución mensual · PYG",
+          "x": 241,
+          "y": 1172.72,
+          "width": 140.58,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en vivo",
+          "x": 245,
+          "y": 1647.5,
+          "width": 252.34,
+          "height": 22.09
+        },
+        {
+          "text": "Producción semanal",
+          "x": 241,
+          "y": 1732.7,
+          "width": 1150,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Evolución mensual por mes",
+          "x": 241,
+          "y": 1202.91,
+          "width": 1150,
+          "height": 331.5,
+          "rows": 8
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-informes.png",
+      "passed": true
+    },
+    {
+      "module": "Configuración",
+      "width": 1440,
+      "theme": "light",
+      "path": "/configuracion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Empresa y ajustes",
+          "x": 224,
+          "y": 77,
+          "width": 172.63,
+          "height": 27.5
+        },
+        {
+          "text": "Mi empresa",
+          "x": 224,
+          "y": 255.5,
+          "width": 551.03,
+          "height": 22.09
+        },
+        {
+          "text": "Empresa",
+          "x": 293,
+          "y": 350.59,
+          "width": 476.09,
+          "height": 20.8
+        },
+        {
+          "text": "Datos para contratos",
+          "x": 245,
+          "y": 1344.98,
+          "width": 694.34,
+          "height": 21.28
+        },
+        {
+          "text": "Empresas",
+          "x": 1045.34,
+          "y": 350.59,
+          "width": 341.64,
+          "height": 20.8
+        },
+        {
+          "text": "Facturación y cotización",
+          "x": 224,
+          "y": 1850.61,
+          "width": 551.03,
+          "height": 22.09
+        },
+        {
+          "text": "Cotización USD / PYG",
+          "x": 293,
+          "y": 1945.7,
+          "width": 410.64,
+          "height": 20.8
+        },
+        {
+          "text": "Integraciones",
+          "x": 224,
+          "y": 2305.69,
+          "width": 353.3,
+          "height": 22.09
+        },
+        {
+          "text": "Integraciones",
+          "x": 293,
+          "y": 2382.78,
+          "width": 398.25,
+          "height": 20.8
+        },
+        {
+          "text": "Suscripción",
+          "x": 224,
+          "y": 2691.05,
+          "width": 291.45,
+          "height": 22.09
+        },
+        {
+          "text": "Suscripción de Scale OS",
+          "x": 224,
+          "y": 2747.14,
+          "width": 1184,
+          "height": 27.3
+        },
+        {
+          "text": "Demo · sin cobros",
+          "x": 342.25,
+          "y": 2791.44,
+          "width": 1048.75,
+          "height": 22.09
+        },
+        {
+          "text": "Seguridad",
+          "x": 224,
+          "y": 2943.03,
+          "width": 405.09,
+          "height": 22.09
+        },
+        {
+          "text": "Zona de peligro",
+          "x": 224,
+          "y": 3050.13,
+          "width": 439.47,
+          "height": 22.09
+        },
+        {
+          "text": "Simulación Demo",
+          "x": 293,
+          "y": 3129.22,
+          "width": 511.84,
+          "height": 22.09
+        },
+        {
+          "text": "Salir del Demo",
+          "x": 306,
+          "y": 3206.31,
+          "width": 487,
+          "height": 19.5
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-configuracion.png",
+      "passed": true
+    },
+    {
+      "module": "Balance",
+      "width": 1440,
+      "theme": "light",
+      "path": "/pagos/balance",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Balance",
+          "x": 224,
+          "y": 83.25,
+          "width": 77.47,
+          "height": 27.5
+        },
+        {
+          "text": "Balance y caja",
+          "x": 224,
+          "y": 213.36,
+          "width": 99.25,
+          "height": 21.28
+        },
+        {
+          "text": "Contratado y pagado",
+          "x": 237,
+          "y": 291.59,
+          "width": 152.42,
+          "height": 20.8
+        },
+        {
+          "text": "Equipo y salarios",
+          "x": 835,
+          "y": 291.59,
+          "width": 118.52,
+          "height": 20.8
+        },
+        {
+          "text": "PYG · contratado y cobrado",
+          "x": 237,
+          "y": 1591.16,
+          "width": 193.56,
+          "height": 20.8
+        },
+        {
+          "text": "USD · contratado y cobrado",
+          "x": 834,
+          "y": 1591.16,
+          "width": 193.73,
+          "height": 20.8
+        },
+        {
+          "text": "Dónde está el dinero",
+          "x": 224,
+          "y": 2253.17,
+          "width": 1184,
+          "height": 20.8
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes y contratos del mes",
+          "x": 237,
+          "y": 503.88,
+          "width": 560,
+          "height": 1002.5,
+          "rows": 21
+        },
+        {
+          "label": "Equipo y salarios del mes",
+          "x": 835,
+          "y": 446.53,
+          "width": 560,
+          "height": 463.5,
+          "rows": 10
+        },
+        {
+          "label": "Gastos del balance",
+          "x": 237,
+          "y": 2499.14,
+          "width": 1158,
+          "height": 136.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos previstos del balance",
+          "x": 237,
+          "y": 2701.94,
+          "width": 1158,
+          "height": 136.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-pagos-balance.png",
+      "passed": true
+    },
+    {
+      "module": "Cobranza",
+      "width": 1440,
+      "theme": "light",
+      "path": "/pagos/mora",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cobranza y mora",
+          "x": 224,
+          "y": 83.25,
+          "width": 164.78,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros registrados",
+          "x": 237,
+          "y": 366.17,
+          "width": 1158,
+          "height": 1250.5,
+          "rows": 21
+        },
+        {
+          "label": "Cobranza por cliente",
+          "x": 224,
+          "y": 2008.98,
+          "width": 1184,
+          "height": 1052.5,
+          "rows": 21
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-pagos-mora.png",
+      "passed": true
+    },
+    {
+      "module": "Previsión",
+      "width": 1440,
+      "theme": "light",
+      "path": "/pagos/prevision",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Previsión financiera",
+          "x": 295.2,
+          "y": 77,
+          "width": 191.08,
+          "height": 27.5
+        },
+        {
+          "text": "Ingresos vs gastos",
+          "x": 241,
+          "y": 249.5,
+          "width": 131.17,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen por moneda",
+          "x": 841,
+          "y": 249.5,
+          "width": 550,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos planificados · Octubre 2026",
+          "x": 241,
+          "y": 532.59,
+          "width": 1150,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos reales del mes · Octubre 2026",
+          "x": 241,
+          "y": 1018.97,
+          "width": 1150,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Gastos planificados del mes",
+          "x": 241,
+          "y": 852.47,
+          "width": 1150,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos reales del mes",
+          "x": 241,
+          "y": 1209.25,
+          "width": 1150,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-light-pagos-prevision.png",
+      "passed": true
+    },
+    {
+      "module": "Resumen",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/resumen",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Centro de control",
+          "x": 224,
+          "y": 83.25,
+          "width": 166.17,
+          "height": 27.5
+        },
+        {
+          "text": "Mis tareas",
+          "x": 245,
+          "y": 150,
+          "width": 270.69,
+          "height": 21.28
+        },
+        {
+          "text": "Piezas por etapa",
+          "x": 241,
+          "y": 952.47,
+          "width": 121.48,
+          "height": 22.09
+        },
+        {
+          "text": "Trabajo diario",
+          "x": 224,
+          "y": 1024.47,
+          "width": 102.42,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen comercial",
+          "x": 224,
+          "y": 1804.64,
+          "width": 144.86,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen financiero",
+          "x": 224,
+          "y": 2026.95,
+          "width": 148.31,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Piezas",
+          "x": 224,
+          "y": 1204.64,
+          "width": 1184,
+          "height": 570.09,
+          "rows": 12
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-resumen.png",
+      "passed": true
+    },
+    {
+      "module": "Producción",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/produccion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Producción",
+          "x": 224,
+          "y": 99.25,
+          "width": 107.59,
+          "height": 27.5
+        },
+        {
+          "text": "Bloqueado",
+          "x": 237,
+          "y": 256,
+          "width": 68.64,
+          "height": 28
+        },
+        {
+          "text": "Por grabar",
+          "x": 536,
+          "y": 256,
+          "width": 69.47,
+          "height": 28
+        },
+        {
+          "text": "Grabado",
+          "x": 835,
+          "y": 256,
+          "width": 61.44,
+          "height": 28
+        },
+        {
+          "text": "Editando",
+          "x": 1134,
+          "y": 256,
+          "width": 60.53,
+          "height": 28
+        },
+        {
+          "text": "Revisión",
+          "x": 1433,
+          "y": 256,
+          "width": 55.91,
+          "height": 28
+        },
+        {
+          "text": "Aprobado",
+          "x": 1732,
+          "y": 256,
+          "width": 66.63,
+          "height": 28
+        },
+        {
+          "text": "Publicado",
+          "x": 2031,
+          "y": 256,
+          "width": 63.8,
+          "height": 28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-produccion.png",
+      "passed": true
+    },
+    {
+      "module": "Pipeline",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/pipeline",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Pipeline",
+          "x": 224,
+          "y": 83.25,
+          "width": 76.44,
+          "height": 27.5
+        },
+        {
+          "text": "Lead",
+          "x": 237,
+          "y": 419.03,
+          "width": 46.13,
+          "height": 18.19
+        },
+        {
+          "text": "Contactado",
+          "x": 489,
+          "y": 419.03,
+          "width": 87.36,
+          "height": 18.19
+        },
+        {
+          "text": "Propuesta",
+          "x": 741,
+          "y": 419.03,
+          "width": 77.97,
+          "height": 18.19
+        },
+        {
+          "text": "Negociación",
+          "x": 993,
+          "y": 419.03,
+          "width": 90.45,
+          "height": 18.19
+        },
+        {
+          "text": "Ganado",
+          "x": 1245,
+          "y": 419.03,
+          "width": 65.13,
+          "height": 18.19
+        },
+        {
+          "text": "Perdido",
+          "x": 1497,
+          "y": 419.03,
+          "width": 62.92,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en la web",
+          "x": 245,
+          "y": 1418.56,
+          "width": 176.45,
+          "height": 27.3
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-pipeline.png",
+      "passed": true
+    },
+    {
+      "module": "Clientes",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/clientes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Clientes · 20",
+          "x": 224,
+          "y": 91.25,
+          "width": 113.05,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes",
+          "x": 224,
+          "y": 287,
+          "width": 1184,
+          "height": 992.84,
+          "rows": 20
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-clientes.png",
+      "passed": true
+    },
+    {
+      "module": "Presupuestos",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/presupuestos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Presupuestos",
+          "x": 224,
+          "y": 83.25,
+          "width": 128.69,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Presupuestos",
+          "x": 224,
+          "y": 417.31,
+          "width": 1184,
+          "height": 1009.5,
+          "rows": 16
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-presupuestos.png",
+      "passed": true
+    },
+    {
+      "module": "Contratos",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/contratos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Contratos",
+          "x": 224,
+          "y": 83.25,
+          "width": 97.36,
+          "height": 27.5
+        },
+        {
+          "text": "Ejemplo ficticio · Servicios por proyecto",
+          "x": 245,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Producción audiovisual · paquete único",
+          "x": 545,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Contenido mensual con condición preferencial",
+          "x": 845,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Marketing digital y contenido mensual",
+          "x": 1145,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-contratos.png",
+      "passed": true
+    },
+    {
+      "module": "Proyectos",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/proyectos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Proyectos",
+          "x": 224,
+          "y": 83.25,
+          "width": 95.8,
+          "height": 27.5
+        },
+        {
+          "text": "Campaña · Aurora Café",
+          "x": 269,
+          "y": 237.3,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Bosque Hogar",
+          "x": 667.66,
+          "y": 237.3,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Órbita Fitness",
+          "x": 1066.33,
+          "y": 237.3,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nube Software",
+          "x": 269,
+          "y": 628.89,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Luna Moda",
+          "x": 667.66,
+          "y": 628.89,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Brisa Viajes",
+          "x": 1066.33,
+          "y": 628.89,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Prisma Diseño",
+          "x": 269,
+          "y": 1020.48,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Raíz Orgánica",
+          "x": 667.66,
+          "y": 1020.48,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Faro Inmuebles",
+          "x": 1066.33,
+          "y": 1020.48,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Menta Salud",
+          "x": 269,
+          "y": 1412.08,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sur Automotores",
+          "x": 667.66,
+          "y": 1412.08,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Pixel Academy",
+          "x": 1066.33,
+          "y": 1412.08,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Alma Cocina",
+          "x": 269,
+          "y": 1803.67,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Ruta Outdoor",
+          "x": 667.66,
+          "y": 1803.67,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nova Energía",
+          "x": 1066.33,
+          "y": 1803.67,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Marea Cosmética",
+          "x": 269,
+          "y": 2195.27,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Roble Muebles",
+          "x": 667.66,
+          "y": 2195.27,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Cumbre Seguros",
+          "x": 1066.33,
+          "y": 2195.27,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Punto Libros",
+          "x": 269,
+          "y": 2586.86,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sol Pet",
+          "x": 667.66,
+          "y": 2586.86,
+          "width": 264.8,
+          "height": 21
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-proyectos.png",
+      "passed": true
+    },
+    {
+      "module": "Inventario",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/inventario",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Inventario",
+          "x": 224,
+          "y": 77,
+          "width": 99.02,
+          "height": 27.5
+        },
+        {
+          "text": "Batería Sony",
+          "x": 341,
+          "y": 320.8,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Cámara",
+          "x": 739.66,
+          "y": 320.8,
+          "width": 168.53,
+          "height": 18.19
+        },
+        {
+          "text": "DJI Mic 2",
+          "x": 1138.33,
+          "y": 320.8,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Luces",
+          "x": 341,
+          "y": 625.97,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Micrófono",
+          "x": 739.66,
+          "y": 625.97,
+          "width": 168.53,
+          "height": 18.19
+        },
+        {
+          "text": "Monitor de campo",
+          "x": 1138.33,
+          "y": 625.97,
+          "width": 168.52,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-inventario.png",
+      "passed": true
+    },
+    {
+      "module": "Estudio",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/estudio",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Estudio",
+          "x": 224,
+          "y": 83.25,
+          "width": 71.91,
+          "height": 27.5
+        },
+        {
+          "text": "Calendario del estudio",
+          "x": 245,
+          "y": 278.19,
+          "width": 162.25,
+          "height": 22.09
+        },
+        {
+          "text": "Estudio principal",
+          "x": 262,
+          "y": 1042.69,
+          "width": 97.23,
+          "height": 18.19
+        },
+        {
+          "text": "Sala podcast",
+          "x": 645.33,
+          "y": 1042.69,
+          "width": 75.73,
+          "height": 18.19
+        }
+      ],
+      "tables": [
+        {
+          "label": "Reservas del estudio",
+          "x": 245,
+          "y": 724.47,
+          "width": 1142,
+          "height": 217.31,
+          "rows": 4
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-estudio.png",
+      "passed": true
+    },
+    {
+      "module": "Equipo",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/equipo",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Personas y accesos",
+          "x": 224,
+          "y": 83.25,
+          "width": 182.56,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Equipo",
+          "x": 224,
+          "y": 245,
+          "width": 1184,
+          "height": 476.86,
+          "rows": 10
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-equipo.png",
+      "passed": true
+    },
+    {
+      "module": "Finanzas",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/pagos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cuentas y movimientos",
+          "x": 224,
+          "y": 83.25,
+          "width": 221.72,
+          "height": 27.5
+        },
+        {
+          "text": "Balances",
+          "x": 241,
+          "y": 216.95,
+          "width": 66,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros urgentes",
+          "x": 750.7,
+          "y": 216.95,
+          "width": 119.59,
+          "height": 22.09
+        },
+        {
+          "text": "Proyección",
+          "x": 1095.84,
+          "y": 208,
+          "width": 80.27,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros pendientes",
+          "x": 241,
+          "y": 639.05,
+          "width": 300.45,
+          "height": 22.09
+        },
+        {
+          "text": "Transferencias",
+          "x": 241,
+          "y": 2083.59,
+          "width": 108.66,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros pendientes",
+          "x": 241,
+          "y": 742.09,
+          "width": 1150,
+          "height": 1149.5,
+          "rows": 21
+        },
+        {
+          "label": "Transferencias entre cuentas",
+          "x": 241,
+          "y": 2117.69,
+          "width": 1150,
+          "height": 74,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-pagos.png",
+      "passed": true
+    },
+    {
+      "module": "Informes",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/informes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Evolución mensual",
+          "x": 295.2,
+          "y": 83.25,
+          "width": 176.69,
+          "height": 27.5
+        },
+        {
+          "text": "Resumen del período",
+          "x": 241,
+          "y": 284.19,
+          "width": 151.7,
+          "height": 22.09
+        },
+        {
+          "text": "Evolución mensual · PYG",
+          "x": 241,
+          "y": 1172.72,
+          "width": 140.58,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en vivo",
+          "x": 245,
+          "y": 1647.5,
+          "width": 252.34,
+          "height": 22.09
+        },
+        {
+          "text": "Producción semanal",
+          "x": 241,
+          "y": 1732.7,
+          "width": 1150,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Evolución mensual por mes",
+          "x": 241,
+          "y": 1202.91,
+          "width": 1150,
+          "height": 331.5,
+          "rows": 8
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-informes.png",
+      "passed": true
+    },
+    {
+      "module": "Configuración",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/configuracion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Empresa y ajustes",
+          "x": 224,
+          "y": 77,
+          "width": 172.63,
+          "height": 27.5
+        },
+        {
+          "text": "Mi empresa",
+          "x": 224,
+          "y": 255.5,
+          "width": 551.03,
+          "height": 22.09
+        },
+        {
+          "text": "Empresa",
+          "x": 293,
+          "y": 350.59,
+          "width": 476.09,
+          "height": 20.8
+        },
+        {
+          "text": "Datos para contratos",
+          "x": 245,
+          "y": 1344.98,
+          "width": 694.34,
+          "height": 21.28
+        },
+        {
+          "text": "Empresas",
+          "x": 1045.34,
+          "y": 350.59,
+          "width": 341.64,
+          "height": 20.8
+        },
+        {
+          "text": "Facturación y cotización",
+          "x": 224,
+          "y": 1850.61,
+          "width": 551.03,
+          "height": 22.09
+        },
+        {
+          "text": "Cotización USD / PYG",
+          "x": 293,
+          "y": 1945.7,
+          "width": 410.64,
+          "height": 20.8
+        },
+        {
+          "text": "Integraciones",
+          "x": 224,
+          "y": 2305.69,
+          "width": 353.3,
+          "height": 22.09
+        },
+        {
+          "text": "Integraciones",
+          "x": 293,
+          "y": 2382.78,
+          "width": 398.25,
+          "height": 20.8
+        },
+        {
+          "text": "Suscripción",
+          "x": 224,
+          "y": 2691.05,
+          "width": 291.45,
+          "height": 22.09
+        },
+        {
+          "text": "Suscripción de Scale OS",
+          "x": 224,
+          "y": 2747.14,
+          "width": 1184,
+          "height": 27.3
+        },
+        {
+          "text": "Demo · sin cobros",
+          "x": 342.25,
+          "y": 2791.44,
+          "width": 1048.75,
+          "height": 22.09
+        },
+        {
+          "text": "Seguridad",
+          "x": 224,
+          "y": 2943.03,
+          "width": 405.09,
+          "height": 22.09
+        },
+        {
+          "text": "Zona de peligro",
+          "x": 224,
+          "y": 3050.13,
+          "width": 439.47,
+          "height": 22.09
+        },
+        {
+          "text": "Simulación Demo",
+          "x": 293,
+          "y": 3129.22,
+          "width": 511.84,
+          "height": 22.09
+        },
+        {
+          "text": "Salir del Demo",
+          "x": 306,
+          "y": 3206.31,
+          "width": 487,
+          "height": 19.5
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-configuracion.png",
+      "passed": true
+    },
+    {
+      "module": "Balance",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/pagos/balance",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Balance",
+          "x": 224,
+          "y": 83.25,
+          "width": 77.47,
+          "height": 27.5
+        },
+        {
+          "text": "Balance y caja",
+          "x": 224,
+          "y": 213.36,
+          "width": 99.25,
+          "height": 21.28
+        },
+        {
+          "text": "Contratado y pagado",
+          "x": 237,
+          "y": 291.59,
+          "width": 152.42,
+          "height": 20.8
+        },
+        {
+          "text": "Equipo y salarios",
+          "x": 835,
+          "y": 291.59,
+          "width": 118.52,
+          "height": 20.8
+        },
+        {
+          "text": "PYG · contratado y cobrado",
+          "x": 237,
+          "y": 1591.16,
+          "width": 193.56,
+          "height": 20.8
+        },
+        {
+          "text": "USD · contratado y cobrado",
+          "x": 834,
+          "y": 1591.16,
+          "width": 193.73,
+          "height": 20.8
+        },
+        {
+          "text": "Dónde está el dinero",
+          "x": 224,
+          "y": 2253.17,
+          "width": 1184,
+          "height": 20.8
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes y contratos del mes",
+          "x": 237,
+          "y": 503.88,
+          "width": 560,
+          "height": 1002.5,
+          "rows": 21
+        },
+        {
+          "label": "Equipo y salarios del mes",
+          "x": 835,
+          "y": 446.53,
+          "width": 560,
+          "height": 463.5,
+          "rows": 10
+        },
+        {
+          "label": "Gastos del balance",
+          "x": 237,
+          "y": 2499.14,
+          "width": 1158,
+          "height": 136.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos previstos del balance",
+          "x": 237,
+          "y": 2701.94,
+          "width": 1158,
+          "height": 136.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-pagos-balance.png",
+      "passed": true
+    },
+    {
+      "module": "Cobranza",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/pagos/mora",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cobranza y mora",
+          "x": 224,
+          "y": 83.25,
+          "width": 164.78,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros registrados",
+          "x": 237,
+          "y": 366.17,
+          "width": 1158,
+          "height": 1250.5,
+          "rows": 21
+        },
+        {
+          "label": "Cobranza por cliente",
+          "x": 224,
+          "y": 2008.98,
+          "width": 1184,
+          "height": 1052.5,
+          "rows": 21
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-pagos-mora.png",
+      "passed": true
+    },
+    {
+      "module": "Previsión",
+      "width": 1440,
+      "theme": "dark",
+      "path": "/pagos/prevision",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Previsión financiera",
+          "x": 295.2,
+          "y": 77,
+          "width": 191.08,
+          "height": 27.5
+        },
+        {
+          "text": "Ingresos vs gastos",
+          "x": 241,
+          "y": 249.5,
+          "width": 131.17,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen por moneda",
+          "x": 841,
+          "y": 249.5,
+          "width": 550,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos planificados · Octubre 2026",
+          "x": 241,
+          "y": 532.59,
+          "width": 1150,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos reales del mes · Octubre 2026",
+          "x": 241,
+          "y": 1018.97,
+          "width": 1150,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Gastos planificados del mes",
+          "x": 241,
+          "y": 852.47,
+          "width": 1150,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos reales del mes",
+          "x": 241,
+          "y": 1209.25,
+          "width": 1150,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-dark-pagos-prevision.png",
+      "passed": true
+    },
+    {
+      "module": "Resumen",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/resumen",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Centro de control",
+          "x": 224,
+          "y": 83.25,
+          "width": 166.17,
+          "height": 27.5
+        },
+        {
+          "text": "Mis tareas",
+          "x": 245,
+          "y": 150,
+          "width": 270.69,
+          "height": 21.28
+        },
+        {
+          "text": "Piezas por etapa",
+          "x": 241,
+          "y": 952.47,
+          "width": 121.48,
+          "height": 22.09
+        },
+        {
+          "text": "Trabajo diario",
+          "x": 224,
+          "y": 1024.47,
+          "width": 102.42,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen comercial",
+          "x": 224,
+          "y": 1804.64,
+          "width": 144.86,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen financiero",
+          "x": 224,
+          "y": 2026.95,
+          "width": 148.31,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Piezas",
+          "x": 224,
+          "y": 1204.64,
+          "width": 1184,
+          "height": 570.09,
+          "rows": 12
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-resumen.png",
+      "passed": true
+    },
+    {
+      "module": "Producción",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/produccion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Producción",
+          "x": 224,
+          "y": 99.25,
+          "width": 107.59,
+          "height": 27.5
+        },
+        {
+          "text": "Bloqueado",
+          "x": 237,
+          "y": 256,
+          "width": 68.64,
+          "height": 28
+        },
+        {
+          "text": "Por grabar",
+          "x": 536,
+          "y": 256,
+          "width": 69.47,
+          "height": 28
+        },
+        {
+          "text": "Grabado",
+          "x": 835,
+          "y": 256,
+          "width": 61.44,
+          "height": 28
+        },
+        {
+          "text": "Editando",
+          "x": 1134,
+          "y": 256,
+          "width": 60.53,
+          "height": 28
+        },
+        {
+          "text": "Revisión",
+          "x": 1433,
+          "y": 256,
+          "width": 55.91,
+          "height": 28
+        },
+        {
+          "text": "Aprobado",
+          "x": 1732,
+          "y": 256,
+          "width": 66.63,
+          "height": 28
+        },
+        {
+          "text": "Publicado",
+          "x": 2031,
+          "y": 256,
+          "width": 63.8,
+          "height": 28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-produccion.png",
+      "passed": true
+    },
+    {
+      "module": "Pipeline",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/pipeline",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Pipeline",
+          "x": 224,
+          "y": 83.25,
+          "width": 76.44,
+          "height": 27.5
+        },
+        {
+          "text": "Lead",
+          "x": 237,
+          "y": 419.03,
+          "width": 46.13,
+          "height": 18.19
+        },
+        {
+          "text": "Contactado",
+          "x": 489,
+          "y": 419.03,
+          "width": 87.36,
+          "height": 18.19
+        },
+        {
+          "text": "Propuesta",
+          "x": 741,
+          "y": 419.03,
+          "width": 77.97,
+          "height": 18.19
+        },
+        {
+          "text": "Negociación",
+          "x": 993,
+          "y": 419.03,
+          "width": 90.45,
+          "height": 18.19
+        },
+        {
+          "text": "Ganado",
+          "x": 1245,
+          "y": 419.03,
+          "width": 65.13,
+          "height": 18.19
+        },
+        {
+          "text": "Perdido",
+          "x": 1497,
+          "y": 419.03,
+          "width": 62.92,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en la web",
+          "x": 245,
+          "y": 1418.56,
+          "width": 176.45,
+          "height": 27.3
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-pipeline.png",
+      "passed": true
+    },
+    {
+      "module": "Clientes",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/clientes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Clientes · 20",
+          "x": 224,
+          "y": 91.25,
+          "width": 113.05,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes",
+          "x": 224,
+          "y": 287,
+          "width": 1184,
+          "height": 992.84,
+          "rows": 20
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-clientes.png",
+      "passed": true
+    },
+    {
+      "module": "Presupuestos",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/presupuestos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Presupuestos",
+          "x": 224,
+          "y": 83.25,
+          "width": 128.69,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Presupuestos",
+          "x": 224,
+          "y": 417.31,
+          "width": 1184,
+          "height": 1009.5,
+          "rows": 16
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-presupuestos.png",
+      "passed": true
+    },
+    {
+      "module": "Contratos",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/contratos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Contratos",
+          "x": 224,
+          "y": 83.25,
+          "width": 97.36,
+          "height": 27.5
+        },
+        {
+          "text": "Ejemplo ficticio · Servicios por proyecto",
+          "x": 245,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Producción audiovisual · paquete único",
+          "x": 545,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Contenido mensual con condición preferencial",
+          "x": 845,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Marketing digital y contenido mensual",
+          "x": 1145,
+          "y": 298.19,
+          "width": 242,
+          "height": 21.28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-contratos.png",
+      "passed": true
+    },
+    {
+      "module": "Proyectos",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/proyectos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Proyectos",
+          "x": 224,
+          "y": 83.25,
+          "width": 95.8,
+          "height": 27.5
+        },
+        {
+          "text": "Campaña · Aurora Café",
+          "x": 269,
+          "y": 237.3,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Bosque Hogar",
+          "x": 667.66,
+          "y": 237.3,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Órbita Fitness",
+          "x": 1066.33,
+          "y": 237.3,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nube Software",
+          "x": 269,
+          "y": 628.89,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Luna Moda",
+          "x": 667.66,
+          "y": 628.89,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Brisa Viajes",
+          "x": 1066.33,
+          "y": 628.89,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Prisma Diseño",
+          "x": 269,
+          "y": 1020.48,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Raíz Orgánica",
+          "x": 667.66,
+          "y": 1020.48,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Faro Inmuebles",
+          "x": 1066.33,
+          "y": 1020.48,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Menta Salud",
+          "x": 269,
+          "y": 1412.08,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sur Automotores",
+          "x": 667.66,
+          "y": 1412.08,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Pixel Academy",
+          "x": 1066.33,
+          "y": 1412.08,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Alma Cocina",
+          "x": 269,
+          "y": 1803.67,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Ruta Outdoor",
+          "x": 667.66,
+          "y": 1803.67,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nova Energía",
+          "x": 1066.33,
+          "y": 1803.67,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Marea Cosmética",
+          "x": 269,
+          "y": 2195.27,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Roble Muebles",
+          "x": 667.66,
+          "y": 2195.27,
+          "width": 264.8,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Cumbre Seguros",
+          "x": 1066.33,
+          "y": 2195.27,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Punto Libros",
+          "x": 269,
+          "y": 2586.86,
+          "width": 264.78,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sol Pet",
+          "x": 667.66,
+          "y": 2586.86,
+          "width": 264.8,
+          "height": 21
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-proyectos.png",
+      "passed": true
+    },
+    {
+      "module": "Inventario",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/inventario",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Inventario",
+          "x": 224,
+          "y": 77,
+          "width": 99.02,
+          "height": 27.5
+        },
+        {
+          "text": "Batería Sony",
+          "x": 341,
+          "y": 320.8,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Cámara",
+          "x": 739.66,
+          "y": 320.8,
+          "width": 168.53,
+          "height": 18.19
+        },
+        {
+          "text": "DJI Mic 2",
+          "x": 1138.33,
+          "y": 320.8,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Luces",
+          "x": 341,
+          "y": 625.97,
+          "width": 168.52,
+          "height": 18.19
+        },
+        {
+          "text": "Micrófono",
+          "x": 739.66,
+          "y": 625.97,
+          "width": 168.53,
+          "height": 18.19
+        },
+        {
+          "text": "Monitor de campo",
+          "x": 1138.33,
+          "y": 625.97,
+          "width": 168.52,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-inventario.png",
+      "passed": true
+    },
+    {
+      "module": "Estudio",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/estudio",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Estudio",
+          "x": 224,
+          "y": 83.25,
+          "width": 71.91,
+          "height": 27.5
+        },
+        {
+          "text": "Calendario del estudio",
+          "x": 245,
+          "y": 278.19,
+          "width": 162.25,
+          "height": 22.09
+        },
+        {
+          "text": "Estudio principal",
+          "x": 262,
+          "y": 1042.69,
+          "width": 97.23,
+          "height": 18.19
+        },
+        {
+          "text": "Sala podcast",
+          "x": 645.33,
+          "y": 1042.69,
+          "width": 75.73,
+          "height": 18.19
+        }
+      ],
+      "tables": [
+        {
+          "label": "Reservas del estudio",
+          "x": 245,
+          "y": 724.47,
+          "width": 1142,
+          "height": 217.31,
+          "rows": 4
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-estudio.png",
+      "passed": true
+    },
+    {
+      "module": "Equipo",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/equipo",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Personas y accesos",
+          "x": 224,
+          "y": 83.25,
+          "width": 182.56,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Equipo",
+          "x": 224,
+          "y": 245,
+          "width": 1184,
+          "height": 476.86,
+          "rows": 10
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-equipo.png",
+      "passed": true
+    },
+    {
+      "module": "Finanzas",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/pagos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cuentas y movimientos",
+          "x": 224,
+          "y": 83.25,
+          "width": 221.72,
+          "height": 27.5
+        },
+        {
+          "text": "Balances",
+          "x": 241,
+          "y": 216.95,
+          "width": 66,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros urgentes",
+          "x": 750.7,
+          "y": 216.95,
+          "width": 119.59,
+          "height": 22.09
+        },
+        {
+          "text": "Proyección",
+          "x": 1095.84,
+          "y": 208,
+          "width": 80.27,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros pendientes",
+          "x": 241,
+          "y": 639.05,
+          "width": 300.45,
+          "height": 22.09
+        },
+        {
+          "text": "Transferencias",
+          "x": 241,
+          "y": 2083.59,
+          "width": 108.66,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros pendientes",
+          "x": 241,
+          "y": 742.09,
+          "width": 1150,
+          "height": 1149.5,
+          "rows": 21
+        },
+        {
+          "label": "Transferencias entre cuentas",
+          "x": 241,
+          "y": 2117.69,
+          "width": 1150,
+          "height": 74,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-pagos.png",
+      "passed": true
+    },
+    {
+      "module": "Informes",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/informes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Evolución mensual",
+          "x": 295.2,
+          "y": 83.25,
+          "width": 176.69,
+          "height": 27.5
+        },
+        {
+          "text": "Resumen del período",
+          "x": 241,
+          "y": 284.19,
+          "width": 151.7,
+          "height": 22.09
+        },
+        {
+          "text": "Evolución mensual · PYG",
+          "x": 241,
+          "y": 1172.72,
+          "width": 140.58,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en vivo",
+          "x": 245,
+          "y": 1647.5,
+          "width": 252.34,
+          "height": 22.09
+        },
+        {
+          "text": "Producción semanal",
+          "x": 241,
+          "y": 1732.7,
+          "width": 1150,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Evolución mensual por mes",
+          "x": 241,
+          "y": 1202.91,
+          "width": 1150,
+          "height": 331.5,
+          "rows": 8
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-informes.png",
+      "passed": true
+    },
+    {
+      "module": "Configuración",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/configuracion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Empresa y ajustes",
+          "x": 224,
+          "y": 77,
+          "width": 172.63,
+          "height": 27.5
+        },
+        {
+          "text": "Mi empresa",
+          "x": 224,
+          "y": 255.5,
+          "width": 551.03,
+          "height": 22.09
+        },
+        {
+          "text": "Empresa",
+          "x": 293,
+          "y": 350.59,
+          "width": 476.09,
+          "height": 20.8
+        },
+        {
+          "text": "Datos para contratos",
+          "x": 245,
+          "y": 1344.98,
+          "width": 694.34,
+          "height": 21.28
+        },
+        {
+          "text": "Empresas",
+          "x": 1045.34,
+          "y": 350.59,
+          "width": 341.64,
+          "height": 20.8
+        },
+        {
+          "text": "Facturación y cotización",
+          "x": 224,
+          "y": 1850.61,
+          "width": 551.03,
+          "height": 22.09
+        },
+        {
+          "text": "Cotización USD / PYG",
+          "x": 293,
+          "y": 1945.7,
+          "width": 410.64,
+          "height": 20.8
+        },
+        {
+          "text": "Integraciones",
+          "x": 224,
+          "y": 2305.69,
+          "width": 353.3,
+          "height": 22.09
+        },
+        {
+          "text": "Integraciones",
+          "x": 293,
+          "y": 2382.78,
+          "width": 398.25,
+          "height": 20.8
+        },
+        {
+          "text": "Suscripción",
+          "x": 224,
+          "y": 2691.05,
+          "width": 291.45,
+          "height": 22.09
+        },
+        {
+          "text": "Suscripción de Scale OS",
+          "x": 224,
+          "y": 2747.14,
+          "width": 1184,
+          "height": 27.3
+        },
+        {
+          "text": "Demo · sin cobros",
+          "x": 342.25,
+          "y": 2791.44,
+          "width": 1048.75,
+          "height": 22.09
+        },
+        {
+          "text": "Seguridad",
+          "x": 224,
+          "y": 2943.03,
+          "width": 405.09,
+          "height": 22.09
+        },
+        {
+          "text": "Zona de peligro",
+          "x": 224,
+          "y": 3050.13,
+          "width": 439.47,
+          "height": 22.09
+        },
+        {
+          "text": "Simulación Demo",
+          "x": 293,
+          "y": 3129.22,
+          "width": 511.84,
+          "height": 22.09
+        },
+        {
+          "text": "Salir del Demo",
+          "x": 306,
+          "y": 3206.31,
+          "width": 487,
+          "height": 19.5
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-configuracion.png",
+      "passed": true
+    },
+    {
+      "module": "Balance",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/pagos/balance",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Balance",
+          "x": 224,
+          "y": 83.25,
+          "width": 77.47,
+          "height": 27.5
+        },
+        {
+          "text": "Balance y caja",
+          "x": 224,
+          "y": 213.36,
+          "width": 99.25,
+          "height": 21.28
+        },
+        {
+          "text": "Contratado y pagado",
+          "x": 237,
+          "y": 291.59,
+          "width": 152.42,
+          "height": 20.8
+        },
+        {
+          "text": "Equipo y salarios",
+          "x": 835,
+          "y": 291.59,
+          "width": 118.52,
+          "height": 20.8
+        },
+        {
+          "text": "PYG · contratado y cobrado",
+          "x": 237,
+          "y": 1591.16,
+          "width": 193.56,
+          "height": 20.8
+        },
+        {
+          "text": "USD · contratado y cobrado",
+          "x": 834,
+          "y": 1591.16,
+          "width": 193.73,
+          "height": 20.8
+        },
+        {
+          "text": "Dónde está el dinero",
+          "x": 224,
+          "y": 2253.17,
+          "width": 1184,
+          "height": 20.8
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes y contratos del mes",
+          "x": 237,
+          "y": 503.88,
+          "width": 560,
+          "height": 1002.5,
+          "rows": 21
+        },
+        {
+          "label": "Equipo y salarios del mes",
+          "x": 835,
+          "y": 446.53,
+          "width": 560,
+          "height": 463.5,
+          "rows": 10
+        },
+        {
+          "label": "Gastos del balance",
+          "x": 237,
+          "y": 2499.14,
+          "width": 1158,
+          "height": 136.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos previstos del balance",
+          "x": 237,
+          "y": 2701.94,
+          "width": 1158,
+          "height": 136.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-pagos-balance.png",
+      "passed": true
+    },
+    {
+      "module": "Cobranza",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/pagos/mora",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cobranza y mora",
+          "x": 224,
+          "y": 83.25,
+          "width": 164.78,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros registrados",
+          "x": 237,
+          "y": 366.17,
+          "width": 1158,
+          "height": 1250.5,
+          "rows": 21
+        },
+        {
+          "label": "Cobranza por cliente",
+          "x": 224,
+          "y": 2008.98,
+          "width": 1184,
+          "height": 1052.5,
+          "rows": 21
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-pagos-mora.png",
+      "passed": true
+    },
+    {
+      "module": "Previsión",
+      "width": 1440,
+      "theme": "contrast",
+      "path": "/pagos/prevision",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Previsión financiera",
+          "x": 295.2,
+          "y": 77,
+          "width": 191.08,
+          "height": 27.5
+        },
+        {
+          "text": "Ingresos vs gastos",
+          "x": 241,
+          "y": 249.5,
+          "width": 131.17,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen por moneda",
+          "x": 841,
+          "y": 249.5,
+          "width": 550,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos planificados · Octubre 2026",
+          "x": 241,
+          "y": 532.59,
+          "width": 1150,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos reales del mes · Octubre 2026",
+          "x": 241,
+          "y": 1018.97,
+          "width": 1150,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Gastos planificados del mes",
+          "x": 241,
+          "y": 852.47,
+          "width": 1150,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos reales del mes",
+          "x": 241,
+          "y": 1209.25,
+          "width": 1150,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/1440-contrast-pagos-prevision.png",
+      "passed": true
+    },
+    {
+      "module": "Resumen",
+      "width": 390,
+      "theme": "light",
+      "path": "/resumen",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Centro de control",
+          "x": 16,
+          "y": 129,
+          "width": 166.17,
+          "height": 27.5
+        },
+        {
+          "text": "Mis tareas",
+          "x": 33,
+          "y": 237.5,
+          "width": 270.69,
+          "height": 21.28
+        },
+        {
+          "text": "Piezas por etapa",
+          "x": 33,
+          "y": 1983.95,
+          "width": 121.48,
+          "height": 22.09
+        },
+        {
+          "text": "Trabajo diario",
+          "x": 16,
+          "y": 2121,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen comercial",
+          "x": 16,
+          "y": 3184.38,
+          "width": 144.86,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen financiero",
+          "x": 16,
+          "y": 3654.19,
+          "width": 148.31,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Piezas",
+          "x": 16,
+          "y": 2588.97,
+          "width": 358,
+          "height": 561.5,
+          "rows": 12
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-resumen.png",
+      "passed": true
+    },
+    {
+      "module": "Producción",
+      "width": 390,
+      "theme": "light",
+      "path": "/produccion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Producción",
+          "x": 28,
+          "y": 141,
+          "width": 107.59,
+          "height": 27.5
+        },
+        {
+          "text": "Bloqueado",
+          "x": 41,
+          "y": 491.44,
+          "width": 68.64,
+          "height": 28
+        },
+        {
+          "text": "Por grabar",
+          "x": 387,
+          "y": 491.44,
+          "width": 69.47,
+          "height": 28
+        },
+        {
+          "text": "Grabado",
+          "x": 733,
+          "y": 491.44,
+          "width": 61.44,
+          "height": 28
+        },
+        {
+          "text": "Editando",
+          "x": 1079,
+          "y": 491.44,
+          "width": 60.53,
+          "height": 28
+        },
+        {
+          "text": "Revisión",
+          "x": 1425,
+          "y": 491.44,
+          "width": 55.91,
+          "height": 28
+        },
+        {
+          "text": "Aprobado",
+          "x": 1771,
+          "y": 491.44,
+          "width": 66.63,
+          "height": 28
+        },
+        {
+          "text": "Publicado",
+          "x": 2117,
+          "y": 491.44,
+          "width": 63.8,
+          "height": 28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-produccion.png",
+      "passed": true
+    },
+    {
+      "module": "Pipeline",
+      "width": 390,
+      "theme": "light",
+      "path": "/pipeline",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Pipeline",
+          "x": 16,
+          "y": 129,
+          "width": 76.44,
+          "height": 27.5
+        },
+        {
+          "text": "Lead",
+          "x": 29,
+          "y": 810.16,
+          "width": 46.13,
+          "height": 18.19
+        },
+        {
+          "text": "Contactado",
+          "x": 281,
+          "y": 810.16,
+          "width": 87.36,
+          "height": 18.19
+        },
+        {
+          "text": "Propuesta",
+          "x": 533,
+          "y": 810.16,
+          "width": 77.97,
+          "height": 18.19
+        },
+        {
+          "text": "Negociación",
+          "x": 785,
+          "y": 810.16,
+          "width": 90.45,
+          "height": 18.19
+        },
+        {
+          "text": "Ganado",
+          "x": 1037,
+          "y": 810.16,
+          "width": 65.13,
+          "height": 18.19
+        },
+        {
+          "text": "Perdido",
+          "x": 1289,
+          "y": 810.16,
+          "width": 62.92,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en la web",
+          "x": 33,
+          "y": 2041.69,
+          "width": 176.45,
+          "height": 27.3
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-pipeline.png",
+      "passed": true
+    },
+    {
+      "module": "Clientes",
+      "width": 390,
+      "theme": "light",
+      "path": "/clientes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Clientes · 20",
+          "x": 16,
+          "y": 129,
+          "width": 113.05,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes",
+          "x": 16,
+          "y": 517.14,
+          "width": 358,
+          "height": 1098.17,
+          "rows": 11
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-clientes.png",
+      "passed": true
+    },
+    {
+      "module": "Presupuestos",
+      "width": 390,
+      "theme": "light",
+      "path": "/presupuestos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Presupuestos",
+          "x": 16,
+          "y": 129,
+          "width": 128.69,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Presupuestos",
+          "x": 16,
+          "y": 1116.44,
+          "width": 358,
+          "height": 1023.5,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-presupuestos.png",
+      "passed": true
+    },
+    {
+      "module": "Contratos",
+      "width": 390,
+      "theme": "light",
+      "path": "/contratos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Contratos",
+          "x": 16,
+          "y": 129,
+          "width": 97.36,
+          "height": 27.5
+        },
+        {
+          "text": "Ejemplo ficticio · Servicios por proyecto",
+          "x": 33,
+          "y": 514.8,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Producción audiovisual · paquete único",
+          "x": 33,
+          "y": 738.97,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Contenido mensual con condición preferencial",
+          "x": 33,
+          "y": 963.14,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Marketing digital y contenido mensual",
+          "x": 33,
+          "y": 1187.31,
+          "width": 324,
+          "height": 21.28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-contratos.png",
+      "passed": true
+    },
+    {
+      "module": "Proyectos",
+      "width": 390,
+      "theme": "light",
+      "path": "/proyectos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Proyectos",
+          "x": 16,
+          "y": 129,
+          "width": 95.8,
+          "height": 27.5
+        },
+        {
+          "text": "Campaña · Aurora Café",
+          "x": 85,
+          "y": 508.59,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Bosque Hogar",
+          "x": 85,
+          "y": 994.38,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Órbita Fitness",
+          "x": 85,
+          "y": 1480.16,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nube Software",
+          "x": 85,
+          "y": 1965.94,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Luna Moda",
+          "x": 85,
+          "y": 2451.72,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Brisa Viajes",
+          "x": 85,
+          "y": 2937.5,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Prisma Diseño",
+          "x": 85,
+          "y": 3423.28,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Raíz Orgánica",
+          "x": 85,
+          "y": 3909.06,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Faro Inmuebles",
+          "x": 85,
+          "y": 4394.84,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Menta Salud",
+          "x": 85,
+          "y": 4880.63,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sur Automotores",
+          "x": 85,
+          "y": 5366.41,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Pixel Academy",
+          "x": 85,
+          "y": 5852.19,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Alma Cocina",
+          "x": 85,
+          "y": 6337.97,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Ruta Outdoor",
+          "x": 85,
+          "y": 6823.75,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nova Energía",
+          "x": 85,
+          "y": 7309.53,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Marea Cosmética",
+          "x": 85,
+          "y": 7795.31,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Roble Muebles",
+          "x": 85,
+          "y": 8281.09,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Cumbre Seguros",
+          "x": 85,
+          "y": 8766.88,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Punto Libros",
+          "x": 85,
+          "y": 9252.66,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sol Pet",
+          "x": 85,
+          "y": 9738.44,
+          "width": 212.13,
+          "height": 21
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-proyectos.png",
+      "passed": true
+    },
+    {
+      "module": "Inventario",
+      "width": 390,
+      "theme": "light",
+      "path": "/inventario",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Inventario",
+          "x": 16,
+          "y": 129,
+          "width": 99.02,
+          "height": 27.5
+        },
+        {
+          "text": "Batería Sony",
+          "x": 153,
+          "y": 632.59,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Cámara",
+          "x": 153,
+          "y": 922.88,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "DJI Mic 2",
+          "x": 153,
+          "y": 1253.16,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Luces",
+          "x": 153,
+          "y": 1558.33,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Micrófono",
+          "x": 153,
+          "y": 1848.61,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Monitor de campo",
+          "x": 153,
+          "y": 2138.89,
+          "width": 119.86,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-inventario.png",
+      "passed": true
+    },
+    {
+      "module": "Estudio",
+      "width": 390,
+      "theme": "light",
+      "path": "/estudio",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Estudio",
+          "x": 16,
+          "y": 129,
+          "width": 71.91,
+          "height": 27.5
+        },
+        {
+          "text": "Calendario del estudio",
+          "x": 37,
+          "y": 571.88,
+          "width": 162.25,
+          "height": 22.09
+        },
+        {
+          "text": "Estudio principal",
+          "x": 54,
+          "y": 2550.09,
+          "width": 97.23,
+          "height": 18.19
+        },
+        {
+          "text": "Sala podcast",
+          "x": 54,
+          "y": 2736.09,
+          "width": 75.73,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-estudio.png",
+      "passed": true
+    },
+    {
+      "module": "Equipo",
+      "width": 390,
+      "theme": "light",
+      "path": "/equipo",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Personas y accesos",
+          "x": 16,
+          "y": 129,
+          "width": 182.56,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Equipo",
+          "x": 16,
+          "y": 468.5,
+          "width": 358,
+          "height": 481.5,
+          "rows": 10
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-equipo.png",
+      "passed": true
+    },
+    {
+      "module": "Finanzas",
+      "width": 390,
+      "theme": "light",
+      "path": "/pagos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cuentas y movimientos",
+          "x": 16,
+          "y": 129,
+          "width": 221.72,
+          "height": 27.5
+        },
+        {
+          "text": "Balances",
+          "x": 33,
+          "y": 320.45,
+          "width": 66,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros urgentes",
+          "x": 33,
+          "y": 845.95,
+          "width": 119.59,
+          "height": 22.09
+        },
+        {
+          "text": "Proyección",
+          "x": 33,
+          "y": 1055.3,
+          "width": 80.27,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros pendientes",
+          "x": 33,
+          "y": 1489.39,
+          "width": 300.45,
+          "height": 22.09
+        },
+        {
+          "text": "Transferencias",
+          "x": 33,
+          "y": 3048.98,
+          "width": 108.66,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros pendientes",
+          "x": 33,
+          "y": 1799.48,
+          "width": 324,
+          "height": 1001.5,
+          "rows": 21
+        },
+        {
+          "label": "Transferencias entre cuentas",
+          "x": 33,
+          "y": 3083.08,
+          "width": 324,
+          "height": 71.5,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-pagos.png",
+      "passed": true
+    },
+    {
+      "module": "Informes",
+      "width": 390,
+      "theme": "light",
+      "path": "/informes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Evolución mensual",
+          "x": 87.2,
+          "y": 129,
+          "width": 176.69,
+          "height": 27.5
+        },
+        {
+          "text": "Resumen del período",
+          "x": 29,
+          "y": 671.42,
+          "width": 151.7,
+          "height": 22.09
+        },
+        {
+          "text": "Evolución mensual · PYG",
+          "x": 29,
+          "y": 2519.02,
+          "width": 140.58,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en vivo",
+          "x": 37,
+          "y": 3036.7,
+          "width": 252.34,
+          "height": 22.09
+        },
+        {
+          "text": "Producción semanal",
+          "x": 33,
+          "y": 3185.09,
+          "width": 324,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Evolución mensual por mes",
+          "x": 29,
+          "y": 2549.2,
+          "width": 332,
+          "height": 359.5,
+          "rows": 8
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-informes.png",
+      "passed": true
+    },
+    {
+      "module": "Configuración",
+      "width": 390,
+      "theme": "light",
+      "path": "/configuracion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Empresa y ajustes",
+          "x": 16,
+          "y": 129,
+          "width": 172.63,
+          "height": 27.5
+        },
+        {
+          "text": "Mi empresa",
+          "x": 16,
+          "y": 321.5,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Empresa",
+          "x": 81,
+          "y": 492.59,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Datos para contratos",
+          "x": 33,
+          "y": 1854.14,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Empresas",
+          "x": 81,
+          "y": 2678.25,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Facturación y cotización",
+          "x": 16,
+          "y": 3239.05,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Cotización USD / PYG",
+          "x": 81,
+          "y": 3410.14,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Integraciones",
+          "x": 16,
+          "y": 3872.31,
+          "width": 353.3,
+          "height": 22.09
+        },
+        {
+          "text": "Integraciones",
+          "x": 81,
+          "y": 4025.41,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Suscripción",
+          "x": 16,
+          "y": 4418.98,
+          "width": 291.45,
+          "height": 22.09
+        },
+        {
+          "text": "Suscripción de Scale OS",
+          "x": 16,
+          "y": 4555.08,
+          "width": 358,
+          "height": 27.3
+        },
+        {
+          "text": "Demo · sin cobros",
+          "x": 35,
+          "y": 4635.38,
+          "width": 322,
+          "height": 22.09
+        },
+        {
+          "text": "Seguridad",
+          "x": 16,
+          "y": 4830.47,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Zona de peligro",
+          "x": 16,
+          "y": 5027.56,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Simulación Demo",
+          "x": 85,
+          "y": 5200.66,
+          "width": 272,
+          "height": 22.09
+        },
+        {
+          "text": "Salir del Demo",
+          "x": 98,
+          "y": 5297.75,
+          "width": 242,
+          "height": 19.5
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-configuracion.png",
+      "passed": true
+    },
+    {
+      "module": "Balance",
+      "width": 390,
+      "theme": "light",
+      "path": "/pagos/balance",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Balance",
+          "x": 16,
+          "y": 129,
+          "width": 77.47,
+          "height": 27.5
+        },
+        {
+          "text": "Balance y caja",
+          "x": 16,
+          "y": 292.5,
+          "width": 99.25,
+          "height": 21.28
+        },
+        {
+          "text": "Contratado y pagado",
+          "x": 27,
+          "y": 482.38,
+          "width": 152.42,
+          "height": 20.8
+        },
+        {
+          "text": "Equipo y salarios",
+          "x": 27,
+          "y": 1777.73,
+          "width": 118.52,
+          "height": 20.8
+        },
+        {
+          "text": "PYG · contratado y cobrado",
+          "x": 29,
+          "y": 2590.06,
+          "width": 193.56,
+          "height": 20.8
+        },
+        {
+          "text": "USD · contratado y cobrado",
+          "x": 29,
+          "y": 2808.11,
+          "width": 193.73,
+          "height": 20.8
+        },
+        {
+          "text": "Dónde está el dinero",
+          "x": 16,
+          "y": 4019.09,
+          "width": 358,
+          "height": 20.8
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes y contratos del mes",
+          "x": 27,
+          "y": 729.64,
+          "width": 336,
+          "height": 1002.5,
+          "rows": 21
+        },
+        {
+          "label": "Equipo y salarios del mes",
+          "x": 27,
+          "y": 2009,
+          "width": 336,
+          "height": 463.5,
+          "rows": 10
+        },
+        {
+          "label": "Gastos del balance",
+          "x": 29,
+          "y": 4724.81,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos previstos del balance",
+          "x": 29,
+          "y": 4935.61,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-pagos-balance.png",
+      "passed": true
+    },
+    {
+      "module": "Cobranza",
+      "width": 390,
+      "theme": "light",
+      "path": "/pagos/mora",
+      "documentOverflow": 139,
+      "headings": [
+        {
+          "text": "Cobranza y mora",
+          "x": 16,
+          "y": 129,
+          "width": 164.78,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros registrados",
+          "x": 29,
+          "y": 612.75,
+          "width": 332,
+          "height": 1098.5,
+          "rows": 21
+        },
+        {
+          "label": "Cobranza por cliente",
+          "x": 16,
+          "y": 2579,
+          "width": 358,
+          "height": 983.5,
+          "rows": 21
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-pagos-mora.png",
+      "passed": false
+    },
+    {
+      "module": "Previsión",
+      "width": 390,
+      "theme": "light",
+      "path": "/pagos/prevision",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Previsión financiera",
+          "x": 87.2,
+          "y": 129,
+          "width": 191.08,
+          "height": 27.5
+        },
+        {
+          "text": "Ingresos vs gastos",
+          "x": 29,
+          "y": 420.5,
+          "width": 131.17,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen por moneda",
+          "x": 29,
+          "y": 862.09,
+          "width": 332,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos planificados · Octubre 2026",
+          "x": 29,
+          "y": 1029.19,
+          "width": 332,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos reales del mes · Octubre 2026",
+          "x": 29,
+          "y": 1927.23,
+          "width": 332,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Gastos planificados del mes",
+          "x": 29,
+          "y": 1768.73,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos reales del mes",
+          "x": 29,
+          "y": 2574.28,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-light-pagos-prevision.png",
+      "passed": true
+    },
+    {
+      "module": "Resumen",
+      "width": 390,
+      "theme": "dark",
+      "path": "/resumen",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Centro de control",
+          "x": 16,
+          "y": 129,
+          "width": 166.17,
+          "height": 27.5
+        },
+        {
+          "text": "Mis tareas",
+          "x": 33,
+          "y": 237.5,
+          "width": 270.69,
+          "height": 21.28
+        },
+        {
+          "text": "Piezas por etapa",
+          "x": 33,
+          "y": 1983.95,
+          "width": 121.48,
+          "height": 22.09
+        },
+        {
+          "text": "Trabajo diario",
+          "x": 16,
+          "y": 2121,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen comercial",
+          "x": 16,
+          "y": 3184.38,
+          "width": 144.86,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen financiero",
+          "x": 16,
+          "y": 3654.19,
+          "width": 148.31,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Piezas",
+          "x": 16,
+          "y": 2588.97,
+          "width": 358,
+          "height": 561.5,
+          "rows": 12
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-resumen.png",
+      "passed": true
+    },
+    {
+      "module": "Producción",
+      "width": 390,
+      "theme": "dark",
+      "path": "/produccion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Producción",
+          "x": 28,
+          "y": 141,
+          "width": 107.59,
+          "height": 27.5
+        },
+        {
+          "text": "Bloqueado",
+          "x": 41,
+          "y": 491.44,
+          "width": 68.64,
+          "height": 28
+        },
+        {
+          "text": "Por grabar",
+          "x": 387,
+          "y": 491.44,
+          "width": 69.47,
+          "height": 28
+        },
+        {
+          "text": "Grabado",
+          "x": 733,
+          "y": 491.44,
+          "width": 61.44,
+          "height": 28
+        },
+        {
+          "text": "Editando",
+          "x": 1079,
+          "y": 491.44,
+          "width": 60.53,
+          "height": 28
+        },
+        {
+          "text": "Revisión",
+          "x": 1425,
+          "y": 491.44,
+          "width": 55.91,
+          "height": 28
+        },
+        {
+          "text": "Aprobado",
+          "x": 1771,
+          "y": 491.44,
+          "width": 66.63,
+          "height": 28
+        },
+        {
+          "text": "Publicado",
+          "x": 2117,
+          "y": 491.44,
+          "width": 63.8,
+          "height": 28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-produccion.png",
+      "passed": true
+    },
+    {
+      "module": "Pipeline",
+      "width": 390,
+      "theme": "dark",
+      "path": "/pipeline",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Pipeline",
+          "x": 16,
+          "y": 129,
+          "width": 76.44,
+          "height": 27.5
+        },
+        {
+          "text": "Lead",
+          "x": 29,
+          "y": 810.16,
+          "width": 46.13,
+          "height": 18.19
+        },
+        {
+          "text": "Contactado",
+          "x": 281,
+          "y": 810.16,
+          "width": 87.36,
+          "height": 18.19
+        },
+        {
+          "text": "Propuesta",
+          "x": 533,
+          "y": 810.16,
+          "width": 77.97,
+          "height": 18.19
+        },
+        {
+          "text": "Negociación",
+          "x": 785,
+          "y": 810.16,
+          "width": 90.45,
+          "height": 18.19
+        },
+        {
+          "text": "Ganado",
+          "x": 1037,
+          "y": 810.16,
+          "width": 65.13,
+          "height": 18.19
+        },
+        {
+          "text": "Perdido",
+          "x": 1289,
+          "y": 810.16,
+          "width": 62.92,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en la web",
+          "x": 33,
+          "y": 2041.69,
+          "width": 176.45,
+          "height": 27.3
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-pipeline.png",
+      "passed": true
+    },
+    {
+      "module": "Clientes",
+      "width": 390,
+      "theme": "dark",
+      "path": "/clientes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Clientes · 20",
+          "x": 16,
+          "y": 129,
+          "width": 113.05,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes",
+          "x": 16,
+          "y": 517.14,
+          "width": 358,
+          "height": 1098.17,
+          "rows": 11
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-clientes.png",
+      "passed": true
+    },
+    {
+      "module": "Presupuestos",
+      "width": 390,
+      "theme": "dark",
+      "path": "/presupuestos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Presupuestos",
+          "x": 16,
+          "y": 129,
+          "width": 128.69,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Presupuestos",
+          "x": 16,
+          "y": 1116.44,
+          "width": 358,
+          "height": 1023.5,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-presupuestos.png",
+      "passed": true
+    },
+    {
+      "module": "Contratos",
+      "width": 390,
+      "theme": "dark",
+      "path": "/contratos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Contratos",
+          "x": 16,
+          "y": 129,
+          "width": 97.36,
+          "height": 27.5
+        },
+        {
+          "text": "Ejemplo ficticio · Servicios por proyecto",
+          "x": 33,
+          "y": 514.8,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Producción audiovisual · paquete único",
+          "x": 33,
+          "y": 738.97,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Contenido mensual con condición preferencial",
+          "x": 33,
+          "y": 963.14,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Marketing digital y contenido mensual",
+          "x": 33,
+          "y": 1187.31,
+          "width": 324,
+          "height": 21.28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-contratos.png",
+      "passed": true
+    },
+    {
+      "module": "Proyectos",
+      "width": 390,
+      "theme": "dark",
+      "path": "/proyectos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Proyectos",
+          "x": 16,
+          "y": 129,
+          "width": 95.8,
+          "height": 27.5
+        },
+        {
+          "text": "Campaña · Aurora Café",
+          "x": 85,
+          "y": 508.59,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Bosque Hogar",
+          "x": 85,
+          "y": 994.38,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Órbita Fitness",
+          "x": 85,
+          "y": 1480.16,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nube Software",
+          "x": 85,
+          "y": 1965.94,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Luna Moda",
+          "x": 85,
+          "y": 2451.72,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Brisa Viajes",
+          "x": 85,
+          "y": 2937.5,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Prisma Diseño",
+          "x": 85,
+          "y": 3423.28,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Raíz Orgánica",
+          "x": 85,
+          "y": 3909.06,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Faro Inmuebles",
+          "x": 85,
+          "y": 4394.84,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Menta Salud",
+          "x": 85,
+          "y": 4880.63,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sur Automotores",
+          "x": 85,
+          "y": 5366.41,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Pixel Academy",
+          "x": 85,
+          "y": 5852.19,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Alma Cocina",
+          "x": 85,
+          "y": 6337.97,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Ruta Outdoor",
+          "x": 85,
+          "y": 6823.75,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nova Energía",
+          "x": 85,
+          "y": 7309.53,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Marea Cosmética",
+          "x": 85,
+          "y": 7795.31,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Roble Muebles",
+          "x": 85,
+          "y": 8281.09,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Cumbre Seguros",
+          "x": 85,
+          "y": 8766.88,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Punto Libros",
+          "x": 85,
+          "y": 9252.66,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sol Pet",
+          "x": 85,
+          "y": 9738.44,
+          "width": 212.13,
+          "height": 21
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-proyectos.png",
+      "passed": true
+    },
+    {
+      "module": "Inventario",
+      "width": 390,
+      "theme": "dark",
+      "path": "/inventario",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Inventario",
+          "x": 16,
+          "y": 129,
+          "width": 99.02,
+          "height": 27.5
+        },
+        {
+          "text": "Batería Sony",
+          "x": 153,
+          "y": 632.59,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Cámara",
+          "x": 153,
+          "y": 922.88,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "DJI Mic 2",
+          "x": 153,
+          "y": 1253.16,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Luces",
+          "x": 153,
+          "y": 1558.33,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Micrófono",
+          "x": 153,
+          "y": 1848.61,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Monitor de campo",
+          "x": 153,
+          "y": 2138.89,
+          "width": 119.86,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-inventario.png",
+      "passed": true
+    },
+    {
+      "module": "Estudio",
+      "width": 390,
+      "theme": "dark",
+      "path": "/estudio",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Estudio",
+          "x": 16,
+          "y": 129,
+          "width": 71.91,
+          "height": 27.5
+        },
+        {
+          "text": "Calendario del estudio",
+          "x": 37,
+          "y": 571.88,
+          "width": 162.25,
+          "height": 22.09
+        },
+        {
+          "text": "Estudio principal",
+          "x": 54,
+          "y": 2550.09,
+          "width": 97.23,
+          "height": 18.19
+        },
+        {
+          "text": "Sala podcast",
+          "x": 54,
+          "y": 2736.09,
+          "width": 75.73,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-estudio.png",
+      "passed": true
+    },
+    {
+      "module": "Equipo",
+      "width": 390,
+      "theme": "dark",
+      "path": "/equipo",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Personas y accesos",
+          "x": 16,
+          "y": 129,
+          "width": 182.56,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Equipo",
+          "x": 16,
+          "y": 468.5,
+          "width": 358,
+          "height": 481.5,
+          "rows": 10
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-equipo.png",
+      "passed": true
+    },
+    {
+      "module": "Finanzas",
+      "width": 390,
+      "theme": "dark",
+      "path": "/pagos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cuentas y movimientos",
+          "x": 16,
+          "y": 129,
+          "width": 221.72,
+          "height": 27.5
+        },
+        {
+          "text": "Balances",
+          "x": 33,
+          "y": 320.45,
+          "width": 66,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros urgentes",
+          "x": 33,
+          "y": 845.95,
+          "width": 119.59,
+          "height": 22.09
+        },
+        {
+          "text": "Proyección",
+          "x": 33,
+          "y": 1055.3,
+          "width": 80.27,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros pendientes",
+          "x": 33,
+          "y": 1489.39,
+          "width": 300.45,
+          "height": 22.09
+        },
+        {
+          "text": "Transferencias",
+          "x": 33,
+          "y": 3048.98,
+          "width": 108.66,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros pendientes",
+          "x": 33,
+          "y": 1799.48,
+          "width": 324,
+          "height": 1001.5,
+          "rows": 21
+        },
+        {
+          "label": "Transferencias entre cuentas",
+          "x": 33,
+          "y": 3083.08,
+          "width": 324,
+          "height": 71.5,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-pagos.png",
+      "passed": true
+    },
+    {
+      "module": "Informes",
+      "width": 390,
+      "theme": "dark",
+      "path": "/informes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Evolución mensual",
+          "x": 87.2,
+          "y": 129,
+          "width": 176.69,
+          "height": 27.5
+        },
+        {
+          "text": "Resumen del período",
+          "x": 29,
+          "y": 671.42,
+          "width": 151.7,
+          "height": 22.09
+        },
+        {
+          "text": "Evolución mensual · PYG",
+          "x": 29,
+          "y": 2519.02,
+          "width": 140.58,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en vivo",
+          "x": 37,
+          "y": 3036.7,
+          "width": 252.34,
+          "height": 22.09
+        },
+        {
+          "text": "Producción semanal",
+          "x": 33,
+          "y": 3185.09,
+          "width": 324,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Evolución mensual por mes",
+          "x": 29,
+          "y": 2549.2,
+          "width": 332,
+          "height": 359.5,
+          "rows": 8
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-informes.png",
+      "passed": true
+    },
+    {
+      "module": "Configuración",
+      "width": 390,
+      "theme": "dark",
+      "path": "/configuracion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Empresa y ajustes",
+          "x": 16,
+          "y": 129,
+          "width": 172.63,
+          "height": 27.5
+        },
+        {
+          "text": "Mi empresa",
+          "x": 16,
+          "y": 321.5,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Empresa",
+          "x": 81,
+          "y": 492.59,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Datos para contratos",
+          "x": 33,
+          "y": 1854.14,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Empresas",
+          "x": 81,
+          "y": 2678.25,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Facturación y cotización",
+          "x": 16,
+          "y": 3239.05,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Cotización USD / PYG",
+          "x": 81,
+          "y": 3410.14,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Integraciones",
+          "x": 16,
+          "y": 3872.31,
+          "width": 353.3,
+          "height": 22.09
+        },
+        {
+          "text": "Integraciones",
+          "x": 81,
+          "y": 4025.41,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Suscripción",
+          "x": 16,
+          "y": 4418.98,
+          "width": 291.45,
+          "height": 22.09
+        },
+        {
+          "text": "Suscripción de Scale OS",
+          "x": 16,
+          "y": 4555.08,
+          "width": 358,
+          "height": 27.3
+        },
+        {
+          "text": "Demo · sin cobros",
+          "x": 35,
+          "y": 4635.38,
+          "width": 322,
+          "height": 22.09
+        },
+        {
+          "text": "Seguridad",
+          "x": 16,
+          "y": 4830.47,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Zona de peligro",
+          "x": 16,
+          "y": 5027.56,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Simulación Demo",
+          "x": 85,
+          "y": 5200.66,
+          "width": 272,
+          "height": 22.09
+        },
+        {
+          "text": "Salir del Demo",
+          "x": 98,
+          "y": 5297.75,
+          "width": 242,
+          "height": 19.5
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-configuracion.png",
+      "passed": true
+    },
+    {
+      "module": "Balance",
+      "width": 390,
+      "theme": "dark",
+      "path": "/pagos/balance",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Balance",
+          "x": 16,
+          "y": 129,
+          "width": 77.47,
+          "height": 27.5
+        },
+        {
+          "text": "Balance y caja",
+          "x": 16,
+          "y": 292.5,
+          "width": 99.25,
+          "height": 21.28
+        },
+        {
+          "text": "Contratado y pagado",
+          "x": 27,
+          "y": 482.38,
+          "width": 152.42,
+          "height": 20.8
+        },
+        {
+          "text": "Equipo y salarios",
+          "x": 27,
+          "y": 1777.73,
+          "width": 118.52,
+          "height": 20.8
+        },
+        {
+          "text": "PYG · contratado y cobrado",
+          "x": 29,
+          "y": 2590.06,
+          "width": 193.56,
+          "height": 20.8
+        },
+        {
+          "text": "USD · contratado y cobrado",
+          "x": 29,
+          "y": 2808.11,
+          "width": 193.73,
+          "height": 20.8
+        },
+        {
+          "text": "Dónde está el dinero",
+          "x": 16,
+          "y": 4019.09,
+          "width": 358,
+          "height": 20.8
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes y contratos del mes",
+          "x": 27,
+          "y": 729.64,
+          "width": 336,
+          "height": 1002.5,
+          "rows": 21
+        },
+        {
+          "label": "Equipo y salarios del mes",
+          "x": 27,
+          "y": 2009,
+          "width": 336,
+          "height": 463.5,
+          "rows": 10
+        },
+        {
+          "label": "Gastos del balance",
+          "x": 29,
+          "y": 4724.81,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos previstos del balance",
+          "x": 29,
+          "y": 4935.61,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-pagos-balance.png",
+      "passed": true
+    },
+    {
+      "module": "Cobranza",
+      "width": 390,
+      "theme": "dark",
+      "path": "/pagos/mora",
+      "documentOverflow": 139,
+      "headings": [
+        {
+          "text": "Cobranza y mora",
+          "x": 16,
+          "y": 129,
+          "width": 164.78,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros registrados",
+          "x": 29,
+          "y": 612.75,
+          "width": 332,
+          "height": 1098.5,
+          "rows": 21
+        },
+        {
+          "label": "Cobranza por cliente",
+          "x": 16,
+          "y": 2579,
+          "width": 358,
+          "height": 983.5,
+          "rows": 21
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-pagos-mora.png",
+      "passed": false
+    },
+    {
+      "module": "Previsión",
+      "width": 390,
+      "theme": "dark",
+      "path": "/pagos/prevision",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Previsión financiera",
+          "x": 87.2,
+          "y": 129,
+          "width": 191.08,
+          "height": 27.5
+        },
+        {
+          "text": "Ingresos vs gastos",
+          "x": 29,
+          "y": 420.5,
+          "width": 131.17,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen por moneda",
+          "x": 29,
+          "y": 862.09,
+          "width": 332,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos planificados · Octubre 2026",
+          "x": 29,
+          "y": 1029.19,
+          "width": 332,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos reales del mes · Octubre 2026",
+          "x": 29,
+          "y": 1927.23,
+          "width": 332,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Gastos planificados del mes",
+          "x": 29,
+          "y": 1768.73,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos reales del mes",
+          "x": 29,
+          "y": 2574.28,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-dark-pagos-prevision.png",
+      "passed": true
+    },
+    {
+      "module": "Resumen",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/resumen",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Centro de control",
+          "x": 16,
+          "y": 129,
+          "width": 166.17,
+          "height": 27.5
+        },
+        {
+          "text": "Mis tareas",
+          "x": 33,
+          "y": 237.5,
+          "width": 270.69,
+          "height": 21.28
+        },
+        {
+          "text": "Piezas por etapa",
+          "x": 33,
+          "y": 1983.95,
+          "width": 121.48,
+          "height": 22.09
+        },
+        {
+          "text": "Trabajo diario",
+          "x": 16,
+          "y": 2121,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen comercial",
+          "x": 16,
+          "y": 3184.38,
+          "width": 144.86,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen financiero",
+          "x": 16,
+          "y": 3654.19,
+          "width": 148.31,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Piezas",
+          "x": 16,
+          "y": 2588.97,
+          "width": 358,
+          "height": 561.5,
+          "rows": 12
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-resumen.png",
+      "passed": true
+    },
+    {
+      "module": "Producción",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/produccion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Producción",
+          "x": 28,
+          "y": 141,
+          "width": 107.59,
+          "height": 27.5
+        },
+        {
+          "text": "Bloqueado",
+          "x": 41,
+          "y": 491.44,
+          "width": 68.64,
+          "height": 28
+        },
+        {
+          "text": "Por grabar",
+          "x": 387,
+          "y": 491.44,
+          "width": 69.47,
+          "height": 28
+        },
+        {
+          "text": "Grabado",
+          "x": 733,
+          "y": 491.44,
+          "width": 61.44,
+          "height": 28
+        },
+        {
+          "text": "Editando",
+          "x": 1079,
+          "y": 491.44,
+          "width": 60.53,
+          "height": 28
+        },
+        {
+          "text": "Revisión",
+          "x": 1425,
+          "y": 491.44,
+          "width": 55.91,
+          "height": 28
+        },
+        {
+          "text": "Aprobado",
+          "x": 1771,
+          "y": 491.44,
+          "width": 66.63,
+          "height": 28
+        },
+        {
+          "text": "Publicado",
+          "x": 2117,
+          "y": 491.44,
+          "width": 63.8,
+          "height": 28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-produccion.png",
+      "passed": true
+    },
+    {
+      "module": "Pipeline",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/pipeline",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Pipeline",
+          "x": 16,
+          "y": 129,
+          "width": 76.44,
+          "height": 27.5
+        },
+        {
+          "text": "Lead",
+          "x": 29,
+          "y": 810.16,
+          "width": 46.13,
+          "height": 18.19
+        },
+        {
+          "text": "Contactado",
+          "x": 281,
+          "y": 810.16,
+          "width": 87.36,
+          "height": 18.19
+        },
+        {
+          "text": "Propuesta",
+          "x": 533,
+          "y": 810.16,
+          "width": 77.97,
+          "height": 18.19
+        },
+        {
+          "text": "Negociación",
+          "x": 785,
+          "y": 810.16,
+          "width": 90.45,
+          "height": 18.19
+        },
+        {
+          "text": "Ganado",
+          "x": 1037,
+          "y": 810.16,
+          "width": 65.13,
+          "height": 18.19
+        },
+        {
+          "text": "Perdido",
+          "x": 1289,
+          "y": 810.16,
+          "width": 62.92,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en la web",
+          "x": 33,
+          "y": 2041.69,
+          "width": 176.45,
+          "height": 27.3
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-pipeline.png",
+      "passed": true
+    },
+    {
+      "module": "Clientes",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/clientes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Clientes · 20",
+          "x": 16,
+          "y": 129,
+          "width": 113.05,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes",
+          "x": 16,
+          "y": 517.14,
+          "width": 358,
+          "height": 1098.17,
+          "rows": 11
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-clientes.png",
+      "passed": true
+    },
+    {
+      "module": "Presupuestos",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/presupuestos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Presupuestos",
+          "x": 16,
+          "y": 129,
+          "width": 128.69,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Presupuestos",
+          "x": 16,
+          "y": 1116.44,
+          "width": 358,
+          "height": 1023.5,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-presupuestos.png",
+      "passed": true
+    },
+    {
+      "module": "Contratos",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/contratos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Contratos",
+          "x": 16,
+          "y": 129,
+          "width": 97.36,
+          "height": 27.5
+        },
+        {
+          "text": "Ejemplo ficticio · Servicios por proyecto",
+          "x": 33,
+          "y": 514.8,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Producción audiovisual · paquete único",
+          "x": 33,
+          "y": 738.97,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Contenido mensual con condición preferencial",
+          "x": 33,
+          "y": 963.14,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Ejemplo ficticio · Marketing digital y contenido mensual",
+          "x": 33,
+          "y": 1187.31,
+          "width": 324,
+          "height": 21.28
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-contratos.png",
+      "passed": true
+    },
+    {
+      "module": "Proyectos",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/proyectos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Proyectos",
+          "x": 16,
+          "y": 129,
+          "width": 95.8,
+          "height": 27.5
+        },
+        {
+          "text": "Campaña · Aurora Café",
+          "x": 85,
+          "y": 508.59,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Bosque Hogar",
+          "x": 85,
+          "y": 994.38,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Órbita Fitness",
+          "x": 85,
+          "y": 1480.16,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nube Software",
+          "x": 85,
+          "y": 1965.94,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Luna Moda",
+          "x": 85,
+          "y": 2451.72,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Brisa Viajes",
+          "x": 85,
+          "y": 2937.5,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Prisma Diseño",
+          "x": 85,
+          "y": 3423.28,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Raíz Orgánica",
+          "x": 85,
+          "y": 3909.06,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Faro Inmuebles",
+          "x": 85,
+          "y": 4394.84,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Menta Salud",
+          "x": 85,
+          "y": 4880.63,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sur Automotores",
+          "x": 85,
+          "y": 5366.41,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Pixel Academy",
+          "x": 85,
+          "y": 5852.19,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Alma Cocina",
+          "x": 85,
+          "y": 6337.97,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Ruta Outdoor",
+          "x": 85,
+          "y": 6823.75,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Nova Energía",
+          "x": 85,
+          "y": 7309.53,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Marea Cosmética",
+          "x": 85,
+          "y": 7795.31,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Roble Muebles",
+          "x": 85,
+          "y": 8281.09,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Cumbre Seguros",
+          "x": 85,
+          "y": 8766.88,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Punto Libros",
+          "x": 85,
+          "y": 9252.66,
+          "width": 212.13,
+          "height": 21
+        },
+        {
+          "text": "Campaña · Sol Pet",
+          "x": 85,
+          "y": 9738.44,
+          "width": 212.13,
+          "height": 21
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-proyectos.png",
+      "passed": true
+    },
+    {
+      "module": "Inventario",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/inventario",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Inventario",
+          "x": 16,
+          "y": 129,
+          "width": 99.02,
+          "height": 27.5
+        },
+        {
+          "text": "Batería Sony",
+          "x": 153,
+          "y": 632.59,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Cámara",
+          "x": 153,
+          "y": 922.88,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "DJI Mic 2",
+          "x": 153,
+          "y": 1253.16,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Luces",
+          "x": 153,
+          "y": 1558.33,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Micrófono",
+          "x": 153,
+          "y": 1848.61,
+          "width": 119.86,
+          "height": 18.19
+        },
+        {
+          "text": "Monitor de campo",
+          "x": 153,
+          "y": 2138.89,
+          "width": 119.86,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-inventario.png",
+      "passed": true
+    },
+    {
+      "module": "Estudio",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/estudio",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Estudio",
+          "x": 16,
+          "y": 129,
+          "width": 71.91,
+          "height": 27.5
+        },
+        {
+          "text": "Calendario del estudio",
+          "x": 37,
+          "y": 571.88,
+          "width": 162.25,
+          "height": 22.09
+        },
+        {
+          "text": "Estudio principal",
+          "x": 54,
+          "y": 2550.09,
+          "width": 97.23,
+          "height": 18.19
+        },
+        {
+          "text": "Sala podcast",
+          "x": 54,
+          "y": 2736.09,
+          "width": 75.73,
+          "height": 18.19
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-estudio.png",
+      "passed": true
+    },
+    {
+      "module": "Equipo",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/equipo",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Personas y accesos",
+          "x": 16,
+          "y": 129,
+          "width": 182.56,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Equipo",
+          "x": 16,
+          "y": 468.5,
+          "width": 358,
+          "height": 481.5,
+          "rows": 10
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-equipo.png",
+      "passed": true
+    },
+    {
+      "module": "Finanzas",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/pagos",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Cuentas y movimientos",
+          "x": 16,
+          "y": 129,
+          "width": 221.72,
+          "height": 27.5
+        },
+        {
+          "text": "Balances",
+          "x": 33,
+          "y": 320.45,
+          "width": 66,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros urgentes",
+          "x": 33,
+          "y": 845.95,
+          "width": 119.59,
+          "height": 22.09
+        },
+        {
+          "text": "Proyección",
+          "x": 33,
+          "y": 1055.3,
+          "width": 80.27,
+          "height": 22.09
+        },
+        {
+          "text": "Cobros pendientes",
+          "x": 33,
+          "y": 1489.39,
+          "width": 300.45,
+          "height": 22.09
+        },
+        {
+          "text": "Transferencias",
+          "x": 33,
+          "y": 3048.98,
+          "width": 108.66,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros pendientes",
+          "x": 33,
+          "y": 1799.48,
+          "width": 324,
+          "height": 1001.5,
+          "rows": 21
+        },
+        {
+          "label": "Transferencias entre cuentas",
+          "x": 33,
+          "y": 3083.08,
+          "width": 324,
+          "height": 71.5,
+          "rows": 2
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-pagos.png",
+      "passed": true
+    },
+    {
+      "module": "Informes",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/informes",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Evolución mensual",
+          "x": 87.2,
+          "y": 129,
+          "width": 176.69,
+          "height": 27.5
+        },
+        {
+          "text": "Resumen del período",
+          "x": 29,
+          "y": 671.42,
+          "width": 151.7,
+          "height": 22.09
+        },
+        {
+          "text": "Evolución mensual · PYG",
+          "x": 29,
+          "y": 2519.02,
+          "width": 140.58,
+          "height": 18.19
+        },
+        {
+          "text": "Visitantes en vivo",
+          "x": 37,
+          "y": 3036.7,
+          "width": 252.34,
+          "height": 22.09
+        },
+        {
+          "text": "Producción semanal",
+          "x": 33,
+          "y": 3185.09,
+          "width": 324,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Evolución mensual por mes",
+          "x": 29,
+          "y": 2549.2,
+          "width": 332,
+          "height": 359.5,
+          "rows": 8
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-informes.png",
+      "passed": true
+    },
+    {
+      "module": "Configuración",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/configuracion",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Empresa y ajustes",
+          "x": 16,
+          "y": 129,
+          "width": 172.63,
+          "height": 27.5
+        },
+        {
+          "text": "Mi empresa",
+          "x": 16,
+          "y": 321.5,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Empresa",
+          "x": 81,
+          "y": 492.59,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Datos para contratos",
+          "x": 33,
+          "y": 1854.14,
+          "width": 324,
+          "height": 21.28
+        },
+        {
+          "text": "Empresas",
+          "x": 81,
+          "y": 2678.25,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Facturación y cotización",
+          "x": 16,
+          "y": 3239.05,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Cotización USD / PYG",
+          "x": 81,
+          "y": 3410.14,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Integraciones",
+          "x": 16,
+          "y": 3872.31,
+          "width": 353.3,
+          "height": 22.09
+        },
+        {
+          "text": "Integraciones",
+          "x": 81,
+          "y": 4025.41,
+          "width": 276,
+          "height": 20.8
+        },
+        {
+          "text": "Suscripción",
+          "x": 16,
+          "y": 4418.98,
+          "width": 291.45,
+          "height": 22.09
+        },
+        {
+          "text": "Suscripción de Scale OS",
+          "x": 16,
+          "y": 4555.08,
+          "width": 358,
+          "height": 27.3
+        },
+        {
+          "text": "Demo · sin cobros",
+          "x": 35,
+          "y": 4635.38,
+          "width": 322,
+          "height": 22.09
+        },
+        {
+          "text": "Seguridad",
+          "x": 16,
+          "y": 4830.47,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Zona de peligro",
+          "x": 16,
+          "y": 5027.56,
+          "width": 358,
+          "height": 22.09
+        },
+        {
+          "text": "Simulación Demo",
+          "x": 85,
+          "y": 5200.66,
+          "width": 272,
+          "height": 22.09
+        },
+        {
+          "text": "Salir del Demo",
+          "x": 98,
+          "y": 5297.75,
+          "width": 242,
+          "height": 19.5
+        }
+      ],
+      "tables": [],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-configuracion.png",
+      "passed": true
+    },
+    {
+      "module": "Balance",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/pagos/balance",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Balance",
+          "x": 16,
+          "y": 129,
+          "width": 77.47,
+          "height": 27.5
+        },
+        {
+          "text": "Balance y caja",
+          "x": 16,
+          "y": 292.5,
+          "width": 99.25,
+          "height": 21.28
+        },
+        {
+          "text": "Contratado y pagado",
+          "x": 27,
+          "y": 482.38,
+          "width": 152.42,
+          "height": 20.8
+        },
+        {
+          "text": "Equipo y salarios",
+          "x": 27,
+          "y": 1777.73,
+          "width": 118.52,
+          "height": 20.8
+        },
+        {
+          "text": "PYG · contratado y cobrado",
+          "x": 29,
+          "y": 2590.06,
+          "width": 193.56,
+          "height": 20.8
+        },
+        {
+          "text": "USD · contratado y cobrado",
+          "x": 29,
+          "y": 2808.11,
+          "width": 193.73,
+          "height": 20.8
+        },
+        {
+          "text": "Dónde está el dinero",
+          "x": 16,
+          "y": 4019.09,
+          "width": 358,
+          "height": 20.8
+        }
+      ],
+      "tables": [
+        {
+          "label": "Clientes y contratos del mes",
+          "x": 27,
+          "y": 729.64,
+          "width": 336,
+          "height": 1002.5,
+          "rows": 21
+        },
+        {
+          "label": "Equipo y salarios del mes",
+          "x": 27,
+          "y": 2009,
+          "width": 336,
+          "height": 463.5,
+          "rows": 10
+        },
+        {
+          "label": "Gastos del balance",
+          "x": 29,
+          "y": 4724.81,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos previstos del balance",
+          "x": 29,
+          "y": 4935.61,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-pagos-balance.png",
+      "passed": true
+    },
+    {
+      "module": "Cobranza",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/pagos/mora",
+      "documentOverflow": 139,
+      "headings": [
+        {
+          "text": "Cobranza y mora",
+          "x": 16,
+          "y": 129,
+          "width": 164.78,
+          "height": 27.5
+        }
+      ],
+      "tables": [
+        {
+          "label": "Cobros registrados",
+          "x": 29,
+          "y": 612.75,
+          "width": 332,
+          "height": 1098.5,
+          "rows": 21
+        },
+        {
+          "label": "Cobranza por cliente",
+          "x": 16,
+          "y": 2579,
+          "width": 358,
+          "height": 983.5,
+          "rows": 21
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-pagos-mora.png",
+      "passed": false
+    },
+    {
+      "module": "Previsión",
+      "width": 390,
+      "theme": "contrast",
+      "path": "/pagos/prevision",
+      "documentOverflow": 0,
+      "headings": [
+        {
+          "text": "Previsión financiera",
+          "x": 87.2,
+          "y": 129,
+          "width": 191.08,
+          "height": 27.5
+        },
+        {
+          "text": "Ingresos vs gastos",
+          "x": 29,
+          "y": 420.5,
+          "width": 131.17,
+          "height": 22.09
+        },
+        {
+          "text": "Resumen por moneda",
+          "x": 29,
+          "y": 862.09,
+          "width": 332,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos planificados · Octubre 2026",
+          "x": 29,
+          "y": 1029.19,
+          "width": 332,
+          "height": 22.09
+        },
+        {
+          "text": "Gastos reales del mes · Octubre 2026",
+          "x": 29,
+          "y": 1927.23,
+          "width": 332,
+          "height": 22.09
+        }
+      ],
+      "tables": [
+        {
+          "label": "Gastos planificados del mes",
+          "x": 29,
+          "y": 1768.73,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        },
+        {
+          "label": "Gastos reales del mes",
+          "x": 29,
+          "y": 2574.28,
+          "width": 332,
+          "height": 120.5,
+          "rows": 3
+        }
+      ],
+      "screenshot": "/tmp/scale241-app-final/screens/390-contrast-pagos-prevision.png",
+      "passed": true
+    }
+  ]
+}

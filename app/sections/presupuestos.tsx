@@ -1,6 +1,11 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {SegmentedField} from '../ui/navigation';
+
+import {InputControl} from '../ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,SearchField,SegmentedField} from 'owncoding-ui';
+
+import {SearchField} from '../search-field';
 import {fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from '../list-format';
 import {Plus,Trash2} from 'lucide-react';
@@ -17,6 +22,8 @@ import {SelectCustom} from '../profile-controls';
 import {budgetState,filterBudgets,type BudgetFilters} from '../budget-status';
 import {EMPTY_WINDOW,useFilasVisibles,windowLabel,type ListWindowState} from '../list-window';
 import type {Budget,Invoice,Summary,User} from '../workspace-types';
+import {Button as ScaleButton} from "../ui/button";
+
 
 // Presupuestos (SOS-COM, campaña #41 / spec #43 §4).
 // Rediseño v2: KPIs, lista finita con encabezado y plantilla compartida,
@@ -71,7 +78,7 @@ function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Bu
   return <article className="ops-card budget-hub-card">
     <header className="budget-hub-head">
       <span className="flex min-w-0 items-center gap-2">
-        {canManage?<label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected} onChange={()=>onToggle()}/></label>:null}
+        {canManage?<label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><InputControl type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected} onChange={()=>onToggle()}/></label>:null}
         <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
       </span>
       <StateChip tone={state.tone}>{state.label}</StateChip>
@@ -110,7 +117,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
   const shown=useMemo(()=>filterBudgets(budgets,filters),[budgets,filters]);
   const clientChoices=useMemo(()=>[{value:'',label:'Todos'},...[...new Set(budgets.map(budget=>budget.client_name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')).map(name=>({value:name,label:name}))],[budgets]);
   const filtersActive=Boolean(filters.status||filters.client||filters.query.trim());
-  const kpiFilter=(status:BudgetFilters['status'],text:string,hint:string)=><button type="button" className="text-button min-h-11 !px-0 text-left md:min-h-0" aria-pressed={filters.status===status} title={filters.status===status?'Quitar el filtro':`Filtrar: ${hint}`} onClick={()=>setFilters(current=>({...current,status:current.status===status?'':status}))}>{text}{filters.status===status?' · filtrando':''}</button>;
+  const kpiFilter=(status:BudgetFilters['status'],text:string,hint:string)=><ScaleButton type="button" className="text-button min-h-11 !px-0 text-left md:min-h-0" aria-pressed={filters.status===status} title={filters.status===status?'Quitar el filtro':`Filtrar: ${hint}`} onClick={()=>setFilters(current=>({...current,status:current.status===status?'':status}))} variant="ghost">{text}{filters.status===status?' · filtrando':''}</ScaleButton>;
   // Ventana de montaje (#135 P4): la tabla densa monta sólo el tramo visible;
   // las tarjetas (altura variable) conservan el montaje completo.
   const filasVisibles = useFilasVisibles(tableRef, shown.length);
@@ -146,7 +153,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     const tone = hasDueWarning(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
       <div role="cell" className="flex min-w-0 items-center gap-2">
-        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={bulk.has(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
+        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><InputControl type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={bulk.has(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
         <span className="flex min-w-0 items-baseline gap-2">
           <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
           <span className="min-w-0 truncate text-[13.5px] font-semibold leading-tight text-fore" title={budget.title}>{budget.title}</span>
@@ -165,7 +172,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     </ListRow>;
   };
 
-  const createButton=canManage&&onCreate?<button type="button" className="primary" onClick={()=>onCreate()}><Plus size={18} aria-hidden="true"/> Nuevo presupuesto</button>:undefined;
+  const createButton=canManage&&onCreate?<ScaleButton type="button" className="primary" onClick={()=>onCreate()} variant="primary"><Plus size={18} aria-hidden="true"/> Nuevo presupuesto</ScaleButton>:undefined;
   return (
     <ListPage
       rootRef={tableRef}
@@ -175,8 +182,8 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
       toolbar={<FilterToolbar className="mb-0" summary={`${shown.length} de ${windowState.total ?? budgets.length}`}>
         <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar por estado" value={filters.status} onChange={(value:string)=>setFilters(current=>({...current,status:value as BudgetFilters['status']}))} options={[['','Todos'],['draft','Borradores'],['sent','Enviados'],['accepted','Aceptados'],['rejected','Rechazados'],['expired','Vencidos']]}/>
         <div className="w-full sm:w-52"><SelectCustom label="Cliente" choices={clientChoices} value={filters.client} onChange={client=>setFilters(current=>({...current,client}))}/></div>
-        <SearchField className="w-full sm:w-72" ariaLabel="Buscar presupuesto" value={filters.query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setFilters(current=>({...current,query:event.target.value}))} placeholder="Número, título o cliente…"/>
-        {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</button>:null}
+        <SearchField className="w-full sm:w-72" label="Buscar presupuesto" hideLabel value={filters.query} onChange={(nextSearchValue)=>setFilters(current=>({...current,query:nextSearchValue}))} placeholder="Número, título o cliente…"/>
+        {filtersActive?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters({status:'',client:'',query:''})} variant="ghost">Limpiar filtros</ScaleButton>:null}
       </FilterToolbar>}
       kpis={<KpiStrip aria-label="Métricas de presupuestos">
         <Kpi label="Presupuestos" valor={windowState.total ?? budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>
@@ -185,7 +192,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
         <Kpi label="Vencen esta semana" valor={budgetKpis.expiring} hint={kpiFilter('expiring','Vigencia en los próximos 7 días','vencen esta semana')}/>
       </KpiStrip>}
       bulk={canManage ? <BulkBar count={bulk.count} total={BATCH_LIMITS.budgets} role={user?.role} onSelectVisible={selectVisible} onClear={bulk.clear}>
-        <button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}}><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</button>
+        <ScaleButton type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setConfirmOpen(true);}} variant="outline" color="danger"><Trash2 size={14} aria-hidden="true"/>Mover a la papelera</ScaleButton>
       </BulkBar> : undefined}
     >
       {/* Ventana (#105): contador honesto y «Ver más»; cuando queda lista por
@@ -193,19 +200,19 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'presupuesto', 'presupuestos')} · los indicadores cuentan lo cargado</span>
         <div className="inline-actions bulk-actions">
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+          <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()} variant="secondary">{moreBusy?'Cargando…':'Ver más'}</ScaleButton>
         </div>
       </div> : null}
 
       {budgetsState==='error' && budgets.length ? (
         <Aviso tono="error" como="div" role="alert">No se pudieron actualizar los presupuestos. Se muestra la última lista cargada.{' '}
-          <button type="button" className="underline" onClick={()=>void loadBudgets()}>Reintentar</button>
+          <ScaleButton type="button" className="underline" onClick={()=>void loadBudgets()} variant="ghost">Reintentar</ScaleButton>
         </Aviso>
       ) : null}
 
 
       {budgets.length && !shown.length ? (
-        <EmptyBlock compact icon="filter" title="Ningún presupuesto coincide con los filtros." description="Probá con otro estado, cliente o búsqueda." action={<button type="button" className="secondary" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</button>}/>
+        <EmptyBlock compact icon="filter" title="Ningún presupuesto coincide con los filtros." description="Probá con otro estado, cliente o búsqueda." action={<ScaleButton type="button" className="secondary" onClick={()=>setFilters({status:'',client:'',query:''})} variant="secondary">Limpiar filtros</ScaleButton>}/>
       ) : budgets.length ? (
         view==='list' ? (
           <ListGrid label="Presupuestos" template={BUDGET_TEMPLATE} columns={BUDGET_COLUMNS} minWidthClass="min-w-[62rem]" pinnedActions>

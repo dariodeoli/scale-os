@@ -1,0 +1,67 @@
+// Real controls and RHF in Chromium; every API response is an in-browser synthetic stub.
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {build} from 'esbuild';
+import {fileURLToPath} from 'node:url';
+import {createServer} from 'node:http';
+const require=createRequire(new URL('../backend/package.json',import.meta.url));
+const puppeteer=require('puppeteer-core');
+const repo=fileURLToPath(new URL('../',import.meta.url));
+const bundle=await build({stdin:{contents:`
+import React from 'react';import{createRoot}from'react-dom/client';
+import{QuoteComposer}from'./app/quote-composer';import{Dialog}from'./app/dialog';
+const root=createRoot(document.getElementById('root'));window.writes=[];window.completions=0;
+window.fetch=async(input,init={})=>{
+ const path=String(input);if(!init.body)return new Response(JSON.stringify(path.includes('/clients')?{clients:[{id:'10',name:'Cliente sintético'}]}:{records:[{id:'30',name:'Plan sintético',currency:'PYG',items:[{description:'Base reemplazada',quantity:1,unitPrice:'300'}]}]}),{status:200});
+ window.writes.push({path,body:JSON.parse(init.body),method:init.method});return await new Promise(resolve=>window.release=(status=200,data={})=>resolve(new Response(JSON.stringify(data),{status})));
+};
+window.mount=(mode)=>{window.writes=[];window.completions=0;window.qaClosed=false;
+ const sections=[{type:'text',title:mode==='section'?'x'.repeat(121):'Texto sintético',body:'Contenido',enabled:true},{type:'items',title:'',body:'',enabled:true},{type:'totals',title:'',body:'',enabled:true}];
+ root.render(<Dialog key={mode} title={'Compositor QA '+mode} close={()=>{window.qaClosed=true;}}><QuoteComposer mode="create" record={{title:'Propuesta sintética',client_id:mode==='client'?'':'10',currency:'PYG',items:[{description:'Primero',quantity:1,unitPrice:'100'},{description:'Segundo',quantity:2,unitPrice:'200'}],sections}} done={async()=>{window.completions++;if(mode==='refresh'&&window.completions===1)throw new Error('local refresh failure');}}/></Dialog>);
+};
+`,resolveDir:repo,loader:'tsx'},bundle:true,write:false,jsx:'automatic',platform:'browser',format:'iife',loader:{'.css':'empty'},define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'});
+const server=createServer((_req,res)=>{res.writeHead(200,{'Content-Type':'text/html'});res.end('<!doctype html><html><head><style>.ui-form-fields{display:contents}.ui-select-options{background:white;color:black;position:relative}.ops-overlay{background:white}button,input,textarea{margin:3px}</style></head><body><div id="root"></div></body></html>');});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const browser=await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+try{
+ const page=await browser.newPage();page.setDefaultTimeout(8000);const pageErrors=[];page.on('pageerror',error=>pageErrors.push(error.message));
+ await page.setViewport({width:1440,height:900});await page.goto(`http://127.0.0.1:${server.address().port}`);await page.addScriptTag({content:bundle.outputFiles[0].text});
+ const mount=async mode=>{await page.evaluate(mode=>window.mount(mode),mode);await page.waitForFunction(mode=>document.querySelector('.dialog-heading h2')?.textContent==='Compositor QA '+mode&&!!document.querySelector('.dialog-footer button[type=submit],.dialog-footer button.primary')?.form,{},mode);};
+ const submit=()=>page.evaluate(()=>document.querySelector('form').requestSubmit());
+ const input='[name="items.0.quantity"]';
+ await mount('section');await page.click('#quote-title');await page.keyboard.press('Enter');
+ await page.waitForFunction(()=>document.activeElement?.name==='sections.0.title');
+ assert.equal(await page.$eval('.quote-document-options',node=>node.open),true,'invalid nested field reveals its collapsed details');
+ assert.equal(await page.evaluate(()=>window.writes.length),0);
+ await mount('client');await submit();await page.waitForFunction(()=>document.activeElement?.id==='quote-client');
+ await page.keyboard.press('ArrowDown');await page.waitForSelector('[role=option]');await page.keyboard.press('End');await page.keyboard.press('Enter');
+ assert.match(await page.$eval('#quote-client',node=>node.textContent),/Cliente sintético/);
+ await mount('server');await page.click(input);await page.keyboard.press('Enter');await page.waitForFunction(()=>window.writes.length===1);
+ assert.equal(await page.$$eval('fieldset input,fieldset textarea,fieldset button,fieldset select',nodes=>nodes.filter(node=>!node.matches(':disabled')).length),0,'all native and compound controls lock during request');
+ assert.equal(await page.$$eval('button[aria-label^="Reordenar"]',nodes=>nodes.every(node=>node.disabled)),true,'both item and section drag handles lock');
+ assert.equal(await page.$eval('.dialog-heading button',node=>node.disabled),true,'close locks with submission');
+ await submit();assert.equal(await page.evaluate(()=>window.writes.length),1,'duplicate submit creates only one write');
+ await page.evaluate(()=>window.release(422,{error:'Revisá la cantidad',fieldErrors:{'items.0.quantity':'Cantidad rechazada',unrelated:'No se debe asociar'}}));
+ await page.waitForFunction(()=>document.activeElement?.name==='items.0.quantity'&&!document.querySelector('fieldset').disabled);
+ assert.equal(await page.$eval(input,node=>node.value),'1','failed save retains draft');
+ await page.keyboard.press('Enter');await page.waitForFunction(()=>!document.querySelector('form').getAttribute('aria-busy')||document.querySelector('form').getAttribute('aria-busy')==='false');
+ assert.equal(await page.evaluate(()=>window.writes.length),1,'unchanged explicit field error prevents repeated write');
+ await page.click(input);await page.keyboard.down('Control');await page.keyboard.press('A');await page.keyboard.up('Control');await page.keyboard.type('3');await page.keyboard.press('Tab');
+ await page.waitForFunction(()=>!document.querySelector('[role=alert]')?.textContent.includes('Cantidad rechazada'));
+ await submit();await page.waitForFunction(()=>window.writes.length===2);await page.evaluate(()=>window.release());await page.waitForFunction(()=>window.completions===1&&!document.querySelector('form[aria-busy=true]'));
+ assert.equal(await page.evaluate(()=>window.writes[1].body.items[0].quantity),'3');
+ await mount('readiness');await page.click(input);await page.keyboard.down('Control');await page.keyboard.press('A');await page.keyboard.up('Control');await page.keyboard.type('Infinity');await submit();
+ await page.waitForFunction(()=>document.activeElement?.name==='items.0.quantity'&&!document.querySelector('fieldset').disabled);
+ assert.equal(await page.evaluate(()=>window.writes.length),0,'custom readiness failure never writes');assert.match(await page.$$eval('[role=alert]',nodes=>nodes.map(node=>node.textContent).join(' ')),/Cantidad inválida/);
+ await mount('refresh');await page.click('#quote-title');await page.keyboard.press('End');await page.keyboard.type(' editada');await page.keyboard.press('Enter');await page.waitForFunction(()=>window.writes.length===1);await page.evaluate(()=>window.release());
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('[role=status]')).some(node=>node.textContent.includes('El documento se guardó')));
+ assert.equal(await page.$eval('#quote-title',node=>node.value),'Propuesta sintética editada');
+ assert.equal(await page.$$eval('[role=alert]',nodes=>nodes.length),0,'refresh failure is not a false API save error');
+ await page.evaluate(()=>Array.from(document.querySelectorAll('button')).find(node=>node.textContent==='Reintentar actualización').click());
+ await page.waitForFunction(()=>window.completions===2&&Array.from(document.querySelectorAll('button')).some(node=>node.textContent==='Guardado')); 
+ assert.equal(await page.evaluate(()=>window.writes.length),1,'retry updates view without a second POST');
+ await page.evaluate(()=>Array.from(document.querySelectorAll('button')).find(node=>node.textContent==='Cancelar').click());await page.waitForFunction(()=>window.qaClosed);
+ assert.equal(await page.$('form.confirm-dialog'),null,'persisted draft has no false unsaved-changes prompt');
+ assert.deepEqual(pageErrors,[]);
+ console.log('PASS real Chromium: nested keyboard validation/details focus, keyboard client selector, pending all-fields/drag/close lock, duplicate submit one write, retained draft and explicit field errors until corrected, readiness focus/no API, refresh failure and callback-only retry.');
+}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

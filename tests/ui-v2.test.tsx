@@ -78,7 +78,8 @@ test('dinero, moneda y vista v2 usan las seis monedas y targets de 44 px',async(
  await act(async()=>{renderer.update(<MoneyText valor={null} currency="MXN"/>);});
  assert.equal(plain(renderer.toJSON()),'—','sin dato muestra el vacío explícito');
  await act(async()=>{renderer=create(<CurrencyField id="moneda" label="Moneda" value="MXN" onChange={()=>{}}/>);});
- const options=renderer.root.findAllByType('option').map((node:any)=>node.props.value);
+ const {Selector}=require('../app/ui/select');
+ const options=renderer.root.findByType(Selector).props.options.map((option:any)=>option.value);
  assert.deepEqual(options,['PYG','USD','EUR','BRL','ARS','MXN'],'el selector ofrece las seis monedas de la empresa, sin USDT');
  await act(async()=>{renderer=create(<ViewSwitch value="list" onChange={()=>{}}/>);});
  const view=JSON.stringify(renderer.toJSON());

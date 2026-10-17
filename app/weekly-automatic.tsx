@@ -1,9 +1,18 @@
 'use client';
+import {CardSurface as Card} from './ui/surface';
+import {DataTable} from './ui/collection';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField} from './ui/field';
+import {Note as Nota} from './ui/notice';
+
+import {validateCivilDate} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
+import {InputControl as Input} from './ui/input-control';
 import {useEffect,useState,type ChangeEvent,type ReactNode} from 'react';
 import {ActorIdentity} from './actor-identity';
 import {todayAsuncion} from './client-format';
 import {listDateShort} from './list-format';
-import {Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Input,Nota} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui';
 import {LoadingBlock} from './ui-v2';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};
@@ -30,7 +39,7 @@ async function request(week:string,scope:string):Promise<WeeklyAutomaticResult>{
 type WeeklyRow={id:string;who:ReactNode;orders:number;projects:ReactNode;[type:string]:ReactNode|number};
 export function WeeklyAutomatic({role}:{role:string}){
  const scope=role==='owner'?'team':'own';
- const [week,setWeek]=useState(currentWeek);
+ const [week,,weekDraft,setWeekDraft]=useTemporalFilter(currentWeek,value=>validateCivilDate(value)?weekMonday(value)||null:null);
  const [result,setResult]=useState<WeeklyAutomaticResult|null>(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[reload,setReload]=useState(0);
  useEffect(()=>{
@@ -46,7 +55,7 @@ export function WeeklyAutomatic({role}:{role:string}){
    <p className="text-xs text-mute">Terminadas de la semana, calculadas automáticamente desde los cambios de estado. Cada pieza cuenta una sola vez, en la semana en que pasó a terminada, atribuida a quien ejecutó el cambio. Sin horas: se cuentan piezas, no tiempo trabajado. Órdenes: piezas en las que se trabajó durante la semana, terminadas o no. Proyectos: distribución de las piezas terminadas por proyecto.</p>
   </div>
   <div className="flex flex-wrap items-end gap-3">
-   <FormField label="Semana" htmlFor="weekly-week"><Input id="weekly-week" type="date" className="w-44" value={week} onChange={(event:ChangeEvent<HTMLInputElement>)=>{const monday=weekMonday((event.target as HTMLInputElement).value);if(monday)setWeek(monday);}}/></FormField>
+   <FormField label="Semana" htmlFor="weekly-week"><Input id="weekly-week" type="date" className="w-44" value={weekDraft} onChange={(event:ChangeEvent<HTMLInputElement>)=>setWeekDraft(event.target.value)}/></FormField>
   </div>
   <Nota tono="neutro">Del {listDateShort(week)||week} al {listDateShort(lastDay(week))||lastDay(week)} · lunes a domingo · {scope==='team'?'todo el equipo':'tu trabajo'}.</Nota>
   {loading?<LoadingBlock label="Cargando producción semanal…" lines={3}/>:null}

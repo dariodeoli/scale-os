@@ -14,7 +14,7 @@ reactDOM.createPortal=(children:React.ReactNode,target:unknown)=>{portals.push({
 const {Dialog,FormActions,useOverlay,useDialogClose,useDialogPending,dialogInitialFocus}=require('../app/dialog') as typeof import('../app/dialog');
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const {PhotoViewer}=require('../app/photo-viewer') as typeof import('../app/photo-viewer');
-const {Button}=require('owncoding-ui') as typeof import('owncoding-ui');
+const {Button}=require('../app/ui/button') as typeof import('owncoding-ui');
 
 type FakeEvent={key?:string;target?:FakeElement;shiftKey?:boolean;repeat?:boolean;isComposing?:boolean;defaultPrevented:boolean;stopped:boolean;preventDefault:()=>void;stopPropagation:()=>void;stopImmediatePropagation:()=>void};
 const listeners=new Map<string,Set<(event:FakeEvent)=>void>>();
@@ -180,7 +180,7 @@ function check(name:string,run:()=>void){test(name,run);}
   assert.equal(renderer!.root.findAllByProps({className:'dialog-body'}).length,1);assert.equal(renderer!.root.findAllByProps({className:'dialog-footer'}).length,1);
  });
  check('los objetos de la librería con type=submit también se asocian al formulario',()=>{
-  // Regresión de #73: `<Button type="submit">` (owncoding-ui) dentro de SaveActions
+  // Regresión de #73: `<Button type="submit">` (canónico) dentro de SaveActions
   // quedaba sin atributo `form` y el portal del pie lo dejaba fuera del formulario.
   const form=new FakeElement('form'),anchor=new FakeElement('span'),footer=new FakeElement('div');form.append(anchor);
   mount(<Dialog title="Reserva" close={()=>{}}><form><FormActions><Button type="submit">Guardar reserva</Button><Button type="button">Cancelar</Button></FormActions></form></Dialog>,el=>el.type==='span'?anchor:el.props.className==='dialog-footer'?footer:new FakeElement());

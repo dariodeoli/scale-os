@@ -1,10 +1,17 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {FieldLabel as Label} from '../ui/field';
+
+import {OptionsSelect as Select} from '../ui/options-select';
+import {InputControl as Input,InputControl} from '../ui/input-control';
 import {OptionalMark} from '../field-label';
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,Input,Label,SearchField,Select} from 'owncoding-ui';
+import {AvisoPrivacidad} from 'owncoding-ui';
+import {Button} from "../ui/button";
+import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
 import {RemoveRecord} from '../archive-controls';
@@ -27,6 +34,8 @@ import {projectedList,LEAD_LIST_FIELDS} from '../shell-data';
 import {EMPTY_WINDOW,LIST_WINDOW,appendPage,readPage,windowLabel,windowSlice,windowStateOf,type ListWindowState} from '../list-window';
 import {ConfirmDialog,useDialogPending} from '../dialog';
 import type {User} from '../workspace-types';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "../ui/button";
+
 
 const LiveVisitors=dynamic(()=>import('../live-visitors').then(m=>m.LiveVisitors),{loading:()=> <SectionLoading label="Cargando pipeline…"/>});
 
@@ -172,10 +181,10 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals,
         etiqueta la que baja de linea cuando el ancho no alcanza. */}
     {currencies.length?<div className="grid gap-0.5 text-[10.5px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="flex flex-wrap items-baseline gap-x-1" title={`${currency}: ponderado y abierto`}><span className="whitespace-nowrap tabular-nums"><MoneyText valor={weighted[currency]??0} currency={currency}/> ponderado</span>{open[currency]!==undefined&&open[currency]!==weighted[currency]?<span className="whitespace-nowrap tabular-nums">· <MoneyText valor={open[currency]} currency={currency}/> abierto</span>:null}</span>)}</div>:null}
     {mounted.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh} won={stage.kind==='won'} actions={readOnly?undefined:actions}/>)}
-    {hidden>0?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setVisible(count=>count+LIST_WINDOW.leadsColumns)}>Ver más ({hidden})</button>:null}
+    {hidden>0?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setVisible(count=>count+LIST_WINDOW.leadsColumns)} variant="ghost">Ver más ({hidden})</ScaleButton>:null}
     {!rows.length?<div className="grid gap-2">
       <p className="m-0 text-xs text-mute">Sin oportunidades.</p>
-      {canMove&&!readOnly&&create?<button type="button" className="text-button min-h-11 justify-self-start md:min-h-8" aria-label={`Nueva oportunidad en ${stage.label}`} onClick={()=>create(stage.value)}><Plus aria-hidden="true" size={14}/> Nueva</button>:null}
+      {canMove&&!readOnly&&create?<ScaleButton type="button" className="text-button min-h-11 justify-self-start md:min-h-8" aria-label={`Nueva oportunidad en ${stage.label}`} onClick={()=>create(stage.value)} variant="ghost"><Plus aria-hidden="true" size={14}/> Nueva</ScaleButton>:null}
     </div>:null}
   </section>;
 }
@@ -193,7 +202,7 @@ function LeadListRow({row,stageLabel,editable,selected,onSelect,edit,role,canMov
   const menu=useLeadMenu({row,role,canMove,actions,edit,refresh});
   const convert=won&&menu.convertible?()=>actions!.convert(row):undefined;
   return <ListRow template={editable?LEAD_LIST_EDIT_TEMPLATE:LEAD_LIST_VIEW_TEMPLATE} data-lead-row={String(row.id)}>
-    {editable?<span role="cell" className="flex justify-center"><label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar oportunidad"><input type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={selected} onChange={onSelect}/></label></span>:null}
+    {editable?<span role="cell" className="flex justify-center"><label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar oportunidad"><InputControl type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={selected} onChange={onSelect}/></label></span>:null}
     <span role="cell" className="flex min-w-0 items-center gap-2">
       {menu.mayEdit?<button type="button" className="min-h-11 min-w-0 truncate text-left text-[13.5px] font-semibold text-fore outline-none transition-colors hover:text-fono-light focus-visible:ring-2 focus-visible:ring-fono md:min-h-0" title={facts.name} aria-label={`Ver oportunidad: ${facts.name}`} onClick={edit}>{facts.name}</button>:<span className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={facts.name}>{facts.name}</span>}
       {facts.noContact?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
@@ -474,31 +483,31 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {/* Reorganización IA: el título y las acciones primarias comparten la fila
           del encabezado (ListPage); acá quedan filtros, vista y contador. */}
       <FilterToolbar>
-        <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar oportunidades" value={filters.query} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setFilter({query:event.target.value})} placeholder="Buscar por nombre, contacto o notas…"/>
+        <SearchField className="w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7"  label="Buscar oportunidades" hideLabel value={filters.query} onChange={(nextSearchValue)=>setFilter({query:nextSearchValue})} placeholder="Buscar por nombre, contacto o notas…"/>
         <div className="min-w-0">
           <Label htmlFor="pipeline-etapa" className="sr-only">Etapa</Label>
-          <Select id="pipeline-etapa" aria-label="Etapa" value={filters.stage} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({stage:event.target.value})} className="min-w-[10rem]">
+          <Select hideLabel id="pipeline-etapa" label="Etapa" value={filters.stage} onChange={(value:string)=>setFilter({stage:value})} className="min-w-[10rem]">
             <option value="">Todas las etapas</option>
             {stageFilterChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
           </Select>
         </div>
         {currencies.length>1||filters.currency?<div className="min-w-0">
           <Label htmlFor="pipeline-moneda" className="sr-only">Moneda</Label>
-          <Select id="pipeline-moneda" aria-label="Moneda" value={filters.currency} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setFilter({currency:event.target.value})} className="min-w-[8rem]">
+          <Select hideLabel id="pipeline-moneda" label="Moneda" value={filters.currency} onChange={(value:string)=>setFilter({currency:value})} className="min-w-[8rem]">
             <option value="">Todas las monedas</option>
             {[...new Set([...currencies,...(filters.currency?[filters.currency]:[])])].map(currency=><option key={currency} value={currency}>{currency}</option>)}
           </Select>
         </div>:null}
         <div role="group" aria-label="Vista del pipeline"><ViewSwitch value={view} onChange={changeView}/></div>
-        {filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:null}
-        {view==='list'&&canEdit&&listRows.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>:null}
+        {filtering?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)} variant="ghost">Limpiar filtros</ScaleButton>:null}
+        {view==='list'&&canEdit&&listRows.length?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible} variant="ghost">Seleccionar visibles</ScaleButton>:null}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {state==='ready'||rows.length?<p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute">{filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`}</p>:null}
         </div>
       </FilterToolbar>
       {view==='list'&&canEdit&&selected.length?<BulkBar count={selected.length} busy={bulkBusy} onClear={()=>setSelected([])}>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)}><Move size={14} aria-hidden="true"/>Mover a etapa</button>
-        {canBulkDelete?<button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setBulkDelete(true);}}><Trash2 size={14} aria-hidden="true"/>Eliminar</button>:null}
+        <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)} variant="secondary"><Move size={14} aria-hidden="true"/>Mover a etapa</ScaleButton>
+        {canBulkDelete?<ScaleButton type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setBulkDelete(true);}} variant="outline" color="danger"><Trash2 size={14} aria-hidden="true"/>Eliminar</ScaleButton>:null}
       </BulkBar>:null}
       {/* KPIs compactos (#145, coordinación #138): en móvil los tres conteos
           van en una fila y el valor abierto ocupa el ancho completo para que
@@ -517,7 +526,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       </KpiStrip>
 
       {stagesWarning?<Aviso tono="warn" como="div" role="status">No se pudieron leer las etapas de esta empresa. {stagesWarning} {stagesKnown?'Se conservan las últimas etapas conocidas.':'Se muestra el tablero estándar mientras tanto.'}{' '}
-        <button type="button" className="underline" onClick={()=>void loadStages()}>Reintentar</button>
+        <ScaleButton type="button" className="underline" onClick={()=>void loadStages()} variant="ghost">Reintentar</ScaleButton>
       </Aviso>:null}
 
       {error?<ErrorBlock title="No se pudo completar la operación." description={error} onRetry={()=>void load()}/>:null}
@@ -532,14 +541,14 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {windowState.hasMore?<div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'oportunidad', 'oportunidades')} · los indicadores cuentan lo cargado</span>
         <div className="inline-actions bulk-actions">
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+          <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()} variant="secondary">{moreBusy?'Cargando…':'Ver más'}</ScaleButton>
         </div>
       </div>:null}
 
       {rows.length||(state==='ready'&&activeStages.length)?(view==='list'?<div className="grid min-w-0 gap-2">
         {listRows.length?<ListGrid label="Oportunidades" template={canEdit?LEAD_LIST_EDIT_TEMPLATE:LEAD_LIST_VIEW_TEMPLATE} columns={leadListColumns(canEdit)} minWidthClass={canEdit?'min-w-[64rem]':'min-w-[44rem]'} pinnedActions={canEdit}>
           {listRows.map(item=><LeadListRow key={item.id} row={item} stageLabel={stageLabel(str(item,'stage'))} editable={canEdit} selected={selected.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} edit={()=>setEdit(item)} role={role} canMove={canMove&&stageKind(str(item,'stage'))!==undefined} refresh={load} won={stageKind(str(item,'stage'))==='won'} actions={stageKind(str(item,'stage'))===undefined?undefined:leadActions}/>)}
-        </ListGrid>:<EmptyBlock compact icon="target" title={filtering?'Ninguna oportunidad coincide con el filtro.':'Sin oportunidades.'} description={filtering?'Probá con otra búsqueda, etapa o moneda.':undefined} action={filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:undefined}/>}
+        </ListGrid>:<EmptyBlock compact icon="target" title={filtering?'Ninguna oportunidad coincide con el filtro.':'Sin oportunidades.'} description={filtering?'Probá con otra búsqueda, etapa o moneda.':undefined} action={filtering?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)} variant="ghost">Limpiar filtros</ScaleButton>:undefined}/>}
       </div>:<div className="grid min-w-0 gap-2">
         {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
             flechas para recorrer el tablero sin adivinar que hay más etapas. */}
@@ -550,8 +559,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
           <StateChip tone="info" title={`Hay ${boardWindow.hiddenTotal} ${boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista: usá las flechas o desplazá el tablero.`}>{boardWindow.hiddenTotal} {boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista</StateChip>
           <span className="tabular-nums">Mostrando etapas {boardWindow.from+1}–{boardWindow.to+1} de {boardWindow.total}</span>
           <div className="inline-actions gap-1">
-            <button type="button" className="icon-button" disabled={boardWindow.hiddenBefore===0} title="Ver etapa anterior" aria-label="Ver etapa anterior" onClick={()=>scrollBoard(-1)}><ChevronLeft size={16} aria-hidden="true"/></button>
-            <button type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></button>
+            <ScaleIconButton type="button" className="icon-button" disabled={boardWindow.hiddenBefore===0} title="Ver etapa anterior" label="Ver etapa anterior" onClick={()=>scrollBoard(-1)} icon={<><ChevronLeft size={16} aria-hidden="true"/></>} variant="ghost" size="compact"></ScaleIconButton>
+            <ScaleIconButton type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" label="Ver etapa siguiente" onClick={()=>scrollBoard(1)} icon={<><ChevronRight size={16} aria-hidden="true"/></>} variant="ghost" size="compact"></ScaleIconButton>
           </div>
         </div>:null}
         </div>:null}
@@ -568,8 +577,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {canSeeGrowth?<p className="flex flex-wrap items-center gap-2 text-[11px] text-mute" role="status">
         <TrendingUp size={14} aria-hidden="true" className="shrink-0"/>
         {metricsState==='error'?'No se pudieron cargar las métricas de captación.':'Captación digital y visitas'}
-        {navigate?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>navigate('Métricas')}>Ver Métricas<ArrowUpRight size={12} aria-hidden="true"/></button>:null}
-        {metricsState==='error'&&onRetryMetrics?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={onRetryMetrics}>Reintentar</button>:null}
+        {navigate?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>navigate('Métricas')} variant="ghost">Ver Métricas<ArrowUpRight size={12} aria-hidden="true"/></ScaleButton>:null}
+        {metricsState==='error'&&onRetryMetrics?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={onRetryMetrics} variant="ghost">Reintentar</ScaleButton>:null}
       </p>:null}
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 
@@ -605,7 +614,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {convertOffer&&canEdit?<Dialog title="Convertir a cliente" busy={busy} close={()=>{if(!busy)setConvertOffer(null);}}>
         <form className="grid gap-3" onSubmit={event=>{event.preventDefault();void convertLead(convertOffer);}}>
           <p className="m-0 text-sm leading-6 text-mute">{`¿Convertir a ${str(convertOffer,'name')} en cliente? La oportunidad queda vinculada al nuevo cliente.`}</p>
-          <SaveActions pending={busy} cancelLabel="Ahora no"><button type="submit" className="primary" disabled={busy}>Convertir a cliente</button></SaveActions>
+          <SaveActions pending={busy} cancelLabel="Ahora no"><ScaleButton type="submit" className="primary" disabled={busy} variant="primary">Convertir a cliente</ScaleButton></SaveActions>
         </form>
       </Dialog>:null}
 
@@ -644,7 +653,7 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
     {notice?<Aviso tono="ok" role="status" compact>{notice}</Aviso>:null}
     <form className="grid gap-3 sm:grid-cols-3" onSubmit={event=>{event.preventDefault();if(busy)return;const name=label.trim();const order=validOrder(position);if(name.length<2){setError('Ingresá el nombre de la etapa.');return;}if(Number.isNaN(order)){setError('Orden de etapa inválido.');return;}void run(async()=>{await api('/api/agency/pipeline-stages',{label:name,kind,...(order===null?{}:{position:order})},'POST');setLabel('');setPosition('');setKind('open');return 'Etapa creada.';});}}>
       <div className="grid gap-1"><Label htmlFor="stage-name">Nombre de la etapa</Label><Input id="stage-name" value={label} disabled={busy} maxLength={60} placeholder="Ej.: Visita técnica" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setLabel(event.target.value)}/></div>
-      <div className="grid gap-1"><Label htmlFor="stage-kind">Tipo</Label><Select id="stage-kind" value={kind} disabled={busy} onChange={(event: React.ChangeEvent<HTMLSelectElement>)=>setKind(event.target.value as Stage['kind'])}>{stageKindChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></div>
+      <div className="grid gap-1"><Label htmlFor="stage-kind">Tipo</Label><Select hideLabel label="Tipo" id="stage-kind" value={kind} disabled={busy} onChange={(value:string)=>setKind(value as Stage['kind'])}>{stageKindChoices.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}</Select></div>
       <div className="grid gap-1"><Label htmlFor="stage-position">Orden<OptionalMark/></Label><Input id="stage-position" type="number" min={0} max={9999} value={position} disabled={busy} placeholder="Al final" onChange={(event: React.ChangeEvent<HTMLInputElement>)=>setPosition(event.target.value)}/></div>
       <div className="sm:col-span-3"><Button type="submit" disabled={busy||label.trim().length<2}>{busy?'Guardando…':'Crear etapa'}</Button></div>
     </form>
@@ -656,7 +665,7 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
         return <li key={stage.id||stage.value} className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 sm:grid-cols-2" data-active={stage.active}>
           <div className="grid gap-1"><Label htmlFor={`stage-label-${stage.value}`}>Nombre</Label><Input id={`stage-label-${stage.value}`} value={current.label} disabled={busy} maxLength={60} aria-label={`Nombre de etapa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'label',event.target.value)}/></div>
           <div className="grid gap-1"><Label htmlFor={`stage-position-${stage.value}`}>Orden</Label><Input id={`stage-position-${stage.value}`} type="number" min={0} max={9999} value={current.position} disabled={busy} aria-label={`Orden de etapa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'position',event.target.value)}/></div>
-          <label className="flex items-center gap-2 text-xs font-semibold text-mute"><input type="checkbox" className="accent-fono" checked={current.active} disabled={busy} aria-label={`Etapa activa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'active',event.target.checked)}/>Activa</label>
+          <label className="flex items-center gap-2 text-xs font-semibold text-mute"><InputControl type="checkbox" className="accent-fono" checked={current.active} disabled={busy} aria-label={`Etapa activa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'active',event.target.checked)}/>Activa</label>
           <span className="text-xs text-mute">Tipo: {stageKindLabels[stage.kind]} · <code className="font-mono">{stage.value}</code></span>
           <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
             <Button type="button" variant="outline" disabled={busy||!dirty} onClick={()=>{if(Number.isNaN(order)){setError('Orden de etapa inválido.');return;}if(current.label.trim().length<2){setError('Ingresá el nombre de la etapa.');return;}void run(async()=>{await api(`/api/agency/pipeline-stages/${stage.id}`,{label:current.label.trim(),active:current.active,...(order===null?{}:{position:order})},'PATCH');return 'Etapa actualizada.';});}}>Guardar</Button>
@@ -676,6 +685,6 @@ function MoveStageForm({current,choices,busy,onMove}:{current:string;choices:{va
   return <form className="grid gap-3" onSubmit={event=>{event.preventDefault();if(changed&&!busy)onMove(value);}}>
     <SelectCustom label="Etapa de destino" value={value} choices={choices} disabled={busy} onChange={setValue}/>
     <p className="m-0 text-xs leading-5 text-mute">Ganar fija la probabilidad en 100% y perder en 0%.</p>
-    <SaveActions pending={busy}><button type="submit" className="primary" disabled={busy||!changed}>Mover</button></SaveActions>
+    <SaveActions pending={busy}><ScaleButton type="submit" className="primary" disabled={busy||!changed} variant="primary">Mover</ScaleButton></SaveActions>
   </form>;
 }

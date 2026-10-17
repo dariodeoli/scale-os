@@ -1,3 +1,4 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -14,19 +15,20 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
  useDialogClose:()=>insideDialog?()=>{closes++;}:undefined,
  useDialogPending:(pending:boolean,dirty?:boolean)=>{registeredPending=pending;registeredDirty=Boolean(dirty);},
 }} as NodeModule;
+const {Button}=require('../app/ui/button');
 const {SaveActions}=require('../app/save-actions') as typeof import('../app/save-actions');
 
 test('legacy form actions register pending, guard cancellation, preserve submit and remain inline-safe',async()=>{
  let renderer:ReactTestRenderer;
  const primary=(disabled=false)=><button type="submit" form="legacy-form" className="primary" disabled={disabled}>Guardar original</button>;
  await act(async()=>{renderer=create(<SaveActions pending={false}>{primary(true)}</SaveActions>);});
- const cancel=()=>renderer!.root.findAllByType('button').find(button=>button.props.children==='Cancelar')!;
+ const cancel=()=>renderer!.root.findAllByType('button').find(button=>renderedText(button)==='Cancelar')!;
  assert.equal(registeredPending,false);
  assert.equal(cancel().props.type,'button');assert.equal(cancel().props.disabled,false);
  const submit=renderer!.root.findAllByType('button').find(button=>button.props.type==='submit')!;
  assert.equal(submit.props.disabled,true,'an unmet form prerequisite must remain disabled');
  assert.equal(submit.props.form,'legacy-form','explicit native form association is retained');
- assert(React.Children.toArray(renderer!.root.findByType(FormActionsStub).props.children).every(child=>React.isValidElement(child)&&child.type==='button'),'FormActions receives direct buttons, without a fragment or container hiding them');
+ assert(React.Children.toArray(renderer!.root.findByType(FormActionsStub).props.children).every(child=>React.isValidElement(child)&&(child.type==='button'||child.type===Button)),'FormActions receives direct native/canonical buttons, without a fragment or DOM container hiding them');
  await act(async()=>cancel().props.onClick());assert.equal(closes,1);
  await act(async()=>renderer!.update(<SaveActions pending>{primary(true)}</SaveActions>));
  assert.equal(registeredPending,true);assert.equal(cancel().props.disabled,true);
@@ -35,7 +37,7 @@ test('legacy form actions register pending, guard cancellation, preserve submit 
  assert.equal(registeredPending,false);assert.equal(closes,1,'settling a save must not implicitly close a detail drawer');
  await act(async()=>cancel().props.onClick());assert.equal(closes,2);
  await act(async()=>renderer!.update(<SaveActions pending={false} cancelLabel="Volver">{primary()}</SaveActions>));
- assert.equal(renderer!.root.findAllByType('button')[0].props.children,'Volver');
+ assert.equal(renderedText(renderer!.root.findAllByType('button')[0]),'Volver');
  await act(async()=>renderer!.update(<SaveActions pending cancelLabel={false}>{primary(true)}</SaveActions>));
  assert.equal(registeredPending,true,'hiding Cancel must not suppress pending registration');
  assert.equal(renderer!.root.findAllByType('button').length,1);
@@ -73,7 +75,21 @@ test('all five legacy workspace form footers register their own submitting state
   const pending=footers[0].attributes.properties.find((node):node is ts.JsxAttribute=>ts.isJsxAttribute(node)&&node.name.getText(file)==='pending');
   assert(pending?.initializer&&ts.isJsxExpression(pending.initializer));
   assert.equal(pending.initializer.expression?.getText(file),'submission.pending');
-  assert(form.getText(file).includes('useSingleFlightSubmit(form.handleSubmit(submit))'),'lock starts before async validation');
+  const locks:ts.CallExpression[]=[];
+  const inspect=(node:ts.Node)=>{
+   if(ts.isCallExpression(node)&&node.expression.getText(file)==='useSingleFlightSubmit')locks.push(node);
+   ts.forEachChild(node,inspect);
+  };
+  inspect(form);assert.equal(locks.length,1,`${name} has one single-flight lock`);
+  let handlesSubmit=false;
+  const inspectLocked=(node:ts.Node)=>{
+   if(ts.isCallExpression(node)&&node.expression.getText(file)==='form.handleSubmit'&&node.arguments[0]?.getText(file)==='submit'){
+    handlesSubmit=node===locks[0].arguments[0]||(ts.isCallExpression(node.parent)&&node.parent.expression===node);
+   }
+   ts.forEachChild(node,inspectLocked);
+  };
+  assert(locks[0].arguments[0]);inspectLocked(locks[0].arguments[0]);
+  assert(handlesSubmit,'async RHF validation must execute inside the single-flight callback');
   assert(form.getText(file).includes('onSubmit={submission.onSubmit}'),'native submission uses the same lock as the footer');
  }
  assert.equal((source.match(/<SaveActions\b/g)||[]).length,5);

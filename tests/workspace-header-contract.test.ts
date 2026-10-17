@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {legacyButtonCss} from "./helpers/legacy-button-css.mjs";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
@@ -11,10 +12,10 @@ const drawer = readFileSync(
   new URL("../app/mobile-navigation.tsx", import.meta.url),
   "utf8",
 );
-const globals = readFileSync(
+const globals = legacyButtonCss(readFileSync(
   new URL("../app/globals.css", import.meta.url),
   "utf8",
-);
+));
 const uiSystem = readFileSync(
   new URL("../app/ui-system.css", import.meta.url),
   "utf8",
@@ -58,7 +59,7 @@ test("workspace chrome uses natural header heights and wraps controls when neede
 
 test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {
   // El foco visible vive en la hoja global; el v2 no lo pisa.
-  assert.match(globals, /button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible\{outline:3px solid var\(--focus-ring\)/);
+  assert.match(globals, /button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,\[role=button\]:focus-visible\{outline:var\(--ui-focus-width\) solid var\(--focus-ring\)/);
   assert.match(source, /\[&>\*\]:min-h-10 \[&>\*\]:min-w-10/, "topbar utilities keep 40px desktop targets");
   assert.match(source, /max-md:\[&>\*\]:min-h-11 max-md:\[&>\*\]:min-w-11/, "topbar utilities keep 44px mobile targets");
   assert.match(source, /topbar-presence min-w-0 shrink-0 max-\[520px\]:hidden/, "presence hides on the smallest screens");
@@ -85,7 +86,7 @@ test("the company name truncates in the topbar and wraps inside the switcher", (
   );
   const operations = readFileSync(new URL("../app/operations.tsx", import.meta.url), "utf8");
   assert.match(operations, /<button className="workspace" title=\{name\}/, "the company switcher keeps its hover label");
-  const operationsCss = readFileSync(new URL("../app/operations.css", import.meta.url), "utf8");
+  const operationsCss = legacyButtonCss(readFileSync(new URL("../app/operations.css", import.meta.url), "utf8"));
   assert.match(operationsCss, /\.company-choice-row\{display:flex/, "the company switcher row wraps instead of overflowing the dialog");
   assert.match(operationsCss, /\.company-choice-row>\.choice\{flex:1 1 12rem;min-width:0;text-align:left;white-space:normal/, "the company option wraps its full name");
 });

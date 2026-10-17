@@ -149,7 +149,7 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.match(personnel,/const PERSONNEL_COLUMNS='grid-cols-/,'personal declara una plantilla compartida');
   assert.match(personnel,/<ListGrid[^>]*template=\{PERSONNEL_COLUMNS\}/);
   assert.match(personnel,/<ListRow template=\{PERSONNEL_COLUMNS\}/);
-  assert.match(personnel,/label:'Ajuste del mes'/,'el ajuste ocupa su columna alineada en Balance');
+  assert.match(personnel,/tabIndex=\{canSalary\?0:undefined\} title=\{canSalary\?`Ajuste del mes:/,'el ajuste sigue disponible como detalle con foco en la celda salarial');
 });
 
 test('lists are thin rows and grids are big distributed cards',()=>{
@@ -217,15 +217,16 @@ test('the client portal styles every list it renders',()=>{
   assert.match(portal,/\.delivery-activity\{list-style:none/,'the delivery activity drops the native bullets');
 });
 
-test('the rail navigation keeps one geometry for links and the logout button',()=>{
+test('the rail keeps one geometry and logout uses the accessible header action',()=>{
   const rail=read('app/desktop-sidebar.tsx');
   assert.match(rail,/export const RAIL_ITEM='[^']*min-h-11[^']*font-semibold[^']*'/,'the rail exposes one item geometry for links and buttons');
   assert.match(rail,/hover:bg-white\/10 hover:text-white/,'the rail keeps its hover state');
   const drawer=read('app/mobile-navigation.tsx');
   assert.match(drawer,/\[&_a\]:min-h-11 \[&_button\]:min-h-11/,'the mobile drawer styles the logout button with the link geometry');
   const workspace=workspaceSource();
-  assert.match(workspace,/navItemClass\(false,tone\)/,'the logout button keeps its rail slot');
-  assert.match(workspace,/nav-logout/,'the logout button keeps its rail slot');
+  assert.match(workspace,/<ScaleIconButton type="button" label="Cerrar sesión" title="Cerrar sesión" size="compact" onClick=\{logout\}/,'logout preserves its callback and accessible name in the header');
+  assert.doesNotMatch(workspace,/nav-logout/,'logout no longer has a sidebar entry');
+  assert.match(workspace,/user&&!user\.demo_owner_user_id&&<ReportProblemButton iconOnly/,'reports preserve real-session access and the demo restriction');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');
@@ -295,10 +296,10 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  // QA de marco (#70): el legado `nav button*` no pisa los tonos del nav v3 y el
  // marco apaga motion; el tema móvil conserva targets de 44.
  const tailwind=read('app/tailwind.css');
- assert.match(tailwind,/:is\(\.shell,\.control-shell\)>\.desktop-sidebar nav button\.active\{background:rgb\(255 255 255 \/ \.14\);color:#fff\}/,'el grupo activo del riel no hereda fondo/color legacy');
+ assert.match(tailwind,/:is\(\.shell,\.control-shell\)>\.desktop-sidebar nav button\.active:not\(:where\(\[data-ui-button\]\)\)\{background:rgb\(255 255 255 \/ \.14\);color:#fff\}/,'el grupo activo del riel no hereda fondo/color legacy');
  assert.match(tailwind,/nav button svg\{color:currentColor\}/,'el SVG del nav hereda el tono del tile (no brand-600 legacy)');
  assert.match(tailwind,/\(prefers-reduced-motion:reduce\)\{\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\),\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\) \*\{transition:none!important;animation:none!important\}/,'el marco apaga transiciones y animaciones con reduced motion');
- assert.match(read('app/theme-toggle.css'),/@media\(max-width:767px\)\{\.theme-toggle\{width:44px/,'el cambio de tema usa target de 44 px en móvil');
+ assert.match(read('app/theme-toggle.css'),/@media\(max-width:767px\)\{\.theme-toggle:not\(:where\(\[data-ui-button\]\)\)\{width:44px/,'el cambio de tema usa target de 44 px en móvil');
  assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
 }
 console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');

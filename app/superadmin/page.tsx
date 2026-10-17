@@ -46,6 +46,8 @@ import {DEFAULT_PLATFORM_PERIOD, isPlatformPeriod, type PlatformPeriodId} from "
 import {PlatformConfirmDialog, type PlatformAuthMethod} from "./confirm";
 import {ApplyCouponDialog} from "./apply-coupon-dialog";
 import {preflightGoogleStart} from "../deletion-danger-zone";
+import {Button as ScaleButton} from "../ui/button";
+
 
 
 export default function PlatformAdmin() {
@@ -566,6 +568,7 @@ export default function PlatformAdmin() {
     if (!subscriptionAgency) return;
     setBusy(true);
     setError("");
+    let persisted=false;
     try {
       const body =
         subscriptionState === "clear"
@@ -579,15 +582,15 @@ export default function PlatformAdmin() {
         `/api/platform/agencies/${subscriptionAgency.id}/subscription`,
         { method: "PATCH", body: JSON.stringify(body) },
       );
+      persisted=true;
       setSubscriptionAgency(null);
       setSubscription(null);
       setSubscriptionLoaded(false);
       await load();
     } catch (cause) {
-      if (!handlePlatformError(cause))
-        setError("No pudimos guardar el estado manual.");
-      setBusy(false);
-    }
+      if(persisted){notify({tone:'warning',message:'El cambio ya fue guardado. No pudimos actualizar el estado; recargá la lista.'});}
+      else if(!handlePlatformError(cause))throw new Error("No pudimos guardar el estado manual.");
+    } finally {setBusy(false);}
   }
 
   async function saveExtension(event: FormEvent) {
@@ -595,6 +598,7 @@ export default function PlatformAdmin() {
     if (!subscriptionAgency) return;
     setBusy(true);
     setError("");
+    let persisted=false;
     try {
       const key = extendKey || newExtendKey();
       if (!extendKey) setExtendKey(key);
@@ -609,15 +613,15 @@ export default function PlatformAdmin() {
           }),
         },
       );
+      persisted=true;
       setSubscriptionAgency(null);
       setSubscription(null);
       setSubscriptionLoaded(false);
       await load();
     } catch (cause) {
-      if (!handlePlatformError(cause))
-        setError("No pudimos registrar el pago manual.");
-      setBusy(false);
-    }
+      if(persisted){notify({tone:'warning',message:'El cambio ya fue guardado. No pudimos actualizar el estado; recargá la lista.'});}
+      else if(!handlePlatformError(cause))throw new Error("No pudimos registrar el pago manual.");
+    } finally {setBusy(false);}
   }
 
   // Gracia en un clic (#189): reutiliza el endpoint de pago manual con un motivo editable.
@@ -635,8 +639,12 @@ export default function PlatformAdmin() {
       return cause instanceof Error ? cause.message : "No pudimos dar la gracia.";
     }
     notify({ tone: "success", message: `Gracia de ${days} días otorgada a ${agency.name}.` });
-    await load();
-    await manageSubscription(agency);
+    try {
+      await load();
+      await manageSubscription(agency);
+    } catch {
+      notify({tone:'warning',message:'La gracia ya fue otorgada. No pudimos actualizar el estado; recargá la lista.'});
+    }
     return "";
   }
 
@@ -721,7 +729,7 @@ export default function PlatformAdmin() {
         <SubscriptionDialog busy={busy} subscriptionAgency={subscriptionAgency} setSubscriptionAgency={setSubscriptionAgency} subscription={subscription} setSubscription={setSubscription} subscriptionLoaded={subscriptionLoaded} setSubscriptionLoaded={setSubscriptionLoaded} subscriptionError={subscriptionError} setSubscriptionError={setSubscriptionError} subscriptionRequest={subscriptionRequest} subscriptionState={subscriptionState} setSubscriptionState={setSubscriptionState} subscriptionReason={subscriptionReason} setSubscriptionReason={setSubscriptionReason} subscriptionExpiryValue={subscriptionExpiryValue} setSubscriptionExpiryValue={setSubscriptionExpiryValue} extendDays={extendDays} setExtendDays={setExtendDays} extendReason={extendReason} setExtendReason={setExtendReason} manageSubscription={manageSubscription} saveSubscription={saveSubscription} saveExtension={saveExtension} grantGrace={grantGrace} applyCoupon={setApplyAgency}/>
       ) : null}
       {writable && applyAgency ? (
-        <ApplyCouponDialog agency={applyAgency} onClose={() => setApplyAgency(null)} onApplied={() => load()} onFailure={(cause) => handlePlatformError(cause)}/>
+        <ApplyCouponDialog key={applyAgency.id} agency={applyAgency} onClose={() => setApplyAgency(null)} onApplied={() => load()} onFailure={(cause) => handlePlatformError(cause)}/>
       ) : null}
     </div> : null}
   </>;
@@ -745,17 +753,17 @@ export default function PlatformAdmin() {
             {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
           </span>}
           actions={<div className="platform-admin-actions">
-            <button
+            <ScaleButton
               type="button"
               className="secondary"
               onClick={() => void load()}
               disabled={busy}
               aria-label="Actualizar"
-              title="Actualizar los datos del panel"
+              title="Actualizar los datos del panel" variant="secondary"
             >
               <RefreshCw aria-hidden="true" />
               <span className="platform-admin-action-label">Actualizar</span>
-            </button>
+            </ScaleButton>
             <Link className="secondary" href={appHome()} aria-label="Volver al panel" title="Volver al panel de la agencia">
               <ArrowLeft aria-hidden="true" />
               <span className="platform-admin-action-label">Panel</span>
@@ -790,9 +798,9 @@ export default function PlatformAdmin() {
             if (busy) return;
             resetConfirm();
           }}
-          onGoogle={() => void startGoogle()}
-          onRequestEmailCode={() => void requestEmailCode()}
-          onRemove={() => void removeConfirmed()}
+          onGoogle={startGoogle}
+          onRequestEmailCode={requestEmailCode}
+          onRemove={removeConfirmed}
         />
       )}
       <div className="platform-footer"><WorkspaceFooter /></div>

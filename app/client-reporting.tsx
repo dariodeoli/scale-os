@@ -1,9 +1,17 @@
 'use client';
+import {EmptyBlock as EmptyState} from './ui-v2';
+import {FormField} from './ui/field';
+import {Note as Nota,Notice as Aviso} from './ui/notice';
+
+import {OptionsSelect as Select} from './ui/options-select';
+import {InputControl as Input} from './ui/input-control';
+import {AmountInput as MoneyInput} from './ui/amount';
 // Rediseño v2 (campaña #41 / spec #43 §1.4): ficha de reportes y términos
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
 import {OptionalMark} from './field-label';
-import {Button,EmptyState,FilaDato,FormField,Input,MoneyInput,Nota,Select,Aviso} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui';
+import {Button} from "./ui/button";
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {soloDigitos} from 'owncoding-ui';
 import {listDateFull} from './list-format';
@@ -47,14 +55,14 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
    </section>:null}
    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
     <FormField label="Tipo de cliente" htmlFor="client-reporting-kind">
-     <Select id="client-reporting-kind" value={draft.customerKind} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>{if(Object.hasOwn(CUSTOMER_KINDS,event.target.value))setDraft(current=>({...current,customerKind:event.target.value as keyof typeof CUSTOMER_KINDS}));}}>
+     <Select hideLabel label="Tipo de cliente" id="client-reporting-kind" value={draft.customerKind} disabled={disabled} onChange={(value:string)=>{if(Object.hasOwn(CUSTOMER_KINDS,value))setDraft(current=>({...current,customerKind:value as keyof typeof CUSTOMER_KINDS}));}}>
       {CUSTOMER_KIND_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
      </Select>
     </FormField>
     <FormField label="Plan de servicio" htmlFor="client-reporting-plan">
-     <Select id="client-reporting-plan" value={draft.servicePlanId} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDraft(current=>({...current,servicePlanId:event.target.value}))}>
+     <Select hideLabel label="Plan de servicio" id="client-reporting-plan" value={draft.servicePlanId} disabled={disabled} onChange={(value:string)=>setDraft(current=>({...current,servicePlanId:value}))}>
       <option value="">Sin plan registrado</option>
-      {data.plans.map(plan=><option key={plan.id} value={String(plan.id)}>{plan.name}</option>)}
+      {data.plans.map(plan=><option key={plan.id} value={String(plan.id)} data-kind="entity">{plan.name}</option>)}
      </Select>
     </FormField>
     <FormField label={<>Inicio de relación<OptionalMark/></>} htmlFor="client-reporting-relationship">
@@ -66,13 +74,13 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
       <FormField label="Motivo del cambio" htmlFor="client-reporting-reason"><Input id="client-reporting-reason" maxLength={1000} value={audit.reason} disabled={saving} placeholder="Por qué cambia el plan o sus condiciones" onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAudit(current=>({...current,reason:event.target.value}))}/></FormField>
      </>:null}
      <FormField label="Plan comercial" htmlFor="client-reporting-terms-plan">
-      <Select id="client-reporting-terms-plan" value={terms.planId} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,planId:event.target.value}))}>
+      <Select hideLabel label="Plan comercial" id="client-reporting-terms-plan" value={terms.planId} disabled={!termsEditable||saving} onChange={(value:string)=>setTerms(current=>({...current,planId:value}))}>
        <option value="">Elegí un plan</option>
-       {termData.plans.map(plan=><option key={plan.id} value={String(plan.id)}>{plan.name}</option>)}
+       {termData.plans.map(plan=><option key={plan.id} value={String(plan.id)} data-kind="entity">{plan.name}</option>)}
       </Select>
      </FormField>
      <FormField label="Monto recurrente entero" htmlFor="client-reporting-amount">
-      <MoneyInput id="client-reporting-amount" currency={terms.currency} value={terms.recurringAmount} disabled={!termsEditable||saving} onValueChange={(value: unknown)=>setTerms(current=>({...current,recurringAmount:String(value)}))} className="w-44"/>
+      <MoneyInput id="client-reporting-amount" currency={terms.currency} value={terms.recurringAmount} disabled={!termsEditable||saving} onChange={(value: unknown)=>setTerms(current=>({...current,recurringAmount:String(value)}))} className="w-44"/>
      </FormField>
      <CurrencyField id="client-reporting-currency" label="Moneda" value={terms.currency} disabled={!termsEditable||saving} onChange={value=>setTerms(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
      <FormField label="Inicio comercial" htmlFor="client-reporting-starts">
@@ -82,25 +90,25 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
       <Input id="client-reporting-ends" type="date" className="w-40" min="1900-01-01" value={terms.endsOn} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,endsOn:event.target.value}))}/>
      </FormField>
      <FormField label="Factura comercial del cliente" htmlFor="client-reporting-invoice">
-      <Select id="client-reporting-invoice" value={terms.invoiceRequired} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,invoiceRequired:event.target.value===''?'':event.target.value==='true'?'true':'false'}))}>
+      <Select hideLabel label="Factura comercial del cliente" id="client-reporting-invoice" value={terms.invoiceRequired} disabled={!termsEditable||saving} onChange={(value:string)=>setTerms(current=>({...current,invoiceRequired:value===''?'':value==='true'?'true':'false'}))}>
        <option value="">Elegí una opción</option><option value="true">Sí</option><option value="false">No</option>
       </Select>
      </FormField>
      <FormField label="Tipo de comisión" htmlFor="client-reporting-commission-mode">
-      <Select id="client-reporting-commission-mode" value={terms.commissionMode} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,commissionMode:event.target.value==='fixed'?'fixed':event.target.value==='none'?'none':'percentage'}))}>
+      <Select hideLabel label="Tipo de comisión" id="client-reporting-commission-mode" value={terms.commissionMode} disabled={!termsEditable||saving} onChange={(value:string)=>setTerms(current=>({...current,commissionMode:value==='fixed'?'fixed':value==='none'?'none':'percentage'}))}>
        {COMMISSION_MODE_CHOICES.map(choice=><option key={choice.value} value={choice.value}>{choice.label}</option>)}
       </Select>
      </FormField>
      {terms.commissionMode!=='none'?<FormField label="Destinatario de comisión" htmlFor="client-reporting-commission-recipient">
-      <Select id="client-reporting-commission-recipient" value={terms.commissionRecipientId} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,commissionRecipientId:event.target.value}))}>
+      <Select hideLabel label="Destinatario de comisión" id="client-reporting-commission-recipient" value={terms.commissionRecipientId} disabled={!termsEditable||saving} onChange={(value:string)=>setTerms(current=>({...current,commissionRecipientId:value}))}>
        <option value="">Elegí un colaborador</option>
-       {termData.collaborators.map(person=><option key={person.id} value={String(person.id)}>{person.full_name}</option>)}
+       {termData.collaborators.map(person=><option key={person.id} value={String(person.id)} data-kind="person">{person.full_name}</option>)}
       </Select>
      </FormField>:null}
      {terms.commissionMode!=='none'?<FormField label={terms.commissionMode==='percentage'?'Comisión entera (%)':'Comisión entera'} htmlFor="client-reporting-commission-value">
       {terms.commissionMode==='percentage'
        ?<Input id="client-reporting-commission-value" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={3} placeholder="0-100" className="w-24" value={terms.commissionValue} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,commissionValue:soloDigitos(event.target.value)}))}/>
-       :<MoneyInput id="client-reporting-commission-value" currency={terms.currency} className="w-44" value={terms.commissionValue} disabled={!termsEditable||saving} onValueChange={(value: unknown)=>setTerms(current=>({...current,commissionValue:String(value)}))}/>}
+       :<MoneyInput id="client-reporting-commission-value" currency={terms.currency} className="w-44" value={terms.commissionValue} disabled={!termsEditable||saving} onChange={(value: unknown)=>setTerms(current=>({...current,commissionValue:String(value)}))}/>}
      </FormField>:null}
     </>:null}
    </div>

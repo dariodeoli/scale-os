@@ -175,10 +175,10 @@ test('buscador de clientes: sin contacto no promete correo ni teléfono',async()
  let renderer!:ReactTestRenderer;
  const props={canCreate:false,onCreate:()=>{},onQueryChange:()=>{},onStatusChange:()=>{},onViewChange:()=>{},query:'',resultCount:0,status:'',totalCount:0,view:'list' as const};
  await act(async()=>{renderer=create(<ClientDirectoryToolbar {...props}/>);});
- assert.equal(renderer.root.findByProps({'aria-label':'Buscar clientes'}).props.placeholder,'Buscar por nombre, correo o teléfono','el rol con contacto conserva la promesa');
+ assert.equal(renderer.root.findAllByType('input').find(input=>input.props.type==='search'&&renderer.root.findAllByType('label').some(label=>label.props.htmlFor===input.props.id&&text(label).includes('Buscar clientes')))!.props.placeholder,'Buscar por nombre, correo o teléfono','el rol con contacto conserva la promesa');
  act(()=>renderer.unmount());
  await act(async()=>{renderer=create(<ClientDirectoryToolbar {...props} contactVisible={false}/>);});
- assert.equal(renderer.root.findByProps({'aria-label':'Buscar clientes'}).props.placeholder,'Buscar por nombre','sin contacto el buscador solo promete nombre');
+ assert.equal(renderer.root.findAllByType('input').find(input=>input.props.type==='search'&&renderer.root.findAllByType('label').some(label=>label.props.htmlFor===input.props.id&&text(label).includes('Buscar clientes')))!.props.placeholder,'Buscar por nombre','sin contacto el buscador solo promete nombre');
  act(()=>renderer.unmount());
 });
 

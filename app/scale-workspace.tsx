@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from './ui/input-control';
 import {AccountCreateDialog} from './account-create-dialog';
 import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
@@ -10,7 +11,6 @@ import {normalizeCommercialDashboard, type CommercialDashboard} from './control-
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {AccessLayout} from './access-layout';
-import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
 import {roleCan,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
@@ -59,6 +59,8 @@ import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
 import {EmailField} from './email-field';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
+import {PendingFields} from './ui/form-state';
 import {WorkspaceGuide, workspaceGuideScope, visibleModule, type WorkspaceGuideData} from './workspace-guide';
 import {guideCountsFrom} from './workspace-guide-data';
 import {FXTransferForm} from './daily-controls';
@@ -148,6 +150,8 @@ import {
   Workflow,
   X,
 } from "lucide-react";
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 // Nav v3 (issue #68): 5 grupos desplegables (Resumen · Flujo · Recursos ·
 // Finanzas · Configuración); cada grupo lista sus módulos y el ícono del grupo
@@ -192,6 +196,7 @@ export default function Home() {
   const [authNotice, setAuthNotice] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const {pending:loginPending,onSubmit:submitLogin}=useSingleFlightSubmit(login);
   const pathname=usePathname(),router=useRouter();
   function returnToApprovedLoginDestination(){
     const destination=postLoginDestination(window.location.search);
@@ -716,7 +721,7 @@ export default function Home() {
   function projectEntry(project:Project){
     return <ProjectCard key={project.id} project={project} taskIdentity={user?{organizationId:String(user.organization_id),userId:String(user.id),canView:user.role==='owner'||user.capabilities?.['tasks.view']!==false}:undefined} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
-      {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
+      {canManageProjects?<ScaleButton type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)} variant="ghost">{project.active===false?'Reactivar':'Archivar'}</ScaleButton>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
     </ProjectCard>;
   }
@@ -736,7 +741,7 @@ export default function Home() {
     const dueText=listDateShort(project.due_date)||'Sin entrega';
     return <>
       <span className="flex min-w-0 items-center gap-2">
-        {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
+        {canManageProjects?<InputControl type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
         <ClientLogo name={client?.name||project.client_name||'Sin cliente'} logo={identityLoading?undefined:client?.logo_url} color={client?.color_key} size="sm"/>
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
@@ -747,7 +752,7 @@ export default function Home() {
       <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute" title={`Inicio ${listDateShort(project.start_date)||'sin fecha'} · Entrega ${listDateShort(project.due_date)||'sin fecha'} · ${pieces} pieza${pieces===1?'':'s'}`}>{listDateShort(project.start_date)||'Sin inicio'} → <span className="list-date" data-tone={dueTone(project.due_date)}>{dueText}</span> · <b className="tabular-nums text-fore">{pieces}</b> pieza{pieces===1?'':'s'}</span>
       <span className="flex min-w-0 items-center"><AssignedPeople people={project.assignees} compact/></span>
       <ListActions className="flex items-center justify-end gap-1">
-        {canManageProjects?<button type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} aria-label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)}>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</button>:null}
+        {canManageProjects?<ScaleIconButton type="button" className={ROW_ICON_ACTION} disabled={archiveBusy===`project:${project.id}`} title={archived?'Reactivar proyecto':'Archivar proyecto'} label={`${archived?'Reactivar':'Archivar'} proyecto: ${project.name}`} onClick={()=>void setProjectArchive(project.id,archived)} icon={<>{archived?<ArchiveRestore size={15}/>:<Archive size={15}/>}</>} variant="ghost" size="compact"></ScaleIconButton>:null}
         <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
       </ListActions>
     </>;
@@ -784,8 +789,7 @@ export default function Home() {
     )
       void loadMetrics();
   }, [active, operationalAccess, user?.role]);
-  async function login(event: React.FormEvent) {
-    event.preventDefault();
+  async function login() {
     setToast("");
     try {
       await request("/api/auth/login", {
@@ -898,11 +902,12 @@ export default function Home() {
               <p>{authNotice}</p>
             </div>
           )}
-          <ProviderSignIn provider="google" disabled={!socialProviders.google} label={socialProviders.google?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
-          {socialProviders.microsoft?<ProviderSignIn provider="microsoft" onClick={()=>{window.location.href='/core-api/api/auth/microsoft/start';}}/>:null}
-          {socialProviders.apple?<ProviderSignIn provider="apple" onClick={()=>{window.location.href='/core-api/api/auth/apple/start';}}/>:null}
+          <ProviderSignIn provider="google" disabled={loginPending||!socialProviders.google} label={socialProviders.google?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
+          {socialProviders.microsoft?<ProviderSignIn provider="microsoft" disabled={loginPending} onClick={()=>{window.location.href='/core-api/api/auth/microsoft/start';}}/>:null}
+          {socialProviders.apple?<ProviderSignIn provider="apple" disabled={loginPending} onClick={()=>{window.location.href='/core-api/api/auth/apple/start';}}/>:null}
           <div className="login-divider"><span>o ingresá con correo</span></div>
-          <form noValidate onSubmit={login}>
+          <form noValidate onSubmit={submitLogin} aria-busy={loginPending}>
+            <PendingFields pending={loginPending}>
             <label>
               Email
               <EmailField value={email} onChange={setEmail} placeholder="Tu email" required/>
@@ -918,7 +923,8 @@ export default function Home() {
             />
             <PasswordPanel/>
             {toast && <p className="error" role="alert">{toast}</p>}
-            <button className="primary login-button">Continuar</button>
+            <ScaleButton type="submit" className="primary login-button" variant="primary" size="large">{loginPending?'Ingresando…':'Continuar'}</ScaleButton>
+            </PendingFields>
           </form>
           <AvisoPrivacidad compact finalidad="Privacidad de tus datos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
       </AccessLayout>
@@ -930,7 +936,7 @@ export default function Home() {
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
-  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name} logo={user.organization_logo_url}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
+  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name} logo={user.organization_logo_url}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><ScaleButton className="secondary" onClick={logout} variant="secondary">Cerrar sesión</ScaleButton><WorkspaceFooter/></div></main>;
 
   // Ítem de nav (riel y drawer): mismo esqueleto, tono por superficie. El riel
   // marca el activo con barra dorada y tile de ícono; el drawer usa el tono de
@@ -1002,13 +1008,10 @@ export default function Home() {
               </div>}
             </div>;
           })}
-          <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><span className={navIconClass(false,tone)}><LogOut size={16}/></span><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/[0.12]':'border-ink-600'}`}>
           {/* Issue #69: acceso a la administración de la plataforma, sólo si el
               SERVIDOR marca platform_role=admin en /auth/me (nunca por email). */}
-          {/* Reportar un problema (panel global → Reportes): disponible para toda sesión real; el Demo no reporta. */}
-          {user&&!user.demo_owner_user_id&&<ReportProblemButton className={navItemClass(false,tone)} iconClassName={navIconClass(false,tone)}/>}
           {user?.platform_role==='admin'&&<a className={`nav-admin ${navItemClass(false,tone)}`} href="https://admin.scaleparaguay.com" target="_blank" rel="noopener noreferrer" title="Administración de Scale" aria-label="Administración de Scale"><span className={navIconClass(false,tone)}><ShieldCheck size={16}/></span><span className="nav-label">Administración de Scale</span></a>}
           <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
@@ -1030,7 +1033,7 @@ export default function Home() {
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
           <p className="form-note">De lunes a domingo según el calendario local de tu dispositivo. Incluye todos los estados; las órdenes sin fecha quedan fuera del filtro semanal. Se combina con el cliente elegido y se guarda para vos en esta empresa y navegador.</p>
-          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>
+          <ScaleButton className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})} variant="ghost"><RotateCcw size={14}/>Restablecer filtros</ScaleButton>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
@@ -1055,7 +1058,6 @@ export default function Home() {
               <VersionNotice/>
             </div>
             <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 [&>div>button]:min-h-10 [&>div>button]:min-w-10 max-md:[&>div>button]:min-h-11 max-md:[&>div>button]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">
-              <ThemeToggle/>
               <WorkspaceGuide {...guideProps} active={active} helpOpen={helpOpen} onHelpOpen={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}
               <WorkspaceSearch key={workspaceScope} navigate={setActive} active={active} role={user?.role||'viewer'} canCreate={canCreateRecord(active)} onCreate={kind=>setModal(kind)} onHelp={()=>setHelpOpen(true)} records={[
@@ -1064,6 +1066,8 @@ export default function Home() {
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.assignee_names?.length?o.assignee_names.map(name=>({id:name,full_name:name,is_primary:false})):o.effective_assignees||o.assignees||project?.assignees};}),
               ]}/>
               <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={(id,anchor)=>setDetail({kind:'order',id,...(anchor?{anchor}:{})})}/>
+              {user&&!user.demo_owner_user_id&&<ReportProblemButton iconOnly/>}
+              <ScaleIconButton type="button" label="Cerrar sesión" title="Cerrar sesión" size="compact" onClick={logout} icon={<LogOut size={16}/>}/>
             </div>
           </div>
         </div>
@@ -1092,9 +1096,9 @@ export default function Home() {
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {(active==='Resumen'&&canCreateRecord(active)) && (
-                <button className="primary" onClick={() => setModal("order")}>
+                <ScaleButton className="primary" onClick={() => setModal("order")} variant="primary">
                   <Plus size={18} /> Nueva orden
-                </button>
+                </ScaleButton>
               )}
             </div>
           </>}

@@ -1,10 +1,11 @@
+import {money as formatMoney} from '../app/money-format';
 import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
 import type {InventoryItem,InventoryMaintenance} from '../app/inventory-workspace';
-const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 type Write={path:string;body:any;method:string};
 const writes:Write[]=[],reads:string[]=[];
 const members=[{id:'10',name:'Cámara'},{id:'11',name:'Sonido'}];
@@ -55,7 +56,7 @@ const control=(value:string,tag:'input'|'textarea'|'select'='input')=>{
  return label.findAllByType(tag)[0];
 };
 const select=(name:string)=>renderer.root.findAllByType(SelectCustom).find(node=>node.props.label===name)!;
-const change=(name:string,value:string)=>act(()=>{const node=control(name);node.props.onChange({target:{value},currentTarget:{value,selectionStart:String(value).length}});});
+const change=(name:string,value:string)=>act(()=>{const node=control(name);const target={value,selectionStart:String(value).length,validationMessage:'',setCustomValidity(message:string){this.validationMessage=message;}};node.props.onChange({target,currentTarget:target});});
 const submit=()=>act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
 const button=(name:string)=>renderer.root.findAllByType('button').find(node=>text(node)===name)!;
 const itemForm=(item:InventoryItem|null)=>create(<InventoryItemForm item={item} categories={categories} members={members} storageTemplates={[]} canManageStorage={false} createStorageTemplate={async name=>({id:'x',name,active:true,item_count:0})} done={()=>{formDone++;}}/>);
@@ -84,7 +85,7 @@ async function run(){
  act(()=>renderer.unmount());
  // Editing sends null for cleared optional fields and keeps the residual at 0.
  await act(async()=>{renderer=itemForm(baseItem);});
- assert.match(text(renderer.root),/Valor actual PYG 800/,'the edit form summarizes the computed value');
+ assert.ok(text(renderer.root).includes(`Valor actual ${formatMoney('800','PYG')}`),'the edit form summarizes the computed value with the canonical formatter');
  change('Valor de compra · Opcional','');change('Fecha de compra · Opcional','');act(()=>select('Método de depreciación').props.onChange('none'));change('Valor residual','');
  await submit();
  const cleared=writes.at(-1)!;assert.equal(cleared.method,'PATCH');assert.equal(cleared.body.purchase_value,null);assert.equal(cleared.body.purchase_date,null);assert.equal(cleared.body.useful_life_months,null);assert.equal(cleared.body.residual_value,'0');
@@ -93,7 +94,7 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryDetail item={baseItem} members={members} canManage onChanged={()=>{changed++;}}/>);});
  assert.equal(reads.at(-1),'/api/agency/inventory/1');
  assert.match(text(renderer.root),/Valor y depreciación/);assert.match(text(renderer.root),/Gs 800/);assert.match(text(renderer.root),/Gs 200/);assert.match(text(renderer.root),/Gs 42/,'el monto sale del formateador compartido (PYG sin decimales)');
- assert.match(text(renderer.root),/Lineal/);assert.match(text(renderer.root),/24 meses/);assert.match(text(renderer.root),/10-sept/);assert.match(text(renderer.root),/PYG 50000/);
+ assert.match(text(renderer.root),/Lineal/);assert.match(text(renderer.root),/24 meses/);assert.match(text(renderer.root),/10-sept/);assert.ok(text(renderer.root).includes(formatMoney('50000','PYG')),'maintenance cost uses the same canonical formatter');
  assert.match(text(renderer.root),/Anulado/);assert.match(text(renderer.root),/Anulado por Ana/);assert.match(text(renderer.root),/Sonido/);
  // Creating a maintenance row posts the contract payload, reloads the detail and notifies the workspace.
  const beforeCreate=writes.length;

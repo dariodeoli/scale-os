@@ -50,17 +50,17 @@
 .client-hub-row :is(.client-identity,.actor-identity){min-width:0;max-width:100%}
 .client-hub-row .client-identity:not(.compact) .foto-perfil{--foto-perfil-size:32px}
 .client-hub-row .identity-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.client-hub-row .client-record-actions :is(.icon-button,.text-button){min-height:44px}
-.client-hub-row .client-record-actions .icon-button{width:44px;min-width:44px}
+.client-hub-row .client-record-actions :is(.icon-button,.text-button):not(:where([data-ui-button])){min-height:44px}
+.client-hub-row .client-record-actions .icon-button:not(:where([data-ui-button])){width:44px;min-width:44px}
 /* Acciones del ojo (objeto de la librería, 28 px) y del resto de la fila densa al
    contrato de lista: 28–32 px en escritorio y targets táctiles de 44 en móvil. */
-.client-hub-row .client-row-actions :is(button,a.text-button){min-height:44px}
-.client-hub-row .client-row-actions>button:first-child{width:44px;min-width:44px}
+.client-hub-row .client-row-actions :is(button,a.text-button):not(:where([data-ui-button])){min-height:44px}
+.client-hub-row .client-row-actions>button:first-child:not(:where([data-ui-button])){width:44px;min-width:44px}
 @media(max-width:767px){
  .client-hub-row .select-check,.client-hub-card .select-check{min-width:44px;min-height:44px;justify-content:center}
- .client-hub-card .client-card-actions :is(button,a.text-button){min-height:44px}
- .client-hub-card .client-card-actions :is(.icon-button,.record-remove){width:44px;min-width:44px;min-height:44px}
- .client-hub-card .client-card-actions>button:first-child{width:44px;min-width:44px}
+ .client-hub-card .client-card-actions :is(button,a.text-button):not(:where([data-ui-button])){min-height:44px}
+ .client-hub-card .client-card-actions :is(.icon-button,.record-remove):not(:where([data-ui-button])){width:44px;min-width:44px;min-height:44px}
+ .client-hub-card .client-card-actions>button:first-child:not(:where([data-ui-button])){width:44px;min-width:44px}
 }
 
 /* #77 · Lista más fina (sin tocar la cuadrícula):
@@ -72,12 +72,12 @@
      debajo conserva el apilado, con targets táctiles de 44 en móvil. */
 .directory .client-hub-row{padding-block:.25rem;border-bottom-color:color-mix(in srgb,var(--line) 45%,transparent)}
 @media(min-width:768px){
-.directory .client-hub-row .client-row-actions :is(button,a.text-button):not(.whatsapp-button){min-height:28px;color:var(--text-muted)}
-.directory .client-hub-row .client-row-actions :is(button,a):hover{color:var(--text)}
-.directory .client-hub-row .client-record-actions :is(.icon-button,.text-button){min-height:28px;color:var(--text-muted)}
-.directory .client-hub-row .client-record-actions :is(.icon-button,.text-button):hover{color:var(--text)}
-.directory .client-hub-row .client-record-actions .icon-button,
-.directory .client-hub-row .client-row-actions .whatsapp-button.icon-button{width:28px;min-width:28px;height:28px;min-height:28px}
+.directory .client-hub-row .client-row-actions :is(button,a.text-button):not(.whatsapp-button):not(:where([data-ui-button])){min-height:28px;color:var(--text-muted)}
+.directory .client-hub-row .client-row-actions :is(button,a):hover:not(:where([data-ui-button])){color:var(--text)}
+.directory .client-hub-row .client-record-actions :is(.icon-button,.text-button):not(:where([data-ui-button])){min-height:28px;color:var(--text-muted)}
+.directory .client-hub-row .client-record-actions :is(.icon-button,.text-button):hover:not(:where([data-ui-button])){color:var(--text)}
+.directory .client-hub-row .client-record-actions .icon-button:not(:where([data-ui-button])),
+.directory .client-hub-row .client-row-actions .whatsapp-button.icon-button:not(:where([data-ui-button])){width:28px;min-width:28px;height:28px;min-height:28px}
 }
 .client-directory-table .list-actions{box-shadow:inset 1px 0 0 color-mix(in srgb,var(--line) 40%,transparent)}
 .client-directory-table [role="row"]:first-of-type{border-bottom-color:color-mix(in srgb,var(--line) 50%,transparent)}
@@ -100,9 +100,9 @@
  .client-directory-results--list .client-hub-card>dl{flex:1 1 auto;min-width:0}
  .client-directory-results--list .client-hub-card>div{flex:0 0 auto;flex-wrap:nowrap}
  .client-directory-results--list .client-hub-card>footer{flex:0 0 auto;margin-top:0;padding-top:0;border-top:0;border-left:1px solid color-mix(in srgb,var(--line) 45%,transparent);padding-left:var(--ui-space-2);gap:2px}
- .client-directory-results--list .client-hub-card>footer :is(button,a.text-button):not(.whatsapp-button){min-height:28px;color:var(--text-muted)}
- .client-directory-results--list .client-hub-card>footer :is(button,a):hover{color:var(--text)}
- .client-directory-results--list .client-hub-card>footer :is(.icon-button,.record-remove){width:28px;min-width:28px;height:28px;min-height:28px}
+ .client-directory-results--list .client-hub-card>footer :is(button,a.text-button):not(.whatsapp-button):not(:where([data-ui-button])){min-height:28px;color:var(--text-muted)}
+ .client-directory-results--list .client-hub-card>footer :is(button,a):hover:not(:where([data-ui-button])){color:var(--text)}
+ .client-directory-results--list .client-hub-card>footer :is(.icon-button,.record-remove):not(:where([data-ui-button])){width:28px;min-width:28px;height:28px;min-height:28px}
 }
 
 /* Pase compacto (#91): el título, el contador y el resumen auxiliar comparten
@@ -133,3 +133,10 @@
 .client-hub-row .client-row-actions .client-record-actions{min-width:70px;gap:4px}
 .client-hub-row .client-row-actions .client-price-missing{margin-left:0;width:28px;height:20px}
 @media(max-width:767px){.client-hub-row .client-action-slot{width:44px;min-width:44px}}
+
+/* Multi-currency totals need their own row instead of competing with the main amount. */
+.control-shell .ui-kpi-strip-dense .ui-kpi.client-billing-kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"label" "value" "sub"}
+.control-shell .ui-kpi-strip-dense .client-billing-kpi>div:nth-child(2){white-space:normal;overflow-wrap:normal;font-size:clamp(17px,1.55vw,22px)}
+.control-shell .ui-kpi-strip-dense .client-billing-kpi>div:nth-child(3){overflow:visible}
+.client-billing-details{display:grid;gap:2px;min-width:0}
+.client-billing-details>span{white-space:normal;overflow-wrap:normal}

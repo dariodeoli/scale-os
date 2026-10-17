@@ -1,5 +1,8 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {useSingleFlightSubmit} from '../use-single-flight-submit';
+import {PendingFields} from '../ui/form-state';
+import {InputControl} from '../ui/input-control';
+import {useEffect,useRef,useState} from 'react';
 import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui';
 import {teamRoleLabels} from '../team-directory';
 import {AccessLayout} from '../access-layout';
@@ -9,6 +12,8 @@ import {PasswordField} from '../password-field';
 import {EmailField} from '../email-field';
 import {PRIVACY_NOTICE} from '../privacy-notice';
 import {queuePrivacyConsent,registerPrivacyConsent} from '../privacy-data';
+import {Button as ScaleButton} from "../ui/button";
+
 type Preview={organization_name:string;role:string;mode:'single'|'approval';expires_at?:string};
 type State={status:'loading'|'missing'|'invalid'|'pending'|'previous-error'|'unavailable'|'connection'|'expired'|'revoked'|'used'}|{status:'ready';info:Preview;token:string};
 function isPreview(value:unknown):value is Preview{
@@ -39,10 +44,12 @@ export default function InvitationPage(){
  const consentRecord=()=>registroConsentimiento({finalidad:'cuenta-y-prestacion',aceptado:true,version:PRIVACY_NOTICE.version,canal:'invitacion-equipo',titular:email.trim().toLowerCase()});
  function requireConsent(){if(dataConsent)return true;setConsentError('Aceptá el tratamiento de tus datos para crear la cuenta.');return false;}
  async function continueWithGoogle(event:React.MouseEvent<HTMLAnchorElement>){
-  if(!requireConsent()){event.preventDefault();return;}
+  if(passwordBusy||!requireConsent()){event.preventDefault();return;}
   queuePrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'invitacion-equipo-google',titular:email.trim().toLowerCase()});
  }
- const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[passwordBusy,setPasswordBusy]=useState(false),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[email,setEmail]=useState('');
+ const [passwordOpen,setPasswordOpen]=useState(false),[passwordError,setPasswordError]=useState(''),[passwordNotice,setPasswordNotice]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[email,setEmail]=useState(''),[fullName,setFullName]=useState('');
+ const submission=useSingleFlightSubmit(registerWithPassword),passwordBusy=submission.pending,errorFocus=useRef<HTMLParagraphElement>(null),consentField=useRef<HTMLDivElement>(null);
+ useEffect(()=>{if(!passwordBusy){if(passwordError)errorFocus.current?.focus();else if(consentError)consentField.current?.querySelector<HTMLInputElement>('input')?.focus();}},[passwordError,consentError,passwordBusy]);
  useEffect(()=>{
   const query=new URLSearchParams(window.location.search),token=query.get('token')||'';
   // Query errors describe an earlier callback, never a fresh preview result.
@@ -78,21 +85,18 @@ export default function InvitationPage(){
  const notice=state.status==='ready'?null:notices[state.status];
  const labels:Record<State['status'],string>={ready:'Enlace activo',expired:'Enlace vencido',revoked:'Enlace revocado',used:'Enlace ya utilizado',loading:'Comprobando enlace',connection:'Estado sin verificar',missing:'Falta el enlace',invalid:'Enlace inválido',pending:'Solicitud pendiente',unavailable:'Enlace no disponible','previous-error':'Volvé a comprobar el enlace'};
  const expiration=state.status==='ready'&&state.info.expires_at?new Date(state.info.expires_at):null;
- async function registerWithPassword(event:React.FormEvent<HTMLFormElement>){
-  event.preventDefault();if(state.status!=='ready')return;
-  const values=new FormData(event.currentTarget),password=String(values.get('password')||''),confirm=String(values.get('confirm')||'');
+ async function registerWithPassword(){
+  if(state.status!=='ready')return;
   setPasswordError('');setPasswordNotice('');
   if(!requireConsent())return;
   if(password!==confirm){setPasswordError('Las contraseñas no coinciden.');return;}
-  setPasswordBusy(true);
   try{
-   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email,password,full_name:values.get('full_name'),privacy:consentRecord()}),referrerPolicy:'no-referrer'});
+   const response=await fetch('/core-api/api/auth/password/invitations/register',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:state.token,email,password,full_name:fullName,privacy:consentRecord()}),referrerPolicy:'no-referrer'});
    const data=await response.json().catch(()=>null);
    if(!response.ok)throw Error(data?.error||'No se pudo crear la cuenta.');
    await registerPrivacyConsent({finalidad:'cuenta-y-prestacion',canal:'invitacion-equipo',titular:email.trim().toLowerCase()}).catch(()=>{});
    setPasswordNotice(data?.message||'Revisá tu correo para verificar tu cuenta.');
   }catch(cause){setPasswordError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}
-  finally{setPasswordBusy(false);}
  }
  return <AccessLayout eyebrow="Scale OS · Acceso de equipo" busy={state.status==='loading'}>
   <div className="grid gap-4">
@@ -101,7 +105,7 @@ export default function InvitationPage(){
     <StateChip tone={state.status==='ready'?'ok':state.status==='loading'?'mute':'bad'}>{labels[state.status]}</StateChip>
     {expiration&&!Number.isNaN(expiration.getTime())?<span className="whitespace-nowrap">Vence: <time dateTime={expiration.toISOString()}>{listDateFull(expiration.toISOString())}</time> · hora de Asunción</span>:null}
    </p>
-   {state.status==='ready'?<>
+   {state.status==='ready'?<PendingFields pending={passwordBusy}>
     <p className="text-sm text-mute">Te invitaron a trabajar en este espacio.</p>
     <div className="grid gap-1 rounded-lg border border-ink-600 px-3 py-2">
      <strong className="break-words text-sm text-fore">{state.info.organization_name}</strong>
@@ -110,23 +114,23 @@ export default function InvitationPage(){
     <p className="text-sm text-mute">{state.info.mode==='single'?'Este enlace habilita una sola cuenta.':'Podés solicitar acceso; el dueño lo aprobará antes de habilitarte.'}</p>
     <p className="text-xs text-mute">Elegí cómo querés verificar tu correo para continuar.</p>
     <AvisoPrivacidad finalidad="Vamos a crear tu cuenta con el correo de la invitación y los datos de tu perfil." detalle="El equipo de esta agencia verá tu nombre y cargo para asignarte trabajo." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
-    <ConsentimientoDatos checked={dataConsent} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{setDataConsent(event.target.checked);setConsentError('');}} finalidad="Acepto el tratamiento de mis datos para crear mi cuenta y trabajar en este espacio." detalle="Nombre, correo y actividad de trabajo; la agencia donde te invitan es responsable de estos datos." politicaUrl="/privacidad" version={PRIVACY_NOTICE.version} error={consentError||undefined}/>
+    <div ref={consentField}><ConsentimientoDatos checked={dataConsent} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{setDataConsent(event.target.checked);if(event.target.checked)setConsentError('');}} finalidad="Acepto el tratamiento de mis datos para crear mi cuenta y trabajar en este espacio." detalle="Nombre, correo y actividad de trabajo; la agencia donde te invitan es responsable de estos datos." politicaUrl="/privacidad" version={PRIVACY_NOTICE.version} error={consentError||undefined}/></div>
     <div className="grid gap-2">
-     <a className="primary login-button" referrerPolicy="no-referrer" onClick={continueWithGoogle} href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
-     {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:
-      <form className="grid gap-4" onSubmit={registerWithPassword}>
-       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
+     <a className="primary login-button" aria-disabled={passwordBusy||undefined} tabIndex={passwordBusy?-1:undefined} referrerPolicy="no-referrer" onClick={continueWithGoogle} href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
+     {!passwordOpen?<ScaleButton type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}} variant="secondary">Crear cuenta con correo</ScaleButton>:
+      <form className="grid gap-4" onSubmit={submission.onSubmit}>
+       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<InputControl name="full_name" value={fullName} onChange={event=>setFullName(event.target.value)} maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
        <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
        <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
        <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
-       <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
-       {passwordError?<p className="error" role="alert">{passwordError}</p>:null}
+       <ScaleButton className="primary login-button" disabled={passwordBusy} variant="primary">{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</ScaleButton>
+       {passwordError?<p ref={errorFocus} tabIndex={-1} className="error" role="alert">{passwordError}</p>:null}
        {passwordNotice?<p className="success" role="status">{passwordNotice}</p>:null}
       </form>}
     </div>
-   </>:<div className="grid gap-3" role="status" aria-live="polite">
+   </PendingFields>:<div className="grid gap-3" role="status" aria-live="polite">
     <p className="text-sm text-mute">{notice?.message}</p>
-    {state.status==='connection'?<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>:null}
+    {state.status==='connection'?<ScaleButton type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}} variant="primary">Reintentar comprobación</ScaleButton>:null}
    </div>}
    <p className="text-[11.5px] text-mute"><a href="https://app.scaleparaguay.com/" referrerPolicy="no-referrer">{state.status==='pending'?'Consultar mi acceso':'Ir al inicio de sesión'}</a></p>
   </div>

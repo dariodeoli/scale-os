@@ -1,0 +1,52 @@
+{
+  "status": "published-dependency-consumed-and-validated",
+  "scaleBaseline": "11affc1c",
+  "artifact": {
+    "file": "owncoding-ui-0.68.17.tgz",
+    "sha256": "06568783742bfd090de7b16bfb7eaa732dee3a8682ba024faf2e7cc45c668471",
+    "published": true
+  },
+  "installation": "Private dependency copy only; final dependency installed from the published Git tag. Shared node_modules untouched.",
+  "checks": {
+    "frozenValidatorVectors": 1584,
+    "nativeSettingsVectors": 14,
+    "packageAndFacadeIdentity": "PASS",
+    "bundleServerSafeUtilities": "PASS",
+    "bundleMinimalRenderersSingleReact": "PASS",
+    "architectureFixtures": 8,
+    "architectureWholeSource": "PASS",
+    "numericEngine": "PASS",
+    "nativeRHFEditorBrowser": "PASS",
+    "temporalBrowser": "PASS",
+    "moneyCompatibility": "PASS",
+    "typescript": "PASS",
+    "catalogNextChecks": 39,
+    "catalogViewports": [
+      1366,
+      390
+    ],
+    "catalogThemes": [
+      "light",
+      "dark",
+      "contrast"
+    ],
+    "catalogScreenshots": 8,
+    "catalogApiRequests": 0,
+    "catalogExternalRequests": 0,
+    "nativePasteEventRefIdentityAndRerender": "PASS",
+    "inputTextareaFieldContracts": "PASS"
+  },
+  "preliminaryArtifact": {
+    "file": "owncoding-ui-0.68.16.tgz",
+    "sha256": "9842a50b63efc42bff62e648a08537562cbe3c342dfe9d7f1c8eabfeb98c4635",
+    "distFilesCompared": 39,
+    "distByteIdenticalToFinal": true
+  },
+  "dependency": {
+    "specifier": "github:dariodeoli/owncoding-ui#v0.68.17",
+    "resolvedGitCommit": "ce28d33b879571801b7b27124483bd84e830ad63",
+    "annotatedTagObject": "7836d2c0bdfdd657352e12fbc78a5562c3e1a317",
+    "installation": "npm install --ignore-scripts --no-audit --no-fund in isolated dependency copy",
+    "installedDistFilesMatchFinalArtifact": 39
+  }
+}

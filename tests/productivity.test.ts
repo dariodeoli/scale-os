@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {dataFetch,setDataScope,clearDataCache} from '../app/data-cache';
@@ -15,7 +16,7 @@ setDataScope('');await dataFetch(path);await dataFetch(path);assert.equal(calls,
 clearDataCache();globalThis.fetch=original;
 const ui=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 assert(ui.includes('aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}'));
-assert(ui.includes('nav-logout')&&ui.includes('navItemClass(false,tone)'),'the logout button keeps its rail slot and shared geometry');assert(!ui.includes('className="logout-only"'));assert(!ui.includes('className="user" onClick={logout}'));
+assert(actionElements(ui).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Cerrar sesión'&&action.attribute('onClick')==='logout'&&action.attribute('type')==='button'),'logout uses the shared accessible icon action and its existing callback');assert(!ui.includes('nav-logout'),'logout is no longer duplicated in the rail');assert(!ui.includes('className="logout-only"'));assert(!ui.includes('className="user" onClick={logout}'));
 const drawer=readFileSync(new URL('../app/mobile-navigation.tsx',import.meta.url),'utf8');assert(drawer.includes('mobile-menu-trigger hidden')&&drawer.includes('max-md:grid'),'the mobile trigger is hidden on desktop and gridded on mobile');assert(ui.includes('topbar-identity'),'the workspace topbar keeps its identity slot');
 const crop=readFileSync(new URL('../app/photo-cropper.tsx',import.meta.url),'utf8');
 assert(crop.includes('cropShape="round"'));assert(crop.includes('onCropChange={setCrop}'));assert(crop.includes('await save(await cropImage(source,area))'));

@@ -85,7 +85,7 @@ test('Errores: lista agrupada con origen, ruta sin query, ocurrencias, estado, d
     assert.deepEqual(JSON.parse(patch.body!), {status: 'resolved'});
     assert.deepEqual(counts.at(-1), {new: 0, resolved: 2, ignored: 0});
     // Filtro por origen: se pide al API.
-    await act(async () => { renderer.root.findByProps({'aria-label': 'Filtrar errores por origen'}).props.onChange({target: {value: 'api'}}); });
+    await act(async () => { renderer.root.findByProps({label: 'Filtrar errores por origen',hideLabel:true}).props.onChange('api'); });
     assert.equal(calls.at(-1)!.url, '/core-api/api/platform/errors?limit=50&source=api');
   } finally { if (renderer) act(() => renderer.unmount()); restore(); }
 });

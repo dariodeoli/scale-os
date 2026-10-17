@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
@@ -44,7 +45,7 @@ assert.match(inventory,/<StateChip tone=\{statusTone\(item\.status\)\}[^>]*>\{eq
 // ── KPIs acotados: «Sin valor» + contador secundario + enlace chico.
 assert.match(inventory,/:<span className="text-base font-semibold text-mute">Sin valor<\/span>/,'sin datos el KPI dice «Sin valor»');
 assert.match(inventory,/text-\[clamp\(1\.15rem,1\.6vw,1\.875rem\)\]/,'el monto se acota sin cortarse');
-assert.match(inventory,/>Agregar valor<\/button>/,'el CTA del valor sigue disponible');
+assert(actionElements(inventory).some(action=>action.children==='Agregar valor'&&action.attribute('onClick')==='onAddValue'&&action.attribute('variant')==='ghost'),'el CTA Agregar valor sigue disponible y conserva su callback de edición');
 assert.match(inventory,/className="min-h-11 shrink-0 text-\[11px\] font-semibold text-fono-light underline-offset-2 hover:underline focus-visible:underline md:min-h-0"/,'«Agregar valor» es un enlace chico (44 px en mobile)');
 
 // ── Ubicaciones: ancho fluido, encabezado fijo y estructura interna fija.

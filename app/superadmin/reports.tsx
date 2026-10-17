@@ -1,10 +1,12 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
+import {TextareaBase} from '../ui/input';
 // «Reportes» del panel global: lo que los usuarios mandan con «Reportar un
 // problema». Lista densa v2 (Fecha · Agencia / usuario · Reporte · Ruta y
 // versión · Estado · Acciones) con tarjetas cuando no entra, filtro por estado
 // (en el API) y, para el administrador global, cambio de estado + nota interna.
 import {useEffect, useRef, useState} from "react";
-import {Select} from "owncoding-ui";
+
 import {listDateFull} from "../list-format";
 import {ConfirmDialog} from "../dialog";
 import {notify} from "../feedback";
@@ -15,6 +17,8 @@ import {ActionMenu, EmptyBlock, ErrorBlock, FilterToolbar, ListActions, ListGrid
 import {formatPlatformMetric, type ReportCounts, type ReportPage, type ReportStatus, type UserReport} from "./model";
 import {PlatformMore} from "./states";
 import {EdgeAwareMenu} from "./edge-menu";
+import {Button as ScaleButton} from "../ui/button";
+
 
 export const REPORT_STATUS: Record<ReportStatus, {label: string; plural: string; tone: "warn" | "info" | "ok"}> = {
   new: {label: "Nuevo", plural: "Nuevos", tone: "warn"},
@@ -122,7 +126,7 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
     ...(writable ? [{id: "note", label: report.note ? "Editar estado y nota" : "Cambiar estado y nota", icono: "edit", onClick: () => openEditor(report)}] : []),
   ];
   const actions = (report: UserReport) => writable ? <>
-    {report.status === "new" ? <button type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(report, {status: "in_progress"}, "Reporte en curso.")}>Tomar</button> : null}
+    {report.status === "new" ? <ScaleButton type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(report, {status: "in_progress"}, "Reporte en curso.")} variant="ghost">Tomar</ScaleButton> : null}
     <EdgeAwareMenu><ActionMenu label={`Acciones del reporte de ${report.user_email || "usuario"}`} items={items(report)}/></EdgeAwareMenu>
   </> : null;
   const who = (report: UserReport) => <span className="grid min-w-0 gap-0.5">
@@ -153,12 +157,12 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
     <FilterToolbar summary={data ? `${formatPlatformMetric(list.length)} de ${formatPlatformMetric(data.total)}` : undefined}>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Estado
-        <Select aria-label="Filtrar reportes por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value as ReportStatus | "")} className="min-w-[11rem]">
+        <Select hideLabel label="Filtrar reportes por estado" value={status} onChange={(value:string)=>setStatus(value as ReportStatus | "")} className="min-w-[11rem]">
           <option value="">Todos{counts ? ` (${formatPlatformMetric(counts.new + counts.in_progress + counts.resolved)})` : ""}</option>
           {(Object.keys(REPORT_STATUS) as ReportStatus[]).map((key) => <option key={key} value={key}>{REPORT_STATUS[key].plural}{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>
       </label>
-      {status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")}>Limpiar filtro</button> : null}
+      {status ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")} variant="ghost">Limpiar filtro</ScaleButton> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar los reportes" description={error} onRetry={() => void load()}/>
@@ -200,7 +204,7 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
       <SelectCustom label="Estado" choices={(Object.keys(REPORT_STATUS) as ReportStatus[]).map((value) => ({value, label: REPORT_STATUS[value].label}))} value={draftStatus} disabled={busy} onChange={(value: string) => setDraftStatus(value as ReportStatus)}/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Nota interna
-        <textarea value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: reproducido, se corrige en la próxima versión" onChange={(event) => setNote(event.target.value)}/>
+        <TextareaBase value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: reproducido, se corrige en la próxima versión" onChange={(event) => setNote(event.target.value)}/>
       </label>
     </ConfirmDialog> : null}
   </section>;

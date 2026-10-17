@@ -1,4 +1,6 @@
 'use client';
+import {SegmentedField} from './ui/navigation';
+
 // Bandeja oficial de avisos (owncoding-ui §16, Refs #83): el objeto
 // `CampanaAvisos` dibuja la campana, el contador, el panel, el vacío con acción
 // y cada aviso (contrato `{id, titulo, detalle, tono, fecha, href, leido}`); la
@@ -8,11 +10,13 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Settings2} from 'lucide-react';
 import {useRouter} from 'next/navigation';
-import {CampanaAvisos,SegmentedField} from 'owncoding-ui';
+import {CampanaAvisos} from 'owncoding-ui';
 import {api} from './operations';
 import {Dialog} from './dialog';
 import {listDateFull} from './list-format';
 import {StateChip} from './ui-v2';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 type Notice={id:string;kind?:'assignment'|'comment'|'due';title:string;body:string;work_order_id:string|null;project_id?:string|null;comment_id?:string|null;read_at:string|null;resolved_at?:string|null;created_at:string};
 type Inbox={notifications:Notice[];unread:number;pendingCount?:number;next:string|null};
@@ -113,10 +117,10 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
   ?{titulo:loading?'Consultando avisos…':'No pudimos cargar los avisos',detalle:loading?'Un momento.':(message||'Volvé a intentar en un rato.')}
   :{titulo:filter==='all'?'No tenés avisos':'No hay avisos para este filtro',detalle:filter==='all'?'Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'Probá con otra vista o volvé a todas.'};
  const vacioAccion=!loaded
-  ?(loading?undefined:<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>)
+  ?(loading?undefined:<ScaleButton type="button" className="secondary" onClick={()=>void load()} variant="secondary">Reintentar</ScaleButton>)
   :filter==='all'
-   ?<button type="button" className="secondary" onClick={()=>void load()}>Actualizar</button>
-   :<button type="button" className="secondary" onClick={()=>changeFilter('all')}>Ver todas</button>;
+   ?<ScaleButton type="button" className="secondary" onClick={()=>void load()} variant="secondary">Actualizar</ScaleButton>
+   :<ScaleButton type="button" className="secondary" onClick={()=>changeFilter('all')} variant="secondary">Ver todas</ScaleButton>;
  // Bandeja vacía (#147): el vacío ofrece la única acción de refresco y no se
  // apilan los cuatro filtros ni el icono duplicado; sin datos, sólo el estado.
  const mostrarControles=loaded&&!sinAvisos;
@@ -135,13 +139,13 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
     {mostrarControles?<>
      <SegmentedField value={filter} onChange={(value:string)=>changeFilter(value as Filter)} ariaLabel="Filtrar notificaciones" className="[&_button]:min-h-11 [&_button]:px-2 [&_button]:text-[11px]" options={filters.map(option=>[option.value,option.label] as [string,string])}/>
      <div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
-      <button type="button" className={ICON_ACTION} title="Marcar todas como leídas" aria-label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')}><CheckCheck size={18}/></button>
-      <button type="button" className={ICON_ACTION} title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button>
-      <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
+      <ScaleIconButton type="button" className={ICON_ACTION} title="Marcar todas como leídas" label="Marcar todas las notificaciones como leídas" disabled={busy||!data.unread} onClick={()=>void mutate('read-all')} icon={<><CheckCheck size={18}/></>} variant="ghost" size="medium"></ScaleIconButton>
+      <ScaleIconButton type="button" className={ICON_ACTION} title="Actualizar" label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()} icon={<><RefreshCw size={17}/></>} variant="ghost" size="medium"></ScaleIconButton>
+      <ScaleIconButton type="button" className={ICON_ACTION} title="Preferencias" label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences} icon={<><Settings2 size={17}/></>} variant="ghost" size="medium"></ScaleIconButton>
      </div>
-     {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
+     {data.next&&!loading&&<ScaleButton type="button" className="secondary" disabled={busy} onClick={()=>void more()} variant="secondary">Ver avisos anteriores</ScaleButton>}
     </>:sinAvisos?<div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
-     <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
+     <ScaleIconButton type="button" className={ICON_ACTION} title="Preferencias" label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences} icon={<><Settings2 size={17}/></>} variant="ghost" size="medium"></ScaleIconButton>
     </div>:null}
    </div>}
   />
@@ -156,9 +160,9 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
    <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={Number.isFinite(new Date(selected.created_at).getTime())?selected.created_at:undefined}>{dateLabel(selected.created_at)}</time>
    <p className="text-[12px] leading-[1.45] text-mute">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
    <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
-    {(selected.work_order_id||selected.project_id)&&<button type="button" className="secondary" disabled={busy} onClick={()=>visitNotice(selected)}><ExternalLink size={15}/>{selected.work_order_id?'Ver pieza':'Ver proyecto'}</button>}
-    {!selected.read_at&&<button type="button" className="secondary" disabled={busy} onClick={()=>void mutate('read',selected)}><Check size={16}/>Marcar como leída</button>}
-    <button type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</button>
+    {(selected.work_order_id||selected.project_id)&&<ScaleButton type="button" className="secondary" disabled={busy} onClick={()=>visitNotice(selected)} variant="secondary"><ExternalLink size={15}/>{selected.work_order_id?'Ver pieza':'Ver proyecto'}</ScaleButton>}
+    {!selected.read_at&&<ScaleButton type="button" className="secondary" disabled={busy} onClick={()=>void mutate('read',selected)} variant="secondary"><Check size={16}/>Marcar como leída</ScaleButton>}
+    <ScaleButton type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)} variant="ghost" color={selected.resolved_at?'warning':'success'}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</ScaleButton>
    </div>
   </div></Dialog>}
  </>;

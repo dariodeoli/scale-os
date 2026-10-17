@@ -1,5 +1,7 @@
 "use client";
-import {Aviso} from 'owncoding-ui';
+import {Notice as Aviso} from './ui/notice';
+
+
 import {useEffect,useRef,useState} from 'react';
 import {Editor,api} from './operations';
 import {PersonPhotoField} from './person-photo';
@@ -10,6 +12,8 @@ import {AccountSecurity} from './account-security';
 import {LoadingBlock,StateChip} from './ui-v2';
 import {MyDataPanel} from './my-data';
 import {PRIVACY_NOTICE,PRIVACY_RIGHTS_CHANNEL} from './privacy-notice';
+import {Button as ScaleButton} from "./ui/button";
+
 
 type Profile={email:string;full_name?:string|null;photo_url?:string|null;identity_scope?:'personal'|'demo'|'personal_readonly';google_connected?:boolean};
 
@@ -67,7 +71,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
      <p className="text-[11.5px] text-mute">Usamos la foto para identificarte ante tu equipo; podés quitarla cuando quieras.</p>
     </div>
     <div data-profile-section="name" className={EDITOR_CONTROLS}>
-     <Editor fields={[{key:'full_name',label:'Nombre completo'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
+     <Editor fields={[{key:'full_name',label:'Nombre completo',maxLength:120,validate:value=>value.trim().length>=2?null:'Ingresá el nombre completo (al menos dos caracteres).'}]} defaults={{full_name:name}} columns={false} label="Guardar nombre" save={async v=>{await save({full_name:v.full_name},true);}}/>
      <p className="text-[11.5px] text-mute">Al guardar el nombre, esta ventana se cierra. La foto se guarda por separado.</p>
     </div>
    </section>}
@@ -89,7 +93,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
     <div className="grid gap-2 px-2 py-3">
      <p className="max-w-prose text-xs leading-5 text-mute">Aviso de Privacidad {PRIVACY_NOTICE.version} · {PRIVACY_NOTICE.fechaLabel}. Desde «Mis datos» podés ver el resumen y las finalidades, descargar una copia, pedir rectificación, supresión u oposición y revocar consentimientos. La respuesta llega dentro de {PRIVACY_RIGHTS_CHANNEL.slaDias} días corridos.</p>
      <div className="flex flex-wrap items-center gap-2">
-      <button className={`secondary ${ACTION}`} type="button" onClick={()=>setDataOpen(true)}>Abrir Mis datos</button>
+      <ScaleButton className={`secondary ${ACTION}`} type="button" onClick={()=>setDataOpen(true)} variant="secondary">Abrir Mis datos</ScaleButton>
       <a className={`text-button ${ACTION}`} href="/privacidad">Política de Privacidad</a>
      </div>
     </div>
@@ -101,7 +105,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
  tabs.push({id:'datos',label:'Mis datos',content:dataTab});
  return <>
   <PersonSheet mode="self" title="Mi perfil" close={close} busy={photoSaving} tabs={current?tabs:[{id:'perfil',label:'Perfil',content:<div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-   {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><button className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></Aviso>:null}
+   {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><ScaleButton className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)} variant="secondary">Reintentar carga</ScaleButton></Aviso>:null}
    {!error?<LoadingBlock label="Cargando tu perfil…" lines={3}/>:null}
   </div>}]}/>
   {dataOpen?<MyDataPanel profile={{email:current?.email||profile.email,full_name:current?.full_name||profile.full_name||null}} close={()=>setDataOpen(false)}/>:null}

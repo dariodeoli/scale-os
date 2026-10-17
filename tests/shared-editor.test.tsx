@@ -1,3 +1,4 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -13,6 +14,7 @@ function mock(path:string,exports:unknown){const id=require.resolve(path);requir
 mock('../app/dialog',{Dialog:Actions,FormActions:Actions,useDialogClose:()=>insideDialog?close:undefined,useDialogPending:(value:boolean,isDirty?:boolean)=>{pending=value;dirty=Boolean(isDirty);}});
 mock('../app/profile-controls',{SelectCustom:SelectStub,AmountInput:AmountStub});
 const {Editor}=require('../app/operations') as typeof import('../app/operations');
+const {OptionsSelect}=require('../app/ui/options-select') as typeof import('../app/ui/options-select');
 const event=()=>({preventDefault(){},persist(){}});
 const submit=(r:ReactTestRenderer)=>r.root.findByType('form').props.onSubmit(event());
 const buttons=(r:ReactTestRenderer)=>r.root.findAllByType('button');
@@ -49,7 +51,7 @@ async function main(){
  // Detail drawers can save inline without forcing the parent to disappear.
  await act(async()=>{r=create(<Editor fields={[{key:'name',label:'Nombre'}]} defaults={{name:'Detalle'}} save={async()=>{}}/>);});
  await act(async()=>{await submit(r!);});
- assert.equal(closes,1);const cancel=buttons(r!).find(b=>b.props.children==='Cancelar');assert(cancel);assert.equal(cancel.props.type,'button');
+ assert.equal(closes,1);const cancel=buttons(r!).find(b=>renderedText(b)==='Cancelar');assert(cancel);assert.equal(cancel.props.type,'button');
  await act(async()=>{cancel.props.onClick();});assert.equal(closes,2);
  await act(async()=>{r!.unmount();});
  // Comment-style inline forms clear only after a successful publication.
@@ -93,7 +95,8 @@ async function main(){
   await act(async()=>{r=create(<Editor fields={[{key:'phone',label:'Teléfono',type:'phone',optional:true,help:'Elegí el país'}]} defaults={{phone:''}} save={async v=>{phoneWrites.push(v);}}/>);});
   const telInput=(()=>r!.root.findAllByType('input').find(node=>node.props.inputMode==='tel'))();
   assert(telInput,'the phone field renders a tel input');
-  assert.equal(r!.root.findByType('select').props['aria-label'],'Código de país');
+  assert.equal(r!.root.findByType(OptionsSelect).props.label,'Código de país');
+  assert.equal(r!.root.findByType(OptionsSelect).props.value,'+595');
   await act(async()=>{telInput!.props.onChange({target:{value:'0981 123 456'}});});
   await act(async()=>{await submit(r!);});
   assert.equal(phoneWrites.at(-1)!.phone,'+595 981123456','typed phone keeps the country code and strips the trunk zero');
@@ -101,6 +104,11 @@ async function main(){
   await act(async()=>{await submit(r!);});
   assert.equal(phoneWrites.length,1,'an incomplete phone never reaches the save');
   assert(JSON.stringify(r!.toJSON()).includes('Ingresá un teléfono válido'));
+  await act(async()=>{r!.root.findByType(OptionsSelect).props.onChange('+55');});
+  assert.equal(r!.root.findByType(OptionsSelect).props.value,'+55','country selection consumes a string callback');
+  await act(async()=>{r!.root.findAllByType('input').find(node=>node.props.inputMode==='tel')!.props.onChange({target:{value:'11912345678'}});});
+  await act(async()=>{await submit(r!);});
+  assert.equal(phoneWrites.at(-1)!.phone,'+55 11912345678','the canonical selector changes the actual saved phone prefix');
   await act(async()=>r!.unmount());
   // Integer number fields request the numeric keypad and reject decimals.
   const numberWrites:Record<string,string>[]=[];
@@ -125,7 +133,7 @@ async function main(){
   const emailInput=r!.root.findByType('input');
   assert.equal(emailInput.props.type,'email');
   assert.equal(emailInput.props.autoComplete,'email');
-  assert.equal(emailInput.props.maxLength,200);
+  assert.equal(emailInput.props.maxLength,254);
   await act(async()=>{emailInput.props.onChange({target:{value:'ana@g'}});});
   assert.deepEqual(r!.root.findAllByType('option').map(node=>node.props.value),['ana@gmail.com']);
   await act(async()=>{r!.root.findByType('input').props.onChange({target:{value:'ana'}});});

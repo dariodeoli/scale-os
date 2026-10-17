@@ -1,0 +1,269 @@
+{
+  "checks": [
+    {
+      "name": "date America/Asuncion civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "date Asia/Tokyo civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "date partial does not submit empty",
+      "passed": false
+    },
+    {
+      "name": "time America/Asuncion civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "time Asia/Tokyo civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "time partial does not submit empty",
+      "passed": false
+    },
+    {
+      "name": "datetime America/Asuncion civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "datetime Asia/Tokyo civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "datetime partial does not submit empty",
+      "passed": false
+    },
+    {
+      "name": "month America/Asuncion civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "month Asia/Tokyo civil ISO preserved",
+      "passed": true
+    },
+    {
+      "name": "month partial does not submit empty",
+      "passed": false
+    }
+  ],
+  "observations": [
+    {
+      "kind": "date",
+      "result": [
+        {
+          "stage": "initial",
+          "value": "2026-10-17",
+          "badInput": false,
+          "valid": true,
+          "trace": [],
+          "state": "2026-10-17"
+        },
+        {
+          "stage": "keyboardBackspace",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "afterOtherField",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "submit",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": "",
+          "saved": ""
+        }
+      ]
+    },
+    {
+      "kind": "time",
+      "result": [
+        {
+          "stage": "initial",
+          "value": "13:45",
+          "badInput": false,
+          "valid": true,
+          "trace": [],
+          "state": "13:45"
+        },
+        {
+          "stage": "keyboardBackspace",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "afterOtherField",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "submit",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": "",
+          "saved": ""
+        }
+      ]
+    },
+    {
+      "kind": "datetime",
+      "result": [
+        {
+          "stage": "initial",
+          "value": "2026-10-17T13:45",
+          "badInput": false,
+          "valid": true,
+          "trace": [],
+          "state": "2026-10-17T13:45"
+        },
+        {
+          "stage": "keyboardBackspace",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "afterOtherField",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "submit",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": "",
+          "saved": ""
+        }
+      ]
+    },
+    {
+      "kind": "month",
+      "result": [
+        {
+          "stage": "initial",
+          "value": "2026-10",
+          "badInput": false,
+          "valid": true,
+          "trace": [],
+          "state": "2026-10"
+        },
+        {
+          "stage": "keyboardBackspace",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "afterOtherField",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": ""
+        },
+        {
+          "stage": "submit",
+          "value": "",
+          "badInput": true,
+          "valid": false,
+          "trace": [
+            {
+              "value": "",
+              "bad": true
+            }
+          ],
+          "state": "",
+          "saved": ""
+        }
+      ]
+    }
+  ],
+  "source": "e0eecafa",
+  "method": "Native keyboard ArrowLeft6+Backspace, other input typing and local submit; initial state via React props; no API",
+  "passed": false
+}

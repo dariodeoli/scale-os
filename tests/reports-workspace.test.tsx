@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import type {ReportMonth,ReportsData} from '../app/reports-data';
-const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const {ReportsWorkspace}=require('../app/reports-workspace') as typeof import('../app/reports-workspace');
 const {reportMoney,reportDelta}=require('../app/reports-data') as typeof import('../app/reports-data');
 type Request={url:string;init:RequestInit;resolve:(response:Response)=>void};
@@ -50,7 +51,7 @@ async function run(){
   assert.ok(requests.some(r=>/^\/core-api\/api\/agency\/reports\?month=\d{4}-\d{2}&months=12&previous=1$/.test(r.url)),'monthly report request fires');
   const input=renderer.root.findAllByProps({type:'month'})[0];
   assert.equal(input.props.max,input.props.value,'current Asuncion month is the maximum');
-  const before:number=requests.length;month('9998-12');month('2020-13');month('');
+  const before:number=requests.length;for(const raw of ['2','2020-','2020-0','9998-12','2020-13','']){month(raw);assert.equal(renderer.root.findAllByProps({type:'month'})[0].props.value,raw,'report month keeps editable raw text');}
   assert.equal(requests.length,before,'invalid and future months never fetch');
   act(()=>renderer.unmount());
  }

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
+import ts from 'typescript';
 import {visibleModule} from '../app/workspace-access';
 import {workspaceSource} from './workspace-source';
 import {teamSheetSource,teamWorkspaceSource} from './team-source';
@@ -88,7 +89,30 @@ test('viewer never reaches a mutating control in the visible sections',()=>{
  assert.match(pipeline,/\{canMove\?<button type="button" className="[^"]*" style=\{\{touchAction:'none'\}\} title=\{`Mover \$\{str\(row,'name'\)\}`\}/);
  assert.doesNotMatch(suite,/CatalogWorkspace|function LeadCard|function LeadColumn/,'el tablero paralelo de suite.tsx se retiró');
  assert.match(production,/const canMove=roleCan\(role,'work-orders\.edit'\)/,'moving a piece follows the API capability');
- assert.match(composer,/const drag=useDraggable\(\{id,disabled:!canReorder\}\)/);
+ // Verify the real drag/drop policies, not an obsolete literal initializer.
+ const source=ts.createSourceFile('quote-composer.tsx',composer,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ const shell=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='ItemShell') as ts.FunctionDeclaration;
+ assert(shell?.body);
+ function disabledFor(hook:string){
+  let expression:ts.Expression|undefined;
+  function walk(node:ts.Node){if(ts.isCallExpression(node)&&node.expression.getText(source)===hook){const options=node.arguments[0];assert(ts.isObjectLiteralExpression(options));const disabled=options.properties.find(prop=>ts.isPropertyAssignment(prop)&&prop.name.getText(source)==='disabled') as ts.PropertyAssignment;assert(disabled);expression=disabled.initializer;}ts.forEachChild(node,walk);}
+  walk(shell);assert(expression);return expression;
+ }
+ function guard(node:ts.Expression,pending:boolean,canReorder:boolean):boolean{
+  if(ts.isParenthesizedExpression(node))return guard(node.expression,pending,canReorder);
+  if(ts.isIdentifier(node)){assert(['pending','canReorder'].includes(node.text));return node.text==='pending'?pending:canReorder;}
+  if(ts.isPrefixUnaryExpression(node)&&node.operator===ts.SyntaxKind.ExclamationToken)return !guard(node.operand,pending,canReorder);
+  if(ts.isBinaryExpression(node)&&node.operatorToken.kind===ts.SyntaxKind.BarBarToken)return guard(node.left,pending,canReorder)||guard(node.right,pending,canReorder);
+  assert.fail('Drag guard must use the reviewed permission/pending boolean policy');
+ }
+ const drag=disabledFor('useDraggable'),drop=disabledFor('useDroppable');
+ for(const pending of [false,true])for(const canReorder of [false,true]){
+  assert.equal(guard(drag,pending,canReorder),pending||!canReorder,'pending and missing capability both block dragging');
+  assert.equal(guard(drop,pending,canReorder),pending,'pending also blocks drop targets');
+ }
+ assert.match(composer,/\.\.\.drag.attributes\} \{\.\.\.drag.listeners\} disabled=\{pending\}/,'native handle remains disabled after the drag spreads');
+ assert.equal((composer.match(/<ItemShell[^>]*canReorder=\{canReorder\} pending=\{locked\}/g)||[]).length,2,'items and sections preserve permission and shared pending state');
+ assert.equal((composer.match(/if\(submission.pending\|\|persistedRef.current\)return;/g)||[]).length,2,'drag-end callbacks refuse mutation while pending or already persisted');
  assert.match(composer,/\{canReorder&&<button type="button" className="[^"]*" title=\{`Reordenar \$\{itemLabel\}`\} aria-label=\{`Reordenar \$\{itemLabel\}`\}/);
  assert.match(read('app/sections/planes.tsx'),/<QuoteComposer mode="plan" record=\{row\} canReorder=\{canEdit\} done=/);
  assert.match(operations,/\{role !== "viewer" && \(/);

@@ -1,13 +1,19 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {SegmentedField} from '../ui/navigation';
+
 import type {ChangeEvent, Dispatch, SetStateAction} from 'react';
 import {FinanceCollections} from '../finance-collections';
 import {Plus} from 'lucide-react';
 import {EmptyBlock, ErrorBlock, FilterToolbar, ListPage, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
-import {Aviso, SearchField, SegmentedField} from 'owncoding-ui';
+
+import {SearchField} from '../search-field';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
 import {buildMoraBuckets, filterMoraClients, moraAgeKey, moraKpis, MORA_AGE_LABELS, type ClientPaymentStatus, type MoraFilter} from '../mora-data';
 import type {User} from '../workspace-types';
+import {Button as ScaleButton} from "../ui/button";
+
 
 // Cobranza y mora (dominio FIN): semáforo por antigüedad, DSO por moneda y lista
 // de clientes con saldo. Los cálculos salen de app/mora-data.ts (una sola fuente);
@@ -85,13 +91,13 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
   const loading = (moraState === 'loading' || moraState === 'idle') && !paymentStatuses.length;
   const failed = moraState === 'error';
   // Encabezado propio (ownsHeader): título del shell + «Registrar factura» en una fila.
-  return <ListPage aria-label="Cobranza y mora" primaryAction={onCreateInvoice && roleCan(user?.role, 'invoices.manage') ? <button type="button" className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar factura</button> : undefined}>
+  return <ListPage aria-label="Cobranza y mora" primaryAction={onCreateInvoice && roleCan(user?.role, 'invoices.manage') ? <ScaleButton type="button" className="primary" onClick={() => onCreateInvoice()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar factura</ScaleButton> : undefined}>
     <FinanceCollections user={user}/>
     {loading ? <LoadingBlock label="Cargando cobranza…" lines={5}/>
     : failed && !paymentStatuses.length ? <ErrorBlock title="No se pudo cargar la cobranza" description="Reintentá para ver el saldo pendiente, la antigüedad de cada cliente y el DSO del mes." onRetry={onRetry}/>
     : <>
-    {failed ? <Aviso tono="error" como="div">No se pudo actualizar la cobranza. Se muestra la última información recibida. {onRetry ? <button type="button" className="text-button" onClick={onRetry}>Reintentar</button> : null}</Aviso>
-    : moraReportsError && canSeeDso ? <Aviso tono="warn" como="div">No se pudo calcular el DSO con el reporte del mes. {onRetry ? <button type="button" className="text-button" onClick={onRetry}>Reintentar</button> : null}</Aviso>
+    {failed ? <Aviso tono="error" como="div">No se pudo actualizar la cobranza. Se muestra la última información recibida. {onRetry ? <ScaleButton type="button" className="text-button" onClick={onRetry} variant="ghost">Reintentar</ScaleButton> : null}</Aviso>
+    : moraReportsError && canSeeDso ? <Aviso tono="warn" como="div">No se pudo calcular el DSO con el reporte del mes. {onRetry ? <ScaleButton type="button" className="text-button" onClick={onRetry} variant="ghost">Reintentar</ScaleButton> : null}</Aviso>
     : null}
 
     <KpiStrip>
@@ -123,7 +129,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
         pegada a la lista que filtra. */}
     <FilterToolbar className="mb-0" summary={`${visible.length} de ${paymentStatuses.length}`}>
       <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Sin mora'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
-      <SearchField className="w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar cliente en cobranza" value={moraSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setMoraSearch(event.target.value)} placeholder="Buscar cliente…"/>
+      <SearchField className="w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7" label="Buscar cliente en cobranza" hideLabel value={moraSearch} onChange={(nextSearchValue)=>setMoraSearch(nextSearchValue)} placeholder="Buscar cliente…"/>
     </FilterToolbar>
 
 
@@ -131,7 +137,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
       ? <ListGrid label="Cobranza por cliente" template={MORA_TEMPLATE} columns={MORA_COLUMNS} minWidthClass="min-w-[58rem]">
         {visible.map(client => <ClientLine key={`${client.client_id}-${client.currency || 'none'}`} client={client}/>)}
       </ListGrid>
-      : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Emití la primera factura para seguir el saldo y la antigüedad de cada cliente.'} action={paymentStatuses.length ? <button className="secondary" onClick={() => { setMoraFilter(''); setMoraSearch(''); }}>Limpiar filtros</button> : onCreateInvoice ? <button className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button> : undefined}/>}
+      : <EmptyBlock title={paymentStatuses.length ? 'No hay clientes en esta categoría.' : 'Sin registros de cobranza todavía.'} description={paymentStatuses.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Emití la primera factura para seguir el saldo y la antigüedad de cada cliente.'} action={paymentStatuses.length ? <ScaleButton className="secondary" onClick={() => { setMoraFilter(''); setMoraSearch(''); }} variant="secondary">Limpiar filtros</ScaleButton> : onCreateInvoice ? <ScaleButton className="primary" onClick={() => onCreateInvoice()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera factura</ScaleButton> : undefined}/>}
     </>}
   </ListPage>;
 }

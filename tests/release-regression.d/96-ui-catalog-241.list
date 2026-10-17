@@ -1,0 +1,2 @@
+# Synthetic visual catalog API, examples and theme restoration (#241)
+tsx tests/ui-catalog.test.tsx

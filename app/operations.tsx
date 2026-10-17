@@ -1,4 +1,7 @@
 "use client";
+import {numberInputProblem} from './ui/number';
+import {InputControl} from './ui/input-control';
+import {TextareaBase} from './ui/input';
 import {OptionalMark,optionalLabel} from './field-label';
 import {money} from './money-format';
 import {normalizeWholeMoney} from './amount-format';
@@ -9,6 +12,8 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import {validateCivilDate,validateTime} from './ui/temporal-value';
+import {LookupField,type LookupState} from './ui/smart-field';
 import { Building2, MessageSquare, Star } from "lucide-react";
 import { AmountInput, SelectCustom, type SelectChoice } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
@@ -28,33 +33,49 @@ import {PeopleWorkspace} from './team-workspace';
 import {dataFetch} from './data-cache';
 import {transporteError} from './workspace-request';
 import {canOpenPeopleWorkspace} from './capabilities';
+import {Button as ScaleButton} from "./ui/button";
 
+
+/** Structured field errors are consumed only when the API explicitly names fields. */
+export class ApiFieldError extends Error {
+  readonly fieldErrors:Record<string,string>;
+  readonly status?:number;
+  constructor(message:string,fields:unknown,status?:number){
+    super(message);this.name='ApiFieldError';this.fieldErrors={};this.status=status;
+    if(fields&&typeof fields==='object'&&!Array.isArray(fields))for(const [key,value] of Object.entries(fields)){
+      if(typeof value==='string'&&value.trim()&&key!=='__proto__'&&key!=='constructor'&&key!=='prototype')Object.defineProperty(this.fieldErrors,key,{value,enumerable:true});
+    }
+  }
+}
 export async function api<T>(
   path: string,
   body?: unknown,
   method = "POST",
+  options?:{signal?:AbortSignal},
 ): Promise<T> {
   let r: Response;
   try {
     r = await dataFetch(path.startsWith("/core-api/") ? path : `/core-api${path}`, {
       credentials: "include",
+      signal:options?.signal,
       method: body === undefined ? "GET" : method,
       headers: body === undefined ? {} : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (cause) {
     // Un fallo de red nunca llega como mensaje del servidor (§15.6).
+    if(options?.signal?.aborted)throw cause;
     throw transporteError(cause);
   }
-  let data: T & {error?: string};
+  let data: T & {error?: string;fieldErrors?:unknown};
   try {
-    data = (await r.json()) as T & {error?: string};
+    data = (await r.json()) as T & {error?: string;fieldErrors?:unknown};
   } catch {
     // Una respuesta no-JSON nunca es un dato: se dice en es-PY y sin el cuerpo crudo.
     if (!r.ok) throw new Error(r.status >= 500 ? "El servidor no pudo completar la operación. Probá de nuevo en unos segundos." : `No se pudo completar la operación (HTTP ${r.status}).`);
     throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");
   }
-  if (!r.ok) throw new Error(data.error || "No se pudo completar la operación");
+  if (!r.ok) throw new ApiFieldError(typeof data?.error==='string'?data.error:"No se pudo completar la operación",data?.fieldErrors,r.status);
   notifyMutation(path,body===undefined?'GET':method,body,data);
   if(body!==undefined&&/^\/api\/agency\/(productivity\/profile|collaborators(?:\/\d+)?)$/.test(path))window.dispatchEvent(new Event('scale:identity-changed'));
   return data as T;
@@ -78,12 +99,21 @@ export type Field = {
   help?: string;
   integer?: boolean;
   maxLength?: number;
+  /** Inclusive civil date / HH:mm bounds; business ranges belong to the consumer. */
+  min?:string;
+  max?:string;
   currencyKey?: string;
   currency?: string;
   currencyFrom?: (values: Record<string, string>) => string;
   /** Valor dependiente; undefined conserva la edición independiente del campo. */
   valueFrom?: (values: Record<string, string>) => string | undefined;
-  lookup?: {label: string; run: (value: string) => Promise<Record<string, string>>};
+  lookup?: {
+    label:string;
+    run:(value:string,context?:{signal:AbortSignal;snapshot:Readonly<Record<string,string>>;onReview:()=>void})=>Promise<Record<string,string>>;
+    /** Called only after the snapshot still matches and returned fields are applied. */
+    onApplied?:(values:Record<string,string>)=>void;
+    errorState?:(cause:unknown)=>'not-found'|'error';
+  };
   /** Deshabilita el campo según los valores actuales del formulario (p. ej. dependientes de un interruptor maestro). */
   disabled?: boolean | ((values: Record<string, string>) => boolean);
   /** Regla propia del campo: devuelve el mensaje de error o null/'' si es válido (se aplica solo con valor). */
@@ -106,6 +136,7 @@ export function Editor({
   collapseSections = false,
   secondaryAction,
   formHandle,
+  onValuesChange,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -120,22 +151,46 @@ export function Editor({
   /** Segundo guardado (p. ej. «Guardar y crear otro»): misma validación, deja el formulario limpio y enfocado en el primer campo. */
   secondaryAction?: {label: string; save: (v: Record<string, string>) => Promise<void>};
   formHandle?:Ref<EditorHandle>;
+  /** Observes draft changes without resetting the form or selecting any domain entity. */
+  onValuesChange?:(values:Readonly<Record<string,string>>)=>void;
 }) {
+  const serverErrors=useRef<Record<string,{value:string;message:string}>>({});
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
     let s = z.string();
+    if(f.maxLength!==undefined)s=s.max(f.maxLength,`Usá hasta ${f.maxLength} caracteres.`);
     if (!f.optional) s = s.min(1, `Completá ${f.label.toLowerCase()}`);
     if(f.integer)s=s.refine(value=>value===''||(f.type==='money'?normalizeWholeMoney(value)!==null:/^\d+$/.test(value)),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
     if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
+    if(f.type==='date'||f.type==='time'){
+      const valid=f.type==='date'?validateCivilDate:validateTime;
+      s=s.refine(value=>value===''||valid(value),f.type==='date'?'Ingresá una fecha válida.':'Ingresá una hora válida (HH:mm).');
+      if(f.min)s=s.refine(value=>value===''||!valid(value)||!valid(f.min!)||value>=f.min!,`El valor debe ser igual o posterior a ${f.min}.`);
+      if(f.max)s=s.refine(value=>value===''||!valid(value)||!valid(f.max!)||value<=f.max!,`El valor debe ser igual o anterior a ${f.max}.`);
+    }
     const check=f.validate;
     shape[f.key] = check?s.superRefine((value,ctx)=>{const problem=value===''?null:check(value);if(problem)ctx.addIssue({code:'custom',message:problem});}):s;
   }
   const form = useForm<Record<string, string>>({
-    resolver: zodResolver(z.object(shape)),
+    resolver:async(values,context,options)=>{
+      const result=await zodResolver(z.object(shape))(values,context,options);
+      // noValidate forms also honor the numeric adapter's explicit native constraints.
+      for(const field of fields)if(field.type==='number'&&!result.errors[field.key]){
+        const problem=numberInputProblem(values[field.key]??'',field.integer?'integer':'decimal',{min:field.min,max:field.max,step:field.integer?'1':'0.01',notation:'native',required:!field.optional});
+        if(problem)result.errors[field.key]={type:'numeric',message:problem};
+      }
+      for(const [key,problem] of Object.entries(serverErrors.current)){
+        if(values[key]!==problem.value){delete serverErrors.current[key];continue;}
+        result.errors[key]={type:'server',message:problem.message};
+      }
+      return Object.keys(result.errors).length?{values:{},errors:result.errors}:result;
+    },
     defaultValues: defaults,
   });
   const currentValues=form.watch();
+  const valuesObserver=useRef(onValuesChange),lastObserved=useRef('');valuesObserver.current=onValuesChange;
+  useEffect(()=>{const signature=JSON.stringify(currentValues);if(signature!==lastObserved.current){lastObserved.current=signature;valuesObserver.current?.({...currentValues});}},[currentValues]);
   useEffect(()=>{
     for(const field of fields){
       const next=field.valueFrom?.(currentValues);
@@ -145,8 +200,21 @@ export function Editor({
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
-  const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,string>>({});
+  const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,{state:LookupState;message:string}>>({});
+  const lookupRequest=useRef<{generation:number;controller:AbortController;key:string;value:string}|null>(null),lookupGeneration=useRef(0);
+  const fieldElements=useRef(new Map<string,HTMLDivElement>()),[focusTarget,setFocusTarget]=useState<{key:string}|null>(null);
   const pending=form.formState.isSubmitting||savingNow;
+  useEffect(()=>()=>{lookupGeneration.current++;lookupRequest.current?.controller.abort();},[]);
+  useEffect(()=>{
+    const request=lookupRequest.current;
+    if(request&&form.getValues(request.key)!==request.value){lookupGeneration.current++;request.controller.abort();lookupRequest.current=null;setLookupBusy('');setLookupNotices(current=>({...current,[request.key]:{state:'conflict',message:'El valor cambió. Volvé a buscar para usar los datos actuales.'}}));}
+  },[currentValues,form]);
+  useEffect(()=>{
+    if(!focusTarget||pending)return;
+    const container=fieldElements.current.get(focusTarget.key);
+    const element=container?.querySelector<HTMLElement>('input:not(:disabled):not([type=hidden]),textarea:not(:disabled)')||container?.querySelector<HTMLElement>('select:not(:disabled),button:not(:disabled)');
+    element?.focus();setFocusTarget(null);
+  },[focusTarget,pending]);
   // Cambios sin guardar (aviso al cerrar): solo cuenta lo que la persona tocó; una
   // normalización del campo al montar no convierte el formulario en «sucio».
   const [interacted,setInteracted]=useState(false);
@@ -176,7 +244,29 @@ export function Editor({
   const showSectionSummary=form.formState.submitCount>0&&errorSections.length>0;
   const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.({afterSave:true});}},[saved,pending,requestClose]);
-  async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);for(const [key,next] of Object.entries(found))form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá y guardá.'}));}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
+  async function runLookup(f:Field){
+    if(!f.lookup||pending)return;
+    const snapshot={...form.getValues()},value=(snapshot[f.key]||'').trim();
+    lookupRequest.current?.controller.abort();lookupRequest.current=null;setLookupBusy('');
+    const generation=++lookupGeneration.current,controller=new AbortController();
+    setLookupNotices(current=>{const next={...current};delete next[f.key];return next;});
+    if(!value){setLookupNotices(current=>({...current,[f.key]:{state:'error',message:`Escribí ${f.label} primero.`}}));return;}
+    lookupRequest.current={generation,controller,key:f.key,value:snapshot[f.key]};setLookupBusy(f.key);
+    try{
+      const found=await f.lookup.run(value,{signal:controller.signal,snapshot,onReview:()=>{if(!controller.signal.aborted&&generation===lookupGeneration.current)setLookupNotices(current=>({...current,[f.key]:{state:'found',message:'Revisá los datos encontrados antes de aplicarlos.'}}));}});
+      if(controller.signal.aborted||generation!==lookupGeneration.current)return;
+      const known=new Set(fields.map(field=>field.key));
+      const entries=Object.entries(found).filter(([key])=>known.has(key));
+      if(form.getValues(f.key)!==snapshot[f.key]||entries.some(([key])=>form.getValues(key)!==snapshot[key])){
+        setLookupNotices(current=>({...current,[f.key]:{state:'conflict',message:'Editaste estos datos durante la consulta. Se conservaron tus cambios; volvé a buscar para revisarlos.'}}));return;
+      }
+      for(const [key,next] of entries)form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});
+      setInteracted(true);f.lookup.onApplied?.(Object.fromEntries(entries));
+      setLookupNotices(current=>({...current,[f.key]:{state:'found',message:'Datos encontrados. Revisá y guardá.'}}));
+    }catch(cause){if(!controller.signal.aborted&&generation===lookupGeneration.current)setLookupNotices(current=>({...current,[f.key]:{state:f.lookup?.errorState?.(cause)||'error',message:message(cause)}}));}
+    finally{if(generation===lookupGeneration.current){lookupRequest.current=null;setLookupBusy('');}}
+  }
+  const focusError=(key:string)=>{const section=fields.find(field=>field.key===key)?.section;if(section)revealSection(section);setFocusTarget({key});};
   const renderField = (f: Field) => {
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null,lookupNotices[f.key]?`${id}-lookup`:null].filter(Boolean).join(' ')||undefined;
@@ -184,15 +274,19 @@ export function Editor({
     // Un campo dependiente se deshabilita con los valores actuales (issue #152);
     // el guardado del formulario conserva el valor tal como se guardó antes.
     const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
-    return <div key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
-      {f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><input id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
+    return <div ref={element=>{if(element)fieldElements.current.set(f.key,element);else fieldElements.current.delete(f.key);}} key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
+      {f.lookup?<LookupField id={id} label={<>{f.label}{f.optional&&<OptionalMark/>}</>} help={f.help?<small className="field-help">{f.help}</small>:undefined}
+        error={invalid?<span className="error">{String(form.formState.errors[f.key]?.message)}</span>:undefined} disabled={fieldDisabled}
+        state={lookupBusy===f.key&&lookupNotices[f.key]?.state!=='found'?'loading':lookupNotices[f.key]?.state||'idle'} policy={{allowed:lookupBusy!==f.key}} message={lookupNotices[f.key]?.message}
+        lookupLabel={f.lookup.label} onLookup={()=>void runLookup(f)} placeholder={f.placeholder} maxLength={f.maxLength}
+        {...form.register(f.key)}/>:f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><InputControl id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
+        ) : f.type === 'textarea' ? <TextareaBase id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} disabled={fieldDisabled} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span><InputControl id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} numberPolicy={f.type==='number'?f.integer?'integer':'decimal':undefined} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} min={f.min} max={f.max} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/></span>}
       </label>}
-      {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
-      {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
-      {lookupNotices[f.key]&&<small id={`${id}-lookup`} className="field-help ops-lookup-note" role="status">{lookupNotices[f.key]}</small>}
+      {!f.lookup&&f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
+      {!f.lookup&&invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
+
       {f.after}
     </div>;
   };
@@ -209,6 +303,7 @@ export function Editor({
           // sending it to the API. Keep the public Editor contract string-based
           // so every existing form remains simple and type-safe.
           await saveFn(values as unknown as Record<string, string>);
+          lookupGeneration.current++;lookupRequest.current?.controller.abort();lookupRequest.current=null;setLookupBusy('');serverErrors.current={};
           if(resetOnSave||another){form.reset(defaults);if(another){const first=fields[0]?.key;if(first)form.setFocus(first);}}
           // Lo guardado pasa a ser la base: cerrar después no pide descartar nada.
           else form.reset(v);
@@ -218,14 +313,18 @@ export function Editor({
           if(closeOnSave&&!another)setSaved(true);
         } catch (e) {
           setError(message(e));
+          if(e instanceof ApiFieldError){
+            for(const field of fields){const problem=e.fieldErrors[field.key];if(problem){serverErrors.current[field.key]={value:v[field.key],message:problem};form.setError(field.key,{type:'server',message:problem});}}
+            const first=fields.find(field=>e.fieldErrors[field.key]);if(first)focusError(first.key);
+          }
         } finally {
           saving.current=false;
           setSavingNow(false);
         }
       },invalid=>{
         // La primera sección con error se abre sola (y en móvil se salta a su paso).
-        const first=sectionNames.find(name=>fields.some(f=>f.section===name&&invalid[f.key]));
-        if(first)revealSection(first);
+        const first=fields.find(field=>invalid[field.key]);
+        if(first)focusError(first.key);
       });
   return (
     <form
@@ -240,7 +339,7 @@ export function Editor({
       {fields.filter(f=>!f.section).map(renderField)}
       {showSectionSummary&&<div className="error form-error-summary ops-wide" role="alert">
         <span>Revisá {errorSections.length===1?'esta sección':'estas secciones'}:</span>{' '}
-        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<button type="button" className="text-button" onClick={()=>revealSection(name)}>{name} ({sectionErrorCount(name)})</button></span>)}
+        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<ScaleButton type="button" className="text-button" onClick={()=>revealSection(name)} variant="ghost">{name} ({sectionErrorCount(name)})</ScaleButton></span>)}
       </div>}
       {sectionNames.map((section,index)=>{
         const errors=sectionErrorCount(section);
@@ -250,18 +349,18 @@ export function Editor({
         </details>;
       })}
       {stepper&&<div className="ops-stepper ops-wide" role="group" aria-label="Pasos del formulario">
-        <button type="button" className="secondary" disabled={pending||activeStep===0} onClick={()=>setStep(activeStep-1)}>Anterior</button>
+        <ScaleButton type="button" className="secondary" disabled={pending||activeStep===0} onClick={()=>setStep(activeStep-1)} variant="secondary">Anterior</ScaleButton>
         <span aria-live="polite">Paso {activeStep+1} de {sectionNames.length}</span>
-        <button type="button" className="secondary" disabled={pending||activeStep>=sectionNames.length-1} onClick={()=>setStep(activeStep+1)}>Siguiente</button>
+        <ScaleButton type="button" className="secondary" disabled={pending||activeStep>=sectionNames.length-1} onClick={()=>setStep(activeStep+1)} variant="secondary">Siguiente</ScaleButton>
       </div>}
       {error && (
         <p className="error form-error-summary ops-wide" role="alert">
           {error}
         </p>
       )}
-      <FormActions>{requestClose&&cancelLabel&&<button className="secondary" type="button" disabled={pending} onClick={()=>requestClose()}>{cancelLabel}</button>}{secondaryAction&&<button className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()}>{secondaryAction.label}</button>}<button type="submit" className="primary ops-wide" disabled={pending}>
+      <FormActions>{requestClose&&cancelLabel&&<ScaleButton className="secondary" type="button" disabled={pending} onClick={()=>requestClose()} variant="secondary">{cancelLabel}</ScaleButton>}{secondaryAction&&<ScaleButton className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()} variant="secondary">{secondaryAction.label}</ScaleButton>}<ScaleButton type="submit" className="primary ops-wide" disabled={pending} variant="primary">
         {pending ? "Guardando…" : label}
-      </button></FormActions>
+      </ScaleButton></FormActions>
     </form>
   );
 }
@@ -323,15 +422,15 @@ export function ProjectComments({
   }
   return (
     <>
-      <button
+      <ScaleButton
         className="text-button"
         onClick={() => {
           setOpen(true);
           load().catch((e) => setError(message(e)));
-        }}
+        }} variant="ghost"
       >
         <MessageSquare size={14} /> Comentarios
-      </button>
+      </ScaleButton>
       {open && (
         <Dialog title={`Seguimiento · ${name}`} close={() => setOpen(false)}>
           <ProjectPresence projectId={projectId}/>
@@ -455,11 +554,11 @@ export function CompanySelector({ name, logo }: { name: string; logo?: string|nu
               >
                 {c.name} · {c.role}
               </button>
-              {!c.isDemo&&<button type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
+              {!c.isDemo&&<ScaleButton type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
                 if(preferenceLock.current)return;preferenceLock.current=true;setBusy(true);setError('');
                 try{await api('/api/auth/default-organization',{organizationId:c.id});setPreferred(String(c.id));window.dispatchEvent(new Event('scale:default-company-changed'));}
                 catch(e){setError(message(e));}finally{preferenceLock.current=false;setBusy(false);}
-              }}><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</button>}
+              }} variant="ghost"><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</ScaleButton>}
               </div>
             ))}
           </div>

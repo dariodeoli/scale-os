@@ -1,0 +1,3 @@
+# Canonical local UI boundaries and negative AST regressions (Refs #241).
+node tests/ui-architecture.test.mjs
+node build-tools/check-ui-architecture.mjs

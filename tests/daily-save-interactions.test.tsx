@@ -54,8 +54,14 @@ function escape(){const e:KeyEvent={key:'Escape',target:{tagName:'BUTTON'},defau
 function tryDismiss(){act(()=>{
  escape();root().findByProps({'aria-label':'Cerrar'}).props.onClick();
  const target={};root().findByProps({className:'ops-overlay'}).props.onMouseDown({target,currentTarget:target,button:0});
- root().findAllByType('button').find(button=>button.props.children==='Cancelar')!.props.onClick();
+ root().findAllByType('button').find(button=>button.children.join('')==='Cancelar')!.props.onClick();
 });}
+async function discardChanges(){
+ const button=root().findAllByType('button').find(button=>button.children.join('')==='Descartar cambios');
+ assert(button,'explicit discard confirmation is shown');assert.equal(button.props.type,'submit');
+ let form=button.parent;while(form&&form.type!=='form')form=form.parent;
+ assert(form,'confirmation owns its form');await act(async()=>{await form!.props.onSubmit(event());});
+}
 function settle(write:Write,ok:boolean){write.resolve({ok,json:async()=>ok?{ok:true}:{error:'Persistencia rechazada de prueba'}});}
 async function fillTransfer(){await act(async()=>{
  root().findByProps({'aria-label':'Cuenta de origen'}).props.onChange({target:{value:'fixture-a'}});
@@ -99,7 +105,14 @@ test('FX transfer: single-flight through validation/persistence/completion; all 
  assert.equal(completed,1);assert.equal(root().findByType('form').props['aria-busy'],true,'completion is awaited');
  await act(async()=>{await submit();});assert.equal(writes.length,2,'completion still owns single-flight lock');tryDismiss();assert.equal(closed,0);
  await act(async()=>{releaseDone();await retry;});assert.equal(root().findByType('form').props['aria-busy'],false);
- tryDismiss();assert.equal(closed,4,'Escape/header/backdrop/cancel are available after settling');assert.equal(notices.length,0);
+ // Production's completion callback unmounts this dialog. This fixture keeps it
+ // mounted, so the still-dirty draft must continue to require explicit discard.
+ tryDismiss();assert.equal(closed,0,'a mounted dirty draft still requires confirmation after settling');
+ assert.equal(root().findAllByProps({role:'dialog'}).length,2);
+ await discardChanges();
+ assert.equal(closed,1);
+ tryDismiss();assert.equal(closed,5,'after explicit discard, Escape/header/backdrop/cancel are available');
+ assert.equal(notices.length,0);
 });
 
 test('FX transfer: validation and equal-currency failures unlock without writes, allowing correction',async()=>{
@@ -110,7 +123,11 @@ test('FX transfer: validation and equal-currency failures unlock without writes,
  await fillTransfer();await act(async()=>root().findAllByProps({'data-amount':true})[1].props.onChange({target:{value:'11'}}));
  await act(async()=>{await submit();});assert.equal(writes.length,0);assert(JSON.stringify(renderer!.toJSON()).includes('los importes deben coincidir'));
  assert.equal(root().findByType('form').props['aria-busy'],false);assert.equal(done,0);
- tryDismiss();assert.equal(closed,4);
+ tryDismiss();assert.equal(closed,0,'invalid dirty draft is protected');
+ act(()=>root().findAllByType('button').find(button=>button.children.join('')==='Seguir editando')!.props.onClick());
+ assert.equal(closed,0);assert.equal(root().findAllByProps({'data-amount':true})[1].props.value,'11');
+ tryDismiss();await discardChanges();
+ assert.equal(closed,1);assert.equal(writes.length,0);
 });
 
 test('receipt reversal: persistence failure retains draft; confirmed retry closes before failed refresh, warning without another write',async()=>{

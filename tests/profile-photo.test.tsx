@@ -1,3 +1,4 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create} from 'react-test-renderer';
@@ -24,7 +25,7 @@ async function run(){
  await act(async()=>{await file.props.onChange({currentTarget:{files:[new (globalThis as any).File()],value:''}});});
  assert.equal(saved.length,1,'upload saves automatically');
  assert.match(saved[0],/^data:image\/webp;base64,/);
- const textOf=(node:any):string=>typeof node==='string'?node:node&&typeof node.props?.children==='string'?node.props.children:Array.isArray(node?.props?.children)?node.props.children.map(textOf).join(''):'';
+ const textOf=renderedText;
  const summary=renderer!.root.findAllByType('summary').find(s=>textOf(s)==='Más opciones de foto')!;
  await act(async()=>{summary.props.onClick?.();});
  await act(async()=>{renderer!.root.findAllByType('button').find(b=>textOf(b)==='Usar enlace de imagen')!.props.onClick();});

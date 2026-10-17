@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
@@ -38,8 +39,9 @@ assert.match(assignedCss,/\.assigned-people\{display:flex/,'los responsables no 
 assert.doesNotMatch(assignedCss,/\.assigned-people\{[^}]*border:1px solid/,'sin borde de caja');
 
 // ── Selección masiva contextual (solo con selección).
-assert.match(planner,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.planner\}[\s\S]*?<button type="button" className="secondary" onClick=\{\(\)=>setBatch\(true\)\}>Cambiar \{selected\.length\} piezas<\/button>/,'el lote del planificador aparece con la selección');
-assert.match(planner,/\{managers\.includes\(role\)\?<button className="text-button" onClick=\{\(\)=>setTemplatesOpen\(true\)\}/,'las plantillas siguen accesibles sin selección');
+assert.match(planner,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.planner\}/,'el lote conserva su contador y límite');
+assert(actionElements(planner).some(action=>action.children.replace(/\s+/g,'')==='Cambiar{selected.length}piezas'&&action.attribute('onClick')==='()=>setBatch(true)'&&action.attribute('variant')==='secondary'&&action.guardedBy("view==='Lista y lotes'&&makers.includes(role)")),'el lote del planificador aparece sólo en la vista y rol autorizados');
+assert(actionElements(planner).some(action=>action.children.includes('Plantillas mensuales')&&action.attribute('onClick')==='()=>setTemplatesOpen(true)'&&action.guardedBy('managers.includes(role)')),'las plantillas siguen accesibles sin selección para managers');
 assert.match(inventory,/\{view!=='reservations'&&selectionEnabled\?<BulkBar count=\{bulk\.count\}/,'el lote del inventario es contextual (BulkBar)');
 assert.match(projects,/\{canManageProjects\?<BulkBar count=\{bulk\.count\}/,'el lote de proyectos es contextual (BulkBar)');
 assert.match(studio,/<BulkBar count=\{bulk\.count\} total=\{BATCH_LIMITS\.studioReservations\}/,'el lote del estudio es contextual (BulkBar)');

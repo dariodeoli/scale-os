@@ -5,6 +5,8 @@ import type {ClientCommercialLifecycleRecord} from '../app/client-commercial-lif
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
+const {OptionsSelect}=require('../app/ui/options-select') as typeof import('../app/ui/options-select');
+const {Selector}=require('../app/ui/select') as typeof import('../app/ui/select');
 const {ClientCommercialLifecycle}=require('../app/client-commercial-lifecycle') as typeof import('../app/client-commercial-lifecycle');
 type Request={url:string;init:RequestInit;resolve:(response:Response)=>void};
 const requests:Request[]=[];
@@ -13,11 +15,11 @@ let renderer:ReactTestRenderer;
 const latest=()=>requests.at(-1)!;
 const rendered=()=>JSON.stringify(renderer.toJSON());
 const control=(id:string):ReactTestInstance=>{
- const node=[...renderer.root.findAllByType('select'),...renderer.root.findAllByType('input'),...renderer.root.findAllByType('textarea')].find(item=>item.props.id===id);
+ const node=[...renderer.root.findAllByType(OptionsSelect),...renderer.root.findAllByType('input'),...renderer.root.findAllByType('textarea')].find(item=>item.props.id===id);
  assert.ok(node,`missing control ${id}`);
  return node!;
 };
-const change=(id:string,value:string)=>act(()=>control(id).props.onChange({target:{value}}));
+const change=(id:string,value:string)=>act(()=>{const node=control(id);const target={value,validationMessage:'',setCustomValidity(message:string){this.validationMessage=message;}};node.props.onChange(node.type===OptionsSelect?value:{target,currentTarget:target,type:'change'});});
 const setMoney=(id:string,value:string)=>{
  const node=renderer.root.findAll(item=>typeof item.props?.onValueChange==='function'&&item.props?.id===id)[0];
  assert.ok(node,`missing money control ${id}`);

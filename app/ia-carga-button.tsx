@@ -1,5 +1,7 @@
 "use client";
 import {Sparkles} from 'lucide-react';
+import {Button as ScaleButton} from "./ui/button";
+
 
 /**
  * Botón del topbar de «Carga con IA» (Refs #118). Vive separado del diálogo
@@ -10,15 +12,15 @@ import {Sparkles} from 'lucide-react';
  * inventario; el texto del tooltip explica qué hace antes de abrirlo.
  */
 export function IaCargaButton({onOpen}:{onOpen:()=>void}){
- return <button
+ return <ScaleButton
   type="button"
   className="secondary ia-carga-button whitespace-nowrap"
   onClick={onOpen}
   aria-haspopup="dialog"
   aria-label="Carga con IA"
-  title="Carga con IA · pegá un texto y revisá antes de crear"
+  title="Carga con IA · pegá un texto y revisá antes de crear" variant="secondary"
  >
   <Sparkles size={16} aria-hidden="true"/>
   <span className="hidden xl:inline">Carga con IA</span>
- </button>;
+ </ScaleButton>;
 }

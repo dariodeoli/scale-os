@@ -1,1 +1,1 @@
-.company-legal-profile{display:grid;gap:16px;padding:16px;min-width:0}.company-legal-profile button{min-height:44px}.company-legal-profile p{overflow-wrap:anywhere}
+.company-legal-profile{display:grid;gap:16px;padding:16px;min-width:0}.company-legal-profile button:not(:where([data-ui-button])){min-height:44px}.company-legal-profile p{overflow-wrap:anywhere}

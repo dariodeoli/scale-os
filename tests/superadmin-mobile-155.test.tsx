@@ -7,6 +7,7 @@ import type {AuditAction} from '../app/superadmin/model';
 
 Object.assign(globalThis, {React});
 require.extensions['.css'] = () => {};
+const {OptionsSelect}=require('../app/ui/options-select') as typeof import('../app/ui/options-select');
 const {PlatformAudit} = require('../app/superadmin/audit') as typeof import('../app/superadmin/audit');
 const {default: PlatformAdmin} = require('../app/superadmin/page') as typeof import('../app/superadmin/page');
 const metadata = {reason: 'A'.repeat(230), days: 30};
@@ -50,7 +51,7 @@ test('audit switches by measured container width, preserving full cards, filters
     assert.equal(renderer.root.findAllByType('article').length, 0);
     observer.resize(768); // Narrow desktop containers also need cards.
     assert.equal(renderer.root.findAllByType('article').length, 1);
-    act(() => renderer.root.findByType('select').props.onChange({target: {value: 'no-match'}}));
+    act(() => renderer.root.findByType(OptionsSelect).props.onChange('no-match'));
     assert.equal(renderer.root.findAllByType('article').length, 0);
     assert.ok(text(renderer.toJSON()).includes('Sin acciones que coincidan'));
     act(() => renderer.root.findAllByType('button').find(node => text(node.children) === 'Limpiar filtros')!.props.onClick());

@@ -31,7 +31,11 @@ test('inventory, RUC, work-order links and recipient notifications use the Core 
  const inventory=readFileSync(new URL('../app/inventory-workspace.tsx',import.meta.url),'utf8');
  assert.match(inventory,/Detalle y trazabilidad/);assert.match(inventory,/\/api\/agency\/inventory\/\$\{item\.id\}/);assert.match(inventory,/<InventoryBarcode code=\{code\}/);
  const ruc=readFileSync(new URL('../app/client-ruc.tsx',import.meta.url),'utf8');
- assert.match(ruc,/\/api\/agency\/ruc-lookup/);assert.match(ruc,/Aplicar/);assert.match(ruc,/Descartar/);
+ assert.match(ruc,/\/api\/agency\/ruc-lookup/);assert.match(ruc,/import\s*\{LookupReview\}\s*from ['"]\.\/ui\/smart-field['"]/);
+ assert.match(ruc,/<LookupReview[\s\S]*?onApply=\{onApply\}[\s\S]*?onDiscard=\{onDiscard\}/);
+ const review=readFileSync(new URL('../app/ui/smart-field.tsx',import.meta.url),'utf8');
+ assert.match(review,/applyLabel='Aplicar'/);assert.match(review,/discardLabel='Descartar'/);
+ assert.match(review,/onClick=\{onApply\}/);assert.match(review,/onClick=\{onDiscard\}/);
  const links=readFileSync(new URL('../app/work-order-links.tsx',import.meta.url),'utf8');
  assert.match(links,/\/api\/agency\/work-orders\/\$\{orderId\}\/links/);assert.match(links,/httpsUrl/);
  const notices=readFileSync(new URL('../app/notification-inbox.tsx',import.meta.url),'utf8');

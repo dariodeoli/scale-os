@@ -1,4 +1,13 @@
 'use client';
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {DataTable} from './ui/collection';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField} from './ui/field';
+import {SegmentedField} from './ui/navigation';
+
+import {useTemporalFilter} from './use-temporal-filter';
+import {InputControl as Input} from './ui/input-control';
 import {useEffect,useState,type ChangeEvent} from 'react';
 import {Plus} from 'lucide-react';
 import {downloadReportsCsv} from './reports-csv';
@@ -29,23 +38,12 @@ import {
   type ReportsData,
 } from './reports-data';
 import {useReportsWindow} from './use-reports';
-import {
-  Aviso,
-  BarraProgreso,
-  Button,
-  Card,
-  DataTable,
-  EmptyState,
-  ErrorState,
-  FilaDato,
-  FormField,
-  Input,
-  Nota,
-  SegmentedField,
-  cn,
-} from 'owncoding-ui';
+import {BarraProgreso,FilaDato,cn} from 'owncoding-ui';
+import {Button} from "./ui/button";
 import {notify} from './feedback';
 import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,type Column} from './ui-v2';
+import {Button as ScaleButton} from "./ui/button";
+
 
 // La descomposición del shell (#47) sigue importando el tipo desde este módulo.
 export type {ReportMonth, ReportsData} from './reports-data';
@@ -138,7 +136,7 @@ function LiveVisitorsWidget(){
  </Card>;
 }
 function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:string;onCreateInvoice?:()=>void}){
- const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
+ const [month,setMonth,monthDraft,setMonthDraft]=useTemporalFilter(currentMonth,value=>validMonth(value)&&value<=currentMonth()?value:null),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
  const [retry,setRetry]=useState(0);
  const [exportError,setExportError]=useState('');
  const {data,previousData,error,previousError}=useReportsWindow(month,months,retry);
@@ -171,7 +169,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
     }}>PDF{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
 </>}
   toolbar={  <FilterToolbar className="mb-0" summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
-   <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
+   <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={monthDraft} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>setMonthDraft(e.target.value)}/></FormField>
    <div className="grid gap-1">
     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
@@ -182,10 +180,10 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
   {error?<ErrorState title="No se pudo cargar el reporte" description={error} onRetry={()=>setRetry(value=>value+1)}/>
   :!data?<LoadingBlock label="Cargando reportes…" lines={4}/>
   :<>
-   {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:null}
+   {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<ScaleButton className="primary" onClick={()=>onCreateInvoice()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera factura</ScaleButton>:undefined}/>:null}
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
    {partial?<Nota tono="warn" className="m-0">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
-   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
+   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<ScaleButton className="secondary" onClick={()=>setMonth(rows[0].month)} variant="secondary">Ver {monthTitle(rows[0].month)}</ScaleButton>:onCreateInvoice?<ScaleButton className="primary" onClick={()=>onCreateInvoice()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera factura</ScaleButton>:undefined}/>:<>
     <Card className="grid gap-4 p-3 sm:p-4">
      <div className="flex flex-wrap items-end justify-between gap-2"><div><h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Resumen del período</h3><p className="m-0 text-xs text-mute">{monthTitle(month)} · {selectedCurrency}</p></div><div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute"><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fono-light" aria-hidden="true"/>Facturado</span><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" aria-hidden="true"/>Cobrado</span></div></div>
      <KpiStrip>{tiles.map(tile=><Kpi key={tile.label} label={tile.label} valor={tile.value} hint={tile.change}/>)}</KpiStrip>
@@ -214,7 +212,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    </Card>
    // #142: sin comparación no se dibuja la tarjeta gigante; un aviso de una
    // línea con la salida para comparar (reintentar o ampliar el histórico).
-   :<Nota tono={previousError?'warn':'neutro'} className="m-0 whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<button className="text-button" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:months<24?<button className="text-button" type="button" onClick={()=>setMonths(24)}>Ampliar histórico a 24 meses</button>:null}</Nota>):null}
+   :<Nota tono={previousError?'warn':'neutro'} className="m-0 whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<ScaleButton className="text-button" type="button" onClick={()=>setRetry(value=>value+1)} variant="ghost">Reintentar</ScaleButton>:months<24?<ScaleButton className="text-button" type="button" onClick={()=>setMonths(24)} variant="ghost">Ampliar histórico a 24 meses</ScaleButton>:null}</Nota>):null}
    <Card className="grid grid-cols-1 gap-3 p-3 sm:p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="m-0 text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="m-0 text-xs text-mute">“Sin datos” no significa cero.</p></div>
     {rows.length?<ListGrid label="Evolución mensual por mes" template={EVOLUTION_TEMPLATE} columns={EVOLUTION_COLUMNS} minWidthClass="min-w-[78rem]">

@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import React from 'react';
 import assert from 'node:assert/strict';
 import {existsSync, readFileSync} from 'node:fs';
@@ -294,7 +295,7 @@ test('clientes: el estado «Sin contratos» es accionable y filtra a los que no 
 test('clientes: las acciones por fila se consolidan en un menú ⋯ (#140)',async()=>{
  await mountClientes('owner',[client({has_recurring_price:false})],1400,true);
  // El trabajo pendiente de la fila (cargar plan) sigue como acción rápida visible.
- const planCta=renderer.root.findAll(node=>String(node.props['aria-label']||'').startsWith('Cargar plan y pago'));
+ const planCta=renderer.root.findAllByType('button').filter(node=>String(node.props['aria-label']||'').startsWith('Cargar plan y pago'));
  assert.equal(planCta.length,1,'el CTA de plan queda a la vista (icono rotulado)');
  // Editar/archivar/papelera dejan de ser botones sueltos: viven en el menú.
  assert.equal(buttonWith(renderer,'Archivar'),undefined,'archivar no ocupa un botón de fila');
@@ -342,7 +343,7 @@ test('el editor de cliente carga el plan sólo para los roles de términos comer
   if(role==='viewer'||role==='production'){assert.equal(renderer.toJSON(),null,`${role} no edita clientes`);act(()=>renderer.unmount());continue;}
   const cta=buttonWith(renderer,'Cargar plan');
   assert.equal(Boolean(cta),expected,`${role}: CTA de plan esperado ${expected}`);
-  assert.equal(renderer.root.findAll(node=>node.props.title==='Editar').length,0,'la variante sin acciones no monta el lápiz');
+  assert.equal(renderer.root.findAllByType('button').filter(node=>node.props.title==='Editar').length,0,'la variante sin acciones no monta el lápiz');
   if(expected){
    act(()=>{cta!.props.onClick();});
    await settle();
@@ -378,8 +379,8 @@ test('pipeline: el indicador de columnas ocultas y la tarjeta corta (#140)',()=>
  assert.match(pipeline,/hiddenTotal>0/,'el indicador sólo aparece cuando hay etapas fuera');
  assert.match(pipeline,/fuera de vista/,'el chip dice cuántas etapas quedan fuera');
  assert.match(pipeline,/Mostrando etapas \{boardWindow\.from\+1\}–\{boardWindow\.to\+1\} de \{boardWindow\.total\}/,'el indicador declara la posición real');
- assert.match(pipeline,/aria-label="Ver etapa anterior"/,'hay acceso por teclado a la etapa anterior');
- assert.match(pipeline,/aria-label="Ver etapa siguiente"/,'y a la siguiente');
+assert(actionElements(pipeline).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Ver etapa anterior'&&action.attribute('onClick')==='()=>scrollBoard(-1)'),'hay acceso por teclado a la etapa anterior');
+assert(actionElements(pipeline).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Ver etapa siguiente'&&action.attribute('onClick')==='()=>scrollBoard(1)'),'y a la siguiente');
  // KPIs compactos en móvil (#145): conteos en una fila y el monto a ancho completo.
  assert.match(pipeline,/KpiStrip aria-label="Resumen del pipeline" className="max-sm:grid-cols-3"/,'los KPIs de Pipeline compactan en móvil (#145)');
  assert.match(pipeline,/max-sm:col-span-3[\s\S]{0,80}?label="Valor abierto"/,'el monto abierto conserva el ancho completo para no cortarse');
@@ -393,12 +394,12 @@ test('el menú ⋯ del registro reemplaza a los botones sueltos cuando se pide (
  const {RecordEditor}=require('../app/suite') as typeof import('../app/suite');
  const renderEditor=(menu:boolean)=>act(async()=>{renderer=create(<RecordEditor kind="clients" recordId="1" name="ACME" role="owner" refresh={async()=>{}} planCta="text" menu={menu} extraMenuItems={menu?[{id:'archive',label:'Archivar',icono:'archive',onClick:()=>{}}]:[]}/>);});
  await renderEditor(false);
- assert.equal(renderer.root.findAll(node=>node.props['aria-haspopup']==='menu').length,0,'sin menú no hay disparador');
- assert.equal(renderer.root.findAll(node=>node.props.title==='Editar').length,1,'sin menú queda el lápiz de siempre');
+ assert.equal(renderer.root.findAllByType('button').filter(node=>node.props['aria-haspopup']==='menu').length,0,'sin menú no hay disparador');
+ assert.equal(renderer.root.findAllByType('button').filter(node=>node.props.title==='Editar').length,1,'sin menú queda el lápiz de siempre');
  act(()=>renderer.unmount());
  await renderEditor(true);
- assert.equal(renderer.root.findAll(node=>node.props.title==='Editar').length,0,'editar deja de ser un botón suelto');
- const menu=renderer.root.findAll(node=>node.props['aria-haspopup']==='menu');
+ assert.equal(renderer.root.findAllByType('button').filter(node=>node.props.title==='Editar').length,0,'editar deja de ser un botón suelto');
+ const menu=renderer.root.findAllByType('button').filter(node=>node.props['aria-haspopup']==='menu');
  assert.equal(menu.length,1,'el registro expone un solo menú');
  assert.match(text(menu[0]),/Acciones: ACME/,'el disparador se anuncia con el registro');
  act(()=>renderer.unmount());

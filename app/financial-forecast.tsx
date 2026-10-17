@@ -1,4 +1,14 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {DataTable} from './ui/collection';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField,FieldLabel as Label} from './ui/field';
+import {SegmentedField} from './ui/navigation';
+
+import {validateMonth} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
+import {InputControl as Input} from './ui/input-control';
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
 import {formatRealMoney,isPositiveRealMoney} from './finance-money';
@@ -27,26 +37,14 @@ import {
   type MoneyCurrency,
 } from './forecast-data';
 import {useForecast,usePlannedExpenses,useRealExpenses} from './use-forecast';
-import {
-  Aviso,
-  BarraProgreso,
-  Button,
-  Card,
-  DataTable,
-  EmptyState,
-  ErrorState,
-  FilaDato,
-  FormField,
-  IconAction,
-  Input,
-  Label,
-  Nota,
-  SegmentedField,
-  cn,
-} from 'owncoding-ui';
+import {BarraProgreso,FilaDato,cn} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
+import {Button} from "./ui/button";
 import {ConfirmDialog} from './dialog';
 import {useCompanyCurrency} from './currency-provider';
 import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';
+import {Button as ScaleButton} from "./ui/button";
+
 
 // Plantillas de lista compartidas por encabezado y filas (una sola constante por vista).
 const EXPENSE_COLS='grid-cols-[minmax(0,1fr)_8.5rem_5rem]';
@@ -62,7 +60,7 @@ const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>butt
 
 export function FinancialForecast({role,organizationId,navigate,onCreateInvoice}:{role:string;organizationId:string|number;navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {return ['owner','admin','finance'].includes(role)?<ForecastPanel key={String(organizationId)} navigate={navigate} onCreateInvoice={onCreateInvoice}/>:null;}
 function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {
- const [month,setMonth]=useState(()=>currentForecastMonth()),[horizon,setHorizon]=useState<Horizon>('1');
+ const [month,,monthDraft,setMonthDraft]=useTemporalFilter(currentForecastMonth,value=>validateMonth(value)&&value>='1900-01'&&value<='9998-12'?value:null),[horizon,setHorizon]=useState<Horizon>('1');
  const {data,error,reload,version,setError:setForecastError}=useForecast(month,horizon);
  const {accounts,expenses:realExpenses,error:realError,setError:setRealError}=useRealExpenses(month,data);
  const {payload:plannedExpenses,error:plannedError,reload:reloadPlanned}=usePlannedExpenses(month,data);
@@ -104,7 +102,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
   toolbar={<FilterToolbar className="mb-0">
    <div className="grid min-w-0 gap-1">
     <Label htmlFor="forecast-month" className="sr-only">Mes</Label>
-    <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={month} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>{const value=(event.target as HTMLInputElement).value;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value))setMonth(value);}}/>
+    <Input id="forecast-month" type="month" aria-label="Mes a planificar" title="Mes a planificar" className="w-44 max-md:w-full" value={monthDraft} min="1900-01" max="9998-12" onChange={(event:FormEvent<HTMLInputElement>)=>setMonthDraft((event.target as HTMLInputElement).value)}/>
    </div>
    <SegmentedField className="[&>button]:min-h-11 [&>button]:px-3 md:[&>button]:min-h-8" ariaLabel="Horizonte de proyección" value={horizon} onChange={(value:Horizon)=>setHorizon(value)} options={FORECAST_HORIZONS.map(value=>[value,`${value} ${value==='1'?'mes':'meses'}`])}/>
   </FilterToolbar>}
@@ -112,7 +110,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
   {error?<ErrorState title="No se pudo cargar la previsión" description={error} onRetry={()=>reload()}/>
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
-   {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes." description="Cuando emitas una factura o se acepte un presupuesto, la previsión del mes se completa sola." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>:null}
+   {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes." description="Cuando emitas una factura o se acepte un presupuesto, la previsión del mes se completa sola." action={onCreateInvoice?<ScaleButton className="primary" onClick={()=>onCreateInvoice()} variant="primary">Registrar factura</ScaleButton>:undefined}/>:null}
   <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] min-[1440px]:items-start':'grid gap-4'}>
    {horizon==='1'?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3">
@@ -138,7 +136,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
        <strong className={cn('whitespace-nowrap text-right text-base font-bold tabular-nums',row.result<0?'text-bad':row.result>0?'text-ok':'text-fore')}>{formatRealMoney(exactBalanceRows.find(item=>item.currency===row.currency)?.result,row.currency)}</strong>
       </div>
      </article>)}
-    </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
+    </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<ScaleButton className="primary" onClick={()=>onCreateInvoice()} variant="primary">Registrar factura</ScaleButton>:undefined}/>}
    </Card>:null}
    {horizon==='1'?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3"><h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3><p className="m-0 text-xs text-mute">Detalle para revisar de dónde viene cada total, sin convertir monedas.</p></div>
@@ -176,7 +174,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
        </div>}
       />
      </div>)}
-    </div>:<EmptyState compact title="Sin datos financieros para el horizonte." description="Emití una factura o aceptá un presupuesto para proyectar caja y resultado." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
+    </div>:<EmptyState compact title="Sin datos financieros para el horizonte." description="Emití una factura o aceptá un presupuesto para proyectar caja y resultado." action={onCreateInvoice?<ScaleButton className="primary" onClick={()=>onCreateInvoice()} variant="primary">Registrar factura</ScaleButton>:undefined}/>}
    </Card>}
    </div>
    {data&&horizon==='1'?<Card className="grid gap-4 p-3 sm:p-4">
@@ -218,7 +216,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     </div>
     </>:null}
     {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals===0?<EmptyState compact title={`Sin gastos planificados para ${dateLabel(month)}.`} description="Agregá un gasto para que se incorpore al resultado estimado, sin registrar un pago real."/>:null}
-    {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals>0?<Aviso tono="warn" como="div">La previsión registra gastos planificados para {dateLabel(month)} y el desglose no llegó. <button type="button" className="text-button" onClick={()=>reloadPlanned()}>Reintentar</button></Aviso>:null}
+    {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals>0?<Aviso tono="warn" como="div">La previsión registra gastos planificados para {dateLabel(month)} y el desglose no llegó. <ScaleButton type="button" className="text-button" onClick={()=>reloadPlanned()} variant="ghost">Reintentar</ScaleButton></Aviso>:null}
    </Card>:null}
    {data&&horizon==='1'?<Card className="grid gap-4 p-3 sm:p-4">
     <div className="grid gap-3">

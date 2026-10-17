@@ -1,28 +1,49 @@
 "use client";
-import {componerTelefono, parseTelefono} from 'owncoding-ui';
-import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, phoneNational} from './field-rules';
+import {OptionsSelect as Select} from './ui/options-select';
+import {forwardRef, useState} from 'react';
+import {componerTelefono} from 'owncoding-ui';
+import {DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, phoneParts} from './field-rules';
+import {InputBase, type InputBaseProps} from './ui/input';
 
-type PhoneFieldProps = {
-  id?: string;
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  invalid?: boolean;
-  describedBy?: string;
-  required?: boolean;
-  placeholder?: string;
+export type PhoneFieldProps = Omit<InputBaseProps, 'onChange' | 'value' | 'type'> & {
+  value: string; onChange: (value: string) => void;
 };
 
-/** Shared phone input: country code with a fixed plus sign and a digits-only national number. */
-export function PhoneField({id, value, onChange, disabled = false, invalid = false, describedBy, required = false, placeholder = '981 123 456'}: PhoneFieldProps) {
-  const parsed = parseTelefono(value, DEFAULT_PHONE_COUNTRY);
-  const country = PHONE_COUNTRIES.some(entry => entry.code === parsed.countryCode) ? parsed.countryCode : DEFAULT_PHONE_COUNTRY;
-  const national = phoneNational(parsed.phone);
-  const compose = (countryCode: string, number: string) => onChange(componerTelefono({countryCode, phone: phoneNational(number)}) ?? '');
+/** Known country codes use separate controls; unknown/partial international values remain intact. */
+export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(function PhoneField(
+  {value, onChange, disabled, pending, placeholder = '981 123 456', ...props}, ref,
+) {
+  const [emptyCountry, setEmptyCountry] = useState(DEFAULT_PHONE_COUNTRY);
+  const parsed = phoneParts(value);
+  const country = value ? parsed.country : emptyCountry;
+  const blocked = Boolean(disabled || pending);
+  const compose = (code: string, number: string) => {
+    if (blocked) return;
+    const digits = number.replace(/\D/g, '').replace(/^0+/, '');
+    onChange(componerTelefono({countryCode: code, phone: digits}) ?? '');
+  };
   return <span className="phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2">
-    <select className="px-2" aria-label="Código de país" value={country} disabled={disabled} onChange={event => compose(event.target.value, national)}>
+    <Select hideLabel label="Código de país" value={country} disabled={blocked}
+      aria-invalid={props.invalid ?? props['aria-invalid']} aria-describedby={props.describedBy ?? props['aria-describedby']}
+      onChange={(value:string)=>{
+        if (blocked) return;
+        const code = value;
+        setEmptyCountry(code);
+        compose(code, parsed.national);
+      }}>
+      {parsed.raw ? <option value="">Código original</option> : null}
       {PHONE_COUNTRIES.map(entry => <option key={entry.code} value={entry.code}>{entry.label}</option>)}
-    </select>
-    <input id={id} type="tel" inputMode="tel" autoComplete="tel-national" placeholder={placeholder} maxLength={18} value={national} disabled={disabled} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => compose(country, event.target.value)}/>
+    </Select>
+    <InputBase inputMode="tel" autoComplete="tel-national" {...props} ref={ref} type="tel" placeholder={placeholder}
+      value={parsed.national} disabled={disabled} pending={pending}
+      onChange={event => {
+        if (blocked) return;
+        const next = event.target.value;
+        if (parsed.raw || next.trimStart().startsWith('+')) onChange(next);
+        else {
+          setEmptyCountry(country);
+          compose(country, next);
+        }
+      }}/>
   </span>;
-}
+});

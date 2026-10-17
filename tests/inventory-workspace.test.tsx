@@ -2,8 +2,9 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
-const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+
 // owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
 Object.assign(globalThis,{requestAnimationFrame:(callback:(time:number)=>void)=>{callback(Date.now());return 0;},cancelAnimationFrame:()=>{}});
 const intervals=new Map<number,()=>void>();let timerId=0;
@@ -75,7 +76,7 @@ const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')
  // its value contract. Keep this helper explicit about the intended operation.
  if(tag==='select'&&renderer.root.findAllByType(SelectCustom).some(node=>node.props.label===label))return select(label).props.onChange(value);
  const field=byLabel(label,tag)||renderer.root.findAll(node=>node.props?.['aria-label']===label&&typeof node.type==='string'&&['input','textarea','select'].includes(String(node.type)))[0];
- if(field)return field.props.onChange({target:{value},currentTarget:{value,selectionStart:String(value).length}});
+ if(field){const target={value,selectionStart:String(value).length,validationMessage:'',setCustomValidity(message:string){this.validationMessage=message;}};return field.props.onChange({target,currentTarget:target});}
  return select(label).props.onChange(value);
 });
 // Identity chips now include avatar initials before the visible person name.
@@ -195,6 +196,7 @@ async function run(){
  // Assigned returners see Return but cannot edit/cancel another person's booking.
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
  await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
+ const beforeMonthDraft=reads;for(const raw of ['', '2026-', '2026-13', '1899-12', '9999-01']){act(()=>renderer.root.findAllByProps({id:'inventory-calendar-month'})[0].props.onChange({target:{value:raw}}));assert.equal(renderer.root.findAllByProps({id:'inventory-calendar-month'})[0].props.value,raw);assert.equal(reads,beforeMonthDraft,'invalid calendar month never queries');assert.doesNotMatch(JSON.stringify(renderer.toJSON()),/Invalid Date|NaN/);}
  assert(renderer.root.findAllByProps({'aria-label':'Registrar devolución: Rodaje de prueba'}).length,'the returner sees the return action');assert(!renderer.root.findAllByProps({'aria-label':'Editar reserva: Rodaje de prueba'}).length);assert(!renderer.root.findAllByProps({'aria-label':'Cancelar reserva: Rodaje de prueba'}).length);act(()=>renderer.unmount());
  // Bulk selection: one-line actions and the batch endpoint.
  context.role='management';context.can_manage=true;items=equipment;reservations=[record];

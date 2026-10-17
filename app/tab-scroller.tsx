@@ -5,6 +5,8 @@
 // La semántica la aporta el hijo (nav de apartados, `SegmentedField`, `Subtabs`).
 import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
 import {ChevronLeft,ChevronRight} from 'lucide-react';
+import {IconButton as ScaleIconButton} from "./ui/button";
+
 
 type ScrollWindow={scrollable:boolean;atStart:boolean;atEnd:boolean};
 
@@ -36,8 +38,8 @@ export function TabScroller({children,className,label='pestañas'}:{children:Rea
   node.scrollBy({left:direction*Math.max(160,node.clientWidth*0.8),behavior:reduce?'auto':'smooth'});
  };
  return <div className={`tab-scroller ${className??''}`}>
-  {bar.scrollable?<button type="button" className="tab-scroller-button prev" title={`Ver ${label} anteriores`} aria-label={`Ver ${label} anteriores`} disabled={bar.atStart} onClick={()=>step(-1)}><ChevronLeft size={16} aria-hidden="true"/></button>:null}
+  {bar.scrollable?<ScaleIconButton type="button" className="tab-scroller-button prev" title={`Ver ${label} anteriores`} label={`Ver ${label} anteriores`} disabled={bar.atStart} onClick={()=>step(-1)} icon={<><ChevronLeft size={16} aria-hidden="true"/></>} variant="outline" size="compact"></ScaleIconButton>:null}
   <div className="tab-scroller-track" ref={track}>{children}</div>
-  {bar.scrollable?<button type="button" className="tab-scroller-button next" title={`Ver ${label} siguientes`} aria-label={`Ver ${label} siguientes`} disabled={bar.atEnd} onClick={()=>step(1)}><ChevronRight size={16} aria-hidden="true"/></button>:null}
+  {bar.scrollable?<ScaleIconButton type="button" className="tab-scroller-button next" title={`Ver ${label} siguientes`} label={`Ver ${label} siguientes`} disabled={bar.atEnd} onClick={()=>step(1)} icon={<><ChevronRight size={16} aria-hidden="true"/></>} variant="outline" size="compact"></ScaleIconButton>:null}
  </div>;
 }

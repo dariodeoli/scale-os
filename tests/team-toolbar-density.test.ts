@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
@@ -17,7 +18,7 @@ test('la toolbar de Equipo usa ListPage + FilterToolbar con filtros segmentados 
  assert.match(team,/<FilterToolbar className="mb-0" summary=\{<span role="status" aria-atomic="true">\{summary\}<\/span>\}>/);
  assert.match(team,/<SegmentedField [\s\S]*?ariaLabel="Filtrar por estado laboral"/);
  assert.match(team,/options=\{\[\['all','Todos'\],\['active','Activos'\],\['inactive','Inactivos'\]\]\}/);
- assert.match(team,/<SearchField className="w-full sm:w-72" ariaLabel="Buscar persona"/);
+ assert.match(team,/<SearchField className="w-full sm:w-72" label="Buscar persona"/);
  assert.match(team,/<ViewSwitch value=\{view\} onChange=\{changeView\}\/>/);
  assert.match(team,/localStorage\.getItem\(TEAM_VIEW_KEY\)/,'la vista Lista/Cuadrícula se recuerda por usuario');
  assert.match(team,/const TEAM_VIEW_KEY='scale:team-view'/);
@@ -57,9 +58,9 @@ test('la fila y la tarjeta ofrecen Perfil · Acceso · Eliminar en el menú ⋯ 
 test('los vacíos de plataforma ofrecen el CTA contextual que corresponda',()=>{
  assert.match(team,/<Plus size=\{16\} aria-hidden="true"\/>Agregar primera persona/);
  assert.match(team,/title=\{hasFilters\?'Sin coincidencias':'Todavía no hay personas'\}/);
- assert.match(read('app/invite-links.tsx'),/action=\{<button type="button" className="secondary" onClick=\{focusCreate\}>Generar enlace<\/button>\}/);
+ const inviteAction=actionElements(read('app/invite-links.tsx')).find(action=>action.children==='Generar enlace');assert(inviteAction);assert.equal(inviteAction.kind,'Button');assert.equal(inviteAction.attribute('type'),'button');assert.equal(inviteAction.attribute('variant'),'secondary');assert.equal(inviteAction.attribute('onClick'),'focusCreate');assert.equal(inviteAction.attributeOwner(),'action');
  assert.match(read('app/invite-links.tsx'),/ref=\{createCard\}/);
- assert.match(read('app/permissions-matrix.tsx'),/description="El API no devolvió la matriz de capacidades\." action=\{<button type="button" className="secondary" onClick=\{\(\)=>void load\(\)\}>Reintentar<\/button>\}/);
+ const retry=actionElements(read('app/permissions-matrix.tsx')).find(action=>action.children==='Reintentar');assert(retry);assert.equal(retry.attribute('type'),'button');assert.equal(retry.attribute('variant'),'secondary');assert.equal(retry.attribute('onClick'),'()=>void load()');assert.equal(retry.attributeOwner(),'action');assert.match(read('app/permissions-matrix.tsx'),/description="El API no devolvió la matriz de capacidades\."/);
  assert.match(read('app/superadmin/catalog.tsx'),/Crear el primer cupón/);
  assert.match(read('app/superadmin/catalog.tsx'),/ref=\{codeRef\}/);
 });

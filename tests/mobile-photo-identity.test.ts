@@ -11,7 +11,8 @@ function declarations(root:ReturnType<typeof sheet>,selector:string,media=''){
  root.walkRules(rule=>{
   const parent=rule.parent;
   const condition=parent?.type==='atrule'&&parent.name==='media'?parent.params:'';
-  if(rule.selectors.includes(selector)&&condition===media)rule.walkDecls(d=>{values[d.prop]=d.value;});
+  // Project the native control's shared layout plus its guarded presentation.
+  if(rule.selectors.some(value=>value===selector||value===`${selector}:not(:where([data-ui-button]))`)&&condition===media)rule.walkDecls(d=>{values[d.prop]=d.value;});
  });
  return values;
 }

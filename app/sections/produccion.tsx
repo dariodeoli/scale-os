@@ -1,9 +1,10 @@
 "use client";
+import {OptionsSelect as Select} from '../ui/options-select';
 import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStateAction} from 'react';
 import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {Button, Select} from 'owncoding-ui';
+import {Button} from "../ui/button";
 import {EmptyBlock,ErrorBlock,ListPage,LoadingBlock,SectionLoading,ViewTabs} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
@@ -13,6 +14,8 @@ import {useBoardData} from '../use-board-data';
 import {filterProductionOrders} from '../production-filter';
 import {useLocalCalendarDay} from '../use-workspace-preferences';
 import type {Client, Project, User, WorkOrder} from '../workspace-types';
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "../ui/button";
+
 const WorkPlanner=dynamic(()=>import('../productivity-ui').then(m=>m.WorkPlanner),{loading:()=> <SectionLoading label="Cargando producción…"/>});
 
 // Producción (tablero kanban, mi día, calendario y lista y lotes) — contenido v2
@@ -121,25 +124,25 @@ export function ProduccionSection({productionView, preferences, changeProduction
   const toolbar=(
     <div className="production-command-toolbar flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
         <ViewTabs className="production-view-tabs" ariaLabel="Vista de Producción" value={productionView} onChange={(value:string)=>changeProductionView(value)} options={VIEW_OPTIONS}/>
-        {productionView!=="Tablero"&&<div className="production-command-toolbar-actions flex flex-wrap items-center gap-2 lg:ml-auto"><button type="button" className="text-button" onClick={()=>setActive("Proyectos")}>Ver proyectos<ArrowUpRight size={14}/></button></div>}
+        {productionView!=="Tablero"&&<div className="production-command-toolbar-actions flex flex-wrap items-center gap-2 lg:ml-auto"><ScaleButton type="button" className="text-button" onClick={()=>setActive("Proyectos")} variant="ghost">Ver proyectos<ArrowUpRight size={14}/></ScaleButton></div>}
         {productionView==="Tablero"&&<div className="production-command-toolbar-actions flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 lg:ml-auto lg:gap-2">
           <label className="production-client-filter flex items-center gap-2">
             <span className="whitespace-nowrap text-[12px] font-semibold text-mute">Cliente</span>
-            <Select className="w-full sm:w-56" value={selectedProductionClient} disabled={!preferencesReady} onChange={(event:React.ChangeEvent<HTMLSelectElement>)=>setProductionClientId(event.target.value)}>
+            <Select hideLabel label="Cliente" className="w-full sm:w-56" value={selectedProductionClient} disabled={!preferencesReady} onChange={(value:string)=>setProductionClientId(value)}>
               <option value="">Todos los clientes</option>
-              {[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => <option key={client.id} value={String(client.id)}>{client.name}</option>)}
+              {[...clients].sort((a,b) => a.name.localeCompare(b.name, 'es')).map(client => <option key={client.id} value={String(client.id)} data-kind="entity" data-photo-url={client.logo_url}>{client.name}</option>)}
             </Select>
           </label>
           <div className="production-filter-actions flex flex-wrap items-center gap-2">
-            <button type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)}><SlidersHorizontal size={14}/>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</button>
+            <ScaleButton type="button" className="text-button" disabled={!preferencesReady} onClick={()=>setProductionFiltersDialogScope(preferenceScope)} variant="ghost"><SlidersHorizontal size={14}/>Filtros{hasProductionFilters?` · ${Number(!!productionClientId)+Number(preferences.production.mine)+Number(preferences.production.week)}`:''}</ScaleButton>
             <p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute" role="status" aria-live="polite">{counterText}</p>
-            {hasProductionFilters && <button type="button" className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>}
+            {hasProductionFilters && <ScaleButton type="button" className="text-button" onClick={() => updatePreferences({production:defaultWorkspacePreferences().production})} variant="ghost"><RotateCcw size={14}/>Restablecer filtros</ScaleButton>}
           </div>
         </div>}
       </div>
   );
   return (
-    <ListPage aria-label="Producción" primaryAction={createOrder?<button type="button" className="primary" onClick={createOrder}><Plus size={18}/> Nueva orden</button>:undefined} toolbar={toolbar}>
+    <ListPage aria-label="Producción" primaryAction={createOrder?<ScaleButton type="button" className="primary" onClick={createOrder} variant="primary"><Plus size={18}/> Nueva orden</ScaleButton>:undefined} toolbar={toolbar}>
       {productionView==='Tablero'&&hasProductionFilters&&<p className="m-0 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
       {productionView==='Tablero'&&preferenceWarning?<p className="m-0 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
       {/* El planificador comparte la carga con el tablero: con error no se pinta un
@@ -158,9 +161,9 @@ export function ProduccionSection({productionView, preferences, changeProduction
           <div className="production-stage-controls flex flex-wrap items-center justify-between gap-2">
             <p className="m-0 text-[11px] text-mute">Arrastrá una orden de una columna a otra para actualizar su estado.</p>
             {boardWindow.scrollable?<div className="flex items-center gap-1" role="group" aria-label="Recorrido del tablero" data-board-window>
-              <button type="button" data-board-prev className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas anteriores" title="Etapas anteriores" disabled={boardWindow.atStart} onClick={()=>scrollBoard(-1)}><ChevronLeft size={14}/></button>
+              <ScaleIconButton type="button" data-board-prev className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" label="Ver etapas anteriores" title="Etapas anteriores" disabled={boardWindow.atStart} onClick={()=>scrollBoard(-1)} icon={<><ChevronLeft size={14}/></>} variant="outline" size="compact"></ScaleIconButton>
               <span className="whitespace-nowrap text-[11px] tabular-nums text-mute" title={`Se ven las etapas ${boardWindow.first} a ${boardWindow.last} de ${statuses.length}. Usá las flechas o deslizá el tablero.`}>{boardWindowLabel(boardWindow,statuses.length)}</span>
-              <button type="button" data-board-next className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" aria-label="Ver etapas siguientes" title="Etapas siguientes" disabled={boardWindow.atEnd} onClick={()=>scrollBoard(1)}><ChevronRight size={14}/></button>
+              <ScaleIconButton type="button" data-board-next className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-interactivo text-mute transition hover:border-fono hover:text-fore disabled:opacity-30 md:h-7 md:w-7" label="Ver etapas siguientes" title="Etapas siguientes" disabled={boardWindow.atEnd} onClick={()=>scrollBoard(1)} icon={<><ChevronRight size={14}/></>} variant="outline" size="compact"></ScaleIconButton>
             </div>:null}
           </div>
           <div ref={boardScroll} className="silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [--board-cols:1] sm:[--board-cols:2] lg:[--board-cols:4]" tabIndex={0} role="region" aria-label="Tablero de Producción, desplazable por bloques de etapas">

@@ -20,7 +20,7 @@ globalThis.fetch=async(input,init={})=>{
  throw Error('unexpected method');
 };
 const text=(renderer:ReactTestRenderer)=>JSON.stringify(renderer.toJSON());
-const checkboxes=()=>renderer.root.findAllByProps({type:'checkbox'});
+const checkboxes=()=>renderer.root.findAllByType('input').filter(node=>node.props.type==='checkbox');
 async function mount(role:string){await act(async()=>{renderer=create(<WorkOrderLinks orderId="41" role={role}/>);});}
 let renderer!:ReactTestRenderer;
 

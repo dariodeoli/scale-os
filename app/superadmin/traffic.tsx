@@ -1,10 +1,12 @@
 "use client";
+import {SegmentedField} from '../ui/navigation';
+
 // Tráfico y demos (panel global): cargas de la landing, tiempo y scroll, CTA y la
 // actividad de las demos como bloque aparte. Todo sale de `GET /api/platform/traffic`
 // (analítica de primera parte, sin PII); días de Asunción. Sin datos se dice «sin
 // datos todavía»: nunca se dibujan números inventados.
 import {ReactNode, useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {SegmentedField} from "owncoding-ui";
+
 import {platformApi} from "../platform-admin-api";
 import {EmptyBlock, ErrorBlock, FilterToolbar, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, StateChip, type Column} from "../ui-v2";
 import {dayLabel, UsageBarChart} from "./usage-charts";

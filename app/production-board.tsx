@@ -21,6 +21,8 @@ import {RemoveRecord} from './archive-controls';
 import {roleCan} from './capabilities';
 import {hoursSummary} from './hours-format';
 import {Paperclip} from 'lucide-react';
+import {Button as ScaleButton} from "./ui/button";
+
 
 export const statuses = [
   { id: "blocked", label: "Bloqueado", tone: "red" },
@@ -155,7 +157,7 @@ export function KanbanColumn({
       {orders.map((order) => (
         <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
       ))}
-      {hasMore && onLoadMore ? <button type="button" className="text-button min-h-11 min-w-11 justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</button> : null}
+      {hasMore && onLoadMore ? <ScaleButton type="button" className="text-button min-h-11 min-w-11 justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore} variant="ghost">{loadingMore ? 'Trayendo…' : 'Ver más'}</ScaleButton> : null}
       {!orders.length ? <p className="py-3 text-center text-[11px] text-mute">{loading?'Cargando piezas…':'Sin piezas en esta etapa'}</p> : null}
     </section>
   );

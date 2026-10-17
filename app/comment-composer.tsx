@@ -1,8 +1,13 @@
 'use client';
+import {TextareaBase} from './ui/input';
 
 import {useEffect,useId,useMemo,useRef,useState} from 'react';
 import {ActorIdentity} from './actor-identity';
 import {personLabel, technicalEmail} from './field-rules';
+import {X as ActionIconX} from 'lucide-react';
+
+import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
+
 
 type Person={id:string|number;full_name?:string|null;email?:string|null;photo_url?:string|null};
 type Props={onSubmit:(value:{body:string;mentioned_user_ids:string[]})=>Promise<void>;label?:string;disabled?:boolean};
@@ -37,7 +42,7 @@ export function CommentComposer({onSubmit,label='Publicar comentario',disabled=f
  }
  return <form className="comment-composer" onSubmit={submit} aria-busy={sending||undefined}>
   <label htmlFor={fieldId}>Comentario</label>
-  <textarea ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} onKeyDown={event=>{
+  <TextareaBase ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} onKeyDown={event=>{
    if(!choices.length)return;
    if(event.key==='ArrowDown'){event.preventDefault();setActive(value=>(value+1)%choices.length);}
    if(event.key==='ArrowUp'){event.preventDefault();setActive(value=>(value-1+choices.length)%choices.length);}
@@ -46,8 +51,8 @@ export function CommentComposer({onSubmit,label='Publicar comentario',disabled=f
   }} placeholder="Escribí @ para mencionar a alguien" maxLength={2000} disabled={disabled||sending} aria-describedby={`${fieldId}-help`}/>
   <small id={`${fieldId}-help`} className="form-note">Usá @ para avisar a un integrante. Las personas mencionadas reciben una notificación en esta empresa.</small>
   {token!==null&&<div className="mention-suggestions" role="listbox" aria-label="Personas para mencionar">{loading?<p role="status">Buscando integrantes…</p>:choices.map((person,index)=><button type="button" role="option" aria-selected={active===index} style={active===index?{background:'var(--surface-subtle)'}:undefined} key={person.id} onMouseDown={event=>event.preventDefault()} onClick={()=>choose(person)} disabled={sending}><ActorIdentity name={name(person)} photoUrl={person.photo_url} verified/><span>{person.email&&person.full_name&&!technicalEmail(person.email)?person.email:null}</span></button>)}{!loading&&!choices.length&&<p className="form-note">No hay integrantes activos que coincidan.</p>}</div>}
-  {mentions.size>0&&<div className="mention-selected" aria-label="Personas mencionadas">{Array.from(mentions.entries()).map(([id,display])=><span key={id}>@{display}<button type="button" aria-label={`Quitar mención a ${display}`} onClick={()=>setMentions(previous=>{const next=new Map(previous);next.delete(id);return next;})}>×</button></span>)}</div>}
+  {mentions.size>0&&<div className="mention-selected" aria-label="Personas mencionadas">{Array.from(mentions.entries()).map(([id,display])=><span key={id}>@{display}<ScaleIconButton type="button" label={`Quitar mención a ${display}`} onClick={()=>setMentions(previous=>{const next=new Map(previous);next.delete(id);return next;})} icon={<><ActionIconX/></>} variant="ghost" size="compact"></ScaleIconButton></span>)}</div>}
   {error&&<p className="error" role="alert">{error}</p>}
-  <button className="primary" type="submit" disabled={disabled||sending}>{sending?'Publicando…':label}</button>
+  <ScaleButton className="primary" type="submit" disabled={disabled||sending} variant="primary">{sending?'Publicando…':label}</ScaleButton>
  </form>;
 }

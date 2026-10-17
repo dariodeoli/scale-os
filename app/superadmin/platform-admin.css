@@ -26,20 +26,21 @@
 .platform-admin-page *::before,
 .platform-admin-page *::after { box-sizing: border-box; }
 .platform-admin-page :is(button, a, input, select, textarea) { touch-action: manipulation }
-.platform-admin-page :is(button, a, input, select, textarea):focus-visible { outline: 3px solid color-mix(in srgb, var(--brand-600) 72%, white); outline-offset: 3px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand-600) 20%, transparent) }
+.platform-admin-page :is(button, a, input, select, textarea):focus-visible:not(:where([data-ui-button])) { outline: 3px solid color-mix(in srgb, var(--brand-600) 72%, white); outline-offset: 3px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand-600) 20%, transparent) }
 
 /* ── Encabezado: marca + `PageHeader` del sistema (#181), una sola fila ───── */
 .platform-admin-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px var(--ui-control-gap-lg, 12px); min-width: 0 }
 .platform-admin-top .ui-page-header { min-height: 0; align-items: center }
 .platform-admin-top h1 { margin: 0 }
 /* Acciones compactas ícono + texto (36 px); en mobile quedan solo con ícono. */
-.platform-admin-actions :is(.secondary) { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; font-size: 13px }
-.platform-admin-actions :is(.secondary) svg { width: 16px; height: 16px; flex: none }
+.platform-admin-actions :is(.secondary) { display: inline-flex; align-items: center; gap: 6px }
+.platform-admin-actions :is(.secondary):not(:where([data-ui-button])) { min-height: 36px; padding: 0 12px; font-size: 13px }
+.platform-admin-actions :is(.secondary) svg { flex: none; width: 16px; height: 16px }
 .platform-admin-brand { display: inline-flex; align-items: center; min-width: 0; padding: 4px 6px; border-radius: var(--ui-radius-control, 10px); color: inherit; text-decoration: none }
 .platform-admin-meta { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 6px var(--ui-control-gap, 8px) }
 .platform-admin-updated { color: var(--text-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap }
 .platform-admin-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--ui-control-gap, 8px); min-width: 0 }
-.platform-admin-page .platform-admin-danger, .platform-admin-page .platform-admin-danger:hover { color: var(--danger) }
+.platform-admin-page .platform-admin-danger:not(:where([data-ui-button])), .platform-admin-page .platform-admin-danger:hover:not(:where([data-ui-button])) { color: var(--danger) }
 
 /* Las secciones del panel son `.panel` del sistema: fuera de `.control-shell`
  * el padding del panel no aplicaba y el contenido tocaba el borde (0 px).
@@ -63,10 +64,11 @@
 .platform-sidebar-scope { display: block; margin-top: 2px; color: var(--text-muted); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap }
 .platform-sidebar-brand .workspace-brand + .platform-sidebar-scope { display: none }
 .platform-shell nav.platform-sidebar-nav { display: flex; flex-direction: column; gap: 2px; min-width: 0 }
-.platform-shell .platform-nav-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 10px; border: 0; border-radius: var(--ui-radius-control, 10px); background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 550; line-height: 1.2; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background var(--ease, .15s), color var(--ease, .15s) }
-.platform-shell .platform-nav-item:hover { background: var(--surface-subtle); color: var(--text) }
+.platform-shell .platform-nav-item { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; text-align: left }
+.platform-shell .platform-nav-item:not(:where([data-ui-button])) { min-height: 38px; padding: 0 10px; border: 0; border-radius: var(--ui-radius-control, 10px); background: transparent; color: var(--text-muted); font-size: 13px; font-weight: 550; line-height: 1.2; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background var(--ease, .15s), color var(--ease, .15s) }
+.platform-shell .platform-nav-item:hover:not(:where([data-ui-button])) { background: var(--surface-subtle); color: var(--text) }
 /* Activo: fondo y texto de marca + barra lateral (visible también en alto contraste). */
-.platform-shell .platform-nav-item[aria-current="page"] { background: var(--violet-soft); color: var(--brand-700); font-weight: 650; box-shadow: inset 3px 0 0 var(--brand-600) }
+.platform-shell .platform-nav-item[aria-current="page"]:not(:where([data-ui-button])) { background: var(--violet-soft); color: var(--brand-700); font-weight: 650; box-shadow: inset 3px 0 0 var(--brand-600) }
 .platform-nav-icon { width: 18px; height: 18px; flex: none }
 .platform-nav-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis }
 .platform-nav-badge { display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 999px; background: rgb(var(--c-fore) / .08); color: var(--text); font-size: 11px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums }
@@ -83,7 +85,8 @@
   .platform-sidebar { align-items: center }
   .platform-sidebar-brand { padding: 4px 0 8px }
   .platform-sidebar-brand .workspace-wordmark, .platform-sidebar-scope { display: none }
-  .platform-shell .platform-nav-item { justify-content: center; width: 44px; min-height: 44px; padding: 0 }
+  .platform-shell .platform-nav-item { justify-content: center }
+  .platform-shell .platform-nav-item:not(:where([data-ui-button])) { width: 44px; min-height: 44px; padding: 0 }
   .platform-nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
   .platform-nav-badge { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 10px }
 }
@@ -99,8 +102,9 @@
   .platform-sidebar-brand { display: none }
   .platform-shell nav.platform-sidebar-nav { flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none }
   .platform-shell nav.platform-sidebar-nav::-webkit-scrollbar { display: none }
-  .platform-shell .platform-nav-item { flex: none; width: auto; min-height: 44px; padding: 0 12px }
-  .platform-shell .platform-nav-item[aria-current="page"] { box-shadow: inset 0 -3px 0 var(--brand-600) }
+  .platform-shell .platform-nav-item { flex: none; width: auto }
+  .platform-shell .platform-nav-item:not(:where([data-ui-button])) { min-height: 44px; padding: 0 12px }
+  .platform-shell .platform-nav-item[aria-current="page"]:not(:where([data-ui-button])) { box-shadow: inset 0 -3px 0 var(--brand-600) }
 }
 
 /* ── Chips de período compartidos (Resumen y Uso) ─────────────────────────── */
@@ -113,10 +117,11 @@
 .platform-admin-page .ui-kpi > div:last-child > span:has(> .platform-kpi-hint) { flex: 1 1 auto; min-width: 0 }
 .platform-kpi-hint { display: grid; gap: 4px; min-width: 0; width: 100% }
 .platform-kpi-trend { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0 }
-.platform-kpi-delta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums }
-.platform-kpi-delta[data-tone="up"] { color: var(--success, #157f3b) }
-.platform-kpi-delta[data-tone="down"] { color: var(--danger) }
-.ui-kpi.bg-gradient-to-br .platform-kpi-delta[data-tone] { color: inherit }
+.platform-kpi-delta { min-width: 0; overflow: hidden; text-overflow: ellipsis }
+.platform-kpi-delta:not(:where([data-ui-button])) { white-space: nowrap; font-variant-numeric: tabular-nums }
+.platform-kpi-delta[data-tone="up"]:not(:where([data-ui-button])) { color: var(--success, #157f3b) }
+.platform-kpi-delta[data-tone="down"]:not(:where([data-ui-button])) { color: var(--danger) }
+.ui-kpi.bg-gradient-to-br .platform-kpi-delta[data-tone]:not(:where([data-ui-button])) { color: inherit }
 .platform-kpi-empty { font-size: 15px; font-weight: 600; color: var(--text-muted) }
 .platform-sparkline { flex: none; overflow: visible }
 .platform-sparkline rect { fill: currentColor; opacity: .8 }
@@ -143,14 +148,14 @@
   gap: var(--ui-control-gap-lg, 12px);
   margin-bottom: var(--ui-space-3, 12px);
 }
-.platform-admin-coupon > label { flex: 1 1 9rem; min-width: 0 }
-.platform-admin-coupon > label:first-child { flex: 1 1 12rem }
-.platform-admin-coupon > label.platform-admin-coupon-note { flex: 1 1 100% }
-.platform-admin-coupon > button { flex: 0 0 auto }
+.platform-admin-coupon > label, .platform-admin-coupon > .ui-form-fields > label { flex: 1 1 9rem; min-width: 0 }
+.platform-admin-coupon > label:first-child, .platform-admin-coupon > .ui-form-fields > label:first-child { flex: 1 1 12rem }
+.platform-admin-coupon > label.platform-admin-coupon-note, .platform-admin-coupon > .ui-form-fields > label.platform-admin-coupon-note { flex: 1 1 100% }
+.platform-admin-coupon > button, .platform-admin-coupon > .ui-form-fields > .dialog-actions { flex: 0 0 auto }
 
 /* ── Listas densas en la superficie del panel ───────────────────────────── */
 @media(min-width:761px){
-  .platform-admin-page .list-actions :is(button, a) { min-height: 32px }
+  .platform-admin-page .list-actions :is(button, a):not(:where([data-ui-button])) { min-height: 32px }
 }
 .platform-admin-page .list-row { padding-block: 4px }
 .platform-admin-page .list-actions { justify-content: safe flex-end; overflow-x: auto; scrollbar-width: none }
@@ -175,7 +180,8 @@
   .platform-admin-top .ui-page-header-subtitle { margin-top: 2px }
   .platform-admin-top .header-actions { width: auto; flex: none }
   .platform-admin-actions { width: auto }
-  .platform-admin-actions .secondary { flex: none; min-height: 44px; min-width: 44px; padding: 0; justify-content: center }
+  .platform-admin-actions .secondary { flex: none; justify-content: center }
+  .platform-admin-actions .secondary:not(:where([data-ui-button])) { min-height: 44px; min-width: 44px; padding: 0 }
   .platform-admin-action-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
   .platform-admin-table-wrap { display: none; }
 }

@@ -1,4 +1,7 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {Subtabs} from '../ui/navigation';
+
 import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction} from 'react';
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {ActorAvatar, safePhoto} from '../actor-identity';
@@ -9,11 +12,14 @@ import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
 import {count, currentForecastMonth} from '../forecast-data';
 import {useForecast} from '../use-forecast';
-import {Aviso, FilaDato, SearchField, Subtabs} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {EmptyBlock, ErrorBlock, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar, ListPage} from '../ui-v2';
 import {notify} from '../feedback';
 import type {Account, AccountTransfer, Invoice, ModalKind, PaymentRecord, User} from '../workspace-types';
+import {Button as ScaleButton} from "../ui/button";
+
 
 // Finanzas (arquetipo dashboard + listas): disponibilidad, cuentas, transferencias,
 // cobros pendientes, cobros registrados y conciliación por extracto.
@@ -77,7 +83,7 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
         <h3 id="finance-salaries-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Caja y resultado esperados del mes y gasto del personal al cierre, por moneda; no incluye pagos ni comisiones registrados.">Proyección</h3>
         <p className="m-0 min-w-0 text-xs text-mute">Cierre del mes, por moneda.</p>
       </div>
-      {navigate ? <button className="text-button" onClick={() => navigate('Previsión')}>Ver más</button> : null}
+      {navigate ? <ScaleButton className="text-button" onClick={() => navigate('Previsión')} variant="ghost">Ver más</ScaleButton> : null}
     </div>
     {error ? <ErrorBlock title="No se pudo cargar la proyección" description={error} onRetry={() => reload()}/>
     : !data ? <LoadingBlock label="Cargando proyección…" lines={2}/>
@@ -100,7 +106,7 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
         </div>
       </div> : null}
     </div>
-    : <EmptyBlock compact title="Sin salarios fijos cargados para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo para ver el gasto esperado al cierre." action={navigate ? <button className="secondary" onClick={() => navigate('Equipo')}>Ver equipo</button> : undefined}/>}
+    : <EmptyBlock compact title="Sin salarios fijos cargados para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo para ver el gasto esperado al cierre." action={navigate ? <ScaleButton className="secondary" onClick={() => navigate('Equipo')} variant="secondary">Ver equipo</ScaleButton> : undefined}/>}
   </section>;
 }
 
@@ -162,8 +168,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     ? <span className="inline-flex flex-wrap items-baseline gap-x-2">{Array.from(totals).map(([currency, total]) => <span key={currency}>{moneyKpi(total, currency)}</span>)}</span>
     : null;
 
-  return <ListPage aria-label="Finanzas" primaryAction={<button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>}>
-    {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Aviso> : null}
+  return <ListPage aria-label="Finanzas" primaryAction={<ScaleButton className="primary" onClick={() => openPayment()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar cobro</ScaleButton>}>
+    {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <ScaleButton type="button" className="text-button" onClick={retry} variant="ghost">Reintentar</ScaleButton></Aviso> : null}
 
     {/* Primer pliegue (#142): balances, cobros urgentes y proyección, sin mezclar todo en una vista. */}
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
@@ -171,8 +177,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0"><h3 id="finance-accounts-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Disponibilidad por cuenta y custodia.">Balances</h3></div>
           <div className="flex flex-wrap items-center gap-1">
-            <button className="text-button" onClick={() => setModal('account')}><Plus size={14} aria-hidden="true"/>Cuenta</button>
-            <button className="text-button" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button>
+            <ScaleButton className="text-button" onClick={() => setModal('account')} variant="ghost"><Plus size={14} aria-hidden="true"/>Cuenta</ScaleButton>
+            <ScaleButton className="text-button" onClick={() => setModal('transfer')} variant="ghost"><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</ScaleButton>
           </div>
         </div>
         {availability.size ? <p className="m-0 min-w-0 truncate text-xs text-mute" title="Saldo actual de cuentas activas por moneda.">Disponible: <span className="font-semibold text-fore">{multiCurrency(availability)}</span></p> : null}
@@ -197,13 +203,13 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
             </div>
           </article>)}
-        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<button className="primary" onClick={() => setModal('account')}><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</button>}/>}
+        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<ScaleButton className="primary" onClick={() => setModal('account')} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</ScaleButton>}/>}
       </section>
 
       <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-urgent-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0"><h3 id="finance-urgent-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Facturas vencidas o que vencen dentro de 7 días con saldo pendiente.">Cobros urgentes</h3></div>
-          {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
+          {navigate ? <ScaleButton className="text-button" onClick={() => navigate('Mora')} variant="ghost">Ver mora</ScaleButton> : null}
         </div>
         {urgent.length
           ? <>
@@ -216,11 +222,11 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
                 </div>
                 <div className="flex min-w-0 items-center justify-between gap-2 text-[11px] text-mute">
                   <span className="min-w-0 truncate" title={`${invoice.number} · ${listDateFull(invoice.due_on) || 'sin fecha de vencimiento'}`}>{invoice.number} · vence <span className={dueTone(invoice.due_on) ? 'font-semibold text-warn' : 'text-fore'}>{listDateShort(invoice.due_on) || 'sin fecha'}</span></span>
-                  <button className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}>Cobrar</button>
+                  <ScaleButton className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)} variant="ghost">Cobrar</ScaleButton>
                 </div>
               </div>)}
             </div>
-            {urgent.length > 5 ? <button className="text-button" onClick={() => { setInvoiceFilter('overdue'); document.getElementById('finance-invoices-title')?.scrollIntoView({block: 'start'}); }}>Ver las {urgent.length} urgentes</button> : null}
+            {urgent.length > 5 ? <ScaleButton className="text-button" onClick={() => { setInvoiceFilter('overdue'); document.getElementById('finance-invoices-title')?.scrollIntoView({block: 'start'}); }} variant="ghost">Ver las {urgent.length} urgentes</ScaleButton> : null}
           </>
           : <EmptyBlock compact title="Nada urgente por cobrar." description="Cuando una factura venza o esté por vencer dentro de 7 días y tenga saldo, aparece acá."/>}
       </section>
@@ -235,15 +241,15 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           <p className="m-0 min-w-0 truncate text-xs text-mute" title={invoiceHasMore ? `Sobre las ${invoices.length} facturas cargadas; “Ver todas las facturas” completa el total` : 'Facturas emitidas o parciales con saldo pendiente.'}>{receivable.pendingCount ? <>Por cobrar: <span className="font-semibold text-fore">{multiCurrency(receivable.totals)}</span> · {receivable.pendingCount} factura{receivable.pendingCount === 1 ? '' : 's'}</> : 'Sin saldo pendiente.'}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
-          <button className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</button>
+          {navigate ? <ScaleButton className="text-button" onClick={() => navigate('Mora')} variant="ghost">Ver mora</ScaleButton> : null}
+          <ScaleButton className="text-button" onClick={() => setModal('invoice')} variant="ghost"><Plus size={14} aria-hidden="true"/>Factura</ScaleButton>
         </div>
       </div>
       <FilterToolbar summary={`${visibleInvoices.length} de ${invoices.length}`}>
         <div className="flex flex-wrap gap-1">
           {INVOICE_FILTERS.map(([value, label]) => <button key={value} type="button" className={invoiceFilter === value ? 'choice active' : 'choice'} onClick={() => setInvoiceFilter(value)}>{label}</button>)}
         </div>
-        <SearchField className="w-full sm:w-64 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" ariaLabel="Buscar factura o cliente" value={invoiceSearch} onChange={(event: ChangeEvent<HTMLInputElement>) => setInvoiceSearch(event.target.value)} placeholder="Número o cliente…"/>
+        <SearchField className="w-full sm:w-64 md:[&>button]:h-7 md:[&>button]:w-7" label="Buscar factura o cliente" hideLabel value={invoiceSearch} onChange={(nextSearchValue)=>setInvoiceSearch(nextSearchValue)} placeholder="Número o cliente…"/>
       </FilterToolbar>
       {visibleInvoices.length
         ? <ListGrid label="Cobros pendientes" template={INVOICE_TEMPLATE} columns={INVOICE_COLUMNS} minWidthClass="min-w-[60.5rem]">
@@ -254,12 +260,12 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
             <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? <MoneyText valor={pendingOf(invoice)} currency={invoice.currency} tono={invoice.status === 'overdue' ? 'bad' : ''} className="text-[13.5px]"/> : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
             <div className="min-w-0 text-right"><MoneyText valor={invoice.total} currency={invoice.currency} tono="mute" className="!font-normal"/></div>
             <div className="flex min-w-0 items-center justify-end gap-1">
-              {pendingOf(invoice) > 0 ? <button className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
+              {pendingOf(invoice) > 0 ? <ScaleButton className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)} variant="ghost"><Plus size={14} aria-hidden="true"/>Registrar cobro</ScaleButton> : null}
             </div>
           </ListRow>)}
         </ListGrid>
-        : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'} action={invoices.length ? <button className="secondary" onClick={() => { setInvoiceFilter('all'); setInvoiceSearch(''); }}>Limpiar filtros</button> : <button className="primary" onClick={() => setModal('invoice')}><Plus size={16} aria-hidden="true"/>Crear factura</button>}/>}
-      {invoiceHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllInvoices().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todas las facturas.'}))}>Ver todas las facturas</button></div> : null}
+        : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'} action={invoices.length ? <ScaleButton className="secondary" onClick={() => { setInvoiceFilter('all'); setInvoiceSearch(''); }} variant="secondary">Limpiar filtros</ScaleButton> : <ScaleButton className="primary" onClick={() => setModal('invoice')} variant="primary"><Plus size={16} aria-hidden="true"/>Crear factura</ScaleButton>}/>}
+      {invoiceHasMore ? <div className="flex justify-end"><ScaleButton className="secondary" type="button" onClick={() => void loadAllInvoices().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todas las facturas.'}))} variant="secondary">Ver todas las facturas</ScaleButton></div> : null}
     </section>
 
     {/* Historial en tabs (#142): transferencias, cobros registrados y movimientos. */}
@@ -291,7 +297,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               </ListRow>;
             })}
           </ListGrid>
-          : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza." action={activeAccounts >= 2 ? <button className="secondary" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button> : undefined}/>}
+          : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza." action={activeAccounts >= 2 ? <ScaleButton className="secondary" onClick={() => setModal('transfer')} variant="secondary"><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</ScaleButton> : undefined}/>}
       </section></div>
 
       <div hidden={historyTab !== 'cobros'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-payments-title">
@@ -308,8 +314,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               <div className="flex min-w-0 items-center justify-end gap-1"><ReceiptReversal payment={payment} refresh={loadFinance}/></div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button> : undefined}/>}
-        {paymentHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllPayments().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todos los cobros.'}))}>Ver todos los cobros</button></div> : null}
+          : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <ScaleButton className="primary" onClick={() => openPayment()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar cobro</ScaleButton> : undefined}/>}
+        {paymentHasMore ? <div className="flex justify-end"><ScaleButton className="secondary" type="button" onClick={() => void loadAllPayments().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todos los cobros.'}))} variant="secondary">Ver todos los cobros</ScaleButton></div> : null}
       </section></div>
 
       <div hidden={historyTab !== 'movimientos'}><ReconciliationWorkspace accounts={accounts}/></div>

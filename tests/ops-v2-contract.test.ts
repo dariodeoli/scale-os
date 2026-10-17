@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
@@ -106,7 +107,7 @@ assert.match(studio,/<label className="flex h-11 min-w-11 items-center justify-c
 assert.match(studio,/\[--studio-cols:minmax\(13rem,1\.5fr\)_/,'la plantilla compartida aloja la selección dentro de la celda de la reserva');
 const capabilities=read('app/capabilities.ts');
 assert.match(capabilities,/studioReservations: 50/,'el tope del lote del estudio queda declarado');
-assert.match(studio,/\^\\d\{4\}-\(0\[1-9\]\|1\[0-2\]\)\$/,'el mes del estudio se valida antes de aplicarlo');
+assert.match(studio,/useTemporalFilter\([^\n]+value=>validateMonth\(value\)\?value:null\)/,'el mes del estudio conserva el borrador y sólo aplica un mes civil válido');
 
 // ── Producción (tablero, Mi día, calendario, lista y lotes).
 assert.match(board,/export const statuses/,'el diccionario de etapas sigue siendo la fuente única');
@@ -165,8 +166,8 @@ assert.match(productionSection,/boardVisibleWindow\(columns,viewport\)/,'el indi
 assert.match(productionSection,/data-board-window/,'el indicador se marca para medirlo');
 assert.match(productionSection,/data-board-prev/,'la flecha anterior del riel existe');
 assert.match(productionSection,/data-board-next/,'la flecha siguiente del riel existe');
-assert.match(productionSection,/aria-label="Ver etapas anteriores"/,'la flecha anterior se anuncia');
-assert.match(productionSection,/aria-label="Ver etapas siguientes"/,'la flecha siguiente se anuncia');
+assert(actionElements(productionSection).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Ver etapas anteriores'&&action.attribute('onClick')==='()=>scrollBoard(-1)'),'la flecha anterior se anuncia');
+assert(actionElements(productionSection).some(action=>action.kind==='IconButton'&&action.attribute('label')==='Ver etapas siguientes'&&action.attribute('onClick')==='()=>scrollBoard(1)'),'la flecha siguiente se anuncia');
 assert.match(productionSection,/boardWindowLabel\(boardWindow,statuses\.length\)/,'la etiqueta dice cuántas de las 7 etapas se ven');
 assert.match(productionSection,/prefers-reduced-motion/,'el avance del riel respeta la preferencia de movimiento');
 assert.match(productionSection,/Cargando órdenes…/,'la primera carga no se anuncia como 0 órdenes');
@@ -187,7 +188,7 @@ assert.match(inventory,/min-w-\[8rem\] flex-1 lg:max-w-72/,'la búsqueda del inv
 assert.match(inventory,/visible\.length\} de \{items\.length\}\{updatedAt/,'el contador compacto dice visibles de total');
 assert.match(inventory,/title=\{`Mostrando \$\{visible\.length\} de \$\{items\.length\} equipos/,'el detalle del contador viaja en el title');
 assert.match(inventory,/onAddValue=\{context\?\.can_manage&&itemWithoutValue\?/,'el valor ausente ofrece la edición de un equipo');
-assert.match(inventory,/>Agregar valor<\/button>/,'el CTA del valor se nombra "Agregar valor"');
+assert(actionElements(inventory).some(action=>action.children==='Agregar valor'&&action.attribute('onClick')==='onAddValue'&&action.attribute('variant')==='ghost'),'el CTA Agregar valor sigue disponible y conserva su callback de edición');
 assert.match(inventory,/Todavía no hay equipos en el inventario\./,'el catálogo vacío tiene su estado con CTA');
 assert.match(inventory,/No hay equipos que coincidan con la búsqueda\./,'el filtro sin resultados se distingue del catálogo vacío');
 assert.match(inventory,/>Limpiar búsqueda<\/Button>/,'el filtro sin resultados ofrece limpiar');
@@ -266,7 +267,7 @@ assert.match(projectCard,/Piezas del proyecto/,'el detalle lista las piezas del 
 for(const source of [projects,projectCard])assert.doesNotMatch(source,/truncate[^>]*(CeldaMoneda|listDate(Short|Full))\b/,'proyectos no recorta montos ni fechas');
 
 // ── Historial de trabajo (feed de auditoría, tomado de PLT).
-assert.match(history,/from 'owncoding-ui'/,'el historial usa la librería');
+assert(actionElements(history).length>0,'el historial compone acciones canónicas importadas de la biblioteca local');
 assert.match(history,/from '\.\/ui-v2'/,'el historial usa las primitivas v2 (carga/vacío/error/aviso)');
 assert.match(history,/LoadingBlock/);assert.match(history,/EmptyBlock/);assert.match(history,/ErrorBlock/);
 assert.match(history,/const managers=roleCan\('role','work-orders\.manage'\)|const managers=roleCan\(role,'work-orders\.manage'\)/,'el historial completo sigue gateado por capacidad');
@@ -283,10 +284,17 @@ assert.match(history,/export function InternalTasks/,'InternalTasks sigue en el 
 for(const [name,source] of [['inventario',inventory],['estudio',studio],['tablero',board],['planificador',planner],['proyectos',projects],['ficha de proyecto',projectCard],['producción',productionSection],['historial',history]] as const){
  for(const line of source.split('\n'))if(line.includes('truncate'))assert(line.includes('title='),`${name}: cada texto recortado lleva title en mobile`);
 }
-for(const [name,source] of [['inventario',inventory],['estudio',studio],['ficha de proyecto',projectCard]] as const){
+for(const [name,source] of [['estudio',studio],['ficha de proyecto',projectCard]] as const){
  assert.match(source,/const ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:/,`${name}: acciones de ícono de 44 px en mobile`);
 }
-assert.match(inventory,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas de inventario son táctiles en mobile');
+for(const [name,desktop] of [['ICON_TARGETS','8'],['ROW_ICON_TARGETS','7']] as const){
+ const value=inventory.match(new RegExp(`const ${name}='([^']+)'`))?.[1];assert(value);
+ assert(!value.includes('[&>button]:'),'square sizing never applies to text actions');
+ for(const selector of ['[&>button[data-ui-icon-button]]','[&>button[aria-haspopup=menu]]'])for(const dimension of ['h','w']){
+  assert(value.split(' ').includes(`${selector}:${dimension}-11`),'native menu and canonical icons retain 44px mobile targets');
+  assert(value.split(' ').includes(`md:${selector}:${dimension}-${desktop}`),'desktop icon geometry is preserved');
+ }
+}
 assert.match(studio,/const ROW_ICON_TARGETS='\[&>button\]:h-11 \[&>button\]:w-11 md:\[&>button\]:h-7 md:\[&>button\]:w-7'/,'las filas del estudio son táctiles en mobile');
 assert.match(board,/role="img" aria-label=\{`Mover \$\{order\.title\}`\}/,'el ⋮⋮ se anuncia como señal de movimiento (la tarjeta entera arrastra)');
 assert.match(planner,/Subtabs[^>]*\[&>button\]:min-h-11 md:\[&>button\]:min-h-9/,'los subtabs del planificador son táctiles en mobile');
@@ -314,7 +322,8 @@ assert.match(planner,/label className="flex h-11 min-w-11 items-center justify-c
 assert.match(planner,/flex min-h-11 min-w-0 flex-col justify-center text-left/,'abrir una pieza desde la lista es táctil en mobile');
 assert.match(projectCard,/inline-flex min-h-11 items-center whitespace-nowrap text-\[11\.5px\] font-semibold text-fono-light hover:underline md:min-h-0/,'el enlace «Abrir Drive» del listado es táctil en mobile');
 assert.match(planner,/grid min-h-11 gap-0\.5 rounded-md border border-fono\/30[^"]*min-\[769px\]:min-h-0/,'las piezas del calendario son táctiles en mobile');
-assert.match(planner,/<input type="month"[\s\S]{0,200}?className="min-h-11"/,'el selector de mes mide 44 px');
+assert.match(planner,/import \{InputControl\} from '\.\/ui\/input-control'/,'el mes usa la fachada local con semántica temporal');
+assert.match(planner,/<InputControl type="month"[\s\S]{0,200}?className="min-h-11"/,'el selector de mes mide 44 px');
 const prodFixtures=read('build-tools/visual-harness/fixtures/ops-produccion-proyectos.mjs');
 assert.match(prodFixtures,/id: 'produccion-calendario'/,'el calendario del planificador tiene fixture propio');
 

@@ -1,4 +1,12 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FieldLabel as Label} from './ui/field';
+
+import {validateMonth} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
+import {InputControl as Input,InputControl} from './ui/input-control';
 /**
  * Estudio (dominio OPS) — contenido v2 (campaña #41, spec #44).
  *
@@ -7,7 +15,10 @@
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Input,Label,Nota,SearchField,fechaLista} from 'owncoding-ui';
+import {fechaLista} from 'owncoding-ui';
+import {IconAction} from "./ui/icon-action";
+import {Button} from "./ui/button";
+import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SelectCustom} from './profile-controls';
 import {notify} from './feedback';
@@ -19,6 +30,8 @@ import {BATCH_LIMITS, limitSelection} from './capabilities';
 import {STUDIO_PRODUCTION_TYPES,studioCanManageReservation,studioMonthGrid,studioProductionTypeLabel,studioReservationsOverlap,type StudioContext as Context,type StudioProductionType as ProductionType,type StudioReservation,type StudioSpace} from './studio-data';
 import {opsLocalTime,opsUtcTime} from './ops-time';
 import {useStudioCatalog} from './use-studio-data';
+import {Button as ScaleButton} from "./ui/button";
+
 
 // El contrato de datos y las funciones puras viven en `studio-data.ts`.
 // Una sola plantilla para el encabezado y las filas (ListGrid/ListRow). La selección
@@ -38,7 +51,7 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 
 export function StudioWorkspace({role}:{role:string}){return ['owner','admin','management','production','finance','editor','viewer','sales','collaborator'].includes(role)?<StudioPanel/>:null;}
 function StudioPanel(){
- const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7));
+ const [month,,monthDraft,setMonthDraft]=useTemporalFilter(()=>opsLocalTime(new Date()).slice(0,7),value=>validateMonth(value)?value:null);
  const [refresh,setRefresh]=useState(0),[editSpace,setEditSpace]=useState<StudioSpace|'new'|null>(null),[editReservation,setEditReservation]=useState<StudioReservation|'new'|null>(null),[cancel,setCancel]=useState<StudioReservation|null>(null),[busy,setBusy]=useState(false);
  const {context,spaces,reservations,loading,error:loadError}=useStudioCatalog(month,refresh);
  const [actionError,setError]=useState('');
@@ -112,21 +125,21 @@ function StudioPanel(){
  </>:undefined;
  const showReservations=Boolean(spaces.length||reservations.length);
  const toolbar=!loading&&!error&&showReservations?<FilterToolbar className="mb-0" summary={`${shown.length} de ${reservations.length} reserva${reservations.length===1?'':'s'}`}>
-  <SearchField className="w-full sm:w-64" ariaLabel="Buscar reserva" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Reserva, espacio, proyecto o persona…"/>
+  <SearchField className="w-full sm:w-64" label="Buscar reserva" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Reserva, espacio, proyecto o persona…"/>
   <div className="w-full sm:w-52"><SelectCustom label="Espacio" choices={spaceChoices} value={spaceFilter} onChange={setSpaceFilter}/></div>
   <div className="w-full sm:w-44"><SelectCustom label="Estado" choices={statusChoices} value={statusFilter} onChange={setStatusFilter}/></div>
-  <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
-  {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters}>Limpiar filtros</button>:null}
-  {visibleSelectable.length?<button type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations}>Seleccionar visibles</button>:null}
+  <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={monthDraft} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setMonthDraft(event.target.value)}/></div>
+  {filtersActive?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters} variant="ghost">Limpiar filtros</ScaleButton>:null}
+  {visibleSelectable.length?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations} variant="ghost">Seleccionar visibles</ScaleButton>:null}
  </FilterToolbar>:undefined;
  const bulkBar=!loading&&!error?<BulkBar count={bulk.count} total={BATCH_LIMITS.studioReservations} label="seleccionada" onClear={bulk.clear}>
-  <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)}>Cancelar</button>
+  <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)} variant="secondary">Cancelar</ScaleButton>
  </BulkBar>:undefined;
  const rowTitle=(reservation:StudioReservation)=>`${reservation.space_name}${reservation.space_scenario?` · ${reservation.space_scenario}`:''} · ${studioProductionTypeLabel(reservation.production_type)}`;
  const responsibles=(reservation:StudioReservation)=>reservation.responsible_members.map(person=>person.name).join(', ');
  const canAct=(reservation:StudioReservation)=>Boolean(context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved');
  const emptyReservations=<EmptyState compact icon="calendar" title="No hay reservas en este mes." description="Elegí un espacio y una franja para reservarlo." action={canReserve&&activeSpaces.length?<Button type="button" onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:undefined}/>;
- const noMatches=<EmptyState compact icon="filter" title="Ninguna reserva coincide con los filtros." description="Probá con otro espacio, estado o búsqueda." action={<button type="button" className="secondary" onClick={clearFilters}>Limpiar filtros</button>}/>;
+ const noMatches=<EmptyState compact icon="filter" title="Ninguna reserva coincide con los filtros." description="Probá con otro espacio, estado o búsqueda." action={<ScaleButton type="button" className="secondary" onClick={clearFilters} variant="secondary">Limpiar filtros</ScaleButton>}/>;
  return <ListPage aria-label="Estudio" primaryAction={primaryAction} toolbar={toolbar} bulk={bulkBar}>
   {loading?<Card className="min-w-0"><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>:error?<Card className="min-w-0"><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>:<>
   {actionError?<Aviso tono="error">{actionError}</Aviso>:null}
@@ -141,14 +154,14 @@ function StudioPanel(){
      <div className="flex min-w-0 items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-[13px] font-semibold text-fore" title={reservation.title}>{reservation.title}</b><p className="m-0 truncate text-xs text-mute" title={rowTitle(reservation)}>{rowTitle(reservation)}</p></div><StateChip tone={reservation.status==='reserved'?'info':'mute'}>{reservation.status==='reserved'?'Reservada':'Cancelada'}</StateChip></div>
      <p className="m-0 text-xs leading-5 tabular-nums text-mute">{dateTime(reservation.starts_at)} → {dateTime(reservation.ends_at)}</p>
      <div className="grid grid-cols-1 gap-1 text-xs text-mute"><p className="m-0 truncate" title={reservation.project_name||'Sin proyecto vinculado'}>Proyecto: {reservation.project_name||'Sin proyecto vinculado'}</p><p className="m-0 truncate" title={responsibles(reservation)}>Responsables: {responsibles(reservation)}</p></div>
-     {(reservationSelectable(reservation)||canAct(reservation))?<div className="flex min-h-11 items-center justify-between gap-2 border-t border-ink-600/60 pt-2"><span>{reservationSelectable(reservation)?<label className="flex min-h-11 items-center gap-2 text-xs text-mute"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={bulk.has(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/><span>Seleccionar</span></label>:null}</span>{canAct(reservation)?<span className={`flex items-center gap-1 ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></span>:null}</div>:null}
+     {(reservationSelectable(reservation)||canAct(reservation))?<div className="flex min-h-11 items-center justify-between gap-2 border-t border-ink-600/60 pt-2"><span>{reservationSelectable(reservation)?<label className="flex min-h-11 items-center gap-2 text-xs text-mute"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={bulk.has(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/><span>Seleccionar</span></label>:null}</span>{canAct(reservation)?<span className={`flex items-center gap-1 ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></span>:null}</div>:null}
     </article>)}
     {!reservations.length?emptyReservations:!shown.length?noMatches:null}
    </div>
    <div data-list="studio-reservations" className="hidden min-w-0 md:block">
     {shown.length?<ListGrid label="Reservas del estudio" template={RESERVATION_TEMPLATE} columns={RESERVATION_COLUMNS} minWidthClass="min-w-[60rem]" pinnedActions className={RESERVATION_COLS}>
      {shown.map(reservation=><ListRow template={RESERVATION_TEMPLATE} className="content-center" key={reservation.id}>
-      <span role="cell" className="flex min-w-0 items-center gap-2">{reservationSelectable(reservation)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote"><input type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={bulk.has(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/></label>:null}<span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={reservation.title}>{reservation.title}</b><small className="truncate text-[11px] text-mute" title={rowTitle(reservation)}>{rowTitle(reservation)}</small></span></span>
+      <span role="cell" className="flex min-w-0 items-center gap-2">{reservationSelectable(reservation)?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar reserva para operar en lote"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={bulk.has(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/></label>:null}<span className="flex min-w-0 items-baseline gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={reservation.title}>{reservation.title}</b><small className="truncate text-[11px] text-mute" title={rowTitle(reservation)}>{rowTitle(reservation)}</small></span></span>
       <span role="cell" className={`${CELL} whitespace-nowrap tabular-nums text-mute`}>{dateTime(reservation.starts_at)} → {dateTime(reservation.ends_at)}</span>
       <span role="cell" className={`${CELL} truncate text-mute`} title={reservation.project_name||'Sin proyecto vinculado'}>{reservation.project_name||'Sin proyecto vinculado'}</span>
       <span role="cell" className={`${CELL} truncate text-mute`} title={responsibles(reservation)}>{responsibles(reservation)}</span>
@@ -183,7 +196,7 @@ function StudioReservationForm({context,spaces,reservations,record,done}:{contex
  const [members,setMembers]=useState<string[]>(record?.responsible_members.map(person=>String(person.id))||(context.role==='production'?[String(context.user_id)]:[]));
  const toggle=(id:string)=>setMembers(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]);
  const [startDate='',startTime='']=(record?opsLocalTime(record.starts_at):'').split('T'),[endDate='',endTime='']=(record?opsLocalTime(record.ends_at):'').split('T');
- const responsibles=<fieldset className="grid gap-2 sm:col-span-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Responsables · {members.length} de {BATCH_LIMITS.reservationResponsibles}</legend><div className="grid gap-1 sm:grid-cols-2">{context.members.map(person=><label className="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore md:min-h-0" key={person.id}><input type="checkbox" className="h-6 w-6 p-0 accent-fono" checked={members.includes(String(person.id))} disabled={members.length>=BATCH_LIMITS.reservationResponsibles&&!members.includes(String(person.id))} onChange={()=>toggle(String(person.id))}/><ActorIdentity name={person.name} photoUrl={person.photo_url} verified/></label>)}</div>{members.length>=BATCH_LIMITS.reservationResponsibles?<Nota tono="warn" compact>El lote admite hasta {BATCH_LIMITS.reservationResponsibles} responsables: quitá uno para sumar otro.</Nota>:null}</fieldset>;
+ const responsibles=<fieldset className="grid gap-2 sm:col-span-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Responsables · {members.length} de {BATCH_LIMITS.reservationResponsibles}</legend><div className="grid gap-1 sm:grid-cols-2">{context.members.map(person=><label className="flex min-h-11 items-center gap-2 rounded-lg border border-ink-600/60 px-3 py-2 text-[13px] text-fore md:min-h-0" key={person.id}><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" checked={members.includes(String(person.id))} disabled={members.length>=BATCH_LIMITS.reservationResponsibles&&!members.includes(String(person.id))} onChange={()=>toggle(String(person.id))}/><ActorIdentity name={person.name} photoUrl={person.photo_url} verified/></label>)}</div>{members.length>=BATCH_LIMITS.reservationResponsibles?<Nota tono="warn" compact>El lote admite hasta {BATCH_LIMITS.reservationResponsibles} responsables: quitá uno para sumar otro.</Nota>:null}</fieldset>;
  return <Editor label="Guardar reserva" fields={[
   {key:'title',label:'Nombre de la reserva',section:'Reserva',wide:true,maxLength:160,validate:value=>value.trim().length<2?'Ingresá al menos 2 caracteres.':null},
   {key:'space',label:'Espacio',section:'Reserva',choices:spaces.filter(item=>item.active||String(item.id)===String(record?.space_id)).map(item=>({value:String(item.id),label:item.scenario?item.name+' · '+item.scenario:item.name}))},
