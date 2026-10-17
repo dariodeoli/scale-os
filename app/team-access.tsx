@@ -1,7 +1,7 @@
 "use client";
 import {useState} from 'react';
 import {ChipEstado} from 'owncoding-ui';
-import {roleCan} from './capabilities';
+import {effectiveCapability} from './capabilities';
 import {api,Dialog,Editor} from './operations';
 import {completeSave} from './save-completion';
 import {TeamMember,teamRoleLabels} from './team-directory';
@@ -17,9 +17,9 @@ export const accessState=(member:TeamMember|null):AccessState=>{
  return {estado:'activo',etiqueta:'Acceso habilitado'};
 };
 
-export function TeamAccess({member,email,role,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;refresh:()=>Promise<void>;ambiguous?:boolean}){
+export function TeamAccess({member,email,role,capabilities,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;capabilities?:Record<string,boolean>;refresh:()=>Promise<void>;ambiguous?:boolean}){
  const [invite,setInvite]=useState(false);
- const manage=roleCan(role,'members.manage')&&(!ambiguous||Boolean(member));
+ const manage=effectiveCapability(role,'members.manage',capabilities)&&(!ambiguous||Boolean(member));
  const state=accessState(member);
  const canInvite=manage&&Boolean(email)&&(!member||Boolean(member.removed_at));
  return <section className="team-access" aria-label="Acceso al panel">

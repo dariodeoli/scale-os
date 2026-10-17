@@ -11,7 +11,7 @@ import {PermissionsMatrix} from './permissions-matrix';
 import {listDateShort} from './list-format';
 import {notify} from './feedback';
 import {personLabel,technicalEmail} from './field-rules';
-import {BATCH_LIMITS,canOpenPeopleWorkspace,roleCan} from './capabilities';
+import {BATCH_LIMITS,canOpenPeopleWorkspace,roleCan,effectiveCapability} from './capabilities';
 import {ActionMenu,BulkBar,CompactCard,EmptyBlock,FilterToolbar,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,ViewSwitch,useBulkSelection,type ChipTone,type CollectionView,type Column,type RecordMenuItem} from './ui-v2';
 import {teamDirectory,filterTeamEntries,teamRoleLabels,isCurrentTeamMember,type ArchivedProfile,type TeamEntry,type TeamMember,type TeamStatusFilter} from './team-directory';
 import {accessState} from './team-access';
@@ -77,7 +77,7 @@ function factsOf(entry:Entry,salaryView:boolean):Facts{
   return {key:entry.key,name:m.full_name||'Integrante sin ficha',photo:m.photo_url??null,secondary:null,email:technical?`Acceso de demostración · ${teamRoleLabels[m.role]||'Integrante'}`:m.email,emailTitle:technical?undefined:m.email,meta:[],status:{tone:'mute',label:'Sin ficha',title:'Agregá la ficha laboral para registrar fechas y pagos.'},access,memberId:String(m.id)};
 }
 
-export function PeopleWorkspace({role,currentEmail='',currentUserId=''}:{role:string;currentEmail?:string;currentUserId?:string}){
+export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId=''}:{role:string;capabilities?:Record<string,boolean>;currentEmail?:string;currentUserId?:string}){
   const {currency:defaultCurrency}=useCompanyCurrency();
   const [members,setMembers]=useState<TeamMember[]>([]),[archivedProfiles,setArchivedProfiles]=useState<ArchivedProfile[]>([]),[people,setPeople]=useState<Person[]>([]);
   const [search,setSearch]=useState(''),[teamFilter,setTeamFilter]=useState<TeamStatusFilter>('all');
@@ -91,10 +91,10 @@ export function PeopleWorkspace({role,currentEmail='',currentUserId=''}:{role:st
   // La preferencia Lista/Cuadrícula se recuerda por navegador (mismo criterio que Clientes).
   useEffect(()=>{try{const stored=localStorage.getItem(TEAM_VIEW_KEY);setView(stored==='cards'||stored==='grid'?'grid':'list');}catch{/* Preferencia opcional de la interfaz. */}},[]);
   const changeView=(next:CollectionView)=>{setView(next);try{localStorage.setItem(TEAM_VIEW_KEY,next);}catch{/* Preferencia opcional de la interfaz. */}};
-  const canManageAccess=roleCan(role,'members.manage');
+  const canManageAccess=effectiveCapability(role,'members.manage',capabilities);
   // Equipo sigue a quienes gestionan personas o ven salarios (sin listas de roles paralelas).
-  const salaryView=roleCan(role,'salary.view');
-  const allowed=canOpenPeopleWorkspace(role);
+  const salaryView=effectiveCapability(role,'salary.view',capabilities);
+  const allowed=canOpenPeopleWorkspace(role,capabilities);
   const bulk=useBulkSelection({limit:BATCH_LIMITS.members,noun:'accesos'});
   const [bulkBusy,setBulkBusy]=useState(false);
 
@@ -168,7 +168,7 @@ export function PeopleWorkspace({role,currentEmail='',currentUserId=''}:{role:st
     }
     if(canManageAccess&&(m||p))items.push({id:'access',label:'Acceso',onClick:()=>openSheet({personId:p?String(p.id):null,memberId:m?String(m.id):null,seedEmail:!p&&m&&!technicalEmail(m.email)?m.email:'',tab:'acceso'})});
     if(m&&!m.removed_at&&canManageAccess&&!isCurrentTeamMember(m,currentUserId)&&!(m.role==='owner'&&role!=='owner'))items.push({id:'revoke',label:'Quitar acceso',peligro:true,onClick:()=>setRevokeTarget(m)});
-    if(p&&canRemoveRecord('collaborators',role))items.push({id:'remove',label:'Eliminar',peligro:true,onClick:()=>setRemoveTarget({id:String(p.id),name:p.full_name})});
+    if(p&&canManageAccess&&canRemoveRecord('collaborators',role))items.push({id:'remove',label:'Eliminar',peligro:true,onClick:()=>setRemoveTarget({id:String(p.id),name:p.full_name})});
     else if(!p&&m&&canManageAccess&&(!m.active||Boolean(m.removed_at))&&!isCurrentTeamMember(m,currentUserId)&&!(m.role==='owner'&&role!=='owner'))items.push({id:'purge',label:'Eliminar',peligro:true,onClick:()=>{setPurgeError('');setPurgeTarget(m);}});
     return items;
   }
@@ -246,6 +246,7 @@ export function PeopleWorkspace({role,currentEmail='',currentUserId=''}:{role:st
     {purgeTarget?<ConfirmDialog open busy={purgeBusy} variant="danger" title="Eliminar del equipo" confirmLabel="Eliminar del equipo" description={<><strong>{personLabel(purgeTarget,'Esta persona')}</strong>{' '}dejará de aparecer en Equipo y no podrá reingresar con este acceso; sus sesiones se cierran. El historial (piezas, reservas, pagos y comentarios) se conserva, y una nueva invitación la reactiva.{purgeError?<span role="alert" className="mt-2 block font-semibold text-bad">{purgeError}</span>:null}</>} onCancel={()=>{if(!purgeBusy)setPurgeTarget(null);}} onConfirm={()=>void purgeMember()}/>:null}
     {sheet&&sheetReady?<TeamPersonSheet
       role={role}
+      capabilities={capabilities}
       currentEmail={currentEmail}
       currentUserId={currentUserId}
       person={sheetPerson}

@@ -67,6 +67,11 @@ export function roleCan(role: string | null | undefined, capability: Capability)
  return roles ? roles.includes(role) : false;
 }
 
+/** Authoritative session overrides win over role defaults; owners retain access. */
+export function effectiveCapability(role:string|null|undefined,capability:Capability,capabilities?:Record<string,boolean>){
+ return role==='owner'||(capabilities?.[capability]??roleCan(role,capability));
+}
+
 /** Tipos de la papelera del API (`record-lifecycle.js`: archiveKinds) → capacidad que los habilita. */
 export const ARCHIVE_KIND_CAPABILITIES={
  clients:'clients.manage',
@@ -86,8 +91,8 @@ export function canSeeTrash(role: string | null | undefined){
 }
 
 /** El workspace completo de Equipo es para quienes gestionan personas o ven salarios. */
-export function canOpenPeopleWorkspace(role: string | null | undefined){
- return roleCan(role, 'members.manage') || roleCan(role, 'salary.view');
+export function canOpenPeopleWorkspace(role: string | null | undefined,capabilities?:Record<string,boolean>){
+ return effectiveCapability(role,'members.manage',capabilities)||effectiveCapability(role,'salary.view',capabilities);
 }
 
 /**
