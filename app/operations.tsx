@@ -193,7 +193,8 @@ export function Editor({
   },[currentValues,form]);
   useEffect(()=>{
     if(!focusTarget||pending)return;
-    const element=fieldElements.current.get(focusTarget.key)?.querySelector<HTMLElement>('input:not(:disabled),select:not(:disabled),textarea:not(:disabled),button:not(:disabled)');
+    const container=fieldElements.current.get(focusTarget.key);
+    const element=container?.querySelector<HTMLElement>('input:not(:disabled):not([type=hidden]),textarea:not(:disabled)')||container?.querySelector<HTMLElement>('select:not(:disabled),button:not(:disabled)');
     element?.focus();setFocusTarget(null);
   },[focusTarget,pending]);
   // Cambios sin guardar (aviso al cerrar): solo cuenta lo que la persona tocó; una
