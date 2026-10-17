@@ -1,5 +1,7 @@
 # Preparación de QA integrada194
 
+Resultado posterior ejecutado: [FINAL.md](FINAL.md). Las afirmaciones de «pendiente/no ejecutado» de este documento son el estado histórico de preparación.
+
 Estado histórico inicial193; readiness actualizada a backend194 en [API194-PREP.md](API194-PREP.md). Frontend/recorrido todavía no ejecutados. Rama aislada `codex/qa-integration194`, worktree `/workspace/.worktrees/qa-integration194`, backend desde `origin/main` `2ecdc7f38f466f29a37194783726b985583a5b0e` (193). Dependencias enlazadas a las instalaciones locales existentes; no se modificaron fuentes de producto ni configuraciones compartidas.
 
 | Recurso propio | Valor |

@@ -1,5 +1,7 @@
 # Backend194 listo y casos nuevos preparados
 
+Resultado posterior ejecutado: [FINAL.md](FINAL.md). Las afirmaciones de «pendiente/no ejecutado» de este documento son el estado histórico de preparación.
+
 El integrador congeló fuente funcional `6e43d30f5363fd656c1c281750ee836957da7194` y preparó un único bump194. Se apagó exclusivamente el launcher anterior374466 y se inició `/workspace/.qa-tools/ui-final241/start-api194-root.py`, ahora apuntando directamente al backend del checkout del integrador `/workspace/.worktrees/integration194/backend` y a sus dependencias reales OwnCoding0.68.19. No se editaron sus fuentes.
 
 Readiness ejecutada: health200/database ready/release1.0.194;116 filas en schema_migrations, incluidas `20261018_client_contacts.sql` y `20261018_workspace_preferences.sql`; auth/me200 de demoA, ordinary, contractOne y contractReadonly. Datos/sesiones originales conservados. Launcher398179, PostgreSQL398194, sesión93570. Next3013 sigue reservado al integrador, sin frontend iniciado por QA. Otros servicios3008/4109/55449 intactos.

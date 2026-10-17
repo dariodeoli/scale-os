@@ -1,5 +1,7 @@
 # Runner194 preparado, todavía no ejecutado
 
+Resultado posterior ejecutado: [FINAL.md](FINAL.md). Las afirmaciones de «pendiente/no ejecutado» de este documento son el estado histórico de preparación.
+
 `browser.mjs` requiere `QA_RUN_APPROVED=1` y `QA_COMPILED_SOURCE` explícito; no inicia Next, no construye producto ni aplica migraciones. Esperar señal del integrador con SHA/BUILD_ID y API194 reiniciada sobre fuente congelada antes de ejecutar.
 
 Preparado para24 escenarios Contratos (0/1/4 plantillas y readonly0 ×390/1440 ×3temas), más6 Resumen y6 Estudio. Captura geometría y viewport con datos sintéticos; comprueba único CTA, prerequisito accesible, gestión secundaria, empty readonly, teclado/foco del selector de modelos, borrador local y cierre cancelado/descartado. El preview de modelos sólo hace GET/cancel: **no acredita importación exitosa ni persistencia de un borrador**. Ese caso con escritura local autorizada debe añadirse/separarse cuando el integrador congele el candidato y se dedique una fixture de mutación, sin contaminar los conteos0/1/4 del recorrido.

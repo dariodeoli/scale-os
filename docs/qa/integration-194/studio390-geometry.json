@@ -1,0 +1,24 @@
+{
+  "width": 390,
+  "height": 844,
+  "overflow": 0,
+  "scrollY": 0,
+  "firstReservation": {
+    "x": 37,
+    "y": 563.78125,
+    "width": 316,
+    "height": 193.84375,
+    "bottom": 757.625
+  },
+  "todayButton": {
+    "x": 37,
+    "y": 503.78125,
+    "width": 44,
+    "height": 44,
+    "bottom": 547.78125
+  },
+  "visibleTodayReservations": 2,
+  "compiledSource": "bf7ae3983582c6fd6ae36cb8c3e58aa1e3339b4b",
+  "buildId": "idq89FzslJpah3GGyKU5u",
+  "method": "Post-QA read-only DOM probe, after performance browser closed; no new screenshot or mutation."
+}

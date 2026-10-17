@@ -1,0 +1,84 @@
+{
+  "compiledSource": "bf7ae3983582c6fd6ae36cb8c3e58aa1e3339b4b",
+  "buildId": "idq89FzslJpah3GGyKU5u",
+  "releaseCommit": "e74eab6a4a50d140ce5dc887ea8f8c34cc3039e9",
+  "imagesRemainLocal": true,
+  "reason": "Repository ignores PNG QA images to keep Coolify build context small; no force-add.",
+  "screens": [
+    {
+      "path": "/tmp/scale194-focused/206-390-light.png",
+      "sha256": "1167b00739336295c3fb4288175e0eac146a03b34406522531d97defc00940c4",
+      "bytes": 56984
+    },
+    {
+      "path": "/tmp/scale194-focused/206-1440-light.png",
+      "sha256": "4144450e88ff3328e0408e92e8f9fe48e586f535fdf50ad9508647eab2e345be",
+      "bytes": 156779
+    },
+    {
+      "path": "/tmp/scale194-focused/249-390-light.png",
+      "sha256": "50a7313d4f90c8ebf23dc081c1475281c9cf871fb32e1b9b057436d8e5fe99a6",
+      "bytes": 57439
+    },
+    {
+      "path": "/tmp/scale194-focused/249-1440-light.png",
+      "sha256": "c6393722d45273ea972465f8a0ad025760540b9f54c69a43ea0f262da976dc34",
+      "bytes": 154777
+    },
+    {
+      "path": "/tmp/scale194-focused/250-ordinary-390-light.png",
+      "sha256": "12c6c71db873f1be79246259b2bf55dd385fe81673a741921d765bc8a6f1acdb",
+      "bytes": 45389
+    },
+    {
+      "path": "/tmp/scale194-focused/250-contractOne-390-light.png",
+      "sha256": "fdb72ca37bcf15e04dc2d58b9c7c853435708b74b418e6fa07a3161acb764786",
+      "bytes": 45543
+    },
+    {
+      "path": "/tmp/scale194-focused/250-demoA-390-light.png",
+      "sha256": "6f975000f1c5ca8cbc4760087e15799b2e953e84f4fea32bdc22472b04409430",
+      "bytes": 49664
+    },
+    {
+      "path": "/tmp/scale194-focused/250-contractReadonly-390-light.png",
+      "sha256": "cbfdae9613340077a1c1d03aef95a2f0f85f8e28c6ca152f3c2c2de81f2213e4",
+      "bytes": 36658
+    },
+    {
+      "path": "/tmp/scale194-contacts-locality/184-390.png",
+      "sha256": "dfa66ec403af56d643caf52e9b95a55bb1a3a4275cabca1dd7a3bf70ab6abf0f",
+      "bytes": 68045
+    },
+    {
+      "path": "/tmp/scale194-locality-final/208-390.png",
+      "sha256": "18f04587140fb558177f0b233c3d9e486881d15ae152e80bbf564b744166ab4f",
+      "bytes": 52315
+    },
+    {
+      "path": "/tmp/scale194-contract-import/first-import-management.png",
+      "sha256": "1463be5e1e76a236f0a64cc3639a22326d296c5b7f523523f1c34f26c3d1be39",
+      "bytes": 45849
+    },
+    {
+      "path": "/tmp/scale194-contract-import/draft-created.png",
+      "sha256": "cdc30464b9036b24651d2065bea1c792630acf8841527689326d697f13178d11",
+      "bytes": 61223
+    }
+  ],
+  "studioBeforeAfter": {
+    "before": {
+      "path": "/tmp/scale241-app-final/screens/390-light-estudio.png",
+      "compiledSource": "0afdbd08",
+      "historicalBaseline": true,
+      "isFinal193": false,
+      "sha256": "d92d1ee010891b18f835f65b45f80485435bce0d9fcad22f8b9f075b0be43599"
+    },
+    "after": {
+      "path": "/tmp/scale194-focused/249-390-light.png",
+      "sha256": "50a7313d4f90c8ebf23dc081c1475281c9cf871fb32e1b9b057436d8e5fe99a6",
+      "bytes": 57439
+    },
+    "comparability": "Historical 0af build vs194, not a controlled final193→194 comparison; useful visual before/after only. No performance or isolated-causality claim."
+  }
+}
