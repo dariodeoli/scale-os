@@ -75,11 +75,11 @@ Aceptar una mejora de espacio sólo si conserva: nombres y cantidades legibles, 
 | Cobertura | Estado acreditado por este informe |
 | --- | --- |
 | Fuente de los 13 módulos y subapartados | Revisada; rutas y componentes enlazados arriba. |
-| Navegador del candidato final | Pendiente del recorrido compartido de QA; no hay capturas acreditadas aquí todavía. |
-| Web/móvil/temas | Planificados por QA, sin resultados atribuidos hasta recibir el índice de evidencia. |
+| Navegador del candidato final | Build `50091b70`, v1.0.192: matriz compartida 96/96 PASS y 150/150 verificaciones visuales; ver [QA final](../qa/ui-app-241/FINAL.md). Las observaciones de captura del primer apéndice conservan su alcance previo. |
+| Web/móvil/temas | Escritorio 1440/1366 y móvil 390; claro, oscuro y contraste según las matrices y focales. No equivale a acreditar todas las acciones de cada módulo. |
 | OAuth, bancos, correo, impresión física, App Store, deploy | No ejecutados por este informe. |
 
-Cuando llegue el índice de QA, añadir observación, archivo de captura y módulo afectado; no cambiar «pendiente» por «validado» sólo porque el servidor arrancó o existe un build.
+Los índices y mediciones de QA final acreditan las correcciones; el arranque del servidor o la existencia de un build por sí solos no las acreditan.
 
 ## Backlog propuesto para decisión del integrador
 
