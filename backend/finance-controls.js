@@ -9,7 +9,14 @@ import {createUnassignedReceipt,financeError,lockFinanceMutation} from './financ
 // one day earlier in Asunción. The last alias wins in the pg row object, so the
 // wildcard stays and the date column is re-projected after it.
 const dateText=(alias,column)=>`${alias}.${column}::text as ${column}`;
-function wholeAmount(value){const raw=typeof value==='string'?value.trim():value;if((typeof raw!=='number'&&typeof raw!=='string')||(typeof raw==='string'&&!/^\d+$/.test(raw)))fail('El importe debe ser un entero positivo');const n=Number(raw);if(!Number.isSafeInteger(n)||n<=0||n>999999999999)fail('El importe debe ser un entero positivo');return n;}
+function expenseAmount(value,currency){
+ const raw=typeof value==='string'?value.trim():String(value);
+ if(!['string','number'].includes(typeof value)||raw.length>32||!/^\d+(?:\.\d{1,2})?$/.test(raw))fail(currency==='PYG'?'El importe en guaraníes debe ser un entero positivo':'El importe debe ser positivo y tener hasta dos decimales');
+ const [integer,fraction='']=raw.split('.'),cents=BigInt(integer)*100n+BigInt(fraction.padEnd(2,'0'));
+ if(cents<=0n||cents>99999999999900n)fail('El importe debe ser mayor a cero y no superar 999999999999');
+ if(currency==='PYG'&&cents%100n!==0n)fail('El importe en guaraníes debe ser un entero positivo');
+ return cents%100n===0n?String(cents/100n):`${cents/100n}.${String(cents%100n).padStart(2,'0')}`;
+}
 async function retryRecord(c,table,org,key,dateColumn){
  if(!key)return null;if(typeof key!=='string'||! /^[a-f0-9-]{36}$/.test(key))fail('Identificador de operación inválido');
  await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`${table}:${org}:${key}`]);
@@ -55,11 +62,10 @@ export async function financeControls({req,res,url,db,session,body,send}){
     const bounds=month?` and e.paid_on>=$2::date and e.paid_on<($2::date+interval '1 month')::date`:``;
     result={month,expenses:(await c.query(`select e.*,a.name as account_name,u.email as created_by_email,(select r.id from agency_expense_reversals r where r.expense_id=e.id) as reversal_id,${dateText('e','paid_on')} from agency_expenses e join bank_accounts a on a.id=e.account_id left join users u on u.id=e.created_by_user_id where e.organization_id=$1${bounds} order by e.paid_on desc,e.id desc`,month?[org,`${month}-01`]:[org])).rows};
    }else if(req.method==='POST'){
-    const b=await body(req),paid=wholeAmount(b.amount);
+    const b=await body(req),currency=option(b.currency,currencies),paid=expenseAmount(b.amount,currency);
     const category=text(b.category,80);if(!category)fail('Ingresá una categoría');
     const kind=b.kind===undefined||b.kind===null?null:option(b.kind,['fixed','variable']);
-    const retry=await retryRecord(c,'agency_expenses',org,b.requestId,'paid_on');if(retry){if(String(retry.account_id)!==id(b.accountId)||Number(retry.amount)!==paid||retry.category!==category||b.paidOn&&retry.paid_on!==date(b.paidOn))fail('El identificador ya fue usado para otro gasto',409);await c.query('commit');tx=false;send(res,200,{expense:retry,alreadyRecorded:true});return true;}
-    const currency=option(b.currency,currencies);
+    const retry=await retryRecord(c,'agency_expenses',org,b.requestId,'paid_on');if(retry){if(String(retry.account_id)!==id(b.accountId)||Number(retry.amount)!==Number(paid)||retry.category!==category||retry.currency!==currency||b.paidOn&&retry.paid_on!==date(b.paidOn))fail('El identificador ya fue usado para otro gasto',409);await c.query('commit');tx=false;send(res,200,{expense:retry,alreadyRecorded:true});return true;}
     const account=(await c.query('select * from bank_accounts where id=$1 and organization_id=$2 for update',[id(b.accountId),org])).rows[0];
     if(!account||!account.active)fail('La cuenta debe estar activa y pertenecer a la empresa');
     if(account.currency!==currency)fail('La moneda debe coincidir con la cuenta');

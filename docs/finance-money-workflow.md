@@ -48,8 +48,11 @@ explícita por separado, sin convertir esta deuda en ingreso nuevo.
 
 Los gastos conservan `POST/GET /api/agency/expenses` y su reversión existente.
 Se admite una categoría propia de hasta 80 caracteres y `requestId` UUID para
-evitar duplicaciones. El listado incorpora `reversal_id`. Se conserva el
-contrato de importes enteros de esta API.
+evitar duplicaciones. El listado incorpora `reversal_id`. Los gastos reales en
+PYG usan importes enteros; USD y las demás monedas admitidas conservan hasta
+dos decimales, sin redondear una tercera cifra. El mismo campo histórico
+`agency_expenses.amount` usa `numeric(22,2)` para conservar todos los dígitos de
+los anteriores valores `bigint`. Los gastos planificados siguen siendo enteros.
 
 `POST /api/agency/finance/account-openings` admite `{accountId,amount,openedOn,
 reason,requestId}`. Requiere permiso de cuentas y una cuenta activa sin saldo
@@ -88,6 +91,13 @@ El integrador debe montar `financeTreasury` de `backend/finance-treasury.js`
 `20261017_finance_periods_receipts.sql` al final de la cadena y agregar
 `node test-finance-periods.mjs` a las pruebas del API. No reemplazar el handler
 de balance independiente ni la previsión con un segundo ledger.
+
+La migración posterior `20261017_expense_currency_precision.sql` reconstruye
+explícitamente la vista canónica dependiente y amplía el mismo importe de gasto.
+`test-expense-currency.mjs` y `test-expense-currency-postgres.mjs` verifican la
+migración repetida, el máximo histórico de `bigint`, los centavos de un gasto
+USD y su reversión, los permisos y los cierres. Se conservan los triggers y la
+idempotencia existentes.
 
 Las pruebas focales cubren migración repetible, aislamiento, cobros libres e
 idempotencia, asociación sin duplicar caja, aplicaciones parciales, reversión,
