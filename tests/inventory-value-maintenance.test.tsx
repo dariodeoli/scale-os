@@ -1,3 +1,4 @@
+import {money as formatMoney} from '../app/money-format';
 import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
@@ -84,7 +85,7 @@ async function run(){
  act(()=>renderer.unmount());
  // Editing sends null for cleared optional fields and keeps the residual at 0.
  await act(async()=>{renderer=itemForm(baseItem);});
- assert.match(text(renderer.root),/Valor actual PYG 800/,'the edit form summarizes the computed value');
+ assert.ok(text(renderer.root).includes(`Valor actual ${formatMoney('800','PYG')}`),'the edit form summarizes the computed value with the canonical formatter');
  change('Valor de compra · Opcional','');change('Fecha de compra · Opcional','');act(()=>select('Método de depreciación').props.onChange('none'));change('Valor residual','');
  await submit();
  const cleared=writes.at(-1)!;assert.equal(cleared.method,'PATCH');assert.equal(cleared.body.purchase_value,null);assert.equal(cleared.body.purchase_date,null);assert.equal(cleared.body.useful_life_months,null);assert.equal(cleared.body.residual_value,'0');
