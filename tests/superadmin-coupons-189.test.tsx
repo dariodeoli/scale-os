@@ -164,7 +164,7 @@ test('eliminar: Google primero, palabra corta y alternativas secundarias', async
   const labels = buttons(root).map((entry) => text(entry).trim());
   assert.ok(labels.indexOf('Confirmar con Google') < labels.indexOf('Usar mi contraseña'), 'Google va primero');
   assert.ok(labels.includes('Recibir un código por correo'));
-  assert.equal(button(root, 'Confirmar con Google').props.className, 'primary');
+  assert.equal(button(root, 'Confirmar con Google').props['data-variant'], 'primary');
   act(() => button(root, 'Confirmar con Google').props.onClick());
   assert.equal(google, 1);
   assert.ok(text(renderer!.root).includes('Escribí ELIMINAR para confirmar'));

@@ -48,7 +48,7 @@ assert.match(projectCard,/<button type="button" className="text-button" onClick=
 
 // ── §15.3 Cuatro estados: vacío con acción y error con reintento.
 assert.match(board,/action=\{createOrder\?<Button type="button" onClick=\{createOrder\}><Plus size=\{16\}\/>Nueva pieza<\/Button>:undefined\}/,'el tablero vacío ofrece crear la primera pieza');
-assert.match(planner,/<EmptyCompact message=\{view==='Mi día'\?'No tenés piezas pendientes asignadas\.':'No hay piezas para esta vista\. Probá con otro mes\.'\} action=\{<button type="button" className="secondary min-h-9" onClick=\{\(\)=>navigate\('Producción'\)\}>Abrir Producción<\/button>\}\/>/,'el planificador vacío abre el tablero con el vacío compacto (#138)');
+assert.match(planner,/<EmptyCompact message=\{view==='Mi día'\?'No tenés piezas pendientes asignadas\.':'No hay piezas para esta vista\. Probá con otro mes\.'\} action=\{<Button variant="secondary" type="button" className="secondary min-h-9" onClick=\{\(\)=>navigate\('Producción'\)\}>Abrir Producción<\/Button>\}\/>/,'el planificador vacío abre el tablero con el vacío compacto (#138)');
 assert.match(planner,/className="text-button" onClick=\{\(\)=>\{setError\(''\);void load\(\)\.catch\(cause=>setError\(errorText\(cause\)\)\);\}\}>Reintentar<\/button>/,'el detalle de la pieza falla con reintento');
 assert.match(history,/action=\{!source&&navigate\?<Button type="button" variant="outline" onClick=\{\(\)=>navigate\('Producción'\)\}>Abrir Producción<\/Button>:undefined\}/,'el historial vacío ofrece una salida');
 assert.match(historySection,/navigate=\{navigate\}/,'la sección pasa la navegación');
@@ -88,7 +88,7 @@ assert.match(history,/export const INTERNAL_TASKS_WINDOW=50;/);
 assert.match(history,/export function InternalTasks\(props:EmployeeTasksProps\)/,'el dashboard se comparte con proyectos');
 const tasks=readFileSync(new URL('../app/employee-tasks.tsx',import.meta.url),'utf8');
 assert.match(tasks,/limit:'10'/,'las tareas usan páginas acotadas del API');
-assert.match(tasks,/Siguiente<\/button>/,'la ventana siguiente tiene acción explícita');
+assert.match(tasks,/Siguiente<\/Button>/,'la ventana siguiente tiene acción explícita');
 assert.match(planner,/visible\.slice\(0,100\)/,'el planificador no monta más de 100 filas');
 assert.match(planner,/Mostrando 100 de \{visible\.length\}/);
 assert.match(kanban,/\{hasMore && onLoadMore \? <button/, 'el tablero conserva «Ver más» por columna');

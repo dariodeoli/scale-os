@@ -26,15 +26,16 @@ async function harness(component:'finance-collections'|'finance-balance'){
  let renderer!:ReactTestRenderer;await act(async()=>{renderer=create(React.createElement(component==='finance-collections'?exports.FinanceCollections:exports.BalanceSection,{user}));await tick();});
  return {renderer,writes,getEditor:()=>{assert(editor);return editor;},open:async(label:string)=>{await act(async()=>{const button=renderer.root.findAllByType('button').find(button=>button.children.includes(label));assert(button,label+' exists');button.props.onClick();await tick();});return editor!;}};
 }
-async function realSubmit(props:EditorProps,currency:'USD'|'PYG',overrides:Record<string,string>={}){
+async function realSubmit(props:EditorProps,currency:'USD'|'PYG',overrides:Record<string,string>={},typedAmount='100.25',rawComponentValue=false){
  let renderer!:ReactTestRenderer;const saved:Record<string,string>[]=[];
  await act(async()=>{renderer=create(<Editor {...props} defaults={{...props.defaults,...overrides}} save={async values=>{saved.push(values);await props.save(values);}}/>);});
  try{
   assert.equal(renderer.root.findByType(AmountInput).props.value,'','new money values stay empty; zero is a placeholder');
   assert.equal(renderer.root.findByType(AmountInput).props.currency,currency);
   const input=renderer.root.findAllByType('input').find(node=>node.props.id?.endsWith('-amount'))!;assert(input);
-  assert.equal(input.props.inputMode,currency==='PYG'?'numeric':'decimal');
-  await act(async()=>{input.props.onChange({currentTarget:{value:'100.25',selectionStart:6}});await tick();});
+  const integer=props.fields.find(field=>field.key==='amount')?.integer===true;
+  assert.equal(input.props.inputMode,currency==='PYG'||integer?'numeric':'decimal');
+  await act(async()=>{if(rawComponentValue)renderer.root.findByType(AmountInput).props.onChange(typedAmount);else input.props.onChange({currentTarget:{value:typedAmount,selectionStart:typedAmount.length}});await tick();});
   await act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){},persist(){}});await tick();});
   return {saved,rendered:JSON.stringify(renderer.toJSON())};
  }finally{act(()=>renderer.unmount());}
@@ -49,7 +50,7 @@ test('real Editor permits USD cents for paid expenses and account openings while
  for(const [label,overrides,path] of [['Registrar gasto',{category:'Servicio',kind:'variable',accountId:'101',paidOn:'2026-10-17'},'/api/agency/expenses'],['Registrar saldo de apertura',{openedOn:'2026-10-17',reason:'Saldo inicial'},'/api/agency/finance/account-openings']] as const){
   const h=await harness('finance-balance');try{const props=await h.open(label);const result=await realSubmit(props,'USD',overrides);assert.equal(result.saved.length,1,label+' must accept cents');assert.equal(result.saved[0].amount,'100.25');assert.equal(h.writes[0].path,path);assert.equal(h.writes[0].body.amount,'100.25');}finally{act(()=>h.renderer.unmount());}
  }
- const h=await harness('finance-balance');try{const props=await h.open('Planificar gasto');const result=await realSubmit(props,'USD',{category:'Servicio',kind:'fixed',currency:'USD',cadence:'monthly'});assert.equal(result.saved.length,0,'planned forecast expenses retain their whole-money contract');assert.equal(h.writes.length,0);assert.match(result.rendered,/Ingresá un número entero/);}finally{act(()=>h.renderer.unmount());}
+ const h=await harness('finance-balance');try{const props=await h.open('Planificar gasto');const overrides={category:'Servicio',kind:'fixed',currency:'USD',cadence:'monthly'};assert.equal(props.fields.find(field=>field.key==='amount')?.integer,true);const result=await realSubmit(props,'USD',overrides,'100');assert.equal(result.saved.length,1,'planned forecast expenses accept whole amounts');assert.equal(result.saved[0].amount,'100');assert.equal(h.writes.length,1);assert.equal(h.writes[0].body.amount,'100');const invalid=await realSubmit(props,'USD',overrides,'100.25',true);assert.equal(invalid.saved.length,0,'schema still rejects fractional planned expenses bypassing input normalization');assert.equal(h.writes.length,1,'invalid draft never writes');assert.match(invalid.rendered,/Ingresá un número entero/);}finally{act(()=>h.renderer.unmount());}
 });
 
 test('real-expense transport and fixed-point aggregates retain cents and do not expand planned forecast transport',()=>{

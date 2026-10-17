@@ -32,7 +32,7 @@ test('Nueva orden elige el proyecto en un combobox y recién ahí muestra el res
  assert.equal(root().findAllByType('button').some(button=>button.children.join('').includes('Crear orden')),false,'no hay envío sin proyecto');
 
  await act(async()=>combos[0]!.props.onChange('1'));
- const title=root().findAllByProps({name:'title'});
+ const title=root().findAll(node=>node.type==='input'&&node.props.name==='title');
  assert.equal(title.length,1,'elegido el proyecto aparece el resto del formulario');
  assert.equal(title[0]!.props.autoFocus,true,'el foco arranca en la orden de trabajo');
  assert.equal(root().findAllByType('fieldset').length,1);
