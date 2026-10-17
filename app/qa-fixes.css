@@ -10,7 +10,7 @@
 .production-filters .ops-select{flex:0 1 320px;min-width:0;max-width:100%}
 .production-filters .ops-select-trigger span{overflow-wrap:anywhere;min-width:0}
 .production-filter-summary{margin:0;padding:12px 0;color:var(--text-muted);font-size:13px}
-.record-remove{color:var(--danger)}.record-remove:hover:not(:disabled),.record-remove:focus-visible{border-color:var(--danger);background:var(--danger-soft);color:var(--danger)}.record-remove:active:not(:disabled){border-color:var(--danger);background:var(--danger);color:#fff;transform:translateY(1px)}
+.record-remove{color:var(--danger)}.record-remove:hover:not(:disabled),.record-remove:focus-visible{border-color:var(--danger);background:var(--danger-soft);color:var(--danger)}.record-remove:active:not(:disabled){border-color:var(--danger);background:var(--danger);color:var(--on-danger);transform:translateY(1px)}
 .team-access{padding:12px 0;border-block:1px solid var(--line);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}.team-access p{flex-basis:100%;margin:0;font-size:13px}.ops-person-card h3{overflow-wrap:anywhere}
 /* La miniatura ampliable la dibuja `FotoPerfil` con su badge (#107). */
 .photo-overlay{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--anthracite) 82%,transparent)}
@@ -25,7 +25,5 @@
 @media(max-width:460px){.panel h2,.ops-card h3{overflow-wrap:anywhere}.finance-grid>.panel{min-width:0}.payment-row{gap:8px}.payment-row>strong{font-size:12px}.header-actions{gap:8px}}
 
 /* Cross-page interaction polish: visible states and mobile-safe controls. */
-.secondary{min-height:40px;border-color:var(--border-interactive,var(--line-strong));box-shadow:var(--shadow-xs);transition:background var(--ease),border-color var(--ease),transform var(--ease),box-shadow var(--ease)}.secondary:hover:not(:disabled){box-shadow:var(--shadow-xs)}.secondary:active:not(:disabled){transform:translateY(1px)}.secondary:focus-visible{outline:3px solid var(--focus-halo);outline-offset:2px}/* La miniatura la dibuja `FotoPerfil` (#107). */.photo-zoom-controls button{min-width:44px;min-height:44px;border-radius:var(--radius-sm)}.photo-dialog{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay)}
+.secondary{min-height:40px;border-color:var(--border-interactive,var(--line-strong));box-shadow:var(--shadow-xs);transition:background var(--ease),border-color var(--ease),transform var(--ease),box-shadow var(--ease)}.secondary:hover:not(:disabled){box-shadow:var(--shadow-xs)}.secondary:active:not(:disabled){transform:translateY(1px)}.secondary:focus-visible{outline:var(--ui-focus-width) solid var(--focus-ring);outline-offset:var(--ui-focus-offset)}/* La miniatura la dibuja `FotoPerfil` (#107). */.photo-zoom-controls button{min-width:44px;min-height:44px;border-radius:var(--radius-sm)}.photo-dialog{border:1px solid var(--border-subtle,var(--line));box-shadow:var(--shadow-overlay)}
 @media(max-width:460px){.secondary{min-height:44px}.photo-zoom-controls{gap:8px}}
-
-html[data-theme="dark"] .record-remove:active:not(:disabled){color:var(--anthracite)}

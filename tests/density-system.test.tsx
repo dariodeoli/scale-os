@@ -2,6 +2,7 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
+import {themeTokens} from './helpers/ui-token-values.mjs';
 import {act,create} from 'react-test-renderer';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 const {BulkBar,PageHeader,PageTitleContext}=require('../app/ui-v2') as typeof import('../app/ui-v2');
@@ -10,14 +11,16 @@ const plain=(node:any):string=>!node?'':typeof node==='string'?node:Array.isArra
 const ui=file('app/ui-system.css');
 
 test('sistema de densidad: un solo juego de tokens para todo el panel (#97)',()=>{
- const tokens=(name:string)=>new RegExp(`--${name}:`).test(ui);
- for(const token of ['ui-page-padding','ui-section-gap','ui-card-padding','ui-panel-padding','ui-control-height','ui-control-gap','ui-control-gap-lg','ui-card-min-height'])assert(tokens(token),`ui-system.css declara --${token}`);
- assert(/--ui-page-padding:16px/.test(ui),'el gutter móvil es 16 px');
- assert(/@media\(min-width:768px\)\{:root\{--ui-page-padding:24px/.test(ui),'desde 768 el gutter es 24 px');
- assert(/@media\(min-width:1280px\)\{:root\{--ui-page-padding:32px\}\}/.test(ui),'desde 1280 el gutter es 32 px (no 48)');
- assert(/--ui-control-height:40px/.test(ui),'control de 40 px en escritorio');
- assert(/--ui-card-min-height:120px/.test(ui),'piso compacto de tarjeta, sin espacios muertos');
- assert(/--ui-control-gap:var\(--ui-space-2\)/.test(ui)&&/@media\(min-width:768px\)\{:root\{--ui-page-padding:24px;--ui-control-gap:var\(--ui-space-3\)\}\}/.test(ui),'gap de controles 8 px móvil / 12 px escritorio');
+ const tokens=themeTokens('light',390);
+ for(const token of ['ui-page-padding','ui-section-gap','ui-card-padding','ui-panel-padding','ui-control-height','ui-control-gap','ui-control-gap-lg','ui-card-min-height'])assert(tokens[`--${token}`],`ui-tokens.css declara --${token}`);
+ assert.equal(tokens['--ui-page-padding'],'16px');
+ assert.equal(themeTokens('light',768)['--ui-page-padding'],'24px');
+ assert.equal(themeTokens('light',1280)['--ui-page-padding'],'32px');
+ assert.equal(themeTokens('light',1440)['--ui-control-height'],'40px');
+ assert.equal(tokens['--ui-control-height'],'44px');
+ assert.equal(tokens['--ui-card-min-height'],'120px');
+ assert.equal(tokens['--ui-control-gap'],'8px');
+ assert.equal(themeTokens('light',768)['--ui-control-gap'],'12px');
  assert(/\.workspace-content\{padding:var\(--ui-space-4\) var\(--ui-page-padding\)/.test(ui),'el ritmo de página sale del token');
  assert(/\.workspace-topbar\{padding-inline:var\(--ui-page-padding\)\}/.test(ui),'la cabecera comparte el gutter de la página');
  const shell=file('app/scale-workspace.tsx');
