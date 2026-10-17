@@ -20,3 +20,12 @@ test('effective capability override hides finance writes or salary data without 
  assert.equal(financePermission({role:'viewer',capabilities:{'payments.manage':true}},'payments.manage',false),true);
  assert.equal(financePermission({role:'owner',capabilities:{'salary.view':false}},'salary.view',false),true);
 });
+
+test('planning-only currencies remain visible without a bank account, invoice or contract',()=>{
+ const treasury:TreasuryBalance={month:'2026-10',period:null,movements:[],accounts:[]};
+ const month='2026-10';
+ const forecast:ForecastData={month,time_zone:'America/Asuncion',records:[],contracted_recurring:{month,records:[]},invoiced:{month,records:[]},commission_forecast:{month,records:[]},collected_actual:{month,records:[{currency:'EUR',amount:'-40'}]},planned_expenses:{month,records:[{currency:'PYG',amount:'120',expense_count:1,fixed_count:1,variable_count:0}]},personnel:{month,included_headcount:1,records:[{currency:'USD',expected_end_of_month_expense:'50',included_headcount:1,base_count:1,base_amount:50,override_count:0,override_amount:0,members:[]}]},opening_receivables:{month,months:1,records:[{month,currency:'BRL',receivable_count:1,amount:'80'},{month:'2026-11',currency:'MXN',receivable_count:1,amount:'100'}],undated_records:[{currency:'ARS',receivable_count:1,amount:'90'}]},definition:{issued:'',accepted_uninvoiced:'',exclusions:'',contracted_recurring:'',invoiced:'',collected_actual:'',personnel:'',commission_forecast:'',planned_expenses:''}};
+ const rows=balanceCurrencyRows(treasury,forecast,true);assert.deepEqual(rows.map(row=>row.currency),['ARS','BRL','EUR','PYG','USD']);
+ assert.equal(rows.find(row=>row.currency==='PYG')!.plannedExpenses,'120');assert.equal(rows.find(row=>row.currency==='USD')!.salary,'50');assert.equal(rows.find(row=>row.currency==='EUR')!.collected,'-40');assert.equal(rows.find(row=>row.currency==='BRL')!.priorScheduled,'80');assert.equal(rows.find(row=>row.currency==='ARS')!.priorUndated,'90');assert(rows.every(row=>row.current==='0'),'planned or prior receivables never create current cash');
+ assert(!balanceCurrencyRows(treasury,forecast,false).some(row=>row.currency==='USD'),'salary-only currency respects salary visibility');
+});
