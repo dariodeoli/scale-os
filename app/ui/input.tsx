@@ -1,6 +1,6 @@
 "use client";
 
-import {forwardRef,type InputHTMLAttributes,type TextareaHTMLAttributes} from 'react';
+import React, {forwardRef,type InputHTMLAttributes,type TextareaHTMLAttributes} from 'react';
 
 /** Capa visual local: no valida, normaliza ni transforma valores o eventos. */
 export const Input = forwardRef<HTMLInputElement,InputHTMLAttributes<HTMLInputElement>>(function Input({className,...props},ref){

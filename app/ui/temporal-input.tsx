@@ -1,6 +1,6 @@
 'use client';
 import {Input} from './input';
-import {forwardRef, type InputHTMLAttributes} from 'react';
+import React, {forwardRef, type InputHTMLAttributes} from 'react';
 
 export type TemporalInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>;
 // Native controls preserve civil values, calendar/keyboard support and browser
