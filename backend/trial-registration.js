@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import {registrationIdentity,existingAccount} from './existing-account.js';
 import {startTrial} from './subscription-billing.js';
 import {ensurePipelineStages} from './pipeline-stages.js';
 import {ensureInventoryCategories} from './inventory-reservations.js';
@@ -22,14 +23,14 @@ export async function registerTrial(c,profile,details,{method='google'}={}){
  const email=String(profile.email||'').trim().toLowerCase();
  if(profile.email_verified!==true||!/^\S+@\S+\.\S+$/.test(email))fail('Verificá tu correo con Google.',403);
  await c.query('select pg_advisory_xact_lock(hashtextextended($1,0))',['trial-registration:'+email]);
- const user=(await c.query("insert into users(email,password_hash,role) values($1,'!google-trial-no-password','viewer') on conflict(email) do update set email=excluded.email returning id,is_demo_guest",[email])).rows[0];
- if(user.is_demo_guest)fail('Usá tu cuenta personal de Google, no una sesión de demostración.',403);
- const previous=(await c.query('select organization_id from os_trial_registrations where user_id=$1',[user.id])).rows[0];
- if(previous){
-  const member=(await c.query('select 1 from organization_members m join organizations o on o.id=m.organization_id where m.user_id=$1 and m.organization_id=$2 and m.active and m.removed_at is null and o.active',[user.id,previous.organization_id])).rows[0];
-  if(!member)fail('Esta cuenta ya inició una prueba. Contactá al dueño para recuperar el acceso.',403);
-  return {userId:user.id,organizationId:previous.organization_id};
- }
+ // Invitation acceptance also locks the identity row. Read its history only
+ // after that lock, so a concurrent enrollment cannot miss committed access.
+ await c.query('select id from users where email=$1 for update',[email]);
+ const identity=await registrationIdentity(c,email);
+ if(identity.existing)return existingAccount(c,identity.user);
+ // Existing identities need no agency form; validate new enrollment lazily.
+ if(typeof details==='function')details=details();
+ const user=identity.user||(await c.query("insert into users(email,password_hash,role) values($1,'!google-trial-no-password','viewer') returning id",[email])).rows[0];
  const org=(await c.query('insert into organizations(slug,name) values($1,$2) returning id',['agencia-'+crypto.randomUUID(),details.name])).rows[0];
  await c.query("select set_config('app.current_user',$1,true),set_config('app.current_organization',$2,true)",[String(user.id),String(org.id)]);
  await c.query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[org.id,user.id]);
@@ -43,5 +44,5 @@ export async function registerTrial(c,profile,details,{method='google'}={}){
  // PDP (#112): el alta registra la aceptación del aviso vigente por finalidad.
  await grantConsent(c,{organizationId:org.id,subjectKind:'user',subjectId:String(user.id),purpose:'account',source:'registration',grantedByUserId:user.id,evidence:{method,terms_accepted:true}});
  await grantConsent(c,{organizationId:org.id,subjectKind:'user',subjectId:String(user.id),purpose:'service',source:'registration',grantedByUserId:user.id,evidence:{method,terms_accepted:true}});
- return {userId:user.id,organizationId:org.id};
+ return {userId:user.id,organizationId:org.id,created:true};
 }

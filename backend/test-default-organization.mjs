@@ -144,20 +144,20 @@ r=await complete(await googleStart());assert.equal(await orgOf(r),org);assert.eq
 await set(second);
 await pg.exec(await fs.readFile(new URL('./migrations/20260911_default_login_organization.sql',import.meta.url),'utf8'));
 assert.equal((await list()).data.defaultOrganizationId,String(second));
-// Actual Google trial callback continues through pending registration instead of
-// opening a session in the saved login company: the callback itself consumes the
-// state and hands a one-time ticket.
+// Signup by an existing identity follows normal login and preserves its default.
 {
- const params='?'+new URLSearchParams({signup:'1',company:'Trial default fixture',currency:'USD',consent:'1'});
- const start=await request('/api/auth/google/start'+params);assert.equal(start.status,302);
+ const beforeOrgs=(await rows('select count(*)::int as n from organizations'))[0].n;
+ const start=await request('/api/auth/google/start?signup=1');assert.equal(start.status,302);
  const state=new URL(start.headers.Location).searchParams.get('state');
  const callback=await request('/api/auth/google/callback?'+new URLSearchParams({state,code:'fixture'}),{cookie:start.headers['Set-Cookie'].split(';')[0]});
  assert.equal(callback.status,302);
- const trialTarget=new URL(callback.headers.Location);
- assert.equal(trialTarget.pathname,'/registro','a trial signup continues through pending registration');
- assert.ok(trialTarget.searchParams.get('pendingRegistration'),'the trial callback hands a one-time ticket');
- assert.equal((await rows('select count(*)::int as n from pending_trial_registrations'))[0].n,1,'the pending registration is stored once for the trial signup');
- assert.equal((await list()).data.defaultOrganizationId,String(second),'the saved default survives a trial signup');
+ const loginTarget=new URL(callback.headers.Location);
+ assert.equal(loginTarget.pathname,'/core-api/api/auth/google/complete');
+ const loggedIn=await complete(loginTarget);
+ assert.equal(await orgOf(loggedIn),second);assert.equal(new URL(loggedIn.headers.Location).search,'');
+ assert.equal((await rows('select count(*)::int as n from pending_trial_registrations'))[0].n,0);
+ assert.equal((await rows('select count(*)::int as n from organizations'))[0].n,beforeOrgs);
+ assert.equal((await list()).data.defaultOrganizationId,String(second));
 }
+console.log('PASS: per-user defaults, eligible real memberships, stale preferences, invitation targets and existing signup login');
 await pg.close();
-console.log('PASS: persisted default company, authenticated setter/list, both login methods, stale defaults, handoff revalidation, tenant/demo isolation, invitation/trial targets, clear and migration rerun.');
