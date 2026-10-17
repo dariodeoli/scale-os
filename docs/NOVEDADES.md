@@ -4,6 +4,10 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
 
 ## v1.0.190
 
+- **Landing y acceso renovados**: recorrido de las funciones actuales con capturas
+  del producto; login y registro con el mismo ancho, acciones visibles en escritorio,
+  botones rectangulares con esquinas suaves y enlaces y pie fuera de la tarjeta.
+
 - **Arranque seguro**: las migraciones ya registradas no se vuelven a ejecutar;
   las pendientes se aplican de forma atómica y conservan auditoría e importes.
 
