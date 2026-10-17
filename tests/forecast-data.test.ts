@@ -53,7 +53,11 @@ assert.equal(validForecast({...fixture, personnel: {month: '2026-09', included_h
 assert.equal(validForecast({...fixture, records: [{...fixture.records[0], currency: 'XYZ'}]}), false, 'moneda fuera de las seis de la empresa');
 assert.equal(validForecast({...fixture, records: [{...fixture.records[0], issued_total: '-5'}]}), false, 'los totales emitidos no admiten signo');
 assert.equal(validForecast({...fixture, records: fixture.records.map(row => ({...row, invoice_count: '1.5'}))}), false, 'los conteos son enteros');
-assert.equal(validForecast({...fixture, collected_actual: {month: '2026-09', records: [{currency: 'USD', amount: '10'}, {currency: 'USD', amount: '-1'}]}}), false, 'cobrado negativo se rechaza');
+assert.equal(validForecast({...fixture, collected_actual: {month: '2026-09', records: [{currency: 'USD', amount: '-1'}]}}), true, 'cobrado neto admite reversiones de cobros anteriores');
+assert.equal(validForecast({...fixture, projection: {months: 3, records: [{...fixture.projection!.records[0], collected: '-1'}]}}), true, 'el cobrado de la proyección conserva el signo de la reversión');
+for(const group of ['contracted_recurring','invoiced','commission_forecast','planned_expenses'])assert.equal(validForecast({...fixture,[group]:{month:'2026-09',records:[{currency:'USD',amount:'-1'}]}}),false,`${group} no admite importes negativos`);
+for(const key of ['expected','personnel','planned_expenses','commission_forecast'])assert.equal(validForecast({...fixture,projection:{months:3,records:[{...fixture.projection!.records[0],[key]:'-1'}]}}),false,`${key} de la proyección no admite importes negativos`);
+assert.equal(validForecast({...fixture,collected_actual:{month:'2026-09',records:[{currency:'USD',amount:'-1.5'}]}}),false,'el cobrado neto sigue exigiendo importes enteros');
 assert.equal(validForecast({...fixture, projection: {months: 3, records: [{...fixture.projection!.records[0], projected_cash: '-1860'}]}}), true, 'la caja proyectada admite signo');
 assert.equal(validForecast({...fixture, projection: {months: 3, records: [{...fixture.projection!.records[0], projected_cash: '1860.5'}]}}), false, 'la caja proyectada no admite decimales');
 assert.equal(validForecast({...fixture, contracted_clients: {month: '2026-09', records: [{...fixture.contracted_clients!.records[0], missing_invoice: 'si'}]}}), false, 'la marca de factura es booleana');
