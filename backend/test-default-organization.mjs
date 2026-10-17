@@ -159,5 +159,15 @@ assert.equal((await list()).data.defaultOrganizationId,String(second));
  assert.equal((await rows('select count(*)::int as n from organizations'))[0].n,beforeOrgs);
  assert.equal((await list()).data.defaultOrganizationId,String(second));
 }
+// Signup's public phase budget never consumes the independent normal login
+// budget. Existing users can still sign in after exhausting signup attempts.
+for(let i=0;i<10;i++){
+ const attempted=await request('/api/auth/password/register',{method:'POST',payload:{intent:'resolve',email:profile.email,password:'incorrect'}});
+ assert.equal(attempted.status,401);
+}
+const exhausted=await request('/api/auth/password/register',{method:'POST',payload:{intent:'resolve',email:profile.email,password:'incorrect'}});
+assert.equal(exhausted.status,429);assert.equal(exhausted.headers['Set-Cookie'],undefined);
+const normalAfterLimit=await request('/api/auth/login',{method:'POST',payload:{email:profile.email,password}});
+assert.equal(await orgOf(normalAfterLimit),second,'normal login remains available after signup budget exhaustion without resetting throttles');
 console.log('PASS: per-user defaults, eligible real memberships, stale preferences, invitation targets and existing signup login');
 await pg.close();

@@ -32,10 +32,10 @@ const snapshot=async()=>{
  for(const table of ['users','organizations','organization_members','organization_subscriptions','os_trial_registrations','agency_settings','personal_data_consents'])result[table]=await rows(`select * from ${table} order by 1,2`);
  return result;
 };
-const deliveries=[];
+const deliveries=[];let requestNumber=0;
 async function register(input,{emailAvailable=true,database:registrationDb=db}={}){
  let result;
- await emailPasswordAuth({req:{method:'POST',headers:{},socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('http://localhost/api/auth/password/register'),db:registrationDb,
+ await emailPasswordAuth({req:{method:'POST',headers:{'x-forwarded-for':`198.51.100.${++requestNumber}`}},res:{},url:new URL('http://localhost/api/auth/password/register'),db:registrationDb,
   body:async()=>input,send:(_,status,data,headers)=>result={status,data,headers},emailAvailable,
   sendVerification:async(email,token)=>{deliveries.push({email,token});return true},cookie:(n,v)=>`${n}=${v}`,id:()=>crypto.randomUUID()});
  return result;

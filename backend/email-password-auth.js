@@ -61,6 +61,11 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
   if(path==='/api/auth/password/register'){
    const email=emailOf(input.email),password=typeof input.password==='string'?input.password:'';
    if(!password)fail('Ingresá tu correo y contraseña');
+   // Each public phase has its own pre-lookup budget: ten legitimate
+   // resolve + final pairs remain ten enrollments, while neither phase can
+   // be used for unlimited identity probing. Normal login has its own budget.
+   const publicScope=input.intent==='resolve'?'password-signup-resolve':'password-signup';
+   if(!await throttleClient(db,req,publicScope,10))fail('Intentá nuevamente en unos minutos.',429);
    if(!await throttleClient(db,req,'login',60)||!await throttle(db,'login:'+email,30))fail('Demasiados intentos. Esperá 15 minutos.',429);
    client=await db.connect();await client.query('begin');
    await client.query('select pg_advisory_xact_lock(hashtextextended($1,0))',['trial-registration:'+email]);
@@ -78,7 +83,7 @@ export async function emailPasswordAuth({req,res,url,db,body,send,sendVerificati
    if(!emailAvailable)fail('El registro con correo todavía no está disponible. Usá Google o contactá al administrador.',503);
    validatePassword(password,email);
    const trial=trialDetailsFromInput(input);
-   if(!await throttleClient(client,req,'password-signup',10)||!await throttle(client,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
+   if(!await throttle(client,'password-signup:'+email,3))fail('Intentá nuevamente en unos minutos.',429);
    const user=await createUnverifiedUser(client,{email,password});
    const token=await issueVerification(client,{userId:user.id,purpose:'trial',payload:{company:trial.name,currency:trial.currency,full_name:nameOf(input.full_name)}});
    await client.query('commit');client.release();client=null;
