@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-import {rucLookup,normalizeRuc,rucRecord,assertUniqueClientRuc,createRucProvider} from './ruc-lookup.js';
+import {rucLookup,normalizeRuc,rucRecord,assertUniqueClientRuc,createRucProvider,rucLookupConfig,createOwnDataRucProvider,configuredRucProvider,validateOwnDataRuc,OWNDATA_RUC_URL} from './ruc-lookup.js';
 
 assert.equal(normalizeRuc('80.168.807 - 8'),'80168807-8');assert.equal(normalizeRuc('1234567'),'1234567');assert.throws(()=>normalizeRuc('https://evil.example'));
 const providerRecord={name:'Empresa de prueba',ruc:'80168807',dv:'8',fullRuc:'80168807-8',state:'ACTIVO'};
@@ -37,4 +37,28 @@ await assert.rejects(()=>assertUniqueClientRuc({query},org,'80.168.807-8'),error
 await assert.doesNotReject(()=>assertUniqueClientRuc({query},org,'80168807-8',client.id));
 assert.equal(await createRucProvider({baseUrl:'https://provider.example/ruc',allowedHosts:['provider.example'],fetcher:async()=>new Response('',{status:404})}).lookup('123'),null);
 await assert.rejects(()=>createRucProvider({baseUrl:'https://169.254.169.254/latest',fetcher:async()=>{throw Error('no debería llamarse');}}).lookup('123'),error=>error.status===503,'anti-SSRF: destino fuera de la lista cerrada');
-await pg.close();console.log('PASS: configured provider abstraction, normalization, cache/no-result safety, quota, and explicit non-destructive client refresh');
+// Synthetic credentials are consumed only by a mock; no external requests.
+assert.equal(rucLookupConfig({}).providerKind,'legacy');assert.equal(rucLookupConfig({}).providerUrl,'https://ruc.sun.com.py/api/ruc');
+for(const env of [{RUC_LOOKUP_PROVIDER_KIND:'unknown'},{RUC_LOOKUP_PROVIDER_KIND:'owndata'},{RUC_LOOKUP_PROVIDER_KIND:'owndata',RUC_LOOKUP_PROVIDER_URL:OWNDATA_RUC_URL},{RUC_LOOKUP_PROVIDER_KIND:'owndata',RUC_LOOKUP_PROVIDER_URL:'https://other.invalid/api/v1/ruc',OWNDATA_API_KEY:'synthetic-secret'},{RUC_LOOKUP_PROVIDER_KIND:'owndata',RUC_LOOKUP_PROVIDER_URL:OWNDATA_RUC_URL,OWNDATA_API_KEY:'pk_synthetic'}])assert.throws(()=>rucLookupConfig(env));
+const ownSettings=rucLookupConfig({RUC_LOOKUP_PROVIDER_KIND:'owndata',RUC_LOOKUP_PROVIDER_URL:OWNDATA_RUC_URL,OWNDATA_API_KEY:'synthetic-secret'});
+assert.equal(configuredRucProvider(ownSettings).name,'owndata-ruc-provider');assert.equal(configuredRucProvider(rucLookupConfig({})).name,'configured-ruc-provider');
+assert.equal(validateOwnDataRuc('80168807-8'),'80168807-8');assert.throws(()=>validateOwnDataRuc('80168807-0'));assert.throws(()=>validateOwnDataRuc('0123456'));assert.throws(()=>validateOwnDataRuc('1234567890'));
+const ownEnvelope={data:{ruc:'80168807',dv:'8',fullRuc:'80168807-8',nameOfficial:'EMPRESA OFICIAL',stateRaw:'ACTIVO'},meta:{provenance:{source:'dnit_official_snapshot',publicationDate:'2026-10-01'}}};
+let ownCalls=0,ownStatus=200,ownResponse=ownEnvelope;
+const ownProvider=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',allowedHosts:['app.controlaria.online'],fetcher:async(url,init)=>{ownCalls++;assert.equal(url,OWNDATA_RUC_URL+'/80168807-8');assert.equal(init.headers['X-API-Key'],'synthetic-secret');assert.equal(init.redirect,'error');assert(!url.includes('synthetic-secret'));return new Response(JSON.stringify(ownResponse),{status:ownStatus});}});
+assert.equal((await ownProvider.lookup('80168807-8')).name,'EMPRESA OFICIAL');
+let beforeCalls=ownCalls;await assert.rejects(()=>ownProvider.lookup('80168807-0'),e=>e.status===400);assert.equal(ownCalls,beforeCalls,'invalid DV never sent or retried by base');
+for(const [status,code,expected] of [[400,'INVALID_RUC_DV',400],[400,'INVALID_RUC_FORMAT',400],[401,'API_KEY_INVALID',503],[403,'INSUFFICIENT_SCOPE',503],[403,'PLAN_REQUIRED',503],[429,'DAILY_QUOTA_REACHED',429],[503,'COMMERCIAL_API_DISABLED',503],[503,'DNIT_DATA_UNAVAILABLE',503],[404,'OTHER_NOT_FOUND',503]]){
+ ownStatus=status;ownResponse={error:{code,message:'private upstream synthetic-secret'}};beforeCalls=ownCalls;
+ await assert.rejects(()=>ownProvider.lookup('80168807-8'),e=>e.status===expected&&!e.message.includes('synthetic-secret')&&!e.message.includes('private upstream'));assert.equal(ownCalls,beforeCalls+1,'exactly one request per error');
+}
+ownStatus=404;ownResponse={error:{code:'REGISTERED_RUC_NOT_FOUND'}};assert.equal(await ownProvider.lookup('80168807-8'),null);
+ownStatus=200;ownResponse={...ownEnvelope,meta:{provenance:{source:'unknown',publicationDate:'2026-10-01'}}};await assert.rejects(()=>ownProvider.lookup('80168807-8'),e=>e.status===503);
+ownResponse={...ownEnvelope,data:{...ownEnvelope.data,fullRuc:'80168807-0',dv:'0'}};await assert.rejects(()=>ownProvider.lookup('80168807-8'),e=>e.status===503);
+ownResponse=ownEnvelope;await query("update scale_ruc_usage set used=0 where month=date_trunc('month',current_date)::date");
+async function ownCall(){let output;await rucLookup({req:{method:'POST',socket:{}},res:{},url:new URL('https://test/api/agency/ruc-lookup'),db,session:async()=>user,body:async()=>({ruc:'80168807-8'}),send:(_,status,data)=>output={status,...data},provider:ownProvider,config:{...ownSettings,monthlyLimit:100}});return output;}
+let ownFound=await ownCall();assert.equal(ownFound.status,200);assert.equal(ownFound.record.name,'EMPRESA OFICIAL');assert.equal(ownFound.record.source,'owndata:dnit_official_snapshot');assert.equal(ownFound.record.publication_date,'2026-10-01');assert.equal(ownFound.cached,false,'provider switch isolates legacy cache');
+beforeCalls=ownCalls;ownFound=await ownCall();assert.equal(ownFound.cached,true);assert.equal(ownCalls,beforeCalls);
+await query("delete from agency_ruc_lookup_cache where lookup_key='owndata:80168807-8'");ownStatus=429;ownResponse={error:{code:'DAILY_QUOTA_REACHED'}};assert.equal((await ownCall()).status,429);assert.equal((await query("select count(*)::int n from agency_ruc_lookup_cache where lookup_key='owndata:80168807-8'")).rows[0].n,0,'429 never cached as miss');
+ownStatus=503;ownResponse={error:{code:'COMMERCIAL_API_DISABLED'}};assert.match((await ownCall()).error,/no está habilitada/);assert.equal((await query("select count(*)::int n from agency_ruc_lookup_cache where lookup_key='owndata:80168807-8'")).rows[0].n,0,'503 never cached as miss');
+await pg.close();console.log('PASS: legacy provider and OwnData opt-in, explicit config/auth, envelope/provenance validation, DV validation, no retries, error mapping, provider cache isolation, quota, and non-destructive client refresh');
