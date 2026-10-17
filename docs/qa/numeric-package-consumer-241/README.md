@@ -18,3 +18,5 @@ Validaciones sobre el artefacto final y la instalación Git publicada indicados 
 - Catálogo servido por Next con CSS real: 39 comprobaciones PASS; 1366/390, claro/oscuro/contraste, ocho capturas en `catalog/`. Cero API, proveedores y errores de consola/runtime.
 
 El catálogo usa datos ficticios y callbacks en memoria. Las capturas se inspeccionaron visualmente; no se probaron dispositivos físicos. La publicación externa la ejecutó el integrador mediante [OwnCoding UI PR #56](https://github.com/dariodeoli/owncoding-ui/pull/56). Esta rama entrega las fachadas, pruebas y el pin/lock reproducible. El merge, gates del candidato integrado y deploy de Scale pertenecen al integrador.
+
+Las capturas son artefactos locales ignorados por la política de evidencias del repositorio. Se conservan junto al reporte durante la QA; los JSON y comandos reproducibles sí están versionados. No se integró el commit binario del worktree de captura.
