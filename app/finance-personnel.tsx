@@ -18,7 +18,7 @@ export function FinancePersonnelSection({members,month,canSalary,onReload,naviga
  useEffect(()=>{setSelection(null);setError('');},[month]);
  const completed=(person:BalancePerson)=>{onReload();setSelection({kind:'history',person});};
  return <section className="finance-balance-card finance-detail-section" style={financeMoneyColumns(canSalary?members.flatMap(row=>[row.base_amount,row.override_amount,row.expected_amount,row.paid_in_month,row.outstanding_amount].map(value=>({value,currency:row.currency}))):[])} aria-labelledby="balance-personnel-title"><header><h3 className="finance-detail-title" id="balance-personnel-title">Equipo y salarios</h3>{navigate?<button className="text-button" onClick={()=>navigate('Equipo')}>Ver equipo</button>:null}</header>
-  <p className="finance-balance-help">Base y ajustes forman el cierre previsto. Pagado muestra salidas recibidas por la persona en el mes; la diferencia es orientativa y no acredita la cancelación de un período salarial.</p>
+  <p className="finance-balance-help">Base y ajustes forman el cierre previsto. Pagado muestra pagos realizados en el mes; la diferencia es orientativa y no acredita la cancelación de un período salarial.</p>
   {!canSalary?<p className="finance-balance-help">Tu acceso no incluye información salarial.</p>:null}
   {members.length?<ListGrid label="Equipo y salarios del mes" template={PERSONNEL_COLUMNS} columns={columns} minWidthClass="min-w-[68rem]" className="finance-personnel-table">{members.map(member=><ListRow template={PERSONNEL_COLUMNS} className="forecast-person-row" key={`${member.collaborator_id}-${member.currency}`}>
    <span className="min-w-0"><PersonContainer name={member.name} photoUrl={member.photo_url} verified secondary={member.history_known?undefined:'Vigencia anterior no registrada'} size="sm"/></span>
@@ -34,18 +34,18 @@ export function FinancePersonnelSection({members,month,canSalary,onReload,naviga
    </span>:<span aria-hidden="true"/>}
   </ListRow>)}</ListGrid>:<p className="finance-balance-help">Sin integrantes incluidos para este mes.</p>}
   {error?<ErrorBlock title="No se pudo completar la operación" description={error} onRetry={()=>setError('')}/>:null}
-  {selection?.kind==='salary'?<SalaryChangeDialog person={selection.person} month={month} close={()=>setSelection(null)} onSaved={()=>completed(selection.person)}/>:null}
+  {selection?.kind==='salary'?<SalaryChangeDialog person={selection.person} month={month} close={()=>setSelection(null)} onRefresh={onReload} onSaved={()=>completed(selection.person)}/>:null}
   {selection?.kind==='history'?<FinanceHistoryDialog kind="salary" id={String(selection.person.collaborator_id)} name={selection.person.name} close={()=>setSelection(null)}/>:null}
   {selection?.kind==='adjustment'?<SalaryAdjustmentDialog person={selection.person} month={month} close={()=>setSelection(null)} onSaved={()=>{setSelection(null);onReload();}}/>:null}
  </section>;
 }
-export function SalaryChangeDialog({person,month,close,onSaved}:{person:BalancePerson;month:string;close:()=>void;onSaved:()=>void}){
+export function SalaryChangeDialog({person,month,close,onSaved,onRefresh}:{person:BalancePerson;month:string;close:()=>void;onSaved:()=>void;onRefresh:()=>void}){
  const history=useFinanceHistory('salary',String(person.collaborator_id));
  const [requestId]=useState(()=>crypto.randomUUID());
  const fields:Field[]=[{key:'amount',label:'Salario base',type:'money',currency:person.currency,validate:value=>isRealMoney(value,person.currency)?null:'Ingresá un importe sin signo negativo; PYG entero y otras monedas con hasta dos decimales.'},{key:'effectiveFrom',label:'Vigente desde',type:'date',help:'Primer día del mes. Conserva las condiciones de los meses anteriores.',validate:value=>/^\d{4}-(0[1-9]|1[0-2])-01$/.test(value)?null:'Elegí el primer día del mes de vigencia.'},{key:'reason',label:'Motivo del cambio',type:'textarea',maxLength:1000,validate:value=>value.trim().length>=5?null:'Explicá el cambio con al menos cinco caracteres.'}];
  return <Dialog title={`Salario fijo mensual · ${person.name}`} close={close}>
   <p className="field-help">Editás el salario mensual en {person.currency}. Conserva la modalidad y el importe por hora, proyecto o servicio de la ficha; un ajuste puntual del mes se registra por separado.</p>
-  {history.data?<Editor fields={fields} defaults={{amount:person.base_amount??'',effectiveFrom:`${month}-01`,reason:''}} label="Guardar salario" save={async values=>{await api(financeHistoryUrl('salary',String(person.collaborator_id)),{...values,currency:person.currency,requestId,expectedRevision:history.data!.revision});onSaved();}}/>:history.error?<ErrorBlock title="No se puede editar sin cargar el historial" description={history.error} onRetry={history.reload}/>:<LoadingBlock label="Cargando historial salarial…" lines={2}/>}
+  {history.data?history.data.revision!==person.salary_revision?<ErrorBlock title="El salario cambió desde que abriste el balance" description="Recargá el balance antes de editar. No se combina un importe anterior con una revisión nueva." onRetry={()=>{close();onRefresh();}}/>:<Editor fields={fields} defaults={{amount:person.base_amount??'',effectiveFrom:`${month}-01`,reason:''}} label="Guardar salario" save={async values=>{await api(financeHistoryUrl('salary',String(person.collaborator_id)),{...values,currency:person.currency,requestId,expectedRevision:person.salary_revision});onSaved();}}/>:history.error?<ErrorBlock title="No se puede editar sin cargar el historial" description={history.error} onRetry={history.reload}/>:<LoadingBlock label="Cargando historial salarial…" lines={2}/>}
   <FinanceHistoryPanel data={history.data} error={history.error} onRetry={history.reload}/>
  </Dialog>;
 }

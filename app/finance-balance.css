@@ -1,5 +1,8 @@
 .finance-balance{display:grid;gap:12px;min-width:0}.finance-balance-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.finance-balance-toolbar h3{margin:0;margin-right:auto}.finance-balance-currencies,.finance-balance-accounts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr))}.finance-balance-card{border:1px solid var(--border-subtle);border-radius:12px;padding:12px;min-width:0;display:grid;align-content:start;gap:8px;background:var(--surface)}.finance-balance-card h3,.finance-balance-card p{margin:0}.finance-balance-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.finance-balance-metrics>div{display:grid;gap:3px;min-width:0}.finance-balance-metrics dt{font-size:11px;color:var(--text-muted)}.finance-balance-metrics dd{margin:0;font-weight:600}.finance-balance-card .finance-balance-total{font-size:24px}.finance-balance-columns{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.finance-balance-card header{display:flex;align-items:center;gap:8px;justify-content:space-between}.finance-balance-card header>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.finance-balance-actions{display:flex;gap:6px;flex-wrap:wrap}.finance-balance-help{margin:0;font-size:12px;color:var(--text-muted)}
 .finance-detail-section{gap:10px}
+.finance-balance-card{grid-template-columns:minmax(0,1fr)}
+.finance-balance-card>header{min-width:0}
+.finance-balance-card>header>strong{min-width:0;flex:1}
 .finance-detail-title{margin:0;font-size:16px;font-weight:600;line-height:1.35;letter-spacing:-.01em}
 .finance-detail-section>header{min-height:28px}
 .finance-detail-section>header .text-button{flex-shrink:0}
