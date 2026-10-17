@@ -51,11 +51,11 @@ export function analyzeActions(source,{file='app/example.tsx',fallbackVariant,ro
  const fresh=base=>{let result=base;for(let i=2;names.has(result);i++)result=base+i;names.add(result);return result;};
  const imports=sf.statements.filter(ts.isImportDeclaration);
  for(const statement of imports){const module=statement.moduleSpecifier.text;const bindings=statement.importClause?.namedBindings;
-  if(bindings&&ts.isNamespaceImport(bindings)&&module==='owncoding-ui')namespaceBindings.add(bindings.name.text);
+  if(bindings&&ts.isNamespaceImport(bindings)&&(module==='owncoding-ui'||module==='owncoding-ui/core'))namespaceBindings.add(bindings.name.text);
   if(!bindings||!ts.isNamedImports(bindings))continue;
   for(const spec of bindings.elements){const imported=(spec.propertyName||spec.name).text;
-   if(module==='owncoding-ui'&&imported==='Button')legacy.set(spec.name.text,{statement,spec});
-   if(module==='owncoding-ui'&&imported==='IconAction'){iconActions.add(spec.name.text);iconRecords.set(spec.name.text,{statement,spec});}
+   if((module==='owncoding-ui'||module==='owncoding-ui/core')&&imported==='Button')legacy.set(spec.name.text,{statement,spec});
+   if((module==='owncoding-ui'||module==='owncoding-ui/core')&&imported==='IconAction'){iconActions.add(spec.name.text);iconRecords.set(spec.name.text,{statement,spec});}
    if(module.startsWith('.')&&((['Button','IconButton'].includes(imported)&&[path.resolve(root,'app/ui'),path.resolve(root,'app/ui/index'),path.resolve(root,'app/ui/button')].includes(path.resolve(path.dirname(path.resolve(root,file)),module)))||(imported==='IconAction'&&path.resolve(root,'app/ui/icon-action')===path.resolve(path.dirname(path.resolve(root,file)),module))))canonicalBindings.add(spec.name.text);
    if(module==='lucide-react')iconBindings.add(spec.name.text);
    if(module===localModule&&imported==='Button')localButton=spec.name.text;

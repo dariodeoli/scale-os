@@ -1,4 +1,4 @@
 'use client';
 // Tabs of content and segmented filters retain their different ARIA contracts.
-export {SegmentedField,Subtabs} from 'owncoding-ui';
+export {SegmentedField,Subtabs} from 'owncoding-ui/core';
 export {TabScroller} from '../tab-scroller';

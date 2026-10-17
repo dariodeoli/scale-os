@@ -12,7 +12,7 @@ import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
 import {count, currentForecastMonth} from '../forecast-data';
 import {useForecast} from '../use-forecast';
-import {FilaDato} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui/core';
 import {SearchField} from '../search-field';
 import {EmptyBlock, ErrorBlock, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar, ListPage} from '../ui-v2';

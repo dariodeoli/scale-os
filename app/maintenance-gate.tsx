@@ -8,7 +8,7 @@
 import React, {useEffect, useState, type ReactNode} from "react";
 import {RefreshCw, Wrench} from "lucide-react";
 import {WorkspaceBrand} from "./workspace-brand";
-import {fechaLista} from "owncoding-ui";
+import {fechaLista} from "owncoding-ui/core";
 import {Button as ScaleButton} from "./ui/button";
 
 

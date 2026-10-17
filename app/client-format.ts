@@ -1,5 +1,5 @@
 import {diasHasta} from 'owncoding-ui/utils';
-import {fechaLista} from 'owncoding-ui';
+import {fechaLista} from 'owncoding-ui/core';
 import {money} from './money-format';
 
 /**

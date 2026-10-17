@@ -38,6 +38,7 @@ jobs:
       - name: Verify build artifact
         run: |
           test -s .next/BUILD_ID
+          node build-tools/check-initial-assets.mjs
           echo "BUILD_ID: $(cat .next/BUILD_ID)"
 
   backend:

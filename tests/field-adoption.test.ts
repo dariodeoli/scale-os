@@ -28,13 +28,13 @@ const rules = read('app/field-rules.ts');
 for (const rule of ['phoneValid', 'phoneNational', 'normalizeSerial', 'emailSuggestions']) {
   assert(rules.includes(`export function ${rule}`), `field rules export ${rule}`);
 }
-assert(rules.includes("from 'owncoding-ui'"), 'field rules build on the shared library');
+assert(rules.includes("from 'owncoding-ui/core'"), 'field rules build on the shared library');
 for (const retired of ['digitsOnly', 'parsePhone', 'internationalPhone', 'normalizePhone', 'phoneMessage']) {
   assert(!rules.includes(`export function ${retired}`), `field rules no longer copy ${retired}`);
 }
 
 const phoneField = read('app/phone-field.tsx');
-assert(phoneField.includes("from 'owncoding-ui'"), 'phone field uses the shared parse/compose helpers');
+assert(phoneField.includes("from 'owncoding-ui/core'"), 'phone field uses the shared parse/compose helpers');
 assert(rules.includes('parseTelefono(') && phoneField.includes('phoneParts(') && phoneField.includes('componerTelefono('), 'phone adapter preserves unsupported values around shared parse/compose');
 assert(rules.includes('parsed.countryCode') && rules.includes('parsed.phone'), 'phone adapter uses the real shared parser signature');
 assert(phoneField.includes('componerTelefono({countryCode'), 'phone field composes with the object signature');
@@ -47,7 +47,7 @@ const list = read('app/list-format.tsx');
 assert(list.includes('partirSerial') && list.includes('serialEnmascarado'), 'serial cells use the shared serial helpers');
 
 const links = read('app/client-links.tsx');
-assert(links.includes("from 'owncoding-ui'"), 'client links build the WhatsApp URL with the shared helper');
+assert(links.includes("from 'owncoding-ui/core'"), 'client links build the WhatsApp URL with the shared helper');
 assert(links.includes('parseTelefono('), 'client links keep the country code of the stored phone');
 assert(!links.includes('wa.me/${digits}'), 'client links no longer hand-roll the wa.me template');
 

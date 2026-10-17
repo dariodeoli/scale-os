@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {CREDITO_PIE,CREDITO_PIE_URL} from 'owncoding-ui';
+import {CREDITO_PIE,CREDITO_PIE_URL,ProductFooter as RootProductFooter} from 'owncoding-ui';
+import {ProductFooter as CoreProductFooter} from 'owncoding-ui/core';
 import {APP_VERSION} from '../app/app-version';
 
 Object.assign(globalThis,{React});
@@ -57,10 +58,11 @@ test('públicas: la landing standalone publica el mismo pie canónico',()=>{
 });
 
 test('puente sin lógica y excepciones documentadas de impresión',()=>{
+ assert.equal(CoreProductFooter,RootProductFooter,'core conserva exactamente el objeto publicado del root');
  const bridge=file('app/workspace-footer.tsx');
  assert(!bridge.includes('<footer'),'el puente no dibuja el footer a mano');
  assert(!bridge.includes('Desarrollado por'),'el crédito no se copia: sale de la biblioteca');
- assert(bridge.includes("from 'owncoding-ui'"),'el puente importa el objeto publicado');
+ assert(bridge.includes("from 'owncoding-ui/core'"),'el puente importa el objeto publicado');
  const print=file('app/reports-print.tsx');
  assert(print.includes('Scale OS v${APP_VERSION} · Desarrollado por Owncoding'),'la impresión de informes conserva versión y crédito');
  assert(file('app/global-error.tsx').includes('Scale OS v{APP_VERSION} · Desarrollado por'),'el error global conserva versión y crédito sin depender de la hoja');

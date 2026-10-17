@@ -6,7 +6,7 @@ import {InputControl} from '../ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
 
 import {SearchField} from '../search-field';
-import {fechaListaCorta} from 'owncoding-ui';
+import {fechaListaCorta} from 'owncoding-ui/core';
 import {hasDueWarning} from '../list-format';
 import {Plus,Trash2} from 'lucide-react';
 import {moneyKpi} from '../client-format';

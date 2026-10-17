@@ -1,4 +1,4 @@
-import {parseTelefono, soloDigitos} from 'owncoding-ui';
+import {parseTelefono, soloDigitos} from 'owncoding-ui/core';
 
 export const PHONE_COUNTRIES = [
   { code: '+595', label: '🇵🇾 +595' },

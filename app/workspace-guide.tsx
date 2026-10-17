@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,Building2,ChevronDown,Circle,CircleCheck,CircleDashed,CircleHelp,EyeOff} from 'lucide-react';
-import {AyudaModulo} from 'owncoding-ui';
+import {AyudaModulo} from 'owncoding-ui/core';
 import {api,Dialog,Editor} from './operations';
 import {moduleHelp} from './module-help-data';
 import {founderPricingNote} from './founder-pricing';

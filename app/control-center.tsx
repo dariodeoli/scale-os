@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState,type ReactNode} from 'react';
 import {AlertCircle,ArrowUpRight,CalendarClock,CheckCircle2,FileQuestion,PackageSearch} from 'lucide-react';
-import {BarraProgreso,Skeleton} from 'owncoding-ui';
+import {BarraProgreso,Skeleton} from 'owncoding-ui/core';
 import {api,money} from './operations';
 import {DueAlert,CommercialDashboard,billingExpectationState,groupDueAlerts,normalizeCommercialDashboard,shortDate} from './control-center-data';
 import {Kpi,KpiStrip,MoneyText,StateChip} from './ui-v2';

@@ -126,3 +126,10 @@ Dedupe de títulos/cuerpos GitHub realizado el 17/10/2026 antes de crear issues.
 No se abre un issue genérico de mapa de Finanzas sin una tarea y defecto demostrados. Los ajustes concretos de KPI Clientes/acciones Proyectos y política Button pertenecen a #241/#203/#207; Mora y Balance conservan sus responsables. La evidencia de navegador de este documento sigue siendo **pre-fix** (`0afdbd08`, 93/96 escenarios sin desborde): no se convierte en aceptación final de los cambios posteriores. La matriz final del candidato reconstruido192 está pendiente en esta actualización; no se afirma despliegue192.
 
 Los cuerpos de #203–#218 aún describían frontend187 pendiente. Se preparó [JSON de cuerpos propuestos](248-issue-updates.proposed.json) para revisión del integrador: conserva criterios originales sin marcar casillas automáticamente y separa evidencia acreditada, límites físicos/externos y mejoras nuevas. **No se aplicaron esos cuerpos ni se cerraron issues.** La última publicación acreditada es191: [release 191](../qa/release-191.md), smoke público17/10/2026 09:00 UTC y CI de main aprobados. Esta evidencia supera la observación histórica187, pero no acredita retrospectivamente cada criterio ni pruebas de hardware/proveedores reales. El JSON incorpora hash del cuerpo original para detectar cambios ajenos antes de editar.
+
+
+## Cierre posterior del integrador
+
+La revisión anterior conserva su contexto de fuente y capturas pre-fix. El candidato integrado192 tiene [QA final](../qa/ui-app-241/FINAL.md):96/96 escenarios y150/150 focales PASS. Las correcciones de Balance, Mora, KPI Clientes y acciones Proyectos/Inventario están en mainb965d9dd mediantePR251. Las propuestas249/250 y primer pliegue206 siguen pendientes; no se presentan como implementadas.
+
+Los cuerpos203–218 fueron actualizados preservando criterios/casillas y sus limitaciones. Todos quedaron abiertos; la actualización de seguimiento no acredita pruebas externas/físicas. El [registro de release192](../qa/release-192.md) separa CI, publicación pública y SHA del proveedor no disponible.

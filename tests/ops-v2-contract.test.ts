@@ -13,7 +13,7 @@ const workspaceShell=read('app/scale-workspace.tsx'),dataCacheSource=read('app/d
 // ── Contrato v2 de OPS (campaña #41, spec #44): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
 for(const [name,source] of [['inventario',inventory],['estudio',studio]] as const){
- assert.match(source,/from 'owncoding-ui'/,'${name} usa objetos de la librería'.replace('${name}',name));
+ assert.match(source,/from 'owncoding-ui\/core'/,'${name} usa objetos de la librería'.replace('${name}',name));
  assert.match(source,/from '\.\/ui-v2'/,'la pantalla usa las primitivas v2 (KPI/chip/carga)');
  assert.doesNotMatch(source,/-workspace\.css'/,'no quedan hojas de componente');
 }

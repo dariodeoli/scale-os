@@ -10,7 +10,7 @@
  */
 import {useState} from 'react';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
-import {MenuDesplegable} from 'owncoding-ui';
+import {MenuDesplegable} from 'owncoding-ui/core';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';
 import {UrgencyBadge} from './urgency';

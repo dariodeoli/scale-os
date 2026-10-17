@@ -15,7 +15,7 @@ import {InputControl as Input,InputControl} from './ui/input-control';
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {fechaLista} from 'owncoding-ui';
+import {fechaLista} from 'owncoding-ui/core';
 import {IconAction} from "./ui/icon-action";
 import {Button} from "./ui/button";
 import {SearchField} from './search-field';

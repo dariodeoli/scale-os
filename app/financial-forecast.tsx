@@ -15,7 +15,7 @@ import {formatRealMoney,isPositiveRealMoney} from './finance-money';
 import {listDateFull,listDateShort} from './list-format';
 import {api} from './operations';
 import {AmountInput,SelectCustom} from './profile-controls';
-import {soloDigitos} from 'owncoding-ui';
+import {soloDigitos} from 'owncoding-ui/core';
 import {
   FORECAST_HORIZONS,
   amountFor,
@@ -37,7 +37,7 @@ import {
   type MoneyCurrency,
 } from './forecast-data';
 import {useForecast,usePlannedExpenses,useRealExpenses} from './use-forecast';
-import {BarraProgreso,FilaDato,cn} from 'owncoding-ui';
+import {BarraProgreso,FilaDato,cn} from 'owncoding-ui/core';
 import {IconAction} from "./ui/icon-action";
 import {Button} from "./ui/button";
 import {ConfirmDialog} from './dialog';

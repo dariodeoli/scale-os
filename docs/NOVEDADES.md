@@ -2,6 +2,13 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.193
+
+- **Acceso más ligero**: la pantalla de inicio de sesión descarga menos contenido
+  antes de estar lista. Las secciones y formularios se cargan al abrirlos.
+- **Carga verificada**: se controla en cada build que el acceso y el registro no
+  incluyan los recursos bancarios de las pantallas financieras.
+
 ## v1.0.192
 
 - **Balance primero**: contratado y pagado de clientes a la izquierda, equipo

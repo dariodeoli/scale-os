@@ -1,7 +1,7 @@
 "use client";
 // Modelo y helpers del panel global (issue #46): extraídos de superadmin/page.tsx
 // sin cambios de comportamiento, para descomponer la pantalla por secciones.
-import {fechaDia} from "owncoding-ui";
+import {fechaDia} from "owncoding-ui/core";
 import {appOrigin} from "../brand-metadata";
 import {money as formatMoney} from "../operations";
 

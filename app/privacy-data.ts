@@ -25,7 +25,7 @@
  *   servidor no haya confirmado.
  */
 
-import {registroConsentimiento} from 'owncoding-ui';
+import {registroConsentimiento} from 'owncoding-ui/core';
 import {PRIVACY_NOTICE,PRIVACY_RIGHTS_CHANNEL} from './privacy-notice';
 
 export type PrivacyConsent = {

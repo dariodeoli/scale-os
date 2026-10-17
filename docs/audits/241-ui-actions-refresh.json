@@ -21,7 +21,7 @@
     {
       "file": "app/daily-controls.tsx",
       "beforeHash": "e1a481ad6d5d93b1cae1240cc649bf2dc545a73fe94db08ca6976c3271e54ff3",
-      "afterHash": "bc7f09c97dd5903c8538303637ce0ea9236a1a9914f645b7441a208ce0b4b40c",
+      "afterHash": "4c5ad7041a0be65f570156bc9f25dc3ada4e53cfa4ba67a9eddca22043eb018b",
       "rationale": "Dos acciones inertes de preview ahora secondary/neutral; disabled/aria-disabled y ausencia de callbacks acreditados por AST y Chromium. Ningún nuevo widget."
     },
     {
@@ -33,7 +33,7 @@
     {
       "file": "app/finance-balance.tsx",
       "beforeHash": "bca3babdf8616d20c30699b153cf81078de9af76b5248f630a2511918283e977",
-      "afterHash": "06c0fd2a32eca1acbf779fe277ac44c2dbbabcf5f655f676d1219088e7122fca",
+      "afterHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
       "rationale": "Reordenación clientes/equipo antes del resumen; mismos botones, permisos y callbacks del balance."
     },
     {
@@ -57,13 +57,13 @@
     {
       "file": "app/inventory-workspace.tsx",
       "beforeHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
-      "afterHash": "e801e158c086a4b3296938c1eb886c44e9d929d4ead671f78feaf2af960ef257",
+      "afterHash": "ac95e0c9cad6354de9751fd168cc1ff2a4b9a5c5b0ccedccde13f70dd3e2c866",
       "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto."
     },
     {
       "file": "app/project-card.tsx",
       "beforeHash": "c52125f5c53c986b8967b02e230c7b49db05efb681c58070aaa65bf075097661",
-      "afterHash": "7c4251bf6ccee6f0e433dc8154aadf2b3ce06c7a0724b4e24d0747ee571b8bcb",
+      "afterHash": "da3703b55dc91f6b77c6a6b43a6b8c7747b517658d113566244fb7126897d5a6",
       "rationale": "Pie permite flex-wrap en tarjeta y conserva nowrap/scroll en lista; mismo contenido, permisos y acciones. El widget de apertura conserva hash exacto."
     },
     {
@@ -75,13 +75,13 @@
     {
       "file": "app/scale-workspace.tsx",
       "beforeHash": "aa04a5bbe002630b942c0440ea5f509f0c09329671d0b3a0b4babb71e385487b",
-      "afterHash": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e",
+      "afterHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
       "rationale": "#245 retira report/logout del sidebar y ThemeToggle del header; monta report y logout iconos canónicos. Dos widgets propios del sidebar conservan JSX/hash exacto."
     },
     {
       "file": "app/sections/clientes.tsx",
       "beforeHash": "6e7ce59e69c5cd9e4aec081fcbccee0b9e6f870793a0e0c874a552ca745727cf",
-      "afterHash": "9376fab9fd7f3e01a5b11cb5ffb8c032fdcf6fecb9468333ace7984c17afabf7",
+      "afterHash": "5495fe90ce33845d6b729f348264b061605127dcdfdda5dc7f6c018b56f8374a",
       "rationale": "KPI facturación contratado compuesto con filas separadas; dos widgets de identidad y todas las acciones conservan JSX/hash e intención."
     },
     {
@@ -234,7 +234,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1070,
+      "line": 1073,
       "column": 15,
       "owner": "Home",
       "siteHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",

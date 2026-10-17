@@ -12,7 +12,7 @@ import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-re
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {FilaDato,completeSave,fechaLista,fechaListaCorta} from 'owncoding-ui';
+import {FilaDato,completeSave,fechaLista,fechaListaCorta} from 'owncoding-ui/core';
 import {budgetState} from './budget-status';
 import {hasDueWarning,PiiTexto} from './list-format';
 import {hoursSummary,hoursText} from './hours-format';

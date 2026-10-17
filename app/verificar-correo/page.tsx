@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {useSingleFlightSubmit} from '../use-single-flight-submit';
 import {PendingFields} from '../ui/form-state';
 import Link from 'next/link';
-import {esToken,extractTokenFromUrl} from 'owncoding-ui';
+import {esToken,extractTokenFromUrl} from 'owncoding-ui/core';
 import {AccessLayout} from '../access-layout';
 import {api} from '../operations';
 import {EmailField} from '../email-field';

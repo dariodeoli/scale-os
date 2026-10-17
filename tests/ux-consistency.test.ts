@@ -9,7 +9,7 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 
 test('visible date-time values use the 24-hour clock',()=>{
   const listFormat=read('app/list-format.tsx');
-  assert.match(listFormat,/from 'owncoding-ui'/,'app/list-format.tsx usa los objetos de fecha de la librería');
+  assert.match(listFormat,/from 'owncoding-ui\/core'/,'app/list-format.tsx usa los objetos de fecha de la librería');
   assert.doesNotMatch(listFormat,/new Intl\.DateTimeFormat/,'app/list-format.tsx ya no arma fechas a mano');
   assert.match(listFormat,/hora: time/,'listDateFull delega la hora al helper compartido');
   // La librería rinde 24 h: 14:30 UTC son 11:30 en Asunción, nunca «11:30 a. m.».
@@ -300,7 +300,7 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(tailwind,/nav button svg\{color:currentColor\}/,'el SVG del nav hereda el tono del tile (no brand-600 legacy)');
  assert.match(tailwind,/\(prefers-reduced-motion:reduce\)\{\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\),\n :is\(\.desktop-sidebar,\.workspace-topbar,\.mobile-sidebar\) \*\{transition:none!important;animation:none!important\}/,'el marco apaga transiciones y animaciones con reduced motion');
  assert.match(read('app/theme-toggle.css'),/@media\(max-width:767px\)\{\.theme-toggle:not\(:where\(\[data-ui-button\]\)\)\{width:44px/,'el cambio de tema usa target de 44 px en móvil');
- assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
+ assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui\/core'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
 }
 console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
 

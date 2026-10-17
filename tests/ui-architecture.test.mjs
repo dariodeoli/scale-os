@@ -84,3 +84,13 @@ test('numeric package facades allow only declared symbols from exact subpaths',(
   `import * as all from '${source}'`, `import all from '${source}'`, `export * from '${source}'`, `const all=await import('${source}')`, `const all=require('${source}')`,
  ])assert.ok(codes({'app/consumer.tsx':text}).includes('opaque-owncoding-import'),text);
 });
+
+test('asset-free core preserves exact canonical ownership and rejects alternate bypasses',()=>{
+ assert.deepEqual(codes({'app/ui/surface.tsx':"export {Card as CardSurface} from 'owncoding-ui/core'",'app/ui-v2.tsx':"import {EmptyState,ErrorState} from 'owncoding-ui/core'"}),[]);
+ for(const source of ['owncoding-ui/core','owncoding-ui/core/deeper']){
+  assert.ok(codes({'app/customer.tsx':`import {Button as Other} from '${source}'`}).includes('external-primitive'));
+  assert.ok(codes({'app/customer.tsx':`import * as all from '${source}'`}).includes('opaque-owncoding-import'));
+ }
+ assert.ok(codes({'app/ui/surface.tsx':"export {Card,MoneyInput} from 'owncoding-ui/core'"}).includes('external-primitive'));
+ assert.ok(codes({'app/ui/surface.tsx':"export {Card} from 'owncoding-ui/core/deeper'"}).includes('external-primitive'));
+});

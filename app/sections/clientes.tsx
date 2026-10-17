@@ -4,7 +4,7 @@ import {Notice as Aviso} from '../ui/notice';
 import {InputControl} from '../ui/input-control';
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
-import {fechaListaCorta} from 'owncoding-ui';
+import {fechaListaCorta} from 'owncoding-ui/core';
 import {IconAction} from "../ui/icon-action";
 import {BATCH_LIMITS, roleCan, canSeeClientContact} from '../capabilities';
 import {PiiTexto, maskEmail} from '../list-format';

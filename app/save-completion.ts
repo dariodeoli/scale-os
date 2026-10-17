@@ -1,4 +1,4 @@
-import {completeSave as completeSaveLib, AVISO_REFRESCO} from 'owncoding-ui';
+import {completeSave as completeSaveLib, AVISO_REFRESCO} from 'owncoding-ui/core';
 import {notify} from './feedback';
 
 // Adaptador del contrato de la app sobre `completeSave` de owncoding-ui v0.39

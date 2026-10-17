@@ -5,7 +5,7 @@
 // la biblioteca dibuja el disparador, el atajo ⌘/Ctrl+K, el debounce, los
 // estados y la navegación por teclado. Sin lógica de UI duplicada.
 import {useCallback,useMemo} from 'react';
-import {PaletaComandos} from 'owncoding-ui';
+import {PaletaComandos} from 'owncoding-ui/core';
 import {normalizeSearch} from './control-center-data';
 import {sections} from './navigation';
 import {visibleModule} from './workspace-access';

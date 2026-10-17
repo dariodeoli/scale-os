@@ -5,7 +5,7 @@ import {FormField} from './ui/field';
 import {InputControl as Input} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {AvisoPrivacidad} from 'owncoding-ui';
+import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {Checkbox} from './ui/choice';
 import {Plus} from 'lucide-react';
 import {Dialog,FormActions} from './dialog';

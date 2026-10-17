@@ -1,6 +1,6 @@
 "use client";
 
-import {diasHasta} from 'owncoding-ui';
+import {diasHasta} from 'owncoding-ui/core';
 import './due-date.css';
 
 const TIME_ZONE='America/Asuncion';

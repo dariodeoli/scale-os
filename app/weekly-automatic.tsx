@@ -12,7 +12,7 @@ import {useEffect,useState,type ChangeEvent,type ReactNode} from 'react';
 import {ActorIdentity} from './actor-identity';
 import {todayAsuncion} from './client-format';
 import {listDateShort} from './list-format';
-import {FilaDato} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui/core';
 import {LoadingBlock} from './ui-v2';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};

@@ -26,7 +26,7 @@ test('#135 P2: la ayuda de cada módulo es de la biblioteca y conserva /status',
  assert.equal(fallback.titulo,'Módulo inventado');
  assert(fallback.resumen.includes('Scale OS')&&fallback.enlaces.some(link=>link.href==='/status'));
  const guide=file('app/workspace-guide.tsx');
- assert.match(guide,/import \{AyudaModulo\} from 'owncoding-ui'/,'la ayuda por módulo sale del objeto de la biblioteca');
+ assert.match(guide,/import \{AyudaModulo\} from 'owncoding-ui\/core'/,'la ayuda por módulo sale del objeto de la biblioteca');
  assert.match(guide,/moduleHelp\(active\)/,'los textos por módulo vienen de la fuente única');
  assert.match(guide,/variant==='help'[\s\S]{0,400}?<AyudaModulo/,'la variante de ayuda migra al objeto');
  assert.match(guide,/etiquetaBoton="Guía del panel"/,'el botón conserva la etiqueta del marco');
@@ -58,7 +58,7 @@ test('#135 P2: la paleta ofrece destinos y acciones reales del shell con el tope
  assert(conAccion.some(item=>item.datos.accion==='ayuda'),'la ayuda no se recorta');
  assert.equal(filterCommands([...accion,...destinos,...muchos],'').length,0,'sin término no se lista el catálogo');
  const search=file('app/workspace-search.tsx');
- assert.match(search,/import \{PaletaComandos\} from 'owncoding-ui'/,'el buscador global es el objeto de la biblioteca');
+ assert.match(search,/import \{PaletaComandos\} from 'owncoding-ui\/core'/,'el buscador global es el objeto de la biblioteca');
  assert.doesNotMatch(search,/SearchField|search-result-assignees|search-results/,'no quedó la copia local del buscador');
  assert.doesNotMatch(search,/addEventListener\('keydown'/,'el atajo ⌘K lo maneja el objeto, no un listener propio');
 });
@@ -73,7 +73,7 @@ test('#135 P4: ventanaDeLista acota el montaje y las listas largas la adoptan',(
  assert.deepEqual(ventanaDeLista({total:0,scrollTop:0,altoVista:900,altoFila:50}),{inicio:0,fin:0});
  assert.deepEqual(ventanaDeLista({total:12,scrollTop:0,altoVista:0,altoFila:0}),{inicio:0,fin:12},'sin medición no se esconde nada');
  const windowSource=file('app/list-window.ts');
- assert.match(windowSource,/import \{ventanaDeLista\} from 'owncoding-ui'/,'el rango lo decide el objeto de la biblioteca');
+ assert.match(windowSource,/import \{ventanaDeLista\} from 'owncoding-ui\/core'/,'el rango lo decide el objeto de la biblioteca');
  assert.match(windowSource,/export function useFilasVisibles/,'la app aporta la medición del contenedor');
  for(const path of ['app/sections/clientes.tsx','app/sections/presupuestos.tsx']){
   const source=file(path);

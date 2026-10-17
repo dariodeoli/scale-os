@@ -3,7 +3,7 @@ import {InputControl} from './ui/input-control';
 // Panel de suscripción v2 (issue #46): Tailwind + tokens, sin hoja propia.
 // La lógica de retorno de Stripe, verificación autoritativa y estados se conserva.
 import {useEffect,useId,useRef,useState} from 'react';
-import {whatsappUrl} from 'owncoding-ui';
+import {whatsappUrl} from 'owncoding-ui/core';
 import {daysUntil} from './client-format';
 import {listDateFull} from './list-format';
 import {LoadingBlock} from './ui-v2';

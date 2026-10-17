@@ -1,6 +1,6 @@
 // Mismo formateador que `listDateShort` (list-format lo envuelve con `fechaListaCorta(value,'')`);
 // se importa directo para que este módulo de datos siga puro, sin la hoja CSS de list-format.
-import {fechaListaCorta} from 'owncoding-ui';
+import {fechaListaCorta} from 'owncoding-ui/core';
 export type DueAlert={id:string;type:string;name?:string|null;due?:string|null;context?:string};
 export type Total={currency:string;total:string};
 export type CommercialDashboard={activeClients:number;activeProspects:number;expectedMonthlyBilling?:Total[]};

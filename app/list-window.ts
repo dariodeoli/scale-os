@@ -8,7 +8,7 @@
 // (§15.11) y conservan la altura con espaciadores. Sin medición (SSR, tests o
 // contenedor ausente) el rango es la lista completa: nunca se esconden filas.
 import {useEffect,useState,type RefObject} from 'react';
-import {ventanaDeLista} from 'owncoding-ui';
+import {ventanaDeLista} from 'owncoding-ui/core';
 
 export type ListPage = { limit: number; offset: number; hasMore: boolean; total: number };
 
