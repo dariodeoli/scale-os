@@ -26,7 +26,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "test:docker-build-secrets": "node tests/docker-build-secrets.test.mjs",
-    "test:release-regression": "node build-tools/run-release-regression.mjs"
+    "test:release-regression": "node build-tools/run-release-regression.mjs",
+    "test:ui:browser": "node build-tools/run-ui-browser-241.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
