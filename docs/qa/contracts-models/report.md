@@ -27,3 +27,9 @@ El botón preexistente «Volver arriba» de Configuración → Mi empresa mide 3
 - Los primeros intentos detectaron problemas del runner: campos dentro de acordeones cerrados, igualdad de importe con/sin decimales, selector ambiguo entre dos checkboxes y recarga automática de Chromium al alternar `isMobile`. Fueron corregidos en `/tmp`; no justificaron cambios de producto. El checkbox humano se verificó dentro del panel «Emitir versión», diferenciándolo de «Mostrar otros campos disponibles».
 
 No se realizaron consultas a proveedores, cambios en producción, revisión jurídica ni pruebas en hardware. La aceptación legal del texto y los términos específicos del negocio requieren revisión del responsable antes de emitir contratos reales.
+
+## Suplemento de ficha cliente móvil
+
+`/tmp/scale-contract-models-mobile-report.json`: 4/4 PASS. En 390 px se recorrieron los pasos del editor móvil con «Siguiente» hasta el paso 4 (datos para contratos), se escribió un domicilio contractual visible y se midió el formulario: ancho 390 px, alto 743 px, región interior desplazable, sin desbordamiento horizontal. Las acciones cumplen 44 px; los enlaces de texto inline del aviso de privacidad miden 16 px y se registran como texto, excluidos de la aserción de botones. Captura: `/tmp/scale-contract-models-qa/client-legal-form-390.png`.
+
+Resultado combinado: 55 aserciones PASS; un hallazgo visual preexistente de botón de 32 px pendiente en #222. Las dos entradas adicionales de error del reporte principal son propagaciones de ese mismo hallazgo. No se acreditó persistencia móvil adicional: la persistencia completa de los campos legales se verificó mediante alta desktop y lectura API.
