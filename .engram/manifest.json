@@ -24,6 +24,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "74a418bf",
+      "created_by": "agent",
+      "created_at": "2026-10-17T07:41:03.460018303Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
