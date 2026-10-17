@@ -37,8 +37,7 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
   const primaryAction = onCreateOrder ? <ScaleButton type="button" className="primary" onClick={onCreateOrder} variant="primary"><Plus size={18}/> Nueva orden</ScaleButton> : undefined;
   if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <ListPage aria-label="Centro de control" primaryAction={primaryAction}><DashboardSkeleton label="Cargando el panel…" kpis={4} cards={3}/></ListPage>;
   return <ListPage aria-label="Centro de control" primaryAction={primaryAction} className="[&>*]:min-w-0">
-    <InternalTasks organizationId={String(user?.organization_id||'')} userId={String(user?.id||'')} canView={user?.role==='owner'||user?.capabilities?.['tasks.view']!==false}/>
-    <WorkspaceGuide {...guideProps} variant="card"/>
+    <InternalTasks compact organizationId={String(user?.organization_id||'')} userId={String(user?.id||'')} canView={user?.role==='owner'||user?.capabilities?.['tasks.view']!==false}/>
     {/* Reorganización IA: lo que se viene a hacer va primero (señales y
         vencidos → piezas por etapa → trabajo del día) y los resúmenes comercial
         y financiero quedan debajo, como consulta. */}
@@ -56,6 +55,7 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
       </section>
       <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
     </>}/>
+    <WorkspaceGuide {...guideProps} variant="card"/>
     {/* #100: sin «Métricas operativas» (repetían Producción/Proyectos) y sin un
         segundo CTA a Producción: el panel de piezas ya enlaza al módulo. */}
   </ListPage>;
