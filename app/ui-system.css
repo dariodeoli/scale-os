@@ -42,25 +42,33 @@
 .control-shell .panel+.panel{margin-top:var(--ui-space-4)}
 .control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}
 
-/* ── Encabezado de página (#89) ─────────────────────────────────────────────
-   El shell (`workspace-page-header`) y `PageHeader` de ui-v2 comparten un solo
-   contrato: en ≥1280 px es UNA fila de 56–64 px —título, contador/contexto y
-   acciones—; el subtítulo auxiliar queda en una línea (el texto completo va en
-   el tooltip). En mobile conserva el apilado y el alto de siempre. */
-@media(min-width:1280px){
- /* `.control-shell` sube la especificidad por encima de las utilidades Tailwind
-    del markup (`items-start`, `flex-wrap`): el contrato vive acá una sola vez. */
- .control-shell :is(.workspace-page-header,.ui-page-header){flex-wrap:nowrap;align-items:center;gap:var(--ui-space-4);min-height:56px;margin-bottom:var(--ui-space-4)}
- /* `center` (no `baseline`): el subtítulo recorta en una línea con
-    `overflow:hidden`, y un contenedor scrolleable sintetiza su baseline desde
-    el borde inferior, lo que estiraba la fila. */
- .control-shell :is(.workspace-page-header,.ui-page-header) .page-heading,
- .control-shell :is(.workspace-page-header,.ui-page-header) .ui-page-header-main{flex-wrap:nowrap;align-items:center;gap:var(--ui-space-3);min-width:0;overflow:hidden}
- /* El `h1` conserva el margen del navegador (preflight apagado) en mobile; en
-    la fila compacta se anula para que no infle el alto. */
- .control-shell :is(.workspace-page-header,.ui-page-header) h1{margin:0;white-space:nowrap}
- .control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-subtitle,.ui-page-header-subtitle){display:block;min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-block:0}
- .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex-wrap:nowrap;flex:0 0 auto;width:auto}
+/* ── Encabezado de página (#89) — ritmo natural (#222) ────────────────────
+   Título, contexto y acciones comparten espacio cuando caben. Ninguna fila
+   reserva un alto: los controles y el texto deciden; en móvil pueden envolver. */
+.control-shell :is(.workspace-page-header,.ui-page-header){display:flex;flex-wrap:wrap;align-items:center;gap:8px var(--ui-space-4);min-height:0;max-width:100%;margin:0 0 var(--ui-space-3);align-self:start}
+.control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-heading,.ui-page-header-main){display:flex;flex:1 1 18rem;flex-wrap:wrap;align-items:center;gap:4px var(--ui-space-3);min-width:0}
+.control-shell :is(.workspace-page-header,.ui-page-header) h1{margin:0;max-width:100%;font-size:22px;line-height:1.25;overflow-wrap:anywhere}
+.control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-subtitle,.ui-page-header-subtitle){margin:0;min-width:0;font-size:13px;line-height:1.5}
+.control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{display:flex;flex:0 1 auto;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;max-width:100%;width:auto}
+.control-shell :is(.workspace-page-header,.ui-page-header) .header-actions>*{max-width:100%}
+.control-shell :is(.workspace-page-header,.ui-page-header) .header-actions:empty{display:none}
+.control-shell :is([data-list-page],.contracts-workspace){align-content:start}
+.control-shell :is([data-list-page],.contracts-workspace)>.ui-page-header{margin:0}
+.control-shell [data-list-page]{gap:var(--ui-space-3)}
+.control-shell .ui-list-page-chrome{gap:var(--ui-space-2)}
+.control-shell .ui-list-page-chrome>.ui-page-header{margin:0}
+.control-shell .ui-filter-toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px var(--ui-space-3);min-width:0;max-width:100%;margin:0}
+.control-shell .ui-filter-toolbar>*{min-width:0;max-width:100%}
+.control-shell .ui-filter-summary{display:flex;align-items:center;min-height:var(--ui-control-height);margin:0 0 0 auto;white-space:nowrap}
+@media(min-width:1024px){
+ .control-shell .ui-page-header-main{flex-wrap:nowrap}
+ .control-shell .ui-page-header-subtitle{flex:1 1 15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@media(max-width:767px){
+ .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex:1 1 100%}
+ .control-shell .ui-filter-toolbar>:is(.ops-select,.search-field){flex:1 1 10rem}
+ .control-shell .ui-filter-summary{min-height:44px}
+ .control-shell a.text-button{display:inline-flex;align-items:center;min-height:44px}
 }
 
 /* ── Foto de perfil (#107) ───────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 "use client";
+import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
@@ -734,6 +735,7 @@ export default function Home() {
     return <>
       <span className="flex min-w-0 items-center gap-2">
         {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
+        <ClientLogo name={client?.name||project.client_name||'Sin cliente'} logo={identityLoading?undefined:client?.logo_url} color={client?.color_key} size="sm"/>
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>
           <small className="min-w-0 shrink-[2] truncate text-[11px] text-mute" title={client?.name||'Sin cliente'}>· {client?.name||'Sin cliente'}</small>
@@ -933,7 +935,7 @@ export default function Home() {
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
   // primaria) y los apartados, así que el shell no repite ninguno de los dos.
-  const ownsHeader = ['Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
+  const ownsHeader = ['Contratos','Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
@@ -1121,7 +1123,7 @@ export default function Home() {
         {active==='Estudio'&&<EstudioSection user={user}/>}
         {active==='Actividad'&&<ActividadSection user={user}/>}
         {active==='Configuración'&&<ConfiguracionSection user={user} subscriptionError={subscriptionError} refreshSubscription={refreshSubscription} exitDemoSimulation={exitDemoSimulation} deletionSignedOut={deletionSignedOut}/>}
-        {active==='Contratos'&&user&&<ContractsWorkspace key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/>}
+        {active==='Contratos'&&user&&<PageTitleContext.Provider value=""><ContractsWorkspace key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/></PageTitleContext.Provider>}
         {active==='Preferencias'&&<PreferenciasSection user={user} preferencesReady={preferencesReady} preferences={preferences} preferenceWarning={preferenceWarning} updatePreferences={updatePreferences}/>}
         {active==='Papelera'&&<PapeleraSection load={load}/>}
         {active === "Resumen" && <ResumenSection dataState={shellDataState} guideProps={guideProps} user={user} orders={orders} load={load} setActive={setActive} summary={summary} stageCounts={stageCounts} projects={projects} setDetail={setDetail} onCreateOrder={canCreateRecord('Resumen')?()=>setModal('order'):undefined}/>}
