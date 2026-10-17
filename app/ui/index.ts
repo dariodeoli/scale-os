@@ -4,6 +4,7 @@
 export {InputBase, TextareaBase} from './input';
 export type {InputBaseProps, TextareaBaseProps, FieldStateProps} from './input';
 export {InputControl} from './input-control';
+export type {InputControlProps} from './input-control';
 export {Field, FieldLabel, FormField} from './field';
 export {Notice, Note} from './notice';
 export {SegmentedField, Subtabs, TabScroller} from './navigation';
@@ -19,8 +20,8 @@ export type {PhoneFieldProps} from '../phone-field';
 export {SearchField} from '../search-field';
 export {AmountInput} from './amount';
 export type {AmountInputProps} from './amount';
-export {NumberInput, PercentageInput, numberInputValid} from './number';
-export type {NumberInputProps, PercentageInputProps, NumberPolicy, PercentagePolicy, NumberRules} from './number';
+export {NumericControl, NumberInput, PercentageInput, numberInputValid, numberInputProblem} from './number';
+export type {NumericControlProps, NumberInputProps, PercentageInputProps, NumberPolicy, PercentagePolicy, NumberRules, NumberNotation} from './number';
 export {DateInput, TimeInput, DateTimeInput, MonthInput} from './temporal';
 export type {TemporalInputProps} from './temporal';
 export {Button, IconButton} from './button';

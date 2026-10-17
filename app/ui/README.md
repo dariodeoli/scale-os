@@ -11,7 +11,7 @@
 | `field` | `Field`: etiqueta, ayuda, error e IDs relacionados. Render-prop `{id,invalid,describedBy}` para controles compuestos. |
 | Adaptadores de texto | `TextField`, `EmailField`, `PasswordField`, `PhoneField`: mantienen `onChange(string)` y ref al input. No cambian las políticas de contraseña ni verifican identidad. |
 | `amount` | `AmountInput`: contrato local `onChange(string)`, moneda explícita y renderer MoneyInput existente. Mantiene precisión/formato/caret, sin convertir monedas. |
-| `number` | `NumberInput`, `PercentageInput`: políticas explícitas, valores parciales intactos, límites y precisión configurables; `numberInputValid` es validación visual exacta. No convierten porcentajes y ratios. |
+| `number` | `NumericControl` conserva eventos/ref reales; `InputControl type=number`, `NumberInput` y `PercentageInput` usan ese motor. Borradores parciales intactos; límites, precisión y step explícitos con customValidity. `numberInputValid`/`numberInputProblem` no cambian el valor. No convierten porcentajes y ratios. |
 | `temporal` | `DateInput`, `TimeInput`, `DateTimeInput`, `MonthInput`: eventos y valores civiles nativos, selector como mejora progresiva. La conversión a instantes pertenece al dominio. |
 | `button` | `Button`, `IconButton`: botón nativo, variantes/tamaños/colores y pending. Ninguna operación remota. |
 | `select` | `Selector`: opciones suministradas por consumidor; selección simple/múltiple según contrato, búsqueda y accesibilidad. No carga catálogos ni decide permisos. |
