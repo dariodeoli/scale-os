@@ -40,7 +40,7 @@
 .control-shell :is(.panel,.ops-card)>.form-note{margin-top:var(--ui-space-2)}
 .control-shell :is(.panel,.ops-card)>.form-stack{margin-top:var(--ui-space-4)}
 .control-shell .panel+.panel{margin-top:var(--ui-space-4)}
-.control-shell :is(.ops-stack,.finance-grid)>.panel+.panel{margin-top:0}
+.control-shell :is(.ops-stack,.finance-grid,.contracts-cards)>.panel+.panel{margin-top:0}
 
 /* ── Encabezado de página (#89) — ritmo natural (#222) ────────────────────
    Título, contexto y acciones comparten espacio cuando caben. Ninguna fila
