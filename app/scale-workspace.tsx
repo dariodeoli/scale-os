@@ -919,7 +919,7 @@ export default function Home() {
             {toast && <p className="error" role="alert">{toast}</p>}
             <button className="primary login-button">Continuar</button>
           </form>
-          <AvisoPrivacidad compact finalidad="Usamos tu correo para autenticarte y darte acceso a tu espacio." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
+          <AvisoPrivacidad compact finalidad="Privacidad de tus datos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
       </AccessLayout>
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
