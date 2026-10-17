@@ -36,4 +36,4 @@ Para comparar: terminar sólo el Next baseline propio, esperar build del integra
 | 390 | resumen | 15.453 | 13.894 | 2362968 | 25 |
 | 390 | balance | 14.937 | 13.922 | 2340382 | 24 |
 
-Seis cargas completadas sin error del runner, cero errores runtime y cero hosts externos. Los POST automáticos de analytics se bloquearon explícitamente; sus errores de recurso no se ocultan en el JSON. No se afirma consola limpia. La comparación candidata aún está pendiente. Next baseline propio se detuvo; API/PG se conservaron para evitar cambios de fixture entre mediciones.
+Seis cargas completadas sin error del runner, cero errores runtime y cero hosts externos. Los POST automáticos de analytics se bloquearon explícitamente; sus errores de recurso no se ocultan en el JSON. No se afirma consola limpia. La comparación candidata y sus límites están en [COMPARISON.md](COMPARISON.md). Next baseline propio se detuvo; API/PG se conservaron para evitar cambios de fixture entre mediciones.
