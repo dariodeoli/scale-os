@@ -8,7 +8,7 @@ Cobranza y mora y respeta el permiso efectivo `payments.manage`.
 
 - `finance/treasury?month=AAAA-MM`: saldos actuales, iniciales y al cierre por
   cuenta; movimientos del libro existente `agency_cash_movements`.
-- `forecast`: contratado mensual, facturado, cobrado de facturas, gastos
+- `forecast`: contratado mensual, facturado, cobrado neto, gastos
   previstos y personal; conservar la definición canónica de cada agregado.
 - `expenses`: gastos pagados contra una cuenta, reversibles y auditados.
 - `planned-expenses`: gastos mensuales o recurrentes personalizables; no mueven caja.
@@ -39,6 +39,8 @@ El contexto financiero consulta sólo entidades autorizadas de la organización,
 permite buscar por `q` y avisa si se alcanza el límite de catálogo. Los cobros
 se cargan en páginas de 20 y permiten continuar, sin ocultar el histórico.
 Los clientes inactivos se identifican en los selectores de mora anterior.
+El vencimiento original de una deuda y su fecha estimada de cobro son campos
+distintos: previsibilidad no modifica la antigüedad de la mora.
 
 Cerrar un mes es una operación exclusiva del dueño y requiere motivo. Los
 controles de período y el registro monetario son autoritativos en el API y la
