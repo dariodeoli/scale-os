@@ -1,7 +1,7 @@
 FROM node:24-alpine
 
 WORKDIR /app
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql18-client aws-cli curl
+RUN apk add --no-cache git chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql18-client aws-cli curl
 
 COPY package*.json ./
 RUN npm ci --omit=dev
