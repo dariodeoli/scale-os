@@ -21,7 +21,7 @@ El tema claro/oscuro/contraste se aplica temporalmente al atributo raíz, sin lo
 
 ## Capturas
 
-Las capturas provienen de Next en desarrollo; el indicador circular «N» es del framework y se conserva en la evidencia. No se ocultaron fallos ni se modificaron imágenes.
+Las ocho capturas son artefactos locales en este directorio; `.gitignore` excluye imágenes de `docs/qa` para no inflar el contexto de build. Se versionan este informe y results.json, sin forzar las imágenes al repositorio. Las capturas provienen de Next en desarrollo; el indicador circular «N» es del framework y se conserva en la evidencia. No se ocultaron fallos ni se modificaron imágenes.
 
 | Ancho real | Claro | Oscuro | Contraste |
 | --- | --- | --- | --- |
