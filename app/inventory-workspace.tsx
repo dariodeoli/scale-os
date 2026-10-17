@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from './ui/input';
 
 import {Button} from './ui/button';
@@ -421,12 +422,12 @@ function InventoryPanel(){
     <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='missing_value'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con valor faltante: ${attention.missingValue}`} aria-pressed={attentionFilter==='missing_value'} title={`Filtrar ${attention.missingValue} equipo${attention.missingValue===1?'':'s'} con valor faltante`} onClick={()=>setAttentionFilter(current=>current==='missing_value'?'':'missing_value')}><span>Valor faltante</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.missingValue}</span></button>
     <button type="button" className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-fono/60 md:min-h-8 ${attentionFilter==='physical_verification'?'border-warn bg-warn/15 text-fore':'border-ink-600 bg-ink-800/50 text-mute hover:border-interactivo hover:text-fore'}`} aria-label={`Filtrar equipos con control físico vencido o sin registro: ${attention.physicalVerification}`} aria-pressed={attentionFilter==='physical_verification'} title={`Control pendiente: vencido hace más de ${PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.`} onClick={()=>setAttentionFilter(current=>current==='physical_verification'?'':'physical_verification')}><span>Control físico pendiente</span><span className="rounded-md bg-fore/10 px-1.5 py-0.5 tabular-nums text-fore" aria-hidden="true">{attention.physicalVerification}</span></button>
     {attentionFilter?<Button type="button" variant="ghost" className="min-h-11 md:min-h-8" onClick={()=>setAttentionFilter('')}>Limpiar atención</Button>:null}
-    <button type="button" className="text-button max-md:order-2" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</button>
+    <Button variant="ghost" type="button" className="text-button max-md:order-2" aria-expanded={attentionHelp} title="Qué cuenta cada chip de atención" onClick={()=>setAttentionHelp(value=>!value)}>¿Qué es?</Button>
     {/* Mobile (pase de densidad): la vista va solo con íconos (el nombre queda en
         aria-label/title) y comparte la línea con «Seleccionar visibles» y «¿Qué es?». */}
     <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto max-md:order-1">
      <ViewTabs className="max-sm:[&_button>span.min-w-0]:hidden" ariaLabel="Vista de inventario" value={equipmentView} onChange={(value:string)=>setEquipmentView(value as 'grid'|'list'|'pipeline')} options={[['grid','Cuadrícula','grid'],['list','Lista','list'],['pipeline','Ubicaciones','store']]}/>
-     {selectionEnabled&&visible.length?<button type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</button>:null}
+     {selectionEnabled&&visible.length?<Button variant="ghost" type="button" className="text-button" onClick={selectVisible}>Seleccionar visibles</Button>:null}
     </div>
     {attentionHelp?<Nota tono="info" compact className="basis-full max-md:order-3">Control pendiente: vencido hace más de {PHYSICAL_VERIFICATION_MAX_AGE_DAYS} días o sin registro. Los conteos respetan búsqueda y categoría.</Nota>:null}
    </div>:null}

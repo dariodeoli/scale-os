@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 import {useEffect,useState} from 'react';
@@ -144,7 +145,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="m-0 text-[15px] font-semibold tracking-tight text-fore">Permisos por módulo</h3><p className="m-0 text-xs text-mute">Tocá una pastilla para habilitar o quitar el permiso de ese cargo.</p></div>
     <ModulePermissions data={data} owner={owner} busy={busy} toggle={toggle}/>
    </div>
-   {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="m-0 text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
+   {owner?<div className="flex justify-end"><Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</Button></div>:<p className="m-0 text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
   </>}
  </>;
  return explorer?<ListPage aria-label="Roles y permisos" aria-busy={loading||busy} kpis={kpis}>{body}</ListPage>:<div className="grid gap-4" aria-busy={loading||busy}>{body}</div>;

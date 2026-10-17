@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from './ui/input';
 
 import {Button} from './ui/button';
@@ -180,7 +181,7 @@ export function Editor({
       {f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <Textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField disabled={fieldDisabled} bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput integerOnly={f.integer} id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><Input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
+        ) : f.type === 'textarea' ? <Textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField disabled={fieldDisabled} bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput integerOnly={f.integer} id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><Input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<Button variant="ghost" type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</Button>}</span>}
       </label>}
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
@@ -231,7 +232,7 @@ export function Editor({
       {fields.filter(f=>!f.section).map(renderField)}
       {showSectionSummary&&<div className="error form-error-summary ops-wide" role="alert">
         <span>Revisá {errorSections.length===1?'esta sección':'estas secciones'}:</span>{' '}
-        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<button type="button" className="text-button" onClick={()=>revealSection(name)}>{name} ({sectionErrorCount(name)})</button></span>)}
+        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<Button variant="ghost" type="button" className="text-button" onClick={()=>revealSection(name)}>{name} ({sectionErrorCount(name)})</Button></span>)}
       </div>}
       {sectionNames.map((section,index)=>{
         const errors=sectionErrorCount(section);
@@ -312,7 +313,7 @@ export function ProjectComments({
   }
   return (
     <>
-      <button
+      <Button variant="ghost" type="submit"
         className="text-button"
         onClick={() => {
           setOpen(true);
@@ -320,7 +321,7 @@ export function ProjectComments({
         }}
       >
         <MessageSquare size={14} /> Comentarios
-      </button>
+      </Button>
       {open && (
         <Dialog title={`Seguimiento · ${name}`} close={() => setOpen(false)}>
           <ProjectPresence projectId={projectId}/>
@@ -444,11 +445,11 @@ export function CompanySelector({ name, logo }: { name: string; logo?: string|nu
               >
                 {c.name} · {c.role}
               </button>
-              {!c.isDemo&&<button type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
+              {!c.isDemo&&<Button variant="ghost" type="button" className="text-button" disabled={busy||preferred===String(c.id)} onClick={async()=>{
                 if(preferenceLock.current)return;preferenceLock.current=true;setBusy(true);setError('');
                 try{await api('/api/auth/default-organization',{organizationId:c.id});setPreferred(String(c.id));window.dispatchEvent(new Event('scale:default-company-changed'));}
                 catch(e){setError(message(e));}finally{preferenceLock.current=false;setBusy(false);}
-              }}><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</button>}
+              }}><Star size={14}/>{preferred===String(c.id)?'Predeterminada':'Usar al iniciar sesión'}</Button>}
               </div>
             ))}
           </div>

@@ -1,4 +1,5 @@
 'use client';
+
 import {Button} from './ui/button';
 
 
@@ -91,7 +92,7 @@ function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAss
   }finally{saving.current=false;if(generation.current===version)setBusy(false);}
  }
  return <section className="record-assignees" aria-label="Asignación de responsables">
-  <div className="record-assignees-heading"><strong>Responsables</strong>{editable&&saved?<button type="button" className="text-button" aria-expanded={expanded} aria-controls={panelId} disabled={loading||busy} onClick={()=>{setExpanded(open=>!open);}}><Pencil size={14}/>Cambiar responsables</button>:null}</div>
+  <div className="record-assignees-heading"><strong>Responsables</strong>{editable&&saved?<Button variant="ghost" type="button" className="text-button" aria-expanded={expanded} aria-controls={panelId} disabled={loading||busy} onClick={()=>{setExpanded(open=>!open);}}><Pencil size={14}/>Cambiar responsables</Button>:null}</div>
   {loading?<p role="status">Cargando responsables…</p>:saved?<div className="record-assignees-summary" aria-label="Responsables actuales">{draft.assigned_user_ids.length?draft.assigned_user_ids.map(person=>{
    const member=members.find(member=>String(member.id)===person);
    return <span className="record-assignee-chip" key={person}><PersonContainer size="sm" name={personDisplayName(member?.full_name?.trim()||member?.email,'Persona no disponible')} photoUrl={member?.photo_url} secondary={member?.full_name&&member?.email&&!isTechnicalDemoEmail(member.email)?member.email:undefined} verified/>{draft.assigned_user_id===person?<small>Principal</small>:null}</span>;
@@ -99,10 +100,10 @@ function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAss
   {expanded&&editable&&saved?<div id={panelId} className="record-assignees-editor">
    <AssigneePicker members={members} value={draft} onChange={value=>{setDraft(value);setNotice('');}} disabled={busy||conflict} loading={loading} error={error}/>
    <div className="record-assignees-actions">{children?<small>Los cambios se guardan con Guardar, junto con los detalles.</small>:<Button variant="secondary" type="button" className="secondary" disabled={loading||busy||conflict||unavailable||!changed} onClick={()=>{void save();}}>{busy?'Guardando…':'Guardar responsables'}</Button>}
-   <button type="button" className="text-button" disabled={busy} onClick={()=>{setDraft(assigneeSelection(saved.assigned_user_ids,saved.assigned_user_id));setExpanded(false);if(!conflict)setError('');}}><X size={14}/>Cancelar</button></div>
+   <Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>{setDraft(assigneeSelection(saved.assigned_user_ids,saved.assigned_user_id));setExpanded(false);if(!conflict)setError('');}}><X size={14}/>Cancelar</Button></div>
   </div>:error?<p role="alert" className="error">{error}</p>:null}
   {conflict?<p role="status">{children?'El registro cambió. Tu borrador sigue aquí y no se guardó. Conservá los cambios que necesites antes de cerrar y volver a abrir para revisar la versión actual.':'Otra persona cambió la asignación. Recargá para revisar la selección actual antes de guardar.'}</p>:null}
-  {!loading&&(!saved||!children&&(conflict||error))?<button type="button" className="text-button" disabled={busy} onClick={()=>{if(!saving.current){setDraft({assigned_user_ids:[],assigned_user_id:null});setReload(value=>value+1);}}}><RefreshCw size={14}/>{conflict?'Recargar responsables':'Reintentar carga'}</button>:null}
+  {!loading&&(!saved||!children&&(conflict||error))?<Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>{if(!saving.current){setDraft({assigned_user_ids:[],assigned_user_id:null});setReload(value=>value+1);}}}><RefreshCw size={14}/>{conflict?'Recargar responsables':'Reintentar carga'}</Button>:null}
   {notice?<p role="status">{notice}</p>:null}
   {children?.(save)}
  </section>;

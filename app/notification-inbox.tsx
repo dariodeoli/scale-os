@@ -1,4 +1,5 @@
 'use client';
+
 import {Button} from './ui/button';
 
 // Bandeja oficial de avisos (owncoding-ui §16, Refs #83): el objeto
@@ -160,7 +161,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
    <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
     {(selected.work_order_id||selected.project_id)&&<Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={()=>visitNotice(selected)}><ExternalLink size={15}/>{selected.work_order_id?'Ver pieza':'Ver proyecto'}</Button>}
     {!selected.read_at&&<Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={()=>void mutate('read',selected)}><Check size={16}/>Marcar como leída</Button>}
-    <button type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</button>
+    <Button type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</Button>
    </div>
   </div></Dialog>}
  </>;

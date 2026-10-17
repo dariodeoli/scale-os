@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from '../ui/input';
 
 import {Button} from '../ui/button';
@@ -99,14 +100,14 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
           {subscriptionError ? (
             <div>
               <p className="error" role="alert">{subscriptionError}</p>
-              <button
+              <Button variant="ghost"
                 type="button"
                 className="text-button"
                 disabled={busy}
                 onClick={() => void manageSubscription(subscriptionAgency)}
               >
                 Reintentar
-              </button>
+              </Button>
             </div>
           ) : !subscriptionLoaded ? (
             <LoadingBlock label="Cargando estado manual…" lines={2}/>
@@ -122,7 +123,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
             <p className="form-note">Dar gracia suma días de acceso a partir del vencimiento y queda auditado.</p>
             <div className="inline-actions">
               {GRACE_OPTIONS.map((option) => (
-                <button
+                <Button
                   key={option.days}
                   type="button"
                   className={option.days === 30 ? "primary" : "secondary"}
@@ -130,11 +131,11 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   onClick={() => openGrace(option)}
                 >
                   {option.label}
-                </button>
+                </Button>
               ))}
-              <button type="button" className="text-button" disabled={busy} onClick={() => applyCoupon(subscriptionAgency)}>
+              <Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={() => applyCoupon(subscriptionAgency)}>
                 Aplicar cupón
-              </button>
+              </Button>
             </div>
           </section>
           {/* Las acciones de las opciones avanzadas viven junto a su formulario: en el

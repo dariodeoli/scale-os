@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from '../ui/input';
 
 import {Button} from '../ui/button';
@@ -139,7 +140,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                 <span role="cell" className="text-right text-[12.5px] font-semibold tabular-nums text-fore whitespace-nowrap" title={usesTitle(item)}>{couponUses(item)}</span>
                 <span role="cell">{statusChip(item)}</span>
                 {writable ? <ListActions>
-                  <button
+                  <Button
                     type="button"
                     className={"text-button " + (item.active ? "warn" : "positive")}
                     disabled={busy}
@@ -147,7 +148,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                   >
                     {item.active ? <PauseCircle size={14} aria-hidden="true" /> : <PlayCircle size={14} aria-hidden="true" />}
                     {item.active ? "Pausar" : "Reactivar"}
-                  </button>
+                  </Button>
                 </ListActions> : null}
               </ListRow>
             ))}
@@ -168,7 +169,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                   {item.note ? <div className="col-span-2"><dt className="text-[10px] font-bold uppercase tracking-[.06em] text-mute">Nota</dt><dd className="mt-0.5 text-mute [overflow-wrap:anywhere]">{item.note}</dd></div> : null}
                 </dl>
                 {writable ? <div className="mt-auto border-t border-ink-600 pt-3">
-                  <button
+                  <Button
                     type="button"
                     className={"text-button " + (item.active ? "warn" : "positive")}
                     disabled={busy}
@@ -176,7 +177,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                   >
                     {item.active ? <PauseCircle size={14} aria-hidden="true" /> : <PlayCircle size={14} aria-hidden="true" />}
                     {item.active ? "Pausar" : "Reactivar"}
-                  </button>
+                  </Button>
                 </div> : null}
               </article>
             ))}

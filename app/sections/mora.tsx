@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from '../ui/button';
 
 import type {Dispatch, SetStateAction} from 'react';
@@ -93,8 +94,8 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
     {loading ? <LoadingBlock label="Cargando cobranza…" lines={5}/>
     : failed && !paymentStatuses.length ? <ErrorBlock title="No se pudo cargar la cobranza" description="Reintentá para ver el saldo pendiente, la antigüedad de cada cliente y el DSO del mes." onRetry={onRetry}/>
     : <>
-    {failed ? <Aviso tono="error" como="div">No se pudo actualizar la cobranza. Se muestra la última información recibida. {onRetry ? <button type="button" className="text-button" onClick={onRetry}>Reintentar</button> : null}</Aviso>
-    : moraReportsError && canSeeDso ? <Aviso tono="warn" como="div">No se pudo calcular el DSO con el reporte del mes. {onRetry ? <button type="button" className="text-button" onClick={onRetry}>Reintentar</button> : null}</Aviso>
+    {failed ? <Aviso tono="error" como="div">No se pudo actualizar la cobranza. Se muestra la última información recibida. {onRetry ? <Button variant="ghost" type="button" className="text-button" onClick={onRetry}>Reintentar</Button> : null}</Aviso>
+    : moraReportsError && canSeeDso ? <Aviso tono="warn" como="div">No se pudo calcular el DSO con el reporte del mes. {onRetry ? <Button variant="ghost" type="button" className="text-button" onClick={onRetry}>Reintentar</Button> : null}</Aviso>
     : null}
 
     <KpiStrip>

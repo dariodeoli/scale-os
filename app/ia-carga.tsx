@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from './ui/input';
 
 import {Button} from './ui/button';
@@ -587,8 +588,8 @@ function CardHead({titulo,estado,confianza,incluir,decision,unidades,origen,imag
   <div className="flex shrink-0 flex-col items-end gap-1.5">
    <Checkbox label="Incluir" checked={incluir} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>onIncluir(event.target.checked)}/>
    <span className="flex items-center gap-1">
-    <button type="button" className="text-button min-h-11 md:min-h-9" title={`Duplicar ${titulo||'registro'}`} aria-label={`Duplicar ${titulo||'registro'}`} onClick={onDuplicar}>Duplicar</button>
-    <button type="button" className="text-button min-h-11 md:min-h-9" title={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} aria-label={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} onClick={()=>onIncluir(!incluir)}>{incluir?'Quitar':''}</button>
+    <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-9" title={`Duplicar ${titulo||'registro'}`} aria-label={`Duplicar ${titulo||'registro'}`} onClick={onDuplicar}>Duplicar</Button>
+    <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-9" title={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} aria-label={incluir?'Quitar del carrito (descartar)':'Volver a incluir'} onClick={()=>onIncluir(!incluir)}>{incluir?'Quitar':''}</Button>
    </span>
   </div>
  </header>;
@@ -721,7 +722,7 @@ function CuentaDeAccion({fila,cuentas,onElegir,onDividir}:{fila:AccionEdit; cuen
     : <Aviso tono="warn" compact>No hay una cuenta de ingreso en {fila.accion.moneda} activa. Creala o activala en Finanzas para confirmar el cobro.</Aviso>}
   </FormField>
   {elegida?<p className="field-help" title={detalleCuentaIa(elegida)||elegida.name}>{`Método: ${metodoCuentaIa(elegida)}`}{detalleCuentaIa(elegida)?` · ${detalleCuentaIa(elegida)}`:''}</p>:null}
-  {opciones.length>1?<button type="button" className="text-button" disabled={bloqueada} onClick={onDividir}>Dividir en partes</button>:null}
+  {opciones.length>1?<Button variant="ghost" type="button" className="text-button" disabled={bloqueada} onClick={onDividir}>Dividir en partes</Button>:null}
  </div>;
 }
 
@@ -747,16 +748,16 @@ function PartesDivision({fila,cuentas,disabled,onChange,onUnaCuenta}:{fila:Accio
     <AmountInput id={`${parte.clave}-monto`} value={parte.monto} currency={fila.accion.moneda} integerOnly disabled={disabled} onChange={(value)=>onChange(fila.partes.map((item)=>item.clave===parte.clave?{...item,monto:value}:item))}/>
    </FormField>
    {fila.partes.length>2
-    ?<button type="button" className="text-button danger" disabled={disabled} onClick={()=>onChange(fila.partes.filter((item)=>item.clave!==parte.clave))}>Quitar</button>
+    ?<Button variant="ghost" type="button" className="text-button danger" disabled={disabled} onClick={()=>onChange(fila.partes.filter((item)=>item.clave!==parte.clave))}>Quitar</Button>
     :<span aria-hidden="true"/>}
   </div>)}
   <div className="flex flex-wrap items-center justify-between gap-2">
    {fila.partes.length<IA_COBRO_PARTES_MAX
-    ?<button type="button" className="text-button" disabled={disabled} onClick={agregar}>Agregar parte</button>
+    ?<Button variant="ghost" type="button" className="text-button" disabled={disabled} onClick={agregar}>Agregar parte</Button>
     :<span className="text-[11px] text-mute">Máximo {IA_COBRO_PARTES_MAX} partes.</span>}
    <span className={`text-[11.5px] tabular-nums ${cuadra?'text-mute':'text-bad'}`} role="status">{`Suma: ${money(suma,'PYG')} de ${money(total,'PYG')}`}</span>
   </div>
-  <button type="button" className="text-button" disabled={disabled} onClick={onUnaCuenta}>Usar una sola cuenta</button>
+  <Button variant="ghost" type="button" className="text-button" disabled={disabled} onClick={onUnaCuenta}>Usar una sola cuenta</Button>
  </div>;
 }
 

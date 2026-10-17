@@ -1,4 +1,5 @@
 "use client";
+
 import {Input} from '../ui/input';
 
 import {Button} from '../ui/button';
@@ -111,10 +112,10 @@ export function PlatformConfirmDialog({request, busy, self, error, emailSending,
         {googleVerified ? null : (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {authMethod !== "google" ? (
-              <button type="button" className="text-button" disabled={busy} onClick={() => setAuthMethod("google")}>{label.google}</button>
+              <Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={() => setAuthMethod("google")}>{label.google}</Button>
             ) : null}
             {alternatives.map((method) => (
-              <button key={method} type="button" className="text-button" disabled={busy} onClick={() => setAuthMethod(method)}>{label[method]}</button>
+              <Button variant="ghost" key={method} type="button" className="text-button" disabled={busy} onClick={() => setAuthMethod(method)}>{label[method]}</Button>
             ))}
           </div>
         )}

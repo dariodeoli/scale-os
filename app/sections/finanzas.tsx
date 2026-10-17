@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from '../ui/button';
 
 import {useMemo, useState, type Dispatch, type SetStateAction} from 'react';
@@ -80,7 +81,7 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
         <h3 id="finance-salaries-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Caja y resultado esperados del mes y gasto del personal al cierre, por moneda; no incluye pagos ni comisiones registrados.">Proyección</h3>
         <p className="m-0 min-w-0 text-xs text-mute">Cierre del mes, por moneda.</p>
       </div>
-      {navigate ? <button className="text-button" onClick={() => navigate('Previsión')}>Ver más</button> : null}
+      {navigate ? <Button variant="ghost" type="submit" className="text-button" onClick={() => navigate('Previsión')}>Ver más</Button> : null}
     </div>
     {error ? <ErrorBlock title="No se pudo cargar la proyección" description={error} onRetry={() => reload()}/>
     : !data ? <LoadingBlock label="Cargando proyección…" lines={2}/>
@@ -166,7 +167,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     : null;
 
   return <ListPage aria-label="Finanzas" primaryAction={<Button variant="primary" type="submit" className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</Button>}>
-    {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Aviso> : null}
+    {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <Button variant="ghost" type="button" className="text-button" onClick={retry}>Reintentar</Button></Aviso> : null}
 
     {/* Primer pliegue (#142): balances, cobros urgentes y proyección, sin mezclar todo en una vista. */}
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
@@ -174,8 +175,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0"><h3 id="finance-accounts-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Disponibilidad por cuenta y custodia.">Balances</h3></div>
           <div className="flex flex-wrap items-center gap-1">
-            <button className="text-button" onClick={() => setModal('account')}><Plus size={14} aria-hidden="true"/>Cuenta</button>
-            <button className="text-button" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button>
+            <Button variant="ghost" type="submit" className="text-button" onClick={() => setModal('account')}><Plus size={14} aria-hidden="true"/>Cuenta</Button>
+            <Button variant="ghost" type="submit" className="text-button" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</Button>
           </div>
         </div>
         {availability.size ? <p className="m-0 min-w-0 truncate text-xs text-mute" title="Saldo actual de cuentas activas por moneda.">Disponible: <span className="font-semibold text-fore">{multiCurrency(availability)}</span></p> : null}
@@ -206,7 +207,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
       <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-urgent-title">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0"><h3 id="finance-urgent-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Facturas vencidas o que vencen dentro de 7 días con saldo pendiente.">Cobros urgentes</h3></div>
-          {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
+          {navigate ? <Button variant="ghost" type="submit" className="text-button" onClick={() => navigate('Mora')}>Ver mora</Button> : null}
         </div>
         {urgent.length
           ? <>
@@ -219,11 +220,11 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
                 </div>
                 <div className="flex min-w-0 items-center justify-between gap-2 text-[11px] text-mute">
                   <span className="min-w-0 truncate" title={`${invoice.number} · ${listDateFull(invoice.due_on) || 'sin fecha de vencimiento'}`}>{invoice.number} · vence <span className={dueTone(invoice.due_on) ? 'font-semibold text-warn' : 'text-fore'}>{listDateShort(invoice.due_on) || 'sin fecha'}</span></span>
-                  <button className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}>Cobrar</button>
+                  <Button variant="ghost" type="submit" className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}>Cobrar</Button>
                 </div>
               </div>)}
             </div>
-            {urgent.length > 5 ? <button className="text-button" onClick={() => { setInvoiceFilter('overdue'); document.getElementById('finance-invoices-title')?.scrollIntoView({block: 'start'}); }}>Ver las {urgent.length} urgentes</button> : null}
+            {urgent.length > 5 ? <Button variant="ghost" type="submit" className="text-button" onClick={() => { setInvoiceFilter('overdue'); document.getElementById('finance-invoices-title')?.scrollIntoView({block: 'start'}); }}>Ver las {urgent.length} urgentes</Button> : null}
           </>
           : <EmptyBlock compact title="Nada urgente por cobrar." description="Cuando una factura venza o esté por vencer dentro de 7 días y tenga saldo, aparece acá."/>}
       </section>
@@ -238,8 +239,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           <p className="m-0 min-w-0 truncate text-xs text-mute" title={invoiceHasMore ? `Sobre las ${invoices.length} facturas cargadas; “Ver todas las facturas” completa el total` : 'Facturas emitidas o parciales con saldo pendiente.'}>{receivable.pendingCount ? <>Por cobrar: <span className="font-semibold text-fore">{multiCurrency(receivable.totals)}</span> · {receivable.pendingCount} factura{receivable.pendingCount === 1 ? '' : 's'}</> : 'Sin saldo pendiente.'}</p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          {navigate ? <button className="text-button" onClick={() => navigate('Mora')}>Ver mora</button> : null}
-          <button className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</button>
+          {navigate ? <Button variant="ghost" type="submit" className="text-button" onClick={() => navigate('Mora')}>Ver mora</Button> : null}
+          <Button variant="ghost" type="submit" className="text-button" onClick={() => setModal('invoice')}><Plus size={14} aria-hidden="true"/>Factura</Button>
         </div>
       </div>
       <FilterToolbar summary={`${visibleInvoices.length} de ${invoices.length}`}>
@@ -257,7 +258,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
             <div className="min-w-0 text-right">{pendingOf(invoice) > 0 ? <MoneyText valor={pendingOf(invoice)} currency={invoice.currency} tono={invoice.status === 'overdue' ? 'bad' : ''} className="text-[13.5px]"/> : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}</div>
             <div className="min-w-0 text-right"><MoneyText valor={invoice.total} currency={invoice.currency} tono="mute" className="!font-normal"/></div>
             <div className="flex min-w-0 items-center justify-end gap-1">
-              {pendingOf(invoice) > 0 ? <button className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</button> : null}
+              {pendingOf(invoice) > 0 ? <Button variant="ghost" type="submit" className="text-button whitespace-nowrap" onClick={() => openPayment(invoice.id)}><Plus size={14} aria-hidden="true"/>Registrar cobro</Button> : null}
             </div>
           </ListRow>)}
         </ListGrid>

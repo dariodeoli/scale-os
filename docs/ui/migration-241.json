@@ -13,9 +13,11 @@
   },
   {
     "path": "app/archive-controls.tsx",
-    "buttons": 4,
+    "buttons": 5,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/client-assign-plan.tsx",
@@ -33,9 +35,11 @@
   },
   {
     "path": "app/client-directory-toolbar.tsx",
-    "buttons": 0,
+    "buttons": 1,
     "temporalInputs": 0,
-    "externalButton": true
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/client-reporting.tsx",
@@ -47,9 +51,11 @@
   },
   {
     "path": "app/client-ruc.tsx",
-    "buttons": 1,
+    "buttons": 2,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/cliente/entregas/[id]/page.tsx",
@@ -95,24 +101,26 @@
   },
   {
     "path": "app/contracts-workspace.tsx",
-    "buttons": 14,
+    "buttons": 16,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/daily-controls.tsx",
-    "buttons": 8,
+    "buttons": 14,
     "temporalInputs": 0,
     "externalButton": true,
-    "nativeInputs": 2,
-    "textareas": 2
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/deletion-danger-zone.tsx",
-    "buttons": 2,
+    "buttons": 6,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 3,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
@@ -129,10 +137,10 @@
   },
   {
     "path": "app/dialog.tsx",
-    "buttons": 2,
+    "buttons": 3,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
@@ -145,11 +153,11 @@
   },
   {
     "path": "app/employee-tasks.tsx",
-    "buttons": 10,
+    "buttons": 14,
     "temporalInputs": 2,
     "externalButton": false,
-    "nativeInputs": 3,
-    "textareas": 1
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/error.tsx",
@@ -159,25 +167,27 @@
   },
   {
     "path": "app/finance-balance.tsx",
-    "buttons": 4,
+    "buttons": 9,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
     "path": "app/finance-collections.tsx",
-    "buttons": 5,
+    "buttons": 11,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/financial-forecast.tsx",
-    "buttons": 7,
+    "buttons": 8,
     "temporalInputs": 0,
     "externalButton": true,
     "nativeInputs": 0,
-    "textareas": 1
+    "textareas": 0
   },
   {
     "path": "app/global-error.tsx",
@@ -193,19 +203,19 @@
   },
   {
     "path": "app/ia-carga.tsx",
-    "buttons": 21,
+    "buttons": 27,
     "temporalInputs": 0,
     "externalButton": false,
     "nativeInputs": 0,
-    "textareas": 1
+    "textareas": 0
   },
   {
     "path": "app/inventory-workspace.tsx",
-    "buttons": 0,
+    "buttons": 2,
     "temporalInputs": 0,
     "externalButton": true,
     "nativeInputs": 0,
-    "textareas": 5
+    "textareas": 0
   },
   {
     "path": "app/invitacion/page.tsx",
@@ -217,10 +227,10 @@
   },
   {
     "path": "app/invite-links.tsx",
-    "buttons": 2,
+    "buttons": 7,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
@@ -249,70 +259,82 @@
   },
   {
     "path": "app/notification-inbox.tsx",
-    "buttons": 6,
+    "buttons": 7,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/notifications-ui.tsx",
-    "buttons": 1,
+    "buttons": 3,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/operations.tsx",
-    "buttons": 5,
+    "buttons": 9,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
-    "textareas": 1
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/permissions-matrix.tsx",
-    "buttons": 1,
+    "buttons": 2,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/person-photo.tsx",
-    "buttons": 1,
+    "buttons": 4,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
     "path": "app/photo-cropper.tsx",
-    "buttons": 2,
+    "buttons": 3,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/photo-viewer.tsx",
-    "buttons": 3,
+    "buttons": 4,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/privacy-panel.tsx",
-    "buttons": 5,
+    "buttons": 7,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/productivity-ui.tsx",
-    "buttons": 8,
+    "buttons": 17,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
     "path": "app/profile-photo.tsx",
-    "buttons": 1,
+    "buttons": 6,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 1,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
@@ -325,9 +347,11 @@
   },
   {
     "path": "app/record-assignees.tsx",
-    "buttons": 1,
+    "buttons": 4,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/recuperar-cuenta/page.tsx",
@@ -337,13 +361,15 @@
   },
   {
     "path": "app/registro/page.tsx",
-    "buttons": 4,
+    "buttons": 6,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/reports-workspace.tsx",
-    "buttons": 3,
+    "buttons": 5,
     "temporalInputs": 0,
     "externalButton": true,
     "nativeInputs": 0,
@@ -357,19 +383,23 @@
   },
   {
     "path": "app/scale-workspace.tsx",
-    "buttons": 3,
+    "buttons": 5,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/clientes.tsx",
-    "buttons": 4,
+    "buttons": 9,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/comisiones.tsx",
-    "buttons": 6,
+    "buttons": 11,
     "temporalInputs": 0,
     "externalButton": false,
     "nativeInputs": 0,
@@ -377,19 +407,23 @@
   },
   {
     "path": "app/sections/finanzas.tsx",
-    "buttons": 9,
+    "buttons": 19,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/mora.tsx",
-    "buttons": 3,
+    "buttons": 5,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/pipeline.tsx",
-    "buttons": 7,
+    "buttons": 14,
     "temporalInputs": 0,
     "externalButton": true,
     "nativeInputs": 0,
@@ -403,27 +437,35 @@
   },
   {
     "path": "app/sections/presupuestos.tsx",
-    "buttons": 4,
+    "buttons": 6,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/produccion.tsx",
-    "buttons": 1,
+    "buttons": 4,
     "temporalInputs": 0,
-    "externalButton": true
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/proyectos.tsx",
-    "buttons": 3,
+    "buttons": 6,
     "temporalInputs": 0,
-    "externalButton": true
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/sections/resumen.tsx",
-    "buttons": 1,
+    "buttons": 2,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/status/page.tsx",
@@ -433,7 +475,7 @@
   },
   {
     "path": "app/studio-workspace.tsx",
-    "buttons": 2,
+    "buttons": 4,
     "temporalInputs": 0,
     "externalButton": true,
     "nativeInputs": 0,
@@ -441,17 +483,19 @@
   },
   {
     "path": "app/suite.tsx",
-    "buttons": 8,
+    "buttons": 12,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/superadmin/announcements.tsx",
-    "buttons": 2,
+    "buttons": 4,
     "temporalInputs": 2,
     "externalButton": false,
-    "nativeInputs": 1,
-    "textareas": 1
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/superadmin/apply-coupon-dialog.tsx",
@@ -463,25 +507,27 @@
   },
   {
     "path": "app/superadmin/catalog.tsx",
-    "buttons": 1,
+    "buttons": 3,
     "temporalInputs": 1,
     "externalButton": false,
-    "nativeInputs": 2,
-    "textareas": 1
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/superadmin/confirm.tsx",
-    "buttons": 2,
+    "buttons": 4,
     "temporalInputs": 0,
     "externalButton": false,
-    "nativeInputs": 2,
+    "nativeInputs": 0,
     "textareas": 0
   },
   {
     "path": "app/superadmin/errors.tsx",
-    "buttons": 3,
+    "buttons": 6,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/superadmin/maintenance.tsx",
@@ -505,11 +551,11 @@
   },
   {
     "path": "app/superadmin/subscription-dialog.tsx",
-    "buttons": 2,
+    "buttons": 5,
     "temporalInputs": 1,
     "externalButton": false,
-    "nativeInputs": 2,
-    "textareas": 1
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/team-access.tsx",
@@ -525,9 +571,11 @@
   },
   {
     "path": "app/team-workspace.tsx",
-    "buttons": 5,
+    "buttons": 7,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/verificar-correo/page.tsx",
@@ -537,9 +585,11 @@
   },
   {
     "path": "app/work-history.tsx",
-    "buttons": 0,
+    "buttons": 2,
     "temporalInputs": 0,
-    "externalButton": true
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/work-order-links.tsx",
@@ -551,17 +601,19 @@
   },
   {
     "path": "app/workspace-forms.tsx",
-    "buttons": 5,
+    "buttons": 6,
     "temporalInputs": 3,
     "externalButton": false,
-    "nativeInputs": 8,
-    "textareas": 1
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/workspace-guide.tsx",
-    "buttons": 3,
+    "buttons": 5,
     "temporalInputs": 0,
-    "externalButton": false
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
   },
   {
     "path": "app/cliente/invitacion/page.tsx",
@@ -597,18 +649,18 @@
   },
   {
     "path": "app/superadmin/inquiries.tsx",
-    "buttons": 0,
+    "buttons": 2,
     "temporalInputs": 0,
     "nativeInputs": 0,
-    "textareas": 1,
+    "textareas": 0,
     "externalButton": false
   },
   {
     "path": "app/superadmin/reports.tsx",
-    "buttons": 0,
+    "buttons": 2,
     "temporalInputs": 0,
     "nativeInputs": 0,
-    "textareas": 1,
+    "textareas": 0,
     "externalButton": false
   },
   {
@@ -633,6 +685,110 @@
     "temporalInputs": 0,
     "nativeInputs": 2,
     "textareas": 1,
+    "externalButton": false
+  },
+  {
+    "path": "app/account-security.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/control-center.tsx",
+    "buttons": 4,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/my-data.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/my-profile.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/password-panel.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/presence.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/production-board.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/project-card.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/access.tsx",
+    "buttons": 6,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/agencies.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/audit.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/overview.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/ui-v2.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
     "externalButton": false
   }
 ]

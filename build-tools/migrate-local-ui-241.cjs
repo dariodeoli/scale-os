@@ -7,7 +7,8 @@ const dry=process.argv.includes('--check');const report=[];
 function files(d){return fs.readdirSync(d).flatMap(n=>{const p=path.join(d,n);return fs.statSync(p).isDirectory()?files(p):p.endsWith('.tsx')?[p]:[];});}
 for(const file of files(path.join(root,'app'))){
  if(file.includes(`${path.sep}ui${path.sep}`))continue;
- let source=fs.readFileSync(file,'utf8');const sf=ts.createSourceFile(file,source,99,true,4), edits=[];let buttons=0,dates=0,inputs=0,textareas=0,externalButton=false;const needed=new Set();
+ let source=fs.readFileSync(file,'utf8');const sf=ts.createSourceFile(file,source,99,true,4), edits=[];let buttons=0,dates=0,inputs=0,textareas=0,externalButton=false;const needed=new Set(),localExisting=new Set();
+ for(const n of sf.statements)if(ts.isImportDeclaration(n)&&n.moduleSpecifier.text.match(/ui\/(button|input|temporal-input)$/)&&n.importClause?.namedBindings&&ts.isNamedImports(n.importClause.namedBindings))for(const b of n.importClause.namedBindings.elements)localExisting.add(b.name.text);
  const add=(start,end,text)=>edits.push({start,end,text});
  function props(node,key){return node.attributes.properties.find(p=>ts.isJsxAttribute(p)&&p.name.getText(sf)===key);}
  function tag(node,name){add(node.tagName.getStart(sf),node.tagName.end,name);}
@@ -23,10 +24,12 @@ for(const file of files(path.join(root,'app'))){
   }
   if(ts.isJsxOpeningElement(n)||ts.isJsxSelfClosingElement(n)){
    const name=n.tagName.getText(sf),cl=props(n,'className')?.initializer;
-   if(name==='button'&&cl&&ts.isStringLiteral(cl)&&/(^| )(primary|secondary|icon-button)( |$)/.test(cl.text)){
-    const classes=cl.text.split(/\s+/);const variant=classes.includes('danger')||classes.includes('record-remove')?'danger':classes.includes('primary')?'primary':'secondary';
+   const fragments=[];if(cl){const collect=x=>{if(ts.isStringLiteral(x)||ts.isNoSubstitutionTemplateLiteral(x)||ts.isTemplateHead(x)||ts.isTemplateMiddle(x)||ts.isTemplateTail(x))fragments.push(x.text);ts.forEachChild(x,collect);};collect(cl);}
+   const modeled=fragments.some(f=>f.split(/\s+/).some(t=>['primary','secondary','text-button','icon-button'].includes(t)));
+   if(name==='button'&&cl&&modeled){
+    const classes=ts.isStringLiteral(cl)?cl.text.split(/\s+/):[];const variant=classes.includes('text-button')?'ghost':classes.includes('danger')||classes.includes('record-remove')?'danger':classes.includes('primary')?'primary':'secondary';
     tag(n,'Button');if(ts.isJsxOpeningElement(n)&&ts.isJsxElement(n.parent))tag(n.parent.closingElement,'Button');
-    let attrs=` variant="${variant}"`;
+    let attrs=ts.isStringLiteral(cl)?` variant="${variant}"`:"";
     if(classes.includes('icon-button'))attrs+=' iconOnly';
     // HTML buttons without type submit by default. Preserve it explicitly,
     // including portal association through FormActions.
@@ -45,7 +48,7 @@ for(const file of files(path.join(root,'app'))){
  visit(sf);
  if(!edits.length)continue;
  let imports='';for(const family of [['Button'],['DateInput','TimeInput','DateTimeInput'],['Input','Textarea']]){
-  const names=family.filter(n=>needed.has(n));if(!names.length)continue;
+  const names=family.filter(n=>needed.has(n)&&!localExisting.has(n));if(!names.length)continue;
   const module=path.relative(path.dirname(file),path.join(root,'app/ui',names.includes('Button')?'button':names.some(n=>['Input','Textarea'].includes(n))?'input':'temporal-input')).split(path.sep).join('/');
   imports+=`\nimport {${names.join(', ')}} from '${module.startsWith('.')?module:'./'+module}';`;
  }

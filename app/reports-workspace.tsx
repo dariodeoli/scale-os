@@ -1,4 +1,5 @@
 'use client';
+
 import {Input} from './ui/input';
 
 import {Button} from './ui/button';
@@ -204,7 +205,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
    </Card>
    // #142: sin comparación no se dibuja la tarjeta gigante; un aviso de una
    // línea con la salida para comparar (reintentar o ampliar el histórico).
-   :<Nota tono={previousError?'warn':'neutro'} className="m-0 whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<button className="text-button" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</button>:months<24?<button className="text-button" type="button" onClick={()=>setMonths(24)}>Ampliar histórico a 24 meses</button>:null}</Nota>):null}
+   :<Nota tono={previousError?'warn':'neutro'} className="m-0 whitespace-normal">{previousError?'No se pudo cargar el período anterior.':'Sin comparación: no hay período anterior con datos.'}{previousError?' Reintentá para volver a pedir la comparación. ':null}{' '}{previousError?<Button variant="ghost" className="text-button" type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar</Button>:months<24?<Button variant="ghost" className="text-button" type="button" onClick={()=>setMonths(24)}>Ampliar histórico a 24 meses</Button>:null}</Nota>):null}
    <Card className="grid grid-cols-1 gap-3 p-3 sm:p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-1"><h3 className="m-0 text-sm font-semibold text-fore">Evolución mensual · {selectedCurrency||'sin moneda disponible'}</h3><p className="m-0 text-xs text-mute">“Sin datos” no significa cero.</p></div>
     {rows.length?<ListGrid label="Evolución mensual por mes" template={EVOLUTION_TEMPLATE} columns={EVOLUTION_COLUMNS} minWidthClass="min-w-[78rem]">

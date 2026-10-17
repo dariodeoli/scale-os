@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 import {useEffect,useState} from 'react';
@@ -29,7 +30,7 @@ export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
 };
 
 function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
- return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><button type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}<ArrowUpRight size={14}/></button></article>;
+ return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><Button variant="ghost" type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}<ArrowUpRight size={14}/></Button></article>;
 }
 
 /** The keyed child resets open/dismissed UI synchronously when identity, role or demo changes. */
@@ -91,7 +92,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
      {suggestion?<span className="hidden min-w-0 flex-1 truncate text-[11.5px] text-mute sm:block" title={suggestion.description}>Siguiente: {suggestion.title}</span>:<span className="hidden min-w-0 flex-1 text-[11.5px] text-mute sm:block">Todo listo</span>}
      <ChevronDown size={16} aria-hidden="true" className={`shrink-0 text-mute transition-transform ${open?'rotate-180':''}`}/>
     </button>
-    <button type="button" className="text-button shrink-0" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button>
+    <Button variant="ghost" type="button" className="text-button shrink-0" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</Button>
    </div>
    {open&&<div className="grid gap-2 border-t border-ink-600 pb-2 pt-3">
     <ul className="grid gap-1">

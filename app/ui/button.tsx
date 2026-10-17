@@ -21,9 +21,11 @@ const variantClass: Record<ButtonVariant, string> = {
 
 /** The consumer owns the action. This primitive owns appearance and pending state. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
-  variant = 'primary', size = 'medium', color, icon, iconPosition = 'start', loading = false,
+  variant: requestedVariant, size = 'medium', color, icon, iconPosition = 'start', loading = false,
   disabled = false, fullWidth = false, iconOnly = false, type = 'button', className = '', style, children, ...props
 }, ref) {
+  const classes = className.split(/\s+/);
+  const variant = requestedVariant ?? (classes.includes('text-button') ? 'ghost' : classes.includes('danger') || classes.includes('record-remove') ? 'danger' : classes.includes('primary') ? 'primary' : classes.includes('secondary') || classes.includes('icon-button') ? 'secondary' : 'primary');
   return <button {...props} ref={ref} type={type} disabled={disabled || loading}
     aria-busy={loading || props['aria-busy'] || undefined}
     className={`ui-button ${variantClass[variant]}${iconOnly ? ' icon-button' : ''} ${className}`.trim()}

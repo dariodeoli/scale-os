@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 // Agencias y suscripciones del panel global (#102): toolbar única (búsqueda +
 // estado + contador) y lista densa con tarjetas cuando la plantilla no entra.
 import {useMemo, useState} from "react";
@@ -106,7 +108,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
   // conserva la confirmación reforzada existente (palabra corta + reautenticación).
   const actions = (agency: Agency) => <>
     {writable && (
-      <button
+      <Button variant="ghost"
         type="button"
         className="text-button platform-admin-inline-action"
         title="Activar, suspender o extender el acceso manual"
@@ -114,7 +116,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
         onClick={() => void manageSubscription(agency)}
       >
         Gestionar suscripción
-      </button>
+      </Button>
     )}
     {writable && (
       <EdgeAwareMenu><ActionMenu
@@ -157,7 +159,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             <option value="expiring">Vencen en 7 días</option>
           </Select>
         </label>
-        {(query || status) ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button> : null}
+        {(query || status) ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</Button> : null}
       </FilterToolbar>
       <div ref={tableRef} className="min-w-0">
         {!visible.length ? (
@@ -166,7 +168,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             icon="building"
             title="No hay agencias que coincidan con el filtro."
             description="Probá con otro nombre o restablecé los filtros."
-            action={<button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button>}
+            action={<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</Button>}
           />
         ) : tableFits ? (
           <ListGrid label="Agencias y suscripciones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[84rem]" : "min-w-[63rem]"} pinnedActions={writable} className="platform-admin-table-wrap">

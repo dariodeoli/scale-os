@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from '../ui/button';
 
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
@@ -68,8 +69,8 @@ export function ProyectosSection({bulkBusy, bulk, projectRow, projectsState, can
       // primaria al final. En mobile envuelve; nada se apila por defecto.
       primaryAction={<>
         <div className="project-client-filter min-w-0 max-sm:basis-full sm:w-64 [&>.ops-select]:flex [&>.ops-select]:items-center [&>.ops-select]:gap-2 [&_.ops-label]:mb-0 [&_.ops-label]:whitespace-nowrap [&_.ops-select-trigger]:min-w-0 [&_.ops-select-trigger]:flex-1"><SelectCustom label="Cliente" choices={clientChoices} value={projectClientFilter} onChange={setProjectClientFilter}/></div>
-        {projectClientFilter?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar</button>:null}
-        {canManageProjects&&liveProjects.length?<button type="button" className="text-button min-h-11 whitespace-nowrap md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</button>:null}
+        {projectClientFilter?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setProjectClientFilter('')}><X size={14}/>Limpiar</Button>:null}
+        {canManageProjects&&liveProjects.length?<Button variant="ghost" type="button" className="text-button min-h-11 whitespace-nowrap md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.projects} proyectos visibles para operar en lote`} onClick={()=>bulk.selectVisible(liveProjects.map(project=>String(project.id)))}>Seleccionar visibles</Button>:null}
         {projectsState==='loading'&&!projects.length?null:<p className="whitespace-nowrap text-xs tabular-nums text-mute" role="status">{`${liveProjects.length} proyecto${liveProjects.length===1?'':'s'}`}</p>}
         <ViewSwitch value={projectView} onChange={changeView}/>
         {createProject?<Button variant="primary" type="button" className="primary whitespace-nowrap" onClick={createProject}><Plus size={18} aria-hidden="true"/> Nuevo proyecto</Button>:null}
@@ -82,7 +83,7 @@ export function ProyectosSection({bulkBusy, bulk, projectRow, projectsState, can
       </KpiStrip>}
       bulk={canManageProjects?<BulkBar count={bulk.count} total={BATCH_LIMITS.projects} onClear={bulk.clear}><Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchProjects(true)}>Archivar</Button><Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>void batchProjects(false)}>Reactivar</Button></BulkBar>:undefined}
     >
-      {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad-text" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <button type="button" className="text-button" onClick={retry}>Reintentar</button></p> : null}
+      {projectsState === 'error' && projects.length ? <p className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad-text" role="alert">No se pudieron actualizar los proyectos. Se muestra la última lista cargada. <Button variant="ghost" type="button" className="text-button" onClick={retry}>Reintentar</Button></p> : null}
       {projectsState === 'loading' && !projects.length ? <LoadingBlock label="Cargando proyectos…" lines={4}/> : null}
       {projectsState === 'error' && !projects.length ? <ErrorBlock title="No se pudieron cargar los proyectos." onRetry={retry}/> : null}
       {liveProjects.length ? collection(liveProjects, 'Proyectos') : null}

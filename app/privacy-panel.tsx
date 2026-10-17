@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 import {useEffect,useState,type ReactNode} from 'react';
@@ -197,7 +198,7 @@ export function PrivacyPanel({user}:{user:User|null}){
        {request.subject_kind!=='other'&&request.subject_id?<a className="icon-button" href={`/core-api/api/privacy/requests/${request.id}/export`} target="_blank" rel="noreferrer" title="Descargar copia del titular" aria-label={`Descargar copia del titular de la solicitud #${request.id}`}><Download size={16}/></a>:null}
        {request.status==='received'?<Button variant="secondary" iconOnly type="button" className="icon-button" disabled={busy} title="Verificar identidad" aria-label={`Verificar identidad de la solicitud #${request.id}`} onClick={()=>void mutate(`/api/privacy/requests/${request.id}`,{action:'verify'},'PATCH','Identidad verificada.')}><BadgeCheck size={16}/></Button>:null}
        {['received','identity_verified','in_review'].includes(request.status)?<>
-        <button type="button" className="text-button" disabled={busy} onClick={()=>setResolving(request)}><ShieldCheck size={15}/>Resolver</button>
+        <Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>setResolving(request)}><ShieldCheck size={15}/>Resolver</Button>
         <Button variant="secondary" iconOnly type="button" className="icon-button" disabled={busy} title="Rechazar con motivo" aria-label={`Rechazar la solicitud #${request.id}`} onClick={()=>setRejecting(request)}><CircleX size={16}/></Button>
        </>:null}
       </ListActions>
@@ -214,7 +215,7 @@ export function PrivacyPanel({user}:{user:User|null}){
      <span className="truncate text-[11.5px] text-mute" title={`${row.notice_version} · ${basisLabel(row.basis)}`}>{row.notice_version}<small className="block text-[10.5px]">{basisLabel(row.basis)}</small></span>
      <span className="truncate text-[11.5px] text-mute" title={row.source}>{row.source}</span>
      <span className="whitespace-nowrap text-[11.5px] tabular-nums text-mute">{listDateShort(row.granted_at)||'—'}</span>
-     <div className="flex items-center justify-end"><button type="button" className="text-button" disabled={busy} title="Revocar este consentimiento" aria-label={`Revocar el consentimiento de ${purposeLabel(row.purpose)} de ${kindLabel(row.subject_kind)} #${row.subject_id}`} onClick={()=>void revokeConsent(row)}><ShieldOff size={15}/>Revocar</button></div>
+     <div className="flex items-center justify-end"><Button variant="ghost" type="button" className="text-button" disabled={busy} title="Revocar este consentimiento" aria-label={`Revocar el consentimiento de ${purposeLabel(row.purpose)} de ${kindLabel(row.subject_kind)} #${row.subject_id}`} onClick={()=>void revokeConsent(row)}><ShieldOff size={15}/>Revocar</Button></div>
     </ListRow>)}
    </ListGrid>:<EmptyBlock compact title="Sin consentimientos vigentes" description="Los consentimientos capturados en registro, invitaciones, CRM, landing y portal aparecen acá."/>}
   </Section>

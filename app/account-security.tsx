@@ -1,4 +1,6 @@
 'use client';
+import {Button} from './ui/button';
+
 
 import {fechaHora} from 'owncoding-ui';
 import {useEffect,useState} from 'react';
@@ -29,7 +31,7 @@ export function AccountSecurity({onClosed}:{onClosed:()=>void}){
      <small className="block break-words text-[11.5px] tabular-nums text-mute">Desde {when(session.created_at)} · vence {when(session.expires_at)}</small>
     </div>
     <StateChip tone={session.current?'ok':'mute'}>{session.current?'Actual':'Otra'}</StateChip>
-    <button className="text-button" disabled={Boolean(busy)} onClick={()=>void closeSession(session.id,session.current)}><LogOut size={14} aria-hidden="true"/>{session.current?'Cerrar y salir':'Cerrar sesión'}</button>
+    <Button variant="ghost" type="submit" className="text-button" disabled={Boolean(busy)} onClick={()=>void closeSession(session.id,session.current)}><LogOut size={14} aria-hidden="true"/>{session.current?'Cerrar y salir':'Cerrar sesión'}</Button>
    </article>)}
   </div>:null}
   {!sessions.length&&!error?<p className="text-[11.5px] text-mute">No hay otras sesiones activas.</p>:null}

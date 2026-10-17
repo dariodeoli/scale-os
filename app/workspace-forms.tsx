@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from './ui/input';
 
 import {Button} from './ui/button';
@@ -185,7 +186,7 @@ export function OrderForm({
             <small className="block text-[10px] font-bold uppercase tracking-[.08em] text-mute">Proyecto</small>
             <b className="block truncate text-[13.5px] font-semibold text-fore" title={`${selectedProject.client_name} · ${selectedProject.name}`}>{selectedProject.client_name} · {selectedProject.name}</b>
           </span>
-          <button type="button" className="text-button shrink-0" onClick={()=>form.setValue("projectId","",{shouldValidate:false,shouldDirty:true})}>Cambiar</button>
+          <Button variant="ghost" type="button" className="text-button shrink-0" onClick={()=>form.setValue("projectId","",{shouldValidate:false,shouldDirty:true})}>Cambiar</Button>
         </div>
       ) : (
         <div className="ops-wide grid gap-1.5">

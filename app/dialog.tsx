@@ -1,4 +1,5 @@
 "use client";
+
 import {Input} from './ui/input';
 
 import {Button} from './ui/button';
@@ -204,7 +205,7 @@ export function ConfirmDialog({open=true,title,description,children,confirmLabel
    {error?<p className="error form-error-summary" role="alert">{error}</p>:null}
    <FormActions>
     <Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</Button>
-    <button type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked}>{busy?'Procesando…':confirmLabel}</button>
+    <Button type="submit" className={variant==='danger'?'secondary danger':'primary'} disabled={busy||blocked}>{busy?'Procesando…':confirmLabel}</Button>
    </FormActions>
   </form>
  </Dialog>;

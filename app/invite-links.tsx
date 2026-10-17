@@ -1,4 +1,5 @@
 "use client";
+
 import {Input} from './ui/input';
 
 import {Button} from './ui/button';
@@ -77,8 +78,8 @@ export function InviteLinks({role}:{role:string}){
         </span>
         <span className="whitespace-nowrap text-[12px] tabular-nums text-mute">{listDateShort(request.created_at)||'Sin fecha'}</span>
         <span className="flex min-w-0 items-center justify-end gap-1 whitespace-nowrap">
-         {request.status==='pending'&&<button className="text-button positive" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')}>Aprobar acceso</button>}
-         <button className="text-button danger" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')}><X size={14} aria-hidden="true"/>Rechazar</button>
+         {request.status==='pending'&&<Button variant="ghost" type="submit" className="text-button positive" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')}>Aprobar acceso</Button>}
+         <Button variant="ghost" type="submit" className="text-button danger" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')}><X size={14} aria-hidden="true"/>Rechazar</Button>
         </span>
        </ListRow>;})}
      </ListGrid>}
@@ -101,8 +102,8 @@ export function InviteLinks({role}:{role:string}){
        <span className="min-w-0 truncate text-[11.5px] tabular-nums text-mute" title={joinedUsers.length?`${activity} · Se unieron ${joinedText(joinedUsers)}`:activity}>{activity}</span>
        <ActorIdentity name={link.actor_name||link.created_by_email||'El equipo'} photoUrl={link.actor_photo_url} verified={link.actor_verified===true}/>
        <span className="flex min-w-0 items-center justify-end gap-1 whitespace-nowrap">
-        {link.url?<button className="text-button" disabled={busy} onClick={async()=>{try{await navigator.clipboard.writeText(link.url!);setCopied(link.url!);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={14} aria-hidden="true"/>{copied===link.url?'Copiado':'Copiar enlace'}</button>:null}
-        {!joinedUsers.length&&(link.revoked_at||link.used_at?<button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}?permanent=1`,{},'DELETE')}><Trash2 size={14} aria-hidden="true"/>Eliminar</button>:<button className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}`,{},'DELETE')}><X size={14} aria-hidden="true"/>Revocar</button>)}
+        {link.url?<Button variant="ghost" type="submit" className="text-button" disabled={busy} onClick={async()=>{try{await navigator.clipboard.writeText(link.url!);setCopied(link.url!);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}}><Copy size={14} aria-hidden="true"/>{copied===link.url?'Copiado':'Copiar enlace'}</Button>:null}
+        {!joinedUsers.length&&(link.revoked_at||link.used_at?<Button variant="ghost" type="submit" className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}?permanent=1`,{},'DELETE')}><Trash2 size={14} aria-hidden="true"/>Eliminar</Button>:<Button variant="ghost" type="submit" className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}`,{},'DELETE')}><X size={14} aria-hidden="true"/>Revocar</Button>)}
        </span>
       </ListRow>;})}
      </ListGrid>}

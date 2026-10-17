@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 // Vista «Resumen» del panel global (#102, rediseño #155 fase 2): indicadores
 // compactos, tres paneles operativos (por vencer, últimas acciones y
 // suscripciones) y un riel de atención/atajos que aprovecha el ancho de 1440.
@@ -86,7 +88,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period
         <section className="panel" aria-labelledby="platform-expiring-title">
           <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
             <h2 id="platform-expiring-title" className="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Agencias por vencer</h2>
-            <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => onGoTo("agencias")}>Ver agencias<ArrowRight size={14} aria-hidden="true"/></button>
+            <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => onGoTo("agencias")}>Ver agencias<ArrowRight size={14} aria-hidden="true"/></Button>
           </div>
           {expiring.length ? <div>{expiring.map(({agency, expiry}) => <div className={ROW} key={agency.id}>
             <span className="min-w-0">
@@ -103,7 +105,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period
         <section className="panel" aria-labelledby="platform-recent-title">
           <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
             <h2 id="platform-recent-title" className="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Últimas acciones</h2>
-            <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => onGoTo("auditoria")}>Ver auditoría<ArrowRight size={14} aria-hidden="true"/></button>
+            <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => onGoTo("auditoria")}>Ver auditoría<ArrowRight size={14} aria-hidden="true"/></Button>
           </div>
           {recent.length ? <div>{recent.map((entry) => <div className={ROW} key={entry.id}>
             <span className="min-w-0">
@@ -120,7 +122,7 @@ export function PlatformOverview({state, audit, onGoTo, bootstrap = null, period
         <section className="panel" aria-labelledby="platform-subscriptions-title">
           <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
             <h2 id="platform-subscriptions-title" className="min-w-0 text-[15px] font-semibold tracking-tight text-fore">Suscripciones por estado</h2>
-            <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => onGoTo("agencias")}>Ver agencias<ArrowRight size={14} aria-hidden="true"/></button>
+            <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => onGoTo("agencias")}>Ver agencias<ArrowRight size={14} aria-hidden="true"/></Button>
           </div>
           {subscriptions.length ? <div>{subscriptions.map((row) => <div className={ROW} key={row.status}>
             <span className="min-w-0">

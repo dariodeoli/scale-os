@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 import {ClientLogo} from './client-identity';
@@ -717,7 +718,7 @@ export default function Home() {
   function projectEntry(project:Project){
     return <ProjectCard key={project.id} project={project} taskIdentity={user?{organizationId:String(user.organization_id),userId:String(user.id),canView:user.role==='owner'||user.capabilities?.['tasks.view']!==false}:undefined} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
-      {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
+      {canManageProjects?<Button variant="ghost" type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</Button>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
     </ProjectCard>;
   }
@@ -1031,7 +1032,7 @@ export default function Home() {
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
           <p className="form-note">De lunes a domingo según el calendario local de tu dispositivo. Incluye todos los estados; las órdenes sin fecha quedan fuera del filtro semanal. Se combina con el cliente elegido y se guarda para vos en esta empresa y navegador.</p>
-          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>
+          <Button variant="ghost" type="submit" className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</Button>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}

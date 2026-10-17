@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {Textarea} from '../ui/input';
 
 // «Reportes» del panel global: lo que los usuarios mandan con «Reportar un
@@ -124,7 +126,7 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
     ...(writable ? [{id: "note", label: report.note ? "Editar estado y nota" : "Cambiar estado y nota", icono: "edit", onClick: () => openEditor(report)}] : []),
   ];
   const actions = (report: UserReport) => writable ? <>
-    {report.status === "new" ? <button type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(report, {status: "in_progress"}, "Reporte en curso.")}>Tomar</button> : null}
+    {report.status === "new" ? <Button variant="ghost" type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(report, {status: "in_progress"}, "Reporte en curso.")}>Tomar</Button> : null}
     <EdgeAwareMenu><ActionMenu label={`Acciones del reporte de ${report.user_email || "usuario"}`} items={items(report)}/></EdgeAwareMenu>
   </> : null;
   const who = (report: UserReport) => <span className="grid min-w-0 gap-0.5">
@@ -160,7 +162,7 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
           {(Object.keys(REPORT_STATUS) as ReportStatus[]).map((key) => <option key={key} value={key}>{REPORT_STATUS[key].plural}{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>
       </label>
-      {status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")}>Limpiar filtro</button> : null}
+      {status ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")}>Limpiar filtro</Button> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar los reportes" description={error} onRetry={() => void load()}/>

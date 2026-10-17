@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from './ui/input';
 
 import {Button} from './ui/button';
@@ -281,7 +282,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
     </div>
     </>:null}
     {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals===0?<EmptyState compact title={`Sin gastos planificados para ${dateLabel(month)}.`} description="Agregá un gasto para que se incorpore al resultado estimado, sin registrar un pago real."/>:null}
-    {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals>0?<Aviso tono="warn" como="div">La previsión registra gastos planificados para {dateLabel(month)} y el desglose no llegó. <button type="button" className="text-button" onClick={()=>reloadPlanned()}>Reintentar</button></Aviso>:null}
+    {!plannedError&&plannedReady&&!plannedExpenses.records.length&&plannedTotals>0?<Aviso tono="warn" como="div">La previsión registra gastos planificados para {dateLabel(month)} y el desglose no llegó. <Button variant="ghost" type="button" className="text-button" onClick={()=>reloadPlanned()}>Reintentar</Button></Aviso>:null}
    </Card>:null}
    {data&&horizon==='1'?<Card className="grid gap-4 p-3 sm:p-4">
     <div className="grid gap-3">

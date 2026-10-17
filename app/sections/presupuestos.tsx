@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from '../ui/button';
 
 import {useEffect,useMemo,useState} from 'react';
@@ -113,7 +114,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
   const shown=useMemo(()=>filterBudgets(budgets,filters),[budgets,filters]);
   const clientChoices=useMemo(()=>[{value:'',label:'Todos'},...[...new Set(budgets.map(budget=>budget.client_name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')).map(name=>({value:name,label:name}))],[budgets]);
   const filtersActive=Boolean(filters.status||filters.client||filters.query.trim());
-  const kpiFilter=(status:BudgetFilters['status'],text:string,hint:string)=><button type="button" className="text-button min-h-11 !px-0 text-left md:min-h-0" aria-pressed={filters.status===status} title={filters.status===status?'Quitar el filtro':`Filtrar: ${hint}`} onClick={()=>setFilters(current=>({...current,status:current.status===status?'':status}))}>{text}{filters.status===status?' · filtrando':''}</button>;
+  const kpiFilter=(status:BudgetFilters['status'],text:string,hint:string)=><Button variant="ghost" type="button" className="text-button min-h-11 !px-0 text-left md:min-h-0" aria-pressed={filters.status===status} title={filters.status===status?'Quitar el filtro':`Filtrar: ${hint}`} onClick={()=>setFilters(current=>({...current,status:current.status===status?'':status}))}>{text}{filters.status===status?' · filtrando':''}</Button>;
   // Ventana de montaje (#135 P4): la tabla densa monta sólo el tramo visible;
   // las tarjetas (altura variable) conservan el montaje completo.
   const filasVisibles = useFilasVisibles(tableRef, shown.length);
@@ -179,7 +180,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
         <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar por estado" value={filters.status} onChange={(value:string)=>setFilters(current=>({...current,status:value as BudgetFilters['status']}))} options={[['','Todos'],['draft','Borradores'],['sent','Enviados'],['accepted','Aceptados'],['rejected','Rechazados'],['expired','Vencidos']]}/>
         <div className="w-full sm:w-52"><SelectCustom label="Cliente" choices={clientChoices} value={filters.client} onChange={client=>setFilters(current=>({...current,client}))}/></div>
         <SearchField className="w-full sm:w-72" ariaLabel="Buscar presupuesto" value={filters.query} onChange={value=>setFilters(current=>({...current,query:value}))} placeholder="Número, título o cliente…"/>
-        {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</button>:null}
+        {filtersActive?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters({status:'',client:'',query:''})}>Limpiar filtros</Button>:null}
       </FilterToolbar>}
       kpis={<KpiStrip aria-label="Métricas de presupuestos">
         <Kpi label="Presupuestos" valor={windowState.total ?? budgets.length} destacado hint={totals.length ? `Total sin IVA: ${totals.map(([currency,value])=>moneyKpi(value,currency)).join(' · ')}` : 'Sin propuestas cargadas'}/>

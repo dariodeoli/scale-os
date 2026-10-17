@@ -1,7 +1,7 @@
 'use client';
 import {Textarea} from '../ui/input';
 
-import {useState, type ReactNode} from 'react';
+import {useState, useEffect, type ReactNode} from 'react';
 import {Plus, LogOut, Moon, Sun} from 'lucide-react';
 import {Button, DateInput, TimeInput, DateTimeInput, EmailField, PhoneField, TextField, PasswordField, Dialog, ConfirmDialog, SaveActions, FotoPerfil, SearchField} from '../ui';
 import {AmountInput, SelectCustom} from '../profile-controls';
@@ -16,8 +16,9 @@ function Sample({id,title,description,api,correct,incorrect,children}:{id:string
 const sections=['Acciones','Campos','Selección','Identidad','Formularios','Superficies','Estados'];
 export function UiCatalog() {
  const [dark,setDark]=useState(false),[query,setQuery]=useState(''),[name,setName]=useState(''),[email,setEmail]=useState(''),[phone,setPhone]=useState(''),[password,setPassword]=useState(''),[amount,setAmount]=useState(''),[currency,setCurrency]=useState('PYG'),[date,setDate]=useState(''),[time,setTime]=useState(''),[datetime,setDatetime]=useState(''),[selection,setSelection]=useState(''),[dialog,setDialog]=useState<'modal'|'drawer'|null>(null),[confirm,setConfirm]=useState(false),[formError,setFormError]=useState(''),[pending,setPending]=useState(false);
+ useEffect(()=>{if(formError&&!pending&&dialog)document.getElementById('catalog-email')?.focus();},[formError,pending,dialog]);
  const theme=()=>{const next=!dark;setDark(next);document.documentElement.dataset.theme=next?'dark':'light';};
- const fail=async(event:React.FormEvent)=>{event.preventDefault();if(pending)return;setPending(true);await new Promise(resolve=>setTimeout(resolve,400));setFormError('Error ilustrativo: los datos siguen disponibles. Corregí el email para continuar.');setPending(false);document.getElementById('catalog-email')?.focus();};
+ const fail=async(event:React.FormEvent)=>{event.preventDefault();if(pending)return;setPending(true);await new Promise(resolve=>setTimeout(resolve,400));setFormError('Error ilustrativo: los datos siguen disponibles. Corregí el email para continuar.');setPending(false);};
  return <main className="control-shell ui-catalog"><header className="catalog-header"><div><small>ESCALA LOCAL · #241</small><h1>Biblioteca de interfaz</h1><p>Componentes reales de Scale. Ejemplos aislados, sin conexión a datos de clientes.</p></div><Button variant="outline" icon={dark?<Sun size={16}/>:<Moon size={16}/>} onClick={theme}>{dark?'Modo claro':'Modo oscuro'}</Button></header><nav aria-label="Familias de componentes" className="catalog-nav">{sections.map(s=><a key={s} href={`#${s}`}>{s}</a>)}</nav>
  <div className="catalog-grid">
  <Sample id="Acciones" title="Button · Icon button" description="Un modelo para acciones con texto, ícono o ambos. La acción pertenece al consumidor." api={'<Button variant="primary" size="compact" icon={<Plus/>} onClick={create}>Crear</Button>\nvariant: primary | secondary | outline | ghost | danger\nsize: compact | medium | large\nloading, disabled, fullWidth, iconOnly, type, form, ref, color, iconPosition'} correct="Usar loading para bloquear doble interacción; type=submit explícito para guardar; aria-label para ícono solo." incorrect="Crear SaveButton por cada módulo o esconder acciones de permisos dentro del botón.">

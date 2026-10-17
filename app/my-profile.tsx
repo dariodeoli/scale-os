@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {Aviso} from 'owncoding-ui';
 import {useEffect,useRef,useState} from 'react';
 import {Editor,api} from './operations';
@@ -89,7 +91,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
     <div className="grid gap-2 px-2 py-3">
      <p className="max-w-prose text-xs leading-5 text-mute">Aviso de Privacidad {PRIVACY_NOTICE.version} · {PRIVACY_NOTICE.fechaLabel}. Desde «Mis datos» podés ver el resumen y las finalidades, descargar una copia, pedir rectificación, supresión u oposición y revocar consentimientos. La respuesta llega dentro de {PRIVACY_RIGHTS_CHANNEL.slaDias} días corridos.</p>
      <div className="flex flex-wrap items-center gap-2">
-      <button className={`secondary ${ACTION}`} type="button" onClick={()=>setDataOpen(true)}>Abrir Mis datos</button>
+      <Button className={`secondary ${ACTION}`} type="button" onClick={()=>setDataOpen(true)}>Abrir Mis datos</Button>
       <a className={`text-button ${ACTION}`} href="/privacidad">Política de Privacidad</a>
      </div>
     </div>
@@ -101,7 +103,7 @@ export function MyProfile({profile,close,refresh}:{profile:Profile;close:()=>voi
  tabs.push({id:'datos',label:'Mis datos',content:dataTab});
  return <>
   <PersonSheet mode="self" title="Mi perfil" close={close} busy={photoSaving} tabs={current?tabs:[{id:'perfil',label:'Perfil',content:<div className="grid grid-cols-[minmax(0,1fr)] gap-4">
-   {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><button className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</button></Aviso>:null}
+   {error?<Aviso tono="error" como="div" className="grid justify-items-start gap-2"><p className="break-words text-sm">{error}</p><Button className={`secondary ${ACTION}`} type="button" onClick={()=>setRetry(value=>value+1)}>Reintentar carga</Button></Aviso>:null}
    {!error?<LoadingBlock label="Cargando tu perfil…" lines={3}/>:null}
   </div>}]}/>
   {dataOpen?<MyDataPanel profile={{email:current?.email||profile.email,full_name:current?.full_name||profile.full_name||null}} close={()=>setDataOpen(false)}/>:null}

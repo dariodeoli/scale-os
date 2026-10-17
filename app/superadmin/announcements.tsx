@@ -1,4 +1,5 @@
 "use client";
+
 import {Input, Textarea} from '../ui/input';
 
 import {Button} from '../ui/button';
@@ -211,7 +212,7 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
       </div>
       {formError ? <p className="error form-error-summary" role="alert">{formError}</p> : null}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        {editing ? <button type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }}>Cancelar edición</button> : null}
+        {editing ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }}>Cancelar edición</Button> : null}
         <Button variant="secondary" type="submit" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy}>{editing ? "Guardar cambios" : "Guardar borrador"}</Button>
         {!editing?.published_at ? <Button variant="primary" type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void save(null, true)}>{editing ? "Guardar y publicar" : "Publicar"}</Button> : null}
       </div>
@@ -257,7 +258,7 @@ export function AnnouncementList({items, writable, busy, fits, onToggle, onEdit,
     {id: "delete", label: "Eliminar comunicado", icono: "trash", peligro: true, onClick: () => onRemove(item)},
   ];
   const actions = (item: PlatformAnnouncement) => writable ? <>
-    <button type="button" className="text-button platform-admin-inline-action" disabled={busy || (!item.published_at && item.status === "expired")} onClick={() => onToggle(item)}>{item.published_at ? "Despublicar" : "Publicar"}</button>
+    <Button variant="ghost" type="button" className="text-button platform-admin-inline-action" disabled={busy || (!item.published_at && item.status === "expired")} onClick={() => onToggle(item)}>{item.published_at ? "Despublicar" : "Publicar"}</Button>
     <EdgeAwareMenu><ActionMenu label={`Acciones del comunicado ${item.title}`} items={menu(item)}/></EdgeAwareMenu>
   </> : null;
   const identity = (item: PlatformAnnouncement) => <span className="grid min-w-0 gap-0.5">

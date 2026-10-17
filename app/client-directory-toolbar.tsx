@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
@@ -86,7 +87,7 @@ export function ClientDirectoryToolbar({
       <div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">
         <ViewSwitch value={view} onChange={onViewChange}/>
       </div>
-      {query || status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</button> : null}
+      {query || status ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</Button> : null}
       {children}
       {canCreate && (
         <Button

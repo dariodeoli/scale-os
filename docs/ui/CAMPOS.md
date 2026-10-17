@@ -75,3 +75,15 @@ Autorizada por el integrador para este subencargo, en la misma rama aislada:
 - Validados: pruebas field-contract-preservation-241, field-rules, field-adoption y shared-editor; `tsc --noEmit`; `git diff --check`. Dependencias enlazadas temporalmente desde el checkout del integrador, sin inspeccionar su implementación ni commitear el enlace. Build/full regression serán responsabilidad de integración. No hay cambios del API/dependencia/CSS ni deploy.
 
 Permanecen separados del parche: coma/cálculos de presupuesto, validación completa de metadata Editor, atomicidad ficha+plan, foco real/autofill, y tratamiento de datos legacy inválidos en PATCH ajeno. Cambiar país de un valor desconocido requiere una acción explícita y posterior revisión del número; no se infiere automáticamente el largo del prefijo desconocido.
+
+## Segunda unidad: metadatos de Editor
+
+Rama aislada `codex/ui-editor-contracts`, nacida de parent `680d0fa8`. Sólo `app/operations.tsx`, `app/field-rules.ts` y test/fragmento propios.
+
+- Se aplican máximos declarados por Field.maxLength; no se inventan tamaños ni rangos min/max (Field no los declara).
+- Fecha civil valida formato y vuelta de calendario, rechazando29 de febrero no bisiesto y30 de febrero.
+- Hora nueva HH:mm de00:00 a23:59, contrato común taskTime. No se cambia a Date ni timezone.
+- Para preservar legacy, estas nuevas reglas se omiten si el valor coincide exactamente con defaults cargados. Incluye horas antiguas con segundos aceptadas por work-orders y textos históricos más largos: no se reescriben ni bloquean al editar un campo ajeno. No se suavizan validadores previos de email/teléfono/custom/requeridos. El API conserva validación final, por lo que default importado ya inválido podrá seguir siendo rechazado por su endpoint: Editor no tiene información para distinguir alta/edición o normalizarlo legítimamente.
+- Tests nuevos demuestran errores inline, ausencia de escrituras inválidas, corrección explícita, primer campo inválido enfocado por RHF y misma instancia del input sin desmontaje. También prueban que editar otra nota conserva texto, fecha y hora legacy intactos.
+- Verdes: metadata-contracts+runner, field-contract-preservation, field-rules, field-adoption, tsc y diffcheck.
+- El test histórico shared-editor falla en assert(cancel) línea52, relacionado con nuevo Button del parent: busca children string directa en nativebutton. Se informó al integrador; no se tocó Button ni submit para resolverlo desde esta unidad.

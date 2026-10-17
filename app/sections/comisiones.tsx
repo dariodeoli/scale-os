@@ -1,4 +1,5 @@
 "use client";
+
 import {Input} from '../ui/input';
 
 import {Button} from '../ui/button';
@@ -192,7 +193,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
   const catalogNotice = (...keys: ('invoices' | 'collaborators' | 'accounts')[]) => {
     if (!catalogError || !keys.includes(catalogError.key)) return null;
     const failedKey = catalogError.key;
-    return <Aviso tono="error" como="div">{catalogError.message} <button type="button" className="text-button" onClick={() => void ensureCatalog(failedKey)}>Reintentar</button></Aviso>;
+    return <Aviso tono="error" como="div">{catalogError.message} <Button variant="ghost" type="button" className="text-button" onClick={() => void ensureCatalog(failedKey)}>Reintentar</Button></Aviso>;
   };
 
   return <ListPage aria-label="Comisiones y referidos" eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." primaryAction={canManage ? <Button variant="primary" type="submit" className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</Button> : undefined}>
@@ -254,9 +255,9 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
                   {commission.due_on ? <span className={`whitespace-nowrap tabular-nums ${dueTone(commission.due_on) ? 'font-semibold text-warn' : ''}`} title={listDateFull(commission.due_on) || undefined}>Vence {listDateShort(commission.due_on)}</span> : null}
                 </div>
                 <div className="flex min-w-0 flex-nowrap items-center justify-end gap-1 whitespace-nowrap">
-                  {actions.approve ? <button className="text-button positive" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'approved'}, 'PATCH'); }, 'Comisión aprobada.')}>Aprobar</button> : null}
-                  {actions.pay ? <button className="text-button" disabled={busy} onClick={() => { setPay(commission); void ensureCatalog('accounts'); }}>Registrar pago</button> : null}
-                  {actions.cancel ? <button className="text-button danger" disabled={busy} onClick={() => setCancelTarget(commission)}>Cancelar</button> : null}
+                  {actions.approve ? <Button variant="ghost" type="submit" className="text-button positive" disabled={busy} onClick={() => void run(async () => { await api(`/api/agency/commissions/${commission.id}`, {status: 'approved'}, 'PATCH'); }, 'Comisión aprobada.')}>Aprobar</Button> : null}
+                  {actions.pay ? <Button variant="ghost" type="submit" className="text-button" disabled={busy} onClick={() => { setPay(commission); void ensureCatalog('accounts'); }}>Registrar pago</Button> : null}
+                  {actions.cancel ? <Button variant="ghost" type="submit" className="text-button danger" disabled={busy} onClick={() => setCancelTarget(commission)}>Cancelar</Button> : null}
                 </div>
               </ListRow>;
             })}
@@ -277,7 +278,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0 text-right"><MoneyText valor={discount.amount} currency={discount.currency}/></div>
               <div className="min-w-0"><StateChip tone={DISCOUNT_TONE[discount.status]}>{referralDiscountStatusLabel(discount.status)}</StateChip></div>
               <div className="flex min-w-0 items-center justify-end gap-1">
-                {discount.status === 'applied' && canManage ? <button className="text-button warn" disabled={busy} onClick={() => setRevertTarget(discount)}><Undo2 size={14} aria-hidden="true"/>Revertir</button> : null}
+                {discount.status === 'applied' && canManage ? <Button variant="ghost" type="submit" className="text-button warn" disabled={busy} onClick={() => setRevertTarget(discount)}><Undo2 size={14} aria-hidden="true"/>Revertir</Button> : null}
               </div>
             </ListRow>)}
           </ListGrid>

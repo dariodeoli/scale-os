@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 import {useEffect,useState} from 'react';
@@ -46,12 +47,12 @@ export function WorkHistory({role,navigate}:{role:string;navigate?:(module:strin
  return <section className="grid min-w-0 gap-4 rounded-xl border border-ink-600 bg-ink-800 p-5 max-md:p-4" aria-label="Historial de trabajo">
   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
     <p className="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title={source?'Fuente externa: conserva autor y fecha originales. No otorga accesos ni atribuye estas acciones a cuentas de Scale OS.':managers?'Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.':'Tus cambios operativos.'}>{source?'Fuente externa: conserva autor y fecha originales. No otorga accesos ni atribuye estas acciones a cuentas de Scale OS.':managers?'Cambios operativos del equipo. No incluye sueldos ni movimientos financieros.':'Tus cambios operativos.'}</p>
-    <button className="text-button shrink-0" onClick={()=>{setOffset(0);setSource(v=>!v);}}><History size={14}/>{source?'Ver actividad en Scale OS':'Ver historial importado de Trello'}</button>
+    <Button variant="ghost" type="submit" className="text-button shrink-0" onClick={()=>{setOffset(0);setSource(v=>!v);}}><History size={14}/>{source?'Ver actividad en Scale OS':'Ver historial importado de Trello'}</Button>
   </div>
   <FilterToolbar className="mb-0" summary={range}>
    {!source&&managers?<div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Persona" value={who} onChange={v=>{setWho(v);setOffset(0);}} choices={[{value:'',label:'Todo el equipo'},...people.map(p=>({value:String(p.id),label:str(p,'full_name')||str(p,'email'),photoUrl:str(p,'photo_url'),kind:'person' as const}))]}/></div>:null}
    <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap"><SelectCustom label="Registros por página" value={limit} onChange={v=>{setLimit(v);setOffset(0);}} choices={['10','50','100'].map(value=>({value,label:value}))}/></div>
-   {peopleError?<Nota tono="warn" className="w-full basis-full">No se pudo cargar la lista del equipo: {peopleError} <button type="button" className="text-button" onClick={()=>setPeopleVersion(v=>v+1)}>Reintentar</button></Nota>:null}
+   {peopleError?<Nota tono="warn" className="w-full basis-full">No se pudo cargar la lista del equipo: {peopleError} <Button variant="ghost" type="button" className="text-button" onClick={()=>setPeopleVersion(v=>v+1)}>Reintentar</Button></Nota>:null}
   </FilterToolbar>
   {error?<ErrorBlock title="No se pudo cargar el historial." description={error} onRetry={()=>setIdentityVersion(v=>v+1)}/>:null}
   {loading&&!error?<LoadingBlock label="Cargando actividad…" lines={4}/>:null}

@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {api,Dialog,Editor} from './operations';
 import {KeyRound} from 'lucide-react';
@@ -9,7 +11,7 @@ export function PasswordPanel(){
   if(t){setToken(t);setOpen(true);params.delete('resetToken');window.history.replaceState({},'',window.location.pathname+(params.size?'?'+params:''));}
  },[]);
  return <>
-  <button type="button" className="text-button" onClick={()=>{setNotice('');setOpen(true);}}><KeyRound size={14}/>Establecer o recuperar contraseña</button>
+  <Button variant="ghost" type="button" className="text-button" onClick={()=>{setNotice('');setOpen(true);}}><KeyRound size={14}/>Establecer o recuperar contraseña</Button>
   {!open&&notice?<p role="status" className="text-xs text-ok">{notice}</p>:null}
   {open&&<Dialog title={token?'Nueva contraseña':'Recuperar acceso'} close={()=>setOpen(false)}>
    {notice?<p role="status" className="text-xs text-ok">{notice}</p>:<Editor fields={token?[

@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 import {useEffect,useMemo,useState} from 'react';
@@ -133,7 +134,7 @@ export function TrashWorkspace({refresh,role}:{refresh:()=>Promise<void>;role?:s
        </small>
       </div>
       <ListActions>
-       <button className="text-button" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}><RotateCcw size={14} aria-hidden="true"/>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</button>
+       <Button variant="ghost" type="submit" className="text-button" disabled={Boolean(busy)||bulkBusy} onClick={async()=>{setBusy(keyOf(record));setError('');try{await api(`/api/agency/${record.kind}/${record.id}/restore`,{});await Promise.all([load(),refresh()]);}catch(e){setError(errorMessage(e));}finally{setBusy('');}}}><RotateCcw size={14} aria-hidden="true"/>{busy===keyOf(record)?'Restaurando…':'Restaurar'}</Button>
       </ListActions>
      </ListRow>)}
     </ListGrid>}

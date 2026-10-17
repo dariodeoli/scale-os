@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from './ui/button';
 
 // Avisos del equipo v2 (issue #46): preferencias de notificaciones y
@@ -38,7 +39,7 @@ export function MonthlySchedules({projects,templates,people}:{projects:{id:strin
  const [open,setOpen]=useState(false),[creating,setCreating]=useState(false),[rows,setRows]=useState<Schedule[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
  async function load(){setRows((await api<{schedules:Schedule[]}>('/api/agency/schedules')).schedules);}
  useEffect(()=>{if(!open)return;setLoading(true);void load().catch(e=>setMessage(error(e))).finally(()=>setLoading(false));},[open]);
- return <><button className="text-button" onClick={()=>setOpen(true)}><CalendarClock size={14}/>Programar generación automática</button>{open&&<Dialog title="Producción mensual automática" close={()=>setOpen(false)}><div className="grid gap-3">
+ return <><Button variant="ghost" type="submit" className="text-button" onClick={()=>setOpen(true)}><CalendarClock size={14}/>Programar generación automática</Button>{open&&<Dialog title="Producción mensual automática" close={()=>setOpen(false)}><div className="grid gap-3">
   <p className="text-sm text-mute">Crea las piezas de la plantilla cada mes. No genera facturas ni cobros. Si la tanda ya existe, no la duplica. Podés pausar una programación en cualquier momento.</p>
   {message?<ErrorBlock title="No pudimos cargar las programaciones" description={message} onRetry={()=>void load().catch(e=>setMessage(error(e)))}/>:null}
   <div><Button variant="secondary" type="submit" className="secondary" onClick={()=>setCreating(v=>!v)}>{creating?'Cancelar nueva programación':'Nueva programación'}</Button></div>
@@ -47,7 +48,7 @@ export function MonthlySchedules({projects,templates,people}:{projects:{id:strin
    <div className="flex min-w-0 flex-wrap items-center gap-2"><b className="min-w-0 break-words text-[13.5px] text-fore">{r.template_name} · {r.project_name}</b><StateChip tone={r.active?'ok':'mute'}>{r.active?'Activa':'Pausada'}</StateChip></div>
    {r.actor_name?<p className="text-xs text-mute">Programado por <ActorIdentity name={r.actor_name} photoUrl={r.actor_photo_url} verified={r.actor_verified===true}/></p>:null}
    <p className="whitespace-nowrap text-xs tabular-nums text-mute">Próximo mes {r.next_month.slice(0,7)}</p>
-   <div className="flex justify-end"><button className={"text-button "+(r.active?'warn':'positive')} disabled={busy} onClick={async()=>{setBusy(true);try{await api('/api/agency/schedules/'+r.id,{active:!r.active},'PATCH');await load();}catch(e){notify({tone:'error',message:error(e)});}finally{setBusy(false);}}}>{r.active?<PauseCircle size={14}/>:<PlayCircle size={14}/>}{r.active?'Pausar':'Reactivar'}</button></div>
+   <div className="flex justify-end"><Button type="submit" className={"text-button "+(r.active?'warn':'positive')} disabled={busy} onClick={async()=>{setBusy(true);try{await api('/api/agency/schedules/'+r.id,{active:!r.active},'PATCH');await load();}catch(e){notify({tone:'error',message:error(e)});}finally{setBusy(false);}}}>{r.active?<PauseCircle size={14}/>:<PlayCircle size={14}/>}{r.active?'Pausar':'Reactivar'}</Button></div>
   </article>)}</div>:!creating?<EmptyBlock compact title="Todavía no hay programaciones activas" description="Creá una para generar las piezas de la plantilla cada mes."/>:null}
  </div></Dialog>}</>;
 }

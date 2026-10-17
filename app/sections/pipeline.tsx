@@ -1,4 +1,5 @@
 "use client";
+
 import {Input} from '../ui/input';
 
 import {Button} from '../ui/button';
@@ -177,10 +178,10 @@ function LeadColumn({stage,rows,edit,role,canMove,refresh,readOnly=false,totals,
         etiqueta la que baja de linea cuando el ancho no alcanza. */}
     {currencies.length?<div className="grid gap-0.5 text-[10.5px] tabular-nums text-mute">{currencies.map(currency=><span key={currency} className="flex flex-wrap items-baseline gap-x-1" title={`${currency}: ponderado y abierto`}><span className="whitespace-nowrap tabular-nums"><MoneyText valor={weighted[currency]??0} currency={currency}/> ponderado</span>{open[currency]!==undefined&&open[currency]!==weighted[currency]?<span className="whitespace-nowrap tabular-nums">· <MoneyText valor={open[currency]} currency={currency}/> abierto</span>:null}</span>)}</div>:null}
     {mounted.map(row=><LeadCard key={row.id} row={row} edit={()=>edit(row)} role={role} canMove={canMove&&!readOnly} refresh={refresh} won={stage.kind==='won'} actions={readOnly?undefined:actions}/>)}
-    {hidden>0?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setVisible(count=>count+LIST_WINDOW.leadsColumns)}>Ver más ({hidden})</button>:null}
+    {hidden>0?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setVisible(count=>count+LIST_WINDOW.leadsColumns)}>Ver más ({hidden})</Button>:null}
     {!rows.length?<div className="grid gap-2">
       <p className="m-0 text-xs text-mute">Sin oportunidades.</p>
-      {canMove&&!readOnly&&create?<button type="button" className="text-button min-h-11 justify-self-start md:min-h-8" aria-label={`Nueva oportunidad en ${stage.label}`} onClick={()=>create(stage.value)}><Plus aria-hidden="true" size={14}/> Nueva</button>:null}
+      {canMove&&!readOnly&&create?<Button variant="ghost" type="button" className="text-button min-h-11 justify-self-start md:min-h-8" aria-label={`Nueva oportunidad en ${stage.label}`} onClick={()=>create(stage.value)}><Plus aria-hidden="true" size={14}/> Nueva</Button>:null}
     </div>:null}
   </section>;
 }
@@ -495,8 +496,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
           </Select>
         </div>:null}
         <div role="group" aria-label="Vista del pipeline"><ViewSwitch value={view} onChange={changeView}/></div>
-        {filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:null}
-        {view==='list'&&canEdit&&listRows.length?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</button>:null}
+        {filtering?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</Button>:null}
+        {view==='list'&&canEdit&&listRows.length?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisible}>Seleccionar visibles</Button>:null}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {state==='ready'||rows.length?<p className="m-0 whitespace-nowrap text-xs tabular-nums text-mute">{filtering?`${filtered.length} de ${rows.length} oportunidades · indicadores y totales del filtro`:`${rows.length} oportunidad${rows.length===1?'':'es'}`}</p>:null}
         </div>
@@ -544,7 +545,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {rows.length||(state==='ready'&&activeStages.length)?(view==='list'?<div className="grid min-w-0 gap-2">
         {listRows.length?<ListGrid label="Oportunidades" template={canEdit?LEAD_LIST_EDIT_TEMPLATE:LEAD_LIST_VIEW_TEMPLATE} columns={leadListColumns(canEdit)} minWidthClass={canEdit?'min-w-[64rem]':'min-w-[44rem]'} pinnedActions={canEdit}>
           {listRows.map(item=><LeadListRow key={item.id} row={item} stageLabel={stageLabel(str(item,'stage'))} editable={canEdit} selected={selected.includes(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} edit={()=>setEdit(item)} role={role} canMove={canMove&&stageKind(str(item,'stage'))!==undefined} refresh={load} won={stageKind(str(item,'stage'))==='won'} actions={stageKind(str(item,'stage'))===undefined?undefined:leadActions}/>)}
-        </ListGrid>:<EmptyBlock compact icon="target" title={filtering?'Ninguna oportunidad coincide con el filtro.':'Sin oportunidades.'} description={filtering?'Probá con otra búsqueda, etapa o moneda.':undefined} action={filtering?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</button>:undefined}/>}
+        </ListGrid>:<EmptyBlock compact icon="target" title={filtering?'Ninguna oportunidad coincide con el filtro.':'Sin oportunidades.'} description={filtering?'Probá con otra búsqueda, etapa o moneda.':undefined} action={filtering?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>setFilters(NO_LEAD_FILTERS)}>Limpiar filtros</Button>:undefined}/>}
       </div>:<div className="grid min-w-0 gap-2">
         {/* Indicador fuerte de columnas ocultas (#140): conteo + posición y
             flechas para recorrer el tablero sin adivinar que hay más etapas. */}
@@ -573,8 +574,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {canSeeGrowth?<p className="flex flex-wrap items-center gap-2 text-[11px] text-mute" role="status">
         <TrendingUp size={14} aria-hidden="true" className="shrink-0"/>
         {metricsState==='error'?'No se pudieron cargar las métricas de captación.':'Captación digital y visitas'}
-        {navigate?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>navigate('Métricas')}>Ver Métricas<ArrowUpRight size={12} aria-hidden="true"/></button>:null}
-        {metricsState==='error'&&onRetryMetrics?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={onRetryMetrics}>Reintentar</button>:null}
+        {navigate?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={()=>navigate('Métricas')}>Ver Métricas<ArrowUpRight size={12} aria-hidden="true"/></Button>:null}
+        {metricsState==='error'&&onRetryMetrics?<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={onRetryMetrics}>Reintentar</Button>:null}
       </p>:null}
       {user?<LiveVisitors organizationId={String(user.organization_id)} role={user.role} demo={!!user.demo_owner_user_id||user.organization_slug==='scale-demo-controles-20260908'}/>:null}
 

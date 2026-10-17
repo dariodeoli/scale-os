@@ -1,4 +1,5 @@
 "use client";
+
 import {Button} from '../ui/button';
 
 import dynamic from 'next/dynamic';
@@ -52,7 +53,7 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
             </StateChip>
           ))}
         </div>
-        <button type="button" className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></button>
+        <Button variant="ghost" type="button" className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></Button>
       </section>
       <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
     </>}/>
