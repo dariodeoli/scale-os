@@ -55,3 +55,16 @@ export function taskMaterials(value){
   return{label:text(item.label??'',120)||parsed.hostname,url:parsed.href};
  });
 }
+
+/** Ficha legal reutilizable. PATCH valida sólo las claves presentes; nunca infiere CI/RUC. */
+export const clientLegalFields=['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type'];
+export function clientLegalProfile(incoming){
+ const limits={address:400,city:120,department:120,document_number:80,legal_representative_name:120,legal_representative_document:80,legal_representative_role:120};
+ const out={};
+ for(const key of clientLegalFields){
+  if(!Object.hasOwn(incoming,key))continue;
+  const value=incoming[key]??'';
+  out[key]=key==='document_type'?option(value,['','ci','ruc','passport','other']):key==='party_type'?option(value,['','person','company']):text(value,limits[key]);
+ }
+ return out;
+}
