@@ -1,0 +1,3 @@
+# Packaged numeric pilot: frozen compatibility and one implementation across public entries (Refs #241).
+tsx tests/ui-numeric-package-consumer-241.test.tsx
+node tests/ui-numeric-package-bundle-241.test.mjs

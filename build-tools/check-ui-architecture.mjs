@@ -3,11 +3,16 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 
-export const unifiedPrimitives=new Set(['Button','IconButton','IconAction','Input','Textarea','TextField','EmailField','PasswordField','PhoneField','SearchField','MoneyInput','AmountInput','Select','Selector','Label','FormField','Card','DataTable','Aviso','Nota','SegmentedField','Subtabs','TabScroller','Dialog','ConfirmDialog','FormActions','SaveActions','DateInput','TimeInput','DateTimeInput','MonthInput','NumberInput','PercentageInput','Checkbox','Switch','EmptyState','ErrorState']);
+export const unifiedPrimitives=new Set(['Button','IconButton','IconAction','Input','Textarea','TextField','EmailField','PasswordField','PhoneField','SearchField','MoneyInput','AmountInput','Select','Selector','Label','FormField','Card','DataTable','Aviso','Nota','SegmentedField','Subtabs','TabScroller','Dialog','ConfirmDialog','FormActions','SaveActions','DateInput','TimeInput','DateTimeInput','MonthInput','NumberInput','PercentageInput','InputBase','TextareaBase','NumericControl','Checkbox','Switch','EmptyState','ErrorState']);
 const facadeSymbols=new Map(Object.entries({
  'app/ui/surface.tsx':['Card'],'app/ui/collection.tsx':['DataTable'],'app/ui/notice.tsx':['Aviso','Nota'],
  'app/ui/navigation.tsx':['SegmentedField','Subtabs'],'app/ui/amount.tsx':['MoneyInput'],'app/ui/choice.tsx':['Checkbox','Switch'],
  'app/ui-v2.tsx':['EmptyState','ErrorState'],
+}));
+const pilotSymbols=new Set(['InputBase','TextareaBase','NumericControl','NumberInput','PercentageInput','numberInputProblem','numberInputValid','nativeNumberSettings']);
+const pilotFacades=new Map(Object.entries({
+ 'app/ui/input.tsx':{'owncoding-ui/numeric':['InputBase','TextareaBase']},
+ 'app/ui/number.tsx':{'owncoding-ui/numeric':['NumericControl','NumberInput','PercentageInput'],'owncoding-ui/number-utils':['numberInputProblem','numberInputValid','nativeNumberSettings']},
 }));
 const extensions=['.ts','.tsx','.js','.jsx','.mjs','.cjs'];
 const clean=value=>value.replaceAll('\\','/').replace(/^\.\//,'');
@@ -42,8 +47,13 @@ export function auditUiArchitecture(input){
    if(isPure(file)&&(businessModules.test(target??'')||source.startsWith('node:')||['axios','undici','node-fetch'].includes(source)))report(file,node,'business-module','Pure UI cannot import a business/API/server module.',sf);
    if(owncoding(source)){
     if(bindings===null){report(file,node,'opaque-owncoding-import','Use auditable named imports/reexports for OwnCoding, not namespace/default/dynamic access.',sf);return;}
-    const allowed=facadeSymbols.get(file)??[];
-    for(const name of bindings)if(unifiedPrimitives.has(name)&&!allowed.includes(name))report(file,node,'external-primitive',`${name} must come from its local canonical component.`,sf);
+    const allowed=source==='owncoding-ui'?(facadeSymbols.get(file)??[]):[];
+    const pilotAllowed=pilotFacades.get(file)?.[source]??[];
+    const pilotSource=source==='owncoding-ui/numeric'||source.startsWith('owncoding-ui/numeric/')||source==='owncoding-ui/number-utils'||source.startsWith('owncoding-ui/number-utils/');
+    for(const name of bindings){
+     const denied=pilotSource||pilotSymbols.has(name)?!pilotAllowed.includes(name):unifiedPrimitives.has(name)&&!allowed.includes(name);
+     if(denied)report(file,node,'external-primitive',`${name} must come from its local canonical component.`,sf);
+    }
    }
    if(isPure(file)&&bindings?.some(name=>businessNames.has(name)))report(file,node,'business-binding','Pure UI cannot import API request functions.',sf);
    if(publicEntries.has(file)&&bindings?.some(name=>businessNames.has(name)))report(file,node,'public-business-export','The public UI entry cannot expose API functions.',sf);
