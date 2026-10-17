@@ -28,20 +28,16 @@ const rules = read('app/field-rules.ts');
 for (const rule of ['phoneValid', 'phoneNational', 'normalizeSerial', 'emailSuggestions']) {
   assert(rules.includes(`export function ${rule}`), `field rules export ${rule}`);
 }
-assert(rules.includes("from 'owncoding-ui'"), 'field rules build on the shared library');
+assert(rules.includes('export function phoneParts'), 'Scale owns the explicit API country adapter without relying on external parser coverage');
 for (const retired of ['digitsOnly', 'parsePhone', 'internationalPhone', 'normalizePhone', 'phoneMessage']) {
   assert(!rules.includes(`export function ${retired}`), `field rules no longer copy ${retired}`);
 }
 
 const phoneField = read('app/phone-field.tsx');
-assert(phoneField.includes("from 'owncoding-ui'"), 'phone field uses the shared parse/compose helpers');
-assert(phoneField.includes('parseTelefono(') && phoneField.includes('componerTelefono('), 'phone field parses and composes with the library');
-assert(phoneField.includes('parsed.countryCode') && phoneField.includes('parsed.phone'), 'phone field usa la firma real del runtime ({countryCode, phone})');
-assert(phoneField.includes('componerTelefono({countryCode'), 'phone field composes with the object signature');
-for (const retired of ['parsePhone(', 'internationalPhone(', 'digitsOnly(']) {
-  assert(!phoneField.includes(retired), `phone field no longer hand-rolls ${retired}`);
-}
-assert(rules.includes('national.length === 8'), 'field rules conservan la excepción PY fijo hasta que la librería generalice telefonoValido (owncoding-ui#2)');
+assert(phoneField.includes('phoneParts(value)'), 'phone field preserves local API-supported country codes');
+assert(phoneField.includes('phoneValue(countryCode, number)'), 'phone field composes without truncating national digits');
+assert(!phoneField.includes('DEFAULT_PHONE_COUNTRY'), 'unknown legacy prefixes never silently fall back to Paraguay');
+assert(rules.includes('national.length === 8'), 'local policy conserves Paraguay landlines');
 
 const list = read('app/list-format.tsx');
 assert(list.includes('partirSerial') && list.includes('serialEnmascarado'), 'serial cells use the shared serial helpers');
@@ -74,4 +70,4 @@ for (const file of ['app/client-reporting.tsx', 'app/financial-forecast.tsx', 'a
   assert(!source.includes('digitsOnly'), `${file} no longer copies digitsOnly`);
 }
 
-console.log('PASS: field adoption — shared phone, email, serial, token, name and digit rules come from owncoding-ui');
+console.log('PASS: field adoption — local phone API adapter, shared email/serial fields and token/name/digit consumers');
