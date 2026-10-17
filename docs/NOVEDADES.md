@@ -2,7 +2,7 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
-## Próxima entrega — en validación
+## v1.0.192
 
 - **Balance primero**: contratado y pagado de clientes a la izquierda, equipo
   y salarios a la derecha, en dos mitades iguales. Totales por moneda; salario
@@ -13,6 +13,9 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
 - **Biblioteca de objetos compartida**: botones, campos, selectores, diálogos,
   avisos y tablas con APIs comunes, temas y tamaños coherentes. El catálogo
   `/biblioteca-ui` permite explorar estados y ejemplos sin modificar datos.
+- **Motor numérico compartido**: Scale consume OwnCoding UI `v0.68.17` mediante
+  una versión fija; los campos y validadores conservan la misma implementación,
+  sin duplicar las reglas en cada aplicación.
 - **Formularios más estables**: conservan borradores, errores y foco, protegen
   el cierre y evitan envíos duplicados. Fechas, horas y números admiten edición
   manual sin perder valores parciales ni convertir monedas o zonas horarias.
