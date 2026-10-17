@@ -30,15 +30,18 @@ for(const [name,source] of [['previsión',pre],['informes',informes],['producci�
 
 // ── Listas: una sola plantilla por lista, compartida entre encabezado y filas,
 // sin tracks `auto` que desalineen, con scroll horizontal silencioso.
-for(const cols of ['PERSON_COLS','CONTRACT_COLS','EXPENSE_COLS','PLANNED_COLS']){
+for(const cols of ['EXPENSE_COLS','PLANNED_COLS']){
  assert.match(pre,new RegExp(`const ${cols}='grid-cols-`),`${cols} declara la plantilla de la lista`);
  assert.match(pre,new RegExp(`<ListRow template=\\{${cols}\\}`),`las filas de ${cols} comparten la plantilla con el encabezado de ListGrid`);
  assert.match(pre,new RegExp(`<ListGrid [^>]*template=\\{${cols}\\} columns=\\{`),`el encabezado de ${cols} sale de ListGrid con la misma plantilla`);
 }
+for(const [file,cols] of [['app/finance-clients.tsx','CLIENT_FINANCE_COLUMNS'],['app/finance-personnel.tsx','PERSONNEL_COLUMNS']]){
+ const source=read(file);assert.match(source,new RegExp(`const ${cols}='grid-cols-`));assert.match(source,new RegExp(`<ListGrid [^>]*template=\\{${cols}\\}`));assert.match(source,new RegExp(`<ListRow template=\\{${cols}\\}`));
+}
 assert.match(treasury,/const STATEMENT_COLS='grid-cols-/);
 assert.match(treasury,/const STATEMENT_HEAD=/);assert.match(treasury,/const STATEMENT_ROW=/);
 assert.match(treasury,/cn\(STATEMENT_HEAD,STATEMENT_COLS\)/);assert.match(treasury,/cn\(STATEMENT_ROW,STATEMENT_COLS\)/);
-for(const [name,source,cols] of [['previsión',pre,['PERSON_COLS','CONTRACT_COLS','EXPENSE_COLS','PLANNED_COLS']],['conciliación',treasury,['STATEMENT_COLS']]] as const){
+for(const [name,source,cols] of [['previsión',pre,['EXPENSE_COLS','PLANNED_COLS']],['conciliación',treasury,['STATEMENT_COLS']]] as const){
  for(const col of cols){
   const match=source.match(new RegExp(`const ${col}='([^']+)'`));
   assert(match,`${col} está declarada en ${name}`);
@@ -120,14 +123,16 @@ for(const [name,source,labels] of [
  ['finanzas',finanzas,['Registrar primera cuenta','Crear factura','Limpiar filtros']],
  ['mora',mora,['Registrar primera factura','Limpiar filtros']],
  ['comisiones',comisiones,['Registrar comisión','Nuevo descuento','Ver comisiones por pagar']],
- ['previsión',pre,['Registrar factura','Ver clientes','Ver equipo']],
+ ['previsión',pre,['Registrar factura']],
+ ['balance-clientes',read('app/finance-clients.tsx'),['Ver clientes']],
+ ['balance-equipo',read('app/finance-personnel.tsx'),['Ver equipo']],
  ['informes',informes,['Registrar primera factura']],
 ] as const){
  for(const label of labels)assert.match(source,new RegExp(label),`${name}: el vacío ofrece «${label}»`);
 }
 assert.match(informes,/monthRangeLabel\(comparison!\.currentStart, comparison!\.currentEnd\)/,'Informes muestra el período completo con año (ronda 14, #62)');
 assert.match(informes,/onCreateInvoice\?/,'el vacío de Informes usa la salida del shell sin duplicar el modal');
-assert.match(pre,/\{navigate\?/,'Previsión navega a clientes y equipo desde el vacío');
+assert.match(read('app/finance-clients.tsx'),/\{navigate\?/,'Balance navega a la ficha de clientes');assert.match(read('app/finance-personnel.tsx'),/\{navigate\?/,'Balance navega a Equipo');
 
 // ── #67 (ronda 16): ventana de cobros, chrome proyectado y targets táctiles.
 const workspace=workspaceSource();
