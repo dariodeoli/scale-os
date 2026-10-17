@@ -2,6 +2,21 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.191
+
+- **Hover y selección legibles**: perfil de la barra lateral, menús, filas,
+  selectores y Kanban conservan contraste en temas claro y oscuro.
+- **Controles móviles**: categorías y ubicaciones del inventario y el acceso a
+  plan/pago del cliente tienen un objetivo táctil de al menos 44 px.
+- **Demo para probar el trabajo diario**: tareas propias para hoy, checklists,
+  materiales, reservas de estudio, contratos de ejemplo, fichas legales,
+  propiedad del inventario y finanzas con cobros, deuda, gastos y caja coherente.
+- **Visitas privadas**: cada visitante tiene su propia demo temporal, sin
+  compartir los cambios; al recargar sigue en su sesión activa.
+- **Acciones externas protegidas**: la demo no contacta proveedores del tenant;
+  crear una cuenta real y recuperar acceso desde los formularios públicos sigue
+  disponible. La limpieza de datos vencidos distingue expiración y borrado físico.
+
 ## v1.0.190
 
 - **Más espacio útil**: encabezados y filtros compactos, proyectos en cuadrícula
