@@ -1,0 +1,2 @@
+# Real money uses currency precision; forecast plans retain whole transport
+node --import tsx --test tests/finance-decimals.test.tsx
