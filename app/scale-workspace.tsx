@@ -59,6 +59,8 @@ import {QuoteComposer} from './quote-composer';
 import {PasswordPanel} from './password-panel';
 import {PasswordField} from './password-field';
 import {EmailField} from './email-field';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
+import {PendingFields} from './ui/form-state';
 import {WorkspaceGuide, workspaceGuideScope, visibleModule, type WorkspaceGuideData} from './workspace-guide';
 import {guideCountsFrom} from './workspace-guide-data';
 import {FXTransferForm} from './daily-controls';
@@ -192,6 +194,7 @@ export default function Home() {
   const [authNotice, setAuthNotice] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const {pending:loginPending,onSubmit:submitLogin}=useSingleFlightSubmit(login);
   const pathname=usePathname(),router=useRouter();
   function returnToApprovedLoginDestination(){
     const destination=postLoginDestination(window.location.search);
@@ -784,8 +787,7 @@ export default function Home() {
     )
       void loadMetrics();
   }, [active, operationalAccess, user?.role]);
-  async function login(event: React.FormEvent) {
-    event.preventDefault();
+  async function login() {
     setToast("");
     try {
       await request("/api/auth/login", {
@@ -898,11 +900,12 @@ export default function Home() {
               <p>{authNotice}</p>
             </div>
           )}
-          <ProviderSignIn provider="google" disabled={!socialProviders.google} label={socialProviders.google?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
-          {socialProviders.microsoft?<ProviderSignIn provider="microsoft" onClick={()=>{window.location.href='/core-api/api/auth/microsoft/start';}}/>:null}
-          {socialProviders.apple?<ProviderSignIn provider="apple" onClick={()=>{window.location.href='/core-api/api/auth/apple/start';}}/>:null}
+          <ProviderSignIn provider="google" disabled={loginPending||!socialProviders.google} label={socialProviders.google?'Continuar con Google':'Google aún no está configurado'} onClick={()=>{window.location.href='/core-api/api/auth/google/start';}}/>
+          {socialProviders.microsoft?<ProviderSignIn provider="microsoft" disabled={loginPending} onClick={()=>{window.location.href='/core-api/api/auth/microsoft/start';}}/>:null}
+          {socialProviders.apple?<ProviderSignIn provider="apple" disabled={loginPending} onClick={()=>{window.location.href='/core-api/api/auth/apple/start';}}/>:null}
           <div className="login-divider"><span>o ingresá con correo</span></div>
-          <form noValidate onSubmit={login}>
+          <form noValidate onSubmit={submitLogin} aria-busy={loginPending}>
+            <PendingFields pending={loginPending}>
             <label>
               Email
               <EmailField value={email} onChange={setEmail} placeholder="Tu email" required/>
@@ -918,7 +921,8 @@ export default function Home() {
             />
             <PasswordPanel/>
             {toast && <p className="error" role="alert">{toast}</p>}
-            <button className="primary login-button">Continuar</button>
+            <button type="submit" className="primary login-button">{loginPending?'Ingresando…':'Continuar'}</button>
+            </PendingFields>
           </form>
           <AvisoPrivacidad compact finalidad="Privacidad de tus datos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
       </AccessLayout>

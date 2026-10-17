@@ -9,6 +9,7 @@
 .control-shell{--control-gap:var(--ui-control-gap-lg);--control-padding:var(--ui-panel-padding);container-type:inline-size}
 /* Visited tabs stay mounted to preserve drafts; grid must not override hidden. */
 .person-sheet [data-sheet-tab][hidden]{display:none}
+.ui-form-fields{display:contents;border:0;margin:0;padding:0;min-width:0}
 
 /* Ritmo de la página (#97): el gutter vive en un token (antes llegaba a 48 px
    en xl) y el alto respira con la misma escala. */
