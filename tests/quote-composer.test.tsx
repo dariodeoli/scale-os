@@ -19,6 +19,7 @@ const reads:string[]=[];
 let rejectWrite=false,releaseWrite:(()=>void)|undefined;
 const operationsPath=require.resolve('../app/operations');
 require.cache[operationsPath]={id:operationsPath,filename:operationsPath,loaded:true,exports:{
+ ApiFieldError:class ApiFieldError extends Error{fieldErrors:Record<string,string>;constructor(message:string,fields:Record<string,string>){super(message);this.fieldErrors=fields;}},
  money:(value:number,currency:string)=>`${currency} ${value}`,
  api:async(path:string,body?:unknown,method='POST')=>{
   if(body===undefined){reads.push(path);return /\/clients(\?|$)/.test(path)?{clients:[{id:'10',name:'Cliente de prueba'}]}:{records:[]};}
@@ -80,7 +81,7 @@ async function run(){
   let closed=0;const before=writes.length;
   await act(async()=>{renderer=create(<CloseContext.Provider value={()=>{closed++;}}><QuoteComposer mode="create" record={{...record,client_id:''}} done={()=>assert.fail('invalid form completed')}/></CloseContext.Provider>);});
   await act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){},persist(){}});});
-  assert.equal(writes.length,before);assert.match(text(renderer.root.findByProps({role:'alert'})),/Elegí un cliente/);
+  assert.equal(writes.length,before);assert.match(renderer.root.findAllByProps({role:'alert'}).map(text).join(' '),/Elegí un cliente/);
   assert.equal(pendingStates.at(-1),false);assert.equal(button('Cancelar').props.disabled,false);
   act(()=>button('Cancelar').props.onClick());assert.equal(closed,1);act(()=>renderer.unmount());
   // Reordenar ítems: el arrastre reordena el formulario y el guardado persiste el orden.
@@ -94,6 +95,9 @@ async function run(){
   assert(preview().indexOf('Segundo')<preview().indexOf('Primero'),'el arrastre reordena los ítems en la vista previa');
   let savingReorder!:Promise<void>;
   await act(async()=>{savingReorder=renderer.root.findByType('form').props.onSubmit({preventDefault(){},persist(){}});});
+  const pendingPreview=preview();
+  await act(async()=>{renderer.root.findAllByProps({'data-item-drag':true})[0].props.onClick();});
+  assert.equal(preview(),pendingPreview,'a late drag-end callback cannot reorder a locked draft');
   await act(async()=>{releaseWrite!();await savingReorder;});
   assert.equal(writes.length,beforeReorder+1,'el reordenar no dispara escrituras extra');
   assert.deepEqual((writes.at(-1)!.body as {items:{description:string}[]}).items.map(item=>item.description),['Segundo','Primero'],'el orden guardado es el reordenado');
