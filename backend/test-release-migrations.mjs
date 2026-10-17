@@ -5,6 +5,7 @@ import {productivity} from './productivity.js';
 import {projectAssignees} from './project-assignees.js';
 import {ensurePersonalIdentity} from './identity-session.js';
 import {migrationOrder} from './scripts/migration-order.mjs';
+import {applyCuratedMigrations,applyPendingMigrations} from './migrations-runner.mjs';
 
 // Read the release's actual registration order, not a second hand-maintained list.
 // Optional Dadoo belongs to another product and is explicitly excluded.
@@ -13,6 +14,11 @@ const server=await read('server.js');
 const start=server.indexOf('async function init()');
 const end=server.indexOf("await migration.query('commit')",start);
 assert(start>=0&&end>start,'Server migration transaction must be identifiable');
+const bootstrapSource=server.slice(start,end);
+assert.match(bootstrapSource,/await applyCuratedMigrations\(migration,/,'actual server bootstrap must use tracked curated execution');
+assert.doesNotMatch(bootstrapSource,/for\(const filename of migrationChain\)/,'registered historical SQL must never replay before tracker checks');
+assert.doesNotMatch(bootstrapSource,/firstRun:\s*'baseline'/,'server never marks an unapplied blanket baseline');
+assert(bootstrapSource.indexOf('await applyCuratedMigrations(')<bootstrapSource.indexOf('await applyPendingMigrations('),'future files follow curated dependencies');
 const files=[...server.slice(start,end).matchAll(/(2026\d{4}_[a-z0-9_]+\.sql)/g)].map(m=>m[1]).filter(f=>f!=='20260908_dadoo_hub.sql');
 assert.equal(files.length,new Set(files).size,'Unexpected duplicate migration registration');
 for(const required of ['20260910_global_identity.sql','20260910_company_currency.sql','20260910_project_assignees.sql','20260910_inventory_reservations.sql','20260910_work_checklists.sql','20260913_ruc_collaboration.sql','20260913_platform_admin_vertical_slice.sql','20260914_inventory_storage_locations.sql'])assert(files.includes(required),`${required} missing from server init`);
@@ -25,7 +31,7 @@ const query=(s,v)=>pg.query(s,v),db={connect:async()=>({query,release(){}})};
 const insert=async(s,v)=>(await query(s+' returning id',v)).rows[0].id;
 async function migrate(){
  await pg.exec('begin');let current='schema.sql';
- try{await pg.exec(await read(current));for(const file of files){current='migrations/'+file;await pg.exec(await read(current));}await pg.exec('commit');}
+ try{await pg.exec(await read(current));await applyCuratedMigrations(pg,new URL('./migrations',import.meta.url).pathname,files);await applyPendingMigrations(pg,new URL('./migrations',import.meta.url).pathname);await pg.exec('commit');}
  catch(error){await pg.exec('rollback');throw Error(`Release migration ${current}: ${error.code||''} ${error.message}`,{cause:error});}
 }
 async function call(handler,path,as,method='GET',payload={},expectedStatus=200){
@@ -90,6 +96,6 @@ try{
  assert.equal((await ensurePersonalIdentity(db,google,a)).photo_url,null,'explicit removal survives the Google photo fallback');
  await call(productivity,'productivity/profile',googleSelf,'PATCH',{photo_url:'https://example.invalid/chosen.png'});
  assert.equal((await ensurePersonalIdentity(db,google,a)).photo_url,'https://example.invalid/chosen.png','a chosen photo is never replaced by the Google fallback');
- console.log(`PASS: schema + ${files.length} server-registered migrations twice, session identity initialization, real reactivation/HR sync, demo isolation, assignee flow, inventory/checklist relations; optional Dadoo excluded`);
+ console.log(`PASS: schema + ${files.length} server-registered migrations with tracked restart, session identity initialization, real reactivation/HR sync, demo isolation, assignee flow, inventory/checklist relations; optional Dadoo excluded`);
 }catch(error){console.error(error.stack||error);process.exitCode=1;}
 finally{await pg.close();}
