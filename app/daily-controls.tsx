@@ -109,7 +109,7 @@ export function ClientReviewPreview({title,assetUrl}:{title:string;assetUrl?:str
    {assetUrl?<a className="secondary justify-self-start" href={assetUrl} target="_blank" rel="noreferrer">Abrir pieza</a>:<p className="form-note">Esta versión todavía no tiene enlace de archivo. Agregalo en Enlaces para que el cliente pueda abrirla.</p>}
    <label>Nombre completo<InputControl disabled placeholder="Nombre y apellido" autoComplete="off"/></label>
    <label>Comentarios o cambios<TextareaBase disabled rows={3} placeholder="Qué te gustaría ajustar"/></label>
-   <div className="inline-actions review-preview-actions"><ScaleButton className="primary" type="button" disabled aria-disabled="true" variant="primary">Aprobar esta versión</ScaleButton><ScaleButton className="secondary" type="button" disabled aria-disabled="true" variant="secondary">Solicitar cambios</ScaleButton></div>
+   <div className="inline-actions review-preview-actions"><ScaleButton className="secondary" type="button" disabled aria-disabled="true" variant="secondary" color="neutral">Aprobar esta versión</ScaleButton><ScaleButton className="secondary" type="button" disabled aria-disabled="true" variant="secondary" color="neutral">Solicitar cambios</ScaleButton></div>
    <p className="form-note">El enlace real vence a los siete días. El nombre declarado no equivale a una firma digital verificada.</p>
   </article>
  </Dialog>}</>;
