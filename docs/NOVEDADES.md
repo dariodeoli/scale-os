@@ -4,6 +4,9 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
 
 ## v1.0.190
 
+- **Arranque seguro**: las migraciones ya registradas no se vuelven a ejecutar;
+  las pendientes se aplican de forma atómica y conservan auditoría e importes.
+
 - **Precisión por moneda**: cobros, deuda, aplicaciones, gastos reales y saldos
   de apertura admiten centavos donde corresponde; PYG y gastos planificados
   conservan sus reglas de enteros. Reversiones y caja mantienen el importe exacto.

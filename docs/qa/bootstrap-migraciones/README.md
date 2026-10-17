@@ -28,3 +28,11 @@ node --experimental-vm-modules test-auth.mjs
 ```
 
 PGlite usa almacenamiento temporal que se cierra y vuelve a abrir para reproducir un proceso nuevo. La prueba PostgreSQL 17 crea un clúster propio por socket Unix, sin TCP, con memoria de locks suficiente para las 111 migraciones en una única transacción. Ambas pruebas eliminan sus datos locales al finalizar. No se modifican trazas ni se debilitan restricciones históricas para forzar un arranque.
+
+## Recuperación operativa
+
+Una recuperación de aplicación debe conservar este bootstrap compatible con el tracker
+y las migraciones ya aplicadas. Volver al arranque anterior reejecutaría SQL histórico
+incompatible con eventos actuales de propiedad. Ante un fallo, priorizar una corrección
+hacia adelante o una versión que mantenga este bootstrap; nunca borrar trazas, registros
+de migración ni rebajar restricciones para simular un arranque correcto.
