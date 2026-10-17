@@ -1,0 +1,190 @@
+[
+  {
+    "theme": "light",
+    "card": {
+      "text": "Banco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · Custodia: Sebastián ",
+      "x": 224,
+      "right": 512.5,
+      "width": 288.5,
+      "display": "grid",
+      "overflowX": "visible",
+      "fontSize": "14px",
+      "padding": "12px",
+      "minWidth": "0px",
+      "maxWidth": "none"
+    },
+    "header": {
+      "text": "Banco Continental · Caja de ahorro en guaraníes",
+      "x": 237,
+      "right": 551.8125,
+      "width": 314.8125,
+      "display": "flex",
+      "overflowX": "visible",
+      "fontSize": "14px",
+      "padding": "0px",
+      "minWidth": "auto",
+      "maxWidth": "none"
+    },
+    "amount": {
+      "text": "Gs. 1.000.000",
+      "x": 237,
+      "right": 551.8125,
+      "width": 314.8125,
+      "display": "flex",
+      "overflowX": "visible",
+      "fontSize": "24px",
+      "padding": "0px",
+      "minWidth": "auto",
+      "maxWidth": "none"
+    },
+    "textRange": {
+      "x": 397.4375,
+      "right": 551.8125,
+      "width": 154.375
+    },
+    "ancestors": [
+      {
+        "text": "Gs. 1.000.000",
+        "x": 237,
+        "right": 551.8125,
+        "width": 314.8125,
+        "display": "flex",
+        "overflowX": "visible",
+        "fontSize": "24px",
+        "padding": "0px",
+        "minWidth": "auto",
+        "maxWidth": "none"
+      },
+      {
+        "text": "Banco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · Custodia: Sebastián ",
+        "x": 224,
+        "right": 512.5,
+        "width": 288.5,
+        "display": "grid",
+        "overflowX": "visible",
+        "fontSize": "14px",
+        "padding": "12px",
+        "minWidth": "0px",
+        "maxWidth": "none"
+      },
+      {
+        "text": "Banco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · Custodia: Sebastián ",
+        "x": 224,
+        "right": 1408,
+        "width": 1184,
+        "display": "grid",
+        "overflowX": "visible",
+        "fontSize": "14px",
+        "padding": "0px",
+        "minWidth": "0px",
+        "maxWidth": "none"
+      },
+      {
+        "text": "Dónde está el dineroBanco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · ",
+        "x": 224,
+        "right": 1408,
+        "width": 1184,
+        "display": "block",
+        "overflowX": "visible",
+        "fontSize": "14px",
+        "padding": "0px",
+        "minWidth": "auto",
+        "maxWidth": "none"
+      }
+    ]
+  },
+  {
+    "theme": "dark",
+    "card": {
+      "text": "Banco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · Custodia: Sebastián ",
+      "x": 224,
+      "right": 512.5,
+      "width": 288.5,
+      "display": "grid",
+      "overflowX": "visible",
+      "fontSize": "14px",
+      "padding": "12px",
+      "minWidth": "0px",
+      "maxWidth": "none"
+    },
+    "header": {
+      "text": "Banco Continental · Caja de ahorro en guaraníes",
+      "x": 237,
+      "right": 563.8125,
+      "width": 326.8125,
+      "display": "flex",
+      "overflowX": "visible",
+      "fontSize": "14px",
+      "padding": "0px",
+      "minWidth": "auto",
+      "maxWidth": "none"
+    },
+    "amount": {
+      "text": "Gs. 1.000.000",
+      "x": 237,
+      "right": 563.8125,
+      "width": 326.8125,
+      "display": "flex",
+      "overflowX": "visible",
+      "fontSize": "24px",
+      "padding": "0px",
+      "minWidth": "auto",
+      "maxWidth": "none"
+    },
+    "textRange": {
+      "x": 409.4375,
+      "right": 563.8125,
+      "width": 154.375
+    },
+    "ancestors": [
+      {
+        "text": "Gs. 1.000.000",
+        "x": 237,
+        "right": 563.8125,
+        "width": 326.8125,
+        "display": "flex",
+        "overflowX": "visible",
+        "fontSize": "24px",
+        "padding": "0px",
+        "minWidth": "auto",
+        "maxWidth": "none"
+      },
+      {
+        "text": "Banco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · Custodia: Sebastián ",
+        "x": 224,
+        "right": 512.5,
+        "width": 288.5,
+        "display": "grid",
+        "overflowX": "visible",
+        "fontSize": "14px",
+        "padding": "12px",
+        "minWidth": "0px",
+        "maxWidth": "none"
+      },
+      {
+        "text": "Banco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · Custodia: Sebastián ",
+        "x": 224,
+        "right": 1408,
+        "width": 1184,
+        "display": "grid",
+        "overflowX": "visible",
+        "fontSize": "14px",
+        "padding": "0px",
+        "minWidth": "0px",
+        "maxWidth": "none"
+      },
+      {
+        "text": "Dónde está el dineroBanco Continental · Caja de ahorro en guaraníesGs. 1.000.000Banco Continental · ",
+        "x": 224,
+        "right": 1408,
+        "width": 1184,
+        "display": "block",
+        "overflowX": "visible",
+        "fontSize": "14px",
+        "padding": "0px",
+        "minWidth": "auto",
+        "maxWidth": "none"
+      }
+    ]
+  }
+]

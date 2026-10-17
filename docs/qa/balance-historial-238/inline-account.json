@@ -1,0 +1,112 @@
+{
+  "base": "http://127.0.0.1:3008",
+  "run": "QA-1792223306695",
+  "started_at": "2026-10-17T07:48:26.695Z",
+  "checks": [
+    {
+      "name": "Tenant starts without any accounts",
+      "passed": true
+    },
+    {
+      "name": "Nested cancellation preserves all receipt fields",
+      "passed": true
+    },
+    {
+      "name": "Cancel creates no account or payment",
+      "passed": true
+    },
+    {
+      "name": "Controlled local account400 received",
+      "passed": true
+    },
+    {
+      "name": "Nested error is visible",
+      "passed": true
+    },
+    {
+      "name": "Nested account failure preserves original draft",
+      "passed": true
+    },
+    {
+      "name": "Controlled failure creates no database account",
+      "passed": true
+    },
+    {
+      "name": "First inline USD account201",
+      "passed": true
+    },
+    {
+      "name": "Account success preserves amount, date and reference",
+      "passed": true
+    },
+    {
+      "name": "New compatible account is selected automatically",
+      "passed": true
+    },
+    {
+      "name": "Double click creates exactly one account POST",
+      "passed": true
+    },
+    {
+      "name": "Account creation itself emits no receipt",
+      "passed": true
+    },
+    {
+      "name": "Final receipt201 with original100.25",
+      "passed": true
+    },
+    {
+      "name": "Double click emits one receipt POST",
+      "passed": true
+    },
+    {
+      "name": "Cash increases exactly100.25 once",
+      "passed": true
+    },
+    {
+      "name": "Other currency account201",
+      "passed": true
+    },
+    {
+      "name": "Currency review explicitly says no conversion",
+      "passed": true
+    },
+    {
+      "name": "Keep-draft choice retains original account and amount",
+      "passed": true
+    },
+    {
+      "name": "Second other currency account201",
+      "passed": true
+    },
+    {
+      "name": "Explicit switch selects PYG and clears amount",
+      "passed": true
+    },
+    {
+      "name": "Currency review creates no extra receipt",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "receipt-created-first-account-1440.png",
+    "receipt-explicit-currency-review-1440.png"
+  ],
+  "blocked_external": [],
+  "limitations": [
+    "One account400 was deliberately injected by the local browser harness to exercise the error path; it is not a backend failure."
+  ],
+  "ids": {
+    "org": "4",
+    "user": "12",
+    "client": "23",
+    "account": "5"
+  },
+  "posts": {
+    "accounts": 4,
+    "payments": 1,
+    "custodians": 10
+  },
+  "finished_at": "2026-10-17T07:48:34.697Z",
+  "passed": true
+}
