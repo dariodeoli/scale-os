@@ -16,7 +16,7 @@ import {TabScroller} from './tab-scroller';
 import type {AssignedPerson} from './assigned-people';
 import {notify} from './feedback';
 import {ClientReviewControl,ClientReviewPreview,ClientPortalAccess,ClientPortalDeliveryControl} from './daily-controls';
-import {ClientIdentity,ClientLogo,ClientLegalIdentity,identityColor} from './client-identity';
+import {ClientIdentity,ClientLegalIdentity} from './client-identity';
 import {ClientEditorDialog} from './client-editor';
 import './productivity.css';
 
