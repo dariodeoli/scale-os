@@ -76,3 +76,14 @@ test('api conserva únicamente errores explícitos de campo y no deduce campos d
   await assert.rejects(api('/api/agency/test',{name:'Ana'}),error=>{assert(error instanceof ApiFieldError);assert.deepEqual(error.fieldErrors,{});return true;});
  }finally{globalThis.fetch=original;}
 });
+
+test('Editor bloquea contraseña y control revelar mientras guarda, conserva borrador tras fallo',async()=>{
+ let r:ReactTestRenderer,reject:(error:Error)=>void=()=>{};let result:Promise<void>;
+ await act(async()=>{r=create(<Editor fields={[{key:'password',label:'Nueva contraseña',type:'password'}]} defaults={{password:'Clave sintética de prueba'}} save={async()=>new Promise((_resolve,fail)=>{reject=fail;})}/>);});
+ await act(async()=>{result=submit(r!);await tick();});
+ assert.equal(r!.root.findByType('input').props.disabled,true);
+ assert.equal(r!.root.findAllByType('button').find(button=>button.props.className==='password-visibility')!.props.disabled,true);
+ await act(async()=>{reject(new Error('Error recuperable'));await result!;});
+ assert.equal(r!.root.findByType('input').props.disabled,false);assert.equal(r!.root.findByType('input').props.value,'Clave sintética de prueba');
+ await act(async()=>r!.unmount());
+});

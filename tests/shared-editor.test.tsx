@@ -125,7 +125,7 @@ async function main(){
   const emailInput=r!.root.findByType('input');
   assert.equal(emailInput.props.type,'email');
   assert.equal(emailInput.props.autoComplete,'email');
-  assert.equal(emailInput.props.maxLength,200);
+  assert.equal(emailInput.props.maxLength,254);
   await act(async()=>{emailInput.props.onChange({target:{value:'ana@g'}});});
   assert.deepEqual(r!.root.findAllByType('option').map(node=>node.props.value),['ana@gmail.com']);
   await act(async()=>{r!.root.findByType('input').props.onChange({target:{value:'ana'}});});
