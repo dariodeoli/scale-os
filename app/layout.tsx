@@ -1,4 +1,5 @@
 import 'owncoding-ui/styles.css';
+import './ui-tokens.css';
 import './globals.css';
 import './qa-fixes.css';
 import './mobile-forms.css';

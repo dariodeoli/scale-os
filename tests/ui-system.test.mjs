@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import postcss from 'postcss';
+import {themeTokens,hexColor} from './helpers/ui-token-values.mjs';
 const css=readFileSync('app/ui-system.css','utf8'),ast=postcss.parse(css);
 assert(readFileSync('app/layout.tsx','utf8').includes("import './ui-system.css'"));
-const tokens={};ast.walkRules(':root',rule=>{if(rule.parent.type==='root')rule.walkDecls(d=>tokens[d.prop]=d.value);});
-const foundation={};postcss.parse(readFileSync('app/globals.css','utf8')).walkRules(':root',rule=>{if(rule.parent.type==='root')rule.walkDecls(d=>foundation[d.prop]=d.value);});
-function resolveToken(value){let current=value,seen=new Set();while(current.startsWith('var(--')&&!seen.has(current)){seen.add(current);const name=current.slice(4,-1);const next=tokens[name]??foundation[name];if(!next)break;current=next;}return current;}
+const tokenSource=readFileSync('app/ui-tokens.css','utf8');
+const tokens=themeTokens('light');
+function resolveToken(value){return value.startsWith('rgb(')?hexColor(value):value;}
 assert.deepEqual([1,2,3,4,5,6].map(n=>tokens[`--ui-space-${n}`]),['4px','8px','12px','16px','20px','24px']);
 assert.equal(tokens['--ui-control-height'],'40px');
-assert(css.includes('--ui-control-height:44px'));
+assert.equal(themeTokens('light',390)['--ui-control-height'],'44px');
 function luminance(hex){const c=hex.replace('#','').match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722;}
 for(const background of ['#ffffff','#fbfafc']){const light=luminance(background),dark=luminance(resolveToken(tokens['--ui-field-border']));assert((light+.05)/(dark+.05)>=3,'input boundaries need sufficient contrast');}
 
 // CTA primario (ronda 14, ítem 8): un solo texto sobre marca y AA en ambos temas.
-const themeVars=(file,selector)=>{const out={};postcss.parse(readFileSync(file,'utf8')).walkRules(rule=>{if(!rule.selectors?.includes(selector))return;rule.walkDecls(d=>{out[d.prop]=d.value;});});return out;};
+const themeVars=(_file,selector)=>Object.fromEntries(Object.entries(themeTokens(selector.includes('dark')?'dark':'light')).map(([name,value])=>[name,value.startsWith('rgb(')?hexColor(value):value]));
 const rgbOf=value=>{const hex=String(value).trim().match(/^#([0-9a-f]{6})$/i);if(hex)return [0,2,4].map(i=>parseInt(hex[1].slice(i,i+2),16));const match=String(value).match(/(\d+)\s+(\d+)\s+(\d+)/);if(!match)throw Error(`color esperado, llegó ${value}`);return match.slice(1,4).map(Number);};
 const lumChannels=([r,g,b])=>{const f=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4;};return .2126*f(r)+.7152*f(g)+.0722*f(b);};
 const ratioFor=(a,b)=>{const la=lumChannels(rgbOf(a)),lb=lumChannels(rgbOf(b));return (Math.max(la,lb)+.05)/(Math.min(la,lb)+.05);};
@@ -114,12 +115,11 @@ assert(/preflight:\s*false/.test(config),'preflight desactivado y documentado');
 assert(/darkMode:\s*\['selector',\s*'html\[data-theme="dark"\]'\]/.test(config),'dark: sigue html[data-theme="dark"]');
 assert(config.includes('./app/**/*.{ts,tsx}'),'la app se escanea');
 assert(config.includes('node_modules/owncoding-ui/dist'),'el bundle de la librería se escanea');
-const lightTokens={};postcss.parse(tailwind).walkRules(':root',rule=>{if(rule.parent.type==='root')rule.walkDecls(d=>lightTokens[d.prop]=d.value);});
-const darkTokens={};postcss.parse(tailwind).walkRules('html[data-theme="dark"]',rule=>rule.walkDecls(d=>darkTokens[d.prop]=d.value));
+const lightTokens=themeTokens('light'),darkTokens=themeTokens('dark');
 const v2Tokens=['--c-paper','--c-fore','--c-ink','--c-ink-950','--c-ink-900','--c-ink-800','--c-ink-700','--c-ink-600','--c-ink-500','--c-mute','--c-fono','--c-fono-dark','--c-fono-light','--c-ok','--c-bad','--c-warn','--c-info','--c-onbrand'];
 for(const token of v2Tokens){assert(lightTokens[token],`el tema claro define ${token}`);assert(darkTokens[token],`el tema oscuro define ${token}`);}
 const toChannels=hex=>hex.replace('#','').match(/../g).map(v=>parseInt(v,16)).join(' ');
-const legacyToken=name=>readFileSync('app/globals.css','utf8').match(new RegExp(`--${name}:(#[0-9A-Fa-f]{6})`))[1];
+const legacyToken=name=>hexColor(lightTokens[`--${name}`]);
 assert.equal(lightTokens['--c-fono'],toChannels(legacyToken('brand-700')),'--c-fono conserva la marca (brand-700)');
 assert.equal(lightTokens['--c-fono-light'],toChannels(legacyToken('brand-600')),'--c-fono-light conserva brand-600');
 assert.equal(lightTokens['--c-ok'],toChannels(legacyToken('success')),'--c-ok conserva el verde de éxito');

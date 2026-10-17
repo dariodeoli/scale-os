@@ -58,7 +58,7 @@ test("workspace chrome uses natural header heights and wraps controls when neede
 
 test("workspace header retains visible focus, 40px desktop controls, 44px mobile targets, and reduced motion", () => {
   // El foco visible vive en la hoja global; el v2 no lo pisa.
-  assert.match(globals, /button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible\{outline:3px solid var\(--focus-ring\)/);
+  assert.match(globals, /button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,\[role=button\]:focus-visible\{outline:var\(--ui-focus-width\) solid var\(--focus-ring\)/);
   assert.match(source, /\[&>\*\]:min-h-10 \[&>\*\]:min-w-10/, "topbar utilities keep 40px desktop targets");
   assert.match(source, /max-md:\[&>\*\]:min-h-11 max-md:\[&>\*\]:min-w-11/, "topbar utilities keep 44px mobile targets");
   assert.match(source, /topbar-presence min-w-0 shrink-0 max-\[520px\]:hidden/, "presence hides on the smallest screens");

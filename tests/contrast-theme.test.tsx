@@ -2,28 +2,18 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
+import {themeTokens,rgbChannels} from './helpers/ui-token-values.mjs';
 import {act,create} from 'react-test-renderer';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 
 const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8');
-const contrast=read('app/contrast.css');
-const tailwind=read('app/tailwind.css');
-const globals=read('app/globals.css');
+const contrast=read('app/ui-tokens.css');
 
-/** Tokens declarados dentro del bloque de un selector. */
-function tokens(css:string,selector:string){
- const start=css.indexOf(selector);assert(start>=0,`el CSS declara ${selector}`);
- const open=css.indexOf('{',start),close=css.indexOf('}',open);
- return new Set([...css.slice(open,close).matchAll(/--([a-z0-9-]+)\s*:/g)].map(match=>match[1]!));
-}
-
-// ── Medición WCAG sobre los tokens declarados (alto contraste) ──────────────
-const hex=(value:string)=>[1,3,5].map(index=>Number.parseInt(value.slice(index,index+2),16));
-const triplet=(value:string)=>value.trim().split(/\s+/).map(Number);
+// WCAG measurements resolve the semantic aliases, not a stylesheet location.
 const lum=(rgb:number[])=>{const [r,g,b]=rgb.map(value=>{const channel=(value??0)/255;return channel<=0.03928?channel/12.92:((channel+0.055)/1.055)**2.4;});return 0.2126*r!+0.7152*g!+0.0722*b!;};
 const ratio=(a:number[],b:number[])=>{const [one,two]=[lum(a),lum(b)].sort((x,y)=>y-x) as [number,number];return (one+0.05)/(two+0.05);};
-const legacy=(name:string)=>{const match=contrast.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));assert(match,`contrast.css declara --${name}`);return hex(match![1]);};
-const v2=(name:string)=>{const match=contrast.match(new RegExp(`--c-${name}:\\s*([\\d ]+)`));assert(match,`contrast.css declara --c-${name}`);return triplet(match![1]);};
+const legacy=(name:string)=>rgbChannels(themeTokens('contrast')[`--${name}`]);
+const v2=(name:string)=>rgbChannels(themeTokens('contrast')[`--c-${name}`]);
 const near=(value:number,minimum:number,label:string)=>assert(value>=minimum,`${label}: ${value.toFixed(2)}:1 (mínimo ${minimum}:1)`);
 
 test('alto contraste: texto AAA, bordes y marca por encima de AA',()=>{
@@ -42,13 +32,11 @@ test('alto contraste: texto AAA, bordes y marca por encima de AA',()=>{
 });
 
 test('el tercer tema declara la misma familia de tokens que claro y oscuro',()=>{
- const darkV2=tokens(tailwind,'html[data-theme="dark"]');
- const contrastV2=tokens(contrast,'html[data-theme="contrast"]');
- const darkLegacy=tokens(globals,'html[data-theme="dark"]');
- const contrastLegacy=tokens(contrast,'html[data-theme="contrast"]');
- for(const token of darkV2)if(token.startsWith('c-'))assert(contrastV2.has(token),`el alto contraste declara --${token}`);
- for(const token of darkLegacy)if(!token.startsWith('c-')&&!['shadow','focus-halo','color-scheme'].some(prefix=>token.startsWith(prefix)))assert(contrastLegacy.has(token),`el alto contraste declara --${token}`);
- assert(tokens(tailwind,':root').size>10,'la paleta clara sigue declarada');
+ const light=themeTokens('light'),dark=themeTokens('dark'),high=themeTokens('contrast');
+ for(const token of Object.keys(light))assert(high[token],`el alto contraste resuelve ${token}`);
+ for(const token of Object.keys(dark))if(token!=='color-scheme')assert(high[token],`el alto contraste resuelve ${token}`);
+ assert(Object.keys(light).filter(name=>name.startsWith('--c-')).length>10,'la paleta clara mantiene aliases RGB');
+ assert(read('app/layout.tsx').includes("import './ui-tokens.css'"),'el layout carga la fuente única');
  assert(read('app/layout.tsx').includes("import './contrast.css'"),'el layout carga el tema de alto contraste');
  assert(!/--c-[a-z-]+:\s*#[0-9a-f]{6}/i.test(contrast),'los tokens v2 usan canales RGB como el resto de la app');
 });
@@ -81,23 +69,11 @@ test('el control de tema cicla claro → oscuro → alto contraste y lo persiste
 // sus tintes y pares reales, que es lo que el handover de owncoding-ui#13 dejó
 // del lado de la app.
 const sobre=(color:number[],alfa:number,fondo:number[])=>color.map((valor,indice)=>valor*alfa+fondo[indice]*(1-alfa));
-const bloquesDeTokens=(css:string,apertura:string)=>{
- for(let index=css.indexOf(apertura);index>=0;index=css.indexOf(apertura,index+1)){
-  const open=css.indexOf('{',index),close=css.indexOf('}',open);
-  const bloque=css.slice(open,close);
-  if(/--c-paper:/.test(bloque))return bloque;
- }
- throw new Error(`sin bloque de tokens para ${apertura}`);
-};
-const tokenDe=(bloque:string,nombre:string)=>{
- const match=bloque.match(new RegExp(`--c-${nombre}:\\s*([\\d ]+)\\s*;`));
- if(!match)throw new Error(`falta --c-${nombre}`);
- return match[1].trim().split(/\s+/).map(Number);
-};
+const tokenDe=(bloque:Record<string,string>,nombre:string)=>rgbChannels(bloque[`--c-${nombre}`]);
 
 test('chips, botones llenos y enlaces AA en claro y oscuro (owncoding-ui #13)',()=>{
- const claro=bloquesDeTokens(tailwind,':root {');
- const oscuro=bloquesDeTokens(tailwind,'html[data-theme="dark"] {');
+ const claro=themeTokens('light');
+ const oscuro=themeTokens('dark');
  const paletas=[
   {tema:'claro',bloque:claro,fondos:[tokenDe(claro,'ink'),tokenDe(claro,'paper'),tokenDe(claro,'ink-800')]},
   {tema:'oscuro',bloque:oscuro,fondos:[tokenDe(oscuro,'ink'),tokenDe(oscuro,'paper'),tokenDe(oscuro,'ink-800')]},
@@ -133,8 +109,8 @@ test('chips, botones llenos y enlaces AA en claro y oscuro (owncoding-ui #13)',(
 // La auditoría pidió revisar el contraste del texto secundario y de los chips
 // suaves con las guardas existentes. Acá se mide el par real de Scale OS.
 test('texto secundario y chip neutro sostienen AA en claro y oscuro (#137)',()=>{
- const claro=bloquesDeTokens(tailwind,':root {');
- const oscuro=bloquesDeTokens(tailwind,'html[data-theme="dark"] {');
+ const claro=themeTokens('light');
+ const oscuro=themeTokens('dark');
  for(const [tema,bloque] of [['claro',claro],['oscuro',oscuro]] as const){
   for(const fondo of ['paper','ink','ink-800','ink-700','ink-900','ink-950']){
    near(ratio(tokenDe(bloque,'mute'),tokenDe(bloque,fondo)),4.5,`${tema}: texto secundario sobre ${fondo}`);
