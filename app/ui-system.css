@@ -18,6 +18,8 @@
 @media(min-width:768px){:root{--ui-page-padding:24px;--ui-control-gap:var(--ui-space-3)}}
 @media(min-width:1280px){:root{--ui-page-padding:32px}}
 .control-shell{--control-gap:var(--ui-control-gap-lg);--control-padding:var(--ui-panel-padding);container-type:inline-size}
+/* Visited tabs stay mounted to preserve drafts; grid must not override hidden. */
+.person-sheet [data-sheet-tab][hidden]{display:none}
 
 /* Ritmo de la página (#97): el gutter vive en un token (antes llegaba a 48 px
    en xl) y el alto respira con la misma escala. */
