@@ -246,14 +246,16 @@ export function Editor({
 export function OperationsWorkspace({
   role,
   currentEmail='',
+  currentUserId='',
   organizationName='',
 }: {
   role: string;
   currentEmail?:string;
+  currentUserId?:string;
   organizationName?:string;
 }) {
   if(!canOpenPeopleWorkspace(role))return <TeamDirectoryView organizationName={organizationName}/>;
-  return <PeopleWorkspace role={role} currentEmail={currentEmail}/>;
+  return <PeopleWorkspace role={role} currentEmail={currentEmail} currentUserId={currentUserId}/>;
 }
 type DirectoryPerson={id:string;full_name:string;photo_url:string|null;role:string;cargo?:string};
 function TeamDirectoryView({organizationName}:{organizationName:string}){

@@ -1,3 +1,4 @@
+import {lockMemberManager} from './member-access.js';
 import {attributeActors} from './actor-identity.js';
 import {roleCan} from './permissions.js';
 import {parseListWindow,windowRows,windowSql} from './list-projection.js';
@@ -62,13 +63,13 @@ export async function recordLifecycle({req,res,url,db,session,send}) {
   const [,kind,rawKey,restore]=match,key=String(BigInt(rawKey));
   if(kind==='members'){
    if(restore)fail('Para devolver acceso, enviá una nueva invitación desde Equipo');
-   await c.query('select id from organizations where id=$1 for update',[org]);
+   const manager=await lockMemberManager(c,user);
    const member=(await c.query('select * from organization_members where organization_id=$1 and user_id=$2 for update',[org,key])).rows[0];
    if(!member)fail('Integrante no encontrado',404);
    if(String(user.id)===key)fail('No podés quitar tu propio acceso');
    if(member.role==='owner'){
-    if(user.role!=='owner')fail('Solo un dueño puede quitar a otro dueño',403);
-    const owners=(await c.query("select count(*)::int as total from organization_members where organization_id=$1 and role='owner' and active=true and user_id<>$2",[org,key])).rows[0].total;
+    if(manager.role!=='owner')fail('Solo un dueño puede quitar a otro dueño',403);
+    const owners=(await c.query("select count(*)::int as total from organization_members where organization_id=$1 and role='owner' and active=true and removed_at is null and user_id<>$2",[org,key])).rows[0].total;
     if(!owners)fail('Debe quedar al menos un dueño activo');
    }
    await c.query('update organization_members set active=false,removed_at=coalesce(removed_at,now()) where organization_id=$1 and user_id=$2',[org,key]);
