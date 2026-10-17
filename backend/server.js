@@ -57,7 +57,7 @@ import {platformTraffic} from './platform-traffic.js';
 import {publicAnalytics} from './public-analytics.js';
 import {platformAnnouncements,agencyAnnouncements} from './platform-announcements.js';
 import {platformMaintenance,maintenanceGate} from './platform-maintenance.js';
-import {applyPendingMigrations} from './migrations-runner.mjs';
+import {applyCuratedMigrations,applyPendingMigrations} from './migrations-runner.mjs';
 import {rolePermissions,roleCan} from './permissions.js';
 import {redactPiiText} from './pii-safety.js';
 import {createEmailDelivery,publicEmailDeliveryStatus} from './email-delivery.js';
@@ -162,10 +162,9 @@ async function init() {
     await migration.query("select pg_advisory_xact_lock(hashtextextended('scale-core-schema',0))");
     await migration.query(await fs.readFile(path.join(root,'schema.sql'),'utf8'));
     await runOptionalMigration('20260908_dadoo_hub.sql',migration);
-    // Cadena curada: mismo orden que `scripts/migration-order.mjs`. Se pasa
-    // como `knownFiles` para que el baseline de una base nueva no registre como
-    // aplicados archivos que nunca corrieron (p. ej. migraciones sumadas
-    // después de la última entrada de esta cadena).
+    // Curated dependency order: registered files never replay against newer
+    // data/constraints. Each pending file and its tracker row share this
+    // transaction; unlisted future files run only after the curated chain.
     const migrationChain=[
      "20260908_client_payment_status.sql",
      "20260908_treasury_ledger.sql",
@@ -279,8 +278,8 @@ async function init() {
      "20261017_finance_periods_receipts.sql",
      "20261017_expense_currency_precision.sql"
     ];
-    for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
-    await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
+    await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
+    await applyPendingMigrations(migration,path.join(root,'migrations'));
     await migration.query('commit');
   }catch(error){await migration.query('rollback');throw error;}finally{migration.release();}
   async function provisionOwner(email, password) {

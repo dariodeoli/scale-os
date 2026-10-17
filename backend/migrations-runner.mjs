@@ -28,3 +28,21 @@ export async function applyPendingMigrations(client, directory, {knownFiles = []
   }
   return pending;
 }
+
+// The curated dependency order is authoritative for bootstrap. Run only missing
+// entries and record each one in the caller's transaction (the server also
+// holds scale-core-schema). Never infer that an untracked file already ran.
+export async function applyCuratedMigrations(client,directory,files){
+ const run=sql=>typeof client.exec==='function'?client.exec(sql):client.query(sql);
+ await client.query('create table if not exists schema_migrations(filename text primary key, applied_at timestamptz not null default now())');
+ const applied=new Set((await client.query('select filename from schema_migrations')).rows.map(row=>row.filename));
+ const completed=[];
+ for(const name of files){
+  if(!/^\d{8}_[a-z0-9_]+\.sql$/.test(name))throw Error('Invalid curated migration filename');
+  if(applied.has(name))continue;
+  await run(await fs.promises.readFile(path.join(directory,name),'utf8'));
+  await client.query('insert into schema_migrations(filename) values($1)',[name]);
+  applied.add(name);completed.push(name);
+ }
+ return completed;
+}
