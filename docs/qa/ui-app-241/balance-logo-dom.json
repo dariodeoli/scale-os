@@ -1,0 +1,140 @@
+[
+  {
+    "complete": true,
+    "naturalWidth": 256,
+    "ancestors": [
+      {
+        "tag": "IMG",
+        "class": "",
+        "radius": "0px",
+        "overflow": "clip",
+        "padding": "3.59375px",
+        "width": 24,
+        "height": 24,
+        "objectFit": "contain"
+      },
+      {
+        "tag": "SPAN",
+        "class": "foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-logo",
+        "radius": "50%",
+        "overflow": "hidden",
+        "padding": "0px",
+        "width": 24,
+        "height": 24,
+        "objectFit": "fill"
+      },
+      {
+        "tag": "SPAN",
+        "class": "person-container person-container-sm",
+        "radius": "0px",
+        "overflow": "visible",
+        "padding": "0px",
+        "width": 172,
+        "height": 24,
+        "objectFit": "fill"
+      },
+      {
+        "tag": "SPAN",
+        "class": "min-w-0",
+        "radius": "0px",
+        "overflow": "visible",
+        "padding": "0px",
+        "width": 172,
+        "height": 24,
+        "objectFit": "fill"
+      }
+    ]
+  },
+  {
+    "complete": true,
+    "naturalWidth": 256,
+    "ancestors": [
+      {
+        "tag": "IMG",
+        "class": "",
+        "radius": "0px",
+        "overflow": "clip",
+        "padding": "3.59375px",
+        "width": 24,
+        "height": 24,
+        "objectFit": "contain"
+      },
+      {
+        "tag": "SPAN",
+        "class": "foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-logo",
+        "radius": "50%",
+        "overflow": "hidden",
+        "padding": "0px",
+        "width": 24,
+        "height": 24,
+        "objectFit": "fill"
+      },
+      {
+        "tag": "SPAN",
+        "class": "person-container person-container-sm",
+        "radius": "0px",
+        "overflow": "visible",
+        "padding": "0px",
+        "width": 172,
+        "height": 24,
+        "objectFit": "fill"
+      },
+      {
+        "tag": "SPAN",
+        "class": "min-w-0",
+        "radius": "0px",
+        "overflow": "visible",
+        "padding": "0px",
+        "width": 172,
+        "height": 24,
+        "objectFit": "fill"
+      }
+    ]
+  },
+  {
+    "complete": true,
+    "naturalWidth": 256,
+    "ancestors": [
+      {
+        "tag": "IMG",
+        "class": "",
+        "radius": "0px",
+        "overflow": "clip",
+        "padding": "3.59375px",
+        "width": 24,
+        "height": 24,
+        "objectFit": "contain"
+      },
+      {
+        "tag": "SPAN",
+        "class": "foto-perfil foto-perfil-sm foto-perfil-circulo foto-perfil-logo",
+        "radius": "50%",
+        "overflow": "hidden",
+        "padding": "0px",
+        "width": 24,
+        "height": 24,
+        "objectFit": "fill"
+      },
+      {
+        "tag": "SPAN",
+        "class": "person-container person-container-sm",
+        "radius": "0px",
+        "overflow": "visible",
+        "padding": "0px",
+        "width": 172,
+        "height": 24,
+        "objectFit": "fill"
+      },
+      {
+        "tag": "SPAN",
+        "class": "min-w-0",
+        "radius": "0px",
+        "overflow": "visible",
+        "padding": "0px",
+        "width": 172,
+        "height": 24,
+        "objectFit": "fill"
+      }
+    ]
+  }
+]

@@ -1,6 +1,6 @@
 # Entorno aislado para QA de la app integrada #241
 
-Estado al 17/10/2026: **sólo backend preparado**; frontend pendiente de catálogo, fixes finales y build del integrador con API loopback. Esto no acredita una aprobación de la app final ni un deploy.
+Estado al 17/10/2026: backend aislado listo y recorrido de la app integrada ejecutado. Frontend production local del integrador, compilado desde `0afdbd08`, con API loopback. Hay correcciones visuales pendientes de un nuevo build y comprobación focal; esto no acredita un deploy.
 
 | Recurso propio | Valor |
 | --- | --- |
@@ -11,9 +11,9 @@ Estado al 17/10/2026: **sólo backend preparado**; frontend pendiente de catálo
 | Datos persistentes | `/workspace/.qa-tools/ui-final241/database/data` |
 | Launcher / sesión del ejecutor | PID `263055`, sesión `91855` |
 | API Node / PostgreSQL | PID `263076` / PID `263069` |
-| Frontend | **No iniciado por QA**; 3013 pertenece temporalmente a otro agente |
+| Frontend del integrador | Next production `3013`, sesión root `53704`, fuente compilada `0afdbd08` |
 
-Los PID corresponden a este arranque; comprobar identidad antes de detener procesos. No tocar Next 3008, API 4109 ni PG 55449. El listener 3013 corresponde a la QA aislada de catálogo de otro agente y se conserva hasta que su propietario lo cierre.
+Los PID corresponden a este arranque; comprobar identidad antes de detener procesos. No tocar Next 3008, API 4109 ni PG 55449. El listener 3013 es propiedad del integrador: Next production iniciado a las 09:22 UTC, log `/tmp/scale241-next-final.log`. No detenerlo desde QA. Build y start usan `SCALE_API_ORIGIN=http://127.0.0.1:4115`; el integrador verificó los rewrites `/core-api`, `/p` y `/review` a loopback.
 
 ## Verificación ejecutada
 
@@ -54,10 +54,10 @@ kill -TERM 263055
 
 El launcher apaga su API/proxy/PG y conserva los datos. No ejecutar comandos globales contra todos los Node/Next/Postgres.
 
-## Próximo paso, todavía no ejecutado
+## Recorrido ejecutado y continuación
 
-Esperar señal de root y SHA integrado final. La API puede permanecer disponible; actualizar únicamente la fuente QA que corresponda. Construir/iniciar Next con `SCALE_API_ORIGIN=http://127.0.0.1:4115`, usando `.next` aislado; confirmar antes del navegador que `.next/routes-manifest.json` apunta `/core-api` al proxy local. Un build con rewrite productivo no sirve para esta QA y la intercepción browser no ve el upstream de Next.
+Ver [README.md](README.md): 96 escenarios de páginas y 36 comprobaciones del header sobre el build indicado. Los runners y JSON no contienen tokens. Las capturas permanecen en `/tmp/scale241-app-final`; no se fuerza su inclusión en git.
 
-Después:13 módulos reales de navegación en 1440/390, temas claro/oscuro/contraste, hover/foco/overflow y primer pliegue para el informe #248. Añadir auth y subapartados financieros conforme al alcance indicado por el integrador. Para #245, abrir/cancelar reporte desde el contexto ordinary; en demo se oculta por `user&&!demo`. Logout real queda limitado a esa identidad local sintética. Ningún envío de reportes, OAuth, correo o proveedores.
+El logout real se ejecutó únicamente contra el dueño local sintético. Por eso `ordinary-session` quedó invalidada: antes de repetir el runner de header se debe hacer login local con la identidad privada y sustituir ese archivo, sin crear demos nuevas ni imprimir credenciales. Las sesiones demo existentes permanecen disponibles.
 
-Cada evidencia final indicará su SHA real. La QA anterior de candidatos separados no acredita este candidato integrado.
+El integrador está preparando fixes de Mora, Balance y contenido comercial. Esperar su señal de rebuild; repetir sólo las superficies afectadas. No inferir que los cambios del árbol fuente ya están servidos por Next. No enviar reportes, correo ni usar OAuth/proveedores.

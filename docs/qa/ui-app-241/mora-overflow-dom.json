@@ -1,0 +1,126 @@
+{
+  "width": 390,
+  "document": 529,
+  "overflow": [
+    {
+      "node": {
+        "tag": "DIV",
+        "class": "flex flex-wrap items-center gap-2 border-b border-ink-600 py-2 text-xs",
+        "x": 29,
+        "y": 1799.25,
+        "width": 500.125,
+        "right": 529.125,
+        "client": 500,
+        "scroll": 500,
+        "overflowX": "visible",
+        "minWidth": "auto",
+        "display": "flex",
+        "text": "Aurora Café · 2026-09-01 · DEMO · saldo anterior ficticio; no corresponde a una factura re"
+      },
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "class": "grid gap-2",
+          "x": 29,
+          "y": 1799.25,
+          "width": 332,
+          "right": 361,
+          "client": 332,
+          "scroll": 500,
+          "overflowX": "visible",
+          "minWidth": "auto",
+          "display": "grid",
+          "text": "Aurora Café · 2026-09-01 · DEMO · saldo anterior ficticio; no corresponde a una factura re"
+        },
+        {
+          "tag": "SECTION",
+          "class": "finance-balance-card",
+          "x": 16,
+          "y": 292.5,
+          "width": 358,
+          "right": 374,
+          "client": 356,
+          "scroll": 512,
+          "overflowX": "visible",
+          "minWidth": "0px",
+          "display": "grid",
+          "text": "Cobros registrados y deudas anteriores\nCargar deuda anterior\nRecibir pago\n\nRegistrá la fec"
+        },
+        {
+          "tag": "SECTION",
+          "class": "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ",
+          "x": 16,
+          "y": 129,
+          "width": 358,
+          "right": 374,
+          "client": 358,
+          "scroll": 513,
+          "overflowX": "visible",
+          "minWidth": "0px",
+          "display": "grid",
+          "text": "Cobranza y mora\nRegistrar factura\nCuentas y movimientos\nCobranza y mora\nPrevisión financie"
+        }
+      ]
+    },
+    {
+      "node": {
+        "tag": "SPAN",
+        "class": "",
+        "x": 418.40625,
+        "y": 1807.25,
+        "width": 110.71875,
+        "right": 529.125,
+        "client": 111,
+        "scroll": 111,
+        "overflowX": "visible",
+        "minWidth": "auto",
+        "display": "block",
+        "text": "Pagado Gs. 200.000"
+      },
+      "ancestors": [
+        {
+          "tag": "DIV",
+          "class": "flex flex-wrap items-center gap-2 border-b border-ink-600 py-2 text-xs",
+          "x": 29,
+          "y": 1799.25,
+          "width": 500.125,
+          "right": 529.125,
+          "client": 500,
+          "scroll": 500,
+          "overflowX": "visible",
+          "minWidth": "auto",
+          "display": "flex",
+          "text": "Aurora Café · 2026-09-01 · DEMO · saldo anterior ficticio; no corresponde a una factura re"
+        },
+        {
+          "tag": "DIV",
+          "class": "grid gap-2",
+          "x": 29,
+          "y": 1799.25,
+          "width": 332,
+          "right": 361,
+          "client": 332,
+          "scroll": 500,
+          "overflowX": "visible",
+          "minWidth": "auto",
+          "display": "grid",
+          "text": "Aurora Café · 2026-09-01 · DEMO · saldo anterior ficticio; no corresponde a una factura re"
+        },
+        {
+          "tag": "SECTION",
+          "class": "finance-balance-card",
+          "x": 16,
+          "y": 292.5,
+          "width": 358,
+          "right": 374,
+          "client": 356,
+          "scroll": 512,
+          "overflowX": "visible",
+          "minWidth": "0px",
+          "display": "grid",
+          "text": "Cobros registrados y deudas anteriores\nCargar deuda anterior\nRecibir pago\n\nRegistrá la fec"
+        }
+      ]
+    }
+  ]
+}
