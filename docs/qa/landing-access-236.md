@@ -20,6 +20,26 @@ Landing: tres tamaños (390, 768 y 1366 px) × temas claro/oscuro, seis estados.
 
 Evidencia de esta sesión: `/tmp/scale236-access-metrics.json`, `/tmp/scale236-landing-metrics.json`; capturas `/tmp/scale236-agency-{light,dark}-{1366,1440,390}.png` y `/tmp/scale236-landing-{light,dark}-{390,768,1366}.png`. Scripts locales reproducibles de la sesión: `/tmp/scale236-access-qa.cjs` y `/tmp/scale236-landing-qa.cjs`. Log focal: `/tmp/scale236-qa-focused.log`.
 
+## Evidencia conservada en GitHub
+
+Estas son las capturas finales ya tomadas durante la revisión, copiadas sin modificaciones. Muestran formularios vacíos, sin identidades ni datos personales reales. El pequeño indicador de Next en la esquina pertenece al servidor de desarrollo local.
+
+### Login claro, 1366×768
+
+![Login claro: tarjeta, enlaces y pie fuera del formulario](landing-access-236/login-light-1366.png)
+
+### Registro de agencia oscuro, 1366×768
+
+![Registro oscuro: datos de agencia, condiciones y casillas sin marcar](landing-access-236/registration-agency-dark-1366.png)
+
+[Mediciones saneadas de los 24 estados de acceso](landing-access-236/metrics.json). Sólo contienen tamaños, tema, paso y posiciones: sin rutas locales, nombres, correos, sesiones ni cuerpos de peticiones.
+
+| Pantalla | Casos | Resultado |
+| --- | ---: | --- |
+| Login: tres tamaños, claro y oscuro | 6 | Sin desbordamiento horizontal, pie fuera de tarjeta, botón de radio 10 px |
+| Registro: tres pasos, tres tamaños, claro y oscuro | 18 | Sin desbordamiento horizontal; los tres pasos caben en 1366×768 |
+| Landing: tres tamaños, claro y oscuro | 6 | Hero cargado, un pie, CTA al registro y foco visible |
+
 ## Límites
 
 Login se revisó inicialmente en Chromium 1366×768, con campos, recuperación, aviso y pie visibles; el diseñador entregó su revisión final de login en seis estados (tres tamaños × ambos temas), con pie fuera de la tarjeta, sin desbordamiento y foco visible desde el botón principal hacia Privacidad. Su evidencia está en `/tmp/scale-access236/login-report.json`. La finalización de registro por Google se prueba con transporte simulado: no se afirma haber probado OAuth real, correo real, producción ni deploy. El CI de integración y el deploy quedan a cargo del integrador.
