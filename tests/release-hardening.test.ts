@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {validateMonth} from '../app/ui/temporal-value';
 const read=(path:string)=>readFileSync(new URL(path,import.meta.url),'utf8');
 const studio=read('../app/studio-workspace.tsx');
-assert(studio.includes('/^\\d{4}-(0[1-9]|1[0-2])$/'),'studio month input validates before applying');
+assert.match(studio,/useTemporalFilter\([^\n]+value=>validateMonth\(value\)\?value:null\)/,'studio keeps raw text separate and validates before applying');
+for(const value of ['2026-','2026-00','2026-13','2026-2','0000-01'])assert.equal(validateMonth(value),false);
+assert.equal(validateMonth('2026-10'),true);
 const commenting=read('../app/commenting.tsx');
 assert(commenting.includes('if(!person)return'),'mention pick guards a missing suggestion');
 // Las rutas Next de auth y de datos (clients/projects/work-orders) se retiraron
