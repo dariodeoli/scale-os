@@ -151,6 +151,7 @@ export async function buildPersonalDataExport(c,{organizationId,subjectKind,subj
  }else if(subjectKind==='client'){
   const client=(await c.query(`select to_jsonb(c)->>'address' as address,to_jsonb(c)->>'city' as city,to_jsonb(c)->>'department' as department,to_jsonb(c)->>'document_type' as document_type,to_jsonb(c)->>'document_number' as document_number,to_jsonb(c)->>'legal_representative_name' as legal_representative_name,to_jsonb(c)->>'legal_representative_document' as legal_representative_document,to_jsonb(c)->>'legal_representative_role' as legal_representative_role,to_jsonb(c)->>'party_type' as party_type,name,legal_name,email,phone,tax_id,notes,active,created_at,updated_at,personal_data_blocked_at,to_jsonb(c)->>'lifecycle_status' as lifecycle_status from agency_clients c where c.organization_id=$1 and c.id=$2`,[organizationId,subjectId])).rows[0]||{};
   section('ficha','Ficha del cliente',[client]);
+  section('contactos','Contactos del cliente',(await c.query('select name,role,email,phone,created_at,updated_at from agency_client_contacts where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
   section('proyectos','Proyectos',(await c.query('select name,status,start_date,due_date,created_at from agency_projects where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
   section('presupuestos','Presupuestos',(await c.query('select number,title,status,currency,total,valid_until,created_at from agency_budgets where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
   section('facturas','Facturas y pagos',(await c.query('select number,status,currency,total,paid_amount,issued_on,due_on from agency_invoices where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
@@ -197,6 +198,9 @@ export async function applySuppression(c,{organizationId,subjectKind,subjectId,a
   return {action:'anonymized',details:{entity:'agency_leads'}};
  }
  if(subjectKind==='client'){
+  // Serializar supresión con alta/edición de contactos antes de borrar los hijos.
+  await c.query('select id from agency_clients where organization_id=$1 and id=$2 for update',[org,key]);
+  await c.query('delete from agency_client_contacts where organization_id=$1 and client_id=$2',[org,key]);
   await c.query("update agency_clients set address='',city='',department='',document_type='',document_number='',legal_representative_name='',legal_representative_document='',legal_representative_role='',party_type='' where organization_id=$1 and id=$2",[org,key]);
   const fiscal=(await c.query("select 1 from agency_invoices where organization_id=$1 and client_id=$2 and status<>'draft' limit 1",[org,key])).rows.length>0;
   const row=fiscal

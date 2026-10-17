@@ -1,4 +1,5 @@
 "use client";
+import {ClientContacts} from './client-contacts';
 import {Notice as Aviso,Note as Nota} from './ui/notice';
 import {Subtabs} from './ui/navigation';
 
@@ -169,6 +170,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder,open
    {data.client.contact_restricted!==true&&s(data.client,'notes')?<p className="m-0 whitespace-pre-line text-[13px] leading-5 text-mute">{s(data.client,'notes')}</p>:null}
   </header>
   {editing&&<ClientEditorDialog mode="edit" clientId={id} role={role} close={()=>setEditing(false)} refresh={reload}/>}
+  <ClientContacts clientId={id} restricted={data.client.contact_restricted===true}/>
   <ClientCommercialSummary id={id} client={data.client} payStatus={payStatus} summary={summary} role={role} reload={reload}/>
   {managers.includes(role)&&<div className="quick-actions"><ScaleButton className="primary min-h-11 md:min-h-10" onClick={()=>createProject(id)} variant="primary">Nuevo proyecto para este cliente</ScaleButton>{roleCan(role,'portal-access.manage')&&<ClientPortalAccess clientId={id}/>}</div>}
   <div className="choice-list">{['Producción',...(data.leads?.length?['Oportunidades']:[]),...(data.budgets?['Presupuestos']:[]),...(data.invoices?['Cobros']:[])].map(t=><button key={t} className={`${tab===t?'choice active':'choice'} min-h-11 md:min-h-10`} onClick={()=>setTab(t)}>{t}</button>)}</div>

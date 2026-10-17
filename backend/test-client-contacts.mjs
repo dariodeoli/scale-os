@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+import {clientContacts} from './client-contacts.js';
+import {agencyCore} from './agency-core.js';
+import {migrationOrder} from './scripts/migration-order.mjs';
+import {applySuppression,buildPersonalDataExport} from './personal-data.js';
+const pg=new PGlite(),read=name=>readFile(new URL(name,import.meta.url),'utf8');
+try{
+ await pg.exec(await read('./schema.sql'));for(const name of migrationOrder)await pg.exec(await read('./migrations/'+name));
+ await pg.exec(await read('./migrations/20261018_client_contacts.sql'));
+ const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})},one=async(sql,args)=>(await query(sql,args)).rows[0];
+ const org=(await one("insert into organizations(slug,name) values('contacts-qa184','Fixture') returning id")).id;
+ const other=(await one("insert into organizations(slug,name) values('contacts-other184','Other') returning id")).id;
+ async function actor(label,role,organization=org){const id=(await one("insert into users(email,password_hash) values($1,'unused') returning id",[label+'@example.invalid'])).id;await query('insert into organization_members(organization_id,user_id,role,active) values($1,$2,$3,true)',[organization,id,role]);return {id,organization_id:organization,role};}
+ const owner=await actor('contacts-owner','owner'),viewer=await actor('contacts-viewer','viewer'),sales=await actor('contacts-sales','sales'),outsider=await actor('contacts-outsider','owner',other);
+ const client=(await one("insert into agency_clients(organization_id,name,email,phone) values($1,'Cliente fixture','principal@example.invalid','+595 981123456') returning *",[org]));
+ const second=(await one("insert into agency_clients(organization_id,name) values($1,'Otra ficha') returning id",[org])).id;
+ const path='/api/agency/clients/'+client.id+'/contacts';let assertions=0;
+ async function call(method='GET',suffix='',payload={},user=owner,dispatcher=clientContacts){let result;const handled=await dispatcher({req:{method,socket:{remoteAddress:'local'}},res:{},url:new URL(path+suffix,'https://fixture.invalid'),db,session:async()=>user,body:async()=>payload,send:(_,status,data)=>result={status,...data}});assert(handled);assertions++;return result;}
+ assert.equal((await call()).contacts.length,0);
+ assert.equal((await call('GET','',{},null)).status,401);
+ assert.equal((await call('GET','',{},viewer)).status,403);
+ assert.equal((await call('POST','',{name:'Persona'},outsider)).status,404);
+ const created=await call('POST','',{name:'Persona de coordinación',role:'Producción',email:'PERSONA@example.invalid',phone:'+595 981123456'});assert.equal(created.status,201,JSON.stringify(created));const contact=created.contact;assert.equal(contact.version,1);assert.equal(contact.email,'persona@example.invalid');
+ assert.equal((await call('GET','/'+contact.id)).contact.name,contact.name);
+ assert.equal((await call('POST','',{name:'Otra persona',email:contact.email})).status,201,'shared contact channels remain allowed');
+ assert.equal((await call('GET','?limit=1')).page.has_more,true);
+ assert.equal((await call('GET','?limit=1&offset=1')).contacts.length,1);
+ assert.equal((await call('GET','?limit=0')).status,400);
+ assert.equal((await call('POST','',{name:'x'})).status,400);
+ assert.equal((await call('POST','',{name:'Persona',email:'invalid'})).status,400);
+ assert.equal((await call('POST','',{name:'Persona',phone:'+999 123'})).status,400);
+ assert.equal((await call('POST','',{name:'Persona',organization_id:other})).status,400);
+ assert.equal((await call('PATCH','/'+contact.id,{expected_version:1,role:'Compras'})).status,200);
+ assert.equal((await call('PATCH','/'+contact.id,{expected_version:1,name:'Stale overwrite'})).status,409);
+ assert.equal((await call('DELETE','/'+contact.id,{expected_version:1})).status,409);
+ assert.equal((await call('GET','/'+contact.id)).contact.role,'Compras');
+ let foreign;await clientContacts({req:{method:'GET'},res:{},url:new URL('/api/agency/clients/'+second+'/contacts/'+contact.id,'https://fixture.invalid'),db,session:async()=>owner,body:async()=>({}),send:(_,status)=>foreign=status});assert.equal(foreign,404);
+ await query("insert into agency_role_permissions(organization_id,role,capability,allowed) values($1,'sales','clients.manage',false)",[org]);assert.equal((await call('GET','',{},sales)).status,403);
+ await query("insert into agency_role_permissions(organization_id,role,capability,allowed) values($1,'viewer','clients.manage',true)",[org]);assert.equal((await call('GET','',{},viewer)).status,200);
+ await query('update organization_members set active=false where organization_id=$1 and user_id=$2',[org,viewer.id]);assert.equal((await call('GET','',{},viewer)).status,403);
+ await query("insert into agency_archived_records(organization_id,kind,record_id) values($1,'clients',$2)",[org,client.id]);assert.equal((await call()).status,409);await query('delete from agency_archived_records where organization_id=$1 and record_id=$2',[org,client.id]);
+ const exported=await buildPersonalDataExport({query},{organizationId:org,subjectKind:'client',subjectId:String(client.id),organizationName:'Fixture'});assert(JSON.stringify(exported).includes('Persona de coordinación'));
+ const audit=await query("select before_state,after_state from agency_operation_audit where organization_id=$1 and table_name='agency_client_contacts'",[org]);assert(!JSON.stringify(audit.rows).includes('persona@example.invalid'));assert(!JSON.stringify(audit.rows).includes('coordinación'));
+ const same=await one('select email,phone from agency_clients where id=$1',[client.id]);assert.equal(same.email,client.email);assert.equal(same.phone,client.phone);
+ assert.equal((await call('GET','',{},owner,agencyCore)).status,200,'real agency dispatcher handles the route');
+ assert.equal((await call('DELETE','/'+contact.id,{expected_version:2})).status,200);assert.equal((await call('GET','/'+contact.id)).status,404);
+ await query('begin');await applySuppression({query},{organizationId:org,subjectKind:'client',subjectId:client.id,actorUserId:owner.id});await query('commit');
+ assert.equal(Number((await one('select count(*) as n from agency_client_contacts where organization_id=$1 and client_id=$2',[org,client.id])).n),0);
+ assert.equal((await call('POST','',{name:'No resurrection'})).status,409);assert.equal((await call()).status,409);
+ await assert.rejects(()=>query('insert into agency_client_contacts(organization_id,client_id,name) values($1,$2,$3)',[other,second,'Wrong tenant']),/foreign key/);
+ console.log(`PASS client contacts: ${assertions} handler calls; tenant/role/active membership and DB overrides, primary unchanged, optional/shared channels, paging, validation/CAS/archive/PDP export+suppression, PII-free audit, real dispatcher and composite FK`);
+}finally{await pg.close();}

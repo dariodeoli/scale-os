@@ -1,5 +1,6 @@
 import {lockMemberManager} from './member-access.js';
 import crypto from 'node:crypto';
+import {clientContacts} from './client-contacts.js';
 import bcrypt from 'bcryptjs';
 import {currencies} from './currencies.js';
 import {amount,date as validDate,email as validEmail,fail,items as validItems,option,text,clientLegalProfile} from './suite-validation.js';
@@ -104,6 +105,7 @@ const budgetColumnSql=aliasColumns({id:'b.id',client_id:'b.client_id',number:'b.
 // keep their original behavior and responses; the dispatcher returns true when
 // a path is handled so the server router can fall through to newer modules.
 export async function agencyCore({req,res,url,db,session,body,send:rawSend,cookie,parseCookies,id,requestSubscription,sendInvitation,sendTrialEmail,auditContext,auditedQuery}){
+  if(await clientContacts({req,res,url,db,session,body,send:rawSend}))return true;
   let handled=false;
   const send=(...args)=>{handled=true;return rawSend(...args);};
   await (async()=>{
