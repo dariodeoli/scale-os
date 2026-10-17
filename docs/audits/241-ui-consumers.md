@@ -661,6 +661,20 @@ Tipos literales: `checkbox`=33, `radio`=2, `url`=6, `password`=2, `hidden`=1, `e
 | `app/superadmin/usage-charts.tsx` | 1 |
 | `app/workspace-guide.tsx` | 3 |
 
+## Imágenes nativas: identidad frente a contenido
+
+Hay 8 sitios img reales en 7 archivos. No constituyen ocho avatares paralelos: incluyen renderer de FotoPerfil, equipo, vista ampliada, marca y portadas de blog.
+
+| Consumidor | Sitios | Propósito |
+| --- | ---: | --- |
+| `app/blog-templates.tsx` | 1 | Portada editorial |
+| `app/blog/[section]/[slug]/page.tsx` | 1 | Portada de artículo |
+| `app/equipment-photo.tsx` | 1 | Foto de inventario con fallback |
+| `app/foto-perfil.tsx` | 1 | Renderer canónico de avatar/logo |
+| `app/inventory-workspace.tsx` | 2 | Vista previa y ficha de foto de equipo |
+| `app/photo-viewer.tsx` | 1 | Foto ampliada con zoom |
+| `app/workspace-brand.tsx` | 1 | Marca de Scale |
+
 ## Dependencia UI ya importada por la aplicación
 
 Sólo se registran importaciones y JSX de app; no se abrió el repositorio ni la implementación de OwnCoding. No es una selección de objetos nuevos. Estas 39 entradas/585 sitios explican parte de las rutas paralelas a los wrappers locales.
