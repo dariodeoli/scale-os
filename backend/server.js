@@ -14,6 +14,7 @@ import {throttleClient} from './request-guard.js';
 import {emailPasswordAuth} from './email-password-auth.js';
 import {loginOrganization} from './default-organization.js';
 import { financeControls } from './finance-controls.js';
+import {financeTreasury} from './finance-treasury.js';
 import { contentReview } from './content-review.js';
 import { recordLifecycle, visibleRecord } from './record-lifecycle.js';
 import { invitationEmail,accessGrantedEmail,resetEmail,verificationEmail,destructiveReauthEmail } from './invitation-email.js';
@@ -272,7 +273,9 @@ async function init() {
      "20261016_platform_errors_reports.sql",
      "20261017_employee_tasks.sql",
      "20261017_contract_documents.sql",
-     "20261017_client_legal_profile.sql"
+     "20261017_client_legal_profile.sql",
+     "20261017_inventory_ownership.sql",
+     "20261017_finance_periods_receipts.sql"
     ];
     for(const filename of migrationChain)await migration.query(await fs.readFile(path.join(root,'migrations',filename),'utf8'));
     await applyPendingMigrations(migration, path.join(root,'migrations'), {firstRun: 'baseline', knownFiles: migrationChain});
@@ -414,6 +417,7 @@ const server = http.createServer(async (req,res) => {
     if(await emailPasswordAuth({req,res,url,db,body,send,sendVerification,emailAvailable:emailDelivery.status.available,cookie,id}))return;
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
+    if(await financeTreasury({req,res,url,db,session,body,send}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;
     if(await contentReview({req,res,url,db,session,body,send}))return;

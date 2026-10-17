@@ -1,0 +1,3 @@
+# Owner management and explicitly scheduled prior debt
+node --import tsx --test tests/team-owner-access.test.tsx
+node --import tsx --test tests/forecast-opening-receivables.test.ts

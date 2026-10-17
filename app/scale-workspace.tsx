@@ -87,6 +87,7 @@ import {PreferenciasSection} from './sections/preferencias';
 import {PapeleraSection} from './sections/papelera';
 import {InformesSection} from './sections/informes';
 import {PrevisionSection} from './sections/prevision';
+import {BalanceSection} from './finance-balance';
 import {PresupuestosSection} from './sections/presupuestos';
 import {FinanzasSection} from './sections/finanzas';
 import {ProduccionSection} from './sections/produccion';
@@ -935,7 +936,7 @@ export default function Home() {
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
   // primaria) y los apartados, así que el shell no repite ninguno de los dos.
-  const ownsHeader = ['Contratos','Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
+  const ownsHeader = ['Contratos','Pipeline','Mora','Presupuestos','Planes','Producción','Inventario','Proyectos','Estudio','Métricas','Resumen','Configuración','Preferencias','Actividad','Historial de trabajo','Finanzas','Comisiones','Informes','Previsión','Balance','Equipo','Papelera','Invitaciones','Roles y permisos'].includes(active);
   const pageTitle = childSections(active).length>1 ? (tabLabels[active] || active) : (active==='Resumen'?'Centro de control':activeParent);
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
@@ -1134,6 +1135,7 @@ export default function Home() {
         {active==='Presupuestos'&&<PresupuestosSection loading={loading} user={user} budgetsState={budgetsState} budgets={budgets} windowState={budgetsWindow} onLoadMore={loadMoreBudgets} invoices={invoices} budgetKpis={budgetKpis} summary={summary} loadBudgets={()=>loadBudgets()} setBudgets={replaceBudgets} onCreate={()=>setModal('budget')}/>}
         {active==='Informes'&&<InformesSection user={user} onCreateInvoice={openInvoice}/>}
         {active==='Finanzas'&&<FinanzasSection user={user} navigate={setActive} financeState={financeState} accounts={accounts} invoices={invoices} transfers={transfers} payments={payments} invoiceHasMore={invoiceHasMore} paymentHasMore={paymentHasMore} financeEmpty={financeEmpty} loadFinance={loadFinance} loadAllInvoices={loadAllInvoices} loadAllPayments={loadAllPayments} setModal={setModal} openPayment={openPayment}/>}
+        {active==='Balance'&&<BalanceSection key={String(user?.organization_id)} user={user} navigate={setActive}/>}
         {active==='Previsión'&&<PrevisionSection user={user} navigate={setActive} onCreateInvoice={openInvoice}/>}
         <div className="mt-auto pt-6"><WorkspaceFooter/></div>
         </div>

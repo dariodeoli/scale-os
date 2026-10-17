@@ -5,7 +5,7 @@ export const sections = [
  ['Finanzas','pagos'],['Mora','pagos/mora'],['Informes','informes'],['Equipo','equipo'],
  ['Invitaciones','equipo/invitaciones'],['Comisiones','equipo/comisiones'],['Roles y permisos','equipo/permisos'],
  ['Métricas','pipeline/metricas'],['Planes','presupuestos/planes'],
-  ['Historial de trabajo','equipo/historial'],['Actividad','equipo/actividad'],['Configuración','configuracion'],['Previsión','pagos/prevision'],['Preferencias','configuracion/preferencias'],['Papelera','configuracion/papelera'],
+  ['Historial de trabajo','equipo/historial'],['Actividad','equipo/actividad'],['Configuración','configuracion'],['Previsión','pagos/prevision'],['Balance','pagos/balance'],['Preferencias','configuracion/preferencias'],['Papelera','configuracion/papelera'],
 ] as const;
 export function sectionPath(label:string){if(label==='Tablero de producción')label='Producción';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
 export function sectionLabel(path:string){return sections.find(([,slug])=>'/'+slug===path.replace(/\/$/,''))?.[0]||'Resumen';}
@@ -15,7 +15,7 @@ export function validSection(slug:string){return sections.some(([,value])=>value
 // (`next.config.mjs`). La compatibilidad redirige; la pantalla no se monta dos veces.
 export const legacyRoutes:Record<string,string>=legacyRouteMap;
 export function legacyDestination(slug:string){return Object.prototype.hasOwnProperty.call(legacyRoutes,slug)?legacyRoutes[slug]:undefined;}
-export const sectionGroups:Record<string,readonly string[]>={Finanzas:['Finanzas','Mora','Previsión'],Pipeline:['Pipeline','Métricas'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad'],'Configuración':['Configuración','Preferencias','Papelera']};
+export const sectionGroups:Record<string,readonly string[]>={Finanzas:['Finanzas','Mora','Previsión','Balance'],Pipeline:['Pipeline','Métricas'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad'],'Configuración':['Configuración','Preferencias','Papelera']};
 export function parentSection(label:string){if(label==='Métricas')return 'Pipeline';return Object.entries(sectionGroups).find(([,children])=>children.includes(label))?.[0]||label;}
 export function childSections(label:string){return sectionGroups[parentSection(label)]||[label];}
 // Nav v3 (issue #68): el menú principal son 5 grupos desplegables. Cada grupo
@@ -31,4 +31,4 @@ export const navGroups = [
 export type NavGroupLabel = typeof navGroups[number][0];
 /** Grupo del menú que contiene a un módulo ('' si el módulo no está en el nav). */
 export function moduleNavGroup(module:string){return navGroups.find(([,modules])=>(modules as readonly string[]).includes(module))?.[0]||'';}
-export const tabLabels:Record<string,string>={Finanzas:'Cuentas y movimientos',Pipeline:'Pipeline',Métricas:'Visitas y crecimiento',Mora:'Cobranza y mora','Previsión':'Previsión financiera',Invitaciones:'Invitaciones y solicitudes',Equipo:'Personas y accesos',Comisiones:'Comisiones y referidos','Roles y permisos':'Roles y permisos',Planes:'Planes reutilizables','Configuración':'Empresa y ajustes','Preferencias':'Preferencias del espacio',Papelera:'Registros recuperables'};
+export const tabLabels:Record<string,string>={Finanzas:'Cuentas y movimientos',Pipeline:'Pipeline',Métricas:'Visitas y crecimiento',Mora:'Cobranza y mora','Previsión':'Previsión financiera',Balance:'Balance',Invitaciones:'Invitaciones y solicitudes',Equipo:'Personas y accesos',Comisiones:'Comisiones y referidos','Roles y permisos':'Roles y permisos',Planes:'Planes reutilizables','Configuración':'Empresa y ajustes','Preferencias':'Preferencias del espacio',Papelera:'Registros recuperables'};

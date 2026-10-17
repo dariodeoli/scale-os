@@ -14,6 +14,7 @@ export const MODULE_CAPABILITIES: Record<string, Capability> = {
   Comisiones: 'commissions.manage',
   'Roles y permisos': 'settings.manage',
   Previsión: 'finance.view',
+  Balance: 'finance.view',
   Informes: 'reports.view',
   Pipeline: 'commercial.manage',
   Mora: 'billing.view',
