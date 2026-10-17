@@ -2,6 +2,17 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.189
+
+- **Modelos de contrato listos para adaptar**: marketing mensual, condición preferencial,
+  paquete audiovisual único y servicios por proyecto, basados en documentos del dueño.
+- **Fichas legales completas**: domicilio, documento personal o fiscal y representante
+  del cliente, reutilizados junto con los datos de Mi empresa en partes y firmas.
+- **Condiciones desde presupuesto o plan**: precarga trazable de datos existentes,
+  con contenido, importes y plazos editables antes de revisar y emitir.
+- **Edición protegida**: actualizar datos completa vacíos por defecto; reemplazar lo
+  negociado requiere una decisión explícita y no modifica versiones ya emitidas.
+
 ## v1.0.188
 
 - **Tareas del equipo en Inicio y proyectos**: responsables, prioridad, fecha y hora,
