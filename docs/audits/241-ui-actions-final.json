@@ -3,8 +3,8 @@
   "mode": "audit",
   "fallbackVariant": null,
   "counts": {
-    "canonical": 571,
-    "structural": 57,
+    "canonical": 588,
+    "structural": 55,
     "renderer": 1
   },
   "files": [
@@ -77,6 +77,16 @@
       "file": "app/auth-brand-panel.tsx",
       "changed": false,
       "sha256": "65cb43d25d81c78d82461baa5d240e2e09130b5e4419bcaa1769cb2ac06200e6"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "changed": false,
+      "sha256": "82da06dd0d08e278b987f77e26d510eb92d0f819276df5ff5e2cbc33c7c79720"
+    },
+    {
+      "file": "app/biblioteca-ui/page.tsx",
+      "changed": false,
+      "sha256": "c84ac3a2864a00d585fcef3984c6570e21f8c249785599ac11980feead471217"
     },
     {
       "file": "app/blog-templates.tsx",
@@ -226,7 +236,7 @@
     {
       "file": "app/daily-controls.tsx",
       "changed": false,
-      "sha256": "e1a481ad6d5d93b1cae1240cc649bf2dc545a73fe94db08ca6976c3271e54ff3"
+      "sha256": "bc7f09c97dd5903c8538303637ce0ea9236a1a9914f645b7441a208ce0b4b40c"
     },
     {
       "file": "app/deletion-danger-zone.tsx",
@@ -251,7 +261,7 @@
     {
       "file": "app/dialog.tsx",
       "changed": false,
-      "sha256": "486b236a4383d20b99b7f95a8f5b03196c2ea4210795c9aee0ec2caff8bc6169"
+      "sha256": "34d232f4bedab30d9836ebb0cc12424e751279ec72fd28c980a9a1005928dbed"
     },
     {
       "file": "app/drive-link.tsx",
@@ -301,12 +311,12 @@
     {
       "file": "app/finance-balance.tsx",
       "changed": false,
-      "sha256": "bca3babdf8616d20c30699b153cf81078de9af76b5248f630a2511918283e977"
+      "sha256": "06c0fd2a32eca1acbf779fe277ac44c2dbbabcf5f655f676d1219088e7122fca"
     },
     {
       "file": "app/finance-clients.tsx",
       "changed": false,
-      "sha256": "68534a18c91d071e17263c805775a6edb53339c611560d6da529678f8f39551b"
+      "sha256": "cc13aef30c34a04bedcb9be0cbb1d5305c6f5802983bf8761b850d9b42b2b810"
     },
     {
       "file": "app/finance-collections.tsx",
@@ -321,7 +331,7 @@
     {
       "file": "app/finance-personnel.tsx",
       "changed": false,
-      "sha256": "e1529268e50d48338f63f09868990a80dcd144c07830f8d688b9aad9ab310f52"
+      "sha256": "17f2fc87a11be4a2dcfa40ee05a4f368ab7f0af72b86f80a2d567945a2dcd571"
     },
     {
       "file": "app/finance-receipt-editor.tsx",
@@ -566,7 +576,7 @@
     {
       "file": "app/report-problem.tsx",
       "changed": false,
-      "sha256": "3f45269075918d6c4410a6b1539fd7fb000c1d356c2bb06a1692aff74006f5db"
+      "sha256": "06877f56a640524b9e747c2282d24eba32de241734d34f50bf1f8590093b57f3"
     },
     {
       "file": "app/reports-print.tsx",
@@ -586,7 +596,7 @@
     {
       "file": "app/scale-workspace.tsx",
       "changed": false,
-      "sha256": "aa04a5bbe002630b942c0440ea5f509f0c09329671d0b3a0b4babb71e385487b"
+      "sha256": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e"
     },
     {
       "file": "app/search-field.tsx",
@@ -926,7 +936,7 @@
     {
       "file": "app/ui/form-state.tsx",
       "changed": false,
-      "sha256": "76e280e02001f833d7c87820b609e65b259e6c6989fa37b1d678215db8d62c8b"
+      "sha256": "264cee94be576786cf6a5bb688ff42428b785bdc53a44002a3b5df54db8f00b5"
     },
     {
       "file": "app/ui/icon-action.tsx",
@@ -1168,6 +1178,160 @@
       "type": "button",
       "reviewed": true,
       "canonical": "app/assignee-picker.tsx → SelectionBase/AssignedChip"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 35,
+      "column": 67,
+      "offset": 2977,
+      "kind": "canonical-button",
+      "owner": "SyntheticForm",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "submit"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 47,
+      "column": 181,
+      "offset": 12016,
+      "kind": "canonical-button",
+      "owner": "OverlayExamples",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 49,
+      "column": 675,
+      "offset": 14023,
+      "kind": "canonical-button",
+      "owner": "CollectionExample",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 179,
+      "offset": 16844,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 378,
+      "offset": 17043,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 513,
+      "offset": 17178,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 566,
+      "offset": 17231,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 732,
+      "offset": 17397,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 54,
+      "column": 832,
+      "offset": 17497,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 55,
+      "column": 60,
+      "offset": 17697,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 55,
+      "column": 169,
+      "offset": 17806,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 55,
+      "column": 292,
+      "offset": 17929,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 60,
+      "column": 258,
+      "offset": 19892,
+      "kind": "canonical-button",
+      "owner": "Demo",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "line": 70,
+      "column": 398,
+      "offset": 22483,
+      "kind": "canonical-button",
+      "owner": "Catalog",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
     },
     {
       "file": "app/client-assign-plan.tsx",
@@ -1864,8 +2028,8 @@
     {
       "file": "app/daily-controls.tsx",
       "line": 112,
-      "column": 188,
-      "offset": 12520,
+      "column": 208,
+      "offset": 12540,
       "kind": "canonical-button",
       "owner": "ClientReviewPreview",
       "status": "canonical",
@@ -1876,7 +2040,7 @@
       "file": "app/daily-controls.tsx",
       "line": 121,
       "column": 11,
-      "offset": 13450,
+      "offset": 13486,
       "kind": "canonical-button",
       "owner": "ClientPortalDeliveryControl",
       "status": "canonical",
@@ -1887,7 +2051,7 @@
       "file": "app/daily-controls.tsx",
       "line": 121,
       "column": 508,
-      "offset": 13947,
+      "offset": 13983,
       "kind": "canonical-button",
       "owner": "ClientPortalDeliveryControl",
       "status": "canonical",
@@ -1898,7 +2062,7 @@
       "file": "app/daily-controls.tsx",
       "line": 134,
       "column": 11,
-      "offset": 16022,
+      "offset": 16058,
       "kind": "canonical-button",
       "owner": "ClientPortalAccess",
       "status": "canonical",
@@ -1909,7 +2073,7 @@
       "file": "app/daily-controls.tsx",
       "line": 134,
       "column": 603,
-      "offset": 16614,
+      "offset": 16650,
       "kind": "canonical-button",
       "owner": "ClientPortalAccess",
       "status": "canonical",
@@ -1920,7 +2084,7 @@
       "file": "app/daily-controls.tsx",
       "line": 134,
       "column": 1087,
-      "offset": 17098,
+      "offset": 17134,
       "kind": "canonical-button",
       "owner": "ClientPortalAccess",
       "status": "canonical",
@@ -1931,7 +2095,7 @@
       "file": "app/daily-controls.tsx",
       "line": 134,
       "column": 1714,
-      "offset": 17725,
+      "offset": 17761,
       "kind": "canonical-button",
       "owner": "ClientPortalAccess",
       "status": "canonical",
@@ -1942,7 +2106,7 @@
       "file": "app/daily-controls.tsx",
       "line": 134,
       "column": 2233,
-      "offset": 18244,
+      "offset": 18280,
       "kind": "canonical-button",
       "owner": "ClientPortalAccess",
       "status": "canonical",
@@ -1953,7 +2117,7 @@
       "file": "app/daily-controls.tsx",
       "line": 154,
       "column": 5,
-      "offset": 20855,
+      "offset": 20891,
       "kind": "canonical-button",
       "owner": "ReconciliationWorkspace",
       "status": "canonical",
@@ -1964,7 +2128,7 @@
       "file": "app/daily-controls.tsx",
       "line": 155,
       "column": 5,
-      "offset": 20956,
+      "offset": 20992,
       "kind": "canonical-button",
       "owner": "ReconciliationWorkspace",
       "status": "canonical",
@@ -1975,7 +2139,7 @@
       "file": "app/daily-controls.tsx",
       "line": 166,
       "column": 8,
-      "offset": 22654,
+      "offset": 22690,
       "kind": "canonical-button",
       "owner": "ReconciliationWorkspace",
       "status": "canonical",
@@ -1986,7 +2150,7 @@
       "file": "app/daily-controls.tsx",
       "line": 167,
       "column": 8,
-      "offset": 22900,
+      "offset": 22936,
       "kind": "canonical-button",
       "owner": "ReconciliationWorkspace",
       "status": "canonical",
@@ -2175,7 +2339,7 @@
       "file": "app/dialog.tsx",
       "line": 139,
       "column": 64,
-      "offset": 9911,
+      "offset": 9935,
       "kind": "canonical-button",
       "owner": "Dialog",
       "status": "canonical",
@@ -2184,20 +2348,20 @@
     },
     {
       "file": "app/dialog.tsx",
-      "line": 205,
-      "column": 5,
-      "offset": 15165,
+      "line": 199,
+      "column": 9,
+      "offset": 14500,
       "kind": "canonical-button",
-      "owner": "ConfirmDialog",
+      "owner": "ConfirmDialogCancel",
       "status": "canonical",
       "reason": "existing local action facade",
       "type": "button"
     },
     {
       "file": "app/dialog.tsx",
-      "line": 206,
+      "line": 214,
       "column": 5,
-      "offset": 15301,
+      "offset": 15855,
       "kind": "canonical-button",
       "owner": "ConfirmDialog",
       "status": "canonical",
@@ -2428,9 +2592,9 @@
     },
     {
       "file": "app/finance-balance.tsx",
-      "line": 58,
+      "line": 62,
       "column": 157,
-      "offset": 9360,
+      "offset": 9961,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2439,9 +2603,9 @@
     },
     {
       "file": "app/finance-balance.tsx",
-      "line": 60,
+      "line": 64,
       "column": 976,
-      "offset": 10597,
+      "offset": 11198,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2450,9 +2614,9 @@
     },
     {
       "file": "app/finance-balance.tsx",
-      "line": 65,
+      "line": 66,
       "column": 753,
-      "offset": 12175,
+      "offset": 12176,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2461,9 +2625,9 @@
     },
     {
       "file": "app/finance-balance.tsx",
-      "line": 65,
+      "line": 66,
       "column": 1609,
-      "offset": 13031,
+      "offset": 13032,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2472,9 +2636,9 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 18,
-      "column": 361,
-      "offset": 1714,
+      "line": 21,
+      "column": 366,
+      "offset": 2115,
       "kind": "canonical-button",
       "owner": "FinanceClientsSection",
       "status": "canonical",
@@ -2483,9 +2647,9 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 26,
+      "line": 30,
       "column": 60,
-      "offset": 3442,
+      "offset": 4561,
       "kind": "canonical-button",
       "owner": "FinanceClientsSection",
       "status": "canonical",
@@ -2494,9 +2658,9 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 26,
+      "line": 30,
       "column": 197,
-      "offset": 3579,
+      "offset": 4698,
       "kind": "canonical-button",
       "owner": "FinanceClientsSection",
       "status": "canonical",
@@ -2626,9 +2790,20 @@
     },
     {
       "file": "app/finance-personnel.tsx",
-      "line": 23,
-      "column": 429,
-      "offset": 2280,
+      "line": 24,
+      "column": 371,
+      "offset": 2430,
+      "kind": "canonical-button",
+      "owner": "FinancePersonnelSection",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/finance-personnel.tsx",
+      "line": 33,
+      "column": 31,
+      "offset": 4743,
       "kind": "canonical-button",
       "owner": "FinancePersonnelSection",
       "status": "canonical",
@@ -2638,8 +2813,8 @@
     {
       "file": "app/finance-personnel.tsx",
       "line": 34,
-      "column": 31,
-      "offset": 4288,
+      "column": 5,
+      "offset": 4872,
       "kind": "canonical-button",
       "owner": "FinancePersonnelSection",
       "status": "canonical",
@@ -2650,18 +2825,7 @@
       "file": "app/finance-personnel.tsx",
       "line": 35,
       "column": 5,
-      "offset": 4417,
-      "kind": "canonical-button",
-      "owner": "FinancePersonnelSection",
-      "status": "canonical",
-      "reason": "existing local action facade",
-      "type": "omitted"
-    },
-    {
-      "file": "app/finance-personnel.tsx",
-      "line": 36,
-      "column": 5,
-      "offset": 4562,
+      "offset": 5017,
       "kind": "canonical-button",
       "owner": "FinancePersonnelSection",
       "status": "canonical",
@@ -5094,16 +5258,25 @@
     },
     {
       "file": "app/report-problem.tsx",
-      "line": 85,
-      "column": 5,
-      "offset": 4226,
-      "kind": "native",
+      "line": 102,
+      "column": 9,
+      "offset": 5840,
+      "kind": "canonical-button",
       "owner": "ReportProblemButton",
-      "status": "structural",
-      "reason": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
-      "type": "button",
-      "reviewed": true,
-      "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction"
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/report-problem.tsx",
+      "line": 103,
+      "column": 9,
+      "offset": 5982,
+      "kind": "canonical-button",
+      "owner": "ReportProblemButton",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
     },
     {
       "file": "app/reports-workspace.tsx",
@@ -5195,9 +5368,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 725,
+      "line": 724,
       "column": 26,
-      "offset": 45098,
+      "offset": 45054,
       "kind": "canonical-button",
       "owner": "projectEntry",
       "status": "canonical",
@@ -5206,9 +5379,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 756,
+      "line": 755,
       "column": 28,
-      "offset": 48270,
+      "offset": 48226,
       "kind": "canonical-button",
       "owner": "projectRowEntry",
       "status": "canonical",
@@ -5217,9 +5390,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 927,
+      "line": 926,
       "column": 13,
-      "offset": 57167,
+      "offset": 57123,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5228,9 +5401,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 940,
+      "line": 939,
       "column": 380,
-      "offset": 59331,
+      "offset": 59287,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5239,9 +5412,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 987,
+      "line": 986,
       "column": 15,
-      "offset": 63299,
+      "offset": 63255,
       "kind": "native",
       "owner": "sidebarContent",
       "status": "structural",
@@ -5252,22 +5425,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1012,
-      "column": 11,
-      "offset": 65017,
-      "kind": "native",
-      "owner": "sidebarContent",
-      "status": "structural",
-      "reason": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
-      "type": "button",
-      "reviewed": true,
-      "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction"
-    },
-    {
-      "file": "app/scale-workspace.tsx",
-      "line": 1020,
+      "line": 1016,
       "column": 51,
-      "offset": 66325,
+      "offset": 65738,
       "kind": "native",
       "owner": "sidebarContent",
       "status": "structural",
@@ -5278,9 +5438,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1040,
+      "line": 1036,
       "column": 11,
-      "offset": 68960,
+      "offset": 68373,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5289,9 +5449,20 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1102,
+      "line": 1070,
+      "column": 15,
+      "offset": 73322,
+      "kind": "canonical-button",
+      "owner": "Home",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "line": 1099,
       "column": 17,
-      "offset": 75524,
+      "offset": 75138,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",

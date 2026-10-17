@@ -1,17 +1,25 @@
 # #241 — Migración aplicada de acciones y excepciones estructurales
 
-Fecha: 17/10/2026. Baseline de producto revisado: `1cc44010`. Sólo fuentes locales de Scale; sin inspeccionar fuentes externas de OwnCoding, cambiar negocio, versión, main ni deploy.
+Fecha: 17/10/2026. Baseline de aplicación: `1cc44010`; snapshot final revisado: `0afdbd08`. Sólo fuentes locales de Scale; sin inspeccionar fuentes externas de OwnCoding, cambiar negocio, versión, main ni deploy.
 
 ## Resultado comprobado
 
-El snapshot tenía **629 sitios JSX**: 515 botones nativos (incluido renderer), 77 usos Button importados, 23 IconAction importados y 14 acciones locales existentes. La aplicación AST modifica **109 archivos** y migra **557 sitios** (457 acciones nativas + 77 Button + 23 IconAction). El inventario final conserva **629 sitios: 571 canónicos, 57 excepciones estructurales revisadas y 1 renderer nativo de Button**. **Manual = 0; UNREVIEWED = 0.** Los widgets retenidos siguen usando elementos nativos y no equivalen a consolidación estructural ya implementada.
+El snapshot tenía **629 sitios JSX**: 515 botones nativos (incluido renderer), 77 usos Button importados, 23 IconAction importados y 14 acciones locales existentes. La aplicación AST modifica **109 archivos** y migra **557 sitios** (457 acciones nativas + 77 Button + 23 IconAction). El inventario al completar esa aplicación conservó **629 sitios: 571 canónicos, 57 excepciones estructurales revisadas y 1 renderer nativo de Button**. **Manual = 0; UNREVIEWED = 0.** Los widgets retenidos siguen usando elementos nativos y no equivalen a consolidación estructural ya implementada.
 
 - [Historial de decisiones antes de aplicar](241-ui-actions-migration-reviewed.json): 167 revisiones explícitas, con hashes de archivo/JSX; 87 acciones, 23 fachadas y 57 excepciones. Las otras 447 migraciones ya eran inequívocas por la API o las clases existentes.
 - [Reporte exhaustivo de aplicación](241-ui-actions-applied.json): todos los paths seleccionados explícitamente, hashes previos y clasificación por sitio.
-- [Manifiesto vigente](241-ui-actions-reviewed.json): sólo los 57 nativos retenidos, con posiciones y hashes finales; el audit se ejecuta contra este archivo.
+- [Manifiesto vigente](241-ui-actions-reviewed.json): sólo los 55 nativos retenidos, con posiciones y hashes finales; el audit se ejecuta contra este archivo.
 - [Reporte exhaustivo final](241-ui-actions-final.json): todos los hashes de fuente y sitios finales, incluidos los alias de IconAction local, reconocidos como canónicos.
 
 De las 169 decisiones anteriores, 143 conservaban JSX y hash exactos. Se revisaron 24 sitios de nuevo: duplicados por layout, cambios pending/dirty, asa con disabled después de spreads, handlers de cupón con single-flight y opciones RHF con shouldDirty. Cuatro renderers viejos (dos EntityPicker y dos PlainSelect) ya habían desaparecido del producto al compartir Selector; su sustitución tiene dos sitios nativos (trigger y optionNode), ahora documentados. No se aceptó el manifiesto antiguo cambiando hashes a ciegas.
+
+## Refresh posterior a catálogo, Balance y encabezado
+
+El [registro explícito del refresh](241-ui-actions-refresh.json) revisa diez fuentes TSX nuevas/modificadas entre el audit de aplicación y `0afdbd08`: catálogo/ruta, daily-controls, Dialog, Balance/clientes/equipo, reporte, shell y DialogFormState. No se modificó producto para acomodar hashes. Las **55 excepciones restantes mantienen exactamente su JSX/hash anterior**. Se retiran del manifiesto únicamente ReportProblemButton nativo y logout del sidebar, reemplazados por Button/IconButton del encabezado en #245. El historial de 167 decisiones y el reporte de aplicación permanecen intactos.
+
+Se añaden **17 sitios canónicos revisados**: 14 del catálogo sintético (variantes/estados/formularios y diálogos locales), dos variantes del trigger de reporte y logout del encabezado. No hay nuevos botones nativos de acción. El nuevo inventario es **644 sitios JSX: 588 canónicos, 55 estructurales revisados, 1 renderer; manual=0 y UNREVIEWED=0**, sobre **211 TSX**. El catálogo importa Button/IconButton por exports nombrados de `../ui`. La herramienta reconoce ese entry y `../ui/index` por ruta local y símbolo exactos; los alias de esos símbolos conservan identidad. Fixtures negativos excluyen módulos parecidos, exports distintos renombrados Button y variables locales.
+
+El test concilia los deltas contra la aplicación histórica y las nuevas posiciones de acciones; comprueba retiros, motivos, unicidad, hashes finales reales e idempotencia. La comprobación de arquitectura valida los límites/exportaciones del barrel por separado. No se exige igualar artificialmente el conteo de la migración original a una app que incorporó un catálogo.
 
 ## Compatibilidad y límites
 
@@ -28,7 +36,7 @@ Las excepciones siguientes preservan composición de superficie, roles, selecci�
 | app/assignee-picker.tsx → SelectionBase/AssignedChip | 2 | `app/assignee-picker.tsx` | Control de principal/eliminación dentro del selector múltiple: chips y selección conservan límites, principal y targets; compartir engine de selección, sin tamaño de acción global. |
 | app/commenting.tsx + app/comment-composer.tsx → MentionOption/SelectionBase | 2 | `app/comment-composer.tsx`, `app/commenting.tsx` | Opciones de menciones con role=option, aria-selected y onMouseDown que evita perder foco; el motor de selección puede compartir navegación, no el callback de negocio. |
 | app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados) | 15 | `app/control-center.tsx`, `app/inventory-workspace.tsx`, `app/production-board.tsx`, `app/productivity-ui.tsx`, `app/project-card.tsx`, `app/sections/clientes.tsx`, `app/sections/pipeline.tsx`, `app/superadmin/overview.tsx`, `app/ui-v2.tsx`, `app/workspace-guide.tsx` | Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback. |
-| app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction | 7 | `app/desktop-sidebar.tsx`, `app/mobile-navigation.tsx`, `app/report-problem.tsx`, `app/scale-workspace.tsx`, `app/superadmin/sidebar.tsx` | Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores. |
+| app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction | 5 | `app/desktop-sidebar.tsx`, `app/mobile-navigation.tsx`, `app/scale-workspace.tsx`, `app/superadmin/sidebar.tsx` | Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores. |
 | app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto) | 11 | `app/employee-tasks.tsx`, `app/ia-carga.tsx`, `app/inventory-workspace.tsx`, `app/permissions-matrix.tsx`, `app/sections/comisiones.tsx`, `app/sections/finanzas.tsx` | Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso. |
 | app/foto-perfil.tsx::FotoPerfil | 1 | `app/foto-perfil.tsx` | El botón es la propia superficie avatar/logo con badge/fallback/forma: no se aplica padding CTA. Mantener un renderer de avatar interactivo, separado de foto de equipo y marca. |
 | app/google-sign-in.tsx::ProviderSignIn | 1 | `app/google-sign-in.tsx` | Botón de identidad con marcas proveedor y variante compacta del portal; canon local ProviderSignIn conserva anatomía/branding, disponibilidad y callback OAuth. No inferir política de autenticación desde Button. |
@@ -48,13 +56,13 @@ Las excepciones siguientes preservan composición de superficie, roles, selecci�
 
 ## Validación y reproducción
 
-`node tests/migrate-ui-actions.test.mjs`: **19 PASS**. Comprueba decisiones únicas, hashes, sitios nuevos/desaparecidos, idempotencia, comentarios, alias, callbacks, refs, SSR y submit omitido. El inventario no depende de un número hardcoded: se concilia con los reportes y se audita la fuente real.
+`node tests/migrate-ui-actions.test.mjs`: **20 PASS**. Comprueba decisiones únicas, hashes, sitios nuevos/desaparecidos, idempotencia, comentarios, alias, callbacks, refs, SSR y submit omitido. El inventario no depende de un número hardcoded: se concilia con los reportes y se audita la fuente real.
 
 `./node_modules/.bin/tsx --test tests/ui-button.test.tsx tests/ui-button-browser.test.tsx tests/ui-architecture.test.mjs`: bases semánticas, límites de arquitectura y Chromium. Browser usa Button real; transporte externo bloqueado. Su prueba geométrica añade los estilos locales en el orden del layout, sin depender de CSS externo o una sesión real. Comprueba desktop 1440/móvil 390, claro/oscuro, CTA login 48px, medium 40/44px, icono compact 32/44px, foco visible con Tab, loading disabled y cero overflow. La otra prueba usa submit/Enter/Space, form externo, ref y type omitido reales.
 
 Evidencia de esta ejecución: `/tmp/scale241-actions-final/button-metrics.json` y `buttons-{light,dark}-{1440,390}.png`. Regenerar con `SCALE_QA_ARTIFACT_DIR=/tmp/scale241-actions-final ./node_modules/.bin/tsx --test tests/ui-button-browser.test.tsx`. Son fixtures de componente con CSS local final, no capturas de producto desplegado.
 
-`node build-tools/check-ui-architecture.mjs`: PASS (315 módulos). `tsc --noEmit --incremental false` y `git diff --check`: PASS. CI, regresión global y deploy corresponden al integrador; no se afirman ejecutados aquí.
+`node build-tools/check-ui-architecture.mjs`: PASS (318 módulos). `tsc --noEmit --incremental false` y `git diff --check`: PASS. CI, regresión global y deploy corresponden al integrador; no se afirman ejecutados aquí.
 
 Audit reproducible sin escribir producto:
 

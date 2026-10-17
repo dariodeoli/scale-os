@@ -139,7 +139,7 @@ test('write refuses an unreviewed site before any eligible source changes',()=>{
 test('repository migration accounts for every action and only explicitly reviewed native widgets remain',()=>{
  const read=name=>JSON.parse(fs.readFileSync(new URL(`../docs/audits/${name}`,import.meta.url),'utf8'));
  const history=read('241-ui-actions-migration-reviewed.json'),manifest=read('241-ui-actions-reviewed.json');
- const applied=read('241-ui-actions-applied.json'),final=read('241-ui-actions-final.json');
+ const applied=read('241-ui-actions-applied.json'),final=read('241-ui-actions-final.json'),refresh=read('241-ui-actions-refresh.json');
  const reviewed=history.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));
  const retained=manifest.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));
  for(const current of [history,manifest]){
@@ -150,10 +150,15 @@ test('repository migration accounts for every action and only explicitly reviewe
  }
  assert.equal(applied.unreviewed,0);assert.equal(final.unreviewed,0);
  assert.equal(reviewed.length,applied.sites.filter(s=>s.reviewed).length,'history includes every explicit decision, without a fixed inventory count');
- assert.equal(retained.length,reviewed.filter(s=>s.action==='retain').length,'only reviewed structural exceptions survive');
+ assert.equal(retained.length,reviewed.filter(s=>s.action==='retain').length-refresh.retiredStructural.length,'only still-present reviewed structural exceptions survive');
+ assert(retained.every(site=>reviewed.some(old=>old.action==='retain'&&old.file===site.file&&old.siteHash===site.siteHash)),'all remaining widget JSX exactly matches its reviewed history');
+ for(const retired of refresh.retiredStructural){assert(reviewed.some(site=>site.action==='retain'&&site.file===retired.file&&site.siteHash===retired.siteHash));assert(!retained.some(site=>site.file===retired.file&&site.siteHash===retired.siteHash));assert(retired.rationale.length>20);}
+ assert.equal(new Set(refresh.addedCanonical.map(site=>`${site.file}:${site.line}:${site.column}`)).size,refresh.addedCanonical.length);
+ for(const added of refresh.addedCanonical){assert(final.sites.some(site=>site.status==='canonical'&&site.file===added.file&&site.line===added.line&&site.column===added.column));assert.match(added.siteHash,/^[a-f0-9]{64}$/);assert(added.rationale.length>20);}
+ for(const changed of refresh.changedFiles){assert.equal(final.files.find(file=>file.file===changed.file)?.sha256,changed.afterHash);assert(changed.rationale.length>20);}
  assert(retained.every(s=>s.action==='retain'));
- assert.equal(applied.sites.length,final.sites.length,'all source actions remain accounted after migration');
- assert.equal(final.counts.canonical,(applied.counts.canonical||0)+(applied.counts.migrate||0));
+ assert.equal(applied.sites.length+refresh.addedCanonical.length-refresh.retiredStructural.length,final.sites.length,'the final inventory accounts for the reviewed catalog/header additions and removed sidebar controls');
+ assert.equal(final.counts.canonical,(applied.counts.canonical||0)+(applied.counts.migrate||0)+refresh.addedCanonical.length);
  assert.equal(final.counts.structural,retained.length);
  const live=runMigration({root:fileURLToPath(new URL('../',import.meta.url)),manifest});
  assert.equal(live.unreviewed,0,'new manual/native widget sites require explicit review');
@@ -167,6 +172,20 @@ test('repository migration accounts for every action and only explicitly reviewe
 test('the local IconAction adapter is counted as a canonical action, including aliases',()=>{
  const source='import {IconAction as Action} from "../ui/icon-action";<Action icon="eye" label="Abrir"/>';
  const result=analyze(source);assert.equal(result.changed,false);assert.equal(result.sites.length,1);assert.equal(result.sites[0].status,'canonical');
+});
+
+test('canonical public entry only recognizes its named action exports and their aliases',()=>{
+ for(const entry of ['../ui','../ui/index']){
+  const result=analyze(`import {Button as Action, IconButton as Close} from "${entry}";<><Action type="submit">Save</Action><Close label="Close" icon={<svg/>}/></>`);
+  assert.equal(result.changed,false);assert.equal(result.sites.length,2);assert(result.sites.every(site=>site.status==='canonical'));
+ }
+ for(const source of [
+  'import {Other as Button} from "../ui";<Button/>',
+  'import {Button as Action} from "../ui-other";<Action/>',
+  'import {Button as Action} from "unrelated/ui";<Action/>',
+  'const Button=props=><div/>;<Button/>',
+ ])assert.equal(analyze(source).sites.length,0,'an unrelated binding is never labeled canonical');
+ const external=analyze('import {Button as Action} from "owncoding-ui";<Action/>');assert.equal(external.sites[0].status,'migrate','an external action still requires migration');
 });
 
 test('a reviewed action that cannot transform is still pending and blocks write',()=>{

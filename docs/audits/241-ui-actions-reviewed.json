@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "issue": 241,
-  "baseline": "1cc44010",
-  "scope": "Post-migración: sólo excepciones estructurales restantes. Historial de 167 decisiones preaplicación en 241-ui-actions-migration-reviewed.json; aplicación exhaustiva en 241-ui-actions-applied.json.",
+  "baseline": "0afdbd08",
+  "scope": "Snapshot final posterior a catálogo local, Balance247, header245, DialogFormState y preview neutra. Sólo55 excepciones estructurales vigentes;55 JSX/hashes exactos conservados. Historia167 preaplicación y refresh explícito se guardan separados.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -482,28 +482,11 @@
       ]
     },
     {
-      "file": "app/report-problem.tsx",
-      "sourceHash": "3f45269075918d6c4410a6b1539fd7fb000c1d356c2bb06a1692aff74006f5db",
-      "sites": [
-        {
-          "line": 85,
-          "column": 5,
-          "siteHash": "e1ebd9fda41a368139d320dcb0d5488576a24454d2a1b75192c4b4e223563e57",
-          "owner": "ReportProblemButton",
-          "originalStatus": "manual",
-          "action": "retain",
-          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
-          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
-          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
-        }
-      ]
-    },
-    {
       "file": "app/scale-workspace.tsx",
-      "sourceHash": "aa04a5bbe002630b942c0440ea5f509f0c09329671d0b3a0b4babb71e385487b",
+      "sourceHash": "ac3b036bf961aea00db97c78304eff906a50ac2307ac495e456d04b3f7d0ee4e",
       "sites": [
         {
-          "line": 987,
+          "line": 986,
           "column": 15,
           "siteHash": "a3eba3004887f205a6490a0f6eb1b4def6a9ad56e2bb99efca2306e8d64a2e85",
           "owner": "sidebarContent",
@@ -514,18 +497,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 1012,
-          "column": 11,
-          "siteHash": "b8d22c24aae020be68c5f0ff6f6e4a3394f9caddbc36fb8e96583a5455f1402a",
-          "owner": "sidebarContent",
-          "originalStatus": "manual",
-          "action": "retain",
-          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
-          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
-          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
-        },
-        {
-          "line": 1020,
+          "line": 1016,
           "column": 51,
           "siteHash": "804a69a8c0c0079396667a0e38bcc8760daed4a3c84e6fcee6b87af11551c4b4",
           "owner": "sidebarContent",

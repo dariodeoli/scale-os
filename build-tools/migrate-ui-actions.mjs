@@ -56,7 +56,7 @@ export function analyzeActions(source,{file='app/example.tsx',fallbackVariant,ro
   for(const spec of bindings.elements){const imported=(spec.propertyName||spec.name).text;
    if(module==='owncoding-ui'&&imported==='Button')legacy.set(spec.name.text,{statement,spec});
    if(module==='owncoding-ui'&&imported==='IconAction'){iconActions.add(spec.name.text);iconRecords.set(spec.name.text,{statement,spec});}
-   if(module.startsWith('.')&&((['Button','IconButton'].includes(imported)&&[path.resolve(root,'app/ui'),path.resolve(root,'app/ui/button')].includes(path.resolve(path.dirname(path.resolve(root,file)),module)))||(imported==='IconAction'&&path.resolve(root,'app/ui/icon-action')===path.resolve(path.dirname(path.resolve(root,file)),module))))canonicalBindings.add(spec.name.text);
+   if(module.startsWith('.')&&((['Button','IconButton'].includes(imported)&&[path.resolve(root,'app/ui'),path.resolve(root,'app/ui/index'),path.resolve(root,'app/ui/button')].includes(path.resolve(path.dirname(path.resolve(root,file)),module)))||(imported==='IconAction'&&path.resolve(root,'app/ui/icon-action')===path.resolve(path.dirname(path.resolve(root,file)),module))))canonicalBindings.add(spec.name.text);
    if(module==='lucide-react')iconBindings.add(spec.name.text);
    if(module===localModule&&imported==='Button')localButton=spec.name.text;
    if(module===localModule&&imported==='IconButton')localIcon=spec.name.text;
