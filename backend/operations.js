@@ -42,6 +42,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
   await c.query('begin');
   await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket.remoteAddress||'']);
   const org=user.organization_id;
+  if(req.method!=='GET'&&(collaboratorMatch||salaryOverrideMatch))await lockFinanceMutation(c,org);
   let result, status=200, notifyEmail=null;
   const withoutSalary=row=>{if(roleCan(user,'salary.view'))return row;return {...row,compensation_amount:null,monthly_salary_amount:null,monthly_salary_currency:null,payment_day:null,invoices_company:null};};
   if(teamRoute){
@@ -121,7 +122,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    else if(req.method==='POST'||(req.method==='PATCH'&&collaboratorMatch[1])) {
     let previous={};if(collaboratorMatch[1]){previous=(await c.query('select * from agency_collaborators where id=$1 and organization_id=$2 for update',[collaboratorMatch[1],org])).rows[0];if(!previous)fail('Registro no encontrado',404);await assertRecordAvailable(c,'agency_collaborators',previous);}
     const incoming=await body(req), b={compensation_type:'fixed',compensation_amount:0,active:true,...previous,...incoming};
-    if(!roleCan(user,'salary.view')&&(Object.hasOwn(incoming,'compensation_amount')||Object.hasOwn(incoming,'monthly_salary_amount')||Object.hasOwn(incoming,'monthly_salary_currency')||Object.hasOwn(incoming,'payment_day')||Object.hasOwn(incoming,'invoices_company')))fail('Tu rol no permite editar salarios',403);
+    if(!roleCan(user,'salary.view')&&(Object.hasOwn(incoming,'compensation_type')||Object.hasOwn(incoming,'currency')||Object.hasOwn(incoming,'compensation_amount')||Object.hasOwn(incoming,'monthly_salary_amount')||Object.hasOwn(incoming,'monthly_salary_currency')||Object.hasOwn(incoming,'payment_day')||Object.hasOwn(incoming,'invoices_company')))fail('Tu rol no permite editar salarios',403);
     if(!collaboratorMatch[1]&&b.currency===undefined)b.currency=await companyCurrency(c,org);
     const name=text(b.full_name,120);if(name.length<2) fail('Ingresá el nombre');
     for(const key of ['started_on','ended_on'])if(b[key] instanceof Date)b[key]=b[key].toISOString().slice(0,10);
@@ -160,7 +161,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    const month=forecastMonth(url.searchParams.get('month'));
    const [expected,recorded]=await Promise.all([
     c.query(`select r.id::text as recipient_id,r.full_name as name,t.currency,coalesce(sum(case when t.commission_mode='percentage' then round(coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)*t.commission_value/100.0,0) when t.commission_mode='fixed' then t.commission_value else 0 end),0)::text as expected_amount
-     from agency_client_commercial_terms t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
+     from agency_commercial_terms_for_month($1,$2::date) t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
      join agency_collaborators r on r.organization_id=t.organization_id and r.id=t.commission_recipient_id
      where t.organization_id=$1 and t.starts_on<($2::date+interval '1 month')::date and c.active=true and r.active=true and ${visibleRecord('c','clients')} and ${visibleRecord('r','collaborators')}
      group by r.id,r.full_name,t.currency order by r.full_name,t.currency`,[org,`${month}-01`]),

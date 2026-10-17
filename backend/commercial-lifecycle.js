@@ -3,6 +3,7 @@ import {civilDate} from './business-time.js';
 import {roleCan} from './permissions.js';
 import {amount,date,fail,id,option,text} from './suite-validation.js';
 import {visibleRecord} from './record-lifecycle.js';
+import {lockFinanceMutation,financeError} from './finance-treasury.js';
 
 
 
@@ -126,11 +127,15 @@ export async function commercialLifecycle({req,res,url,db,session,body,send}){
    if(amendments?req.method!=='POST':req.method!=='GET')fail('Método no permitido',405);
    connection=await db.connect();await connection.query('begin');transaction=true;
    const organization=user.organization_id,clientId=id(uiRoute[1]);
+   if(amendments)await lockFinanceMutation(connection,organization);
+   await connection.query("select set_config('app.current_user',$1,true)",[String(user.id)]);
    await client(connection,organization,clientId);
    let result,status=200;
    if(amendments){
     if(await archivedClient(connection,organization,clientId))fail('Restaurá el cliente antes de editarlo',409);
     const input=await body(req),expected=String(input.expectedVersion??'');
+    const reason=text(input.reason??'Enmienda comercial; motivo no registrado',1000);if(reason.length<5)fail('Indicá el motivo de la enmienda');
+    await connection.query("select set_config('app.commercial_reason',$1,true)",[reason]);
     if(!/^\d{1,19}$/.test(expected))fail('La versión esperada es obligatoria');
     const current=await uiHistory(connection,organization,clientId);
     if(current.version!==expected)fail('El cliente cambió. Actualizá los datos antes de guardar.',409);
@@ -154,7 +159,7 @@ export async function commercialLifecycle({req,res,url,db,session,body,send}){
   connection=await db.connect();await connection.query('begin');transaction=true;
   const result=await controlCenter(connection,user.organization_id,roleCan(user,'finance.view'));
   await connection.query('commit');transaction=false;send(res,200,result);
- }catch(error){
+ }catch(error){error=financeError(error)||error;
   if(transaction)await connection.query('rollback');
   const conflict=['23505','23514','40001','40P01'].includes(error.code);
   send(res,conflict?409:error.status||500,{error:conflict?'El término comercial entró en conflicto. Recargá antes de guardar.':error.status?error.message:'No se pudo completar el ciclo comercial'});
