@@ -1,0 +1,668 @@
+{
+  "compiledSource": "50091b70",
+  "taskId": "3",
+  "projectId": "3",
+  "originalVersion": 1,
+  "checks": [
+    {
+      "name": "Detail GET actual ID matches selected task",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 1
+      }
+    },
+    {
+      "name": "1440 Resumen reflects original checklist",
+      "passed": true,
+      "details": {
+        "version": 1
+      }
+    },
+    {
+      "name": "UI PATCH same ID, CAS version increments once",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "id": "3",
+        "version": 2,
+        "checked": true,
+        "request": {
+          "expected_version": 1,
+          "checklist": [
+            {
+              "id": "demo-2-0",
+              "text": "Leer el brief",
+              "completed": true
+            },
+            {
+              "id": "demo-2-1",
+              "text": "Confirmar materiales",
+              "completed": false
+            },
+            {
+              "id": "demo-2-2",
+              "text": "Validar entrega",
+              "completed": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "1440 Project drawer fetches actual project and same task ID",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=3",
+        "ids": [
+          "3"
+        ]
+      }
+    },
+    {
+      "name": "Detail GET actual ID matches selected task",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 2
+      }
+    },
+    {
+      "name": "1440 Resumen change visible in Project detail after navigation reload",
+      "passed": true,
+      "details": {
+        "version": 2
+      }
+    },
+    {
+      "name": "UI PATCH same ID, CAS version increments once",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "id": "3",
+        "version": 3,
+        "checked": false,
+        "request": {
+          "expected_version": 2,
+          "checklist": [
+            {
+              "id": "demo-2-0",
+              "text": "Leer el brief",
+              "completed": false
+            },
+            {
+              "id": "demo-2-1",
+              "text": "Confirmar materiales",
+              "completed": false
+            },
+            {
+              "id": "demo-2-2",
+              "text": "Validar entrega",
+              "completed": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Detail GET actual ID matches selected task",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 3
+      }
+    },
+    {
+      "name": "1440 Project change visible back in Resumen after navigation reload",
+      "passed": true,
+      "details": {
+        "version": 3
+      }
+    },
+    {
+      "name": "Detail GET actual ID matches selected task",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 3
+      }
+    },
+    {
+      "name": "390 Resumen reflects original checklist",
+      "passed": true,
+      "details": {
+        "version": 3
+      }
+    },
+    {
+      "name": "UI PATCH same ID, CAS version increments once",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "id": "3",
+        "version": 4,
+        "checked": true,
+        "request": {
+          "expected_version": 3,
+          "checklist": [
+            {
+              "id": "demo-2-0",
+              "text": "Leer el brief",
+              "completed": true
+            },
+            {
+              "id": "demo-2-1",
+              "text": "Confirmar materiales",
+              "completed": false
+            },
+            {
+              "id": "demo-2-2",
+              "text": "Validar entrega",
+              "completed": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "390 Project drawer fetches actual project and same task ID",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=3",
+        "ids": [
+          "3"
+        ]
+      }
+    },
+    {
+      "name": "Detail GET actual ID matches selected task",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 4
+      }
+    },
+    {
+      "name": "390 Resumen change visible in Project detail after navigation reload",
+      "passed": true,
+      "details": {
+        "version": 4
+      }
+    },
+    {
+      "name": "UI PATCH same ID, CAS version increments once",
+      "passed": true,
+      "details": {
+        "status": 200,
+        "id": "3",
+        "version": 5,
+        "checked": false,
+        "request": {
+          "expected_version": 4,
+          "checklist": [
+            {
+              "id": "demo-2-0",
+              "text": "Leer el brief",
+              "completed": false
+            },
+            {
+              "id": "demo-2-1",
+              "text": "Confirmar materiales",
+              "completed": false
+            },
+            {
+              "id": "demo-2-2",
+              "text": "Validar entrega",
+              "completed": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Detail GET actual ID matches selected task",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 5
+      }
+    },
+    {
+      "name": "390 Project change visible back in Resumen after navigation reload",
+      "passed": true,
+      "details": {
+        "version": 5
+      }
+    },
+    {
+      "name": "No mirror tasks created: all task IDs unchanged",
+      "passed": true,
+      "details": {
+        "before": 7,
+        "after": 7
+      }
+    },
+    {
+      "name": "Original checklist restored; four UI changes only",
+      "passed": true,
+      "details": {
+        "version": 5
+      }
+    },
+    {
+      "name": "No task POST from UI",
+      "passed": true
+    },
+    {
+      "name": "No runtime errors or providers",
+      "passed": true
+    }
+  ],
+  "http": [
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "GET",
+      "status": 200,
+      "id": "3",
+      "version": 1,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": false
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "PATCH",
+      "status": 200,
+      "id": "3",
+      "version": 2,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": true
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=3",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "GET",
+      "status": 200,
+      "id": "3",
+      "version": 2,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": true
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "PATCH",
+      "status": 200,
+      "id": "3",
+      "version": 3,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": false
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "GET",
+      "status": 200,
+      "id": "3",
+      "version": 3,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": false
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "GET",
+      "status": 200,
+      "id": "3",
+      "version": 3,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": false
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "PATCH",
+      "status": 200,
+      "id": "3",
+      "version": 4,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": true
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=3",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "GET",
+      "status": 200,
+      "id": "3",
+      "version": 4,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": true
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "PATCH",
+      "status": 200,
+      "id": "3",
+      "version": 5,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": false
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": "",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "method": "GET",
+      "status": 200,
+      "recordIds": [
+        "3",
+        "2",
+        "1"
+      ]
+    },
+    {
+      "path": "/core-api/api/agency/productivity/internal-tasks/3",
+      "query": "",
+      "method": "GET",
+      "status": 200,
+      "id": "3",
+      "version": 5,
+      "projectId": "3",
+      "checklist": [
+        {
+          "id": "demo-2-0",
+          "text": "Leer el brief",
+          "completed": false
+        },
+        {
+          "id": "demo-2-1",
+          "text": "Confirmar materiales",
+          "completed": false
+        },
+        {
+          "id": "demo-2-2",
+          "text": "Validar entrega",
+          "completed": false
+        }
+      ]
+    }
+  ],
+  "screens": [
+    "/tmp/scale207-project-sync/1440-resumen-changed.png",
+    "/tmp/scale207-project-sync/1440-project-drawer.png",
+    "/tmp/scale207-project-sync/1440-project-task.png",
+    "/tmp/scale207-project-sync/1440-resumen-restored.png",
+    "/tmp/scale207-project-sync/390-resumen-changed.png",
+    "/tmp/scale207-project-sync/390-project-drawer.png",
+    "/tmp/scale207-project-sync/390-project-task.png",
+    "/tmp/scale207-project-sync/390-resumen-restored.png"
+  ],
+  "pageErrors": [],
+  "external": [],
+  "passed": true
+}
