@@ -8,7 +8,7 @@ const {Editor,ApiFieldError}=require('../app/operations') as typeof import('../a
 const {useSingleFlightSubmit}=require('../app/use-single-flight-submit') as typeof import('../app/use-single-flight-submit');
 const event=()=>({preventDefault(){},persist(){}});
 const submit=(r:ReactTestRenderer)=>r.root.findByType('form').props.onSubmit(event());
-const change=async(r:ReactTestRenderer,key:string,value:string)=>act(async()=>{await r.root.findAllByType('input').find(input=>input.props.name===key)!.props.onChange({target:{name:key,value},type:'change'});});
+const change=async(r:ReactTestRenderer,key:string,value:string)=>act(async()=>{await r.root.findAllByType('input').find(input=>input.props.name===key)!.props.onChange({target:{name:key,value,setCustomValidity(_message:string){}},type:'change'});});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('Editor valida límites explícitos y fechas/horas civiles con rangos sin normalizar valores',async()=>{
