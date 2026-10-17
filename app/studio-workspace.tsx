@@ -4,6 +4,8 @@ import {CardSurface as Card} from './ui/surface';
 import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
 import {FieldLabel as Label} from './ui/field';
 
+import {validateMonth} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl as Input,InputControl} from './ui/input-control';
 /**
  * Estudio (dominio OPS) — contenido v2 (campaña #41, spec #44).
@@ -45,7 +47,7 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 
 export function StudioWorkspace({role}:{role:string}){return ['owner','admin','management','production','finance','editor','viewer','sales','collaborator'].includes(role)?<StudioPanel/>:null;}
 function StudioPanel(){
- const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7));
+ const [month,,monthDraft,setMonthDraft]=useTemporalFilter(()=>opsLocalTime(new Date()).slice(0,7),value=>validateMonth(value)?value:null);
  const [refresh,setRefresh]=useState(0),[editSpace,setEditSpace]=useState<StudioSpace|'new'|null>(null),[editReservation,setEditReservation]=useState<StudioReservation|'new'|null>(null),[cancel,setCancel]=useState<StudioReservation|null>(null),[busy,setBusy]=useState(false);
  const {context,spaces,reservations,loading,error:loadError}=useStudioCatalog(month,refresh);
  const [actionError,setError]=useState('');
@@ -122,7 +124,7 @@ function StudioPanel(){
   <SearchField className="w-full sm:w-64" label="Buscar reserva" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Reserva, espacio, proyecto o persona…"/>
   <div className="w-full sm:w-52"><SelectCustom label="Espacio" choices={spaceChoices} value={spaceFilter} onChange={setSpaceFilter}/></div>
   <div className="w-full sm:w-44"><SelectCustom label="Estado" choices={statusChoices} value={statusFilter} onChange={setStatusFilter}/></div>
-  <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={month} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value))setMonth(event.target.value);}}/></div>
+  <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={monthDraft} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setMonthDraft(event.target.value)}/></div>
   {filtersActive?<button type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters}>Limpiar filtros</button>:null}
   {visibleSelectable.length?<button type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations}>Seleccionar visibles</button>:null}
  </FilterToolbar>:undefined;

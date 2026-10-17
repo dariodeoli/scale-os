@@ -2,6 +2,8 @@
 import {Notice as Aviso,Note as Nota} from './ui/notice';
 import {Subtabs} from './ui/navigation';
 
+import {validateMonth} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl} from './ui/input-control';
 import {urgencyField,UrgencyBadge} from './urgency';
 import {roleCan,canSeeClientContact,BATCH_LIMITS} from './capabilities';
@@ -181,7 +183,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder,open
 
 
 export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navigate,initialView}:{initialView?:string;orders:WorkItem[];userId:string;role:string;projects:{id:string;name:string;client_name:string}[];openOrder:(id:string)=>void;refresh:()=>Promise<void>;navigate:(label:string)=>void}){
- const [view,setView]=useState(initialView||'Mi día'),[month,setMonth]=useState(localDay().slice(0,7)),[templatesOpen,setTemplatesOpen]=useState(false),[batch,setBatch]=useState(false);
+ const [view,setView]=useState(initialView||'Mi día'),[month,,monthDraft,setMonthDraft]=useTemporalFilter(localDay().slice(0,7),value=>validateMonth(value)?value:null),[templatesOpen,setTemplatesOpen]=useState(false),[batch,setBatch]=useState(false);
  const bulk=useBulkSelection({limit:BATCH_LIMITS.planner,noun:'piezas'});
  const selected=bulk.ids;
  const today=localDay(),mine=orders.filter(o=>(String(o.assigned_user_id)===String(userId)||o.assigned_user_ids?.some(id=>String(id)===String(userId)))&&!['approved','published'].includes(o.status));
@@ -204,7 +206,7 @@ export function WorkPlanner({orders,userId,role,projects,openOrder,refresh,navig
     {['owner','admin','finance'].includes(role)?<div className="flex flex-wrap items-center gap-2 sm:col-span-2 xl:col-span-2 xl:flex-col xl:items-start xl:justify-center"><button type="button" className="text-button" onClick={()=>navigate('Mora')}>Revisar cobros pendientes<ArrowUpRight size={14}/></button><button type="button" className="text-button" onClick={()=>navigate('Pagos')}>Disponibilidad y efectivo<ArrowUpRight size={14}/></button></div>:null}
    </KpiStrip>
   </>:null}
-  {view==='Calendario'?<label className="grid w-52 gap-1.5"><span className="text-[12px] font-semibold text-mute">Mes de entrega</span><InputControl type="month" value={month} onChange={e=>setMonth(e.target.value)} className="min-h-11"/></label>:null}
+  {view==='Calendario'?<label className="grid w-52 gap-1.5"><span className="text-[12px] font-semibold text-mute">Mes de entrega</span><InputControl type="month" value={monthDraft} onChange={e=>setMonthDraft(e.target.value)} className="min-h-11"/></label>:null}
   {view==='Calendario'?<div className="grid gap-2" aria-label="Calendario de entregas del mes">
    <div className="hidden grid-cols-7 gap-1 min-[769px]:grid" aria-hidden="true">{['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(day=><span key={day} className="text-center text-[10px] font-bold uppercase tracking-wider text-mute">{day}</span>)}</div>
    <div className="grid grid-cols-1 gap-1 min-[769px]:grid-cols-7">{Array.from({length:calendarDays.offset},(_,index)=><div className="hidden min-h-16 rounded-lg border border-transparent min-[769px]:block" key={`blank-${index}`}/>)}{Array.from({length:calendarDays.days},(_,index)=>{const day=index+1,rows=monthPieces(day),date=`${month}-${String(day).padStart(2,'0')}`;return <div className="grid min-h-16 content-start gap-1 rounded-lg border border-ink-600/60 p-1" key={date} aria-label={date}><time className="text-[11px] tabular-nums text-mute" dateTime={date}>{day}</time>{rows.map(order=><button key={order.id} type="button" className="grid min-h-11 gap-0.5 rounded-md border border-fono/30 bg-fono/10 px-1.5 py-1 text-left text-[11px] text-fono-light min-[769px]:min-h-0" onClick={openPiece(String(order.id))}><b className="break-words">{order.title}</b><span className="text-mute">{order.client_name||''}{order.due_time?` · ${order.due_time.slice(0,5)}`:''}</span></button>)}</div>;})}</div>

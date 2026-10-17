@@ -4,6 +4,8 @@ import {CardSurface as Card} from './ui/surface';
 import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
 import {FieldLabel as Label} from './ui/field';
 
+import {validateMonth} from './ui/temporal-value';
+import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl as Input,InputControl} from './ui/input-control';
 import {AmountInput as MoneyInput} from './ui/amount';
 import {TextareaBase} from './ui/input';
@@ -343,7 +345,7 @@ export function InventoryWorkspace({role}:{role:string}){
  return roleCan(role,'inventory.view')?<InventoryPanel key={role}/>:null;
 }
 function InventoryPanel(){
- const [month,setMonth]=useState(()=>opsLocalTime(new Date()).slice(0,7)),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
+ const [month,,monthDraft,setMonthDraft]=useTemporalFilter(()=>opsLocalTime(new Date()).slice(0,7),value=>validateMonth(value)&&value>='1900-01'&&value<='9998-12'?value:null),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
  const bulk=useBulkSelection({limit:BATCH_LIMITS.inventory,noun:'equipos'});
  const selectedItems=bulk.ids;
  const [actionError,setError]=useState(''),[refresh,setRefresh]=useState(0),[attentionHelp,setAttentionHelp]=useState(false);
@@ -455,7 +457,7 @@ function InventoryPanel(){
     <p className="min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.">Horarios de Asunción. Se incluyen retiros pendientes de devolución aunque sean de otro mes.</p>
     <div className="flex items-center gap-2">
      <Label htmlFor="inventory-calendar-month" className="whitespace-nowrap">Mes</Label>
-     <Input id="inventory-calendar-month" className="w-44" type="month" value={month} min="1900-01" max="9998-12" onChange={(e:React.ChangeEvent<HTMLInputElement>)=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))setMonth(e.target.value);}}/>
+     <Input id="inventory-calendar-month" className="w-44" type="month" value={monthDraft} min="1900-01" max="9998-12" onChange={(e:React.ChangeEvent<HTMLInputElement>)=>setMonthDraft(e.target.value)}/>
     </div>
    </div>
    <InventoryCalendar month={month} reservations={reservations}/>

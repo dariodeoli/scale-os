@@ -6,6 +6,7 @@ import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
 import {FormField} from './ui/field';
 import {SegmentedField} from './ui/navigation';
 
+import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl as Input} from './ui/input-control';
 import {useEffect,useState,type ChangeEvent} from 'react';
 import {Plus} from 'lucide-react';
@@ -132,7 +133,7 @@ function LiveVisitorsWidget(){
  </Card>;
 }
 function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:string;onCreateInvoice?:()=>void}){
- const [month,setMonth]=useState(currentMonth),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
+ const [month,setMonth,monthDraft,setMonthDraft]=useTemporalFilter(currentMonth,value=>validMonth(value)&&value<=currentMonth()?value:null),[months,setMonths]=useState(12),[currency,setCurrency]=useState('');
  const [retry,setRetry]=useState(0);
  const [exportError,setExportError]=useState('');
  const {data,previousData,error,previousError}=useReportsWindow(month,months,retry);
@@ -165,7 +166,7 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
     }}>PDF{selectedCurrency?` · ${selectedCurrency}`:''}</Button>
 </>}
   toolbar={  <FilterToolbar className="mb-0" summary={data?<span title={`Datos al ${listDateFull(data.asOf)||'sin fecha confirmada'} (hora de Asunción). Histórico confiable desde: ${listDateFull(data.historySince)||'sin fecha confirmada'}.`}>Datos al {listDateFull(data.asOf)||'sin fecha confirmada'}</span>:undefined}>
-   <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={month} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>{if(validMonth((e.target as HTMLInputElement).value)&&(e.target as HTMLInputElement).value<=currentMonth())setMonth((e.target as HTMLInputElement).value);}}/></FormField>
+   <FormField label="Mes a consultar" htmlFor="reports-month"><Input id="reports-month" type="month" className="w-44 max-md:w-full" value={monthDraft} min="1900-01" max={currentMonth()} onChange={(e:ChangeEvent<HTMLInputElement>)=>setMonthDraft(e.target.value)}/></FormField>
    <div className="grid gap-1">
     <span className="text-[11px] font-medium uppercase tracking-wider text-mute">Histórico</span>
     <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Meses de histórico" value={String(months)} options={HISTORY_OPTIONS} onChange={(value:string)=>{const monthsValue=Number(value);if([6,12,24].includes(monthsValue))setMonths(monthsValue);}}/>
