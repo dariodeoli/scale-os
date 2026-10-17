@@ -33,7 +33,8 @@ globalThis.fetch=(async(input:RequestInfo|URL,init:RequestInit={})=>{
   const url=String(input).replace('/core-api','');
   const method=String(init.method||'GET');
   calls.push({url,method,body:init.body?JSON.parse(String(init.body)):null});
-  return new Response(JSON.stringify(route(url,method)),{status:200});
+  const result=route(url,method);
+  return result instanceof Response?result:new Response(JSON.stringify(result),{status:200});
 }) as typeof fetch;
 const settle=async()=>{await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});};
 const text=(node:ReactTestInstance|string):string=>typeof node==='string'?node:node.children.map(text).join('');
@@ -91,9 +92,9 @@ test('alta: mismo POST de siempre y «Guardar y crear otro» no cierra',async()=
 });
 
 const rucRecord={name:'PEREZ GOMEZ JUAN',tax_id:'80168807-8',tax_state:'ACTIVO',publication_date:'2026-09-01',source:'ruc-provider'};
-async function mountWithRuc(){
+async function mountWithRuc(lookupResponse:unknown={record:rucRecord}){
   calls.length=0;
-  route=(url,method)=>url.endsWith('/ruc-lookup')?{record:rucRecord}:method==='POST'?{client:{id:'9',name:'Cliente',email:null,phone:null,active:true}}:{};
+  route=(url,method)=>url.endsWith('/ruc-lookup')?lookupResponse:method==='POST'?{client:{id:'9',name:'Cliente',email:null,phone:null,active:true}}:{};
   let renderer!:ReactTestRenderer;
   await act(async()=>{renderer=create(<ClientEditor mode="create"/>);});
   await change(renderer,'name','Cliente');
@@ -440,5 +441,31 @@ test('RUC confirmado no sobrescribe razón social editada durante revisión y ca
  await submit(renderer);
  body=calls.filter(call=>call.method==='POST'&&call.url==='/api/agency/clients').at(-1)?.body;
  assert.equal(body?.tax_id,'80012345');assert.equal(body?.legal_name,'');
+ act(()=>renderer.unmount());
+});
+
+test('RUC compartido distingue no encontrado y error; ambos preservan carga manual sin confirmación falsa',async()=>{
+ for(const [response,state,notice] of [
+  [{record:null},'not-found','No encontramos una ficha publicada'],
+  [new Response(JSON.stringify({error:'Proveedor temporalmente no disponible'}),{status:503}),'error','Proveedor temporalmente no disponible'],
+ ] as const){
+  const renderer=await mountWithRuc(response);
+  const lookup=renderer.root.findAll(node=>node.type==='div'&&node.props['data-ui-lookup-field']!==undefined)[0];
+  assert.equal(lookup.props['data-lookup-state'],state);assert.match(text(renderer.root),new RegExp(notice));assert.equal(buttonWith(renderer,'Aplicar'),undefined);
+  await change(renderer,'legal_name','Datos ingresados manualmente');await submit(renderer);
+  const body=calls.find(call=>call.method==='POST'&&call.url==='/api/agency/clients')?.body;
+  assert.equal(body?.legal_name,'Datos ingresados manualmente');assert.equal(body?.tax_id,'80168807');
+  act(()=>renderer.unmount());
+ }
+});
+
+test('RUC conserva el texto pegado hasta confirmar; el transporte y Aplicar normalizan explícitamente',async()=>{
+ const renderer=await mountWithRuc();buttonWith(renderer,'Descartar')!.props.onClick();await settle();
+ await change(renderer,'tax_id','80.168.807-8');
+ await act(async()=>{buttonWith(renderer,'Buscar')!.props.onClick();});await settle();
+ assert.deepEqual(calls.filter(call=>call.url.endsWith('/ruc-lookup')).at(-1)?.body,{ruc:'80168807-8'});
+ assert.equal(renderer.root.findAll(node=>node.props['data-ui-lookup-field']!==undefined&&node.type==='div')[0].props['data-lookup-state'],'found','en revisión no se presenta como consulta de red pendiente');
+ await act(async()=>{buttonWith(renderer,'Aplicar')!.props.onClick();});await settle();await submit(renderer);
+ assert.equal(calls.find(call=>call.method==='POST'&&call.url==='/api/agency/clients')?.body?.tax_id,'80168807-8');
  act(()=>renderer.unmount());
 });
