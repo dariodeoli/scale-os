@@ -51,3 +51,17 @@ test('real Editor permits USD cents for paid expenses and account openings while
  }
  const h=await harness('finance-balance');try{const props=await h.open('Planificar gasto');const result=await realSubmit(props,'USD',{category:'Servicio',kind:'fixed',currency:'USD',cadence:'monthly'});assert.equal(result.saved.length,0,'planned forecast expenses retain their whole-money contract');assert.equal(h.writes.length,0);assert.match(result.rendered,/Ingresá un número entero/);}finally{act(()=>h.renderer.unmount());}
 });
+
+test('real-expense transport and fixed-point aggregates retain cents and do not expand planned forecast transport',()=>{
+ const {realExpenseRows,realExpenseTotalExact,forecastBalanceExactRows,validForecast}=require('../app/forecast-data') as typeof import('../app/forecast-data');
+ const {sumMoney,formatRealMoney,isPositiveRealMoney}=require('../app/finance-money') as typeof import('../app/finance-money');
+ const row={id:'1',account_id:'101',account_name:'USD',category:'Servicio',kind:'variable',currency:'USD',amount:'100.25',paid_on:'2026-10-17',reference:'',created_by_email:null};
+ const rows=realExpenseRows({expenses:[row,{...row,id:'2',amount:'0.10'},{...row,id:'3',amount:'0.20'},{...row,id:'4',currency:'PYG',amount:'100.25'},{...row,id:'5',amount:'1.234'}]});
+ assert.equal(rows.length,3);assert.equal(realExpenseTotalExact(rows,'USD'),'100.55');
+ assert.equal(sumMoney(['9007199254740993.01','0.09']),'9007199254740993.10');
+ assert.match(formatRealMoney('9007199254740993.10','USD'),/9\.007\.199\.254\.740\.993,10/,'shared currency formatter does not coerce exact source strings to Number');
+ assert.equal(isPositiveRealMoney('100.25','USD'),true);assert.equal(isPositiveRealMoney('100.25','PYG'),false);assert.equal(isPositiveRealMoney('100.00','PYG'),true);
+ const month='2026-10',empty={month,time_zone:'America/Asuncion',records:[],personnel:{month,included_headcount:0,records:[]},contracted_recurring:{month,records:[]},invoiced:{month,records:[]},collected_actual:{month,records:[]},commission_forecast:{month,records:[]},planned_expenses:{month,records:[]},definition:{}};
+ const exact=forecastBalanceExactRows(empty as any,rows);assert.deepEqual(exact,[{currency:'USD',income:'0',expense:'100.55',result:'-100.55'}],'real-only currencies remain visible with exact amounts');
+ assert.equal(validForecast({...empty,planned_expenses:{month,records:[{currency:'USD',amount:'100.25'}]}}),false,'planned snapshots remain whole-money only');
+});
