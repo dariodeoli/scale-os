@@ -26,7 +26,7 @@ function browser() {
     for (const key of ['self', 'window', 'document'] as const) { const descriptor = previous[key]; if (descriptor) Object.defineProperty(globalThis, key, descriptor); else Reflect.deleteProperty(globalThis, key); }
   };
 }
-const wide = () => ({clientWidth: 1400, scrollIntoView() {}, focus() {},closest:()=>null});
+const wide = () => ({clientWidth: 1400, value:'', setCustomValidity(_message:string){}, querySelectorAll:()=>[], scrollIntoView() {}, focus() {},closest:()=>null});
 
 const items: PlatformAnnouncement[] = [
   {id: 7, title: 'Nueva vista de producción', message: 'Probá el tablero nuevo.', kind: 'novedad', priority: 1, organization_id: null, organization_name: null, starts_at: '2026-10-14T12:00:00Z', ends_at: null, published_at: '2026-10-14T12:00:00Z', created_at: '2026-10-14T12:00:00Z', status: 'active', audience_users: 3, reads: 1, read_pct: 33.3},

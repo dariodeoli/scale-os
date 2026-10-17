@@ -78,7 +78,7 @@ test('Consultas tab lists the inquiries with contact links, truncated message, s
     assert.deepEqual(counts.at(-1), {new: 0, contacted: 2, closed: 0}, 'los contadores vuelven al marco');
     assert.equal(renderer.root.findAllByType('button').some(node => text(node.children) === 'Marcar contactada'), false);
     // Filtro por estado: se pide al API.
-    await act(async () => { renderer.root.findByProps({'aria-label': 'Filtrar consultas por estado'}).props.onChange({target: {value: 'closed'}}); });
+    await act(async () => { renderer.root.findByProps({label: 'Filtrar consultas por estado',hideLabel:true}).props.onChange('closed'); });
     assert.equal(calls.at(-1)!.url, '/core-api/api/platform/inquiries?limit=50&status=closed');
     assert.ok(rendered(renderer).includes('Sin consultas con este estado.'));
   } finally { if (renderer) act(() => renderer.unmount()); restore(); }
@@ -143,7 +143,8 @@ test('panel: Consultas item with the new-inquiries badge, compact header without
 
 test('header and sidebar CSS contract: one compact row, icon-only mobile actions, scrollable section strip', () => {
   const styles = readFileSync(new URL('../app/superadmin/platform-admin.css', import.meta.url), 'utf8');
-  assert.match(styles, /\.platform-admin-actions :is\(\.secondary\) \{ display: inline-flex; align-items: center; gap: 6px; min-height: 36px;/);
+  assert.match(styles, /\.platform-admin-actions :is\(\.secondary\) \{ display: inline-flex; align-items: center; gap: 6px \}/);
+  assert.match(styles, /\.platform-admin-actions :is\(\.secondary\):not\(:where\(\[data-ui-button\]\)\) \{ min-height: 36px; padding: 0 12px; font-size: 13px/);
   assert.match(styles, /\.platform-admin-top \{ flex-wrap: nowrap; gap: 8px \}/);
   assert.match(styles, /\.platform-admin-action-label \{ position: absolute; width: 1px; height: 1px;/);
   assert.match(styles, /\.platform-shell nav\.platform-sidebar-nav \{ flex-direction: row; gap: 4px; overflow-x: auto;/);

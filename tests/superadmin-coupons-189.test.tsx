@@ -14,7 +14,7 @@ reactDOM.createPortal = (children: React.ReactNode) => children;
 const documentListeners=new Map<string,Set<(event:any)=>void>>();
 const hostDocument = {body: {style: {overflow: ''}}, activeElement: null as unknown, addEventListener(type:string,listener:(event:any)=>void) {if(!documentListeners.has(type))documentListeners.set(type,new Set());documentListeners.get(type)!.add(listener);}, removeEventListener(type:string,listener:(event:any)=>void) {documentListeners.get(type)?.delete(listener);}};
 Object.defineProperty(globalThis, 'document', {configurable: true, value: hostDocument});
-const hostNode = () => ({tagName: 'DIV', tabIndex: -1, isConnected: true, clientWidth: 1600, querySelectorAll: () => [], querySelector: () => null, closest: () => null, contains: () => true, focus() {}});
+const hostNode = () => ({value:'',setCustomValidity(_message:string){},tagName: 'DIV', tabIndex: -1, isConnected: true, clientWidth: 1600, querySelectorAll: () => [], querySelector: () => null, closest: () => null, contains: () => true, focus() {}});
 
 const bus = new EventTarget();
 const store = new Map<string, string>();
@@ -83,7 +83,9 @@ test('cupones: columnas Vence, Empresa, Usos y Estado con vigente, vencido y pau
   assert.ok(body.includes('Agency Two') && body.includes('Todas'), 'empresa o «Todas»');
   assert.equal(root.findAllByProps({role: 'columnheader'}).length, 7);
   // El alta suma Vence (date), Empresa (selector) y Nota (textarea).
-  assert.ok(root.findAllByType('input').some((node) => node.props.type === 'date'), 'Vence es type=date');
+  const {DateInput}=require('../app/ui/temporal') as typeof import('../app/ui/temporal');
+  assert.ok(root.findAllByType(DateInput).length>0, 'Vence usa la fecha civil canónica con edición parcial y calendario');
+  assert.ok(root.findAllByType('input').some(node=>node.props.placeholder==='AAAA-MM-DD'),'Formato esperado visible al escribir');
   assert.ok(root.findAllByType('textarea').length === 1, 'Nota es un textarea');
   assert.ok(root.findAllByType(SelectCustom).some((node) => node.props.label === 'Empresa · Opcional'), 'Empresa es un SelectCustom');
   await unmount();
