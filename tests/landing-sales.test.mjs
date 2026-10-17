@@ -45,10 +45,12 @@ test('signup CTAs lead only to registration; demo stays separate and isolated',(
  assert(links.every(link=>link.href?.startsWith('#')||link.href?.startsWith('https://')));
 });
 
-test('illustration and module copy make no fabricated adoption or live-data claims',()=>{
+test('product screenshots and module copy make no fabricated adoption or live-data claims',()=>{
  for(const module of ['checklists','múltiples responsables','presencia','inventario','reservas','pipeline','presupuestos','PYG, USD, EUR, BRL, ARS y MXN'])assert(text.includes(module),module);
- assert(text.includes('VISTA ILUSTRATIVA'));
- assert(text.includes('no es una captura ni actividad en vivo'));
+ assert(text.includes('Captura del producto.'));
+ assert(html.includes('/landing/producir-960.webp'));
+ assert(text.includes('copia aislada con datos ficticios, sin registro'));
+ assert(!text.includes('actividad en vivo'));
  assert(text.includes('Compartir una tarea no amplía los permisos'));
  assert(text.includes('Registro, previsión y control; no mueve dinero por vos'));
  assert(!/miles de agencias|empresas confían|ahorrá \d+ horas|garantizado|soporte 24/i.test(text));
@@ -114,11 +116,11 @@ test('landing #134: sin promesas vitalicias, una sola prueba, pilares y fundador
  // 4 · Un CTA principal por bloque (nav, hero, precio y cierre) y todos al registro.
  assert.equal((html.match(/data-cta="trial"/g)||[]).length,4);
  assert((html.match(/Empezar gratis/g)||[]).length>=2,'hero y precio usan el mismo CTA corto');
- // 5 · Funciones por área (rediseño): 8 tarjetas visibles, sin detalle escondido.
+ // 5 · Funciones por área (rediseño): 10 tarjetas visibles, sin detalle escondido.
  const seccion=id=>visible.slice(visible.indexOf(`<section id="${id}"`),visible.indexOf('</section>',visible.indexOf(`<section id="${id}"`)));
  const funciones=seccion('funciones')+seccion('gestion');
- assert.equal((funciones.match(/<article class="card feature">/g)||[]).length,8);
- for(const area of ['Comercial','Operaciones','Recursos','Portal del cliente','Finanzas','Informes','Equipo','IA y avisos'])assert(funciones.includes(`<p class="area">${area}</p>`),`área ${area}`);
+ assert.equal((funciones.match(/<article class="card feature">/g)||[]).length,10);
+ for(const area of ['Contratos','Tareas y proyectos','Comercial','Operaciones','Recursos','Portal del cliente','Finanzas','Informes','Equipo','IA y avisos'])assert(funciones.includes(`<p class="area">${area}</p>`),`área ${area}`);
  for(const titulo of ['Ventas con seguimiento','Producción que avanza','Inventario y estudio','Aprobaciones sin perseguir','Cobrar sin perder el hilo','Informes para decidir con datos','El equipo, con contexto'])assert(funciones.includes(titulo),`función presente: ${titulo}`);
  for(const capacidad of ['conversión a cliente','Presupuestos con planes reutilizables','tablero por etapas','Reservas, retiros, devoluciones y verificaciones','Espacios del estudio','mora y cobranza','Previsión de caja','matriz de permisos','comisiones','Carga con IA','por correo'])assert(funciones.includes(capacidad),`capacidad real: ${capacidad}`);
  // 6 · El beneficio fundador vive en #precio (con el chip y la nota canónica).
@@ -146,8 +148,11 @@ test('landing #148: demo visible, un solo aviso, capturas reales y puesta en mar
  // 4 · Capturas del producto y funciones agrupadas por resultado.
  for(const file of ['landing/vender.jpg','landing/producir.jpg','landing/cobrar.jpg'])assert(html.includes(file),file);
  const captions=[...html.matchAll(/<figcaption><strong>([^<]+)<\/strong> · ([^<]+)<\/figcaption>/g)].map(match=>match[1]);
- assert.deepEqual(captions,['Vender','Producir','Cobrar'],'las capturas se agrupan vender · producir · cobrar');
- for(const shot of html.matchAll(/<img\b[^>]*>/g))if(shot[0].includes('/landing/'))assert(/\bloading="lazy"/.test(shot[0])&&/\bwidth="1440"/.test(shot[0]),'las capturas cargan diferidas y con dimensiones');
+ assert.deepEqual(captions,['Vender','Producir','Cobrar','Acordar','Decidir'],'las capturas cubren comercial, producción, cobros, contratos y balance');
+ const shots=[...html.matchAll(/<img\b[^>]*>/g)].map(match=>match[0]).filter(tag=>tag.includes('/landing/'));
+ assert.equal(shots.filter(tag=>tag.includes('fetchpriority="high"')).length,1,'sólo el hero tiene prioridad alta');
+ for(const shot of shots){assert(/\bwidth="1440"/.test(shot),'las capturas tienen dimensiones');if(!shot.includes('/landing/producir-960.webp'))assert(/\bloading="lazy"/.test(shot),'la galería carga diferida');}
+ for(const source of ['contratos-demo.webp','balance-demo.webp'])assert(html.includes('/landing/'+source),'captura sintética real: '+source);
  // 5 · Puesta en marcha: migración, soporte, límites y condiciones visibles.
  for(const title of ['Migración de datos','Soporte','Límites claros','Servicio, suscripción y cancelación'])assert(text.includes(title),title);
  assert(text.includes('no hay importador masivo')&&text.includes('no mueve dinero')&&text.includes('sin borrar tus datos'));
