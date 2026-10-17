@@ -78,7 +78,8 @@ test('presupuestos: los KPI filtran la lista (alternan) y se combinan con estado
  act(()=>buttons('Vigencia en los próximos 7 días')[0].props.onClick());
  assert.ok(rows().length<=4);
  act(()=>buttons('Limpiar filtros')[0].props.onClick());
- const search=renderer.root.findAllByType('input').find(input=>input.props['aria-label']==='Buscar presupuesto')!;
+ const search=renderer.root.findAllByType('input').find(input=>input.props.type==='search'&&renderer.root.findAllByType('label').some(label=>label.props.htmlFor===input.props.id&&text(label).includes('Buscar presupuesto')))!;
+ assert(search,'the search input keeps its exact HTML label association');
  act(()=>search.props.onChange({target:{value:'propuesta 3'}}));
  assert.equal(rows().length,1,'la búsqueda filtra por número, título o cliente');
  act(()=>renderer.unmount());

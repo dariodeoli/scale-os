@@ -4,6 +4,7 @@ import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-te
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+
 // owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
 Object.assign(globalThis,{requestAnimationFrame:(callback:(time:number)=>void)=>{callback(Date.now());return 0;},cancelAnimationFrame:()=>{}});
 const intervals=new Map<number,()=>void>();let timerId=0;
@@ -75,7 +76,7 @@ const change=(label:string,value:string,tag:'input'|'select'|'textarea'='input')
  // its value contract. Keep this helper explicit about the intended operation.
  if(tag==='select'&&renderer.root.findAllByType(SelectCustom).some(node=>node.props.label===label))return select(label).props.onChange(value);
  const field=byLabel(label,tag)||renderer.root.findAll(node=>node.props?.['aria-label']===label&&typeof node.type==='string'&&['input','textarea','select'].includes(String(node.type)))[0];
- if(field)return field.props.onChange({target:{value,setCustomValidity(){}},currentTarget:{value,selectionStart:String(value).length}});
+ if(field){const target={value,selectionStart:String(value).length,validationMessage:'',setCustomValidity(message:string){this.validationMessage=message;}};return field.props.onChange({target,currentTarget:target});}
  return select(label).props.onChange(value);
 });
 // Identity chips now include avatar initials before the visible person name.

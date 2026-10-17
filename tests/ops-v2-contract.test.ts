@@ -314,7 +314,8 @@ assert.match(planner,/label className="flex h-11 min-w-11 items-center justify-c
 assert.match(planner,/flex min-h-11 min-w-0 flex-col justify-center text-left/,'abrir una pieza desde la lista es táctil en mobile');
 assert.match(projectCard,/inline-flex min-h-11 items-center whitespace-nowrap text-\[11\.5px\] font-semibold text-fono-light hover:underline md:min-h-0/,'el enlace «Abrir Drive» del listado es táctil en mobile');
 assert.match(planner,/grid min-h-11 gap-0\.5 rounded-md border border-fono\/30[^"]*min-\[769px\]:min-h-0/,'las piezas del calendario son táctiles en mobile');
-assert.match(planner,/<input type="month"[\s\S]{0,200}?className="min-h-11"/,'el selector de mes mide 44 px');
+assert.match(planner,/import \{InputControl\} from '\.\/ui\/input-control'/,'el mes usa la fachada local con semántica temporal');
+assert.match(planner,/<InputControl type="month"[\s\S]{0,200}?className="min-h-11"/,'el selector de mes mide 44 px');
 const prodFixtures=read('build-tools/visual-harness/fixtures/ops-produccion-proyectos.mjs');
 assert.match(prodFixtures,/id: 'produccion-calendario'/,'el calendario del planificador tiene fixture propio');
 

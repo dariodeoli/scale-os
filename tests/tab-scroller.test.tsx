@@ -44,7 +44,8 @@ test('la barra desplazable muestra chevrones sólo si hay pestañas fuera de vis
 test('las barras de pestañas de los módulos usan el patrón único desplazable',()=>{
  const ui=read('app/ui-system.css');
  assert.match(ui,/\.tab-scroller-track\{[^}]*overflow-x:auto/,'el carril scrollea en horizontal');
- assert.match(ui,/@media\(max-width:760px\)\{\.tab-scroller-button\{width:44px;height:44px\}\}/,'los chevrones conservan 44 px en móvil');
+ assert.match(ui,/@media\(max-width:760px\)\{\.tab-scroller-button:not\(:where\(\[data-ui-button\]\)\)\{width:44px;height:44px\}\}/,'los chevrones conservan 44 px en móvil');
+ assert.match(ui,/@media\(max-width:760px\),\(pointer:coarse\)\{\[data-ui-button\]\[data-ui-size=compact\]\{--ui-button-height:44px/,'canonical compact actions keep the same mobile target');
  for(const [file,count] of [['app/scale-workspace.tsx',1],['app/ui-v2.tsx',1],['app/sections/produccion.tsx',0],['app/inventory-workspace.tsx',0],['app/productivity-ui.tsx',1]] as const){
   const source=read(file);
   assert.equal((source.match(/<TabScroller/g)||[]).length,count,`${file} usa TabScroller`);

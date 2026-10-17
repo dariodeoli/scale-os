@@ -2,9 +2,9 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
 import type {InventoryItem,InventoryMaintenance} from '../app/inventory-workspace';
-const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 type Write={path:string;body:any;method:string};
 const writes:Write[]=[],reads:string[]=[];
 const members=[{id:'10',name:'Cámara'},{id:'11',name:'Sonido'}];
@@ -55,7 +55,7 @@ const control=(value:string,tag:'input'|'textarea'|'select'='input')=>{
  return label.findAllByType(tag)[0];
 };
 const select=(name:string)=>renderer.root.findAllByType(SelectCustom).find(node=>node.props.label===name)!;
-const change=(name:string,value:string)=>act(()=>{const node=control(name);node.props.onChange({target:{value},currentTarget:{value,selectionStart:String(value).length}});});
+const change=(name:string,value:string)=>act(()=>{const node=control(name);const target={value,selectionStart:String(value).length,validationMessage:'',setCustomValidity(message:string){this.validationMessage=message;}};node.props.onChange({target,currentTarget:target});});
 const submit=()=>act(async()=>{await renderer.root.findByType('form').props.onSubmit({preventDefault(){}});});
 const button=(name:string)=>renderer.root.findAllByType('button').find(node=>text(node)===name)!;
 const itemForm=(item:InventoryItem|null)=>create(<InventoryItemForm item={item} categories={categories} members={members} storageTemplates={[]} canManageStorage={false} createStorageTemplate={async name=>({id:'x',name,active:true,item_count:0})} done={()=>{formDone++;}}/>);

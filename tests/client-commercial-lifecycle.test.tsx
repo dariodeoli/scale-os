@@ -19,7 +19,7 @@ const control=(id:string):ReactTestInstance=>{
  assert.ok(node,`missing control ${id}`);
  return node!;
 };
-const change=(id:string,value:string)=>act(()=>{const node=control(id);node.props.onChange(node.type===OptionsSelect?value:{target:{value}});});
+const change=(id:string,value:string)=>act(()=>{const node=control(id);const target={value,validationMessage:'',setCustomValidity(message:string){this.validationMessage=message;}};node.props.onChange(node.type===OptionsSelect?value:{target,currentTarget:target,type:'change'});});
 const setMoney=(id:string,value:string)=>{
  const node=renderer.root.findAll(item=>typeof item.props?.onValueChange==='function'&&item.props?.id===id)[0];
  assert.ok(node,`missing money control ${id}`);

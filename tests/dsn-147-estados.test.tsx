@@ -17,7 +17,7 @@ test('#147: la vista previa del cliente declara que no realiza acciones y no luc
  assert.match(controls,/disabled aria-disabled="true">Aprobar esta versión/,'el CTA principal queda deshabilitado y anunciado');
  assert.match(controls,/<a className="secondary justify-self-start" href=\{assetUrl\}/,'el enlace de archivo baja de jerarquía');
  const css=file('app/productivity.css');
- assert.match(css,/\.client-review-preview\[data-preview="inert"\] \.review-preview-actions button\.primary:disabled\{[^}]*background:var\(--surface-subtle\)/,'el primario inerte pierde el relleno de marca');
+ assert.match(css,/\.client-review-preview\[data-preview="inert"\] \.review-preview-actions button\.primary:disabled:not\(:where\(\[data-ui-button\]\)\)\{[^}]*background:var\(--surface-subtle\)/,'el primario inerte pierde el relleno de marca');
  const manual=file('app/manual.tsx');
  assert.match(manual,/manual-portal-badge[^>]*>Vista previa: no realiza acciones/,'el manual repite la misma verdad para su réplica');
 });

@@ -10,8 +10,6 @@ import {z} from 'zod';
 import {useSingleFlightSubmit} from '../app/use-single-flight-submit';
 import {currencyCodes,currencyLabels} from '../app/currencies';
 import {PHONE_ERROR,phoneValid} from '../app/field-rules';
-import {PhoneField} from '../app/phone-field';
-import {EmailField} from '../app/email-field';
 import {Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 import {financeNoticeHref,financePurposeNotice} from '../app/finance-privacy';
 import {paymentCurrency} from '../app/treasury-data';
@@ -19,6 +17,8 @@ import {todayAsuncion} from '../app/client-format';
 
 Object.assign(globalThis,{React});
 require.extensions['.css']=()=>{};
+const {PhoneField}=require('../app/phone-field') as typeof import('../app/phone-field');
+const {EmailField}=require('../app/email-field') as typeof import('../app/email-field');
 const {UrgencySelect}=require('../app/urgency') as typeof import('../app/urgency');
 let dialogPending=false;
 const dialogId=require.resolve('../app/dialog');
@@ -27,6 +27,11 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
  useDialogClose:()=>()=>{},useDialogPending:(value:boolean)=>{dialogPending=value;},
 }} as NodeModule;
 const {SaveActions}=require('../app/save-actions') as typeof import('../app/save-actions');
+const {useFormFocus,FormValidationErrors}=require('../app/ui/form-focus');
+const {PendingFields}=require('../app/ui/form-state');
+const {InputControl}=require('../app/ui/input-control');
+const {TextareaBase}=require('../app/ui/input');
+const {ApiFieldError}=require('../app/operations');
 const text=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 const file=ts.createSourceFile('scale-workspace.tsx',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const formsText=readFileSync(new URL('../app/workspace-forms.tsx',import.meta.url),'utf8');
@@ -48,7 +53,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
-  const scope={React,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
+  const scope={React,useFormFocus,FormValidationErrors,PendingFields,InputControl,TextareaBase,ApiFieldError,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
    BancoCombobox:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    EntityPicker:({legend}:{legend:string})=>React.createElement('fieldset',{'aria-label':legend}),
