@@ -273,10 +273,12 @@ export function AccountForm({
   custodians,
   request,
   done,
+  initialCurrency,
 }: {
   custodians: Member[];
   request: WorkspaceRequest;
   done: (account: Account) => void;
+  initialCurrency?:Account['currency'];
 }) {
   const {currency:defaultCurrency}=useCompanyCurrency();
   const form = useForm<AccountValues>({
@@ -284,7 +286,7 @@ export function AccountForm({
     defaultValues: {
       name: "",
       accountType: "bank",
-      currency: defaultCurrency,
+      currency: initialCurrency||defaultCurrency,
       institution: "",
       accountNumber: "",
       holderName: "",

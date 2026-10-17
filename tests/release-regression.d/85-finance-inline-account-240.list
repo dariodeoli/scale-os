@@ -1,0 +1,2 @@
+# Receipt/account integration: actual canonical forms, retained draft and permission gates
+node --import tsx --test tests/receipt-account-create.test.tsx

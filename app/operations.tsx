@@ -3,7 +3,7 @@ import {OptionalMark,optionalLabel} from './field-label';
 import {money} from './money-format';
 import {currencyChoices} from "./currencies";
 import {ProjectPresence} from './presence';
-import { useEffect, useState, useRef, useId, type ReactNode } from "react";
+import { useEffect, useState, useRef, useId, useImperativeHandle, type ReactNode, type Ref } from "react";
 import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,6 +91,8 @@ export type Field = {
   after?: ReactNode;
 };
 const currencies = currencyChoices;
+/** Patch a dependent field without resetting the canonical form or its errors. */
+export type EditorHandle={getValues:()=>Record<string,string>;patchValues:(values:Record<string,string>)=>void};
 export function Editor({
   fields,
   defaults,
@@ -102,6 +104,7 @@ export function Editor({
   cancelLabel = 'Cancelar',
   collapseSections = false,
   secondaryAction,
+  formHandle,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -115,6 +118,7 @@ export function Editor({
   collapseSections?: boolean;
   /** Segundo guardado (p. ej. «Guardar y crear otro»): misma validación, deja el formulario limpio y enfocado en el primer campo. */
   secondaryAction?: {label: string; save: (v: Record<string, string>) => Promise<void>};
+  formHandle?:Ref<EditorHandle>;
 }) {
   const shape: Record<string, z.ZodString> = {};
   for (const f of fields) {
@@ -145,6 +149,10 @@ export function Editor({
   // Cambios sin guardar (aviso al cerrar): solo cuenta lo que la persona tocó; una
   // normalización del campo al montar no convierte el formulario en «sucio».
   const [interacted,setInteracted]=useState(false);
+  useImperativeHandle(formHandle,()=>({getValues:()=>({...form.getValues()}),patchValues:values=>{
+    for(const [key,value] of Object.entries(values))if(fields.some(field=>field.key===key))form.setValue(key,value,{shouldDirty:true,shouldValidate:true});
+    setInteracted(true);
+  }}),[form,fields]);
   useDialogPending(pending,interacted&&form.formState.isDirty&&!pending);
   // Secciones (issue #183): grupos plegables, resumen de errores y, en móvil con
   // 3 o más secciones, pasos Anterior/Siguiente. Sin `section` nada de esto aparece.
