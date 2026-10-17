@@ -1,0 +1,357 @@
+{
+  "sha": "a70ee1cd",
+  "startedAt": "2026-10-17T07:36:39.900Z",
+  "base": "http://127.0.0.1:3008",
+  "checks": [
+    {
+      "name": "Authenticated synthetic local owner",
+      "passed": true
+    },
+    {
+      "name": "Synthetic client created201",
+      "passed": true
+    },
+    {
+      "name": "Synthetic contract human-review fixture issued201",
+      "passed": true
+    },
+    {
+      "name": "Issued text contains original independent representative",
+      "passed": true
+    },
+    {
+      "name": "Desktop independent: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Desktop editor: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-editor-independent-1366: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 1366,
+        "documentOverflow": 0,
+        "dialogWidth": 820,
+        "dialogLeft": 273,
+        "dialogRight": 1093,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Unlinked representative editable",
+      "passed": true
+    },
+    {
+      "name": "Checkbox has keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "Linked representative visible and disabled",
+      "passed": true
+    },
+    {
+      "name": "Linked name follows legal name live",
+      "passed": true
+    },
+    {
+      "name": "Legal name has priority over commercial name",
+      "passed": true
+    },
+    {
+      "name": "Client saved through real form PATCH200",
+      "passed": true
+    },
+    {
+      "name": "Linked state and canonical name persist",
+      "passed": true
+    },
+    {
+      "name": "Independent party_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_number preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_document preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_role preserved",
+      "passed": true
+    },
+    {
+      "name": "Issued contract snapshot remains identical",
+      "passed": true
+    },
+    {
+      "name": "Desktop linked: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Linked checkbox and derived field survive reopen",
+      "passed": true
+    },
+    {
+      "name": "client-editor-linked-1366: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 1366,
+        "documentOverflow": 0,
+        "dialogWidth": 820,
+        "dialogLeft": 273,
+        "dialogRight": 1093,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Checkbox has keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "Client saved through real form PATCH200",
+      "passed": true
+    },
+    {
+      "name": "Unchecked state retains independent representative",
+      "passed": true
+    },
+    {
+      "name": "Independent party_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_number preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_document preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_role preserved",
+      "passed": true
+    },
+    {
+      "name": "Issued contract snapshot remains identical",
+      "passed": true
+    },
+    {
+      "name": "Unlinked representative survives API rename",
+      "passed": true
+    },
+    {
+      "name": "Independent party_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_number preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_document preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_role preserved",
+      "passed": true
+    },
+    {
+      "name": "Issued contract snapshot remains identical",
+      "passed": true
+    },
+    {
+      "name": "Mobile independent: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Mobile editor: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-editor-independent-390: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 390,
+        "documentOverflow": 0,
+        "dialogWidth": 390,
+        "dialogLeft": 0,
+        "dialogRight": 390,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Checkbox has keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "Mobile linked name follows commercial fallback",
+      "passed": true
+    },
+    {
+      "name": "client-editor-linked-390: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 390,
+        "documentOverflow": 0,
+        "dialogWidth": 390,
+        "dialogLeft": 0,
+        "dialogRight": 390,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Client saved through real form PATCH200",
+      "passed": true
+    },
+    {
+      "name": "Mobile linked save persists canonical fallback",
+      "passed": true
+    },
+    {
+      "name": "Independent party_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_number preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_document preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_role preserved",
+      "passed": true
+    },
+    {
+      "name": "Issued contract snapshot remains identical",
+      "passed": true
+    },
+    {
+      "name": "Mobile linked: client and legal representative names share the photo identity",
+      "passed": true
+    },
+    {
+      "name": "Mobile reopen retains checked link",
+      "passed": true
+    },
+    {
+      "name": "Mobile reopen: real image decoded in circular identity",
+      "passed": true,
+      "images": [
+        {
+          "decoded": true,
+          "width": 40,
+          "height": 40,
+          "radius": "50%",
+          "naturalWidth": 256
+        }
+      ]
+    },
+    {
+      "name": "client-editor-reopened-390: document and dialog fit horizontally",
+      "passed": true,
+      "metrics": {
+        "viewport": 390,
+        "documentOverflow": 0,
+        "dialogWidth": 390,
+        "dialogLeft": 0,
+        "dialogRight": 390,
+        "dialogOverflow": 0,
+        "scrollRegions": 1
+      }
+    },
+    {
+      "name": "Backend rename recanonicalizes a linked representative",
+      "passed": true
+    },
+    {
+      "name": "Independent party_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_type preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent document_number preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_document preserved",
+      "passed": true
+    },
+    {
+      "name": "Independent legal_representative_role preserved",
+      "passed": true
+    },
+    {
+      "name": "Issued contract snapshot remains identical",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "client-editor-independent-1366.png",
+    "client-editor-linked-1366.png",
+    "client-editor-independent-390.png",
+    "client-editor-linked-390.png",
+    "client-editor-reopened-390.png"
+  ],
+  "blockedExternal": [],
+  "limitations": [
+    "390px is browser emulation, not a physical device.",
+    "Google, RUC, legal advice and production deploy are outside this local run."
+  ],
+  "fixture": {
+    "clientId": "1",
+    "contractId": "1",
+    "issuedVersion": "1",
+    "snapshotHash": "a26d8d7dc096e13a9aa8327ed6cb1f485db5cbd29fc07cca4b67bfc55ec6fa3a"
+  },
+  "finishedAt": "2026-10-17T07:37:30.185Z",
+  "assertionRecords": 64,
+  "uniqueCheckNames": 36,
+  "passed": true
+}
