@@ -111,3 +111,18 @@ La revisión de fuente anterior conserva su fecha y alcance. QA independiente co
 | `390-dark-pagos-mora.png` y `mora-overflow-dom.json` | Documento desborda 139 px. QA aisló la causa en una fila de deuda previa; la tabla de cobros conserva desplazamiento interno correcto. | Defecto confirmado, corrección acotada asignada al integrador. | Cero desborde de documento en los tres temas a 390, manteniendo todos los datos y acciones de deuda. |
 
 Informes, Configuración, autenticación y landing mantienen aquí conclusiones de fuente: este auditor no inspeccionó capturas propias de esas rutas. Los 96 escenarios incluyen Informes/Configuración según el índice de QA, pero no autorizan a atribuirles observaciones visuales no realizadas. Autenticación y landing no forman parte de esa matriz. Ningún hallazgo de esta tabla crea automáticamente un ticket ni acredita una corrección ya desplegada; los defectos y propuestas se coordinan con los issues existentes.
+
+
+## Seguimiento de implementación adicional y estado de evidencia
+
+Dedupe de títulos/cuerpos GitHub realizado el 17/10/2026 antes de crear issues. Las mejoras demostradas quedan así:
+
+| Mejora demostrada | Seguimiento concreto | Estado |
+|---|---|---|
+| Estudio: agenda o acceso a hoy como prioridad móvil | [#249](https://github.com/dariodeoli/scale-os/issues/249), derivado de #248. #141/#168/#173 anteriores cubrían vacío, altura y alineación, no acceso a hoy. | Propuesta, no implementada; alcance/aceptación/riesgos/pruebas/deploy incluidos en el issue. |
+| Contratos: Nuevo contrato primario, modelos/plantillas secundarios | [#250](https://github.com/dariodeoli/scale-os/issues/250), coordinado con [#209](https://github.com/dariodeoli/scale-os/issues/209)/[#210](https://github.com/dariodeoli/scale-os/issues/210), que cubren funcionalidad, no esta jerarquía. | Propuesta, no implementada. |
+| Resumen: compactar primer pliegue preservando tareas y urgencias | Reutilizar [#206](https://github.com/dariodeoli/scale-os/issues/206), cuyo objetivo ya exige «sin saturar su inicio» y lista compacta. Criterios adicionales preparados en la propuesta de actualización, pendientes de revisión del integrador. | Mejora visual propuesta, no implementada; flujo de tareas existente ya tiene evidencia funcional. No se crea duplicado. |
+
+No se abre un issue genérico de mapa de Finanzas sin una tarea y defecto demostrados. Los ajustes concretos de KPI Clientes/acciones Proyectos y política Button pertenecen a #241/#203/#207; Mora y Balance conservan sus responsables. La evidencia de navegador de este documento sigue siendo **pre-fix** (`0afdbd08`, 93/96 escenarios sin desborde): no se convierte en aceptación final de los cambios posteriores. La matriz final del candidato reconstruido192 está pendiente en esta actualización; no se afirma despliegue192.
+
+Los cuerpos de #203–#218 aún describían frontend187 pendiente. Se preparó [JSON de cuerpos propuestos](248-issue-updates.proposed.json) para revisión del integrador: conserva criterios originales sin marcar casillas automáticamente y separa evidencia acreditada, límites físicos/externos y mejoras nuevas. **No se aplicaron esos cuerpos ni se cerraron issues.** La última publicación acreditada es191: [release 191](../qa/release-191.md), smoke público17/10/2026 09:00 UTC y CI de main aprobados. Esta evidencia supera la observación histórica187, pero no acredita retrospectivamente cada criterio ni pruebas de hardware/proveedores reales. El JSON incorpora hash del cuerpo original para detectar cambios ajenos antes de editar.
