@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "migrationBaseline": "1cc44010",
-  "sourceSnapshot": "aa24198368f18f43aa0ce15ec641af3558b781be",
+  "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
   "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas.",
   "changedFiles": [
@@ -33,7 +33,7 @@
     {
       "file": "app/finance-balance.tsx",
       "beforeHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
-      "afterHash": "814e7dca5fa015dd4c4f58447dee4177e4259762ffaef7628843fc915f86540c",
+      "afterHash": "6913581565c264406593368b048596d8691f267cb1786071e8b889b1c4e7ea0f",
       "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
     },
     {
@@ -588,6 +588,10 @@
       "version": "0.68.19",
       "sha": "7cf63ad530384b2887551ddb50c9261270762202",
       "financialEntry": "owncoding-ui/financial-lazy"
+    },
+    "logoHeightCorrection": {
+      "file": "app/finance-balance.tsx",
+      "reason": "BancoLogo expects a height CSS class; h-6 restores the previously zero-sized bank artwork. No action or retained widget changes."
     }
   }
 }

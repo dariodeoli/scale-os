@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "issue": 241,
-  "baseline": "aa24198368f18f43aa0ce15ec641af3558b781be",
+  "baseline": "4390696900a911979fcdc33e84db70f73128e929",
   "scope": "Release194: conservar JSX/hash exactos de los55 widgets; refrescar sólo posiciones y hashes de archivos tras cambios de producto revisados.",
   "files": [
     {

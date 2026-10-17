@@ -316,7 +316,7 @@
     {
       "file": "app/finance-balance.tsx",
       "changed": false,
-      "sha256": "814e7dca5fa015dd4c4f58447dee4177e4259762ffaef7628843fc915f86540c"
+      "sha256": "6913581565c264406593368b048596d8691f267cb1786071e8b889b1c4e7ea0f"
     },
     {
       "file": "app/finance-clients.tsx",
@@ -2697,8 +2697,8 @@
     {
       "file": "app/finance-balance.tsx",
       "line": 64,
-      "column": 976,
-      "offset": 11230,
+      "column": 975,
+      "offset": 11229,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2709,7 +2709,7 @@
       "file": "app/finance-balance.tsx",
       "line": 66,
       "column": 753,
-      "offset": 12208,
+      "offset": 12207,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2720,7 +2720,7 @@
       "file": "app/finance-balance.tsx",
       "line": 66,
       "column": 1609,
-      "offset": 13064,
+      "offset": 13063,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
