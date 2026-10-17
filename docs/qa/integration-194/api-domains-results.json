@@ -1,0 +1,230 @@
+{
+  "source": "6e43d30f+release194-metadata",
+  "checks": [
+    {
+      "name": "Backend194 ready",
+      "passed": true
+    },
+    {
+      "name": "184 initial GET authorized",
+      "passed": true
+    },
+    {
+      "name": "184 unauthorized role403",
+      "passed": true
+    },
+    {
+      "name": "184 foreign tenant404",
+      "passed": true
+    },
+    {
+      "name": "184 create201/v1",
+      "passed": true
+    },
+    {
+      "name": "184 update200/v2",
+      "passed": true
+    },
+    {
+      "name": "184 stale409",
+      "passed": true
+    },
+    {
+      "name": "184 stale did not overwrite",
+      "passed": true
+    },
+    {
+      "name": "184 delete200",
+      "passed": true
+    },
+    {
+      "name": "184 contact IDs restored",
+      "passed": true
+    },
+    {
+      "name": "184 primary contact untouched",
+      "passed": true
+    },
+    {
+      "name": "186 initial scoped GET",
+      "passed": true
+    },
+    {
+      "name": "186 wrong scope409",
+      "passed": true
+    },
+    {
+      "name": "186 scoped PATCH stored",
+      "passed": true
+    },
+    {
+      "name": "186 server readback matches",
+      "passed": true
+    },
+    {
+      "name": "208 catalog nonofficial explicit",
+      "passed": true
+    },
+    {
+      "name": "208 mismatched locality400",
+      "passed": true
+    },
+    {
+      "name": "208 manual200 with manual provenance",
+      "passed": true
+    },
+    {
+      "name": "208 stale profile409",
+      "passed": true
+    }
+  ],
+  "requests": [
+    {
+      "label": "demoA",
+      "path": "/health",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "contractReadonly",
+      "path": "/api/agency/clients/81/contacts",
+      "method": "GET",
+      "status": 403
+    },
+    {
+      "label": "demoB",
+      "path": "/api/agency/clients/81/contacts",
+      "method": "GET",
+      "status": 404
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts",
+      "method": "POST",
+      "status": 201
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts/1",
+      "method": "PATCH",
+      "status": 200
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts/1",
+      "method": "PATCH",
+      "status": 409
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts/1",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts/1",
+      "method": "DELETE",
+      "status": 200
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients/81/contacts",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "ordinary",
+      "path": "/api/agency/clients",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/auth/me",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/workspace-preferences",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/workspace-preferences",
+      "method": "PATCH",
+      "status": 409
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/workspace-preferences",
+      "method": "PATCH",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/workspace-preferences",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/company-legal-profile",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/company-legal-profile",
+      "method": "PATCH",
+      "status": 400
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/company-legal-profile",
+      "method": "PATCH",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/company-legal-profile",
+      "method": "PATCH",
+      "status": 409
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/workspace-preferences",
+      "method": "PATCH",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/company-legal-profile",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "label": "demoA",
+      "path": "/api/agency/company-legal-profile",
+      "method": "PATCH",
+      "status": 200
+    }
+  ],
+  "preferenceRestoreStatus": 200,
+  "profileRestoreStatus": 200,
+  "passed": true
+}
