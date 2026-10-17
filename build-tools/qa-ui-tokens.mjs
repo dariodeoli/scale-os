@@ -4,9 +4,11 @@ import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
-const require=createRequire(new URL('../backend/package.json',import.meta.url));
-const puppeteer=require('puppeteer-core');
-require('tsx/cjs');const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');const {Button,IconButton}=require('../app/ui/button.tsx');
+// Render frontend components with their own React; backend has independent peers.
+const require=createRequire(new URL('../package.json',import.meta.url));
+const browserRequire=createRequire(new URL('../backend/package.json',import.meta.url));
+const puppeteer=browserRequire('puppeteer-core');
+require('tsx/cjs');const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');const {Button,IconButton}=require('./app/ui/button.tsx');
 const action=props=>renderToStaticMarkup(React.createElement(Button,props,'Guardar'));
 const canonical=action({id:'canonical',variant:'primary',color:'brand',size:'medium'});
 const compact=action({id:'compact',variant:'ghost',color:'brand',size:'compact'});

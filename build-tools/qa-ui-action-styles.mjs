@@ -5,10 +5,12 @@ import {createServer} from 'node:http';
 import {execFileSync} from 'node:child_process';
 import {readFile,mkdir,writeFile,readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
-const require=createRequire(new URL('../backend/package.json',import.meta.url));require('tsx/cjs');
+// Render frontend components with their own React; backend has independent peers.
+const require=createRequire(new URL('../package.json',import.meta.url));
+const browserRequire=createRequire(new URL('../backend/package.json',import.meta.url));require('tsx/cjs');
 const React=require('react');Object.assign(globalThis,{React});
-const {renderToStaticMarkup}=require('react-dom/server');const {Button,IconButton}=require('../app/ui/button.tsx');
-const puppeteer=require('puppeteer-core');
+const {renderToStaticMarkup}=require('react-dom/server');const {Button,IconButton}=require('./app/ui/button.tsx');
+const puppeteer=browserRequire('puppeteer-core');
 const root=resolve(new URL('..',import.meta.url).pathname),output=resolve(process.env.QA_OUT||'/tmp/scale241-ui-action-styles');await mkdir(output,{recursive:true});
 const profiles=[
  {name:'workspace',path:['control-shell','panel','header-actions'],className:'primary',props:{variant:'secondary',size:'compact',color:'success'}},
