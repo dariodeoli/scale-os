@@ -29,7 +29,7 @@ No se libera una versión del paquete desde esta rama de Scale. La revisión de 
 
 ## Comparación realizada al finalizar la consolidación local
 
-Fuente: declaraciones publicadas en la dependencia instalada `owncoding-ui@0.68.16`, `dist/index.d.ts` (Button64–73, Input76–89, SearchField288–290). Se revisaron después de que la regresión integrada de Scale completó243 entradas. No se cambió package.json ni el lock.
+Fuente: declaraciones publicadas en la dependencia instalada `owncoding-ui@0.68.16`, `dist/index.d.ts` (Button64–73, Input76–89, SearchField288–290). Se revisaron después de que la regresión integrada de Scale completó243 entradas. No se cambió la dependencia de UI ni su resolución; los metadatos de versión de Scale se actualizan por el flujo de release.
 
 | Modelo | Paquete instalado | Contrato local consolidado | Decisión |
 |---|---|---|---|

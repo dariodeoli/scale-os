@@ -40,3 +40,5 @@ SCALE_UI_CATALOG=1 npm run start -- --hostname 127.0.0.1 --port 4891
 ```
 
 Abrir `/ui-catalog`. Sin la variable, devuelve 404. El catálogo no llama a APIs de clientes ni consulta proveedores; los datos son ilustrativos. Su formulario simula un fallo para comprobar que conserva borrador y foco. Los controles temporales nativos dependen del idioma y capacidades del navegador; no se acredita un calendario personalizado con confirmación separada ni un selector de rueda móvil propio.
+
+`lookup.confirmedByProvider` se usa solo si el adaptador de consulta ya pidió una confirmación explícita a la persona antes de resolver `run` (como ClientEditor/RucConfirmCard). No significa que los datos del proveedor sean una autorización para sobrescribir campos. Los lookups genéricos conservan la confirmación del Editor por defecto.

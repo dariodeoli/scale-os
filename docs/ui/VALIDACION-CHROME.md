@@ -18,6 +18,8 @@ Fecha: 17/10/2026. Ruta local: http://127.0.0.1:4891/ui-catalog. Build de Scale,
 
 Las capturas están en el paquete de entrega `evidencia/`. Se verificaron sus dimensiones reales con sips.
 
+Se comprobó además por HTTP: catálogo habilitado: 200, sin la variable de activación: 404. El servidor auxiliar de esta verificación se cerró al terminar.
+
 ## Alcance
 
 El catálogo usa controles y estilos de la app, pero contiene datos ilustrativos. No equivale a un recorrido autenticado de todos los roles, tenants y módulos contra su API real. El fallo de formulario es simulado; pruebas de componentes y RUC del backend complementan el circuito con contratos persistidos/mocks locales.
