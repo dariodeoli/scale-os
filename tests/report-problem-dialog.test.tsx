@@ -139,3 +139,19 @@ test('CSV: helper único del front con la misma tabla que el API (paridad) y ado
   for (const file of ['app/reports-csv.ts', 'app/client-bulk.ts']) assert.match(read(file), /from '\.\/csv-safety'/, `${file} usa el helper`);
   assert.match(read('backend/personal-data.js'), /from '\.\/csv-safety\.js'/);
 });
+
+test('single flight starts before validation and a duplicate confirmation sends/closes once',async()=>{
+ let renderer!:ReactTestRenderer,calls=0,closed=0,release!:()=>void;
+ const send=async()=>{calls++;await new Promise<void>(resolve=>{release=resolve;});};
+ await act(async()=>{renderer=create(<ReportProblemDialog onClose={()=>{closed++;}} send={send}/>,{createNodeMock:hostNode});});
+ const {ConfirmDialog}=require('../app/dialog') as typeof import('../app/dialog');
+ const confirm=()=>renderer.root.findByType(ConfirmDialog).props.onConfirm();
+ await act(async()=>{confirm();confirm();});assert.equal(calls,0,'invalid attempts never send');
+ await act(async()=>renderer.root.findAll(node=>node.props.label==='Categoría'&&typeof node.props.onChange==='function')[0].props.onChange('error'));
+ await act(async()=>renderer.root.findByType('textarea').props.onChange({target:{value:'Reporte sintético válido'}}));
+ await act(async()=>{confirm();confirm();});assert.equal(calls,1,'synchronous mutex blocks duplicate callback');
+ assert.equal(renderer.root.findByType('textarea').props.disabled,true);
+ await act(async()=>{release();});assert.equal(closed,1);
+ await act(async()=>{confirm();});assert.equal(calls,1,'successful send is not repeated if a consumer has not unmounted yet');assert.equal(closed,1);
+ act(()=>renderer.unmount());
+});
