@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.190
+
+- **Más espacio útil**: encabezados y filtros compactos, proyectos en cuadrícula
+  reorganizados y logos de clientes circulares, también en las listas.
+- **Formularios y personas compartidos**: campos proporcionados al contenido,
+  importes nuevos vacíos, selección de personas con foto y acciones de diálogo coherentes.
+- **Equipo y propiedad del inventario**: identificación «vos», estado de acceso
+  alineado y retiro de otro dueño; editar desde cuadrícula y distinguir propietario
+  del custodio, con atribución masiva explícita y trazabilidad.
+- **Balance y caja por cuenta**: contratado, facturado, cobrado, salarios y gastos;
+  gastos personalizables fijos/variables y recurrentes, bancos del catálogo y custodia.
+- **Cobranza flexible**: pagos sin cliente ni factura, asociaciones posteriores,
+  aplicaciones parciales, deuda anterior con motivo y fecha esperada de cobro.
+- **Control por mes**: fechas efectivas, correcciones auditadas, saldos de apertura,
+  cierres y reaperturas que protegen los movimientos y conservan el historial.
+
 ## v1.0.189
 
 - **Modelos de contrato listos para adaptar**: marketing mensual, condición preferencial,
