@@ -15,3 +15,4 @@ node --test tests/ui-field-migration.test.mjs
 node --test tests/migrate-ui-actions.test.mjs
 tsx tests/form-focus-paths-241.test.tsx
 tsx tests/temporal-filter.test.tsx
+tsx tests/ui-numeric-engine-241.test.tsx

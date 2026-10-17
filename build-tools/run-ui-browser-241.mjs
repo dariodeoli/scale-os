@@ -15,6 +15,7 @@ const cases=[
  ['node','tests/workspace-form-lifecycle-browser-241.test.mjs'],
  ['node','tests/access-forms-browser-241.test.mjs'],
  ['node','tests/ui-temporal-drafts-browser-241.test.mjs'],
+ ['node','tests/ui-numeric-browser-241.test.mjs'],
  ['node','tests/temporal-filter-browser.test.mjs'],
  ['node','tests/quote-composer-browser-241.test.mjs'],
  ['tsx','tests/superadmin-form-browser.test.tsx'],

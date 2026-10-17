@@ -1,8 +1,6 @@
-/** `source:'mutation'`: aviso automático de `api()` tras una escritura (texto genérico por ruta). */
-export type Feedback={message:string;tone:'success'|'error'|'warning';source?:'mutation'};
-export const feedbackEvent='scale:feedback';
-/** Confirmation toasts stay on screen only 2-3 seconds. */
-export const feedbackDuration=(tone:Feedback['tone'])=>tone==='success'?2000:3000;
+import {notify,type Feedback} from './ui/feedback';
+export {notify,feedbackDuration,feedbackEvent,stackFeedback} from './ui/feedback';
+export type {Feedback} from './ui/feedback';
 const record=(value:unknown):Record<string,unknown>=>value&&typeof value==='object'?value as Record<string,unknown>:{};
 export function mutationFeedback(path:string,method:string,body:unknown,data:unknown):Feedback|null{
  if(!path.startsWith('/api/agency/')||!['POST','PATCH','DELETE'].includes(method.toUpperCase()))return null;
@@ -23,14 +21,4 @@ export function mutationFeedback(path:string,method:string,body:unknown,data:unk
  if(path.endsWith('/transfers'))return{tone:'success',message:'Transferencia registrada. Ambas cuentas actualizadas.'};
  return{tone:'success',message:'Cambios guardados correctamente.'};
 }
-export function notify(feedback:Feedback){if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent<Feedback>(feedbackEvent,{detail:feedback}));}
 export function notifyMutation(path:string,method:string,body:unknown,data:unknown){const feedback=mutationFeedback(path,method,body,data);if(feedback)notify({...feedback,source:'mutation'});}
-/**
- * Pila visible (máx. 3): un mismo texto no se repite y, cuando la pantalla anuncia
- * su propio éxito («Espacio guardado.»), reemplaza al genérico automático del mismo
- * guardado en vez de apilar dos avisos por una sola acción.
- */
-export function stackFeedback<T extends Feedback>(current:T[],incoming:T):T[]{
- const explicitSuccess=incoming.tone==='success'&&incoming.source!=='mutation';
- return [...current.filter(item=>item.message!==incoming.message&&!(explicitSuccess&&item.tone==='success'&&item.source==='mutation')),incoming].slice(-3);
-}

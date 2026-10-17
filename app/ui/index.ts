@@ -59,3 +59,7 @@ export {PersonContainer} from '../person-container';
 export type {PersonContainerProps} from '../person-container';
 export {ActorIdentity, ActorAvatar} from '../actor-identity';
 export type {ActorIdentityProps} from '../actor-identity';
+
+export {notify} from './feedback';
+export type {Feedback} from './feedback';
+export {NotificationCenter as ToastViewport} from '../notification-center';

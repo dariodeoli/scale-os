@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {CheckCircle2,AlertCircle,AlertTriangle} from 'lucide-react';
-import {feedbackDuration,feedbackEvent,stackFeedback,Feedback} from './feedback';
+import {feedbackDuration,feedbackEvent,stackFeedback,Feedback} from './ui/feedback';
 import './toast.css';
 type Item=Feedback&{id:number};
 const icons={success:CheckCircle2,error:AlertCircle,warning:AlertTriangle};
