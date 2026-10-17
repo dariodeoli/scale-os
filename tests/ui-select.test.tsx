@@ -26,14 +26,14 @@ test('search includes accent-folded primary/secondary/extra text; empty differs 
  act(()=>{r=create(<Selector presentation="inline" label="Persona" searchable options={options} value="a" error="Cambio rechazado" onChange={v=>changed.push(v)}/>);});
  assert.equal(foldSelectSearch(null),'');assert.equal(foldSelectSearch(undefined),'');assert.equal(foldSelectSearch(' LUCÍA '),'lucia');
  const input=()=>r.root.findByProps({type:'search'});
- act(()=>input().props.onChange({target:{value:'PRODUCCION'}}));assert.equal(r.root.findAllByType('button').length,1);
- act(()=>input().props.onChange({target:{value:'lucia@'}}));assert.equal(r.root.findAllByType('button').length,1);
+ act(()=>input().props.onChange({target:{value:'PRODUCCION'}}));assert.equal(r.root.findAll(node=>node.type==='button'&&node.props['aria-pressed']!==undefined).length,1);
+ act(()=>input().props.onChange({target:{value:'lucia@'}}));assert.equal(r.root.findAll(node=>node.type==='button'&&node.props['aria-pressed']!==undefined).length,1);
  act(()=>input().props.onChange({target:{value:'missing'}}));assert.match(text(r),/No hay coincidencias/);
  assert.match(text(r),/Cambio rechazado/);assert.equal(changed.length,0);
  act(()=>r.update(<Selector presentation="inline" label="Persona" searchable options={[]} value="a" onChange={v=>changed.push(v)}/>));
  assert.match(text(r),/No hay opciones disponibles/,'empty source is not a search failure');assert.match(text(r),/Opción no disponible/);
  act(()=>r.update(<Selector presentation="inline" label="Persona" options={options} value="a" loading onChange={v=>changed.push(v)}/>));
- assert.match(text(r),/Cargando opciones/);assert.equal(r.root.findAllByType('button').length,0);
+ assert.match(text(r),/Cargando opciones/);assert.equal(r.root.findAll(node=>node.type==='button'&&node.props['aria-pressed']!==undefined).length,0);
  act(()=>r.unmount());
 });
 
@@ -52,6 +52,6 @@ test('explicit pinned empty action remains available while filtering inline enti
  let r!:ReactTestRenderer;
  act(()=>{r=create(<Selector presentation="inline" label="Cliente" searchable options={[{value:'',primary:'Sin asignar',pinned:true},...options]} value="a" onChange={()=>{}}/>);});
  act(()=>r.root.findByProps({type:'search'}).props.onChange({target:{value:'produccion'}}));
- assert.equal(r.root.findAllByType('button').length,2);assert.match(text(r),/Sin asignar/);
+ assert.equal(r.root.findAll(node=>node.type==='button'&&node.props['aria-pressed']!==undefined).length,2);assert.match(text(r),/Sin asignar/);
  act(()=>r.unmount());
 });

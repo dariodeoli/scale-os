@@ -3,6 +3,8 @@ import {useEffect,useId,useLayoutEffect,useRef,useState,type ReactNode} from 're
 import {createPortal} from 'react-dom';
 import {ChevronDown} from 'lucide-react';
 import {FotoPerfil} from '../foto-perfil';
+import {SearchField} from '../search-field';
+import {InputBase} from './input';
 import {selectPosition} from '../select-position';
 import './select.css';
 
@@ -78,13 +80,13 @@ export function Selector(props:SelectorProps){
   nodes[next]?.focus();
  }
  const content=<>
-  {searchable&&<input ref={search} type="search" aria-label={searchLabel} placeholder={searchPlaceholder} value={query} disabled={locked} onChange={event=>setQuery(event.target.value)} onKeyDown={event=>{if(['Home','End'].includes(event.key))event.stopPropagation();if(event.key==='Enter'){event.preventDefault();const first=filtered.find(option=>!option.disabled&&(!query||!option.pinned))||filtered.find(option=>!option.disabled);if(first)choose(first);}}}/>}
+  {searchable&&<SearchField ref={search} label={searchLabel} hideLabel placeholder={searchPlaceholder} value={query} disabled={locked} onChange={setQuery} onKeyDown={event=>{if(['Home','End'].includes(event.key))event.stopPropagation();if(event.key==='Enter'){event.preventDefault();const first=filtered.find(option=>!option.disabled&&(!query||!option.pinned))||filtered.find(option=>!option.disabled);if(first)choose(first);}}}/>}
   {loading?<p role="status">{loadingLabel}</p>:<div className={inline?`ui-select-inline-options ${optionsClassName}`:optionsClassName||undefined} role={inline?'group':'listbox'} id={listId} aria-labelledby={`${id}-label`} aria-multiselectable={!inline&&props.multiple?true:undefined}>
    {filtered.map(option=>{
     const state={selected:values.includes(option.value),disabled:locked||Boolean(option.disabled)};
     const body=renderOption?renderOption(option,state):<OptionContent option={option} variant={variant}/>;
     return inline&&props.multiple?<label key={option.value} className={`ui-select-check ${optionClassName}`}>
-     <input data-select-option type="checkbox" checked={state.selected} disabled={state.disabled} onChange={()=>choose(option)}/>{body}
+     <InputBase data-select-option type="checkbox" checked={state.selected} disabled={state.disabled} onChange={()=>choose(option)}/>{body}
     </label>:<button key={option.value} type="button" data-select-option role={inline?undefined:'option'} aria-selected={inline?undefined:state.selected} aria-pressed={inline?state.selected:undefined} disabled={state.disabled} className={inline?`choice${state.selected?' active':''} ${optionClassName}`:optionClassName||undefined} onClick={()=>choose(option)}>{body}</button>;
    })}
   </div>}

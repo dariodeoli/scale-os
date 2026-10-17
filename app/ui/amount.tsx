@@ -1,12 +1,12 @@
 "use client";
 
 import {MoneyInput} from 'owncoding-ui';
-import {forwardRef, type ComponentPropsWithoutRef} from 'react';
+import {forwardRef, type InputHTMLAttributes} from 'react';
 import type {FieldStateProps} from './input';
 
 const currencyMarks: Record<string, string> = {PYG: 'Gs', USD: 'US$', EUR: '€', BRL: 'R$', ARS: '$', MXN: 'MX$'};
-export type AmountInputProps = Omit<ComponentPropsWithoutRef<typeof MoneyInput>, 'value' | 'currency' | 'onChange' | 'onValueChange' | 'symbol'> & FieldStateProps & {
-  value: string | number; currency: string; onChange: (value: string) => void;
+export type AmountInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> & FieldStateProps & {
+  value: string | number; currency: string; onChange: (value: string) => void; integerOnly?:boolean;
 };
 
 /** App contract over the existing renderer: grouping, currency precision and caret stay owned by MoneyInput. */

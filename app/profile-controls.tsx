@@ -1,30 +1,6 @@
 "use client";
-import {MoneyInput} from 'owncoding-ui';
+export {AmountInput} from './ui/amount';
 import {Selector,type SelectKind,type SelectOption} from './ui/select';
-
-const currencyMarks: Record<string, string> = { PYG: 'Gs', USD: 'US$', EUR: '€', BRL: 'R$', ARS: '$', MXN: 'MX$' };
-const currencyMark = (currency: string) => currencyMarks[currency] || currency;
-/**
- * Campo de monto de la app: puente sobre `MoneyInput` de owncoding-ui v0.39
- * (#75), que conserva el caret al tipear/pegar, acepta pegado es-PY/en-US y
- * `integerOnly`. La API local (`onChange(value:string)`, `invalid`,
- * `describedBy`, `required`) se mantiene para los consumidores existentes.
- */
-export function AmountInput({ value, currency, onChange,disabled=false,id,invalid,describedBy,integerOnly=false,required=false,placeholder='0' }: { value: string|number; currency: string; onChange: (value: string) => void;disabled?:boolean;id?:string;invalid?:boolean;describedBy?:string;integerOnly?:boolean;required?:boolean;placeholder?:string }) {
-  return <MoneyInput
-    id={id}
-    placeholder={placeholder}
-    disabled={disabled}
-    required={required}
-    aria-invalid={invalid||undefined}
-    aria-describedby={describedBy}
-    currency={currency}
-    symbol={currencyMark(currency)}
-    integerOnly={integerOnly}
-    value={value === '' || value === null || value === undefined ? '' : String(value)}
-    onValueChange={(next: unknown)=>onChange(next === '' || next === null || next === undefined ? '' : String(next))}
-  />;
-}
 
 export type SelectChoice={value:string;label:string;photoUrl?:string|null;secondary?:string;searchText?:string;kind?:'person'|'entity';disabled?:boolean};
 export type SelectCustomProps={label:string;value:string;choices:SelectChoice[];onChange:(value:string)=>void;variant?:SelectKind;disabled?:boolean;invalid?:boolean;describedBy?:string;loading?:boolean;error?:string};
