@@ -1,4 +1,5 @@
 "use client";
+import {Input} from './ui/input';
 import {useId} from 'react';
 import {EMAIL_MAX_LENGTH, emailSuggestions} from './field-rules';
 
@@ -20,7 +21,7 @@ export function EmailField({id, value, onChange, disabled = false, invalid = fal
   const suggestions = emailSuggestions(value);
   const listId = `${inputId}-domains`;
   return <>
-    <input id={inputId} type="email" inputMode="email" autoComplete="email" maxLength={EMAIL_MAX_LENGTH} placeholder={placeholder} list={suggestions.length ? listId : undefined} value={value} disabled={disabled} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => onChange(event.target.value)}/>
+    <Input id={inputId} type="email" inputMode="email" autoComplete="email" maxLength={EMAIL_MAX_LENGTH} placeholder={placeholder} list={suggestions.length ? listId : undefined} value={value} disabled={disabled} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => onChange(event.target.value)}/>
     {suggestions.length ? <datalist id={listId}>{suggestions.map(option => <option key={option} value={option}/>)}</datalist> : null}
   </>;
 }

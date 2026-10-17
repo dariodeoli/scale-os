@@ -1,4 +1,5 @@
 "use client";
+import {Input} from './ui/input';
 import {PHONE_COUNTRIES, phoneNational, phoneParts, phoneValue} from './field-rules';
 
 type PhoneFieldProps = {
@@ -23,6 +24,6 @@ export function PhoneField({id, value, onChange, disabled = false, invalid = fal
       {!country && <option value="">Código no reconocido</option>}
       {PHONE_COUNTRIES.map(entry => <option key={entry.code} value={entry.code}>{entry.label}</option>)}
     </select>
-    <input id={id} type="tel" inputMode="tel" autoComplete="tel-national" placeholder={placeholder} value={national} disabled={disabled} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => compose(country, event.target.value)}/>
+    <Input id={id} type="tel" inputMode="tel" autoComplete="tel-national" placeholder={placeholder} value={national} disabled={disabled} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => compose(country, event.target.value)}/>
   </span>;
 }

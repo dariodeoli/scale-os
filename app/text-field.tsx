@@ -1,4 +1,5 @@
 "use client";
+import {Input} from './ui/input';
 
 type TextFieldProps = {
   id?: string;
@@ -18,5 +19,5 @@ type TextFieldProps = {
 
 /** Shared single-line text input (names, agency, address): same base input as EmailField, limits explicit, no per-screen classes. */
 export function TextField({id, value, onChange, maxLength = 120, minLength, autoComplete, autoFocus = false, disabled = false, invalid = false, describedBy, required = false, placeholder, name}: TextFieldProps) {
-  return <input id={id} name={name} type="text" value={value} maxLength={maxLength} minLength={minLength} autoComplete={autoComplete} autoFocus={autoFocus} disabled={disabled} required={required} placeholder={placeholder} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => onChange(event.target.value)}/>;
+  return <Input id={id} name={name} type="text" value={value} maxLength={maxLength} minLength={minLength} autoComplete={autoComplete} autoFocus={autoFocus} disabled={disabled} required={required} placeholder={placeholder} aria-invalid={invalid || undefined} aria-describedby={describedBy} onChange={event => onChange(event.target.value)}/>;
 }
