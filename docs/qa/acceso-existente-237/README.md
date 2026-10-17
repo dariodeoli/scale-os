@@ -77,3 +77,20 @@ merge y deploy corresponden al integrador. No se ejecutó deploy desde estas
 pruebas. El agregador backend reside en `package.json` (`test:release`); el
 integrador debe registrar `node test-existing-account.mjs`. La prueba PG es
 optativa con binarios locales, separada de la regresión portable.
+
+## Corrección del gate de antiabuso
+
+Las fases públicas `resolve` y alta final tienen presupuestos independientes de
+10 intentos por cliente en 15 minutos, comprobados antes de buscar una identidad
+y antes de adquirir la conexión transaccional. Esto permite diez pares legítimos
+`resolve` → alta final y limita por separado ataques rotando correos en cada fase.
+Se conserva el límite compartido de credenciales y el presupuesto independiente
+del endpoint normal de login; agotar el registro no bloquea ese login.
+
+`test-security-hardening.mjs` acredita 429 sin ningún SELECT de usuarios ni nueva
+conexión después del límite, en ambas fases; también diez pares legítimos con
+usuario ausente antes del alta final. El test de defaults comprueba login normal
+con contraseña válida después de diez intentos públicos fallidos, sin limpiar
+throttles. PASS además `test-existing-account.mjs` y `test-email-password-auth.mjs`.
+Las pruebas de identidad usan clientes sintéticos separados; los ataques por
+un mismo cliente se ejercitan explícitamente en el test de seguridad.
