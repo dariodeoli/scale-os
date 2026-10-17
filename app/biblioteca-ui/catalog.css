@@ -1,0 +1,29 @@
+/* Catalog layout only; control anatomy, colors and responsive rules belong to the canonical UI. */
+.ui-catalog{max-width:1440px;margin:auto;padding:var(--ui-page-padding,24px);display:grid;gap:var(--ui-space-5,24px);min-width:0}
+.ui-catalog :where(h1,h2,h3,h4,p){margin:0}
+.ui-catalog :where(section,article,main,div,form,fieldset){min-width:0}
+.ui-catalog .catalog-stack{display:grid;gap:var(--ui-space-3,12px)}
+.ui-catalog .catalog-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--ui-space-2,8px)}
+.ui-catalog .catalog-actions>[data-ui-selector]{min-width:12rem}
+.ui-catalog .catalog-nav{display:flex;flex-wrap:wrap;gap:8px 20px;padding-block:12px;border-block:1px solid var(--border-subtle)}
+.ui-catalog .catalog-nav a,.ui-catalog .catalog-example-heading a,.ui-catalog .catalog-footer a{color:var(--text-link,var(--brand-700));text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center}
+.ui-catalog .catalog-guide{display:grid;gap:8px;color:var(--text-subtle)}
+.ui-catalog .catalog-content,.ui-catalog .catalog-family{display:grid;gap:24px}
+.ui-catalog .catalog-family>header{display:grid;gap:8px;padding-block:16px;scroll-margin-top:20px}
+.ui-catalog .catalog-family h2{font-size:clamp(1.5rem,2.5vw,2rem)}
+.ui-catalog .catalog-example{display:grid;gap:16px;padding:clamp(16px,2.5vw,28px);scroll-margin-top:16px;overflow:hidden}
+.ui-catalog .catalog-example-heading{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.ui-catalog .catalog-example-heading h3{font-size:clamp(1.15rem,2vw,1.45rem);overflow-wrap:anywhere}
+.ui-catalog .catalog-preview{border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:clamp(12px,2vw,20px);background:var(--surface-subtle);min-width:0}
+.ui-catalog .catalog-demo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;align-items:start}
+.ui-catalog .catalog-code-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ui-catalog .catalog-code-grid>div{display:grid;gap:8px;align-content:start}
+.ui-catalog pre{margin:0;padding:12px;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--surface-subtle);color:var(--text-strong);line-height:1.6}
+.ui-catalog .catalog-props{min-width:0;max-width:100%;overflow-x:auto}
+.ui-catalog .catalog-props :where(td,th,code){white-space:normal;overflow-wrap:anywhere}
+.ui-catalog .catalog-props .catalog-stack{gap:4px}
+.ui-catalog .catalog-boundary,.ui-catalog .catalog-caption{font-size:.875rem;color:var(--text-subtle)}
+.ui-catalog .catalog-footer{display:grid;gap:8px;padding-block:20px;border-top:1px solid var(--border-subtle);color:var(--text-subtle)}
+.ui-catalog .catalog-skip{position:absolute;left:-10000px}
+.ui-catalog .catalog-skip:focus{position:static;left:auto;padding:12px;outline:2px solid var(--focus-ring);background:var(--surface-raised)}
+@media(max-width:760px){.ui-catalog{padding:16px;gap:16px}.ui-catalog .catalog-code-grid{grid-template-columns:minmax(0,1fr)}.ui-catalog .catalog-example{padding:14px;gap:14px}.ui-catalog .catalog-nav{gap:4px 16px}.ui-catalog .catalog-preview{padding:12px}}
