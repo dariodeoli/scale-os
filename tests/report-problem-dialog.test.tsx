@@ -12,7 +12,7 @@ reactDOM.createPortal = (children: React.ReactNode) => children;
 const hostDocument = {body: {style: {overflow: ''}}, activeElement: null as unknown, addEventListener() {}, removeEventListener() {}};
 Object.defineProperty(globalThis, 'document', {configurable: true, value: hostDocument});
 const hostNode = () => ({tagName: 'DIV', tabIndex: -1, isConnected: true, querySelectorAll: () => [], querySelector: () => null, closest: () => null, contains: () => true, focus() { hostDocument.activeElement = this; }});
-const {ReportProblemDialog, reportProblemError, reportProblemPayload, REPORT_MAX} = require('../app/report-problem') as typeof import('../app/report-problem');
+const {ReportProblemButton, ReportProblemDialog, reportProblemError, reportProblemPayload, REPORT_MAX} = require('../app/report-problem') as typeof import('../app/report-problem');
 const {buildClientErrorPayload, createClientErrorReporter, describeThrown, routeWithoutQuery, CLIENT_ERROR_LIMITS} = require('../app/client-error-reporter') as typeof import('../app/client-error-reporter');
 const {APP_VERSION} = require('../app/app-version') as typeof import('../app/app-version');
 const front = require('../app/csv-safety') as typeof import('../app/csv-safety');
@@ -56,12 +56,41 @@ test('el diálogo valida en línea, envía el reporte y cierra; un 429 del API s
   act(() => renderer.unmount());
 });
 
-test('la entrada vive en el pie del menú del usuario y nunca en el Demo', () => {
+test('reporte y logout viven junto a notificaciones, fuera del lateral; Demo no reporta', () => {
   const shell = read('app/scale-workspace.tsx');
   assert.match(shell, /user&&!user\.demo_owner_user_id&&<ReportProblemButton/);
+  const start=shell.indexOf('<div className="topbar-utility-actions');
+  const end=shell.indexOf('<PageTitleContext.Provider',start);
+  const actions=shell.slice(start,end),sidebar=shell.slice(shell.indexOf('const sidebarContent'),start);
+  assert.match(actions, /<ReportProblemButton iconOnly\/>/);
+  assert.match(actions, /<ScaleIconButton type="button" label="Cerrar sesión"[^>]+onClick=\{logout\}/);
+  assert(actions.indexOf('<NotificationBell')<actions.indexOf('<ReportProblemButton'));
+  assert(actions.indexOf('<ReportProblemButton')<actions.indexOf('label="Cerrar sesión"'));
+  assert(!sidebar.includes('<ReportProblemButton'));
+  assert(!sidebar.includes('nav-logout'));
+  assert(!shell.includes('ThemeToggle'));
+  assert.equal((shell.match(/<ReportProblemButton/g)||[]).length,1);
   const source = read('app/report-problem.tsx');
   assert.match(source, /aria-label="Reportar un problema"/);
   assert.match(source, /\/api\/support\/reports/);
+});
+
+test('el icono canónico tiene nombre/tooltip y abre el diálogo reutilizado; cancelar permite reabrir', async () => {
+  let renderer!: ReactTestRenderer;
+  await act(async()=>{renderer=create(<ReportProblemButton iconOnly/>,{createNodeMock:hostNode});});
+  const trigger=()=>renderer.root.findAllByType('button').find(node=>node.props['aria-label']==='Reportar un problema')!;
+  assert.equal(trigger().props.title,'Reportar un problema');
+  assert.equal(trigger().props.type,'button');
+  assert.equal(trigger().props['data-ui-size'],'compact');
+  assert.equal(trigger().props['data-ui-icon-button'],'');
+  assert.equal(text(trigger()),'','el acceso no agrega texto visible a la fila');
+  await act(async()=>trigger().props.onClick());
+  assert.equal(renderer.root.findAllByType(ReportProblemDialog).length,1);
+  await act(async()=>renderer.root.findByType(ReportProblemDialog).props.onClose());
+  assert.equal(renderer.root.findAllByType(ReportProblemDialog).length,0);
+  await act(async()=>trigger().props.onClick());
+  assert.equal(renderer.root.findAllByType(ReportProblemDialog).length,1);
+  act(()=>renderer.unmount());
 });
 
 test('captura de errores del navegador: sin query, sin ruido, sin duplicados y con tope por página', async () => {

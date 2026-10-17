@@ -11,7 +11,6 @@ import {normalizeCommercialDashboard, type CommercialDashboard} from './control-
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {AccessLayout} from './access-layout';
-import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
 import {roleCan,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
@@ -1009,13 +1008,10 @@ export default function Home() {
               </div>}
             </div>;
           })}
-          <button type="button" className={`nav-logout ${navItemClass(false,tone)}`} onClick={logout} aria-label="Cerrar sesión" title="Cerrar sesión"><span className={navIconClass(false,tone)}><LogOut size={16}/></span><span className="nav-label">Cerrar sesión</span></button>
         </nav>
         <div className={`sidebar-bottom mt-auto grid grid-cols-[minmax(0,1fr)] gap-1.5 border-t pt-3 ${tone==='rail'?'border-white/[0.12]':'border-ink-600'}`}>
           {/* Issue #69: acceso a la administración de la plataforma, sólo si el
               SERVIDOR marca platform_role=admin en /auth/me (nunca por email). */}
-          {/* Reportar un problema (panel global → Reportes): disponible para toda sesión real; el Demo no reporta. */}
-          {user&&!user.demo_owner_user_id&&<ReportProblemButton className={navItemClass(false,tone)} iconClassName={navIconClass(false,tone)}/>}
           {user?.platform_role==='admin'&&<a className={`nav-admin ${navItemClass(false,tone)}`} href="https://admin.scaleparaguay.com" target="_blank" rel="noopener noreferrer" title="Administración de Scale" aria-label="Administración de Scale"><span className={navIconClass(false,tone)}><ShieldCheck size={16}/></span><span className="nav-label">Administración de Scale</span></a>}
           <div className="profile-footer min-w-0"><button className={`user w-full min-w-0 justify-start rounded-xl px-2 py-1.5 text-left transition ${tone==='rail'?'hover:bg-white/10':'hover:bg-ink-700'}`} aria-label="Abrir mi perfil" onClick={()=>setMyProfile(true)}><PersonContainer name={user?.full_name||firstName} photoUrl={user?.photo_url} secondary={assignableRoles.find(role=>role.id===user?.role)?.label||user?.role} verified/></button></div>
         </div>
@@ -1062,7 +1058,6 @@ export default function Home() {
               <VersionNotice/>
             </div>
             <div className="topbar-utility-actions flex min-w-0 items-center gap-2 max-md:order-1 [&>*]:min-h-10 [&>*]:min-w-10 max-md:[&>*]:min-h-11 max-md:[&>*]:min-w-11 [&>div>button]:min-h-10 [&>div>button]:min-w-10 max-md:[&>div>button]:min-h-11 max-md:[&>div>button]:min-w-11 max-xl:[&_button.toque-44>span]:hidden max-xl:[&_button.toque-44>kbd]:hidden">
-              <ThemeToggle/>
               <WorkspaceGuide {...guideProps} active={active} helpOpen={helpOpen} onHelpOpen={()=>setHelpOpen(true)} onHelpClose={()=>setHelpOpen(false)} variant="help"/>
               {canIaCarga?<IaCargaButton onOpen={()=>setIaCarga(true)}/>:null}
               <WorkspaceSearch key={workspaceScope} navigate={setActive} active={active} role={user?.role||'viewer'} canCreate={canCreateRecord(active)} onCreate={kind=>setModal(kind)} onHelp={()=>setHelpOpen(true)} records={[
@@ -1071,6 +1066,8 @@ export default function Home() {
                 ...orders.map(o=>{const project=projects.find(p=>String(p.id)===String(o.project_id));const client=clients.find(c=>String(c.id)===String(project?.client_id));return {id:o.id,name:o.title,context:`${o.client_name} · ${o.project_name}`,kind:'work-orders' as const,clientName:o.client_name,clientLogo:client?.logo_url||o.client_logo_url,clientColor:client?.color_key||o.client_color_key,assignees:o.assignee_names?.length?o.assignee_names.map(name=>({id:name,full_name:name,is_primary:false})):o.effective_assignees||o.assignees||project?.assignees};}),
               ]}/>
               <NotificationBell key={`${user?.id}:${user?.organization_id}`} openOrder={(id,anchor)=>setDetail({kind:'order',id,...(anchor?{anchor}:{})})}/>
+              {user&&!user.demo_owner_user_id&&<ReportProblemButton iconOnly/>}
+              <ScaleIconButton type="button" label="Cerrar sesión" title="Cerrar sesión" size="compact" onClick={logout} icon={<LogOut size={16}/>}/>
             </div>
           </div>
         </div>
