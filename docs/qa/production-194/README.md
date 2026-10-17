@@ -44,3 +44,7 @@ El smoke público es de lectura y sin sesión. No ejecutó cobros, contratos ni 
 #202 conserva los pendientes externos: #212 Groq real, #213 OwnData/licencia y acceso comercial, #214 conciliación operativa, #215 consumibles compatibles, #216 impresión/escaneo físico, #158 Search Console, #246 supervisor persistente y #253 causa interna del incidente anterior de API. El supervisor no fue programado y tuvo cero ejecuciones; esta entrega no simula revisiones futuras.
 
 La evidencia posterior al deploy se guarda en una rama documental para integrarla en una siguiente versión. No se vuelve a pushear main con la misma194 para publicar estos registros.
+
+## Cierre de seguimiento
+
+Se cerraron #184/#186/#206/#207/#208/#217/#249/#250/#254 y OwnCoding#61 después de verificar publicación. Los PR256–261 se cerraron como incorporados por262, conservando sus ramas. [Estados finales de GitHub](followup-state.json). El issue202 continúa abierto por los pendientes externos detallados arriba.

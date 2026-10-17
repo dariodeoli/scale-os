@@ -1,0 +1,138 @@
+{
+  "recordedAt": "2026-10-17T22:30:49.127857+00:00",
+  "scaleIssueClosures": [
+    {
+      "number": 184,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 186,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 206,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 207,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 208,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 217,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 249,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 250,
+      "state": "closed",
+      "reason": "completed"
+    },
+    {
+      "number": 254,
+      "state": "closed",
+      "reason": "completed"
+    }
+  ],
+  "pullRequests": {
+    "featurePrs": [
+      {
+        "number": 256,
+        "state": "closed",
+        "merged": false,
+        "incorporatedBy": 262
+      },
+      {
+        "number": 257,
+        "state": "closed",
+        "merged": false,
+        "incorporatedBy": 262
+      },
+      {
+        "number": 258,
+        "state": "closed",
+        "merged": false,
+        "incorporatedBy": 262
+      },
+      {
+        "number": 259,
+        "state": "closed",
+        "merged": false,
+        "incorporatedBy": 262
+      },
+      {
+        "number": 260,
+        "state": "closed",
+        "merged": false,
+        "incorporatedBy": 262
+      },
+      {
+        "number": 261,
+        "state": "closed",
+        "merged": false,
+        "incorporatedBy": 262
+      }
+    ],
+    "owncodingIssue61": "closed"
+  },
+  "remainingOpen": [
+    {
+      "number": 202,
+      "state": "OPEN",
+      "title": "[Plan Scale] Tareas, contratos y seguimiento operativo"
+    },
+    {
+      "number": 212,
+      "state": "OPEN",
+      "title": "[Contratos] Asistencia Groq con revisión humana"
+    },
+    {
+      "number": 213,
+      "state": "OPEN",
+      "title": "[Integraciones] Verificar OwnData, Ocoin, bancos, ciudades y owncoding-ui"
+    },
+    {
+      "number": 214,
+      "state": "OPEN",
+      "title": "[Operaciones] Revisar carga de clientes, proyectos y trabajos"
+    },
+    {
+      "number": 215,
+      "state": "OPEN",
+      "title": "[Compra operativa] Papel adhesivo para impresora existente"
+    },
+    {
+      "number": 216,
+      "state": "OPEN",
+      "title": "[Activos] Verificar códigos e impresión y lectura de etiquetas"
+    },
+    {
+      "number": 158,
+      "state": "OPEN",
+      "title": "[PLT+DSN] SEO técnico — metadatos, sitemap, structured data y rendimiento"
+    },
+    {
+      "number": 246,
+      "state": "OPEN",
+      "title": "[Coordinación] Cinco revisiones de agente cada 45 minutos"
+    },
+    {
+      "number": 253,
+      "state": "OPEN",
+      "title": "[Incidente] API pública503 no available server y espera al ingresar"
+    }
+  ]
+}
