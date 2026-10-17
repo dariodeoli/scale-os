@@ -6,9 +6,9 @@ import {WorkspaceBrand} from './workspace-brand';
 // tarjeta queda sola y centrada. El texto sale de la landing pública
 // (public/scale-os.html): capacidades reales, sin métricas ni testimonios.
 const benefits=[
- ['Producción por etapas','Proyectos y piezas con responsables, checklists, horas estimadas y fecha de entrega.'],
- ['Portal del cliente','Cada entrega se aprueba o se comenta por enlace privado y la respuesta vuelve al tablero.'],
- ['Finanzas con previsión de caja','Cobros en monedas separadas y la mora de cada cliente a la vista.'],
+ ['Producción y tareas','Proyectos y piezas con responsables, checklists, horas estimadas y fecha de entrega.'],
+ ['De la propuesta al contrato','Presupuestos, modelos de contrato y datos de tu empresa y clientes en un mismo espacio.'],
+ ['Finanzas y recursos','Balance por moneda, cobros, inventario, estudio y permisos para tu equipo.'],
 ] as const;
 
 export function AuthBrandPanel(){

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
-import {AuthBrandPanel} from './auth-brand-panel';
+import {AccessLayout} from './access-layout';
 import {ThemeToggle} from './theme-toggle';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
@@ -884,15 +884,7 @@ export default function Home() {
   if (loading) return <LoadingScreen name={signedIn?(user?.full_name||user?.email||''):''} photoUrl={signedIn?(user?.photo_url??undefined):undefined} roleLabel={signedIn?assignableRoles.find(role=>role.id===user?.role)?.label:undefined}/>;
   if (!signedIn)
     return (
-      <div className="login-page">
-       <div className="auth-split">
-        <AuthBrandPanel/>
-        <div className="login-card">
-          <ThemeToggle className="login-theme-toggle"/>
-          <div className="login-header">
-            <div className="login-brand"><WorkspaceBrand/></div>
-            <span className="login-badge">30 DÍAS GRATIS</span>
-          </div>
+      <AccessLayout eyebrow="Ingresá a tu espacio" cardClassName="login-card" links={<><Link href="/registro">Crear mi agencia · 30 días gratis</Link><a href="https://sistema.scaleparaguay.com/demo">Explorar demo</a></>}>
           <div className="login-intro">
             <h1>Qué bueno verte de nuevo.</h1>
             <p className="login-copy">
@@ -927,12 +919,8 @@ export default function Home() {
             {toast && <p className="error" role="alert">{toast}</p>}
             <button className="primary login-button">Continuar</button>
           </form>
-          <p className="login-signup"><Link href="/registro">Crear mi agencia con 30 días gratis</Link></p>
           <AvisoPrivacidad compact finalidad="Usamos tu correo para autenticarte y darte acceso a tu espacio." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
-          <WorkspaceFooter/>
-        </div>
-       </div>
-      </div>
+      </AccessLayout>
     );
   // Secciones con `ListPage` (#185 F1): ellas dibujan su encabezado (con la acción
   // primaria) y los apartados, así que el shell no repite ninguno de los dos.
