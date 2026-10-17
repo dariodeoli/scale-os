@@ -1,1 +1,14 @@
 .employee-tasks{display:grid;gap:1rem;min-width:0}.employee-tasks-head,.employee-tasks-tabs,.employee-task-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}.employee-tasks-head{justify-content:space-between}.employee-tasks-tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:.25rem}.employee-tasks-tabs button{flex-shrink:0}.employee-tasks button:not(:where([data-ui-button])),.employee-tasks a,.employee-task-form button:not(:where([data-ui-button])),.employee-task-detail button:not(:where([data-ui-button])),.employee-task-detail a{min-height:44px}.employee-tasks-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:.75rem}.employee-tasks-grid{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}.employee-task-card{display:flex;flex-direction:column;gap:.75rem;min-width:0;border:1px solid var(--color-ink-600,#334155);border-radius:.75rem;padding:1rem}.employee-task-card h4{overflow-wrap:anywhere;font-weight:600}.employee-task-card dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem .75rem;font-size:.8125rem}.employee-task-card dd{overflow-wrap:anywhere;text-align:right}.employee-task-actions{margin-top:auto}.employee-task-detail{display:grid;gap:1rem;min-width:0}.employee-task-detail p{white-space:pre-wrap;overflow-wrap:anywhere}.employee-task-check{display:flex;align-items:center;gap:.5rem;min-height:44px;overflow-wrap:anywhere}.employee-task-check input{width:20px;height:20px;flex-shrink:0}.employee-task-items{display:grid;gap:.5rem}.employee-task-item{display:flex;align-items:center;gap:.5rem;min-width:0}.employee-task-item input{min-width:0;flex:1}.employee-task-item a{display:inline-flex;align-items:center;overflow-wrap:anywhere}.employee-task-form input,.employee-task-form textarea,.employee-task-detail textarea{max-width:100%}.employee-task-audit{font-size:.75rem;color:var(--color-mute,#94a3b8)}
+
+/* Resumen starts with one task; the same dashboard expands without remounting filters. */
+.employee-tasks-overview{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;font-size:.8125rem}
+.employee-tasks-overview>span{font-weight:600;margin-right:auto}
+.employee-tasks-preview{gap:.625rem}
+.employee-tasks-preview .employee-tasks-grid{grid-template-columns:minmax(0,1fr)}
+.employee-tasks-preview .employee-task-card{gap:.375rem;padding:.75rem}
+.employee-task-preview-context{font-size:.8125rem;overflow-wrap:anywhere}
+.employee-tasks-preview .employee-task-card h4{font-size:.9375rem}
+
+.employee-tasks.employee-tasks-preview{gap:8px;padding:12px}
+.employee-tasks-preview .employee-tasks-head h3,.employee-tasks-preview .employee-task-card h4,.employee-tasks-preview .employee-task-preview-context{margin:0}
+.employee-tasks-preview .employee-task-actions{margin-top:0}

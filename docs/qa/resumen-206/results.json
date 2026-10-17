@@ -1,0 +1,138 @@
+{
+  "scope": "Actual components and own loopback HTTP synthetic transport; existing compiled Scale CSS + candidate domain CSS. Not full app/real backend.",
+  "out": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "compact": 0,
+      "overflow": 0,
+      "taskTop": 331.125,
+      "tasksHeight": 597.703125,
+      "urgentTop": 888.578125,
+      "cards": 3
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "compact": 1,
+      "overflow": 0,
+      "taskTop": 227.09375,
+      "tasksHeight": 268.59375,
+      "urgentTop": 481.46875,
+      "cards": 1
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "compact": 0,
+      "overflow": 0,
+      "taskTop": 331.125,
+      "tasksHeight": 597.703125,
+      "urgentTop": 888.578125,
+      "cards": 3
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "compact": 1,
+      "overflow": 0,
+      "taskTop": 227.09375,
+      "tasksHeight": 268.59375,
+      "urgentTop": 481.46875,
+      "cards": 1
+    },
+    {
+      "width": 1440,
+      "theme": "contrast",
+      "compact": 0,
+      "overflow": 0,
+      "taskTop": 331.125,
+      "tasksHeight": 597.703125,
+      "urgentTop": 888.578125,
+      "cards": 3
+    },
+    {
+      "width": 1440,
+      "theme": "contrast",
+      "compact": 1,
+      "overflow": 0,
+      "taskTop": 227.09375,
+      "tasksHeight": 268.59375,
+      "urgentTop": 481.46875,
+      "cards": 1
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "compact": 0,
+      "overflow": 0,
+      "taskTop": 383.125,
+      "tasksHeight": 1357.578125,
+      "urgentTop": 1792.015625,
+      "cards": 3
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "compact": 1,
+      "overflow": 0,
+      "taskTop": 287.09375,
+      "tasksHeight": 351.4375,
+      "urgentTop": 707.875,
+      "cards": 1
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "compact": 0,
+      "overflow": 0,
+      "taskTop": 383.125,
+      "tasksHeight": 1357.578125,
+      "urgentTop": 1792.015625,
+      "cards": 3
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "compact": 1,
+      "overflow": 0,
+      "taskTop": 287.09375,
+      "tasksHeight": 351.4375,
+      "urgentTop": 707.875,
+      "cards": 1
+    },
+    {
+      "width": 390,
+      "theme": "contrast",
+      "compact": 0,
+      "overflow": 0,
+      "taskTop": 383.125,
+      "tasksHeight": 1357.578125,
+      "urgentTop": 1792.015625,
+      "cards": 3
+    },
+    {
+      "width": 390,
+      "theme": "contrast",
+      "compact": 1,
+      "overflow": 0,
+      "taskTop": 287.09375,
+      "tasksHeight": 351.4375,
+      "urgentTop": 707.875,
+      "cards": 1
+    }
+  ],
+  "writes": [
+    {
+      "expected_version": 1,
+      "checklist": [
+        {
+          "id": "item",
+          "text": "Confirmar disponibilidad",
+          "completed": true
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
