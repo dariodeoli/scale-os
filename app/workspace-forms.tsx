@@ -1,4 +1,9 @@
 "use client";
+import {Input, Textarea} from './ui/input';
+
+import {Button} from './ui/button';
+import {DateInput, TimeInput} from './ui/temporal-input';
+
 import {useState} from 'react';
 import {BancoCombobox} from 'owncoding-ui';
 import {useForm} from 'react-hook-form';
@@ -67,7 +72,7 @@ export function ProjectForm({
     >
       <label>
         Nombre del proyecto
-        <input {...form.register("name")} autoFocus maxLength={120} aria-invalid={form.formState.errors.name?true:undefined} aria-describedby={form.formState.errors.name?"project-name-error":undefined}/>
+        <Input {...form.register("name")} autoFocus maxLength={120} aria-invalid={form.formState.errors.name?true:undefined} aria-describedby={form.formState.errors.name?"project-name-error":undefined}/>
         {form.formState.errors.name && (
           <small className="error" role="alert" id="project-name-error">{form.formState.errors.name.message}</small>
         )}
@@ -85,7 +90,7 @@ export function ProjectForm({
       </div>
       <label>
         Enlace de archivo o carpeta de Google Drive
-        <input
+        <Input
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
           aria-invalid={form.formState.errors.driveUrl?true:undefined}
@@ -99,12 +104,12 @@ export function ProjectForm({
         <small>Solo guardamos el enlace, no el archivo. Compartí el acceso con tu equipo desde Drive.</small>
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><Button variant="primary" type="submit"
         className="primary"
         disabled={!clients.length || submission.pending}
       >
         {submission.pending ? "Guardando…" : "Crear proyecto"}
-      </button></SaveActions>
+      </Button></SaveActions>
       {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
     </form>
   );
@@ -198,7 +203,7 @@ export function OrderForm({
       {selectedProject ? <>
       <label>
         Orden de trabajo
-        <input {...form.register("title")} autoFocus maxLength={120} aria-invalid={form.formState.errors.title?true:undefined} aria-describedby={form.formState.errors.title?"order-title-error":undefined}/>
+        <Input {...form.register("title")} autoFocus maxLength={120} aria-invalid={form.formState.errors.title?true:undefined} aria-describedby={form.formState.errors.title?"order-title-error":undefined}/>
         {form.formState.errors.title && (
           <small className="error" role="alert" id="order-title-error">{form.formState.errors.title.message}</small>
         )}
@@ -227,12 +232,12 @@ export function OrderForm({
       </label>
       <label>
         Hora de entrega
-        <input type="time" {...form.register("due_time")} />
+        <TimeInput  {...form.register("due_time")} />
         <small>Opcional, junto con la fecha de entrega.</small>
       </label>
       <label>
         Enlace de archivo o carpeta de Drive
-        <input
+        <Input
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
           aria-invalid={form.formState.errors.driveUrl?true:undefined}
@@ -246,15 +251,15 @@ export function OrderForm({
       </label>
       <label>
         Notas
-        <textarea {...form.register("description")} />
+        <Textarea {...form.register("description")} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><Button variant="primary" type="submit"
         className="primary"
         disabled={submission.pending}
       >
         {submission.pending ? "Guardando…" : "Crear orden"}
-      </button></SaveActions>
+      </Button></SaveActions>
       </> : null}
     </form>
   );
@@ -315,7 +320,7 @@ export function AccountForm({
     >
       <label data-span="6">
         Nombre de la cuenta
-        <input
+        <Input
           {...form.register("name")}
           placeholder="Banco Regional — Operativa"
         />
@@ -353,11 +358,11 @@ export function AccountForm({
       </div>
       <label data-span="3">
         Número de cuenta o referencia
-        <input {...form.register("accountNumber")} placeholder="Opcional" />
+        <Input {...form.register("accountNumber")} placeholder="Opcional" />
       </label>
       <label data-span="3">
         Titular de la cuenta
-        <input
+        <Input
           {...form.register("holderName")}
           placeholder="Empresa, socio o familiar"
         />
@@ -391,9 +396,9 @@ export function AccountForm({
       </fieldset>
       {error && <p className="error" role="alert">{error}</p>}
       <p className="field-help">{financePurposeNotice('treasury')} · <a href={financeNoticeHref('treasury')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button className="primary" disabled={submission.pending}>
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><Button variant="primary" type="submit" className="primary" disabled={submission.pending}>
         {submission.pending ? "Creando…" : "Crear cuenta"}
-      </button></SaveActions>
+      </Button></SaveActions>
     </form>
   );
 }
@@ -476,16 +481,16 @@ export function InvoiceForm({
       </fieldset>
       <label>
         Vencimiento
-        <input type="date" {...form.register("dueOn")} />
+        <DateInput  {...form.register("dueOn")} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Completá el cliente y un importe mayor a cero para crear la factura.</p>:null}
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><Button variant="primary" type="submit"
         className="primary"
         disabled={!canSubmit}
       >
         {submission.pending ? "Creando…" : "Crear factura"}
-      </button></SaveActions>
+      </Button></SaveActions>
     </form>
   );
 }
@@ -606,11 +611,11 @@ export function PaymentForm({
       {form.formState.errors.amount?<small className="error" role="alert">{form.formState.errors.amount.message}</small>:null}
       <label>
         Fecha
-        <input type="date" {...form.register("receivedOn")} />
+        <DateInput  {...form.register("receivedOn")} />
       </label>
       <label>
         Referencia
-        <input
+        <Input
           {...form.register("reference")}
           placeholder="Transferencia / comprobante"
         />
@@ -618,12 +623,12 @@ export function PaymentForm({
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Elegí la factura, la cuenta y un importe mayor a cero para registrar el cobro.</p>:null}
       <p className="field-help">{financePurposeNotice('payments')} · <a href={financeNoticeHref('payments')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
+      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><Button variant="primary" type="submit"
         className="primary"
         disabled={!canSubmit}
       >
         {submission.pending ? "Guardando…" : "Registrar cobro"}
-      </button></SaveActions>
+      </Button></SaveActions>
     </form>
   );
 }

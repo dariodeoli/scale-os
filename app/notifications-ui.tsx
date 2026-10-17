@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 // Avisos del equipo v2 (issue #46): preferencias de notificaciones y
 // programaciones mensuales con Tailwind + primitivas, sin hoja propia.
 import {ActorIdentity} from './actor-identity';
@@ -39,7 +41,7 @@ export function MonthlySchedules({projects,templates,people}:{projects:{id:strin
  return <><button className="text-button" onClick={()=>setOpen(true)}><CalendarClock size={14}/>Programar generación automática</button>{open&&<Dialog title="Producción mensual automática" close={()=>setOpen(false)}><div className="grid gap-3">
   <p className="text-sm text-mute">Crea las piezas de la plantilla cada mes. No genera facturas ni cobros. Si la tanda ya existe, no la duplica. Podés pausar una programación en cualquier momento.</p>
   {message?<ErrorBlock title="No pudimos cargar las programaciones" description={message} onRetry={()=>void load().catch(e=>setMessage(error(e)))}/>:null}
-  <div><button className="secondary" onClick={()=>setCreating(v=>!v)}>{creating?'Cancelar nueva programación':'Nueva programación'}</button></div>
+  <div><Button variant="secondary" type="submit" className="secondary" onClick={()=>setCreating(v=>!v)}>{creating?'Cancelar nueva programación':'Nueva programación'}</Button></div>
   {creating&&<Editor fields={[{key:'template_id',label:'Plantilla',choices:templates.map(t=>({value:String(t.id),label:t.name}))},{key:'project_id',label:'Proyecto',choices:projects.map(p=>({value:String(p.id),label:p.client_name+' · '+p.name}))},{key:'next_month',label:'Primer mes (AAAA-MM)'},{key:'assigned_user_id',label:'Responsable',choices:people,optional:true}]} defaults={{template_id:'',project_id:'',next_month:currentAsuncionMonth(),assigned_user_id:''}} save={async v=>{if(!/^\d{4}-\d{2}$/.test(v.next_month))throw Error('Ingresá el mes como AAAA-MM.');await api('/api/agency/schedules',{...v,next_month:v.next_month+'-01'});await load();setCreating(false);}}/>}
   {loading?<LoadingBlock label="Cargando programaciones…" lines={2}/>:rows.length?<div className="grid gap-2">{rows.map(r=><article className="grid min-w-0 gap-2 rounded-xl border border-ink-600 bg-ink-800 p-4" key={r.id}>
    <div className="flex min-w-0 flex-wrap items-center gap-2"><b className="min-w-0 break-words text-[13.5px] text-fore">{r.template_name} · {r.project_name}</b><StateChip tone={r.active?'ok':'mute'}>{r.active?'Activa':'Pausada'}</StateChip></div>

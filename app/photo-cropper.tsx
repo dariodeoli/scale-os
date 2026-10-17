@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import Cropper,{type Area} from 'react-easy-crop';
 import {Dialog,FormActions} from './dialog';
@@ -48,6 +50,6 @@ export function PhotoCropper({source,name,close,save}:{source:string;name:string
   <label className="crop-zoom">Zoom <output>{Math.round(zoom*100)}%</output><input aria-label="Zoom del encuadre" type="range" min="1" max="3" step="0.01" value={zoom} onChange={e=>setZoom(Number(e.target.value))} disabled={busy}/></label>
   <div className="quick-actions"><button type="button" className="text-button" disabled={busy} onClick={()=>{setCrop({x:0,y:0});setZoom(1);}}><Focus size={14}/>Centrar de nuevo</button></div>
   {error&&<p className="error" role="alert">{error}</p>}
-  <FormActions><button type="button" className="secondary" disabled={busy} onClick={close}>Cancelar</button><button type="button" className="primary" disabled={busy||!area} onClick={async()=>{if(!area)return;setBusy(true);setError('');try{await save(await cropImage(source,area));close();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar.');}finally{setBusy(false);}}}>{busy?'Guardando…':'Guardar foto y encuadre'}</button></FormActions>
+  <FormActions><Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={close}>Cancelar</Button><Button variant="primary" type="button" className="primary" disabled={busy||!area} onClick={async()=>{if(!area)return;setBusy(true);setError('');try{await save(await cropImage(source,area));close();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar.');}finally{setBusy(false);}}}>{busy?'Guardando…':'Guardar foto y encuadre'}</Button></FormActions>
  </Dialog>;
 }

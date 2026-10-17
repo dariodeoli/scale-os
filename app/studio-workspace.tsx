@@ -1,4 +1,8 @@
 "use client";
+import {Input} from './ui/input';
+
+import {Button} from './ui/button';
+
 /**
  * Estudio (dominio OPS) — contenido v2 (campaña #41, spec #44).
  *
@@ -7,7 +11,7 @@
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso, Button, Card, EmptyState, ErrorState, IconAction, Input, Label, Nota, fechaLista} from 'owncoding-ui';
+import {Aviso, Card, EmptyState, ErrorState, IconAction, Label, Nota, fechaLista} from 'owncoding-ui';
 import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SelectCustom} from './profile-controls';
@@ -121,13 +125,13 @@ function StudioPanel(){
   {visibleSelectable.length?<button type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations}>Seleccionar visibles</button>:null}
  </FilterToolbar>:undefined;
  const bulkBar=!loading&&!error?<BulkBar count={bulk.count} total={BATCH_LIMITS.studioReservations} label="seleccionada" onClear={bulk.clear}>
-  <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)}>Cancelar</button>
+  <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)}>Cancelar</Button>
  </BulkBar>:undefined;
  const rowTitle=(reservation:StudioReservation)=>`${reservation.space_name}${reservation.space_scenario?` · ${reservation.space_scenario}`:''} · ${studioProductionTypeLabel(reservation.production_type)}`;
  const responsibles=(reservation:StudioReservation)=>reservation.responsible_members.map(person=>person.name).join(', ');
  const canAct=(reservation:StudioReservation)=>Boolean(context&&studioCanManageReservation(context,reservation)&&reservation.status==='reserved');
  const emptyReservations=<EmptyState compact icon="calendar" title="No hay reservas en este mes." description="Elegí un espacio y una franja para reservarlo." action={canReserve&&activeSpaces.length?<Button type="button" onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:undefined}/>;
- const noMatches=<EmptyState compact icon="filter" title="Ninguna reserva coincide con los filtros." description="Probá con otro espacio, estado o búsqueda." action={<button type="button" className="secondary" onClick={clearFilters}>Limpiar filtros</button>}/>;
+ const noMatches=<EmptyState compact icon="filter" title="Ninguna reserva coincide con los filtros." description="Probá con otro espacio, estado o búsqueda." action={<Button variant="secondary" type="button" className="secondary" onClick={clearFilters}>Limpiar filtros</Button>}/>;
  return <ListPage aria-label="Estudio" primaryAction={primaryAction} toolbar={toolbar} bulk={bulkBar}>
   {loading?<Card className="min-w-0"><LoadingBlock label="Cargando espacios y calendario…" lines={4}/></Card>:error?<Card className="min-w-0"><ErrorState title="No se pudo cargar el estudio." description={error} onRetry={()=>setRefresh(value=>value+1)}/></Card>:<>
   {actionError?<Aviso tono="error">{actionError}</Aviso>:null}

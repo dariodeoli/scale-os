@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
@@ -297,10 +299,10 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
       <span className="bulk-count"><b>{selectedClients.length}</b> de {BATCH_LIMITS.clients} seleccionado{selectedClients.length === 1 ? '' : 's'}</span>
       <div className="inline-actions bulk-actions">
         <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</button>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</button>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</button>
-        {canManageTerms ? <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => setAssignPlan(true)}>Asignar plan</button> : null}
-        <button type="button" className="secondary min-h-11 md:min-h-10" onClick={exportCsv}>Exportar CSV</button>
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</Button>
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</Button>
+        {canManageTerms ? <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => setAssignPlan(true)}>Asignar plan</Button> : null}
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" onClick={exportCsv}>Exportar CSV</Button>
         <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
       </div>
     </div> : null}

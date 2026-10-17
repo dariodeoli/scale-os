@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {useEffect,useRef,useState} from 'react';
 import {teamRoleLabels} from '../team-directory';
 import {AccessLayout} from '../access-layout';
@@ -56,7 +58,7 @@ export default function PendingAccess(){
    {data?.status==='approved'?<a className="primary" href="/produccion">Entrar a Scale OS</a>:<p className="text-sm text-mute">{data?.status==='unavailable'?'La invitación ya no está disponible o tu acceso dejó de estar habilitado. Esta solicitud no puede aprobarse. Pedí al administrador que revise tu acceso y, si corresponde, te envíe un enlace nuevo.':data?.status==='rejected'?'Tu solicitud no fue aprobada. Contactá al administrador de la empresa.':'Una vez que la administración apruebe tu solicitud, podrás utilizar Scale OS según el permiso autorizado. Esta pantalla comprueba el estado automáticamente.'}</p>}
    {error?<p role="alert" className="text-sm text-bad">{error}</p>:null}
    {logoutError?<p role="alert" className="text-sm text-bad">{logoutError}</p>:null}
-   <button className="secondary" disabled={loggingOut} onClick={logout}>{loggingOut?'Cerrando sesión…':'Cerrar sesión'}</button>
+   <Button variant="secondary" type="submit" className="secondary" disabled={loggingOut} onClick={logout}>{loggingOut?'Cerrando sesión…':'Cerrar sesión'}</Button>
   </div>
  </AccessLayout>;
 }

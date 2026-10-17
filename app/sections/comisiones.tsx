@@ -1,4 +1,8 @@
 "use client";
+import {Input} from '../ui/input';
+
+import {Button} from '../ui/button';
+
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Plus, Undo2} from 'lucide-react';
 import {api, Dialog, Editor, money} from '../operations';
@@ -23,7 +27,7 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso,FormField,Input,Subtabs} from 'owncoding-ui';
+import {Aviso, FormField, Subtabs} from 'owncoding-ui';
 import {notify} from '../feedback';
 import {ConfirmDialog} from '../dialog';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, FilterToolbar, ListGrid, ListPage, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
@@ -191,7 +195,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
     return <Aviso tono="error" como="div">{catalogError.message} <button type="button" className="text-button" onClick={() => void ensureCatalog(failedKey)}>Reintentar</button></Aviso>;
   };
 
-  return <ListPage aria-label="Comisiones y referidos" eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." primaryAction={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}>
+  return <ListPage aria-label="Comisiones y referidos" eyebrow="Equipo" title="Comisiones y referidos" subtitle="Liquidación del mes, comisiones por venta o recomendación, descuentos y egresos registrados." primaryAction={canManage ? <Button variant="primary" type="submit" className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Comisión</Button> : undefined}>
     {error ? <ErrorBlock title="No pudimos completar la operación" description={error} onRetry={() => void load()}/> : null}
     {loading ? <LoadingBlock label="Cargando comisiones…" lines={4}/> : <>
       {errorScope === 'load' && !commissions.length && !monthly.length && !discounts.length ? null : <>
@@ -223,7 +227,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0 text-right"><MoneyText valor={row.pending_amount} currency={row.currency} tono={Number(row.pending_amount) > 0 ? 'warn' : ''}/></div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)." action={canManage ? <button className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Registrar comisión</button> : undefined}/>}
+          : <EmptyBlock compact title="Sin comisiones ni acuerdos comerciales para este mes." description="Los acuerdos se activan en la ficha comercial del cliente (plan y comisión asignada)." action={canManage ? <Button variant="primary" type="submit" className="primary" onClick={() => { setNewCommission(true); void ensureCatalog('invoices'); void ensureCatalog('collaborators'); }}><Plus size={16} aria-hidden="true"/>Registrar comisión</Button> : undefined}/>}
       </section></div>
 
       <div hidden={section!=='comisiones'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Comisiones registradas">
@@ -257,13 +261,13 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               </ListRow>;
             })}
           </ListGrid>
-          : <EmptyBlock compact title={commissions.length ? 'No hay comisiones con este estado.' : 'Registrá una comisión por venta o por recomendar un cliente.'} description={commissions.length ? 'Probá con otro estado.' : undefined} action={canManage && !commissions.length ? <button className="primary" onClick={() => setNewCommission(true)}><Plus size={16} aria-hidden="true"/>Comisión</button> : undefined}/>}
+          : <EmptyBlock compact title={commissions.length ? 'No hay comisiones con este estado.' : 'Registrá una comisión por venta o por recomendar un cliente.'} description={commissions.length ? 'Probá con otro estado.' : undefined} action={canManage && !commissions.length ? <Button variant="primary" type="submit" className="primary" onClick={() => setNewCommission(true)}><Plus size={16} aria-hidden="true"/>Comisión</Button> : undefined}/>}
       </section></div>
 
       <div hidden={section!=='descuentos'}><section className="grid grid-cols-1 gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-label="Descuentos por referido">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-baseline gap-x-3"><p className="m-0 min-w-0 truncate text-xs text-mute" title="Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.">Se descuentan del saldo pendiente de la factura y conservan el motivo y su historial de reversiones.</p></div>
-          {canManage ? <button className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : null}
+          {canManage ? <Button variant="secondary" type="submit" className="secondary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }} disabled={busy}><Plus size={16} aria-hidden="true"/>Nuevo descuento</Button> : null}
         </div>
         {discounts.length
           ? <ListGrid label="Descuentos por referido" template={DISCOUNT_TEMPLATE} columns={DISCOUNT_COLUMNS} minWidthClass="min-w-[65.5rem]">
@@ -277,7 +281,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               </div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Todavía no hay descuentos registrados." description="Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación." action={canManage ? <button className="primary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }}><Plus size={16} aria-hidden="true"/>Nuevo descuento</button> : undefined}/>}
+          : <EmptyBlock compact title="Todavía no hay descuentos registrados." description="Aplicá un descuento cuando el saldo de una factura se ajuste por una recomendación." action={canManage ? <Button variant="primary" type="submit" className="primary" onClick={() => { setNewDiscount(true); void ensureCatalog('invoices'); }}><Plus size={16} aria-hidden="true"/>Nuevo descuento</Button> : undefined}/>}
       </section></div>
       </>}
 
@@ -295,7 +299,7 @@ export function ComisionesSection({user}: ComisionesSectionProps) {
               <div className="min-w-0 text-right"><MoneyText valor={payout.amount} currency={payout.currency}/></div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Todavía no hay egresos registrados." description="Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta." action={commissions.some(item => item.status === 'approved') ? <button className="secondary" onClick={() => setFilter('approved')}>Ver comisiones por pagar</button> : undefined}/>}
+          : <EmptyBlock compact title="Todavía no hay egresos registrados." description="Al pagar una comisión o un sueldo, el egreso aparece acá con su cuenta." action={commissions.some(item => item.status === 'approved') ? <Button variant="secondary" type="submit" className="secondary" onClick={() => setFilter('approved')}>Ver comisiones por pagar</Button> : undefined}/>}
       </section></div> : null}
     </>}
 

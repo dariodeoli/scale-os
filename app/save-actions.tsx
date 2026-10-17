@@ -1,4 +1,6 @@
 'use client';
+import {Button} from './ui/button';
+
 import type {ReactNode} from 'react';
 import {FormActions,useDialogClose,useDialogPending} from './dialog';
 
@@ -8,7 +10,7 @@ export function SaveActions({pending,children,cancelLabel='Cancelar',dirty=false
  const requestClose=useDialogClose();
  useDialogPending(pending,dirty&&!pending);
  return <FormActions>
-  {requestClose&&cancelLabel&&<button type="button" className="secondary" disabled={pending} onClick={()=>{if(!pending)requestClose();}}>{cancelLabel}</button>}
+  {requestClose&&cancelLabel&&<Button variant="secondary" type="button" className="secondary" disabled={pending} onClick={()=>{if(!pending)requestClose();}}>{cancelLabel}</Button>}
   {children}
  </FormActions>;
 }

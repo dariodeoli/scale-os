@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {Check,ChevronDown,ShieldCheck,X} from 'lucide-react';
 import {api,Dialog} from './operations';
@@ -127,7 +129,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
  const body=<>
   <p className="m-0 flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/> Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
   {error?<ErrorBlock title="No pudimos guardar el permiso" description={error} onRetry={()=>void load()}/>:null}
-  {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>}/>:<>
+  {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<Button variant="secondary" type="button" className="secondary" onClick={()=>void load()}>Reintentar</Button>}/>:<>
    {explorer&&<>
     <details className="group rounded-xl border border-ink-600 bg-ink-800">
      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">

@@ -1,10 +1,14 @@
 "use client";
+import {Input} from '../ui/input';
+
+import {Button} from '../ui/button';
+
 import {OptionalMark} from '../field-label';
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso, AvisoPrivacidad, Button, Input, Label, Select} from 'owncoding-ui';
+import {Aviso, AvisoPrivacidad, Label, Select} from 'owncoding-ui';
 import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
@@ -498,8 +502,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
         </div>
       </FilterToolbar>
       {view==='list'&&canEdit&&selected.length?<BulkBar count={selected.length} busy={bulkBusy} onClear={()=>setSelected([])}>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)}><Move size={14} aria-hidden="true"/>Mover a etapa</button>
-        {canBulkDelete?<button type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setBulkDelete(true);}}><Trash2 size={14} aria-hidden="true"/>Eliminar</button>:null}
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkMove(true)}><Move size={14} aria-hidden="true"/>Mover a etapa</Button>
+        {canBulkDelete?<Button variant="danger" type="button" className="secondary danger min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>{setBulkError('');setBulkDelete(true);}}><Trash2 size={14} aria-hidden="true"/>Eliminar</Button>:null}
       </BulkBar>:null}
       {/* KPIs compactos (#145, coordinación #138): en móvil los tres conteos
           van en una fila y el valor abierto ocupa el ancho completo para que
@@ -533,7 +537,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {windowState.hasMore?<div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'oportunidad', 'oportunidades')} · los indicadores cuentan lo cargado</span>
         <div className="inline-actions bulk-actions">
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+          <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</Button>
         </div>
       </div>:null}
 
@@ -551,8 +555,8 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
           <StateChip tone="info" title={`Hay ${boardWindow.hiddenTotal} ${boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista: usá las flechas o desplazá el tablero.`}>{boardWindow.hiddenTotal} {boardWindow.hiddenTotal===1?'etapa':'etapas'} fuera de vista</StateChip>
           <span className="tabular-nums">Mostrando etapas {boardWindow.from+1}–{boardWindow.to+1} de {boardWindow.total}</span>
           <div className="inline-actions gap-1">
-            <button type="button" className="icon-button" disabled={boardWindow.hiddenBefore===0} title="Ver etapa anterior" aria-label="Ver etapa anterior" onClick={()=>scrollBoard(-1)}><ChevronLeft size={16} aria-hidden="true"/></button>
-            <button type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></button>
+            <Button variant="secondary" iconOnly type="button" className="icon-button" disabled={boardWindow.hiddenBefore===0} title="Ver etapa anterior" aria-label="Ver etapa anterior" onClick={()=>scrollBoard(-1)}><ChevronLeft size={16} aria-hidden="true"/></Button>
+            <Button variant="secondary" iconOnly type="button" className="icon-button" disabled={boardWindow.hiddenAfter===0} title="Ver etapa siguiente" aria-label="Ver etapa siguiente" onClick={()=>scrollBoard(1)}><ChevronRight size={16} aria-hidden="true"/></Button>
           </div>
         </div>:null}
         </div>:null}
@@ -606,7 +610,7 @@ export function PipelineSection({user, metricsState='ready', onRetryMetrics, nav
       {convertOffer&&canEdit?<Dialog title="Convertir a cliente" busy={busy} close={()=>{if(!busy)setConvertOffer(null);}}>
         <form className="grid gap-3" onSubmit={event=>{event.preventDefault();void convertLead(convertOffer);}}>
           <p className="m-0 text-sm leading-6 text-mute">{`¿Convertir a ${str(convertOffer,'name')} en cliente? La oportunidad queda vinculada al nuevo cliente.`}</p>
-          <SaveActions pending={busy} cancelLabel="Ahora no"><button type="submit" className="primary" disabled={busy}>Convertir a cliente</button></SaveActions>
+          <SaveActions pending={busy} cancelLabel="Ahora no"><Button variant="primary" type="submit" className="primary" disabled={busy}>Convertir a cliente</Button></SaveActions>
         </form>
       </Dialog>:null}
 
@@ -677,6 +681,6 @@ function MoveStageForm({current,choices,busy,onMove}:{current:string;choices:{va
   return <form className="grid gap-3" onSubmit={event=>{event.preventDefault();if(changed&&!busy)onMove(value);}}>
     <SelectCustom label="Etapa de destino" value={value} choices={choices} disabled={busy} onChange={setValue}/>
     <p className="m-0 text-xs leading-5 text-mute">Ganar fija la probabilidad en 100% y perder en 0%.</p>
-    <SaveActions pending={busy}><button type="submit" className="primary" disabled={busy||!changed}>Mover</button></SaveActions>
+    <SaveActions pending={busy}><Button variant="primary" type="submit" className="primary" disabled={busy||!changed}>Mover</Button></SaveActions>
   </form>;
 }

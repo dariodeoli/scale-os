@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 // «Errores» del panel global: errores del API y de la web agrupados por huella
 // (mensaje normalizado + primer frame). Lista densa v2 (Mensaje · Origen · Ruta
 // · Ocurrencias · Última vez · Estado · Acciones) con tarjetas cuando no entra,
@@ -218,9 +220,9 @@ export function ErrorDetailDialog({group, error, writable, busy, onClose, onStat
           : <p className="form-note">Sin stack: el error llegó solo con el mensaje.</p>}
       </div>
       {writable ? <div className="inline-actions">
-        {group.status !== "resolved" ? <button type="button" className="primary" disabled={busy} onClick={() => onStatus("resolved", "Error marcado como resuelto.")}>Marcar resuelto</button> : null}
-        {group.status !== "ignored" ? <button type="button" className="secondary" disabled={busy} onClick={() => onStatus("ignored", "Error ignorado.")}>Ignorar</button> : null}
-        {group.status !== "new" ? <button type="button" className="secondary" disabled={busy} onClick={() => onStatus("new", "Error reabierto.")}>Reabrir</button> : null}
+        {group.status !== "resolved" ? <Button variant="primary" type="button" className="primary" disabled={busy} onClick={() => onStatus("resolved", "Error marcado como resuelto.")}>Marcar resuelto</Button> : null}
+        {group.status !== "ignored" ? <Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={() => onStatus("ignored", "Error ignorado.")}>Ignorar</Button> : null}
+        {group.status !== "new" ? <Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={() => onStatus("new", "Error reabierto.")}>Reabrir</Button> : null}
       </div> : null}
     </div>
   </Dialog>;

@@ -1,4 +1,6 @@
 "use client";
+import {Input} from './ui/input';
+
 import { MoneyInput, BuscadorPersonas } from 'owncoding-ui';
 import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
 import {createPortal} from 'react-dom';
@@ -75,7 +77,7 @@ function PlainSelect({ label, value, choices, onChange,disabled=false,invalid,de
       <span id={`${id}-value`}>{selectedLabel}</span><ChevronDown size={16}/>
     </button>
     {open&&!disabled&&floating&&createPortal(<div className="ops-select-options ops-select-floating" ref={menu} style={floating.style}>
-      {choices.length>8&&<input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(['Home','End'].includes(e.key))e.stopPropagation();}}/>}
+      {choices.length>8&&<Input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(['Home','End'].includes(e.key))e.stopPropagation();}}/>}
       <div role="listbox" id={id} aria-labelledby={`${id}-label`}>{filtered.map(c=><button type="button" role="option" aria-selected={String(value)===String(c.value)} key={c.value} onClick={()=>{onChange(String(c.value));setOpen(false);trigger.current?.focus();}}>{c.label}</button>)}</div>
       {!filtered.length&&<p>No hay opciones disponibles.</p>}
     </div>,floating.target)}

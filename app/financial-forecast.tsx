@@ -1,4 +1,8 @@
 "use client";
+import {Input, Textarea} from './ui/input';
+
+import {Button} from './ui/button';
+
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {ActorAvatar,safePhoto} from './actor-identity';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
@@ -34,23 +38,7 @@ import {
   type PersonnelMember,
 } from './forecast-data';
 import {useForecast,usePlannedExpenses,useRealExpenses} from './use-forecast';
-import {
-  Aviso,
-  BarraProgreso,
-  Button,
-  Card,
-  DataTable,
-  EmptyState,
-  ErrorState,
-  FilaDato,
-  FormField,
-  IconAction,
-  Input,
-  Label,
-  Nota,
-  SegmentedField,
-  cn,
-} from 'owncoding-ui';
+import {Aviso, BarraProgreso, Card, DataTable, EmptyState, ErrorState, FilaDato, FormField, IconAction, Label, Nota, SegmentedField, cn} from 'owncoding-ui';
 import {ConfirmDialog} from './dialog';
 import {useCompanyCurrency} from './currency-provider';
 import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';
@@ -134,7 +122,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
   {error?<ErrorState title="No se pudo cargar la previsión" description={error} onRetry={()=>reload()}/>
   :!data?<LoadingBlock label="Cargando previsión…" lines={4}/>
   :<>
-   {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes." description="Cuando emitas una factura o se acepte un presupuesto, la previsión del mes se completa sola." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>:null}
+   {horizon==='1'&&!data.records.length?<EmptyState compact title="Sin facturas emitidas ni presupuestos aceptados pendientes para este mes." description="Cuando emitas una factura o se acepte un presupuesto, la previsión del mes se completa sola." action={onCreateInvoice?<Button variant="primary" type="submit" className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</Button>:undefined}/>:null}
   <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] min-[1440px]:items-start':'grid gap-4'}>
    {horizon==='1'?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3">
@@ -160,7 +148,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
        <strong className={cn('whitespace-nowrap text-right text-base font-bold tabular-nums',row.result<0?'text-bad':row.result>0?'text-ok':'text-fore')}>{formatRealMoney(exactBalanceRows.find(item=>item.currency===row.currency)?.result,row.currency)}</strong>
       </div>
      </article>)}
-    </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
+    </div>:<EmptyState compact title="Sin datos financieros para este mes." description="Todavía no hay facturas, cobros, gastos ni salarios que alimenten el balance." action={onCreateInvoice?<Button variant="primary" type="submit" className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</Button>:undefined}/>}
    </Card>:null}
    {horizon==='1'?<Card className="grid gap-3 p-3 sm:p-4">
     <div className="grid gap-1 border-b border-ink-600 pb-3"><h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Resumen por moneda</h3><p className="m-0 text-xs text-mute">Detalle para revisar de dónde viene cada total, sin convertir monedas.</p></div>
@@ -198,7 +186,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
        </div>}
       />
      </div>)}
-    </div>:<EmptyState compact title="Sin datos financieros para el horizonte." description="Emití una factura o aceptá un presupuesto para proyectar caja y resultado." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</button>:undefined}/>}
+    </div>:<EmptyState compact title="Sin datos financieros para el horizonte." description="Emití una factura o aceptá un presupuesto para proyectar caja y resultado." action={onCreateInvoice?<Button variant="primary" type="submit" className="primary" onClick={()=>onCreateInvoice()}>Registrar factura</Button>:undefined}/>}
    </Card>}
    </div>
   <div className={horizon==='1'?'grid gap-4 min-[1440px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] min-[1440px]:items-start':'grid gap-4'}>
@@ -216,7 +204,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
      </ListRow>)}
     </ListGrid>
     </>:
-    <EmptyState compact title="Sin contratos vigentes para este mes." description="No hay contratos activos que contrastar contra la facturación. Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual." action={navigate?<button className="secondary" onClick={()=>navigate('Clientes')}>Ver clientes</button>:undefined}/>}
+    <EmptyState compact title="Sin contratos vigentes para este mes." description="No hay contratos activos que contrastar contra la facturación. Activá un contrato desde la ficha comercial del cliente, con su plan y monto mensual." action={navigate?<Button variant="secondary" type="submit" className="secondary" onClick={()=>navigate('Clientes')}>Ver clientes</Button>:undefined}/>}
     </div>
    </Card>:null}</div>
    <div className="min-w-0">{data&&horizon==='1'?<Card className="grid gap-3 p-4">
@@ -250,7 +238,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
        </ListGrid>
       </div>)}
      </div>
-    </>:<EmptyState compact title="Sin salarios fijos mensuales incluidos para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo." action={navigate?<button className="secondary" onClick={()=>navigate('Equipo')}>Ver equipo</button>:undefined}/>}
+    </>:<EmptyState compact title="Sin salarios fijos mensuales incluidos para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo." action={navigate?<Button variant="secondary" type="submit" className="secondary" onClick={()=>navigate('Equipo')}>Ver equipo</Button>:undefined}/>}
    </Card>:null}
    </div>
   </div>
@@ -332,8 +320,8 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
      <p>Zona horaria: {data.time_zone}. No se suman monedas distintas.</p>
     </div>
    </details>
-   {salaryPerson?<Dialog title={`Salario fijo mensual · ${salaryPerson.name}`} close={()=>{if(!salarySaving)setSalaryPerson(null);}} busy={salarySaving}><form onSubmit={saveSalary} noValidate aria-busy={salarySaving} className="grid gap-3"><FormField label="Importe mensual" htmlFor="forecast-salary-amount" hint={`El importe se guarda en la moneda de la ficha de ${salaryPerson.name} (${salaryPerson.currency}); no cambia la moneda de la persona.`}><AmountInput id="forecast-salary-amount" integerOnly value={salaryAmount} currency={salaryPerson.currency} onChange={setSalaryAmount} disabled={salarySaving}/></FormField>{salaryError?<Aviso tono="error">{salaryError}</Aviso>:null}<p className="m-0 field-help">{financePurposeNotice('payroll')} · <a href={financeNoticeHref('payroll')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p><SaveActions pending={salarySaving}><button type="submit" className="primary" disabled={salarySaving}>{salarySaving?'Guardando…':'Guardar salario'}</button></SaveActions></form></Dialog>:null}
-   {adjustPerson?<Dialog title={`Ajuste del mes · ${adjustPerson.name}`} close={()=>{if(!adjustSaving&&!adjustLoading)setAdjustPerson(null);}} busy={adjustSaving||adjustLoading}>{adjustLoading?<LoadingBlock label="Cargando ajuste del mes…" lines={2}/>:null}<form onSubmit={saveAdjustment} noValidate aria-busy={adjustSaving} className="grid gap-3"><SelectCustom label="Tipo" choices={[{value:'extra',label:'Extra'},{value:'descuento',label:'Descuento'}]} value={adjustSign} disabled={adjustSaving} onChange={value=>setAdjustSign(value==='descuento'?'descuento':'extra')}/><FormField label="Importe" htmlFor="forecast-adjust-amount"><AmountInput id="forecast-adjust-amount" integerOnly value={adjustAmount} currency={adjustPerson.currency} onChange={setAdjustAmount} disabled={adjustSaving}/></FormField><FormField label="Nota opcional" htmlFor="forecast-adjust-note"><textarea id="forecast-adjust-note" maxLength={1000} className="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" value={adjustNote} disabled={adjustSaving} onChange={event=>setAdjustNote(event.target.value)}/></FormField><p className="m-0 field-help">{financePurposeNotice('payroll')} · <a href={financeNoticeHref('payroll')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p><p className="m-0 text-xs text-mute">El ajuste suma o resta al salario base solo en {dateLabel(month)}; no cambia la ficha laboral.</p>{adjustExisting&&!adjustLoading&&<div className="flex flex-wrap items-center gap-2">{confirmRemove?<><span role="alert" className="text-xs font-semibold text-bad">¿Quitar el ajuste de este mes?</span><Button type="button" variant="danger" disabled={adjustSaving||removingOverride===String(adjustPerson.collaborator_id)} onClick={()=>void removeOverride(adjustPerson,true)}>{removingOverride===String(adjustPerson.collaborator_id)?'Quitando…':'Confirmar'}</Button><Button type="button" variant="outline" disabled={adjustSaving} onClick={()=>setConfirmRemove(false)}>Cancelar</Button></>:<span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label="Quitar ajuste del mes" disabled={adjustSaving||removingOverride===String(adjustPerson.collaborator_id)} onClick={()=>setConfirmRemove(true)}/></span>}</div>}{adjustError?<Aviso tono="error">{adjustError}</Aviso>:null}<SaveActions pending={adjustSaving}><button type="submit" className="primary" disabled={adjustSaving||adjustLoading}>{adjustSaving?'Guardando…':'Guardar ajuste'}</button></SaveActions></form></Dialog>:null}
+   {salaryPerson?<Dialog title={`Salario fijo mensual · ${salaryPerson.name}`} close={()=>{if(!salarySaving)setSalaryPerson(null);}} busy={salarySaving}><form onSubmit={saveSalary} noValidate aria-busy={salarySaving} className="grid gap-3"><FormField label="Importe mensual" htmlFor="forecast-salary-amount" hint={`El importe se guarda en la moneda de la ficha de ${salaryPerson.name} (${salaryPerson.currency}); no cambia la moneda de la persona.`}><AmountInput id="forecast-salary-amount" integerOnly value={salaryAmount} currency={salaryPerson.currency} onChange={setSalaryAmount} disabled={salarySaving}/></FormField>{salaryError?<Aviso tono="error">{salaryError}</Aviso>:null}<p className="m-0 field-help">{financePurposeNotice('payroll')} · <a href={financeNoticeHref('payroll')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p><SaveActions pending={salarySaving}><Button variant="primary" type="submit" className="primary" disabled={salarySaving}>{salarySaving?'Guardando…':'Guardar salario'}</Button></SaveActions></form></Dialog>:null}
+   {adjustPerson?<Dialog title={`Ajuste del mes · ${adjustPerson.name}`} close={()=>{if(!adjustSaving&&!adjustLoading)setAdjustPerson(null);}} busy={adjustSaving||adjustLoading}>{adjustLoading?<LoadingBlock label="Cargando ajuste del mes…" lines={2}/>:null}<form onSubmit={saveAdjustment} noValidate aria-busy={adjustSaving} className="grid gap-3"><SelectCustom label="Tipo" choices={[{value:'extra',label:'Extra'},{value:'descuento',label:'Descuento'}]} value={adjustSign} disabled={adjustSaving} onChange={value=>setAdjustSign(value==='descuento'?'descuento':'extra')}/><FormField label="Importe" htmlFor="forecast-adjust-amount"><AmountInput id="forecast-adjust-amount" integerOnly value={adjustAmount} currency={adjustPerson.currency} onChange={setAdjustAmount} disabled={adjustSaving}/></FormField><FormField label="Nota opcional" htmlFor="forecast-adjust-note"><Textarea id="forecast-adjust-note" maxLength={1000} className="w-full rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm" value={adjustNote} disabled={adjustSaving} onChange={event=>setAdjustNote(event.target.value)}/></FormField><p className="m-0 field-help">{financePurposeNotice('payroll')} · <a href={financeNoticeHref('payroll')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p><p className="m-0 text-xs text-mute">El ajuste suma o resta al salario base solo en {dateLabel(month)}; no cambia la ficha laboral.</p>{adjustExisting&&!adjustLoading&&<div className="flex flex-wrap items-center gap-2">{confirmRemove?<><span role="alert" className="text-xs font-semibold text-bad">¿Quitar el ajuste de este mes?</span><Button type="button" variant="danger" disabled={adjustSaving||removingOverride===String(adjustPerson.collaborator_id)} onClick={()=>void removeOverride(adjustPerson,true)}>{removingOverride===String(adjustPerson.collaborator_id)?'Quitando…':'Confirmar'}</Button><Button type="button" variant="outline" disabled={adjustSaving} onClick={()=>setConfirmRemove(false)}>Cancelar</Button></>:<span className={ICON_TARGETS}><IconAction icon="trash" tone="bad" label="Quitar ajuste del mes" disabled={adjustSaving||removingOverride===String(adjustPerson.collaborator_id)} onClick={()=>setConfirmRemove(true)}/></span>}</div>}{adjustError?<Aviso tono="error">{adjustError}</Aviso>:null}<SaveActions pending={adjustSaving}><Button variant="primary" type="submit" className="primary" disabled={adjustSaving||adjustLoading}>{adjustSaving?'Guardando…':'Guardar ajuste'}</Button></SaveActions></form></Dialog>:null}
 
    {plannedTarget?<ConfirmDialog open busy={plannedDeleting===plannedTarget.id} variant="danger" title="Quitar gasto planificado" confirmLabel="Quitar gasto planificado" description={<>{`Se quitará ${plannedTarget.category} por ${formatWholeMoney(plannedTarget.amount,plannedTarget.currency)} de la planificación de ${dateLabel(month)}. No toca pagos reales ni cuentas.`}{expenseError?<span role="alert" className="mt-2 block font-semibold text-bad">{expenseError}</span>:null}</>} onCancel={()=>{if(!plannedDeleting)setPlannedTarget(null);}} onConfirm={()=>void removePlannedExpense(plannedTarget.id).then(ok=>{if(ok)setPlannedTarget(null);})}/>:null}
 

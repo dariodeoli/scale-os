@@ -1,9 +1,13 @@
 'use client';
+import {Input, Textarea} from './ui/input';
+
+import {Button} from './ui/button';
+
 // Rediseño v2 (campaña #41 / spec #43 §1.4): historial comercial como tabla
 // compartida (`DataTable`: tabla en escritorio, tarjetas en móvil) y enmienda
 // con campos por tipo. La lógica vive en ./client-commercial-lifecycle-data.
 import {OptionalMark} from './field-label';
-import {Button,DataTable,EmptyState,FormField,Input,MoneyInput,Select,Textarea,Aviso} from 'owncoding-ui';
+import {DataTable, EmptyState, FormField, MoneyInput, Select, Aviso} from 'owncoding-ui';
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {listDateFull} from './list-format';
 import {todayAsuncion} from './client-format';

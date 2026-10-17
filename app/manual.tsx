@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {BookOpen,CheckCircle2,Globe,CircleDot} from 'lucide-react';
 import './manual.css';
 
@@ -27,7 +29,7 @@ export function PortalPreview(){
   <h4>Reel de lanzamiento · Campaña de verano</h4>
   <p className="manual-portal-note">Tu agencia publicó esta pieza para tu revisión.</p>
   <div className="manual-portal-card"><CircleDot size={14}/><b>Video final</b><span className="manual-portal-state">Publicada</span></div>
-  <div className="manual-portal-actions"><button type="button" disabled className="primary">Aprobar</button><button type="button" disabled className="secondary">Pedir cambios</button></div>
+  <div className="manual-portal-actions"><Button variant="primary" type="button" disabled className="primary">Aprobar</Button><Button variant="secondary" type="button" disabled className="secondary">Pedir cambios</Button></div>
   <p className="manual-portal-foot">El enlace vence y no muestra datos internos de tu empresa.</p>
  </div>;
 }

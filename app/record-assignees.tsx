@@ -1,4 +1,6 @@
 'use client';
+import {Button} from './ui/button';
+
 
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import {PersonContainer} from './person-container';
@@ -96,7 +98,7 @@ function RecordAssigneesForm({kind,id,role,refresh,updatedAt,children}:RecordAss
   }):<span>Sin responsables asignados.</span>}</div>:null}
   {expanded&&editable&&saved?<div id={panelId} className="record-assignees-editor">
    <AssigneePicker members={members} value={draft} onChange={value=>{setDraft(value);setNotice('');}} disabled={busy||conflict} loading={loading} error={error}/>
-   <div className="record-assignees-actions">{children?<small>Los cambios se guardan con Guardar, junto con los detalles.</small>:<button type="button" className="secondary" disabled={loading||busy||conflict||unavailable||!changed} onClick={()=>{void save();}}>{busy?'Guardando…':'Guardar responsables'}</button>}
+   <div className="record-assignees-actions">{children?<small>Los cambios se guardan con Guardar, junto con los detalles.</small>:<Button variant="secondary" type="button" className="secondary" disabled={loading||busy||conflict||unavailable||!changed} onClick={()=>{void save();}}>{busy?'Guardando…':'Guardar responsables'}</Button>}
    <button type="button" className="text-button" disabled={busy} onClick={()=>{setDraft(assigneeSelection(saved.assigned_user_ids,saved.assigned_user_id));setExpanded(false);if(!conflict)setError('');}}><X size={14}/>Cancelar</button></div>
   </div>:error?<p role="alert" className="error">{error}</p>:null}
   {conflict?<p role="status">{children?'El registro cambió. Tu borrador sigue aquí y no se guardó. Conservá los cambios que necesites antes de cerrar y volver a abrir para revisar la versión actual.':'Otra persona cambió la asignación. Recargá para revisar la selección actual antes de guardar.'}</p>:null}

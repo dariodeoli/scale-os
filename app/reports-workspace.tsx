@@ -1,4 +1,8 @@
 'use client';
+import {Input} from './ui/input';
+
+import {Button} from './ui/button';
+
 import {useEffect,useState,type ChangeEvent} from 'react';
 import {Plus} from 'lucide-react';
 import {downloadReportsCsv} from './reports-csv';
@@ -29,21 +33,7 @@ import {
   type ReportsData,
 } from './reports-data';
 import {useReportsWindow} from './use-reports';
-import {
-  Aviso,
-  BarraProgreso,
-  Button,
-  Card,
-  DataTable,
-  EmptyState,
-  ErrorState,
-  FilaDato,
-  FormField,
-  Input,
-  Nota,
-  SegmentedField,
-  cn,
-} from 'owncoding-ui';
+import {Aviso, BarraProgreso, Card, DataTable, EmptyState, ErrorState, FilaDato, FormField, Nota, SegmentedField, cn} from 'owncoding-ui';
 import {notify} from './feedback';
 import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,type Column} from './ui-v2';
 
@@ -182,10 +172,10 @@ function ReportsPanel({organizationName,onCreateInvoice}:{organizationName:strin
   {error?<ErrorState title="No se pudo cargar el reporte" description={error} onRetry={()=>setRetry(value=>value+1)}/>
   :!data?<LoadingBlock label="Cargando reportes…" lines={4}/>
   :<>
-   {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:null}
+   {rows.length&&!currencies.length?<EmptyBlock compact title="Sin importes para comparar todavía." description="El histórico tiene clientes pero ningún importe de facturación o cobro registrado en este período." action={onCreateInvoice?<Button variant="primary" type="submit" className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</Button>:undefined}/>:null}
    {exportError?<Aviso tono="error">{exportError}</Aviso>:null}
    {partial?<Nota tono="warn" className="m-0">Mes en curso o cobertura incompleta en el mes seleccionado o anterior; no comparar como meses completos. Se omite la comparación mensual.</Nota>:null}
-   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<button className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</button>:onCreateInvoice?<button className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</button>:undefined}/>:<>
+   {!selected?<EmptyBlock compact title="Sin datos para el mes seleccionado." description={rows.length?`El mes consultado no tiene movimientos. El más reciente con datos es ${monthTitle(rows[0].month)}.`:'Registrá la primera factura o cobro para empezar la serie mensual.'} action={rows.length?<Button variant="secondary" type="submit" className="secondary" onClick={()=>setMonth(rows[0].month)}>Ver {monthTitle(rows[0].month)}</Button>:onCreateInvoice?<Button variant="primary" type="submit" className="primary" onClick={()=>onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar primera factura</Button>:undefined}/>:<>
     <Card className="grid gap-4 p-3 sm:p-4">
      <div className="flex flex-wrap items-end justify-between gap-2"><div><h3 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Resumen del período</h3><p className="m-0 text-xs text-mute">{monthTitle(month)} · {selectedCurrency}</p></div><div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-mute"><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-fono-light" aria-hidden="true"/>Facturado</span><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-ok" aria-hidden="true"/>Cobrado</span></div></div>
      <KpiStrip>{tiles.map(tile=><Kpi key={tile.label} label={tile.label} valor={tile.value} hint={tile.change}/>)}</KpiStrip>

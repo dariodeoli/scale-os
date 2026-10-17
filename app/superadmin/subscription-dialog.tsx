@@ -1,4 +1,9 @@
 "use client";
+import {Input, Textarea} from '../ui/input';
+
+import {Button} from '../ui/button';
+import {DateTimeInput} from '../ui/temporal-input';
+
 // Diálogo de suscripción manual (estado, gracia en un clic y opciones avanzadas).
 // #189: arriba el estado actual y las gracias rápidas (+7 días, +1 mes, +3 meses);
 // el override manual y el pago manual siguen debajo, plegados.
@@ -158,7 +163,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 <>
                   <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                     Motivo
-                    <textarea
+                    <Textarea
                       value={subscriptionReason}
                       disabled={busy}
                       minLength={3}
@@ -172,8 +177,8 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   </label>
                   <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                     Vence<OptionalMark/>
-                    <input
-                      type="datetime-local"
+                    <DateTimeInput
+
                       value={subscriptionExpiryValue}
                       disabled={busy}
                       onChange={(event) =>
@@ -184,7 +189,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 </>
               ) : null}
               <div className="inline-actions justify-end">
-                <button
+                <Button variant="secondary"
                   type="submit"
                   className="secondary"
                   disabled={
@@ -194,7 +199,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   }
                 >
                   {busy ? "Guardando…" : "Guardar estado manual"}
-                </button>
+                </Button>
               </div>
             </form>
           )}
@@ -211,7 +216,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
               <SelectCustom label="Días a sumar" choices={['7','30','90','180','365'].map(days=>({value:days,label:`${days} días`}))} value={extendDays} disabled={busy} onChange={setExtendDays}/>
               <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                 Motivo
-                <input
+                <Input
                   value={extendReason}
                   disabled={busy}
                   minLength={3}
@@ -222,13 +227,13 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 />
               </label>
               <div className="inline-actions justify-end">
-                <button
+                <Button variant="secondary"
                   type="submit"
                   className="secondary"
                   disabled={busy || extendReason.trim().length < 3}
                 >
                   {busy ? "Guardando…" : "Marcar pago manual"}
-                </button>
+                </Button>
               </div>
             </form>
           </details>
@@ -246,7 +251,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
             >
               <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                 Motivo
-                <input value={graceReason} disabled={graceBusy} minLength={3} maxLength={120} onChange={(event) => setGraceReason(event.target.value)}/>
+                <Input value={graceReason} disabled={graceBusy} minLength={3} maxLength={120} onChange={(event) => setGraceReason(event.target.value)}/>
               </label>
             </ConfirmDialog>
           ) : null}

@@ -1,9 +1,11 @@
 "use client";
+import {Button} from '../ui/button';
+
 import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useMemo,useRef,useState,type Dispatch,type SetStateAction} from 'react';
 import {ArrowUpRight, ChevronLeft, ChevronRight, Plus, RotateCcw, SlidersHorizontal} from 'lucide-react';
 import {DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent} from '@dnd-kit/core';
-import {Button, Select} from 'owncoding-ui';
+import {Select} from 'owncoding-ui';
 import {EmptyBlock,ErrorBlock,ListPage,LoadingBlock,SectionLoading,ViewTabs} from '../ui-v2';
 import {BoardPresence} from '../presence';
 import {KanbanColumn, statuses, type Status, type WorkOrderCard} from '../production-board';
@@ -139,7 +141,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
       </div>
   );
   return (
-    <ListPage aria-label="Producción" primaryAction={createOrder?<button type="button" className="primary" onClick={createOrder}><Plus size={18}/> Nueva orden</button>:undefined} toolbar={toolbar}>
+    <ListPage aria-label="Producción" primaryAction={createOrder?<Button variant="primary" type="button" className="primary" onClick={createOrder}><Plus size={18}/> Nueva orden</Button>:undefined} toolbar={toolbar}>
       {productionView==='Tablero'&&hasProductionFilters&&<p className="m-0 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
       {productionView==='Tablero'&&preferenceWarning?<p className="m-0 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
       {/* El planificador comparte la carga con el tablero: con error no se pinta un

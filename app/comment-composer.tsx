@@ -1,4 +1,8 @@
 'use client';
+import {Textarea} from './ui/input';
+
+import {Button} from './ui/button';
+
 
 import {useEffect,useId,useMemo,useRef,useState} from 'react';
 import {ActorIdentity} from './actor-identity';
@@ -37,7 +41,7 @@ export function CommentComposer({onSubmit,label='Publicar comentario',disabled=f
  }
  return <form className="comment-composer" onSubmit={submit} aria-busy={sending||undefined}>
   <label htmlFor={fieldId}>Comentario</label>
-  <textarea ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} onKeyDown={event=>{
+  <Textarea ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} onKeyDown={event=>{
    if(!choices.length)return;
    if(event.key==='ArrowDown'){event.preventDefault();setActive(value=>(value+1)%choices.length);}
    if(event.key==='ArrowUp'){event.preventDefault();setActive(value=>(value-1+choices.length)%choices.length);}
@@ -48,6 +52,6 @@ export function CommentComposer({onSubmit,label='Publicar comentario',disabled=f
   {token!==null&&<div className="mention-suggestions" role="listbox" aria-label="Personas para mencionar">{loading?<p role="status">Buscando integrantes…</p>:choices.map((person,index)=><button type="button" role="option" aria-selected={active===index} style={active===index?{background:'var(--surface-subtle)'}:undefined} key={person.id} onMouseDown={event=>event.preventDefault()} onClick={()=>choose(person)} disabled={sending}><ActorIdentity name={name(person)} photoUrl={person.photo_url} verified/><span>{person.email&&person.full_name&&!technicalEmail(person.email)?person.email:null}</span></button>)}{!loading&&!choices.length&&<p className="form-note">No hay integrantes activos que coincidan.</p>}</div>}
   {mentions.size>0&&<div className="mention-selected" aria-label="Personas mencionadas">{Array.from(mentions.entries()).map(([id,display])=><span key={id}>@{display}<button type="button" aria-label={`Quitar mención a ${display}`} onClick={()=>setMentions(previous=>{const next=new Map(previous);next.delete(id);return next;})}>×</button></span>)}</div>}
   {error&&<p className="error" role="alert">{error}</p>}
-  <button className="primary" type="submit" disabled={disabled||sending}>{sending?'Publicando…':label}</button>
+  <Button variant="primary" className="primary" type="submit" disabled={disabled||sending}>{sending?'Publicando…':label}</Button>
  </form>;
 }

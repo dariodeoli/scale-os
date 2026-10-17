@@ -1,0 +1,638 @@
+[
+  {
+    "path": "app/acceso-pendiente/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/announcement-banner.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/archive-controls.tsx",
+    "buttons": 4,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/client-assign-plan.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/client-commercial-lifecycle.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/client-directory-toolbar.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "externalButton": true
+  },
+  {
+    "path": "app/client-reporting.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/client-ruc.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/cliente/entregas/[id]/page.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 2
+  },
+  {
+    "path": "app/cliente/entregas/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/comment-composer.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 1
+  },
+  {
+    "path": "app/commenting.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 2,
+    "textareas": 1
+  },
+  {
+    "path": "app/company-legal-profile.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/company-settings.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/contracts-workspace.tsx",
+    "buttons": 14,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/daily-controls.tsx",
+    "buttons": 8,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 2,
+    "textareas": 2
+  },
+  {
+    "path": "app/deletion-danger-zone.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 3,
+    "textareas": 0
+  },
+  {
+    "path": "app/demo/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/demo-toolbar.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/dialog.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/drive-links.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 2,
+    "textareas": 0
+  },
+  {
+    "path": "app/employee-tasks.tsx",
+    "buttons": 10,
+    "temporalInputs": 2,
+    "externalButton": false,
+    "nativeInputs": 3,
+    "textareas": 1
+  },
+  {
+    "path": "app/error.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/finance-balance.tsx",
+    "buttons": 4,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/finance-collections.tsx",
+    "buttons": 5,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/financial-forecast.tsx",
+    "buttons": 7,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 1
+  },
+  {
+    "path": "app/global-error.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/ia-carga-button.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/ia-carga.tsx",
+    "buttons": 21,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 1
+  },
+  {
+    "path": "app/inventory-workspace.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 5
+  },
+  {
+    "path": "app/invitacion/page.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/invite-links.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/loading-screen.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/maintenance-gate.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/manual.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/mobile-navigation.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/notification-inbox.tsx",
+    "buttons": 6,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/notifications-ui.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/operations.tsx",
+    "buttons": 5,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 1
+  },
+  {
+    "path": "app/permissions-matrix.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/person-photo.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/photo-cropper.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/photo-viewer.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/privacy-panel.tsx",
+    "buttons": 5,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/productivity-ui.tsx",
+    "buttons": 8,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/profile-photo.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/quote-composer.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/record-assignees.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/recuperar-cuenta/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/registro/page.tsx",
+    "buttons": 4,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/reports-workspace.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/save-actions.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/scale-workspace.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/sections/clientes.tsx",
+    "buttons": 4,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/sections/comisiones.tsx",
+    "buttons": 6,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/sections/finanzas.tsx",
+    "buttons": 9,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/sections/mora.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/sections/pipeline.tsx",
+    "buttons": 7,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/sections/planes.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": true
+  },
+  {
+    "path": "app/sections/presupuestos.tsx",
+    "buttons": 4,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/sections/produccion.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": true
+  },
+  {
+    "path": "app/sections/proyectos.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": true
+  },
+  {
+    "path": "app/sections/resumen.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/status/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/studio-workspace.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": true,
+    "nativeInputs": 0,
+    "textareas": 0
+  },
+  {
+    "path": "app/suite.tsx",
+    "buttons": 8,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/announcements.tsx",
+    "buttons": 2,
+    "temporalInputs": 2,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 1
+  },
+  {
+    "path": "app/superadmin/apply-coupon-dialog.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 1,
+    "textareas": 0
+  },
+  {
+    "path": "app/superadmin/catalog.tsx",
+    "buttons": 1,
+    "temporalInputs": 1,
+    "externalButton": false,
+    "nativeInputs": 2,
+    "textareas": 1
+  },
+  {
+    "path": "app/superadmin/confirm.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 2,
+    "textareas": 0
+  },
+  {
+    "path": "app/superadmin/errors.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/maintenance.tsx",
+    "buttons": 1,
+    "temporalInputs": 1,
+    "externalButton": false,
+    "nativeInputs": 0,
+    "textareas": 1
+  },
+  {
+    "path": "app/superadmin/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/states.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/subscription-dialog.tsx",
+    "buttons": 2,
+    "temporalInputs": 1,
+    "externalButton": false,
+    "nativeInputs": 2,
+    "textareas": 1
+  },
+  {
+    "path": "app/team-access.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/team-person-sheet.tsx",
+    "buttons": 2,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/team-workspace.tsx",
+    "buttons": 5,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/verificar-correo/page.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/work-history.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "externalButton": true
+  },
+  {
+    "path": "app/work-order-links.tsx",
+    "buttons": 1,
+    "temporalInputs": 0,
+    "externalButton": false,
+    "nativeInputs": 2,
+    "textareas": 0
+  },
+  {
+    "path": "app/workspace-forms.tsx",
+    "buttons": 5,
+    "temporalInputs": 3,
+    "externalButton": false,
+    "nativeInputs": 8,
+    "textareas": 1
+  },
+  {
+    "path": "app/workspace-guide.tsx",
+    "buttons": 3,
+    "temporalInputs": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/cliente/invitacion/page.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 1,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/profile-controls.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 1,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/report-problem.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 1,
+    "externalButton": false
+  },
+  {
+    "path": "app/search-field.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 1,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/inquiries.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 1,
+    "externalButton": false
+  },
+  {
+    "path": "app/superadmin/reports.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 1,
+    "externalButton": false
+  },
+  {
+    "path": "app/ui-catalog/ui-catalog.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 1,
+    "externalButton": false
+  },
+  {
+    "path": "app/weekly-automatic.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 0,
+    "textareas": 0,
+    "externalButton": false
+  },
+  {
+    "path": "app/work-checklist.tsx",
+    "buttons": 0,
+    "temporalInputs": 0,
+    "nativeInputs": 2,
+    "textareas": 1,
+    "externalButton": false
+  }
+]

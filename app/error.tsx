@@ -1,4 +1,6 @@
 'use client';
+import {Button} from './ui/button';
+
 import {useEffect} from 'react';
 import {WorkspaceFooter} from './workspace-footer';
 import {reportClientError} from './client-error-reporter';
@@ -10,7 +12,7 @@ export default function ErrorBoundary({error,reset}:{error:Error&{digest?:string
    <p className="eyebrow">ERROR INESPERADO</p>
    <h1>Algo salió mal</h1>
    <p>Ocurrió un error al mostrar esta pantalla. Reintentá; tus datos guardados no se pierden.</p>
-   <button className="primary" type="button" onClick={reset}>Reintentar</button>
+   <Button variant="primary" className="primary" type="button" onClick={reset}>Reintentar</Button>
   </section>
   <WorkspaceFooter/>
  </main>;

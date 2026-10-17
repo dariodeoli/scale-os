@@ -1,4 +1,6 @@
 'use client';
+import {Button} from '../ui/button';
+
 
 import {useEffect,useState} from 'react';
 import {AccessLayout} from '../access-layout';
@@ -20,7 +22,7 @@ export default function RecoverAccount(){
     <form className="grid gap-3" onSubmit={submit}>
      <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required/></label>
      <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="current-password" required/>
-     <button className="primary" disabled={busy}>{busy?'Recuperando…':'Recuperar cuenta'}</button>
+     <Button variant="primary" type="submit" className="primary" disabled={busy}>{busy?'Recuperando…':'Recuperar cuenta'}</Button>
     </form>
     {error?<p className="error" role="alert">{error}</p>:null}
     <p className="text-[11.5px] text-mute"><a className="inline-flex min-h-11 items-center" href="/">Volver al inicio de sesión</a></p>

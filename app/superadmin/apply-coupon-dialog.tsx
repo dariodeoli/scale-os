@@ -1,4 +1,8 @@
 "use client";
+import {Input} from '../ui/input';
+
+import {Button} from '../ui/button';
+
 // «Aplicar cupón» desde el panel global (#189): el superadmin canjea un cupón
 // aplicable en nombre de la agencia (vigente, con cupo, global o dirigido a ella
 // y todavía no usado por ella). El API reutiliza el mismo canje que la empresa.
@@ -71,7 +75,7 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
         {loadError ? <p className="error" role="alert">{loadError}</p>
           : coupons === null ? <LoadingBlock label="Cargando cupones aplicables…" lines={2}/>
           : <p className="form-note">No hay cupones aplicables a esta agencia: deben estar vigentes, con cupo, ser globales o dirigidos a ella y no haber sido usados por ella.</p>}
-        <div className="inline-actions"><button type="button" className="secondary" onClick={onClose}>Cerrar</button></div>
+        <div className="inline-actions"><Button variant="secondary" type="button" className="secondary" onClick={onClose}>Cerrar</Button></div>
       </Dialog>
     );
   }
@@ -88,7 +92,7 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
       <SelectCustom label="Cupón" choices={coupons.map((item) => ({value: String(item.id), label: couponChoiceLabel(item)}))} value={selected} disabled={busy} onChange={setSelected}/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Motivo<OptionalMark/>
-        <input value={reason} disabled={busy} maxLength={500} placeholder="Ej.: gracia acordada con el cliente" onChange={(event) => setReason(event.target.value)}/>
+        <Input value={reason} disabled={busy} maxLength={500} placeholder="Ej.: gracia acordada con el cliente" onChange={(event) => setReason(event.target.value)}/>
       </label>
     </ConfirmDialog>
   );

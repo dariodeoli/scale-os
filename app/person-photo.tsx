@@ -1,4 +1,8 @@
 "use client";
+import {Input} from './ui/input';
+
+import {Button} from './ui/button';
+
 import {useEffect,useRef,useState} from 'react';
 import dynamic from 'next/dynamic';
 import {Crop,Link2,Trash2} from 'lucide-react';
@@ -47,7 +51,7 @@ export function PersonPhotoField({photo,name,save}:{photo:string|null;name:strin
     {current?<button type="button" className="text-button danger" disabled={processing} onClick={remove}><Trash2 size={14}/>Quitar foto</button>:null}
    </div>
   </div>
-  {linkMode&&<div className="form-stack"><label>Enlace directo a la imagen<input type="url" value={link} placeholder="https://…/foto.jpg" disabled={processing} onChange={event=>setLink(event.target.value)}/></label><div className="inline-actions"><button type="button" className="primary" disabled={processing||!link.trim()} onClick={saveLink}>{processing?'Guardando…':'Guardar enlace'}</button></div></div>}
+  {linkMode&&<div className="form-stack"><label>Enlace directo a la imagen<Input type="url" value={link} placeholder="https://…/foto.jpg" disabled={processing} onChange={event=>setLink(event.target.value)}/></label><div className="inline-actions"><Button variant="primary" type="button" className="primary" disabled={processing||!link.trim()} onClick={saveLink}>{processing?'Guardando…':'Guardar enlace'}</Button></div></div>}
   {failed&&<p className="error" role="alert">Esta imagen no se puede mostrar acá. El enlace puede haber vencido o el sitio bloquea mostrarla fuera de su propia página. Subí el archivo o probá otro enlace público.</p>}
   {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   <p className="form-note">{PHOTO_FORMATS} · Hasta 4 MB. Al subir se guarda automáticamente.</p>

@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 // «Asignar plan» del lote de clientes (#184 C5): elige un plan de servicio y lo
 // asigna a cada cliente seleccionado (un PATCH por cliente; sin endpoint de lote).
 import {useEffect,useState} from 'react';
@@ -26,6 +28,6 @@ export function AssignPlanDialog({ids,close,onDone}:{ids:string[];close:() => vo
     <p className="form-note">Se asigna a {ids.length} {ids.length===1?'cliente seleccionado':'clientes seleccionados'}. Cambia solo el plan de servicio; el precio y el pago se editan desde cada cliente.</p>
     {plans===null?<p role="status">Cargando planes…</p>:plans.length?<SelectCustom label="Plan de servicio" value={planId} choices={[{value:'',label:'Elegí un plan'},...plans.map(plan=>({value:String(plan.id),label:plan.name}))]} onChange={setPlanId} disabled={busy}/>:<p className="form-note">No hay planes activos. Creá uno en Planes.</p>}
     {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
-    <FormActions><button type="button" className="secondary" disabled={busy} onClick={close}>Cancelar</button><button type="button" className="primary" disabled={busy||!planId} onClick={()=>void run()}>{busy?'Asignando…':'Asignar plan'}</button></FormActions>
+    <FormActions><Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={close}>Cancelar</Button><Button variant="primary" type="button" className="primary" disabled={busy||!planId} onClick={()=>void run()}>{busy?'Asignando…':'Asignar plan'}</Button></FormActions>
   </Dialog>;
 }

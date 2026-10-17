@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 // Comunicados de la plataforma en el espacio de trabajo: un banner arriba del
 // contenido con el comunicado vigente de mayor prioridad (de a uno). Al cerrarlo
 // se registra una lectura única y llega el siguiente, si hay. El texto se dibuja
@@ -63,7 +65,7 @@ export function AnnouncementBannerView({announcement, onDismiss, busy = false, p
       </p>
       <p className="announcement-banner-message mt-0.5 whitespace-pre-line break-words text-[12.5px] leading-snug text-fore/85">{announcement.message || "El mensaje aparece acá."}</p>
     </div>
-    {onDismiss ? <button type="button" className="icon-button grid size-11 shrink-0 place-items-center rounded-lg text-mute hover:text-fore md:size-8" title="Cerrar comunicado" aria-label={`Cerrar comunicado: ${title}`} disabled={busy} onClick={onDismiss}><X size={16} aria-hidden="true"/></button> : null}
+    {onDismiss ? <Button variant="secondary" iconOnly type="button" className="icon-button grid size-11 shrink-0 place-items-center rounded-lg text-mute hover:text-fore md:size-8" title="Cerrar comunicado" aria-label={`Cerrar comunicado: ${title}`} disabled={busy} onClick={onDismiss}><X size={16} aria-hidden="true"/></Button> : null}
   </section>;
 }
 

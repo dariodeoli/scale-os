@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {api} from './operations';
 import {MENSAJE_RUC,normalizarNombre,normalizeTaxId,taxIdValid} from 'owncoding-ui';
 import {listDateFull} from './list-format';
@@ -32,6 +34,6 @@ export function RucConfirmCard({record,onApply,onDiscard}:{record:RucRecord;onAp
   <p>RUC: {record.tax_id}</p>
   <small>Estado tributario: {record.tax_state||'No informado'} · Fuente: {record.source||'No informada'} · Publicado: {listDateFull(record.publication_date)||'No informado'}</small>
   <p className="form-note">Revisá los datos: se aplican al RUC y la razón social de esta ficha sólo si confirmás. No cambian el nombre comercial, el estado del servicio ni el saldo. Consultamos el RUC sólo para completar la ficha; <a className="text-button" href="/privacidad">Política de Privacidad</a>.</p>
-  <div className="inline-actions"><button type="button" className="primary" onClick={onApply}>Aplicar</button><button type="button" className="text-button" onClick={onDiscard}>Descartar</button></div>
+  <div className="inline-actions"><Button variant="primary" type="button" className="primary" onClick={onApply}>Aplicar</Button><button type="button" className="text-button" onClick={onDiscard}>Descartar</button></div>
  </section>;
 }

@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,Building2,ChevronDown,Circle,CircleCheck,CircleDashed,CircleHelp,EyeOff} from 'lucide-react';
 import {AyudaModulo} from 'owncoding-ui';
@@ -103,18 +105,18 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
      </li>)}
     </ul>
     {demoNote}
-    <button type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)}>Abrir guía completa</button>
+    <Button variant="secondary" type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)}>Abrir guía completa</Button>
    </div>}
   </section>;
  }
- return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{guideDialog}</>;
+ return <><Button variant="secondary" type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</Button>{guideDialog}</>;
 }
 export function NewCompany(){
  const [open,setOpen]=useState(false);
  return <section className="panel settings-card workspace-company-card" aria-labelledby="workspace-company-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Building2 size={18}/></span><div><h2 id="workspace-company-title">Empresas</h2><p>Cambiá de empresa o creá un espacio separado para otra operación.</p></div></div>
   <CompanySettings/>
   <details className="settings-disclosure"><summary>Cómo funciona una empresa adicional</summary><div><p>Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p><p>Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p><p><strong>Precio de lanzamiento.</strong> {founderPricingNote}</p></div></details>
-  <div className="settings-card-actions"><button className="secondary" onClick={()=>setOpen(true)}>Crear otra empresa</button></div>
+  <div className="settings-card-actions"><Button variant="secondary" type="submit" className="secondary" onClick={()=>setOpen(true)}>Crear otra empresa</Button></div>
   {open&&<Dialog title="Nueva empresa · 30 días gratis" close={()=>setOpen(false)}><Editor fields={[{key:'name',label:'Nombre de la empresa'},{key:'slug',label:'Código único (letras, números y guiones)'},{key:'billingCurrency',label:'Suscripción después de la prueba',choices:[{value:'USD',label:'US$10 al mes'},{value:'PYG',label:'G. 50.000 al mes'}]}]} defaults={{name:'',slug:'',billingCurrency:'USD'}} label="Crear empresa e iniciar prueba" save={async v=>{const d=await api<{organization:{id:string}}>('/api/auth/organizations',v);await api('/api/auth/switch-organization',{organizationId:d.organization.id});window.location.assign('/');}}/></Dialog>}
  </section>;
 }

@@ -1,0 +1,713 @@
+{
+  "note": "Static baseline before UI consolidation; native controls include specialized widgets, not all are duplicates.",
+  "files": [
+    {
+      "path": "app/acceso-pendiente/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/account-security.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/announcement-banner.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/archive-controls.tsx",
+      "nativeButtons": 5,
+      "staticBaseButtons": 4,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/assignee-picker.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/client-assign-plan.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 2,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/client-directory-toolbar.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/client-identity.tsx",
+      "nativeButtons": 0,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/client-ruc.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/cliente/entregas/[id]/page.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 2,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/cliente/entregas/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/cliente/ingresar/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/cliente/invitacion/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/cliente/recuperar/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/comment-composer.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 1,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/commenting.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 2,
+      "nativeFields": 3
+    },
+    {
+      "path": "app/company-legal-profile.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/company-settings.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 3,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/contracts-workspace.tsx",
+      "nativeButtons": 16,
+      "staticBaseButtons": 14,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/control-center.tsx",
+      "nativeButtons": 7,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/daily-controls.tsx",
+      "nativeButtons": 14,
+      "staticBaseButtons": 8,
+      "nativeFields": 4
+    },
+    {
+      "path": "app/deletion-danger-zone.tsx",
+      "nativeButtons": 9,
+      "staticBaseButtons": 2,
+      "nativeFields": 3
+    },
+    {
+      "path": "app/demo/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/demo-toolbar.tsx",
+      "nativeButtons": 5,
+      "staticBaseButtons": 2,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/desktop-sidebar.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/dialog.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 2,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/drive-links.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 1,
+      "nativeFields": 3
+    },
+    {
+      "path": "app/email-field.tsx",
+      "nativeButtons": 0,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/employee-tasks.tsx",
+      "nativeButtons": 14,
+      "staticBaseButtons": 10,
+      "nativeFields": 9
+    },
+    {
+      "path": "app/entity-picker.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/error.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/finance-balance.tsx",
+      "nativeButtons": 9,
+      "staticBaseButtons": 4,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/finance-collections.tsx",
+      "nativeButtons": 11,
+      "staticBaseButtons": 5,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/financial-forecast.tsx",
+      "nativeButtons": 8,
+      "staticBaseButtons": 7,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/foto-perfil.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/global-error.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/google-sign-in.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/ia-carga-button.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/ia-carga.tsx",
+      "nativeButtons": 30,
+      "staticBaseButtons": 21,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/inventory-workspace.tsx",
+      "nativeButtons": 8,
+      "staticBaseButtons": 0,
+      "nativeFields": 13
+    },
+    {
+      "path": "app/invitacion/page.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 3,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/invite-links.tsx",
+      "nativeButtons": 7,
+      "staticBaseButtons": 2,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/loading-screen.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/maintenance-gate.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/manual.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 2,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/mobile-navigation.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 2,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/my-data.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/my-profile.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/notification-inbox.tsx",
+      "nativeButtons": 11,
+      "staticBaseButtons": 6,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/notifications-ui.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/operations.tsx",
+      "nativeButtons": 11,
+      "staticBaseButtons": 5,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/password-field.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/password-panel.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/permissions-matrix.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/person-photo.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 1,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/phone-field.tsx",
+      "nativeButtons": 0,
+      "staticBaseButtons": 0,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/photo-cropper.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 2,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/photo-viewer.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 3,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/presence.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/privacy-panel.tsx",
+      "nativeButtons": 7,
+      "staticBaseButtons": 5,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/production-board.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/productivity-ui.tsx",
+      "nativeButtons": 21,
+      "staticBaseButtons": 8,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/profile-controls.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/profile-photo.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 1,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/project-card.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/quote-composer.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/record-assignees.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/recuperar-cuenta/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/registro/page.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 4,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/report-problem.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/reports-workspace.tsx",
+      "nativeButtons": 5,
+      "staticBaseButtons": 3,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/save-actions.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/scale-workspace.tsx",
+      "nativeButtons": 9,
+      "staticBaseButtons": 3,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/search-field.tsx",
+      "nativeButtons": 0,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/sections/clientes.tsx",
+      "nativeButtons": 12,
+      "staticBaseButtons": 4,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/sections/comisiones.tsx",
+      "nativeButtons": 12,
+      "staticBaseButtons": 6,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/sections/finanzas.tsx",
+      "nativeButtons": 20,
+      "staticBaseButtons": 9,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/sections/mora.tsx",
+      "nativeButtons": 5,
+      "staticBaseButtons": 3,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/sections/pipeline.tsx",
+      "nativeButtons": 17,
+      "staticBaseButtons": 7,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/sections/planes.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 2,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/sections/presupuestos.tsx",
+      "nativeButtons": 7,
+      "staticBaseButtons": 4,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/sections/produccion.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/sections/proyectos.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 3,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/sections/resumen.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/status/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/studio-workspace.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 2,
+      "nativeFields": 3
+    },
+    {
+      "path": "app/subscription-panel.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 0,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/suite.tsx",
+      "nativeButtons": 12,
+      "staticBaseButtons": 8,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/access.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/agencies.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/announcements.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 2,
+      "nativeFields": 4
+    },
+    {
+      "path": "app/superadmin/apply-coupon-dialog.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/superadmin/audit.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/catalog.tsx",
+      "nativeButtons": 3,
+      "staticBaseButtons": 1,
+      "nativeFields": 4
+    },
+    {
+      "path": "app/superadmin/confirm.tsx",
+      "nativeButtons": 4,
+      "staticBaseButtons": 2,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/superadmin/errors.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 3,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/inquiries.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/superadmin/maintenance.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 2
+    },
+    {
+      "path": "app/superadmin/overview.tsx",
+      "nativeButtons": 5,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/reports.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/superadmin/sidebar.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/states.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 2,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/superadmin/subscription-dialog.tsx",
+      "nativeButtons": 5,
+      "staticBaseButtons": 2,
+      "nativeFields": 4
+    },
+    {
+      "path": "app/tab-scroller.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/team-access.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/team-person-sheet.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 2,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/team-workspace.tsx",
+      "nativeButtons": 7,
+      "staticBaseButtons": 5,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/text-field.tsx",
+      "nativeButtons": 0,
+      "staticBaseButtons": 0,
+      "nativeFields": 1
+    },
+    {
+      "path": "app/theme-toggle.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/ui-v2.tsx",
+      "nativeButtons": 6,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/verificar-correo/page.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/version-notice.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/work-checklist.tsx",
+      "nativeButtons": 7,
+      "staticBaseButtons": 0,
+      "nativeFields": 4
+    },
+    {
+      "path": "app/work-history.tsx",
+      "nativeButtons": 2,
+      "staticBaseButtons": 0,
+      "nativeFields": 0
+    },
+    {
+      "path": "app/work-order-links.tsx",
+      "nativeButtons": 1,
+      "staticBaseButtons": 1,
+      "nativeFields": 3
+    },
+    {
+      "path": "app/workspace-forms.tsx",
+      "nativeButtons": 11,
+      "staticBaseButtons": 5,
+      "nativeFields": 12
+    },
+    {
+      "path": "app/workspace-guide.tsx",
+      "nativeButtons": 8,
+      "staticBaseButtons": 3,
+      "nativeFields": 0
+    }
+  ]
+}

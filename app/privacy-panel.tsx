@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState,type ReactNode} from 'react';
 import {BadgeCheck,CircleX,Download,Landmark,Plus,RefreshCw,ShieldCheck,ShieldOff} from 'lucide-react';
 import {api,Dialog,Editor,type Field} from './operations';
@@ -170,12 +172,12 @@ export function PrivacyPanel({user}:{user:User|null}){
       <option value="open">Abiertas</option><option value="all">Todas</option><option value="resolved">Resueltas</option><option value="rejected">Rechazadas</option>
      </select>
     </label>
-    <button type="button" className="secondary" disabled={busy} onClick={()=>setReloadKey(value=>value+1)} title="Actualizar la cola" aria-label="Actualizar la cola"><RefreshCw size={15}/>Actualizar</button>
-    <button type="button" className="primary" disabled={busy} onClick={()=>setCreating(true)}><Plus size={15}/>Nueva solicitud</button>
+    <Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={()=>setReloadKey(value=>value+1)} title="Actualizar la cola" aria-label="Actualizar la cola"><RefreshCw size={15}/>Actualizar</Button>
+    <Button variant="primary" type="button" className="primary" disabled={busy} onClick={()=>setCreating(true)}><Plus size={15}/>Nueva solicitud</Button>
    </div>}>
    <p className="mb-3 flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/><span className="min-w-0">La respuesta a cada derecho es gratuita y vence a los 30 días naturales. Cada acción queda en la bitácora de datos personales.{queue?<> Aviso vigente: <b className="text-fore">{queue.notice.version}</b> · <a className="text-fono underline-offset-2 hover:underline" href={queue.notice.url} target="_blank" rel="noreferrer">Política de privacidad</a></>:null}</span></p>
    {error?<ErrorBlock title="No pudimos completar la gestión" description={error} onRetry={()=>void load()}/>:null}
-   {loading&&!queue?<LoadingBlock label="Cargando la cola…" lines={4}/>:!queue?<EmptyBlock title="Sin datos de la cola" description="El API no devolvió solicitudes de titulares." action={<button type="button" className="secondary" onClick={()=>setReloadKey(value=>value+1)}>Reintentar</button>}/>:<>
+   {loading&&!queue?<LoadingBlock label="Cargando la cola…" lines={4}/>:!queue?<EmptyBlock title="Sin datos de la cola" description="El API no devolvió solicitudes de titulares." action={<Button variant="secondary" type="button" className="secondary" onClick={()=>setReloadKey(value=>value+1)}>Reintentar</Button>}/>:<>
     <KpiStrip className="mb-4">
      <Kpi label="Abiertas" valor={open} hint="Dentro del plazo de 30 días" destacado/>
      <Kpi label="Vencidas" valor={Number(counts.overdue||0)} hint="Deben resolverse ya"/>
@@ -193,10 +195,10 @@ export function PrivacyPanel({user}:{user:User|null}){
       <div className="min-w-0 whitespace-nowrap text-[12px] tabular-nums text-mute" title={`Recibida el ${listDateFull(request.received_at)||''}${request.resolved_at?` · Resuelta el ${listDateFull(request.resolved_at)||''}`:''}`} data-tone={!['resolved','rejected','cancelled'].includes(request.status)&&dueTone(request.due_at,3)?'warn':undefined}>{slaLabel(request)}<small className="mt-0.5 block text-[10.5px]">Recibida {listDateShort(request.received_at)}</small></div>
       <ListActions>
        {request.subject_kind!=='other'&&request.subject_id?<a className="icon-button" href={`/core-api/api/privacy/requests/${request.id}/export`} target="_blank" rel="noreferrer" title="Descargar copia del titular" aria-label={`Descargar copia del titular de la solicitud #${request.id}`}><Download size={16}/></a>:null}
-       {request.status==='received'?<button type="button" className="icon-button" disabled={busy} title="Verificar identidad" aria-label={`Verificar identidad de la solicitud #${request.id}`} onClick={()=>void mutate(`/api/privacy/requests/${request.id}`,{action:'verify'},'PATCH','Identidad verificada.')}><BadgeCheck size={16}/></button>:null}
+       {request.status==='received'?<Button variant="secondary" iconOnly type="button" className="icon-button" disabled={busy} title="Verificar identidad" aria-label={`Verificar identidad de la solicitud #${request.id}`} onClick={()=>void mutate(`/api/privacy/requests/${request.id}`,{action:'verify'},'PATCH','Identidad verificada.')}><BadgeCheck size={16}/></Button>:null}
        {['received','identity_verified','in_review'].includes(request.status)?<>
         <button type="button" className="text-button" disabled={busy} onClick={()=>setResolving(request)}><ShieldCheck size={15}/>Resolver</button>
-        <button type="button" className="icon-button" disabled={busy} title="Rechazar con motivo" aria-label={`Rechazar la solicitud #${request.id}`} onClick={()=>setRejecting(request)}><CircleX size={16}/></button>
+        <Button variant="secondary" iconOnly type="button" className="icon-button" disabled={busy} title="Rechazar con motivo" aria-label={`Rechazar la solicitud #${request.id}`} onClick={()=>setRejecting(request)}><CircleX size={16}/></Button>
        </>:null}
       </ListActions>
      </ListRow>)}

@@ -1,9 +1,13 @@
 'use client';
+import {Input} from './ui/input';
+
+import {Button} from './ui/button';
+
 // Rediseño v2 (campaña #41 / spec #43 §1.4): ficha de reportes y términos
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
 import {OptionalMark} from './field-label';
-import {Button,EmptyState,FilaDato,FormField,Input,MoneyInput,Nota,Select,Aviso} from 'owncoding-ui';
+import {EmptyState, FilaDato, FormField, MoneyInput, Nota, Select, Aviso} from 'owncoding-ui';
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {soloDigitos} from 'owncoding-ui';
 import {listDateFull} from './list-format';

@@ -1,4 +1,6 @@
 'use client';
+import {Button} from '../ui/button';
+
 
 import {useEffect,useState} from 'react';
 import {Activity,CheckCircle2,Clock3,Globe,Mail,RefreshCw,ShieldCheck,TriangleAlert} from 'lucide-react';
@@ -46,7 +48,7 @@ export default function StatusPage(){
    <h1 className="text-2xl font-bold tracking-tight text-fore">Estado de Scale OS</h1>
    <p aria-live="polite" className="flex flex-wrap items-center gap-2 text-sm text-mute">
     <StateChip tone={tone} title="Comprobación en vivo del API">{state==='available'?<CheckCircle2 size={14} aria-hidden="true"/>:state==='unavailable'?<TriangleAlert size={14} aria-hidden="true"/>:<Clock3 size={14} aria-hidden="true"/>} {label}</StateChip>
-    <button className="secondary" type="button" disabled={state==='checking'} onClick={()=>setAttempt(value=>value+1)}><RefreshCw size={14} aria-hidden="true"/>{state==='checking'?'Comprobando…':'Volver a comprobar'}</button>
+    <Button variant="secondary" className="secondary" type="button" disabled={state==='checking'} onClick={()=>setAttempt(value=>value+1)}><RefreshCw size={14} aria-hidden="true"/>{state==='checking'?'Comprobando…':'Volver a comprobar'}</Button>
    </p>
   </div>
   <ul className="grid" aria-label="Componentes supervisados">

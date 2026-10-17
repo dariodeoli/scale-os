@@ -1,7 +1,9 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,Pencil} from 'lucide-react';
-import {Button} from 'owncoding-ui';
+
 import {SearchField} from '../search-field';
 import {api,Dialog} from '../operations';
 import {roleCan} from '../capabilities';
@@ -81,7 +83,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'plan', 'planes')} · los indicadores cuentan lo cargado</span>
         <div className="inline-actions bulk-actions">
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+          <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</Button>
         </div>
       </div> : null}
 
@@ -90,7 +92,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       ) : null}
 
       {plans.length&&!shown.length ? (
-        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<button type="button" className="secondary" onClick={()=>setQuery('')}>Limpiar búsqueda</button>}/>
+        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<Button variant="secondary" type="button" className="secondary" onClick={()=>setQuery('')}>Limpiar búsqueda</Button>}/>
       ) : plans.length ? (
         <PlanComparison
           plans={shown}

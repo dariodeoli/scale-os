@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
 // DSN para la referencia de Clientes (#42): mismos props y objetos de la
 // librería, con la lógica pura centralizada en ./client-directory-data.
@@ -9,7 +11,7 @@
 // En mobile se apila sólo lo que no entra, con targets de 44 px.
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
-import {Button, Label, Select} from 'owncoding-ui';
+import {Label, Select} from 'owncoding-ui';
 import {SearchField} from './search-field';
 import {ViewSwitch, type CollectionView} from './ui-v2';
 import {directorySummaryText} from './client-directory-data';

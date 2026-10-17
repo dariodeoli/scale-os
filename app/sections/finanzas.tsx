@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {useMemo, useState, type Dispatch, type SetStateAction} from 'react';
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {ActorAvatar, safePhoto} from '../actor-identity';
@@ -101,7 +103,7 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
         </div>
       </div> : null}
     </div>
-    : <EmptyBlock compact title="Sin salarios fijos cargados para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo para ver el gasto esperado al cierre." action={navigate ? <button className="secondary" onClick={() => navigate('Equipo')}>Ver equipo</button> : undefined}/>}
+    : <EmptyBlock compact title="Sin salarios fijos cargados para este mes." description="Cargá el salario fijo de cada persona desde su ficha de equipo para ver el gasto esperado al cierre." action={navigate ? <Button variant="secondary" type="submit" className="secondary" onClick={() => navigate('Equipo')}>Ver equipo</Button> : undefined}/>}
   </section>;
 }
 
@@ -163,7 +165,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     ? <span className="inline-flex flex-wrap items-baseline gap-x-2">{Array.from(totals).map(([currency, total]) => <span key={currency}>{moneyKpi(total, currency)}</span>)}</span>
     : null;
 
-  return <ListPage aria-label="Finanzas" primaryAction={<button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button>}>
+  return <ListPage aria-label="Finanzas" primaryAction={<Button variant="primary" type="submit" className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</Button>}>
     {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <button type="button" className="text-button" onClick={retry}>Reintentar</button></Aviso> : null}
 
     {/* Primer pliegue (#142): balances, cobros urgentes y proyección, sin mezclar todo en una vista. */}
@@ -198,7 +200,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
             </div>
           </article>)}
-        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<button className="primary" onClick={() => setModal('account')}><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</button>}/>}
+        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<Button variant="primary" type="submit" className="primary" onClick={() => setModal('account')}><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</Button>}/>}
       </section>
 
       <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-urgent-title">
@@ -259,8 +261,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
             </div>
           </ListRow>)}
         </ListGrid>
-        : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'} action={invoices.length ? <button className="secondary" onClick={() => { setInvoiceFilter('all'); setInvoiceSearch(''); }}>Limpiar filtros</button> : <button className="primary" onClick={() => setModal('invoice')}><Plus size={16} aria-hidden="true"/>Crear factura</button>}/>}
-      {invoiceHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllInvoices().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todas las facturas.'}))}>Ver todas las facturas</button></div> : null}
+        : <EmptyBlock compact title={invoices.length ? 'No hay facturas con este filtro.' : 'Todavía no hay facturas registradas.'} description={invoices.length ? 'Probá con otro estado o limpiá la búsqueda.' : 'Creá la primera factura para registrar cobros.'} action={invoices.length ? <Button variant="secondary" type="submit" className="secondary" onClick={() => { setInvoiceFilter('all'); setInvoiceSearch(''); }}>Limpiar filtros</Button> : <Button variant="primary" type="submit" className="primary" onClick={() => setModal('invoice')}><Plus size={16} aria-hidden="true"/>Crear factura</Button>}/>}
+      {invoiceHasMore ? <div className="flex justify-end"><Button variant="secondary" className="secondary" type="button" onClick={() => void loadAllInvoices().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todas las facturas.'}))}>Ver todas las facturas</Button></div> : null}
     </section>
 
     {/* Historial en tabs (#142): transferencias, cobros registrados y movimientos. */}
@@ -292,7 +294,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               </ListRow>;
             })}
           </ListGrid>
-          : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza." action={activeAccounts >= 2 ? <button className="secondary" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</button> : undefined}/>}
+          : <EmptyBlock compact title="Aún no hay transferencias entre cuentas." description="Registrá una cuando muevas saldo entre cuentas; el movimiento queda en la traza." action={activeAccounts >= 2 ? <Button variant="secondary" type="submit" className="secondary" onClick={() => setModal('transfer')}><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</Button> : undefined}/>}
       </section></div>
 
       <div hidden={historyTab !== 'cobros'}><section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-payments-title">
@@ -309,8 +311,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               <div className="flex min-w-0 items-center justify-end gap-1"><ReceiptReversal payment={payment} refresh={loadFinance}/></div>
             </ListRow>)}
           </ListGrid>
-          : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <button className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</button> : undefined}/>}
-        {paymentHasMore ? <div className="flex justify-end"><button className="secondary" type="button" onClick={() => void loadAllPayments().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todos los cobros.'}))}>Ver todos los cobros</button></div> : null}
+          : <EmptyBlock compact title="Aún no hay cobros registrados." description="Registrá un cobro contra una factura con saldo; podés revertirlo sin borrar el historial." action={receivable.pendingCount ? <Button variant="primary" type="submit" className="primary" onClick={() => openPayment()}><Plus size={16} aria-hidden="true"/>Registrar cobro</Button> : undefined}/>}
+        {paymentHasMore ? <div className="flex justify-end"><Button variant="secondary" className="secondary" type="button" onClick={() => void loadAllPayments().catch(cause => notify({tone: 'error', message: cause instanceof Error ? cause.message : 'No se pudieron cargar todos los cobros.'}))}>Ver todos los cobros</Button></div> : null}
       </section></div>
 
       <div hidden={historyTab !== 'movimientos'}><ReconciliationWorkspace accounts={accounts}/></div>

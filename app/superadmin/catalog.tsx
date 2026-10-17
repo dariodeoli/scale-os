@@ -1,4 +1,9 @@
 "use client";
+import {Input, Textarea} from '../ui/input';
+
+import {Button} from '../ui/button';
+import {DateInput} from '../ui/temporal-input';
+
 // Catálogo comercial (cupones) del panel global.
 // Rediseño #80: panel del sistema, formulario de alta y lista densa v2.
 import {OptionalMark,optionalLabel} from '../field-label';
@@ -69,7 +74,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
       <form className="platform-admin-coupon" onSubmit={createCoupon}>
         <label className={FIELD}>
           Código
-          <input
+          <Input
             ref={codeRef}
             value={coupon.code}
             onChange={(event) =>
@@ -90,7 +95,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
           <SelectCustom label="Tipo" choices={[{value:'percent',label:'Porcentaje'},{value:'fixed',label:'Monto fijo'},{value:'days',label:'Días gratis'}]} value={coupon.discount_type} onChange={value=>setCoupon({...coupon,discount_type:value as 'percent'|'fixed'|'days'})}/>
         <label className={FIELD}>
           {coupon.discount_type === "days" ? "Días gratis" : "Valor"}
-          <input
+          <Input
             value={coupon.discount_value}
             inputMode={coupon.discount_type === "days" ? "numeric" : "decimal"}
             maxLength={coupon.discount_type === "fixed" ? 10 : 3}
@@ -108,16 +113,16 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
         ) : null}
         <label className={FIELD}>
           Vence<OptionalMark/>
-          <input type="date" value={coupon.expires_at} min={todayAsuncion()} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
+          <DateInput  value={coupon.expires_at} min={todayAsuncion()} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
         </label>
         <SelectCustom label={optionalLabel("Empresa")} choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
         <label className={`${FIELD} platform-admin-coupon-note`}>
           Nota interna<OptionalMark/>
-          <textarea value={coupon.note} rows={2} maxLength={2000} onChange={(event) => setCoupon({...coupon, note: event.target.value})} placeholder="Ej.: gracia acordada por WhatsApp"/>
+          <Textarea value={coupon.note} rows={2} maxLength={2000} onChange={(event) => setCoupon({...coupon, note: event.target.value})} placeholder="Ej.: gracia acordada por WhatsApp"/>
         </label>
-        <button className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
+        <Button variant="primary" type="submit" className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
           Crear cupón
-        </button>
+        </Button>
       </form>
       )}
       <div ref={listRef} className="mt-4 min-w-0">

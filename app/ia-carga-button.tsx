@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {Sparkles} from 'lucide-react';
 
 /**
@@ -10,7 +12,7 @@ import {Sparkles} from 'lucide-react';
  * inventario; el texto del tooltip explica qué hace antes de abrirlo.
  */
 export function IaCargaButton({onOpen}:{onOpen:()=>void}){
- return <button
+ return <Button variant="secondary"
   type="button"
   className="secondary ia-carga-button whitespace-nowrap"
   onClick={onOpen}
@@ -20,5 +22,5 @@ export function IaCargaButton({onOpen}:{onOpen:()=>void}){
  >
   <Sparkles size={16} aria-hidden="true"/>
   <span className="hidden xl:inline">Carga con IA</span>
- </button>;
+ </Button>;
 }

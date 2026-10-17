@@ -571,3 +571,20 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 [data-testid="campana-avisos"]::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
 /* KPI v2 en grilla de 2 columnas (tablet): el importe baja de tamaño en lugar de salirse de la tarjeta. */
 @media(min-width:640px) and (max-width:1023px){.control-shell .ui-kpi>div:nth-child(2){font-size:clamp(18px,3vw,28px)}}
+
+/* Local action model (#241). Existing semantic tokens remain authoritative. */
+:root{--ui-button-height-compact:32px;--ui-button-height-large:48px;--ui-button-gap:var(--ui-space-2)}
+:where(.ui-button){display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-button-gap);min-height:var(--ui-control-height);padding:8px 14px;border-radius:var(--ui-radius-control,var(--radius-sm));font:inherit;line-height:1.25;transition:background var(--ease),border-color var(--ease),box-shadow var(--ease)}
+.ui-button[data-size="compact"]{min-height:var(--ui-button-height-compact);padding:6px 10px;font-size:12px}
+.ui-button[data-size="large"]{min-height:var(--ui-button-height-large);padding:12px 20px}
+.ui-button[data-full-width]{width:100%}
+.ui-button[data-variant="ghost"]{background:transparent;border:1px solid transparent;box-shadow:none}
+.ui-button[data-variant="danger"]{color:var(--danger);border-color:var(--danger)}
+.ui-button[style*="--ui-button-color"]{color:var(--ui-button-color)}
+.ui-button:disabled{cursor:not-allowed;opacity:.55}
+.ui-button:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
+.ui-button-icon{display:inline-flex;flex:none}
+.ui-button-spinner{width:1em;height:1em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ui-button-spin .7s linear infinite}
+@keyframes ui-button-spin{to{transform:rotate(360deg)}}
+@media(max-width:767px){.ui-button[data-size]{min-height:44px}.ui-button.icon-button{min-width:44px}}
+@media(prefers-reduced-motion:reduce){.ui-button{transition:none}.ui-button-spinner{animation:none}}

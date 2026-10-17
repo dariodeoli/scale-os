@@ -1,4 +1,8 @@
 "use client";
+import {Input} from '../ui/input';
+
+import {Button} from '../ui/button';
+
 // Confirmación destructiva del panel global (extraída de page.tsx, issue #46).
 // #189: se apoya en el `ConfirmDialog` único (palabra corta «ELIMINAR») y la
 // re-autenticación obligatoria pasa a primer plano: Google en un clic y, como
@@ -65,15 +69,15 @@ export function PlatformConfirmDialog({request, busy, self, error, emailSending,
           <p className="m-0 rounded-lg bg-ok/10 p-3 text-xs text-ok" role="status">Identidad confirmada con Google.</p>
         ) : authMethod === "google" ? (
           <>
-            <button type="button" className="primary" disabled={busy || googleStarting} onClick={onGoogle}>
+            <Button variant="primary" type="button" className="primary" disabled={busy || googleStarting} onClick={onGoogle}>
               {googleStarting ? "Abriendo Google…" : "Confirmar con Google"}
-            </button>
+            </Button>
             <small className="text-[11px] text-mute">Un clic: Google verifica que seas vos y volvés acá para terminar.</small>
           </>
         ) : authMethod === "password" ? (
           <label className="grid gap-2 text-[12px] font-semibold text-mute">
             Contraseña actual
-            <input
+            <Input
               type="password"
               value={confirmPassword}
               disabled={busy}
@@ -88,7 +92,7 @@ export function PlatformConfirmDialog({request, busy, self, error, emailSending,
             {emailSent ? (
               <label className="grid gap-2 text-[12px] font-semibold text-mute">
                 Código recibido
-                <input
+                <Input
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={8}
@@ -98,9 +102,9 @@ export function PlatformConfirmDialog({request, busy, self, error, emailSending,
                 />
               </label>
             ) : (
-              <button type="button" className="secondary" disabled={busy || emailSending} onClick={onRequestEmailCode}>
+              <Button variant="secondary" type="button" className="secondary" disabled={busy || emailSending} onClick={onRequestEmailCode}>
                 {emailSending ? "Enviando…" : "Enviar código a mi correo"}
-              </button>
+              </Button>
             )}
           </div>
         )}

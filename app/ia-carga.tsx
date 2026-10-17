@@ -1,6 +1,10 @@
 "use client";
+import {Input, Textarea} from './ui/input';
+
+import {Button} from './ui/button';
+
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Aviso,AvisoPrivacidad,Checkbox,FormField,Input} from 'owncoding-ui';
+import {Aviso, AvisoPrivacidad, Checkbox, FormField} from 'owncoding-ui';
 import {Plus} from 'lucide-react';
 import {Dialog,FormActions} from './dialog';
 import {AmountInput,SelectCustom} from './profile-controls';
@@ -351,12 +355,12 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       </Aviso>
       <p className="text-[11.5px] text-mute">{configError}</p>
       <FormActions>
-        <button type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Volver a chequear</button>
-        <button type="button" className="primary" onClick={close}>Entendido</button>
+        <Button variant="secondary" type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Volver a chequear</Button>
+        <Button variant="primary" type="button" className="primary" onClick={close}>Entendido</Button>
       </FormActions>
     </div>:null}
 
-    {estadoConfig==='demo'?<div className="grid gap-3"><Aviso tono="info" como="div">La asistencia con IA no está disponible en la demostración. Podés cargar clientes y equipos manualmente desde cada módulo.</Aviso><FormActions><button type="button" className="primary" onClick={close}>Entendido</button></FormActions></div>:null}
+    {estadoConfig==='demo'?<div className="grid gap-3"><Aviso tono="info" como="div">La asistencia con IA no está disponible en la demostración. Podés cargar clientes y equipos manualmente desde cada módulo.</Aviso><FormActions><Button variant="primary" type="button" className="primary" onClick={close}>Entendido</Button></FormActions></div>:null}
 
     {estadoConfig==='no-configurada'?<div className="grid gap-3">
       <Aviso tono="warn" como="div" className="grid gap-1">
@@ -364,21 +368,21 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         <span className="text-[12px] leading-5">Se activa cargando la clave del proveedor (el modelo y la base se ajustan por entorno). Hasta entonces el asistente no está disponible y no se envía ningún texto.</span>
       </Aviso>
       <FormActions>
-        <button type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Volver a chequear</button>
-        <button type="button" className="primary" onClick={close}>Entendido</button>
+        <Button variant="secondary" type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Volver a chequear</Button>
+        <Button variant="primary" type="button" className="primary" onClick={close}>Entendido</Button>
       </FormActions>
     </div>:null}
 
     {estadoConfig==='sin-tipos'?<div className="grid gap-3">
       <Aviso tono="warn" como="div">Tu rol no puede crear clientes ni equipos de inventario, así que el asistente no está disponible. Si necesitás cargar esos registros, pedile el permiso a un administrador.</Aviso>
-      <FormActions><button type="button" className="primary" onClick={close}>Entendido</button></FormActions>
+      <FormActions><Button variant="primary" type="button" className="primary" onClick={close}>Entendido</Button></FormActions>
     </div>:null}
 
     {estadoConfig==='error'?<div className="grid gap-3">
       <Aviso tono="error" como="div">{configError||'No pudimos consultar la configuración de IA.'}</Aviso>
       <FormActions>
-        <button type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Reintentar</button>
-        <button type="button" className="primary" onClick={close}>Cerrar</button>
+        <Button variant="secondary" type="button" className="secondary" onClick={()=>setReintento((valor)=>valor+1)}>Reintentar</Button>
+        <Button variant="primary" type="button" className="primary" onClick={close}>Cerrar</Button>
       </FormActions>
     </div>:null}
 
@@ -388,7 +392,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         {config.modelo?<StateChip tone="mute" title="Modelo configurado en el servidor">{config.modelo}</StateChip>:null}
       </div>
       <FormField label="Texto para cargar" htmlFor="ia-carga-texto" hint={`Máximo ${IA_TEXTO_MAX.toLocaleString('es-PY')} caracteres; hasta ${IA_REGISTROS_MAX} registros por tipo. Nada se crea ni se guarda al analizar.`}>
-        <textarea
+        <Textarea
           id="ia-carga-texto"
           className="min-h-44 w-full resize-y rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm"
           value={texto}
@@ -404,8 +408,8 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {fallo?<FalloIa fallo={fallo}/>:null}
       {error?<Aviso tono="error">{error}</Aviso>:null}
       <FormActions>
-        <button type="button" className="secondary" disabled={analizando} onClick={close}>Cancelar</button>
-        <button type="submit" className="primary" disabled={analizando||!texto.trim()}>{analizando?'Analizando…':'Analizar con IA'}</button>
+        <Button variant="secondary" type="button" className="secondary" disabled={analizando} onClick={close}>Cancelar</Button>
+        <Button variant="primary" type="submit" className="primary" disabled={analizando||!texto.trim()}>{analizando?'Analizando…':'Analizar con IA'}</Button>
       </FormActions>
     </form>:null}
 
@@ -426,7 +430,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {puedeClientes?<section className="grid gap-3" aria-label={`Clientes en el carrito (${clientes.length})`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Clientes <span className="tabular-nums">{clientes.length}</span></h3>
-          <button type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarCliente}><Plus size={14} aria-hidden="true"/>Agregar cliente</button>
+          <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarCliente}><Plus size={14} aria-hidden="true"/>Agregar cliente</Button>
         </div>
         {clientes.map((cliente)=>{
           const candidatas=cliente.coincidencias??[];
@@ -463,7 +467,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {puedeInventario?<section className="grid gap-3" aria-label={`Equipos en el carrito (${equipos.length})`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-mono text-[10px] uppercase tracking-[.13em] text-mute">Equipos de inventario <span className="tabular-nums">{equipos.length}</span></h3>
-          <button type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarEquipo}><Plus size={14} aria-hidden="true"/>Agregar equipo</button>
+          <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-9" onClick={agregarEquipo}><Plus size={14} aria-hidden="true"/>Agregar equipo</Button>
         </div>
         {equipos.map((equipo)=>{
           const candidatas=equipo.coincidencias;
@@ -530,18 +534,18 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
           <div className="flex flex-wrap items-center gap-2">
             {fila.estado==='ejecutada'?<span className="text-[11.5px] text-mute">Confirmada. No hace falta volver a ejecutarla.</span>:
               fila.estado==='parcial'?<span className="text-[11.5px] text-mute">Pago parcial confirmado. El saldo restante queda a la vista en Finanzas.</span>:
-              fila.estado==='duplicado'?<button type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)}>Registrar igual</button>:
-              fila.estado==='ejecutando'?<button type="button" className="primary" disabled>Ejecutando…</button>:
-              <button type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</button>}
+              fila.estado==='duplicado'?<Button variant="secondary" type="button" className="secondary" onClick={()=>void confirmarAccion(fila.clave,true)}>Registrar igual</Button>:
+              fila.estado==='ejecutando'?<Button variant="primary" type="button" className="primary" disabled>Ejecutando…</Button>:
+              <Button variant="primary" type="button" className="primary" disabled={!fila.clienteId||!cuentasCobroIa(cuentas,fila.accion.moneda).length} onClick={()=>void confirmarAccion(fila.clave)}>Confirmar acción</Button>}
           </div>
         </article>)}
       </section>:null}
 
       <FormActions>
-        <button type="button" className="secondary" disabled={creando} onClick={()=>setFase('entrada')}>Volver</button>
+        <Button variant="secondary" type="button" className="secondary" disabled={creando} onClick={()=>setFase('entrada')}>Volver</Button>
         {totalCrear>0
-          ? <button type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>{creando?'Creando…':`Crear todo (${totalCrear})`}</button>
-          : acciones.length?<button type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>Ver resumen</button>:null}
+          ? <Button variant="primary" type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>{creando?'Creando…':`Crear todo (${totalCrear})`}</Button>
+          : acciones.length?<Button variant="primary" type="button" className="primary" disabled={creando} onClick={()=>void crearTodo()}>Ver resumen</Button>:null}
       </FormActions>
     </div>:null}
 
@@ -556,9 +560,9 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
       {resultado.errores.length?<Aviso tono="error" como="div" className="grid gap-1"><strong>No pudimos crear {resultado.errores.length} registro(s):</strong>{resultado.errores.map((mensaje,index)=><span key={index} className="text-[12px] leading-5">{mensaje}</span>)}</Aviso>:null}
       <p className="text-[11.5px] leading-5 text-mute">Cada alta quedó auditada como cualquier carga manual y el texto que pegaste no se guardó. Los registros creados ya aparecen en Clientes y en Inventario.</p>
       <FormActions>
-        {resultado.acciones.pendientes>0?<button type="button" className="secondary" onClick={()=>setFase('revision')}>Volver a las acciones</button>:null}
-        <button type="button" className="secondary" onClick={reiniciar}>Cargar otro texto</button>
-        <button type="button" className="primary" onClick={close}>Listo</button>
+        {resultado.acciones.pendientes>0?<Button variant="secondary" type="button" className="secondary" onClick={()=>setFase('revision')}>Volver a las acciones</Button>:null}
+        <Button variant="secondary" type="button" className="secondary" onClick={reiniciar}>Cargar otro texto</Button>
+        <Button variant="primary" type="button" className="primary" onClick={close}>Listo</Button>
       </FormActions>
     </div>:null}
   </Dialog>;
