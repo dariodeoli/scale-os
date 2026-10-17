@@ -157,7 +157,7 @@ const MONEY_TONE: Record<string, string> = {ok: 'text-ok', warn: 'text-warn', ba
  */
 export function MoneyText({valor, currency = 'PYG', tono = '', className, title}: {valor: number | string | null | undefined; currency?: string; tono?: 'ok' | 'warn' | 'bad' | 'mute' | 'info' | ''; className?: string; title?: string}) {
   const vacio = valor === null || valor === undefined || valor === '';
-  return <span title={title} className={`inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className ?? ''}`}>{vacio ? '—' : money(Number(valor), currency)}</span>;
+  return <span title={title} className={`inline-flex shrink-0 items-center justify-end gap-1 whitespace-nowrap font-semibold tabular-nums ${MONEY_TONE[tono] ?? ''} ${className ?? ''}`}>{vacio ? '—' : money(valor??0, currency)}</span>;
 }
 
 /** Vista de una colección: único tipo del selector lista/cuadrícula. */

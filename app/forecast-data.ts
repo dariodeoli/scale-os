@@ -1,3 +1,4 @@
+import {sumMoney,subtractMoney,isRealMoney} from './finance-money';
 import {currentAsuncionMonth,todayAsuncion} from './client-format';
 import {currencyCodes,type Currency} from './currencies';
 import {listDateShort} from './list-format';
@@ -23,7 +24,8 @@ export type RealExpenseRow = {
   account_name: string;
   category: string;
   kind: string | null;
-  amount: WholeTransport;
+  /** Actual money: PYG integral, other currencies retain up to two decimals. */
+  amount: string | number;
   currency: MoneyCurrency;
   paid_on: string;
   reference: string;
@@ -77,7 +79,7 @@ export const aggregateRows = (value: unknown): AggregateRow[] => isRecord(value)
 export const collectedRows=(value:unknown):AggregateRow[]=>isRecord(value)&&Array.isArray(value.records)?value.records.filter((row):row is AggregateRow=>isRecord(row)&&isCurrency(row.currency)&&isSignedWhole(row.amount)):[];
 export const plannedExpenseCounts = (value: unknown): PlannedExpenseRow[] => isRecord(value) && Array.isArray(value.records) ? value.records.filter((row): row is PlannedExpenseRow => isRecord(row) && isCurrency(row.currency) && isWholeTransport(row.amount) && isWholeTransport(row.expense_count) && isWholeTransport(row.fixed_count) && isWholeTransport(row.variable_count)) : [];
 export const realAccounts = (value: unknown): RealAccountRow[] => isRecord(value) && Array.isArray(value.accounts) ? value.accounts.filter((row): row is RealAccountRow => isRecord(row) && (typeof row.id === 'string' || typeof row.id === 'number') && typeof row.name === 'string' && isCurrency(row.currency) && (row.active === true || row.active === false)) : [];
-export const realExpenseRows = (value: unknown): RealExpenseRow[] => isRecord(value) && Array.isArray(value.expenses) ? value.expenses.filter((row): row is RealExpenseRow => isRecord(row) && (typeof row.id === 'string' || typeof row.id === 'number') && (typeof row.account_id === 'string' || typeof row.account_id === 'number') && typeof row.account_name === 'string' && typeof row.category === 'string' && (typeof row.kind === 'string' || row.kind === null) && isWholeTransport(row.amount) && isCurrency(row.currency) && typeof row.paid_on === 'string' && typeof row.reference === 'string') : [];
+export const realExpenseRows = (value: unknown): RealExpenseRow[] => isRecord(value) && Array.isArray(value.expenses) ? value.expenses.filter((row): row is RealExpenseRow => isRecord(row) && (typeof row.id === 'string' || typeof row.id === 'number') && (typeof row.account_id === 'string' || typeof row.account_id === 'number') && typeof row.account_name === 'string' && typeof row.category === 'string' && (typeof row.kind === 'string' || row.kind === null) && isRealMoney(row.amount,row.currency) && isCurrency(row.currency) && typeof row.paid_on === 'string' && typeof row.reference === 'string') : [];
 
 const validProjection = (data: Record<string, unknown>) => data.projection === undefined || (isRecord(data.projection) && Array.isArray(data.projection.records) && data.projection.records.every((row): row is ProjectionRow => isRecord(row) && typeof row.month === 'string' && isCurrency(row.currency) && isSignedWhole(row.projected_cash) && isSignedWhole(row.projected_result) && isSignedWhole(row.collected) && isWholeTransport(row.expected) && isWholeTransport(row.personnel) && isWholeTransport(row.planned_expenses) && isWholeTransport(row.commission_forecast)));
 const validContractedClients = (data: Record<string, unknown>) => data.contracted_clients === undefined || (isRecord(data.contracted_clients) && Array.isArray(data.contracted_clients.records) && data.contracted_clients.records.every((row): row is ContractedClientRow => isRecord(row) && (typeof row.client_id === 'string' || typeof row.client_id === 'number') && typeof row.client_name === 'string' && isCurrency(row.currency) && isWholeTransport(row.contracted_amount) && isWholeTransport(row.invoiced_amount) && typeof row.invoice_required === 'boolean' && typeof row.missing_invoice === 'boolean' && (row.ends_on === undefined || row.ends_on === null || typeof row.ends_on === 'string') && (row.plan_name === undefined || row.plan_name === null || typeof row.plan_name === 'string')));
@@ -145,9 +147,10 @@ export function undatedBudgets(data: ForecastData): number {
   return data.records.reduce((sum, row) => sum + count(row.undated_budget_count), 0);
 }
 
-export function realExpenseTotal(rows: readonly RealExpenseRow[], currency: MoneyCurrency): number {
-  return rows.filter(row => row.currency === currency).reduce((total, row) => total + Number(row.amount), 0);
-}
+export function realExpenseTotalExact(rows:readonly RealExpenseRow[],currency:MoneyCurrency):string{return sumMoney(rows.filter(row=>row.currency===currency).map(row=>row.amount));}
+/** Compatibility for chart scales; monetary displays use the exact string. */
+export function realExpenseTotal(rows: readonly RealExpenseRow[], currency: MoneyCurrency): number {return Number(realExpenseTotalExact(rows,currency));}
+
 
 export type PersonnelAmounts = {base: number | null; adjustment: number | null; total: number | null};
 
@@ -165,14 +168,11 @@ export type ForecastBalanceRow = {currency: MoneyCurrency; income: number; expen
  * factura; gastos = personal + comisiones + planificados + reales. `max` es la
  * escala relativa de las barras (nunca menor que 1).
  */
-export function forecastBalanceRows(data: ForecastData, realExpenses: readonly RealExpenseRow[]): ForecastBalanceRow[] {
-  const aggregates = forecastAggregates(data);
-  return financialCurrencies(data).map(currency => {
-    const row = data.records.find(item => item.currency === currency);
-    const personnel = data.personnel.records.find(item => item.currency === currency);
-    const income = Number(row?.issued_total || 0) + Number(row?.accepted_uninvoiced_total || 0);
-    const expense = Number(personnel?.expected_end_of_month_expense || 0) + Number(amountFor(aggregates.commissions, currency) || 0) + Number(amountFor(aggregates.expenses, currency) || 0) + realExpenseTotal(realExpenses, currency);
-    const result = income - expense;
-    return {currency, income, expense, result, max: Math.max(1, income, expense, Math.abs(result))};
-  });
+export type ForecastBalanceExactRow={currency:MoneyCurrency;income:string;expense:string;result:string};
+export function forecastBalanceExactRows(data:ForecastData,realExpenses:readonly RealExpenseRow[]):ForecastBalanceExactRow[]{
+ const aggregates=forecastAggregates(data);
+ const currencies=Array.from(new Set([...financialCurrencies(data),...realExpenses.map(row=>row.currency)]));
+ return currencies.map(currency=>{const row=data.records.find(item=>item.currency===currency),personnel=data.personnel.records.find(item=>item.currency===currency);const income=sumMoney([row?.issued_total||0,row?.accepted_uninvoiced_total||0]);const expense=sumMoney([personnel?.expected_end_of_month_expense||0,amountFor(aggregates.commissions,currency)||0,amountFor(aggregates.expenses,currency)||0,realExpenseTotalExact(realExpenses,currency)]);return {currency,income,expense,result:subtractMoney(income,expense)};});
 }
+/** Numeric compatibility for chart geometry; display exact-row strings. */
+export function forecastBalanceRows(data:ForecastData,realExpenses:readonly RealExpenseRow[]):ForecastBalanceRow[]{return forecastBalanceExactRows(data,realExpenses).map(row=>{const income=Number(row.income),expense=Number(row.expense),result=Number(row.result);return {currency:row.currency,income,expense,result,max:Math.max(1,income,expense,Math.abs(result))};});}

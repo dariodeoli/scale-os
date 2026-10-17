@@ -14,5 +14,14 @@ export function money(value: string | number, currency = 'PYG') {
     });
     formatters.set(code, formatter);
   }
+  // PostgreSQL numeric values travel as strings. Preserve their integer part
+  // with BigInt and replace only the fraction; never round a large cash balance
+  // through Number before formatting it.
+  const exact=typeof value==='string'?value.match(/^(-?)(\d+)(?:\.(\d{1,2}))?$/):null;
+  if(exact&&(code!=='PYG'||!Number(exact[3]||0))){
+    const whole=BigInt(exact[2]);
+    const signedWhole=exact[1]?(whole===0n?-0:-whole):whole;
+    return formatter.formatToParts(signedWhole).map(part=>part.type==='fraction'?(exact[3]||'').padEnd(2,'0'):part.value).join('');
+  }
   return formatter.format(Number(value));
 }
