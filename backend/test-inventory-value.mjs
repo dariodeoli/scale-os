@@ -109,6 +109,7 @@ assert.equal(crossTenant.status,400,'cross-tenant inventory ids never resolve');
 assert.equal((await call('inventory-maintenance','GET',{}, {...owner,organization_id:other})).maintenance.length,0,'maintenance history is tenant-scoped');
 
 assert.equal((await call(`inventory-maintenance/${log.id}`,'PATCH',{cost:1},{...owner,organization_id:other})).status,404,'a foreign maintenance row is not editable');
+assert((await call('inventory-context','GET',{},finance)).members.length>0,'inventory managers can select an owner without reservation permission');
 // Ownership is explicit, tenant-scoped, independently audited, and distinct from custody.
 assert.equal(unknown.ownership_kind,'unspecified','existing/new records do not invent ownership');
 const owned=(await call('inventory','POST',{name:'Micrófono prestado',ownership_kind:'person',owner_user_id:producer.id,custodian_user_id:owner.id},producer)).record;

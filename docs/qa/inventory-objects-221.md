@@ -21,6 +21,9 @@ Fecha: 17 de octubre de 2026, Paraguay. Issues de implementación: #224 y #226.
 - Propiedad admite cambios individuales y masivos, valida miembros activos
   de la empresa al asignar y audita antes/después. Una propiedad histórica
   intacta sobrevive a la baja del miembro. El lote es transaccional.
+- Los permisos de gestionar inventario permiten consultar el selector de
+  personas para la propiedad, aunque el rol no permita reservar. Un lector
+  sigue sin recibir el selector de miembros.
 - Nombres/fotos de inventario se resuelven por la identidad canónica de la
   organización y las imágenes embebidas se convierten en URLs autenticadas.
 - Crear cuenta usa `BancoCombobox` del paquete compartido, con logos y catálogo
@@ -53,8 +56,8 @@ esa foto en el filtro y en los responsables.
   Se acreditó el bloqueo entre dos PIDs, la cadena de auditoría de propiedad
   concurrente y el rechazo de un propietario ajeno sin modificación parcial.
   Clúster temporal detenido y eliminado al terminar.
-- Alta de inventario: once pruebas PASS, incluidos importe vacío/cero guardado
-  y propiedad separada del custodio.
+- Alta de inventario: doce pruebas PASS, incluidos importe vacío/cero guardado
+  propiedad separada del custodio y conservación del propietario al editar.
 - Editor, diálogos, tareas, cuentas y banco personalizado: focales PASS.
 - Chromium real a 390 px: regresión del pie del diálogo PASS. Reproduce
   Editor real en `details`, abrir/cerrar/reabrir, guardado nativo una sola vez
