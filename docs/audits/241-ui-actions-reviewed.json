@@ -1,0 +1,2244 @@
+{
+  "schema": 1,
+  "issue": 241,
+  "baseline": "68675d4b",
+  "scope": "All 140 manual +29 structural sites from the local audit; source/site hashes intentionally invalidate stale decisions.",
+  "files": [
+    {
+      "file": "app/announcement-banner.tsx",
+      "sourceHash": "31acbf174f468d67d36bd9ec466f164435d195934b5fdb4b59d7a6cd15e405b7",
+      "sites": [
+        {
+          "line": 66,
+          "column": 18,
+          "siteHash": "a7ac332c5f083960d8b414374c9d68bdad83a5f69d8a6fa9d0a50f61ac95b6be",
+          "owner": "AnnouncementBannerView",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/archive-controls.tsx",
+      "sourceHash": "c79aeb1a39d357b3f9e1cc4170ac22d87049423f038bb7dafa8590a686171469",
+      "sites": [
+        {
+          "line": 54,
+          "column": 29,
+          "siteHash": "b82ab61b2804ed8590c41cf34616c3af01baa49bf64b5bfd411dfee637fcc280",
+          "owner": "RemoveRecord",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/assignee-picker.tsx",
+      "sourceHash": "d9ddf1cbc6a28646ad3a8604fbff7b55177b4b52ad55ee3e668a46d4a5a2d124",
+      "sites": [
+        {
+          "line": 56,
+          "column": 4,
+          "siteHash": "f70e8bb446a3638b17070b1ffea91cbbfd72798bfee450209b4899515ed288ec",
+          "owner": "AssigneePicker",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/assignee-picker.tsx → SelectionBase/AssignedChip",
+          "rationale": "Control de principal/eliminación dentro del selector múltiple: chips y selección conservan límites, principal y targets; compartir engine de selección, sin tamaño de acción global.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 57,
+          "column": 4,
+          "siteHash": "ec6b91ee60b94191db1d87783bc21126f6a2d9479b0f14c21f1f507ca4893ae1",
+          "owner": "AssigneePicker",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/assignee-picker.tsx → SelectionBase/AssignedChip",
+          "rationale": "Control de principal/eliminación dentro del selector múltiple: chips y selección conservan límites, principal y targets; compartir engine de selección, sin tamaño de acción global.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/cliente/entregas/[id]/page.tsx",
+      "sourceHash": "eb7539c7cdf49310b227dcf38d545a6c30d6c88ffe8d0cfd75603bb675648a52",
+      "sites": [
+        {
+          "line": 20,
+          "column": 1621,
+          "siteHash": "ba7f1ae9ba3da47cd075edf72f3bd8f78ac8bd8a1eb1609b63f792a6fc30d65a",
+          "owner": "ClientDelivery",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 20,
+          "column": 2029,
+          "siteHash": "896cb71b487c05cca57db3bf7561281239065af997ab858d13cc1d6efc52c371",
+          "owner": "ClientDelivery",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/cliente/ingresar/page.tsx",
+      "sourceHash": "b4471d005fe57c9c584f7d272af83ca2298a62f8203f12f9b951c868d7a4c096",
+      "sites": [
+        {
+          "line": 12,
+          "column": 570,
+          "siteHash": "e8511f197f1f835454aa468f710a897f4f6a687f55edca538acadc09ec8a4cbf",
+          "owner": "ClientLogin",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/cliente/invitacion/page.tsx",
+      "sourceHash": "4715a4fb66a7ce63541dfaf75fd5d17660059af99908c4df019527847c4657af",
+      "sites": [
+        {
+          "line": 55,
+          "column": 2205,
+          "siteHash": "bb2563f81e54e646149c975ca9b63af383ff174d65726859850c439f405cde72",
+          "owner": "ClientInvitation",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/cliente/recuperar/page.tsx",
+      "sourceHash": "bcb73626bc28dddda2225732a2c63452008cad1b2951aaf189091506fc2613bc",
+      "sites": [
+        {
+          "line": 25,
+          "column": 1029,
+          "siteHash": "0d0d0b1d1ab0ce6b6c2c8963c46882b2e63d3cf1eb4843a621ef9fa323bc830d",
+          "owner": "ClientPasswordRecovery",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/comment-composer.tsx",
+      "sourceHash": "9823057b6aacda4113c846edc5e10b977c3355feed5b6e75a829d339aac8e77d",
+      "sites": [
+        {
+          "line": 48,
+          "column": 187,
+          "siteHash": "133353beefd4047035d5cebfc59a1ebdb140550ffacc0845f3b9f37dc5a01438",
+          "owner": "CommentComposer",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/commenting.tsx + app/comment-composer.tsx → MentionOption/SelectionBase",
+          "rationale": "Opciones de menciones con role=option, aria-selected y onMouseDown que evita perder foco; el motor de selección puede compartir navegación, no el callback de negocio.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 49,
+          "column": 166,
+          "siteHash": "d4885a6704a6f559e75b32ec3ca05328c4c8bbae260cd25de9ddb76e44754e50",
+          "owner": "CommentComposer",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "iconExport": "X",
+          "rationale": "Acción de quitar mención: reemplazo explícitamente revisado del glifo por Lucide X ya usado localmente; aria-label existente conserva el nombre, no hay inferencia de caracteres en la herramienta."
+        }
+      ]
+    },
+    {
+      "file": "app/commenting.tsx",
+      "sourceHash": "ffbd8526615452b766acbd269ce229e1c431e2856199dfabb26e7668cec025a9",
+      "sites": [
+        {
+          "line": 61,
+          "column": 142,
+          "siteHash": "d66cad67645cfcb8dbe7687f19f6658c5e95031f3ec76aa4967a30e8f6ac14e5",
+          "owner": "CommentComposer",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/commenting.tsx + app/comment-composer.tsx → MentionOption/SelectionBase",
+          "rationale": "Opciones de menciones con role=option, aria-selected y onMouseDown que evita perder foco; el motor de selección puede compartir navegación, no el callback de negocio.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/control-center.tsx",
+      "sourceHash": "053aa33c857ade6952611c858d8e6ea9df728eb348da12e7d7a83a25c435a578",
+      "sites": [
+        {
+          "line": 69,
+          "column": 52,
+          "siteHash": "0a6d322226e7facbebbfc3558ec0fb158e14b32469d190172196815908a7bcf1",
+          "owner": "ControlCenter",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 70,
+          "column": 51,
+          "siteHash": "41534e5b5b0b3674eaa29eb2264437d339123dd88771db2de373eed35c21525e",
+          "owner": "ControlCenter",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 71,
+          "column": 53,
+          "siteHash": "7e84d0bc3666e0131f7b2e66dfeb0cac0536094550c4243d0284b379df6de73e",
+          "owner": "ControlCenter",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/daily-controls.tsx",
+      "sourceHash": "539ed9aeb44ba91da1d85a0bdd1e3045970ff676fb85279c6d12cbe9883fe3a2",
+      "sites": [
+        {
+          "line": 80,
+          "column": 1553,
+          "siteHash": "9ad158194668add29c37637e3ef43c6f773cb2e08de89d9378d581f64fe9f67e",
+          "owner": "ClientReviewControl",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        },
+        {
+          "line": 103,
+          "column": 478,
+          "siteHash": "16e6399766e10076d02cd38d5f45635104f0cede60b0de534a2e99e4245192ef",
+          "owner": "ClientPortalDeliveryControl",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        },
+        {
+          "line": 116,
+          "column": 1623,
+          "siteHash": "67a000569a74c779384abb1d10fa0c9f074f0cbd55603717bda0f9d2d548268e",
+          "owner": "ClientPortalAccess",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        },
+        {
+          "line": 116,
+          "column": 2101,
+          "siteHash": "1f7547d2b94cf529786e56e1a551ebc998170edbf2ff86872c91b4c0f2f40e10",
+          "owner": "ClientPortalAccess",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        },
+        {
+          "line": 148,
+          "column": 8,
+          "siteHash": "0556b540b78c497bd8dec1e8ce661d88cc116155ea2894a9379cf3301d5a37ec",
+          "owner": "ReconciliationWorkspace",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 149,
+          "column": 8,
+          "siteHash": "01fd9cfdf45d6004572030a1d049af0e06794e2f55e9feb3c873e2fdbdf98bef",
+          "owner": "ReconciliationWorkspace",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        }
+      ]
+    },
+    {
+      "file": "app/deletion-danger-zone.tsx",
+      "sourceHash": "f6552249289f34f499b04002ad1e18899b1c32f08a6a75b20546cc683eebaf22",
+      "sites": [
+        {
+          "line": 271,
+          "column": 14,
+          "siteHash": "e5373c7d34e92de21159131210f78e6b9902bd275fc1a983acf80dd3961066cd",
+          "owner": "DeletionFlow",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 275,
+          "column": 12,
+          "siteHash": "f7085a94911a1dafa439019482bb34de9df37a3393e2962bdaa2ee5ef923b131",
+          "owner": "DeletionFlow",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 278,
+          "column": 541,
+          "siteHash": "a7525d675765c8e1025b508a740213efcc2958a27423974e81ecb544c1008794",
+          "owner": "DeletionFlow",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 280,
+          "column": 30,
+          "siteHash": "06bf645d39fa8a6364b00033753847ddc179987d129e1d25db7544a1e46369b8",
+          "owner": "DeletionFlow",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 281,
+          "column": 579,
+          "siteHash": "54933ac4bc957956ab9c4e109a8b2abbc78f6e6e01938d3d190e679ea9420e8e",
+          "owner": "DeletionFlow",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/demo-toolbar.tsx",
+      "sourceHash": "d29d846232e4fdf1d4aebe420cce41316e965f1b436266c23405229ee4a7b20c",
+      "sites": [
+        {
+          "line": 30,
+          "column": 4,
+          "siteHash": "787fc2922b93c7beb0a7f56264f0591e52022ae366f12d55f79619717ac61b5c",
+          "owner": "DemoToolbar",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 31,
+          "column": 4,
+          "siteHash": "5fae1bfafb03013d9e515f004810d61734e8fce96c9ae060aec241ac73854ca7",
+          "owner": "DemoToolbar",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 37,
+          "column": 3,
+          "siteHash": "2f601fc8eecfa934e8bd972c2680194aab57b12dd7f2da0ec9249fe0085f2ce3",
+          "owner": "DemoToolbar",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/desktop-sidebar.tsx",
+      "sourceHash": "605ee0f77810ec4a0b9e03a7ec32f619bfe4deae377e6c8530edee2240e853df",
+      "sites": [
+        {
+          "line": 33,
+          "column": 23,
+          "siteHash": "d49c1412db4479fc89878b1ea63ec150d7544cb3711ab78a96fb0fc3b022210f",
+          "owner": "DesktopSidebar",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/dialog.tsx",
+      "sourceHash": "cd0bb5ab2bb8bc956559559dc9c766f8a03c0d47c3f0b6f43ac555e3fbe8a58a",
+      "sites": [
+        {
+          "line": 136,
+          "column": 64,
+          "siteHash": "46fc678d34964ef194c898a3459ef2dac813dc3c9a1137f3a7bf8e08af7eaf0f",
+          "owner": "Dialog",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 203,
+          "column": 5,
+          "siteHash": "8793c920b1135480e07cd9d64f3100a291beefa66a02ca1dc0bc99f1cbdf5fc8",
+          "owner": "ConfirmDialog",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "variantExpression": "variant==='danger'?'outline':'primary'",
+          "colorExpression": "variant==='danger'?'danger':'brand'",
+          "rationale": "ConfirmDialog: discriminante local variant sin llamadas ni efectos; secondary danger es outline/danger, resto primary. className original se evalúa una vez y onSubmit/guards no se duplican."
+        }
+      ]
+    },
+    {
+      "file": "app/drive-links.tsx",
+      "sourceHash": "95400001371c0e3ee33408125bf48fe991a9b1f7baaf20a4bd8c7710046de7ca",
+      "sites": [
+        {
+          "line": 21,
+          "column": 276,
+          "siteHash": "936e3a223b1c3a8dda4b229384528485ffc4b8a3eb0d49838870f8e6f4d75f1d",
+          "owner": "DriveLinksInput",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/employee-tasks.tsx",
+      "sourceHash": "20b1309ce72932818e9da863ea51121adf26b2dd83eaf043af4412c09a80af20",
+      "sites": [
+        {
+          "line": 37,
+          "column": 104,
+          "siteHash": "3a123131e4f3f2d537ea73d23cdfe424ba0b0322c7064c6f4b6187776b7727ba",
+          "owner": "TaskDashboard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/entity-picker.tsx",
+      "sourceHash": "c3df866c676fa5225bfc83541bf14c3360b82b6aafd8ea7d994f570cb41b404c",
+      "sites": [
+        {
+          "line": 57,
+          "column": 19,
+          "siteHash": "23ff4de6bc08d639757b03648eebe20de97126e478fc9767549ab86a1c4fdf34",
+          "owner": "EntityPicker",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 59,
+          "column": 30,
+          "siteHash": "573e55174c43e53acec50d28cc89e9b49699ab6ddfa03ef66e5f69dd10fe9ca9",
+          "owner": "EntityPicker",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "sourceHash": "b10189ec5852f3de14613af25f46822421e2103476db80bcf265c08eb70a31cd",
+      "sites": [
+        {
+          "line": 24,
+          "column": 60,
+          "siteHash": "ce8d48b3db0301ea5bc1022a1b057cb4ffd321e8fe0af7b26223e3dcc1494d48",
+          "owner": "FinanceClientsSection",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 24,
+          "column": 197,
+          "siteHash": "31cbc0a855ed089826ab3cbcc272a100880ff39350a887219ee80db8e5d18677",
+          "owner": "FinanceClientsSection",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        }
+      ]
+    },
+    {
+      "file": "app/finance-personnel.tsx",
+      "sourceHash": "7e3e75e65b92e9bad89e51f56044d1285cf9cefb43dbed7c0482d87af4c9cc1c",
+      "sites": [
+        {
+          "line": 32,
+          "column": 31,
+          "siteHash": "cd625164db46c1f0b18447f9ba190f6b602979b76b3c75bb06124f5054a7ec54",
+          "owner": "FinancePersonnelSection",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 33,
+          "column": 5,
+          "siteHash": "73b8e4bdb6c716f18fbe5785a4ef6b29e112bd3d82c155e45dc0285d2e3a6585",
+          "owner": "FinancePersonnelSection",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 34,
+          "column": 5,
+          "siteHash": "4e079fb4a41696547590f1338427ed05f8f4315de35286e9143cb66a5e509cbf",
+          "owner": "FinancePersonnelSection",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        }
+      ]
+    },
+    {
+      "file": "app/financial-forecast.tsx",
+      "sourceHash": "b8150050145c6e69ba2cd9455171d7ab01f61e2d1e560dcb202c280d6a2af9c1",
+      "sites": [
+        {
+          "line": 215,
+          "column": 81,
+          "siteHash": "8592f8acc2aa28dba4caf145f03e433f8010f5632772b9b089d25d654ca80aab",
+          "owner": "ForecastPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 245,
+          "column": 81,
+          "siteHash": "ef609725fea67993253a1bfcd79fb218fcc8c6ababf334b8ea7c2a8343c9feea",
+          "owner": "ForecastPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        }
+      ]
+    },
+    {
+      "file": "app/foto-perfil.tsx",
+      "sourceHash": "e8208bac12e2a18974a7e9254fe92eacddea61ae5f9179ed0091ea5ce199c85f",
+      "sites": [
+        {
+          "line": 49,
+          "column": 12,
+          "siteHash": "a9bbd7e12d48bd5d379c3d88196fb45ea9a2b95af8d0f44b2ca47ed5c5077cd5",
+          "owner": "FotoPerfil",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/foto-perfil.tsx::FotoPerfil",
+          "rationale": "El botón es la propia superficie avatar/logo con badge/fallback/forma: no se aplica padding CTA. Mantener un renderer de avatar interactivo, separado de foto de equipo y marca.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/google-sign-in.tsx",
+      "sourceHash": "481247cefee6e69784f401081bb5907901968d383fa33b3500a78c7a1f3fc588",
+      "sites": [
+        {
+          "line": 30,
+          "column": 31,
+          "siteHash": "e563b143ad8c02ea876c130a4af80df6c7a51a0a45969a60cdceab1d2e3e3a4d",
+          "owner": "ProviderSignIn",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/google-sign-in.tsx::ProviderSignIn",
+          "rationale": "Botón de identidad con marcas proveedor y variante compacta del portal; canon local ProviderSignIn conserva anatomía/branding, disponibilidad y callback OAuth. No inferir política de autenticación desde Button.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/ia-carga-button.tsx",
+      "sourceHash": "9031b17dacf363f866b1b5787cf2b5ea341702f89ebf011edaa5968ad9a76562",
+      "sites": [
+        {
+          "line": 13,
+          "column": 9,
+          "siteHash": "0a23c9378a9b0547e67cef122c73100c71bb8a44e659b47cf4acbe00675cceb5",
+          "owner": "IaCargaButton",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/ia-carga.tsx",
+      "sourceHash": "cfb61b72f9dc02dc5376e7bc1f2861fe008d793fca1f8927d3ad1f74110c4b33",
+      "sites": [
+        {
+          "line": 617,
+          "column": 40,
+          "siteHash": "603689022a465f94142b37ee4daf0bdc21b83022abc1a726c516676b5dd849ab",
+          "owner": "MatchBlock",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 628,
+          "column": 4,
+          "siteHash": "d504c5c460389ffd61c4eb341f7817b7ea32eb672ee83f2b7092f88f0f9f541e",
+          "owner": "MatchBlock",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 643,
+          "column": 33,
+          "siteHash": "52a9e8444fe4d61fc31adfbd14dc73717b0b74b877f66d9d4306b08f2221d0e3",
+          "owner": "ClienteDeAccion",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 746,
+          "column": 6,
+          "siteHash": "c0e9749084da052b2d14852aec3a60659d8e1e4aa988cc1f5d5a5c553e02445c",
+          "owner": "PartesDivision",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        }
+      ]
+    },
+    {
+      "file": "app/inventory-workspace.tsx",
+      "sourceHash": "71c764e6f905971424dbca41cb623ed35cb6c49035deb4b4e761ab531c5ee26e",
+      "sites": [
+        {
+          "line": 147,
+          "column": 10,
+          "siteHash": "54239dfc67dc804f4398b9b2a7abc26682b9653efac3f55608f0dd85280c1ec0",
+          "owner": "InventoryItemActions",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 300,
+          "column": 3,
+          "siteHash": "de4b32302bd060126f4e531a28d7896099b13633395008bb7210408a40d91132",
+          "owner": "PipelineCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 312,
+          "column": 34,
+          "siteHash": "54239dfc67dc804f4398b9b2a7abc26682b9653efac3f55608f0dd85280c1ec0",
+          "owner": "PipelineCard",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 325,
+          "column": 1022,
+          "siteHash": "aafc94e4352a992ea9b6f58b817233312bb239e2ef975b4653b17aded4d3dda7",
+          "owner": "InventorySummary",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 416,
+          "column": 5,
+          "siteHash": "d35423ac520866ae57f8e33965cf7d8a5db0f82d72053027f9c729ad888adb5f",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 417,
+          "column": 5,
+          "siteHash": "26c5f6db86fe6222167f9ad0b7745d4846c4da1c4ab8ce7dde2d47b129a47115",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 419,
+          "column": 5,
+          "siteHash": "89c9903bf87a98c6027f819016f8ddc6c5daff25db4e732de388807725d42c58",
+          "owner": "InventoryPanel",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/navigation/DisclosureTrigger (propuesto)",
+          "rationale": "Control de expansión ligado a su panel, composición y aria-expanded/controls; unificar trigger estructural de disclosure sin modificar estado, foco ni borrador del panel.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 467,
+          "column": 35,
+          "siteHash": "c0e1fda3eb298e47e3a10b46c964ef7a75fcbc778477dc4fee3b3ab9a435c1a7",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 467,
+          "column": 137,
+          "siteHash": "0f6b64e9ca96c00f33053e9cc2c44e1826ee1a5783a7f76d34caadcab752e9ca",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 467,
+          "column": 263,
+          "siteHash": "c3cb290e3f0a157f0d91dde5e2942f8431a14dae45c62c05a4241100b3ac4437",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 468,
+          "column": 36,
+          "siteHash": "9616377a1b3c8e3bb4039981bb7fddcc69e1211ba56a84b0589baa7d9ad1deb9",
+          "owner": "InventoryPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 661,
+          "column": 225,
+          "siteHash": "be3124178dc4ec6efcccd58ff782df7d1838d23e3bce709332c086d453ed6966",
+          "owner": "CategoryForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 661,
+          "column": 579,
+          "siteHash": "18e873c043a1a43e53ffbc64117daef8a0d4a2b6cc6adeff69c2393b11130abd",
+          "owner": "CategoryForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/invite-links.tsx",
+      "sourceHash": "bb9530faf8e203626ab4434361d296572d0d2e542b67c890379c372e1c14df0d",
+      "sites": [
+        {
+          "line": 77,
+          "column": 10,
+          "siteHash": "bfe51c55f9cadac29b6825118db84caa64b76de17f2cc3d23a84c3b06b111be6",
+          "owner": "InviteLinks",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        }
+      ]
+    },
+    {
+      "file": "app/mobile-navigation.tsx",
+      "sourceHash": "77158f6add2ce746e7c9ba20ac9978ddc5dbf8cd06ecca47bb5285ce0b6952c2",
+      "sites": [
+        {
+          "line": 19,
+          "column": 251,
+          "siteHash": "8166ab6e52419f9e2f8051852fb2ee70a5da474b0699c55293e896886639a5f7",
+          "owner": "MobileDrawer",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 38,
+          "column": 3,
+          "siteHash": "5100609923b3b560f21597ce3af4790741de6ad2813843f972031aff7615aa88",
+          "owner": "MobileNavigation",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/my-data.tsx",
+      "sourceHash": "75f438e95917f487d3ca1ee19f06467776b3e9d9413d658e625f6a97d10b1f28",
+      "sites": [
+        {
+          "line": 93,
+          "column": 37,
+          "siteHash": "efe81533efe2d8225ea1230db3431d5c77e2278e8994da4b2600b13a414333a8",
+          "owner": "MyDataPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 111,
+          "column": 31,
+          "siteHash": "4493089572880d89a7bbea0ce6f416034497fc9e968c1e1cdee871de2c4bdae6",
+          "owner": "MyDataPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/my-profile.tsx",
+      "sourceHash": "bfc9207e0660c12523ae169a81f4d57fb02e1f5cc36e7b43accd51e956f38262",
+      "sites": [
+        {
+          "line": 92,
+          "column": 7,
+          "siteHash": "08c0b84a1de8e1bcf46605d85b467be6a288d4d160116223cee8f0469219d14b",
+          "owner": "dataTab",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 104,
+          "column": 131,
+          "siteHash": "ed5f6492987967a63b6e0aad0f350c3132724c4142cab0b95d434b633a05235c",
+          "owner": "MyProfile",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/notification-inbox.tsx",
+      "sourceHash": "ef67d2a5e36485dfe601ad28343529d8893b6b62efdc8d0d327b5f80170ec79f",
+      "sites": [
+        {
+          "line": 138,
+          "column": 7,
+          "siteHash": "3c30841e89f47af322899508bf61a8271fed77c5f78517ce9e2c2f7dd8848fbe",
+          "owner": "NotificationInbox",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "medium",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 139,
+          "column": 7,
+          "siteHash": "5a320f234ba5f502f4be06753fad3cec75b896f182efd7f98dd576d6ffc00f50",
+          "owner": "NotificationInbox",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "medium",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 140,
+          "column": 7,
+          "siteHash": "0e77dbe85ad15d4c08890c80625e049531881e1c37bfc1456d5a77184ad481bc",
+          "owner": "NotificationInbox",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "medium",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 144,
+          "column": 6,
+          "siteHash": "0e77dbe85ad15d4c08890c80625e049531881e1c37bfc1456d5a77184ad481bc",
+          "owner": "NotificationInbox",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "medium",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 161,
+          "column": 5,
+          "siteHash": "07e326b41bc4c65623050198d579923fa625370257f80381aeb5ae267d6e71a0",
+          "owner": "NotificationInbox",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "colorExpression": "selected.resolved_at?'warning':'success'",
+          "rationale": "Aviso resuelto usa acción reabrir warning; aviso abierto resolver success. selected es registro API local; condición pura sin llamadas, callback original intacto y className no se reevalúa."
+        }
+      ]
+    },
+    {
+      "file": "app/notifications-ui.tsx",
+      "sourceHash": "9d48ea7210cd5f37d5e3f7e60334702bebcee2dbffbb36b30057754fb26a4fc0",
+      "sites": [
+        {
+          "line": 48,
+          "column": 38,
+          "siteHash": "d5fcccca2024d2007d7c8d256be69a7e9c10c772be9d66aacd4fe9dde4583a21",
+          "owner": "MonthlySchedules",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "colorExpression": "r.active?'warning':'success'",
+          "rationale": "Pausar/reactivar schedule conserva tonos warn/positive en ghost; r es fila API, condición pura, no se invoca ni copia el callback async."
+        }
+      ]
+    },
+    {
+      "file": "app/operations.tsx",
+      "sourceHash": "e5a74edc2349d5f0020b3a91033a6911eb86d249e021cc42b1910b49094cf5bc",
+      "sites": [
+        {
+          "line": 419,
+          "column": 9,
+          "siteHash": "1bcd0b1460c383f1ee46412f4e371e69a85087a9c3ad6902e612ed273db6e223",
+          "owner": "CompanySelector",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/operations.tsx::CompanySelector → SelectionBase presenter",
+          "rationale": "Selector de empresa: identidad y lista autorizada; conserva switch-organization, default, bloqueo y navegación. Compartir presenter de opción con SelectBase manteniendo orquestación fuera del control.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 433,
+          "column": 15,
+          "siteHash": "85eb87c03cace0848216c77f29e04cdc37a16c0fb9d1a74ed3c3f26fdd87eda0",
+          "owner": "CompanySelector",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/operations.tsx::CompanySelector → SelectionBase presenter",
+          "rationale": "Selector de empresa: identidad y lista autorizada; conserva switch-organization, default, bloqueo y navegación. Compartir presenter de opción con SelectBase manteniendo orquestación fuera del control.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/password-field.tsx",
+      "sourceHash": "b61e3f2e78eb22f83d71515066cd9cd862019fb0ab19ece6a35dc5beeeedd026",
+      "sites": [
+        {
+          "line": 22,
+          "column": 5,
+          "siteHash": "d9fcfd2762af6613172ee6ee2f4d107256272a0eb0c260c7569a30ce79ac881d",
+          "owner": "control",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/password-field.tsx::PasswordField.Visibility",
+          "rationale": "Accesorio superpuesto dentro del campo; onMouseDown conserva foco/caret, aria-pressed y toggle sólo cambian visibilidad. Base de field-accessory común sin padding de CTA.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/permissions-matrix.tsx",
+      "sourceHash": "87b0ab27a7ce46ee72b4e037e638838e9f453b92cf085cce7f8a81872a09bb8a",
+      "sites": [
+        {
+          "line": 102,
+          "column": 76,
+          "siteHash": "1b4153c67ea9afcba0e4c979228e36376049b7c8d68eac88aafc9d8fcdb0bbb4",
+          "owner": "ModulePermissions",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/person-photo.tsx",
+      "sourceHash": "f6343c5c7261b9543fe12d99c2c69f2d6ce95ae3f0b575fb81ffcabaf469084c",
+      "sites": [
+        {
+          "line": 47,
+          "column": 14,
+          "siteHash": "bf549bbe21af5adccfef4e4f69f034516d570affcfc576b148636955d7df74f4",
+          "owner": "PersonPhotoField",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        }
+      ]
+    },
+    {
+      "file": "app/photo-cropper.tsx",
+      "sourceHash": "e1e51a595138d4b9b7352a17028975f4b733400f3451de81be85887fb718f21a",
+      "sites": [
+        {
+          "line": 49,
+          "column": 34,
+          "siteHash": "5b659c89bd919f2dc4c04f4f7da31165376a1894a7c9c0ed33b6a4102aff5f7b",
+          "owner": "PhotoCropper",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 51,
+          "column": 16,
+          "siteHash": "22c8c311fcfc598e6eb493bf7f1a55787ca5ebf86cd83cf74a899edad1793c98",
+          "owner": "PhotoCropper",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 51,
+          "column": 109,
+          "siteHash": "a743a138585d1729fbb59cc13eef32e4e87bb50277b09f1ddfd2fd2ad1d336d4",
+          "owner": "PhotoCropper",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/photo-viewer.tsx",
+      "sourceHash": "52c6201d466d1919a33fbcc49b95a7bbda521a8d78c99eb5ccd1533512cff7e3",
+      "sites": [
+        {
+          "line": 13,
+          "column": 68,
+          "siteHash": "e4a28de2d34a1a124ccd4f3f07b58a72f05e1697ef4c75ef050369d84d958984",
+          "owner": "EnlargedPhoto",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/privacy-panel.tsx",
+      "sourceHash": "6060d701e9158a4079b592112d90a56c8e4b782c2af49a559c43ad1e1aa6848c",
+      "sites": [
+        {
+          "line": 196,
+          "column": 37,
+          "siteHash": "ea91ce499be0159217f8031d8e7a6f48ded9b36335a8d58d83585c4bc0f720c7",
+          "owner": "PrivacyPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 199,
+          "column": 9,
+          "siteHash": "8e4d8f7db350f4c3656c45538c3cf3f89f5e204afb73c45fcb45a46d4cf11b6b",
+          "owner": "PrivacyPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/production-board.tsx",
+      "sourceHash": "ef836a72e705c3b33967713ce6083066718023aa89b020a80402e6cbae717307",
+      "sites": [
+        {
+          "line": 86,
+          "column": 9,
+          "siteHash": "62e04082e705b629cd4ca5e2b790efb5aea642103f1b1d95c64f1c346309f266",
+          "owner": "DraggableOrder",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/productivity-ui.tsx",
+      "sourceHash": "0d5091f094f4d470b688864b27bd559fa47cc6abf9c886b162e115b54c3ba2db",
+      "sites": [
+        {
+          "line": 166,
+          "column": 171,
+          "siteHash": "64768ad900ba1bbe932fb0bd9c4e7f6afed3e85ce228926623f27819d13deb11",
+          "owner": "ClientDetail",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/tab-scroller.tsx + ViewTabs/TabList (propuesto)",
+          "rationale": "Selector de pestañas del detalle con paneles persistidos; migrar conjuntamente navegación/paneles al canon tabs, sin reinterpretarlo como acción o perder contenido visitado.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 167,
+          "column": 906,
+          "siteHash": "f5e41661b01d032d55c67227adce20298f2b04cf02d6274ba59bd6655f7e9129",
+          "owner": "ClientDetail",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 206,
+          "column": 597,
+          "siteHash": "3b9f36feed0ce6f7544f84e53eb78d9901591216472f071b0c66f8f18787fce6",
+          "owner": "WorkPlanner",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/productivity-ui.tsx::WorkPlanner → CalendarEventSurface",
+          "rationale": "Celda/evento del calendario con título y cliente/hora, altura limitada por grilla; conservar composición y callback de pieza, compartiendo sólo foco/tokens de superficie interactiva.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 214,
+          "column": 6,
+          "siteHash": "f69c2ec077f1ab44acf401eec0ce85bc6f22afb44ae1f96f9c6a512691188553",
+          "owner": "WorkPlanner",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/profile-controls.tsx",
+      "sourceHash": "67fd3785fbe1e5dec551fbe0af3893c60be17edca0d3f470daff6fe5ff4f836b",
+      "sites": [
+        {
+          "line": 74,
+          "column": 5,
+          "siteHash": "6cf0c304a83e104936d8f45838778583b7966f98b7a3a533f69fe1c90bfacf99",
+          "owner": "PlainSelect",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/profile-controls.tsx::PlainSelect → app/ui/select.tsx",
+          "rationale": "Trigger/listbox y role=option ya forman un engine de selección: mantener portal, teclado, selección y retorno de foco durante su sustitución conjunta por SelectBase.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 79,
+          "column": 84,
+          "siteHash": "5d7accfa06034b74a292d4e4e5705526249aa8860114fa2501957f5c86c7eba9",
+          "owner": "PlainSelect",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/profile-controls.tsx::PlainSelect → app/ui/select.tsx",
+          "rationale": "Trigger/listbox y role=option ya forman un engine de selección: mantener portal, teclado, selección y retorno de foco durante su sustitución conjunta por SelectBase.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/profile-photo.tsx",
+      "sourceHash": "5b696fce1bc9e96d1bf53f37e886ed798f9e0d6d15d2070f017ce84eb0515eaa",
+      "sites": [
+        {
+          "line": 115,
+          "column": 20,
+          "siteHash": "25c1e1d536da8d40b5c82b7ece4b3b2b4eb13f90977b8455586d2e8c850aebf4",
+          "owner": "ProfilePhoto",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 115,
+          "column": 227,
+          "siteHash": "ff96246c585221ca363f32fa98f84d7bb76bba2c0cc8c56639c251feefad7bf4",
+          "owner": "ProfilePhoto",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 117,
+          "column": 110,
+          "siteHash": "25c1e1d536da8d40b5c82b7ece4b3b2b4eb13f90977b8455586d2e8c850aebf4",
+          "owner": "ProfilePhoto",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 117,
+          "column": 317,
+          "siteHash": "ff96246c585221ca363f32fa98f84d7bb76bba2c0cc8c56639c251feefad7bf4",
+          "owner": "ProfilePhoto",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 124,
+          "column": 64,
+          "siteHash": "29ff15ea960ad202e31095636193aac9f32f1259f866ced399488301ee420fc5",
+          "owner": "ProfilePhoto",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 124,
+          "column": 156,
+          "siteHash": "457de7aeb52df1bfc6b2e75aff9fe2e2ce054d7056c811651641fe5456f26efa",
+          "owner": "ProfilePhoto",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        }
+      ]
+    },
+    {
+      "file": "app/project-card.tsx",
+      "sourceHash": "26347487b623b531e72f9380de4beb078a50bf2123609c257119c3d51f9cc79f",
+      "sites": [
+        {
+          "line": 150,
+          "column": 11,
+          "siteHash": "cc05dcfc1815381a14596940b8a02bc500b1bfead59ab89c3ba505f7f29450bf",
+          "owner": "ProjectCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 166,
+          "column": 51,
+          "siteHash": "bcd568419c4ae6bdcd4c79de70cd42ed2af4606d025469ae800789c3c9d508fb",
+          "owner": "ProjectCard",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        }
+      ]
+    },
+    {
+      "file": "app/quote-composer.tsx",
+      "sourceHash": "76969e2eeba52458efaea52bdf51fa5452ff04999080703f9f1d01b20e2576a1",
+      "sites": [
+        {
+          "line": 43,
+          "column": 17,
+          "siteHash": "ceb9992bbeaf0f622330eca7581e740aa20bf2f4df6d398d5cf4d338ca9e6aa7",
+          "owner": "ItemShell",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/drag/DragHandle (propuesto)",
+          "rationale": "Únicos dos spreads pendientes: drag.attributes y drag.listeners de useDraggable de dnd-kit. Sensor teclado/puntero, aria/ref y touchAction:none requieren asa dedicada, sin padding CTA ni reordenar spreads.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/record-assignees.tsx",
+      "sourceHash": "739f153a738dbb4d4b6203779134a85b1df07238833bc6df513ce583b7f0af65",
+      "sites": [
+        {
+          "line": 92,
+          "column": 91,
+          "siteHash": "5e8537bebed66434031108c668664aa3384893fb15f8acb7028eb1afc8092655",
+          "owner": "RecordAssigneesForm",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/navigation/DisclosureTrigger (propuesto)",
+          "rationale": "Control de expansión ligado a su panel, composición y aria-expanded/controls; unificar trigger estructural de disclosure sin modificar estado, foco ni borrador del panel.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/report-problem.tsx",
+      "sourceHash": "855b41785ed9f5cc212ed5b5ab825072ea374b327460e8f646297bc8b1ad634e",
+      "sites": [
+        {
+          "line": 84,
+          "column": 5,
+          "siteHash": "e1ebd9fda41a368139d320dcb0d5488576a24454d2a1b75192c4b4e223563e57",
+          "owner": "ReportProblemButton",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/scale-workspace.tsx",
+      "sourceHash": "a87986e78d8407ed7c8391e6f761249f26098928c346e87983e986e0e730da60",
+      "sites": [
+        {
+          "line": 750,
+          "column": 28,
+          "siteHash": "4ce6d44cf1299455fc0cdaabcd4a59a993ff96b8b74820dc89b8d01bac44ea4f",
+          "owner": "projectRowEntry",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 980,
+          "column": 15,
+          "siteHash": "a3eba3004887f205a6490a0f6eb1b4def6a9ad56e2bb99efca2306e8d64a2e85",
+          "owner": "sidebarContent",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 1005,
+          "column": 11,
+          "siteHash": "b8d22c24aae020be68c5f0ff6f6e4a3394f9caddbc36fb8e96583a5455f1402a",
+          "owner": "sidebarContent",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 1013,
+          "column": 51,
+          "siteHash": "804a69a8c0c0079396667a0e38bcc8760daed4a3c84e6fcee6b87af11551c4b4",
+          "owner": "sidebarContent",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/sections/clientes.tsx",
+      "sourceHash": "43336823def9a11d5056422b07af06024263817764e840eba8562a2ff412f57c",
+      "sites": [
+        {
+          "line": 80,
+          "column": 7,
+          "siteHash": "f9ba2cc131be54d6d5cf34df22446276e40afd9f62d4ec518dae9837111c3a14",
+          "owner": "ClientLine",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 111,
+          "column": 7,
+          "siteHash": "d5be3db475e8e265cbd68e1092a03bda7f1f8426632f99491a3026a5555a3ca0",
+          "owner": "ClientLine",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 132,
+          "column": 9,
+          "siteHash": "2f3eb6081ac5b5169282c1840962f96730f035da3e46befb76504b1fb6488f60",
+          "owner": "ClientTile",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 159,
+          "column": 7,
+          "siteHash": "d5be3db475e8e265cbd68e1092a03bda7f1f8426632f99491a3026a5555a3ca0",
+          "owner": "ClientTile",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 319,
+          "column": 9,
+          "siteHash": "0656aabdb2f137b9e75c6c2f8e0404454a008d091bee5cac1c2931330a7b8049",
+          "owner": "ClientesSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/sections/comisiones.tsx",
+      "sourceHash": "717e07158e7b9c27962c9c9dfbe86d585aae9c0d0998b21face46b57df4dd1a8",
+      "sites": [
+        {
+          "line": 232,
+          "column": 82,
+          "siteHash": "60085713738856d9a39a13d5aeb49b578a06d0e5f54f6e0a10b6e04ff1a677eb",
+          "owner": "ComisionesSection",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 255,
+          "column": 37,
+          "siteHash": "b4838451c5f70d100ba48c00a6ee84db0828695fbbe100539b73d7d614996d34",
+          "owner": "ComisionesSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        }
+      ]
+    },
+    {
+      "file": "app/sections/finanzas.tsx",
+      "sourceHash": "30ea0fd52067f63d64357210313d1c7eb3bda73dd724f35898b3d324e14238ca",
+      "sites": [
+        {
+          "line": 244,
+          "column": 52,
+          "siteHash": "9c5817fc09e5dc093f81d42cf7e32fb045ea59c4ee21457f0250deaedb85f445",
+          "owner": "FinanzasSection",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/sections/pipeline.tsx",
+      "sourceHash": "82729752fdc27951e7aca3851129a58b35fb3078dca578013119a8db3409a544",
+      "sites": [
+        {
+          "line": 136,
+          "column": 28,
+          "siteHash": "9dd61d0788d309ea8f807863c28893f30a488e7cad27370eb2f3459c1f52ccf0",
+          "owner": "LeadCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/drag/DragHandle (propuesto)",
+          "rationale": "Únicos dos spreads pendientes: drag.attributes y drag.listeners de useDraggable de dnd-kit. Sensor teclado/puntero, aria/ref y touchAction:none requieren asa dedicada, sin padding CTA ni reordenar spreads.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 198,
+          "column": 21,
+          "siteHash": "81a8d07abf557d0bf816375dfa40fad1f13f8b9f04399ff033f2a90c8021116f",
+          "owner": "LeadListRow",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 501,
+          "column": 24,
+          "siteHash": "7c6a45ad1ad66d5ff2e9b33d031995e6b893ae60fd58f7f30217f0f46c572a1f",
+          "owner": "PipelineSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "outline",
+          "color": "danger",
+          "rationale": "CSS local ui-system.css secondary.danger usa fondo de superficie y borde/texto danger; corresponde outline/color=danger, no danger filled."
+        },
+        {
+          "line": 520,
+          "column": 9,
+          "siteHash": "7716d01fb3d77f4791a6fec324b5a1c286b799f77c44dfcc14961bc49967b18a",
+          "owner": "PipelineSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 553,
+          "column": 13,
+          "siteHash": "cd120d88aaf8bd67626f5b521d21ab58604ed331fc8ad829e546c1cfc613fbef",
+          "owner": "PipelineSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 554,
+          "column": 13,
+          "siteHash": "e2406c634859daf5bef962f80ce0764538e66a40b89a3d2adf874d99b6f94d0c",
+          "owner": "PipelineSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/sections/presupuestos.tsx",
+      "sourceHash": "40918977424285c65f16e1efd82c44d2ca1af19841251e2d02da1b7ddcfc3b64",
+      "sites": [
+        {
+          "line": 188,
+          "column": 9,
+          "siteHash": "2ac8917f287a6ecf67feb4e92362ac8c2b06909a833a2bd7f2c3d4fa109a25b3",
+          "owner": "PresupuestosSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "outline",
+          "color": "danger",
+          "rationale": "CSS local ui-system.css secondary.danger usa fondo de superficie y borde/texto danger; corresponde outline/color=danger, no danger filled."
+        },
+        {
+          "line": 202,
+          "column": 11,
+          "siteHash": "9274c81131c7fe1e4d100c831d432cd298f161872f9568d5a9fa22cb03a40e1e",
+          "owner": "PresupuestosSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/sections/produccion.tsx",
+      "sourceHash": "392b547d5a4e69b65ec4f1457cec6585b803e165f9eb11e141a554d6569137ec",
+      "sites": [
+        {
+          "line": 161,
+          "column": 15,
+          "siteHash": "c1d96bf6e1f2085ca9526304324e18b61b6e510022e1812852026e707ff60072",
+          "owner": "ProduccionSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "outline",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 163,
+          "column": 15,
+          "siteHash": "6ffe2dcad3de6464dbc111e997fcdd849b44b0ec9c0ffa7f65ac098f857cf1b0",
+          "owner": "ProduccionSection",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "outline",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/studio-workspace.tsx",
+      "sourceHash": "03ff8777d32ea13c9d07ce6e82216276baf1f2149ba6f949f167b972e70dc4ad",
+      "sites": [
+        {
+          "line": 144,
+          "column": 618,
+          "siteHash": "ef14ce339ceff9ae3c7ce60410c6a8b48d3f8830d56a6d2ab831bd37f8690de5",
+          "owner": "StudioPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 144,
+          "column": 736,
+          "siteHash": "e3de7d6a04c4c7584298157733f672afde119a2d978dca664fb50c789ca4d516",
+          "owner": "StudioPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 156,
+          "column": 72,
+          "siteHash": "ef14ce339ceff9ae3c7ce60410c6a8b48d3f8830d56a6d2ab831bd37f8690de5",
+          "owner": "StudioPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 156,
+          "column": 190,
+          "siteHash": "e3de7d6a04c4c7584298157733f672afde119a2d978dca664fb50c789ca4d516",
+          "owner": "StudioPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        },
+        {
+          "line": 171,
+          "column": 92,
+          "siteHash": "f9c1900a054d7183ac360bf806af29e83132f39819d7adaff5dcb1274bebb9a1",
+          "owner": "StudioPanel",
+          "originalStatus": "manual",
+          "action": "facade",
+          "canonical": "app/ui/icon-action.tsx",
+          "rationale": "Vocabulario local de nueve iconos y cuatro tonos; quick de inventario resuelve sólo eye/check. Mover import conservando alias, props y callback sin invocarlo."
+        }
+      ]
+    },
+    {
+      "file": "app/subscription-panel.tsx",
+      "sourceHash": "b477bebe6345692583f5f09c339d0743eff7cf0b2eeb53e9ce0c7e05a7acd0d1",
+      "sites": [
+        {
+          "line": 216,
+          "column": 7,
+          "siteHash": "48fadbce5f1ae91acf3edee3b839438ebda834048c66e18648b40df11399713e",
+          "owner": "SubscriptionPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 234,
+          "column": 18,
+          "siteHash": "a4c656a5de82e96c392fc55748473bb35481f187e0749327d6a38a286fcd3bef",
+          "owner": "SubscriptionPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 242,
+          "column": 76,
+          "siteHash": "4188e8d1fc18190b66468cedc66bfd3e5f8de795258f5964d2596917c8620e51",
+          "owner": "SubscriptionPanel",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 256,
+          "column": 3,
+          "siteHash": "b1f163fca6ea8dda24ede4553285d1c435c27826b97371e8061de2fb6b04dd9e",
+          "owner": "SubscriptionNotice",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/suite.tsx",
+      "sourceHash": "5438773bf34212927b63984128cfc4d0a2d5fcddbbd07a8ea2f7f309717e322d",
+      "sites": [
+        {
+          "line": 55,
+          "column": 46,
+          "siteHash": "509fc9e28e46292f53adb1161ef2db27740e3af517fdf64b1563611a62f7fc9f",
+          "owner": "RecordEditor",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 55,
+          "column": 617,
+          "siteHash": "906e0d04ab136a251aa20b57ba3e42754f87a5991c560ac2aba854694b3e07d1",
+          "owner": "RecordEditor",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 99,
+          "column": 29,
+          "siteHash": "a3e9afdf8c2f17dcf30e8faaa62c1346f0abe20366dd9e34124c592664edf420",
+          "owner": "BudgetActions",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 109,
+          "column": 7,
+          "siteHash": "7b2ea0a922434dab36eee5571e1db22d872309f84ad358dfb50d925cf2ba0893",
+          "owner": "BudgetActions",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        }
+      ]
+    },
+    {
+      "file": "app/superadmin/catalog.tsx",
+      "sourceHash": "aada5cf374947a5e9bff73357bf0f90cee7ae73db979a76d3ecc03532b57eafd",
+      "sites": [
+        {
+          "line": 137,
+          "column": 19,
+          "siteHash": "90a3092ff1fcc7ffff05aebc1e3af9916a7ba217e8b606058340d020f5742f62",
+          "owner": "PlatformCatalog",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "colorExpression": "item.active?'warning':'success'",
+          "rationale": "Pausar/reactivar cupón conserva warn/positive sobre acción transparente; item es fila API, condición pura, toggleCoupon/item no se ejecuta al renderizar."
+        },
+        {
+          "line": 166,
+          "column": 19,
+          "siteHash": "90a3092ff1fcc7ffff05aebc1e3af9916a7ba217e8b606058340d020f5742f62",
+          "owner": "PlatformCatalog",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "colorExpression": "item.active?'warning':'success'",
+          "rationale": "Pausar/reactivar cupón conserva warn/positive sobre acción transparente; item es fila API, condición pura, toggleCoupon/item no se ejecuta al renderizar."
+        }
+      ]
+    },
+    {
+      "file": "app/superadmin/overview.tsx",
+      "sourceHash": "49bfb555c64b638b4c73afedf2d2a17888e91e4239b88829d71d71a540ca3842",
+      "sites": [
+        {
+          "line": 139,
+          "column": 58,
+          "siteHash": "9fd1343ce4145ab59e0b784b4ce152a25717da3b55f007d040df7331711bbfc2",
+          "owner": "PlatformOverview",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 151,
+          "column": 36,
+          "siteHash": "ac6e140cb3dbf3f78da43671b7206490a234ecc30d91aae15ab58760d39b3bbc",
+          "owner": "PlatformOverview",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/superadmin/sidebar.tsx",
+      "sourceHash": "c36051566f4a53960105ab91aa7cf1b2c26076ab5513a1e1ce1dcaa1d660cf6f",
+      "sites": [
+        {
+          "line": 28,
+          "column": 16,
+          "siteHash": "29d9ae730d1a49060d1c7b7e85a85f33417ad9253c2bdd0528e9e1a24e99756f",
+          "owner": "PlatformSidebar",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction",
+          "rationale": "Anatomía del rail/sidebar y su estado expandido/inverso, icono, etiqueta y perfil; un presenter NavigationAction compartido debe conservar esa composición sin padding CTA. Sesión/logout siguen en consumidores.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/superadmin/subscription-dialog.tsx",
+      "sourceHash": "36d2c6f088d68df5b9571daf1ca98e4c94197e867183121d6205c15762af5258",
+      "sites": [
+        {
+          "line": 120,
+          "column": 17,
+          "siteHash": "9a04044b416cd2347a700c3b2696fbd76e0ec4a46dbff20516f97c017edd1317",
+          "owner": "SubscriptionDialog",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "variantExpression": "option.days===30?'primary':'secondary'",
+          "rationale": "Gracia de suscripción: opción local de30 días primaria y las otras secundarias; dato de catálogo sin getter/llamada, openGrace queda una sola vez en onClick."
+        }
+      ]
+    },
+    {
+      "file": "app/tab-scroller.tsx",
+      "sourceHash": "4a80e3c26b51e2d5ec9ac1383a47dd8d2de43f29741b700cf81d5142f17a7b33",
+      "sites": [
+        {
+          "line": 39,
+          "column": 19,
+          "siteHash": "31fdf3fa4be2266e878eab8d60c842025d7750284300f80c4953f57dc8467675",
+          "owner": "TabScroller",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "outline",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 41,
+          "column": 19,
+          "siteHash": "e0df456efcf57a679439d8dd172e2359c72226f0d413736fdfe50c13862a24be",
+          "owner": "TabScroller",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "outline",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/theme-toggle.tsx",
+      "sourceHash": "e1c8ac165cfa3d71cc45089b6d9cdffb40bdfe239129046405e6d4b3902fc2f7",
+      "sites": [
+        {
+          "line": 37,
+          "column": 9,
+          "siteHash": "cb9a00c82e7c66592b9fcf7d39012bd95d080bb7324289dc36c73357bcfe5065",
+          "owner": "ThemeToggle",
+          "originalStatus": "structural",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/ui-v2.tsx",
+      "sourceHash": "e675a777b0181900042dec1606f8e57a65ff8f0f3558a8bd66703e02db0b2c1d",
+      "sites": [
+        {
+          "line": 335,
+          "column": 11,
+          "siteHash": "2c5b35db2fdc4fdc7ae50f0f4efbdc87ba3a78b9117cc63d4818b7b279b18bc0",
+          "owner": "CompactCard",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 356,
+          "column": 10,
+          "siteHash": "dbead173a596e06535fb21857db1f7aff11440571f24fc5d29405586f92bb2ee",
+          "owner": "CompactQuickAction",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        },
+        {
+          "line": 407,
+          "column": 10,
+          "siteHash": "932d6be4db3c122f0b50bdb7eac9be1cdd4f16fb507180f1d3158d85054e5bd0",
+          "owner": "EmptyCta",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 422,
+          "column": 18,
+          "siteHash": "9cdb1b12245bf68e402457730fb1e130cf4f4e7d554bf1302b63903a7a892841",
+          "owner": "EmptyCompact",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "target": "IconButton",
+          "size": "compact",
+          "rationale": "Acción sólo icono revisada con nombre accesible existente; trasladar exactamente label/icon ReactNode al canon, conservando callback/ref/type. Íconos condicionales permanecen expresiones únicas, no se adivinan caracteres."
+        }
+      ]
+    },
+    {
+      "file": "app/version-notice.tsx",
+      "sourceHash": "f45c713fab0ccf97c882d9a8e6236c88f6b1b35a690b99c01a86baae7904df2d",
+      "sites": [
+        {
+          "line": 36,
+          "column": 3,
+          "siteHash": "f1192ee0e3b74e3f66293b3e52e3b2f0f368017fa72883d091129604099ee5d8",
+          "owner": "VersionNotice",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "size": "compact",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/work-checklist.tsx",
+      "sourceHash": "aea39d3901c1413df8a430ff323041b330ce161c43ce0785e539630c2f29c79f",
+      "sites": [
+        {
+          "line": 97,
+          "column": 55,
+          "siteHash": "9e05608bb780927a2991ef1760d5e7d2f94e79ab480711eda7f9475a264f0282",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 97,
+          "column": 231,
+          "siteHash": "14951857eef3565587f2a84794647afb5ada44a9c3ab29413de4157538d908f4",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "color": "danger",
+          "rationale": "CSS local globals.css text-button.danger mantiene fondo transparente y tono de peligro; mapear a ghost/color=danger, sin convertirlo en botón filled ni tocar callbacks."
+        },
+        {
+          "line": 101,
+          "column": 45,
+          "siteHash": "fd3355bb48d915e62f59be05cb40345b2167eb7570597e795b00d948089d52d0",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 101,
+          "column": 195,
+          "siteHash": "41bcca6a3b669efba99dee6ca4fd942ffd22dba0df781427ade20f770e1ea9d9",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 108,
+          "column": 4,
+          "siteHash": "6537b5b0ad382524307bf7356a0decd9fb5feba566acd29bd3e838f8ac931c29",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "ghost",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 112,
+          "column": 4,
+          "siteHash": "636670b0a8bd6951ed4eca510624103fc8e74f809e989b0546314665c418b0e9",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "primary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        },
+        {
+          "line": 117,
+          "column": 32,
+          "siteHash": "82370d9c271b9bc25347d9d846fd94b1b9f684b5479f2091d86731b6218ec612",
+          "owner": "Checklist",
+          "originalStatus": "manual",
+          "action": "action",
+          "variant": "secondary",
+          "rationale": "Acción explícita revisada: conservar className, tipo nativo, eventos/ref y contenido; elegir variante sin evaluar de nuevo las expresiones del consumidor."
+        }
+      ]
+    },
+    {
+      "file": "app/workspace-forms.tsx",
+      "sourceHash": "b93a18534cddb975e7643001143b2ea7a00c50693d48894a5052718142e20607",
+      "sites": [
+        {
+          "line": 211,
+          "column": 13,
+          "siteHash": "978ba03f90690fa9350545171d3199df7523f44284f257dd2e1fdab36fc15bca",
+          "owner": "OrderForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 336,
+          "column": 13,
+          "siteHash": "ac49a2c6ff7075010a3a9d0d533399e02c45bc72b442045f7243ac29019ac2d5",
+          "owner": "AccountForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 381,
+          "column": 13,
+          "siteHash": "58139a56540efda40d66db082874fd3c5d9798e2ad1413101a4c01e01660a50f",
+          "owner": "AccountForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 466,
+          "column": 13,
+          "siteHash": "58139a56540efda40d66db082874fd3c5d9798e2ad1413101a4c01e01660a50f",
+          "owner": "InvoiceForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 585,
+          "column": 13,
+          "siteHash": "86b0ff4dbdccc1e59dff83c02f9811b968b548da8657bd3e5bdc98dc8acc4f5d",
+          "owner": "PaymentForm",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/ui/select.tsx/SelectionBase + ChoiceGroup (propuesto)",
+          "rationale": "Opciones de selección/toggle (estado, moneda, cuenta, permiso o entidad), no acción de guardado. Compartir presenter de opción y navegación single/multi con kind explícito; mantener active/aria-pressed, labels, ids y callbacks de selección/permiso.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    },
+    {
+      "file": "app/workspace-guide.tsx",
+      "sourceHash": "d9bc511cad71ecddbab99bf30ac2e2e0733d3f6c28dd4dba0244c1d453e6a9c5",
+      "sites": [
+        {
+          "line": 59,
+          "column": 120,
+          "siteHash": "ab8ff020ccaaeee3d639768a5e1054b0a9f28a68ac662eeca9bedd9c53e1f74d",
+          "owner": "directory",
+          "originalStatus": "manual",
+          "action": "retain",
+          "canonical": "app/workspace-guide.tsx::directory → NavigationTile",
+          "rationale": "Directorio de módulos como grilla navegable; presenter NavigationTile mantiene layout choice y callback go, no se trata como selector de datos ni submit.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 85,
+          "column": 5,
+          "siteHash": "1876e2f2ecd3b31dab2e00177d697e8e2d527880a44e6b5ac28b8c04049f066a",
+          "owner": "ScopedWorkspaceGuide",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/navigation/DisclosureTrigger (propuesto)",
+          "rationale": "Control de expansión ligado a su panel, composición y aria-expanded/controls; unificar trigger estructural de disclosure sin modificar estado, foco ni borrador del panel.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        },
+        {
+          "line": 97,
+          "column": 7,
+          "siteHash": "904148000583e13e6240b7955db28ac351d1c2af0f6ee63655758e9b3fdac1d3",
+          "owner": "ScopedWorkspaceGuide",
+          "originalStatus": "structural",
+          "action": "retain",
+          "canonical": "app/ui/surfaces/CardSurface.Action (propuesto; consumidores actuales conservados)",
+          "rationale": "Superficie completa de identidad/título/fila navegable, con layout de texto/imagen/estado y área flexible; no CTA con padding uniforme. Consolidar action-slot estructural de CardSurface, conservar children directos, foco y apertura en callback.",
+          "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
+        }
+      ]
+    }
+  ]
+}
