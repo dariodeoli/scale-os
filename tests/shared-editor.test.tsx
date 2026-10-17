@@ -71,12 +71,16 @@ async function main(){
   await act(async()=>r!.unmount());
   // Inline lookups query with the current field value and apply returned values.
   const lookups:string[]=[];const lookupSaved:Record<string,string>[]=[];
-  await act(async()=>{r=create(<Editor fields={[{key:'tax_id',label:'RUC',lookup:{label:'Buscar datos por RUC',run:async value=>{lookups.push(value);return {legal_name:'RAZON S.A.',tax_id:'80012345-6'};}}},{key:'legal_name',label:'Razón social'}]} defaults={{tax_id:'',legal_name:''}} save={async v=>{lookupSaved.push(v);}}/>);});
+  await act(async()=>{r=create(<Editor fields={[{key:'tax_id',label:'RUC',lookup:{label:'Buscar datos por RUC',run:async value=>{lookups.push(value);return {legal_name:'RAZON S.A.',tax_id:'80012345-6'};}}},{key:'legal_name',label:'Razón social'}]} defaults={{tax_id:'',legal_name:'Nombre manual'}} save={async v=>{lookupSaved.push(v);}}/>);});
   await act(async()=>{r!.root.findAllByType('input')[0].props.onChange({target:{name:'tax_id',value:'80012345'}});});
   const lookupButton=r!.root.findAllByType('button').find(node=>String(node.props.children).includes('Buscar'))!;
   await act(async()=>{await lookupButton.props.onClick();});
   await act(async()=>{});
   assert.deepEqual(lookups,['80012345'],'the lookup receives the typed value');
+  await act(async()=>{await submit(r!);});
+  assert.equal(lookupSaved.at(-1)!.legal_name,'Nombre manual','lookup never overwrites manual form data before explicit Apply');
+  assert.equal(lookupSaved.at(-1)!.tax_id,'80012345','lookup never replaces the typed identifier before explicit Apply');
+  await act(async()=>{r!.root.findAllByType('button').find(node=>node.props.children==='Aplicar datos consultados')!.props.onClick();});
   await act(async()=>{await submit(r!);});
   assert.equal(lookupSaved.at(-1)!.legal_name,'RAZON S.A.','returned fields land in the form');
   assert.equal(lookupSaved.at(-1)!.tax_id,'80012345-6','the canonical RUC replaces the typed value');

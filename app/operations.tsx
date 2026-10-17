@@ -143,6 +143,8 @@ export function Editor({
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
   const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,string>>({});
+  const [lookupSuggestions,setLookupSuggestions]=useState<Record<string,Record<string,string>>>({});
+  const dismissLookup=(key:string)=>setLookupSuggestions(current=>{const next={...current};delete next[key];return next;});
   const pending=form.formState.isSubmitting||savingNow;
   // Cambios sin guardar (aviso al cerrar): solo cuenta lo que la persona tocó; una
   // normalización del campo al montar no convierte el formulario en «sucio».
@@ -169,7 +171,7 @@ export function Editor({
   const showSectionSummary=form.formState.submitCount>0&&errorSections.length>0;
   const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.({afterSave:true});}},[saved,pending,requestClose]);
-  async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);for(const [key,next] of Object.entries(found))form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá y guardá.'}));}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
+  async function runLookup(f:Field){if(!f.lookup||pending||lookupBusy)return;const value=(form.getValues(f.key)||'').trim();setLookupNotices(current=>({...current,[f.key]:''}));if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}dismissLookup(f.key);setLookupBusy(f.key);setError('');try{const found=await f.lookup.run(value);const suggestions=Object.fromEntries(Object.entries(found).filter(([key])=>fields.some(field=>field.key===key)).map(([key,next])=>[key,String(next)]));if(Object.keys(suggestions).length){setLookupSuggestions(current=>({...current,[f.key]:suggestions}));setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá los cambios y elegí Aplicar o Descartar.'}));}else{dismissLookup(f.key);setLookupNotices(current=>({...current,[f.key]:'Consulta completada. Revisá el resultado antes de guardar.'}));}}catch(cause){setLookupNotices(current=>({...current,[f.key]:cause instanceof Error?cause.message:'No se pudo completar la consulta.'}));}finally{setLookupBusy('');}}
   const renderField = (f: Field) => {
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null,lookupNotices[f.key]?`${id}-lookup`:null].filter(Boolean).join(' ')||undefined;
@@ -186,6 +188,11 @@ export function Editor({
       {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
       {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
       {lookupNotices[f.key]&&<small id={`${id}-lookup`} className="field-help ops-lookup-note" role="status">{lookupNotices[f.key]}</small>}
+      {lookupSuggestions[f.key]&&<section className="ops-card" role="group" aria-label={`Confirmar datos de ${f.label}`}>
+        <p>Estos datos solo reemplazan el borrador si elegís Aplicar.</p>
+        <dl>{Object.entries(lookupSuggestions[f.key]).map(([key,next])=><div key={key}><dt>{fields.find(field=>field.key===key)?.label||key}</dt><dd>{next||'Sin dato'}</dd></div>)}</dl>
+        <div className="inline-actions"><Button type="button" disabled={pending} onClick={()=>{for(const [key,next] of Object.entries(lookupSuggestions[f.key])){const field=fields.find(field=>field.key===key);const locked=typeof field?.disabled==='boolean'?field.disabled:Boolean(field?.disabled?.(form.getValues()));if(!locked)form.setValue(key,next,{shouldValidate:true,shouldDirty:true});}setInteracted(true);dismissLookup(f.key);setLookupNotices(current=>({...current,[f.key]:'Aplicaste los datos consultados. Revisá y guardá.'}));}}>Aplicar datos consultados</Button><Button type="button" variant="ghost" disabled={pending} onClick={()=>{dismissLookup(f.key);setLookupNotices(current=>({...current,[f.key]:'Descartaste los datos consultados; el borrador se conserva.'}));}}>Descartar datos consultados</Button></div>
+      </section>}
       {f.after}
     </div>;
   };

@@ -1,5 +1,6 @@
 "use client";
 import {Input} from './ui/input';
+import {FotoPerfil} from './foto-perfil';
 
 import { MoneyInput, BuscadorPersonas } from 'owncoding-ui';
 import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
@@ -74,7 +75,7 @@ function adjacentControl(trigger:HTMLElement,menu:HTMLElement|null,backward:bool
 }
 function ChoiceContent({choice}:{choice:SelectChoice}){
  return <span className="ops-select-choice-identity">
-  {choice.photoUrl&&<img src={choice.photoUrl} alt="" aria-hidden="true" width={24} height={24} className={choice.kind==='entity'?'ops-select-entity-logo':'ops-select-choice-avatar'}/>}
+  {(choice.photoUrl||choice.kind)&&<FotoPerfil nombre={choice.label} foto={choice.photoUrl} tamano="sm" variante={choice.kind==='entity'?'logo':'persona'}/>}
   <span><span>{choice.label}</span>{choice.secondary&&<small className="ops-select-choice-secondary">{choice.secondary}</small>}</span>
  </span>;
 }

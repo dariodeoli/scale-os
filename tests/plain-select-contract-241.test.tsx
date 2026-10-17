@@ -55,7 +55,8 @@ async function main(){
  await mount(props);assert.equal(r!.root.findAllByProps({role:'combobox'}).length,0,'entity logo never selects PersonSelect heuristic');
  await open();
  assert.equal(doc.activeElement?.name,'option-1','initial focus skips disabled selected choice');
- assert.equal(r!.root.findAllByType('img')[0].props.className,'ops-select-entity-logo');
+ const logo=r!.root.findByType(require('../app/foto-perfil').FotoPerfil);
+ assert.equal(logo.props.variante,'logo');assert.equal(logo.props.foto,'/logos/aguila.png','selector delegates photo policy and fallback to the existing canonical identity');
  assert.equal(options()[0].props.disabled,true);assert.equal(options()[0].props['aria-disabled'],true);
  await act(async()=>options()[0].props.onClick());assert.equal(changes.length,0,'even programmatic click of disabled option cannot emit');
  await key('ArrowDown');assert.equal(doc.activeElement?.name,'option-2');

@@ -588,3 +588,7 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 @keyframes ui-button-spin{to{transform:rotate(360deg)}}
 @media(max-width:767px){.ui-button[data-size]{min-height:44px}.ui-button.icon-button{min-width:44px}}
 @media(prefers-reduced-motion:reduce){.ui-button{transition:none}.ui-button-spinner{animation:none}}
+.ui-button.icon-button{padding:0}
+.ops-select-choice-identity{display:flex;align-items:center;gap:var(--ui-space-2);min-width:0;text-align:left}
+.ops-select-choice-identity>span{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.ops-select-choice-secondary{display:block;font-size:12px;line-height:1.4;color:var(--text-muted)}
