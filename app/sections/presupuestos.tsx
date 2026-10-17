@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from '../ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
 import {Aviso,SegmentedField} from 'owncoding-ui';
 import {SearchField} from '../search-field';
@@ -72,7 +73,7 @@ function BudgetTile({budget,user,canManage,selected,onToggle,refresh}:{budget:Bu
   return <article className="ops-card budget-hub-card">
     <header className="budget-hub-head">
       <span className="flex min-w-0 items-center gap-2">
-        {canManage?<label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected} onChange={()=>onToggle()}/></label>:null}
+        {canManage?<label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><InputControl type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={selected} onChange={()=>onToggle()}/></label>:null}
         <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
       </span>
       <StateChip tone={state.tone}>{state.label}</StateChip>
@@ -147,7 +148,7 @@ export function PresupuestosSection({loading, user, budgetsState, budgets, windo
     const tone = hasDueWarning(budget.valid_until);
     return <ListRow key={budget.id} template={BUDGET_TEMPLATE} className="budget-row">
       <div role="cell" className="flex min-w-0 items-center gap-2">
-        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><input type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={bulk.has(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
+        {canManage ? <label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar presupuesto"><InputControl type="checkbox" aria-label={`Seleccionar ${budget.number} · ${budget.title}`} checked={bulk.has(String(budget.id))} onChange={()=>toggleSelected(String(budget.id))}/></label> : null}
         <span className="flex min-w-0 items-baseline gap-2">
           <b className="shrink-0 font-mono text-[11px] font-semibold text-mute">{budget.number}</b>
           <span className="min-w-0 truncate text-[13.5px] font-semibold leading-tight text-fore" title={budget.title}>{budget.title}</span>

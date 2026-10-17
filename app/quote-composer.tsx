@@ -1,4 +1,7 @@
 "use client";
+import {InputControl as Input} from './ui/input-control';
+import {AmountInput as MoneyInput} from './ui/amount';
+import {TextareaBase as Textarea} from './ui/input';
 // Rediseño v2 (campaña #41 / spec #43 §4-5): compositor de presupuestos y
 // planes con objetos de la librería (Input/Select/MoneyInput/Switch/Button),
 // campos por tipo y vista previa. Esquemas, totales y requests viven en
@@ -13,7 +16,7 @@
 import {OptionalMark} from './field-label';
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {Button,FormField,Select,Switch,Aviso} from 'owncoding-ui';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
@@ -108,7 +111,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
     <FormField label="Descripción" htmlFor={`quote-item-description-${index}`} error={itemErrors?.[index]?.description?.message}><Input id={`quote-item-description-${index}`} required aria-invalid={itemErrors?.[index]?.description?'true':undefined} aria-describedby={itemErrors?.[index]?.description?`quote-item-description-${index}-descripcion`:undefined} {...form.register(`items.${index}.description`)}/></FormField>
     <div className="flex flex-wrap gap-3">
      <FormField label="Cantidad" htmlFor={`quote-item-quantity-${index}`} error={itemErrors?.[index]?.quantity?.message}><Input id={`quote-item-quantity-${index}`} className="w-24" inputMode="decimal" autoComplete="off" required aria-invalid={itemErrors?.[index]?.quantity?'true':undefined} aria-describedby={itemErrors?.[index]?.quantity?`quote-item-quantity-${index}-descripcion`:undefined} {...form.register(`items.${index}.quantity`)}/></FormField>
-     <FormField label="Precio sin IVA" htmlFor={`quote-item-price-${index}`} error={itemErrors?.[index]?.unitPrice?.message}><MoneyInput id={`quote-item-price-${index}`} className="w-44" currency={v.currency} value={v.items[index]?.unitPrice||''} onValueChange={(value: unknown)=>form.setValue(`items.${index}.unitPrice`,String(value),{shouldValidate:true,shouldDirty:true})}/></FormField>
+     <FormField label="Precio sin IVA" htmlFor={`quote-item-price-${index}`} error={itemErrors?.[index]?.unitPrice?.message}><MoneyInput id={`quote-item-price-${index}`} className="w-44" currency={v.currency} value={v.items[index]?.unitPrice||''} onChange={(value: unknown)=>form.setValue(`items.${index}.unitPrice`,String(value),{shouldValidate:true,shouldDirty:true})}/></FormField>
     </div>
     <div className="flex flex-wrap gap-2">
      <Button type="button" variant="ghost" className="h-11 px-2 text-xs md:h-9" disabled={index===0} onClick={()=>array.move(index,index-1)}><ArrowUp size={14}/>Subir</Button>

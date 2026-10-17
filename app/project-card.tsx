@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from './ui/input-control';
 /**
  * Proyectos (dominio OPS) — tarjeta/lista y detalle v2 (campaña #41, spec #44).
  *
@@ -140,7 +141,7 @@ export function ProjectCard({project,client,children,selectable=false,selected=f
   // «Actualizado …» es auditoría y vive en el detalle (como en Producción, #99).
   return <article id={anchor} ref={card} tabIndex={-1} className={`project-entry project-card-v3 identity-${identityColor(client?.color_key)} group/project flex min-w-0 flex-col gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 [.project-list_&]:grid [.project-list_&]:min-h-[48px] [.project-list_&]:grid-cols-[var(--project-cols)] [.project-list_&]:items-center [.project-list_&]:gap-x-2 [.project-list_&]:px-3 [.project-list_&]:py-1`}>
     <div className="project-card-header flex min-w-0 items-start gap-2 [.project-list_&]:items-center">
-      {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-5 md:min-w-5" title="Seleccionar proyecto"><input type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
+      {selectable?<label className="select-check flex h-11 min-w-11 items-center justify-center md:h-5 md:min-w-5" title="Seleccionar proyecto"><InputControl type="checkbox" aria-label={`Seleccionar ${project.name}`} checked={selected} onChange={()=>onSelect?.()}/></label>:null}
       <div className="min-w-0 flex-1 [.project-list_&]:flex [.project-list_&]:items-center [.project-list_&]:gap-2">
         <div className="flex min-w-0 items-start gap-2 [.project-list_&]:contents">
           <h3 className="break-words project-card-title min-w-0 flex-1 text-[15px] font-semibold leading-5 text-fore [.project-list_&]:flex-none [.project-list_&]:truncate" title={project.name}>{project.name}</h3>

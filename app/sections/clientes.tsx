@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from '../ui/input-control';
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
@@ -76,7 +77,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
   const priceMissing = client.has_recurring_price !== true && !canManageTerms;
   return <ListRow template={CLIENT_TEMPLATE} className="client-hub-row" data-archived={client.active===false||undefined}>
     <div role="cell" className="flex min-w-0 items-center gap-2">
-      {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
+      {selectable ? <label className="select-check" title="Seleccionar cliente"><InputControl type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
       <button type="button" className="min-h-11 min-w-0 text-left md:min-h-0" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
         <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
       </button>
@@ -128,7 +129,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
   return <article className="client-hub-card flex min-h-[200px] min-w-0 flex-col gap-2.5 rounded-xl border border-ink-600 bg-ink-800 p-4 max-md:p-3" data-archived={client.active===false||undefined}>
     <header className="flex min-w-0 items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
-        {selectable ? <label className="select-check" title="Seleccionar cliente"><input type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
+        {selectable ? <label className="select-check" title="Seleccionar cliente"><InputControl type="checkbox" aria-label={`Seleccionar ${client.name}`} checked={selected} onChange={() => onSelect()}/></label> : null}
         <button type="button" className="min-h-11 min-w-0 text-left md:min-h-0" onClick={onOpen} aria-label={`Abrir ficha de ${client.name}`}>
           <ClientIdentity name={client.name} logo={client.logo_url} color={client.color_key}/>
         </button>

@@ -1,4 +1,5 @@
 "use client";
+import {InputControl as Input} from '../ui/input-control';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Plus, Undo2} from 'lucide-react';
 import {api, Dialog, Editor, money} from '../operations';
@@ -23,7 +24,7 @@ import {
   type Payout,
   type ReferralDiscount,
 } from '../commission-data';
-import {Aviso,FormField,Input,Subtabs} from 'owncoding-ui';
+import {Aviso,FormField,Subtabs} from 'owncoding-ui';
 import {notify} from '../feedback';
 import {ConfirmDialog} from '../dialog';
 import {EmptyBlock, ErrorBlock, Kpi, KpiStrip, FilterToolbar, ListGrid, ListPage, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';

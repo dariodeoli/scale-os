@@ -1,4 +1,5 @@
 'use client';
+import {TextareaBase} from './ui/input';
 
 import {useEffect,useId,useMemo,useRef,useState} from 'react';
 import {ActorIdentity} from './actor-identity';
@@ -37,7 +38,7 @@ export function CommentComposer({onSubmit,label='Publicar comentario',disabled=f
  }
  return <form className="comment-composer" onSubmit={submit} aria-busy={sending||undefined}>
   <label htmlFor={fieldId}>Comentario</label>
-  <textarea ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} onKeyDown={event=>{
+  <TextareaBase ref={textarea} id={fieldId} value={body} onChange={event=>change(event.target.value)} onKeyDown={event=>{
    if(!choices.length)return;
    if(event.key==='ArrowDown'){event.preventDefault();setActive(value=>(value+1)%choices.length);}
    if(event.key==='ArrowUp'){event.preventDefault();setActive(value=>(value-1+choices.length)%choices.length);}

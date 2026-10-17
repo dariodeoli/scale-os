@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from './ui/input-control';
 import {AccountCreateDialog} from './account-create-dialog';
 import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
@@ -739,7 +740,7 @@ export default function Home() {
     const dueText=listDateShort(project.due_date)||'Sin entrega';
     return <>
       <span className="flex min-w-0 items-center gap-2">
-        {canManageProjects?<input type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
+        {canManageProjects?<InputControl type="checkbox" className="size-4 shrink-0 accent-fono" checked={projectBulk.has(String(project.id))} onChange={()=>projectBulk.toggle(String(project.id))} aria-label={`Seleccionar ${project.name}`}/>:null}
         <ClientLogo name={client?.name||project.client_name||'Sin cliente'} logo={identityLoading?undefined:client?.logo_url} color={client?.color_key} size="sm"/>
         <span className="flex min-w-0 items-baseline gap-1.5">
           <b className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={project.name}>{project.name}</b>

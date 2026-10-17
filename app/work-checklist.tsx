@@ -1,4 +1,6 @@
 'use client';
+import {InputControl} from './ui/input-control';
+import {TextareaBase} from './ui/input';
 
 import {useEffect,useId,useRef,useState} from 'react';
 import {clearDataCache} from './data-cache';
@@ -88,7 +90,7 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
    const completedLabel=listDateFull(item.completed_at);
    return <li key={item.id} className={item.completed?'is-complete':''}>
    <div className="work-checklist-item">
-    <label className="work-checklist-check"><input type="checkbox" checked={item.completed} disabled={!editable||locked} onChange={event=>{void mutate('PATCH',item.id,{completed:event.target.checked});}}/><span>{item.text}</span></label>
+    <label className="work-checklist-check"><InputControl type="checkbox" checked={item.completed} disabled={!editable||locked} onChange={event=>{void mutate('PATCH',item.id,{completed:event.target.checked});}}/><span>{item.text}</span></label>
     {/* Atribución (#151): terminado siempre dice su estado; sin nombre ni fecha
         queda el vacío honesto, nunca un «por» suelto. */}
     {item.completed?<span className="work-checklist-actor" data-state="complete" title={item.completed_by_name?`Completado por ${personDisplayName(item.completed_by_name)}${completedLabel?` · ${completedLabel}`:''}`:'Completado. No quedó registro de quién ni cuándo.'}>
@@ -97,18 +99,18 @@ function Checklist({id,role,refresh}:WorkChecklistProps){
     {editable?<div className="work-checklist-actions"><button type="button" disabled={locked||!!edit} aria-label={`Editar ítem: ${item.text}`} onClick={()=>{setRemoving(null);setEdit({id:item.id,text:item.text});}}>Editar</button><button type="button" disabled={locked||!!edit} aria-label={`Quitar ítem: ${item.text}`} onClick={()=>setRemoving(item.id)}>Quitar</button></div>:null}
    </div>
    {edit?.id===item.id?<div className="work-checklist-editor">
-    <label htmlFor={`${label}-edit`}>Texto del ítem</label><input id={`${label}-edit`} autoFocus maxLength={500} value={edit.text} disabled={locked} onChange={event=>setEdit({...edit,text:event.target.value})} onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();if(!busy)setEdit(null);}if(event.key==='Enter'){event.preventDefault();if(edit.text.trim())void mutate('PATCH',item.id,{text:edit.text.trim()});}}}/>
+    <label htmlFor={`${label}-edit`}>Texto del ítem</label><InputControl id={`${label}-edit`} autoFocus maxLength={500} value={edit.text} disabled={locked} onChange={event=>setEdit({...edit,text:event.target.value})} onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();if(!busy)setEdit(null);}if(event.key==='Enter'){event.preventDefault();if(edit.text.trim())void mutate('PATCH',item.id,{text:edit.text.trim()});}}}/>
     <div className="work-checklist-actions"><button type="button" disabled={locked||!edit.text.trim()} onClick={()=>{void mutate('PATCH',item.id,{text:edit.text.trim()});}}>Guardar ítem</button><button type="button" disabled={busy} onClick={()=>setEdit(null)}>Cancelar edición</button></div>
    </div>:null}
    {removing===item.id?<ConfirmDialog open variant="danger" title="Quitar ítem" description={<>¿Quitar «{item.text}» del checklist?</>} cancelLabel="Conservar ítem" confirmLabel="Sí, quitar ítem" busy={locked} onCancel={()=>setRemoving(null)} onConfirm={()=>{void mutate('DELETE',item.id);}}/>:null}
   </li>;})}</ul>:null}
   {edit&&snapshot&&!snapshot.items.some(item=>item.id===edit.id)?<div className="work-checklist-editor">
    <label htmlFor={`${label}-pending`}>El ítem que editabas fue quitado. Tu texto pendiente:</label>
-   <textarea id={`${label}-pending`} readOnly value={edit.text}/>
+   <TextareaBase id={`${label}-pending`} readOnly value={edit.text}/>
    <button type="button" onClick={()=>setEdit(null)}>Descartar texto pendiente</button>
   </div>:null}
   {editable&&snapshot?<div className="work-checklist-add">
-   <label htmlFor={`${label}-new`}>Nuevo ítem</label><div className="work-checklist-add-row"><input ref={addInput} id={`${label}-new`} maxLength={500} value={draft} disabled={locked||total>=snapshot.max_items} placeholder="Escribí una tarea concreta" onChange={event=>setDraft(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();if(draft.trim()&&total<snapshot.max_items)void mutate('POST',null,{text:draft.trim()});}}}/>
+   <label htmlFor={`${label}-new`}>Nuevo ítem</label><div className="work-checklist-add-row"><InputControl ref={addInput} id={`${label}-new`} maxLength={500} value={draft} disabled={locked||total>=snapshot.max_items} placeholder="Escribí una tarea concreta" onChange={event=>setDraft(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();if(draft.trim()&&total<snapshot.max_items)void mutate('POST',null,{text:draft.trim()});}}}/>
    <button type="button" disabled={locked||!draft.trim()||total>=snapshot.max_items} onClick={()=>{if(draft.trim()&&total<snapshot.max_items)void mutate('POST',null,{text:draft.trim()});}}>Agregar ítem</button></div>
    {total>=snapshot.max_items?<p className="work-checklist-hint">Máximo {snapshot.max_items} ítems por pieza.</p>:null}
   </div>:null}

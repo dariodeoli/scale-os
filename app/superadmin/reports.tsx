@@ -1,4 +1,5 @@
 "use client";
+import {TextareaBase} from '../ui/input';
 // «Reportes» del panel global: lo que los usuarios mandan con «Reportar un
 // problema». Lista densa v2 (Fecha · Agencia / usuario · Reporte · Ruta y
 // versión · Estado · Acciones) con tarjetas cuando no entra, filtro por estado
@@ -200,7 +201,7 @@ export function PlatformReports({writable, onError, onCounts, initialData}: Prop
       <SelectCustom label="Estado" choices={(Object.keys(REPORT_STATUS) as ReportStatus[]).map((value) => ({value, label: REPORT_STATUS[value].label}))} value={draftStatus} disabled={busy} onChange={(value: string) => setDraftStatus(value as ReportStatus)}/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Nota interna
-        <textarea value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: reproducido, se corrige en la próxima versión" onChange={(event) => setNote(event.target.value)}/>
+        <TextareaBase value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: reproducido, se corrige en la próxima versión" onChange={(event) => setNote(event.target.value)}/>
       </label>
     </ConfirmDialog> : null}
   </section>;

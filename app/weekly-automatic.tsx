@@ -1,9 +1,10 @@
 'use client';
+import {InputControl as Input} from './ui/input-control';
 import {useEffect,useState,type ChangeEvent,type ReactNode} from 'react';
 import {ActorIdentity} from './actor-identity';
 import {todayAsuncion} from './client-format';
 import {listDateShort} from './list-format';
-import {Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Input,Nota} from 'owncoding-ui';
+import {Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Nota} from 'owncoding-ui';
 import {LoadingBlock} from './ui-v2';
 
 export const automaticTypeLabels:Record<string,string>={video:'Videos',reedicion:'Reediciones',foto:'Fotos',produccion:'Producciones',entregable:'Entregables',untyped:'Sin tipo'};

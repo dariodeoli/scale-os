@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from '../ui/input-control';
 // «Aplicar cupón» desde el panel global (#189): el superadmin canjea un cupón
 // aplicable en nombre de la agencia (vigente, con cupo, global o dirigido a ella
 // y todavía no usado por ella). El API reutiliza el mismo canje que la empresa.
@@ -88,7 +89,7 @@ export function ApplyCouponDialog({agency, onClose, onApplied, onFailure}: Apply
       <SelectCustom label="Cupón" choices={coupons.map((item) => ({value: String(item.id), label: couponChoiceLabel(item)}))} value={selected} disabled={busy} onChange={setSelected}/>
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Motivo<OptionalMark/>
-        <input value={reason} disabled={busy} maxLength={500} placeholder="Ej.: gracia acordada con el cliente" onChange={(event) => setReason(event.target.value)}/>
+        <InputControl value={reason} disabled={busy} maxLength={500} placeholder="Ej.: gracia acordada con el cliente" onChange={(event) => setReason(event.target.value)}/>
       </label>
     </ConfirmDialog>
   );

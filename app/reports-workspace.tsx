@@ -1,4 +1,5 @@
 'use client';
+import {InputControl as Input} from './ui/input-control';
 import {useEffect,useState,type ChangeEvent} from 'react';
 import {Plus} from 'lucide-react';
 import {downloadReportsCsv} from './reports-csv';
@@ -29,21 +30,7 @@ import {
   type ReportsData,
 } from './reports-data';
 import {useReportsWindow} from './use-reports';
-import {
-  Aviso,
-  BarraProgreso,
-  Button,
-  Card,
-  DataTable,
-  EmptyState,
-  ErrorState,
-  FilaDato,
-  FormField,
-  Input,
-  Nota,
-  SegmentedField,
-  cn,
-} from 'owncoding-ui';
+import {Aviso,BarraProgreso,Button,Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Nota,SegmentedField,cn} from 'owncoding-ui';
 import {notify} from './feedback';
 import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,type Column} from './ui-v2';
 

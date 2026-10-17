@@ -1,6 +1,8 @@
 "use client";
+import {InputControl as Input} from './ui/input-control';
+import {TextareaBase} from './ui/input';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Aviso,AvisoPrivacidad,Checkbox,FormField,Input} from 'owncoding-ui';
+import {Aviso,AvisoPrivacidad,Checkbox,FormField} from 'owncoding-ui';
 import {Plus} from 'lucide-react';
 import {Dialog,FormActions} from './dialog';
 import {AmountInput,SelectCustom} from './profile-controls';
@@ -388,7 +390,7 @@ export function IaCargaDialog({role, close, onCreated}:{role:string; close:()=>v
         {config.modelo?<StateChip tone="mute" title="Modelo configurado en el servidor">{config.modelo}</StateChip>:null}
       </div>
       <FormField label="Texto para cargar" htmlFor="ia-carga-texto" hint={`Máximo ${IA_TEXTO_MAX.toLocaleString('es-PY')} caracteres; hasta ${IA_REGISTROS_MAX} registros por tipo. Nada se crea ni se guarda al analizar.`}>
-        <textarea
+        <TextareaBase
           id="ia-carga-texto"
           className="min-h-44 w-full resize-y rounded-lg border border-ink-500 bg-ink-800 px-3.5 py-2.5 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:text-sm"
           value={texto}

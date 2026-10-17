@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from './ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
 import {SegmentedField} from 'owncoding-ui';
 import {SearchField} from './search-field';
@@ -175,7 +176,7 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
   }
   const menuLabel=(facts:Facts)=>`Acciones de ${facts.name}`;
   const check=(entry:Entry,facts:Facts,reserve=false,className='')=>selectable(entry)
-    ?<label className={`select-check flex h-11 w-8 shrink-0 items-center justify-center md:h-8 ${className}`} title="Seleccionar integrante"><input type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={bulk.has(String(entry.member!.id))} onChange={()=>bulk.toggle(String(entry.member!.id))}/></label>
+    ?<label className={`select-check flex h-11 w-8 shrink-0 items-center justify-center md:h-8 ${className}`} title="Seleccionar integrante"><InputControl type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={bulk.has(String(entry.member!.id))} onChange={()=>bulk.toggle(String(entry.member!.id))}/></label>
     :reserve&&canManageAccess?<span className={`block w-8 shrink-0 ${className}`} aria-hidden="true"/>:null;
 
   const row=(entry:Entry)=>{

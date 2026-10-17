@@ -1,4 +1,5 @@
 "use client";
+import {InputControl as Input} from './ui/input-control';
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
 import {formatRealMoney,isPositiveRealMoney} from './finance-money';
@@ -27,23 +28,7 @@ import {
   type MoneyCurrency,
 } from './forecast-data';
 import {useForecast,usePlannedExpenses,useRealExpenses} from './use-forecast';
-import {
-  Aviso,
-  BarraProgreso,
-  Button,
-  Card,
-  DataTable,
-  EmptyState,
-  ErrorState,
-  FilaDato,
-  FormField,
-  IconAction,
-  Input,
-  Label,
-  Nota,
-  SegmentedField,
-  cn,
-} from 'owncoding-ui';
+import {Aviso,BarraProgreso,Button,Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,IconAction,Label,Nota,SegmentedField,cn} from 'owncoding-ui';
 import {ConfirmDialog} from './dialog';
 import {useCompanyCurrency} from './currency-provider';
 import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';

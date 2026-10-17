@@ -1,9 +1,11 @@
 'use client';
+import {InputControl as Input} from './ui/input-control';
+import {AmountInput as MoneyInput} from './ui/amount';
 // Rediseño v2 (campaña #41 / spec #43 §1.4): ficha de reportes y términos
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
 import {OptionalMark} from './field-label';
-import {Button,EmptyState,FilaDato,FormField,Input,MoneyInput,Nota,Select,Aviso} from 'owncoding-ui';
+import {Button,EmptyState,FilaDato,FormField,Nota,Select,Aviso} from 'owncoding-ui';
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {soloDigitos} from 'owncoding-ui';
 import {listDateFull} from './list-format';
@@ -72,7 +74,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
       </Select>
      </FormField>
      <FormField label="Monto recurrente entero" htmlFor="client-reporting-amount">
-      <MoneyInput id="client-reporting-amount" currency={terms.currency} value={terms.recurringAmount} disabled={!termsEditable||saving} onValueChange={(value: unknown)=>setTerms(current=>({...current,recurringAmount:String(value)}))} className="w-44"/>
+      <MoneyInput id="client-reporting-amount" currency={terms.currency} value={terms.recurringAmount} disabled={!termsEditable||saving} onChange={(value: unknown)=>setTerms(current=>({...current,recurringAmount:String(value)}))} className="w-44"/>
      </FormField>
      <CurrencyField id="client-reporting-currency" label="Moneda" value={terms.currency} disabled={!termsEditable||saving} onChange={value=>setTerms(current=>({...current,currency:isCurrency(value)?value:'PYG'}))}/>
      <FormField label="Inicio comercial" htmlFor="client-reporting-starts">
@@ -100,7 +102,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
      {terms.commissionMode!=='none'?<FormField label={terms.commissionMode==='percentage'?'Comisión entera (%)':'Comisión entera'} htmlFor="client-reporting-commission-value">
       {terms.commissionMode==='percentage'
        ?<Input id="client-reporting-commission-value" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={3} placeholder="0-100" className="w-24" value={terms.commissionValue} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,commissionValue:soloDigitos(event.target.value)}))}/>
-       :<MoneyInput id="client-reporting-commission-value" currency={terms.currency} className="w-44" value={terms.commissionValue} disabled={!termsEditable||saving} onValueChange={(value: unknown)=>setTerms(current=>({...current,commissionValue:String(value)}))}/>}
+       :<MoneyInput id="client-reporting-commission-value" currency={terms.currency} className="w-44" value={terms.commissionValue} disabled={!termsEditable||saving} onChange={(value: unknown)=>setTerms(current=>({...current,commissionValue:String(value)}))}/>}
      </FormField>:null}
     </>:null}
    </div>

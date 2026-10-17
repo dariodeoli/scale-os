@@ -1,10 +1,11 @@
 "use client";
+import {InputControl as Input,InputControl} from '../ui/input-control';
 import {OptionalMark} from '../field-label';
 import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,Input,Label,Select} from 'owncoding-ui';
+import {Aviso,AvisoPrivacidad,Button,Label,Select} from 'owncoding-ui';
 import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
@@ -194,7 +195,7 @@ function LeadListRow({row,stageLabel,editable,selected,onSelect,edit,role,canMov
   const menu=useLeadMenu({row,role,canMove,actions,edit,refresh});
   const convert=won&&menu.convertible?()=>actions!.convert(row):undefined;
   return <ListRow template={editable?LEAD_LIST_EDIT_TEMPLATE:LEAD_LIST_VIEW_TEMPLATE} data-lead-row={String(row.id)}>
-    {editable?<span role="cell" className="flex justify-center"><label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar oportunidad"><input type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={selected} onChange={onSelect}/></label></span>:null}
+    {editable?<span role="cell" className="flex justify-center"><label className="select-check flex h-11 w-11 shrink-0 items-center justify-center md:h-8 md:w-8" title="Seleccionar oportunidad"><InputControl type="checkbox" aria-label={`Seleccionar ${facts.name}`} checked={selected} onChange={onSelect}/></label></span>:null}
     <span role="cell" className="flex min-w-0 items-center gap-2">
       {menu.mayEdit?<button type="button" className="min-h-11 min-w-0 truncate text-left text-[13.5px] font-semibold text-fore outline-none transition-colors hover:text-fono-light focus-visible:ring-2 focus-visible:ring-fono md:min-h-0" title={facts.name} aria-label={`Ver oportunidad: ${facts.name}`} onClick={edit}>{facts.name}</button>:<span className="min-w-0 truncate text-[13.5px] font-semibold text-fore" title={facts.name}>{facts.name}</span>}
       {facts.noContact?<StateChip tone="warn" title="El titular pidió no ser contactado: el equipo conserva el registro y no inicia contacto.">No contactar</StateChip>:null}
@@ -657,7 +658,7 @@ function StageManager({stages,reload}:{stages:Stage[];reload:()=>Promise<void>})
         return <li key={stage.id||stage.value} className="grid gap-2 rounded-xl border border-ink-600 bg-ink-800 p-3 sm:grid-cols-2" data-active={stage.active}>
           <div className="grid gap-1"><Label htmlFor={`stage-label-${stage.value}`}>Nombre</Label><Input id={`stage-label-${stage.value}`} value={current.label} disabled={busy} maxLength={60} aria-label={`Nombre de etapa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'label',event.target.value)}/></div>
           <div className="grid gap-1"><Label htmlFor={`stage-position-${stage.value}`}>Orden</Label><Input id={`stage-position-${stage.value}`} type="number" min={0} max={9999} value={current.position} disabled={busy} aria-label={`Orden de etapa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'position',event.target.value)}/></div>
-          <label className="flex items-center gap-2 text-xs font-semibold text-mute"><input type="checkbox" className="accent-fono" checked={current.active} disabled={busy} aria-label={`Etapa activa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'active',event.target.checked)}/>Activa</label>
+          <label className="flex items-center gap-2 text-xs font-semibold text-mute"><InputControl type="checkbox" className="accent-fono" checked={current.active} disabled={busy} aria-label={`Etapa activa ${stage.value}`} onChange={(event: React.ChangeEvent<HTMLInputElement>)=>update(stage.id,'active',event.target.checked)}/>Activa</label>
           <span className="text-xs text-mute">Tipo: {stageKindLabels[stage.kind]} · <code className="font-mono">{stage.value}</code></span>
           <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
             <Button type="button" variant="outline" disabled={busy||!dirty} onClick={()=>{if(Number.isNaN(order)){setError('Orden de etapa inválido.');return;}if(current.label.trim().length<2){setError('Ingresá el nombre de la etapa.');return;}void run(async()=>{await api(`/api/agency/pipeline-stages/${stage.id}`,{label:current.label.trim(),active:current.active,...(order===null?{}:{position:order})},'PATCH');return 'Etapa actualizada.';});}}>Guardar</Button>

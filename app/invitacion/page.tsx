@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from '../ui/input-control';
 import {useEffect,useState} from 'react';
 import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui';
 import {teamRoleLabels} from '../team-directory';
@@ -115,7 +116,7 @@ export default function InvitationPage(){
      <a className="primary login-button" referrerPolicy="no-referrer" onClick={continueWithGoogle} href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
      {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:
       <form className="grid gap-4" onSubmit={registerWithPassword}>
-       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
+       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<InputControl name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
        <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
        <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
        <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>

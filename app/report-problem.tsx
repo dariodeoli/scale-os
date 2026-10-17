@@ -1,4 +1,5 @@
 "use client";
+import {TextareaBase} from './ui/input';
 // «Reportar un problema» (panel global → Reportes). Se abre desde el pie del
 // menú lateral del workspace; exige sesión (el API devuelve 401 sin ella),
 // admite hasta 1000 caracteres y una categoría, y adjunta la ruta visible (sin
@@ -71,7 +72,7 @@ export function ReportProblemDialog({onClose, route, send = defaultSend}: {onClo
     <SelectCustom label="Categoría" choices={(Object.keys(REPORT_CATEGORY_LABELS) as ReportCategory[]).map((value) => ({value, label: REPORT_CATEGORY_LABELS[value]}))} value={category} disabled={busy} onChange={(value: string) => setCategory(value as ReportCategory)}/>
     <label className="grid gap-1.5 text-[11px] font-semibold text-mute" htmlFor={textId}>
       Qué pasó
-      <textarea id={textId} value={message} disabled={busy} maxLength={REPORT_MAX} rows={5} aria-describedby={helpId} placeholder="Ej.: al guardar el presupuesto aparece un error y no se guarda." onChange={(event) => setMessage(event.target.value)}/>
+      <TextareaBase id={textId} value={message} disabled={busy} maxLength={REPORT_MAX} rows={5} aria-describedby={helpId} placeholder="Ej.: al guardar el presupuesto aparece un error y no se guarda." onChange={(event) => setMessage(event.target.value)}/>
     </label>
     <p id={helpId} className="field-help">{message.length}/{REPORT_MAX} caracteres · no incluyas contraseñas ni datos de tarjetas.</p>
   </ConfirmDialog>;

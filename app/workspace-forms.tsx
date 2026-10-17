@@ -1,4 +1,6 @@
 "use client";
+import {InputControl} from './ui/input-control';
+import {TextareaBase} from './ui/input';
 import {useState} from 'react';
 import {BancoCombobox} from 'owncoding-ui';
 import {useForm} from 'react-hook-form';
@@ -67,7 +69,7 @@ export function ProjectForm({
     >
       <label>
         Nombre del proyecto
-        <input {...form.register("name")} autoFocus maxLength={120} aria-invalid={form.formState.errors.name?true:undefined} aria-describedby={form.formState.errors.name?"project-name-error":undefined}/>
+        <InputControl {...form.register("name")} autoFocus maxLength={120} aria-invalid={form.formState.errors.name?true:undefined} aria-describedby={form.formState.errors.name?"project-name-error":undefined}/>
         {form.formState.errors.name && (
           <small className="error" role="alert" id="project-name-error">{form.formState.errors.name.message}</small>
         )}
@@ -85,7 +87,7 @@ export function ProjectForm({
       </div>
       <label>
         Enlace de archivo o carpeta de Google Drive
-        <input
+        <InputControl
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
           aria-invalid={form.formState.errors.driveUrl?true:undefined}
@@ -198,7 +200,7 @@ export function OrderForm({
       {selectedProject ? <>
       <label>
         Orden de trabajo
-        <input {...form.register("title")} autoFocus maxLength={120} aria-invalid={form.formState.errors.title?true:undefined} aria-describedby={form.formState.errors.title?"order-title-error":undefined}/>
+        <InputControl {...form.register("title")} autoFocus maxLength={120} aria-invalid={form.formState.errors.title?true:undefined} aria-describedby={form.formState.errors.title?"order-title-error":undefined}/>
         {form.formState.errors.title && (
           <small className="error" role="alert" id="order-title-error">{form.formState.errors.title.message}</small>
         )}
@@ -227,12 +229,12 @@ export function OrderForm({
       </label>
       <label>
         Hora de entrega
-        <input type="time" {...form.register("due_time")} />
+        <InputControl type="time" {...form.register("due_time")} />
         <small>Opcional, junto con la fecha de entrega.</small>
       </label>
       <label>
         Enlace de archivo o carpeta de Drive
-        <input
+        <InputControl
           placeholder="https://drive.google.com/..."
           {...form.register("driveUrl")}
           aria-invalid={form.formState.errors.driveUrl?true:undefined}
@@ -246,7 +248,7 @@ export function OrderForm({
       </label>
       <label>
         Notas
-        <textarea {...form.register("description")} />
+        <TextareaBase {...form.register("description")} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
       <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button
@@ -317,7 +319,7 @@ export function AccountForm({
     >
       <label data-span="6">
         Nombre de la cuenta
-        <input
+        <InputControl
           {...form.register("name")}
           placeholder="Banco Regional — Operativa"
         />
@@ -355,11 +357,11 @@ export function AccountForm({
       </div>
       <label data-span="3">
         Número de cuenta o referencia
-        <input {...form.register("accountNumber")} placeholder="Opcional" />
+        <InputControl {...form.register("accountNumber")} placeholder="Opcional" />
       </label>
       <label data-span="3">
         Titular de la cuenta
-        <input
+        <InputControl
           {...form.register("holderName")}
           placeholder="Empresa, socio o familiar"
         />
@@ -478,7 +480,7 @@ export function InvoiceForm({
       </fieldset>
       <label>
         Vencimiento
-        <input type="date" {...form.register("dueOn")} />
+        <InputControl type="date" {...form.register("dueOn")} />
       </label>
       {error && <p className="error" role="alert">{error}</p>}
       {!canSubmit&&!submission.pending?<p className="field-help">Completá el cliente y un importe mayor a cero para crear la factura.</p>:null}
@@ -608,11 +610,11 @@ export function PaymentForm({
       {form.formState.errors.amount?<small className="error" role="alert">{form.formState.errors.amount.message}</small>:null}
       <label>
         Fecha
-        <input type="date" {...form.register("receivedOn")} />
+        <InputControl type="date" {...form.register("receivedOn")} />
       </label>
       <label>
         Referencia
-        <input
+        <InputControl
           {...form.register("reference")}
           placeholder="Transferencia / comprobante"
         />

@@ -1,4 +1,5 @@
 "use client";
+import {InputControl} from './ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
 import {SearchField} from './search-field';
 import {SelectCustom} from './profile-controls';
@@ -121,7 +122,7 @@ export function TrashWorkspace({refresh,role}:{refresh:()=>Promise<void>;role?:s
    {loading?<LoadingBlock label="Cargando papelera…" lines={3}/>:!records.length?<EmptyBlock compact title="No hay registros en la papelera" description="Lo que se mueva a la papelera queda acá hasta que lo restaures."/>:!shown.length?<EmptyBlock compact title="Ningún registro coincide" description="Probá con otra búsqueda o con todos los tipos." action={<button type="button" className="secondary" onClick={()=>{setQuery('');setKindFilter('');}}>Limpiar filtros</button>}/>:
     <ListGrid label="Papelera" template={TRASH_TEMPLATE} columns={TRASH_COLUMNS} minWidthClass="min-w-[40rem]" pinnedActions>
      {shown.map(record=><ListRow key={keyOf(record)} template={TRASH_TEMPLATE}>
-      <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><input type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={bulk.has(keyOf(record))} onChange={()=>bulk.toggle(keyOf(record))}/></label>
+      <label className="relative flex items-center after:absolute after:-inset-3.5 after:content-['']" title="Seleccionar registro"><InputControl type="checkbox" aria-label={`Seleccionar ${record.name}`} checked={bulk.has(keyOf(record))} onChange={()=>bulk.toggle(keyOf(record))}/></label>
       <span className="whitespace-nowrap"><StateChip tone="mute">{labels[record.kind]||record.kind}</StateChip></span>
       <div className="flex min-w-0 items-baseline gap-2 overflow-hidden">
        <b className="min-w-0 truncate text-[13.5px] font-semibold leading-[1.2] text-fore" title={record.name}>{record.name}</b>

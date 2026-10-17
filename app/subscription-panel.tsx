@@ -1,4 +1,5 @@
 'use client';
+import {InputControl} from './ui/input-control';
 // Panel de suscripción v2 (issue #46): Tailwind + tokens, sin hoja propia.
 // La lógica de retorno de Stripe, verificación autoritativa y estados se conserva.
 import {useEffect,useId,useRef,useState} from 'react';
@@ -204,7 +205,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
     <fieldset className="subscription-currency grid min-w-0 gap-2" aria-describedby={`${heading}-currency-help`}>
      <legend className="p-0 text-xs font-bold text-fore">Moneda mensual</legend>
      <div className="subscription-currency-segments grid grid-cols-[repeat(2,minmax(0,1fr))] gap-1 rounded-[10px] border border-ink-600 bg-ink-700 p-1">
-      {(Object.keys(monthlyLabels) as Array<keyof typeof monthlyLabels>).map(code=><label key={code} data-selected={code===currency||undefined} className={`flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg px-2.5 py-2 text-center text-[13px] font-bold leading-[1.3] ${code===currency?'bg-fono/15 text-fono-light':'text-mute'}`}><input type="radio" name={`${heading}-currency`} checked={code===currency} disabled readOnly/><span>{monthlyLabels[code]}</span></label>)}
+      {(Object.keys(monthlyLabels) as Array<keyof typeof monthlyLabels>).map(code=><label key={code} data-selected={code===currency||undefined} className={`flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-lg px-2.5 py-2 text-center text-[13px] font-bold leading-[1.3] ${code===currency?'bg-fono/15 text-fono-light':'text-mute'}`}><InputControl type="radio" name={`${heading}-currency`} checked={code===currency} disabled readOnly/><span>{monthlyLabels[code]}</span></label>)}
      </div>
      <small id={`${heading}-currency-help`} className="text-xs leading-[1.45] text-mute">La moneda elegida al registrar la empresa queda fija para esta suscripción.</small>
     </fieldset>
@@ -212,7 +213,7 @@ export function SubscriptionPanel({state,onRefresh,loading=false,error,embedded=
      {!state.checkoutReady?<p className={`subscription-setup ${STATE_BOX}`} role="status" data-billing-readiness={state.billingReadiness||'unknown'}>{readinessMessage(state.billingReadiness)}</p>:null}
      <div className="subscription-actions grid gap-3">
      {showCheckout?(state.checkoutReady?<div className="subscription-checkout grid gap-3">
-      <label className="subscription-consent flex min-h-11 min-w-0 items-start gap-3 py-1 text-[13px] leading-[1.5]"><input type="checkbox" className="!m-0 !h-5 !w-5 !min-h-5 appearance-auto !p-0 accent-fono" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
+      <label className="subscription-consent flex min-h-11 min-w-0 items-start gap-3 py-1 text-[13px] leading-[1.5]"><InputControl type="checkbox" className="!m-0 !h-5 !w-5 !min-h-5 appearance-auto !p-0 accent-fono" checked={accepted} disabled={busy||!state.checkoutReady} onChange={event=>setAccepted(event.target.checked)}/><span>Entiendo que la suscripción de mi agencia es recurrente, de {prices[currency]} por mes en la moneda de registro, con todos los integrantes y módulos incluidos, sin cobro por usuario. Revisaré y confirmaré las condiciones y el primer cobro en el checkout seguro.</span></label>
       <button type="button" className={PRIMARY} disabled={busy||!canCheckout||!accepted} onClick={()=>redirect('checkout')}>{pending==='checkout'?'Abriendo checkout…':'Activar suscripción mensual'}</button>
      </div>:<div className="subscription-manual grid gap-3 rounded-lg border border-ink-600 bg-ink-700 p-3">
       <p><strong className="text-fore">Activación con pago coordinado.</strong> El cobro en línea no está disponible en esta instalación, pero podés activar la suscripción igual:</p>
