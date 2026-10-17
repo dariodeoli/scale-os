@@ -1,5 +1,7 @@
 # Comparación candidata #252
 
+Smoke posterior con paquete publicado: [FINAL-193.md](FINAL-193.md).
+
 Next production local `21fe88ad`, BUILD_ID `UUJ_4A1rTruMxEJKJSMQv`, con imports `owncoding-ui/core` y secciones/formularios dinámicos. Paquete local candidato18 (`2724dee`, JS; dist types con ajuste de self-public del integrador); **tag18 todavía no publicado al medir**. No afirmar pin final publicado. El primer build reutilizado por caché fue rechazado por el integrador y nunca se midió como candidato. Rewrites loopback4115 verificados antes del navegador.
 
 Mismo runner, seis cargas frías de browser, servidor caliente, red1,6Mbps/150ms/CPU4×, mismas fixtures/API/PG, sin escrituras ni proveedores. No se ejecutaron otros recorridos browser durante las seis mediciones. El smoke de páginas empezó después. Una observación por caso; las variaciones de tiempos no equivalen a garantías de producción. No hay prueba contra el503 productivo.

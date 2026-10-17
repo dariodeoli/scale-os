@@ -1,5 +1,7 @@
 # #252 — comparación local de carga inicial
 
+Smoke posterior con paquete publicado: [FINAL-193.md](FINAL-193.md).
+
 Baseline: Next production compilado `50091b70`, BUILD_ID `URItRVJRNBHD2UWCqUN0M`, v1.0.192, servidor local3013. El árbol fuente del integrador contiene modificaciones posteriores, pero este baseline usa los assets ya compilados de `.next`, antes de aplicar lazy imports y separar `cn` en OwnCoding. Rewrites `/core-api`, `/p` y `/review` verificados a API local4115. PostgreSQL sintético55450; backend estable de la fixture con metadata1.0.191. No se consulta producción ni se prueba el incidente503.
 
 ## Método reproducible
