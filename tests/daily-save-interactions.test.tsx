@@ -54,10 +54,10 @@ function escape(){const e:KeyEvent={key:'Escape',target:{tagName:'BUTTON'},defau
 function tryDismiss(){act(()=>{
  escape();root().findByProps({'aria-label':'Cerrar'}).props.onClick();
  const target={};root().findByProps({className:'ops-overlay'}).props.onMouseDown({target,currentTarget:target,button:0});
- root().findAllByType('button').find(button=>button.props.children==='Cancelar')!.props.onClick();
+ root().findAllByType('button').find(button=>button.children.join('')==='Cancelar')!.props.onClick();
 });}
 async function discardChanges(){
- const button=root().findAllByType('button').find(button=>button.props.children==='Descartar cambios');
+ const button=root().findAllByType('button').find(button=>button.children.join('')==='Descartar cambios');
  assert(button,'explicit discard confirmation is shown');assert.equal(button.props.type,'submit');
  let form=button.parent;while(form&&form.type!=='form')form=form.parent;
  assert(form,'confirmation owns its form');await act(async()=>{await form!.props.onSubmit(event());});
@@ -124,7 +124,7 @@ test('FX transfer: validation and equal-currency failures unlock without writes,
  await act(async()=>{await submit();});assert.equal(writes.length,0);assert(JSON.stringify(renderer!.toJSON()).includes('los importes deben coincidir'));
  assert.equal(root().findByType('form').props['aria-busy'],false);assert.equal(done,0);
  tryDismiss();assert.equal(closed,0,'invalid dirty draft is protected');
- act(()=>root().findAllByType('button').find(button=>button.props.children==='Seguir editando')!.props.onClick());
+ act(()=>root().findAllByType('button').find(button=>button.children.join('')==='Seguir editando')!.props.onClick());
  assert.equal(closed,0);assert.equal(root().findAllByProps({'data-amount':true})[1].props.value,'11');
  tryDismiss();await discardChanges();
  assert.equal(closed,1);assert.equal(writes.length,0);

@@ -26,6 +26,7 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
  FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,
  useDialogClose:()=>()=>{},useDialogPending:(value:boolean)=>{dialogPending=value;},
 }} as NodeModule;
+const {Button:ScaleButton}=require('../app/ui/button');
 const {SaveActions}=require('../app/save-actions') as typeof import('../app/save-actions');
 const {useFormFocus,FormValidationErrors}=require('../app/ui/form-focus');
 const {PendingFields}=require('../app/ui/form-state');
@@ -53,7 +54,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
-  const scope={React,useFormFocus,FormValidationErrors,PendingFields,InputControl,TextareaBase,ApiFieldError,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
+  const scope={React,ScaleButton,useFormFocus,FormValidationErrors,PendingFields,InputControl,TextareaBase,ApiFieldError,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
    BancoCombobox:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    EntityPicker:({legend}:{legend:string})=>React.createElement('fieldset',{'aria-label':legend}),

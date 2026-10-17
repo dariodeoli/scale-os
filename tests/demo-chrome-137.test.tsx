@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -10,7 +11,7 @@ const read=(path:string)=>readFileSync(new URL(`../${path}`,import.meta.url),'ut
 test('el modo demo se abre desde un disparador móvil y los controles viven en el popup',()=>{
  const demo=read('app/demo-toolbar.tsx');
  assert.match(demo,/<div className="demo-tools relative hidden shrink-0 items-center gap-1\.5 text-\[11px\] md:flex"/,'los controles de escritorio siguen en línea');
- assert.match(demo,/<button className="demo-trigger inline-flex min-h-11[^"]*md:hidden"[^>]*aria-haspopup="dialog" aria-expanded=\{controls\} title="Controles de la demo" aria-label="Controles de la demo"/,'el disparador móvil es un botón de 44 px con semántica de diálogo');
+ const trigger=actionElements(demo).find(action=>String(action.attribute('className')).startsWith('demo-trigger '));assert(trigger);assert.match(String(trigger.attribute('className')),/min-h-11.*md:hidden/);assert.equal(trigger.attribute('type'),'button');assert.equal(trigger.attribute('aria-haspopup'),'dialog');assert.equal(trigger.attribute('aria-expanded'),'controls');assert.equal(trigger.attribute('aria-label'),'Controles de la demo');assert.equal(trigger.attribute('title'),'Controles de la demo');assert.equal(trigger.attribute('onClick'),'()=>setControls(true)');
  assert.match(demo,/<Dialog title="Tu demo" close=\{\(\)=>setControls\(false\)\}>/,'el popup móvil existe');
  const source=ts.createSourceFile('demo-toolbar.tsx',demo,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  const imported=source.statements.filter(ts.isImportDeclaration).find(node=>ts.isStringLiteral(node.moduleSpecifier)&&node.moduleSpecifier.text==='./ui/options-select');

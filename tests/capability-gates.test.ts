@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CAPABILITY_ROLES,roleCan,BATCH_LIMITS,limitSelection} from '../app/capabilities';
@@ -39,13 +40,14 @@ const gates:[string,string,RegExp][]=[
  ['app/record-assignees.tsx','assignees.manage',/const editable=roleCan\(role,'assignees\.manage'\)/],
  ['app/productivity-ui.tsx','portal-access.manage',/roleCan\(role,'portal-access\.manage'\)&&<ClientPortalAccess/],
  ['app/work-history.tsx','work-orders.manage',/const managers=roleCan\(role,'work-orders\.manage'\)/],
- ['app/employee-tasks.tsx','tasks.edit (effective API flag)',/context\.can_edit\?<button/],
+
  ['app/scale-workspace.tsx','projects.manage',/roleCan\(user\?\.role,'projects\.manage'\)/],
  ['app/scale-workspace.tsx','projects.edit',/const canManageProjects=roleCan\(user\?\.role,'projects\.edit'\)/],
  ['app/scale-workspace.tsx','budgets.manage',/roleCan\(user\?\.role,'budgets\.manage'\)/],
  ['app/scale-workspace.tsx','billing.view',/const canSeeBilling=roleCan\(user\?\.role,'billing\.view'\)/],
 ];
 for(const [file,capability,pattern] of gates)assert.match(read(file),pattern,`${file} gates on ${capability}`);
+const createTask=actionElements(read('app/employee-tasks.tsx')).find(action=>action.children==='Crear tarea');assert(createTask);assert(createTask.guardedBy('context.can_edit'),'task creation is inside the effective API edit capability');assert.equal(createTask.attribute('onClick'),"()=>setEdit('new')");
 const archive=read('app/archive-controls.tsx');
 for(const [capability,kind] of [['work-orders.manage','work-orders'],['inventory.manage','inventory'],['projects.edit','projects'],['clients.manage','clients'],['commercial.manage','leads']] as const){
  const quoted=kind.includes('-')?`'${kind}'`:kind;

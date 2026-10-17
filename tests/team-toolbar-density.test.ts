@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
@@ -57,9 +58,9 @@ test('la fila y la tarjeta ofrecen Perfil · Acceso · Eliminar en el menú ⋯ 
 test('los vacíos de plataforma ofrecen el CTA contextual que corresponda',()=>{
  assert.match(team,/<Plus size=\{16\} aria-hidden="true"\/>Agregar primera persona/);
  assert.match(team,/title=\{hasFilters\?'Sin coincidencias':'Todavía no hay personas'\}/);
- assert.match(read('app/invite-links.tsx'),/action=\{<button type="button" className="secondary" onClick=\{focusCreate\}>Generar enlace<\/button>\}/);
+ const inviteAction=actionElements(read('app/invite-links.tsx')).find(action=>action.children==='Generar enlace');assert(inviteAction);assert.equal(inviteAction.kind,'Button');assert.equal(inviteAction.attribute('type'),'button');assert.equal(inviteAction.attribute('variant'),'secondary');assert.equal(inviteAction.attribute('onClick'),'focusCreate');assert.equal(inviteAction.attributeOwner(),'action');
  assert.match(read('app/invite-links.tsx'),/ref=\{createCard\}/);
- assert.match(read('app/permissions-matrix.tsx'),/description="El API no devolvió la matriz de capacidades\." action=\{<button type="button" className="secondary" onClick=\{\(\)=>void load\(\)\}>Reintentar<\/button>\}/);
+ const retry=actionElements(read('app/permissions-matrix.tsx')).find(action=>action.children==='Reintentar');assert(retry);assert.equal(retry.attribute('type'),'button');assert.equal(retry.attribute('variant'),'secondary');assert.equal(retry.attribute('onClick'),'()=>void load()');assert.equal(retry.attributeOwner(),'action');assert.match(read('app/permissions-matrix.tsx'),/description="El API no devolvió la matriz de capacidades\."/);
  assert.match(read('app/superadmin/catalog.tsx'),/Crear el primer cupón/);
  assert.match(read('app/superadmin/catalog.tsx'),/ref=\{codeRef\}/);
 });

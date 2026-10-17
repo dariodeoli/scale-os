@@ -1,3 +1,4 @@
+import {actionElements} from './helpers/action-source';
 import React from "react";
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -165,7 +166,7 @@ test("client toolbar exposes accessible search, count, view controls, and role-g
 
 test("client toolbar protects touch targets and small-screen layout with the v2 objects", () => {
   const source = readFileSync("app/client-directory-toolbar.tsx", "utf8");
-  assert.match(source, /from ['"]owncoding-ui['"]/, "el toolbar usa los objetos compartidos");
+  const create=actionElements(source).find(action=>action.children.includes('Nuevo cliente'));assert(create,'creation uses the canonical local action import');assert.equal(create.attribute('variant'),undefined,'the existing Button uses the canonical primary default');assert.equal(create.attribute('className'),'client-directory-create max-md:w-full');assert(create.guardedBy('canCreate'));assert.equal(create.attribute('type'),'button');assert.equal(create.attribute('onClick'),'onCreate');
   assert.match(source, /SearchField/, "la búsqueda es el campo compartido");
   assert.match(source, /ViewSwitch/, "el selector de vista es el wrapper v2 del objeto compartido, sin variantes");
   assert.match(source, /flex-wrap/, "los controles bajan de fila a 360 px");

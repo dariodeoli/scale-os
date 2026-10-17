@@ -1,3 +1,4 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -48,7 +49,7 @@ test('Invitaciones: aceptar sin consentimiento no muta; pendiente bloquea consen
    writes.push(JSON.parse(String(init.body)));return new Promise<Response>(resolve=>{release=resolve;});
   }) as typeof fetch;
   const Page=components[mode];await act(async()=>{r=create(<Page/>);});
-  if(mode==='teamInvite')await act(async()=>{r!.root.findAllByType('button').find(button=>button.props.children==='Crear cuenta con correo')!.props.onClick();});
+  if(mode==='teamInvite')await act(async()=>{r!.root.findAllByType('button').find(button=>renderedText(button)==='Crear cuenta con correo')!.props.onClick();});
   await act(async()=>{r!.root.findAllByType('input').find(input=>input.props.autoComplete==='name')!.props.onChange({target:{value:'Persona QA'}});});
   if(mode==='teamInvite')await act(async()=>r!.root.findByType(EmailField).props.onChange('qa@example.invalid'));
   for(const password of r!.root.findAllByType(PasswordField))await act(async()=>password.props.onChange('ClaveLocal2026!'));

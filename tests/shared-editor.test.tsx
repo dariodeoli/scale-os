@@ -1,3 +1,4 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -50,7 +51,7 @@ async function main(){
  // Detail drawers can save inline without forcing the parent to disappear.
  await act(async()=>{r=create(<Editor fields={[{key:'name',label:'Nombre'}]} defaults={{name:'Detalle'}} save={async()=>{}}/>);});
  await act(async()=>{await submit(r!);});
- assert.equal(closes,1);const cancel=buttons(r!).find(b=>b.props.children==='Cancelar');assert(cancel);assert.equal(cancel.props.type,'button');
+ assert.equal(closes,1);const cancel=buttons(r!).find(b=>renderedText(b)==='Cancelar');assert(cancel);assert.equal(cancel.props.type,'button');
  await act(async()=>{cancel.props.onClick();});assert.equal(closes,2);
  await act(async()=>{r!.unmount();});
  // Comment-style inline forms clear only after a successful publication.

@@ -1,3 +1,4 @@
+import {renderedText} from './helpers/rendered-text';
 import React from 'react';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -63,7 +64,7 @@ test('report CSV download uses loaded data only, respects roles and filters, and
  globalThis.setTimeout=((fn:()=>void,ms?:number)=>{if(ms===1000){cleanup.push(fn);return 0;}return originalTimeout(fn,ms);}) as typeof setTimeout;
  Object.defineProperty(globalThis,'document',{configurable:true,value:{body:{appendChild(){}},createElement(tag:string){assert.equal(tag,'a');return {href:'',download:'',click(){filenames.push(this.download);},remove(){removed++;}};}}});
  // El botón CSV de la cabecera siempre está presente (acción primaria de ListPage) y queda deshabilitado sin datos cargados.
- const button=()=>renderer!.root.findAllByType('button').find(b=>String(b.props.children).startsWith('CSV'));
+ const button=()=>renderer!.root.findAllByType('button').find(b=>renderedText(b).startsWith('CSV'));
  const live=()=>{const found=button();return found&&!found.props.disabled?found:undefined;};
   const respond=async()=>{const req=requests.filter(r=>r.url?.includes('/reports?')).at(-1)!,month=new URL(req.url,'https://fixture.invalid').searchParams.get('month')!;await act(async()=>req.resolve(new Response(JSON.stringify(data(month)))));};
  try{
