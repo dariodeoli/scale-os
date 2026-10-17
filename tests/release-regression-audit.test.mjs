@@ -55,7 +55,7 @@ assert(!file('../app/operations.css').includes('.ops-overlay {\n  display: grid'
 assert(dialogCss.includes('@media(max-width:540px){.ops-overlay{align-items:end;padding:0}'),'the mobile dialog stays anchored to the bottom');
 assert(file('../app/phone-field.tsx').includes('phone-input grid grid-cols-[minmax(94px,.42fr)_minmax(0,1fr)] gap-2'),'the phone field lays out inside portaled dialogs too');
 assert(file('../app/subscription-panel.tsx').includes("state.status==='trialing'?'bg-fono/15 text-fono-light'"),'el aviso de prueba conserva su tono propio en vez del de peligro');
-assert(file('../app/access-layout.tsx').includes('max-w-[30rem]')&&file('../app/registro/page.tsx').includes('grid gap-3'),'las superficies de acceso comparten el marco v2 y su ritmo vertical');
+assert(workspace.includes('<AccessLayout')&&file('../app/registro/page.tsx').includes('<AccessLayout')&&file('../app/globals.css').includes('.access-page .auth-form-slot{width:100%;max-width:34rem')&&file('../app/registro/page.tsx').includes('registration-step grid gap-3'),'login y registro comparten el marco compacto de 34rem y su ritmo vertical');
 assert(/className="min-w-0 flex-\[1_1_\d+rem\] !mb-0"/.test(file('../app/superadmin/page.tsx')),'the global admin PageHeader resets the leaking global header margin');
 assert(file('../app/superadmin/audit.tsx').includes('title={meta ? `${target} · ${meta}` : target}')&&file('../app/superadmin/audit.tsx').includes('JSON.stringify(entry.metadata)'),'audit metadata keeps the full value reachable (la fila de una línea lo expone completo en el title)');
 assert(file('../app/superadmin/subscription-dialog.tsx').includes('className="grid gap-3"'),'los formularios de suscripción mantienen una sola columna (las notas ocupan el ancho completo)');
