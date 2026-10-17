@@ -370,7 +370,7 @@ assert.equal((await call(realExpensesPath,'POST',{},financeUser)).status,400,'an
 assert.equal((await call(realExpensesPath,'GET',{},financeUser)).expenses.length,0,'the month starts without real expenses');
 const realExpensePayload={accountId:String(expenseAccount),amount:'1500',currency:'PYG',category:'Herramientas',kind:'fixed',paidOn:'2026-09-12',reference:'Licencia de edición'};
 for(const amount of [0,-1,'20.5',1.5,true,Number.MAX_SAFE_INTEGER+1])assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,amount},financeUser)).status,400,`real expenses reject amount ${String(amount)}`);
-for(const category of ['','Operaciones',true,null])assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,category},financeUser)).status,400,`real expenses reject category ${String(category)}`);
+for(const category of ['','   ','\t\r\n',true,null,{},[],'x'.repeat(81)])assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,category},financeUser)).status,400,`real expenses reject category ${String(category)}`);
 for(const kind of ['once','',true])assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,kind},financeUser)).status,400,`real expenses reject kind ${String(kind)}`);
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,accountId:String(otherExpenseAccount)},financeUser)).status,400,'cross-tenant accounts are rejected');
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,accountId:String(usdExpenseAccount)},financeUser)).status,400,'the currency must match the account');
@@ -515,5 +515,14 @@ assert.equal(reversedApril.status,200);
 assert.deepEqual(reversedApril.collected_actual.records,[{currency:'USD',amount:-400}]);
 const reversedUsd=reversedApril.projection.records.find(row=>row.currency==='USD');
 assert.equal(reversedUsd.collected,-400);assert.equal(reversedUsd.projected_cash,260,'cash balance 250 plus scheduled prior debt 10; refund is not debited twice');
+// Run the custom-category proof after the legacy fixture's global ledger-count
+// checks, using another tenant/account so no primary balance or total changes.
+const primaryBalanceBeforeCustom=(await query('select balance from bank_accounts where id=$1',[expenseAccount])).rows[0].balance;
+const categoryOrg=(await query("insert into organizations(slug,name) values('forecast-custom-category','Custom categories') returning id")).rows[0].id;
+const categoryAccount=(await query("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Categorías','cash','PYG',100) returning id",[categoryOrg])).rows[0].id;
+const customizedCategory=await call(realExpensesPath,'POST',{...realExpensePayload,category:'Operaciones',amount:'20',accountId:String(categoryAccount)},{...financeUser,organization_id:categoryOrg});
+assert.equal(customizedCategory.status,201);assert.equal(customizedCategory.expense.category,'Operaciones');
+assert.equal((await query('select balance from bank_accounts where id=$1',[categoryAccount])).rows[0].balance,'80.00','a custom-category expense still debits its own account');
+assert.equal((await query('select balance from bank_accounts where id=$1',[expenseAccount])).rows[0].balance,primaryBalanceBeforeCustom,'the custom-category proof never changes the primary fixture');
 await pg.close();
 console.log('PASS: forecast dates, timezone, fixed-salary authorization, signed salary overrides and per-person members, commercial-term role and integer validation, auditable planned-expense recurrence, revenue/payment segregation, leap/year boundaries, exact totals, zero, no pipeline, invoice/budget dedup, cancelled/draft/archive exclusion, role and tenant isolation; multi-month cash projection and estimated result per currency, contracted versus invoiced per client, six default currencies, partial settings, new versus existing records, real expenses with debits, cash movements, idempotent reversals and tenant isolation, prior-month advances and unrelated receipts, explicit scheduling of prior receivables without new revenue, undated/excluded balances and exact source amounts, no external writes');
