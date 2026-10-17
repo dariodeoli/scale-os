@@ -94,6 +94,11 @@ a {
 :is(.shell,.control-shell)>.desktop-sidebar {
   background: linear-gradient(180deg, rgb(46 0 56) 0%, rgb(37 0 47) 100%);
   border-right: 1px solid rgb(255 255 255 / .12);
+  /* Los estados heredan la superficie del riel, incluso en el perfil del pie. */
+  --ui-hover-bg: rgb(255 255 255 / .1);
+  --ui-hover-text: #fff;
+  --ui-selected-bg: rgb(255 255 255 / .14);
+  --ui-selected-text: #fff;
 }
 html[data-theme="dark"] :is(.shell,.control-shell)>.desktop-sidebar {
   background: linear-gradient(180deg, #0a0a0e 0%, #101016 100%);
