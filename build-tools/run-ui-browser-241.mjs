@@ -18,6 +18,8 @@ const cases=[
  ['node','tests/ui-numeric-browser-241.test.mjs'],
  ['node','tests/temporal-filter-browser.test.mjs'],
  ['node','tests/quote-composer-browser-241.test.mjs'],
+ ['node','tests/report-problem-lifecycle-browser-241.test.mjs'],
+ ['tsx','tests/dsn-147-estados.test.tsx'],
  ['tsx','tests/superadmin-form-browser.test.tsx'],
  ['node','build-tools/qa-ui-tokens.mjs'],
  ['node','build-tools/qa-ui-action-styles.mjs'],
