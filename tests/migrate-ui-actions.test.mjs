@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import ts from 'typescript';
+import vm from 'node:vm';
+import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {analyzeActions,runMigration} from '../build-tools/migrate-ui-actions.mjs';
@@ -91,4 +94,58 @@ test('namespace actions are reported rather than silently rewritten; canonical s
 test('CLI refuses contradictory audit/write modes before opening source files',()=>{
  const result=spawnSync(process.execPath,[fileURLToPath(new URL('../build-tools/migrate-ui-actions.mjs',import.meta.url)),'--write','--dry-run','app/missing.tsx'],{encoding:'utf8'});
  assert.equal(result.status,1);assert.match(result.stderr,/cannot be combined/);
+});
+
+const hash=value=>createHash('sha256').update(value).digest('hex');
+function reviewed(source,decision){
+ const site=analyze(source).sites[0];const sf=ts.createSourceFile('fixture.tsx',source,99,true,4);let full;
+ function find(n){if(n.getStart(sf)===site.offset&&(ts.isJsxOpeningElement(n)||ts.isJsxSelfClosingElement(n)))full=ts.isJsxOpeningElement(n)?n.parent:n;ts.forEachChild(n,find);}find(sf);
+ return {sourceHash:hash(source),sites:[{line:site.line,column:site.column,siteHash:hash(full.getText(sf)),rationale:'Fixture explicitly reviewed',...decision}]};
+}
+test('review is bound to exact file and site hashes, never silently skipped',()=>{
+ const source='<button className={classes}>Guardar</button>';const review=reviewed(source,{action:'action',variant:'secondary'});
+ assert.equal(analyze(source,{review}).sites[0].reviewed,true);
+ assert.throws(()=>analyze(source+' ',{review}),/Stale review file/);
+ const broken=structuredClone(review);broken.sites[0].siteHash='wrong';assert.throws(()=>analyze(source,{review:broken}),/Stale review site/);
+ const missing=structuredClone(review);missing.sites[0].line++;assert.throws(()=>analyze(source,{review:missing}),/disappeared/);
+});
+
+test('reviewed class expressions and callbacks execute once with unchanged props',()=>{
+ const source='const F=()=> <button className={nextClass()} onClick={callback} ref={reference} form="save">Guardar</button>;globalThis.output=F();';
+ const r=analyze(source,{review:reviewed(source,{action:'action',variant:'ghost',color:'danger'})});
+ let evaluations=0,calls=0;const callback=()=>calls++,reference={current:null};
+ const context={React:{createElement:(type,props,...children)=>({type,props,children})},exports:{},require:()=>({Button:'button'}),nextClass:()=>{evaluations++;return 'text-button danger';},callback,reference};
+ vm.runInNewContext(ts.transpileModule(r.source,{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS}}).outputText,context);
+ assert.equal(evaluations,1);assert.equal(calls,0);assert.equal(context.output.props.onClick,callback);assert.equal(context.output.props.ref,reference);assert.equal(context.output.props.form,'save');assert.equal(context.output.props.type,undefined);
+});
+
+test('reviewed dynamic variants allow only pure data and controlled outputs',()=>{
+ const source='<button className={classes}>Guardar</button>';
+ const good={action:'action',variant:'secondary',variantExpression:"active?'primary':'secondary'"};assert.match(analyze(source,{review:reviewed(source,good)}).source,/variant=\{active/);
+ for(const expression of ["run()?'primary':'secondary'","active?'primary':'invented'","(active=true)?'primary':'secondary'"]){assert.throws(()=>analyze(source,{review:reviewed(source,{...good,variantExpression:expression})}));}
+});
+
+test('reviewed IconAction aliases move to the local adapter without changing props',()=>{
+ const source='import {Other, IconAction as Action} from "owncoding-ui";<Action icon={quick.icon} label={quick.label} tone={quick.tone} onClick={quick.onClick}/>';
+ const r=analyze(source,{review:reviewed(source,{action:'facade'})});assert.match(r.source,/IconAction as Action.*ui\/icon-action/);assert.match(r.source,/onClick=\{quick.onClick\}/);assert.match(r.source,/icon=\{quick.icon\}/);
+});
+
+test('write refuses an unreviewed site before any eligible source changes',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'scale-ui-unreviewed-'));fs.mkdirSync(path.join(root,'app'));
+ const source='<><button className="primary">Guardar</button><button {...props}>Elegir</button></>';fs.writeFileSync(path.join(root,'app/page.tsx'),source);
+ try{assert.throws(()=>runMigration({root,write:true,files:['app/page.tsx']}),/UNREVIEWED/);assert.equal(fs.readFileSync(path.join(root,'app/page.tsx'),'utf8'),source);}finally{fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test('repository review manifest covers all169 pending sites once with explicit reasons and hashes',()=>{
+ const manifest=JSON.parse(fs.readFileSync(new URL('../docs/audits/241-ui-actions-reviewed.json',import.meta.url),'utf8'));
+ assert.equal(manifest.schema,1);assert.equal(manifest.files.length,68);const sites=manifest.files.flatMap(f=>f.sites.map(s=>({...s,file:f.file})));assert.equal(sites.length,169);
+ assert.equal(new Set(sites.map(s=>`${s.file}:${s.line}:${s.column}`)).size,169);
+ assert.equal(sites.filter(s=>s.action==='action').length,87);assert.equal(sites.filter(s=>s.action==='facade').length,23);assert.equal(sites.filter(s=>s.action==='retain').length,59);
+ for(const file of manifest.files){assert.match(file.sourceHash,/^[a-f0-9]{64}$/);for(const s of file.sites){assert.match(s.siteHash,/^[a-f0-9]{64}$/);assert(s.rationale.length>20);if(s.action==='retain')assert(s.canonical);}}
+});
+
+test('a reviewed action that cannot transform is still pending and blocks write',()=>{
+ const source='<button {...props}>Elegir</button>';const review=reviewed(source,{action:'action',variant:'secondary'});
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'scale-ui-review-block-'));fs.mkdirSync(path.join(root,'app'));fs.writeFileSync(path.join(root,'app/page.tsx'),source);
+ try{assert.throws(()=>runMigration({root,write:true,files:['app/page.tsx'],manifest:{schema:1,files:[{file:'app/page.tsx',...review}]}}),/UNREVIEWED/);assert.equal(fs.readFileSync(path.join(root,'app/page.tsx'),'utf8'),source);}finally{fs.rmSync(root,{recursive:true,force:true});}
 });
