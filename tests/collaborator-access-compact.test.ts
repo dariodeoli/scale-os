@@ -52,7 +52,7 @@ test('team list view is a thin ListGrid with one shared template and contact dat
 
 test('team directory keeps normal roles on photo, name and cargo only',()=>{
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert(visibleModule('Equipo',role),`Equipo stays reachable for ${role}`);
- assert.match(operations,/if\(!canOpenPeopleWorkspace\(role\)\)return <TeamDirectoryView/);
+ assert.match(operations,/if\(!canOpenPeopleWorkspace\(role,capabilities\)\)return <TeamDirectoryView/);
  assert.match(operations,/secondary=\{teamRoleLabels\[person\.role\]\|\|person\.cargo\|\|'Sin cargo'\}/);
  assert.match(operations,/Foto, nombre y cargo\. Los datos personales de cada integrante se administran desde su propio perfil/);
 });
@@ -65,8 +65,8 @@ test('budgets reach production while the pipeline does not',()=>{
 });
 
 test('management reaches the team without individual salary amounts',()=>{
- assert.match(team,/const allowed=canOpenPeopleWorkspace\(role\);/);
- assert.match(team,/const salaryView=roleCan\(role,'salary\.view'\);/);
+ assert.match(team,/const allowed=canOpenPeopleWorkspace\(role,capabilities\);/);
+ assert.match(team,/const salaryView=effectiveCapability\(role,'salary\.view',capabilities\);/);
  // La pestaña Remuneración no se arma sin `salary.view` (ni su contenido ni sus datos).
  assert.match(sheet,/if\(salaryView&&person\)tabs\.push\(\{id:'remuneracion'/);
  assert.match(sheet,/tab\.id!=='remuneracion'\|\|\(mode==='team'&&salaryView\)/,'el filtro de la carcasa repite la regla');
@@ -77,7 +77,7 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.doesNotMatch(team,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
  assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);
- assert.match(access,/const manage=roleCan\(role,'members\.manage'\)/);
+ assert.match(access,/const manage=effectiveCapability\(role,'members\.manage',capabilities\)/);
 });
 
 test('viewer never reaches a mutating control in the visible sections',()=>{
