@@ -1,4 +1,8 @@
 "use client";
+import {PendingFields} from './ui/form-state';
+import {useFormFocus} from './ui/form-focus';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
+import {SaveActions} from './save-actions';
 import {InputControl} from './ui/input-control';
 import {useEffect,useRef,useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -74,7 +78,7 @@ export async function preparePhoto(file:File):Promise<string>{
   }finally{bitmap.close();}
 }
 
-export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=false,logo}:{photo:string|null;name:string;save:(value:string)=>Promise<void>;label?:string;compact?:boolean;logo?:boolean}){
+export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=false,logo,disabled=false,onPendingChange}:{photo:string|null;name:string;save:(value:string)=>Promise<void>;label?:string;compact?:boolean;logo?:boolean;disabled?:boolean;onPendingChange?:(pending:boolean)=>void}){
   const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{photo:photo||''}});
   const [processing,setProcessing]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');
   const [cropSource,setCropSource]=useState<string|null>(null);
@@ -91,10 +95,22 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   // State disables controls after rendering; the ref also rejects events arriving
   // in the same frame, before that render, across upload/link/crop save paths.
-  const startSave=()=>{if(!mounted.current||saving.current)return false;saving.current=true;setProcessing(true);return true;};
-  const finishSave=()=>{saving.current=false;if(mounted.current)setProcessing(false);};
+  const startSave=()=>{if(disabled||!mounted.current||saving.current)return false;saving.current=true;setProcessing(true);onPendingChange?.(true);return true;};
+  const finishSave=()=>{saving.current=false;onPendingChange?.(false);if(mounted.current)setProcessing(false);};
   const preview=form.watch('photo');
-  const busy=processing||form.formState.isSubmitting;
+  const submission=useSingleFlightSubmit(async event=>{
+    if(!startSave())return;
+    setError('');setNotice('');
+    try{await form.handleSubmit(async values=>{
+      if(values.photo.startsWith('https:'))await validateImageLink(values.photo);
+      if(!mounted.current)return;
+      await save(values.photo);
+      if(!mounted.current)return;
+      form.reset(values);setFailedPhoto('');setFotoVersion(v=>v+1);setNotice(`${Noun} guardad${isLogo?'o':'a'}.`);
+    },focus.onInvalid)(event);}catch(e){if(mounted.current)setError(e instanceof Error?e.message:`No se pudo guardar ${theNoun}.`);}finally{finishSave();}
+  });
+  const busy=disabled||processing||submission.pending;
+  const focus=useFormFocus(busy);
   const openCrop=()=>{
     const source=originalSource||preview;
     if(source?.startsWith('data:image/'))setCropSource(source);
@@ -102,10 +118,8 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
   };
   return <section className={`ops-profile-section profile-photo-section${compact?' is-compact':''}${isLogo?' is-logo':''}`} aria-label={label}>
     {!compact&&<div className="profile-photo-section-heading"><strong>{label}</strong><small>Seleccioná {theNoun} para reemplazarl{isLogo?'o':'a'}; después podés ajustar el encuadre.</small></div>}
-    <form className="form-stack profile-photo-form" noValidate onSubmit={form.handleSubmit(async values=>{
-      if(!startSave())return;
-      setError('');setNotice('');try{if(values.photo.startsWith('https:'))await validateImageLink(values.photo);if(!mounted.current)return;await save(values.photo);if(!mounted.current)return;form.reset(values);setFailedPhoto('');setFotoVersion(v=>v+1);setNotice(`${Noun} guardad${isLogo?'o':'a'}.`);}catch(e){if(mounted.current)setError(e instanceof Error?e.message:`No se pudo guardar ${theNoun}.`);}finally{finishSave();}
-    })}>
+    <form className="form-stack profile-photo-form" noValidate ref={focus.formRef} aria-busy={busy} onSubmit={submission.onSubmit}>
+      <PendingFields pending={busy}>
       <div className="profile-photo-summary">
       <FotoPerfil key={fotoVersion} nombre={name} foto={preview&&preview!==failedPhoto?preview:''} tamano={compact?'xl':'3xl'} variante={isLogo?'logo':'persona'} onClick={()=>fileInput.current?.click()} disabled={busy} etiqueta={preview&&preview!==failedPhoto?`Cambiar ${noun} de ${name}`:`Elegir ${noun} de ${name}`} badge={<Crop size={12}/>}/>
       <div className="profile-photo-controls">
@@ -116,13 +130,14 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
       {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</>}
       </div></div>
       {compact&&<details className="profile-photo-progressive"><summary>Más opciones de {noun}</summary><div><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</div></details>}
-      {useLink&&<label>Enlace directo a la imagen<InputControl type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
+      {useLink&&<label>Enlace directo a la imagen<InputControl name="photo" aria-invalid={!!form.formState.errors.photo} type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{if(busy)return;form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
       {preview&&preview===failedPhoto&&<p role="alert" className="error">Esta imagen no se puede mostrar acá. El enlace puede haber vencido o el sitio bloquea mostrarla fuera de su propia página. Subí el archivo o probá otro enlace público.</p>}
       {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
       <p className="form-note">{PHOTO_FORMATS} · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
       {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
-      <div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':`Guardar ${noun}`}</button>}<button type="button" className="text-button danger" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice(isLogo?'Guardá para quitar el logo.':'Guardá para quitar la foto del perfil.');}}><Trash2 size={14}/>Quitar {noun}</button></div>
+      <SaveActions pending={busy} dirty={form.formState.isDirty} cancelLabel={false}><div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':`Guardar ${noun}`}</button>}<button type="button" className="text-button danger" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice(isLogo?'Guardá para quitar el logo.':'Guardá para quitar la foto del perfil.');}}><Trash2 size={14}/>Quitar {noun}</button></div></SaveActions>
+      </PendingFields>
     </form>
     {cropSource&&<PhotoCropper source={cropSource} name={name} close={()=>setCropSource(null)} save={async value=>{if(!startSave())throw Error(isLogo?'Hay otro logo guardándose. Esperá a que termine.':'Hay otra foto guardándose. Esperá a que termine.');try{await save(value);if(!mounted.current)return;form.reset({photo:value});setFailedPhoto('');setNotice(`${Noun} y encuadre guardados.`);}finally{finishSave();}}}/>}
   </section>;

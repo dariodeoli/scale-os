@@ -2,13 +2,16 @@
 import {InputControl as Input,InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {ActorIdentity} from './actor-identity';
+import {PendingFields} from './ui/form-state';
+import {useFormFocus,FormValidationErrors} from './ui/form-focus';
+import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {SaveActions} from './save-actions';
 import {completeSave} from './save-completion';
-import {useRef,useState,type ChangeEvent,type FormEvent} from 'react';
+import {useState,type ChangeEvent} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
-import {api,Dialog,Editor} from './operations';
+import {api,Dialog,Editor,ApiFieldError} from './operations';
 import {ConfirmDialog} from './dialog';
 import {EmailField} from './email-field';
 import {SelectCustom,AmountInput} from './profile-controls';
@@ -29,36 +32,40 @@ export function FXTransferForm({accounts,done}:{accounts:Account[];done:()=>void
  const schema=z.object({fromAccountId:z.string().min(1),toAccountId:z.string().min(1),amount:z.string().refine(v=>Number(v)>0),receivedAmount:z.string().refine(v=>Number(v)>0),transferredOn:z.string().min(1),reference:z.string().max(120)});
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{fromAccountId:'',toAccountId:'',amount:'',receivedAmount:'',transferredOn:todayAsuncion(),reference:''}});
  const [requestId]=useState(()=>crypto.randomUUID()),[error,setError]=useState('');const v=form.watch(),from=accounts.find(a=>a.id===v.fromAccountId),to=accounts.find(a=>a.id===v.toAccountId);const transfer=transferPreview({fromCurrency:from?.currency,toCurrency:to?.currency,amount:v.amount,receivedAmount:v.receivedAmount});
- const saving=useRef(false),[savingNow,setSavingNow]=useState(false);
- const pending=form.formState.isSubmitting||savingNow;
- async function submit(event:FormEvent<HTMLFormElement>){
-  event.preventDefault();
-  // Lock before asynchronous validation: a second submit cannot clear RHF's
-  // isSubmitting state or start another write while the first is unresolved.
-  if(saving.current)return;
-  saving.current=true;setSavingNow(true);setError('');
+ const submission=useSingleFlightSubmit(async event=>{
+  setError('');
   try{
    await form.handleSubmit(async values=>{
     if(transfer.mismatch)throw new Error('En la misma moneda, los importes deben coincidir');
     await api('/api/agency/transfers',{...values,requestId});
-    await done();
-   })(event);
-  }catch(e){setError(errorText(e));}
-  finally{saving.current=false;setSavingNow(false);}
- }
- return <form className="grid gap-3 sm:grid-cols-2" noValidate aria-busy={pending} onSubmit={submit}>
+    await completeSave(()=>{},done);
+   },focus.onInvalid)(event);
+  }catch(e){
+   if(e instanceof ApiFieldError){
+    const accepted:Record<string,{message:string}>={};
+    for(const [key,message] of Object.entries(e.fieldErrors))if(key in form.getValues()){
+     form.setError(key as keyof typeof v,{type:'server',message});accepted[key]={message};
+    }
+    focus.onInvalid(accepted);
+   }
+   setError(errorText(e));
+  }
+ });
+ const pending=submission.pending;
+ const focus=useFormFocus(pending);
+ return <form className="grid gap-3 sm:grid-cols-2" noValidate aria-busy={pending} onSubmit={submission.onSubmit} ref={focus.formRef}><PendingFields pending={pending}>
   <Nota tono="neutro" className="sm:col-span-2">Esto registra el movimiento; no ordena una transferencia al banco. Indicá los importes reales de salida y entrada.</Nota>
-  <SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value)}/>
-  <SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value)}/>
-  <FormField label={`Sale (${from?.currency||'moneda de origen'})`} htmlFor="transfer-amount"><AmountInput id="transfer-amount" disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value)}/></FormField>
-  <FormField label={`Llega (${to?.currency||'moneda de destino'})`} htmlFor="transfer-received"><AmountInput id="transfer-received" disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value)}/></FormField>
+  <div data-form-field="fromAccountId" className="contents"><SelectCustom label="Cuenta de origen" disabled={pending} value={v.fromAccountId} choices={accounts.filter(a=>a.active).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('fromAccountId',value,{shouldDirty:true,shouldValidate:true})}/></div>
+  <div data-form-field="toAccountId" className="contents"><SelectCustom label="Cuenta de destino" disabled={pending} value={v.toAccountId} choices={accounts.filter(a=>a.active&&a.id!==v.fromAccountId).map(a=>({value:a.id,label:`${a.name} · ${a.currency}`}))} onChange={value=>form.setValue('toAccountId',value,{shouldDirty:true,shouldValidate:true})}/></div>
+  <FormField label={`Sale (${from?.currency||'moneda de origen'})`} htmlFor="transfer-amount"><AmountInput name="amount" id="transfer-amount" disabled={pending} value={v.amount} currency={from?.currency||'PYG'} onChange={value=>form.setValue('amount',value,{shouldDirty:true,shouldValidate:true})}/></FormField>
+  <FormField label={`Llega (${to?.currency||'moneda de destino'})`} htmlFor="transfer-received"><AmountInput name="receivedAmount" id="transfer-received" disabled={pending} value={v.receivedAmount} currency={to?.currency||'PYG'} onChange={value=>form.setValue('receivedAmount',value,{shouldDirty:true,shouldValidate:true})}/></FormField>
   <FormField label="Fecha" htmlFor="transfer-date"><Input id="transfer-date" type="date" className="w-40" disabled={pending} {...form.register('transferredOn')}/></FormField>
   <FormField label="Referencia" htmlFor="transfer-reference"><Input id="transfer-reference" maxLength={120} disabled={pending} {...form.register('reference')}/></FormField>
   {from&&to&&Number(v.amount)>0&&Number(v.receivedAmount)>0?<Nota tono="info" className="sm:col-span-2"><span className="inline-flex flex-wrap items-baseline gap-1"><MoneyText valor={v.amount} currency={from.currency}/> → <MoneyText valor={v.receivedAmount} currency={to.currency}/>{transfer.rate!==null?` · Cambio: 1 ${from.currency} = ${new Intl.NumberFormat('es-PY',{maximumFractionDigits:8}).format(transfer.rate)} ${to.currency}`:''}</span></Nota>:null}
   {Object.keys(form.formState.errors).length>0?<Aviso tono="error" className="sm:col-span-2">Elegí ambas cuentas, fecha e importes positivos.</Aviso>:null}
   {error?<Aviso tono="error" className="sm:col-span-2">{error}</Aviso>:null}
-  <SaveActions pending={pending}><Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending?'Guardando…':'Registrar transferencia'}</Button></SaveActions>
- </form>;
+  <FormValidationErrors errors={form.formState.errors}/><SaveActions pending={pending} dirty={form.formState.isDirty}><Button type="submit" disabled={pending} className="w-full sm:w-auto">{pending?'Guardando…':'Registrar transferencia'}</Button></SaveActions>
+ </PendingFields></form>;
 }
 export function ReceiptReversal({payment,refresh}:{payment:{id:string;amount:string;currency:string;reversal_id?:string|null;reversal_reason?:string|null};refresh:()=>Promise<void>}){
  const [open,setOpen]=useState(false),[reason,setReason]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');

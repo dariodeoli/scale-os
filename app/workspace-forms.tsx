@@ -6,6 +6,9 @@ import {BancoCombobox} from 'owncoding-ui';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
+import {PendingFields} from './ui/form-state';
+import {useFormFocus,FormValidationErrors} from './ui/form-focus';
+import {ApiFieldError} from './operations';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {useCompanyCurrency} from './currency-provider';
 import {statuses} from './production-board';
@@ -49,7 +52,8 @@ export function ProjectForm({
     defaultValues: { name: "", clientId: initialClientId, driveUrl: "", urgency:"" },
   });
   const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const submission=useSingleFlightSubmit(event=>{setError("");return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
+  const focus=useFormFocus(submission.pending);
   async function submit(values: ProjectValues) {
     try {
       const data = await request<{ project: Project }>("/api/agency/projects", {
@@ -58,6 +62,13 @@ export function ProjectForm({
       });
       done(data.project);
     } catch (cause) {
+      if(cause instanceof ApiFieldError){
+        const accepted:Record<string,{message:string}>={};
+        for(const [key,message] of Object.entries(cause.fieldErrors))if(key in form.getValues()){
+          form.setError(key as keyof typeof values,{type:'server',message});accepted[key]={message};
+        }
+        focus.onInvalid(accepted);
+      }
       setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
     }
   }
@@ -66,7 +77,10 @@ export function ProjectForm({
       className="form-stack ops-form-grid"
       noValidate
       onSubmit={submission.onSubmit}
+      ref={focus.formRef}
+      aria-busy={submission.pending}
     >
+      <PendingFields pending={submission.pending}>
       <label>
         Nombre del proyecto
         <InputControl {...form.register("name")} autoFocus maxLength={120} aria-invalid={form.formState.errors.name?true:undefined} aria-describedby={form.formState.errors.name?"project-name-error":undefined}/>
@@ -77,7 +91,7 @@ export function ProjectForm({
       <UrgencySelect value={form.watch("urgency")} onChange={value=>form.setValue("urgency",value as ProjectValues["urgency"],{shouldDirty:true})} disabled={submission.pending}/>
       {/* Un desplegable con buscador (no un botón por cliente): con cientos de
           clientes la lista de botones empujaba el resto del formulario fuera de vista. */}
-      <div className="grid gap-1.5">
+      <div className="grid gap-1.5" data-form-field="clientId">
         <SelectCustom label="Cliente" value={form.watch("clientId")} choices={clients.map(client=>({value:String(client.id),label:client.name}))} disabled={submission.pending} invalid={Boolean(form.formState.errors.clientId)} describedBy={form.formState.errors.clientId?"project-client-error":undefined} onChange={value=>form.setValue("clientId",value,{shouldValidate:true,shouldDirty:true})}/>
         {form.formState.errors.clientId && (
           <small className="error" role="alert" id="project-client-error">
@@ -108,6 +122,8 @@ export function ProjectForm({
         {submission.pending ? "Guardando…" : "Crear proyecto"}
       </button></SaveActions>
       {!clients.length && <p className="form-note">Primero creá un cliente.</p>}
+      <FormValidationErrors errors={form.formState.errors}/>
+      </PendingFields>
     </form>
   );
 }
@@ -153,7 +169,8 @@ export function OrderForm({
     },
   });
   const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const submission=useSingleFlightSubmit(event=>{setError("");return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
+  const focus=useFormFocus(submission.pending);
   // Paso 1 del alta (#137): primero el proyecto con buscador; el resto del
   // formulario aparece recién al elegirlo (antes se listaban ~20 botones).
   const projectId=form.watch("projectId");
@@ -167,6 +184,13 @@ export function OrderForm({
       );
       done(data.workOrder);
     } catch (cause) {
+      if(cause instanceof ApiFieldError){
+        const accepted:Record<string,{message:string}>={};
+        for(const [key,message] of Object.entries(cause.fieldErrors))if(key in form.getValues()){
+          form.setError(key as keyof typeof values,{type:'server',message});accepted[key]={message};
+        }
+        focus.onInvalid(accepted);
+      }
       setError(cause instanceof Error ? cause.message : "No se pudo guardar.");
     }
   }
@@ -175,7 +199,10 @@ export function OrderForm({
       className="form-stack ops-form-grid"
       noValidate
       onSubmit={submission.onSubmit}
+      ref={focus.formRef}
+      aria-busy={submission.pending}
     >
+      <PendingFields pending={submission.pending}>
       {selectedProject ? (
         <div className="ops-wide flex min-w-0 items-center justify-between gap-3 rounded-xl border border-ink-600 bg-ink-800 px-3 py-2">
           <span className="min-w-0">
@@ -185,8 +212,8 @@ export function OrderForm({
           <button type="button" className="text-button shrink-0" onClick={()=>form.setValue("projectId","",{shouldValidate:false,shouldDirty:true})}>Cambiar</button>
         </div>
       ) : (
-        <div className="ops-wide grid gap-1.5">
-          <SelectCustom label="Proyecto" value={projectId} choices={projectChoices} onChange={value=>form.setValue("projectId",value,{shouldValidate:true,shouldDirty:true})} invalid={Boolean(form.formState.errors.projectId)} describedBy={form.formState.errors.projectId?"order-project-error":undefined}/>
+        <div className="ops-wide grid gap-1.5" data-form-field="projectId">
+          <SelectCustom disabled={submission.pending} label="Proyecto" value={projectId} choices={projectChoices} onChange={value=>form.setValue("projectId",value,{shouldValidate:true,shouldDirty:true})} invalid={Boolean(form.formState.errors.projectId)} describedBy={form.formState.errors.projectId?"order-project-error":undefined}/>
           {form.formState.errors.projectId && (
             <small className="error" role="alert" id="order-project-error">
               {form.formState.errors.projectId.message}
@@ -215,7 +242,7 @@ export function OrderForm({
               className={
                 form.watch("status") === status.id ? "choice active" : "choice"
               }
-              onClick={() => form.setValue("status", status.id)}
+              onClick={() => form.setValue("status", status.id,{shouldDirty:true})}
               key={status.id}
             >
               {status.label}
@@ -224,7 +251,7 @@ export function OrderForm({
         </div>
       </fieldset>
       <label>
-        <SelectCustom label="Tipo de trabajo" choices={[{value:'',label:'Sin clasificar'},{value:'video',label:'Video'},{value:'reedicion',label:'Reedición'},{value:'foto',label:'Foto'},{value:'produccion',label:'Producción'},{value:'entregable',label:'Entregable'}]} value={form.watch('work_type')??''} onChange={value=>form.setValue('work_type',value as OrderValues['work_type'],{shouldDirty:true,shouldValidate:true})}/>
+        <SelectCustom disabled={submission.pending} label="Tipo de trabajo" choices={[{value:'',label:'Sin clasificar'},{value:'video',label:'Video'},{value:'reedicion',label:'Reedición'},{value:'foto',label:'Foto'},{value:'produccion',label:'Producción'},{value:'entregable',label:'Entregable'}]} value={form.watch('work_type')??''} onChange={value=>form.setValue('work_type',value as OrderValues['work_type'],{shouldDirty:true,shouldValidate:true})}/>
         <small>Se usa para los conteos automáticos del resumen semanal.</small>
       </label>
       <label>
@@ -258,6 +285,8 @@ export function OrderForm({
         {submission.pending ? "Guardando…" : "Crear orden"}
       </button></SaveActions>
       </> : null}
+      <FormValidationErrors errors={form.formState.errors}/>
+      </PendingFields>
     </form>
   );
 }
@@ -296,7 +325,8 @@ export function AccountForm({
     },
   });
   const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const submission=useSingleFlightSubmit(event=>{setError("");return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
+  const focus=useFormFocus(submission.pending);
   const custodianOptions:EntityOption[]=custodians.map(member=>({id:String(member.id),name:member.full_name?.trim()||member.email,secondary:teamRoleLabels[member.role]||member.role,photoUrl:member.photo_url,person:true,searchText:member.email}));
   async function submit(values: AccountValues) {
     try {
@@ -306,6 +336,13 @@ export function AccountForm({
       });
       done(data.account);
     } catch (cause) {
+      if(cause instanceof ApiFieldError){
+        const accepted:Record<string,{message:string}>={};
+        for(const [key,message] of Object.entries(cause.fieldErrors))if(key in form.getValues()){
+          form.setError(key as keyof typeof values,{type:'server',message});accepted[key]={message};
+        }
+        focus.onInvalid(accepted);
+      }
       setError(
         cause instanceof Error ? cause.message : "No se pudo crear la cuenta.",
       );
@@ -316,7 +353,10 @@ export function AccountForm({
       className="form-stack ops-form-grid"
       noValidate
       onSubmit={submission.onSubmit}
+      ref={focus.formRef}
+      aria-busy={submission.pending}
     >
+      <PendingFields pending={submission.pending}>
       <label data-span="6">
         Nombre de la cuenta
         <InputControl
@@ -324,7 +364,7 @@ export function AccountForm({
           placeholder="Banco Regional — Operativa"
         />
       </label>
-      <fieldset data-span="6">
+      <fieldset data-span="6" data-form-field="accountType">
         <legend>Tipo</legend>
         <div className="choice-list compact">
           {(
@@ -342,7 +382,7 @@ export function AccountForm({
                   ? "choice active"
                   : "choice"
               }
-              onClick={() => form.setValue("accountType", type.id)}
+              onClick={() => form.setValue("accountType", type.id,{shouldDirty:true})}
               key={type.id}
             >
               {type.label}
@@ -352,7 +392,7 @@ export function AccountForm({
       </fieldset>
       <div data-span="6">
         <label htmlFor="account-institution">Banco, billetera o institución</label>
-        <BancoCombobox id="account-institution" value={form.watch('institution')||''} onChange={(value:string)=>form.setValue('institution',value,{shouldValidate:true,shouldDirty:true})} placeholder="Buscar banco de Paraguay o escribir otra institución" showSelectedLogo showHorizontalLogo/>
+        <BancoCombobox disabled={submission.pending} id="account-institution" value={form.watch('institution')||''} onChange={(value:string)=>form.setValue('institution',value,{shouldValidate:true,shouldDirty:true})} placeholder="Buscar banco de Paraguay o escribir otra institución" showSelectedLogo showHorizontalLogo/>
         <small className="field-help">Catálogo compartido de Paraguay. También admite una institución personalizada o efectivo.</small>
       </div>
       <label data-span="3">
@@ -366,7 +406,8 @@ export function AccountForm({
           placeholder="Empresa, socio o familiar"
         />
       </label>
-      <EntityPicker
+      <div className="contents" data-form-field="custodianUserId"><EntityPicker
+        disabled={submission.pending}
         legend="Quién custodia este dinero"
         options={custodianOptions}
         value={form.watch("custodianUserId")||""}
@@ -375,8 +416,8 @@ export function AccountForm({
         searchLabel="Buscar persona"
         allowEmpty
         emptyLabel="Sin asignar"
-      />
-      <fieldset data-span="6">
+      /></div>
+      <fieldset data-span="6" data-form-field="currency">
         <legend>Moneda</legend>
         <div className="choice-list compact">
           {currencyCodes.map((currency) => (
@@ -385,7 +426,7 @@ export function AccountForm({
               className={
                 form.watch("currency") === currency ? "choice active" : "choice"
               }
-              onClick={() => form.setValue("currency", currency)}
+              onClick={() => form.setValue("currency", currency,{shouldDirty:true})}
               key={currency}
             >
               {currency}
@@ -398,6 +439,8 @@ export function AccountForm({
       <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><button className="primary" disabled={submission.pending}>
         {submission.pending ? "Creando…" : "Crear cuenta"}
       </button></SaveActions>
+      <FormValidationErrors errors={form.formState.errors}/>
+      </PendingFields>
     </form>
   );
 }
@@ -426,7 +469,8 @@ export function InvoiceForm({
   const clientId=form.watch("clientId"),total=form.watch("total");
   const clientOptions:EntityOption[]=clients.map(client=>({id:client.id,name:client.name,secondary:client.legal_name?.trim()||client.tax_id?.trim()||undefined,photoUrl:client.logo_url,logo:true,searchText:`${client.legal_name||''} ${client.tax_id||''}`}));
   const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const submission=useSingleFlightSubmit(event=>{setError("");return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
+  const focus=useFormFocus(submission.pending);
   const canSubmit=Boolean(clientId)&&isPositiveInput(total)&&!submission.pending;
   async function submit(values: InvoiceValues) {
     try {
@@ -436,6 +480,13 @@ export function InvoiceForm({
       });
       done(data.invoice);
     } catch (cause) {
+      if(cause instanceof ApiFieldError){
+        const accepted:Record<string,{message:string}>={};
+        for(const [key,message] of Object.entries(cause.fieldErrors))if(key in form.getValues()){
+          form.setError(key as keyof typeof values,{type:'server',message});accepted[key]={message};
+        }
+        focus.onInvalid(accepted);
+      }
       setError(
         cause instanceof Error ? cause.message : "No se pudo crear la factura.",
       );
@@ -446,8 +497,12 @@ export function InvoiceForm({
       className="form-stack ops-form-grid"
       noValidate
       onSubmit={submission.onSubmit}
+      ref={focus.formRef}
+      aria-busy={submission.pending}
     >
-      <EntityPicker
+      <PendingFields pending={submission.pending}>
+      <div className="contents" data-form-field="clientId"><EntityPicker
+        disabled={submission.pending}
         legend="Cliente"
         options={clientOptions}
         value={clientId}
@@ -455,13 +510,13 @@ export function InvoiceForm({
         error={form.formState.errors.clientId?.message}
         placeholder="Buscar cliente…"
         searchLabel="Buscar cliente"
-      />
+      /></div>
       <label>
         Total sin IVA
-        <AmountInput value={form.watch('total')||''} currency={form.watch('currency')} invalid={!!form.formState.errors.total} onChange={value=>form.setValue('total',value,{shouldValidate:true,shouldDirty:true})}/>
+        <AmountInput name="total" disabled={submission.pending} value={form.watch('total')||''} currency={form.watch('currency')} invalid={!!form.formState.errors.total} onChange={value=>form.setValue('total',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
       {form.formState.errors.total?<small className="error" role="alert">{form.formState.errors.total.message}</small>:null}
-      <fieldset>
+      <fieldset data-form-field="currency">
         <legend>Moneda</legend>
         <div className="choice-list compact">
           {currencyCodes.map((currency) => (
@@ -470,7 +525,7 @@ export function InvoiceForm({
               className={
                 form.watch("currency") === currency ? "choice active" : "choice"
               }
-              onClick={() => form.setValue("currency", currency)}
+              onClick={() => form.setValue("currency", currency,{shouldDirty:true})}
               key={currency}
             >
               {currency}
@@ -490,6 +545,8 @@ export function InvoiceForm({
       >
         {submission.pending ? "Creando…" : "Crear factura"}
       </button></SaveActions>
+      <FormValidationErrors errors={form.formState.errors}/>
+      </PendingFields>
     </form>
   );
 }
@@ -532,7 +589,8 @@ export function PaymentForm({
     },
   });
   const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(form.handleSubmit(submit));
+  const submission=useSingleFlightSubmit(event=>{setError("");return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
+  const focus=useFormFocus(submission.pending);
   const invoiceId=form.watch("invoiceId"),accountId=form.watch("accountId"),amount=form.watch("amount");
   const canSubmit=Boolean(invoiceId)&&Boolean(accountId)&&isPositiveInput(amount)&&!submission.pending;
   const invoiceOptions:EntityOption[]=invoices
@@ -550,6 +608,13 @@ export function PaymentForm({
       });
       done();
     } catch (cause) {
+      if(cause instanceof ApiFieldError){
+        const accepted:Record<string,{message:string}>={};
+        for(const [key,message] of Object.entries(cause.fieldErrors))if(key in form.getValues()){
+          form.setError(key as keyof typeof values,{type:'server',message});accepted[key]={message};
+        }
+        focus.onInvalid(accepted);
+      }
       setError(
         cause instanceof Error
           ? cause.message
@@ -562,8 +627,12 @@ export function PaymentForm({
       className="form-stack ops-form-grid"
       noValidate
       onSubmit={submission.onSubmit}
+      ref={focus.formRef}
+      aria-busy={submission.pending}
     >
-      <EntityPicker
+      <PendingFields pending={submission.pending}>
+      <div className="contents" data-form-field="invoiceId"><EntityPicker
+        disabled={submission.pending}
         legend="Factura"
         options={invoiceOptions}
         value={invoiceId}
@@ -571,16 +640,17 @@ export function PaymentForm({
         error={form.formState.errors.invoiceId?.message}
         placeholder="Buscar factura o cliente…"
         searchLabel="Buscar factura"
-      />
-      {custodianOptions.length?<EntityPicker
+      /></div>
+      {custodianOptions.length?<div className="contents" data-form-field="receivedByUserId"><EntityPicker
+        disabled={submission.pending}
         legend="Quién recibió el cobro"
         options={custodianOptions}
         value={form.watch("receivedByUserId")||""}
         onChange={value=>form.setValue("receivedByUserId",value,{shouldValidate:true,shouldDirty:true})}
         placeholder="Buscar persona…"
         searchLabel="Buscar persona"
-      />:null}
-      <fieldset>
+      /></div>:null}
+      <fieldset data-form-field="accountId">
         <legend>Cuenta de ingreso</legend>
         <div className="choice-list">
           {accounts.map((account) => (
@@ -592,7 +662,7 @@ export function PaymentForm({
                   : "choice max-w-full !whitespace-normal break-words text-left"
               }
               onClick={() =>
-                form.setValue("accountId", account.id, { shouldValidate: true })
+                form.setValue("accountId", account.id, { shouldValidate: true,shouldDirty:true })
               }
               key={account.id}
               title={`${account.name} · ${account.currency}`}
@@ -605,7 +675,7 @@ export function PaymentForm({
       {form.formState.errors.accountId?<small className="error" role="alert">{form.formState.errors.accountId.message}</small>:null}
       <label>
         Importe cobrado
-        <AmountInput value={form.watch('amount')||''} currency={paymentCurrency(accounts,invoices,form.watch('accountId'),invoiceId)} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
+        <AmountInput name="amount" disabled={submission.pending} value={form.watch('amount')||''} currency={paymentCurrency(accounts,invoices,form.watch('accountId'),invoiceId)} invalid={!!form.formState.errors.amount} onChange={value=>form.setValue('amount',value,{shouldValidate:true,shouldDirty:true})}/>
       </label>
       {form.formState.errors.amount?<small className="error" role="alert">{form.formState.errors.amount.message}</small>:null}
       <label>
@@ -628,6 +698,8 @@ export function PaymentForm({
       >
         {submission.pending ? "Guardando…" : "Registrar cobro"}
       </button></SaveActions>
+      <FormValidationErrors errors={form.formState.errors}/>
+      </PendingFields>
     </form>
   );
 }

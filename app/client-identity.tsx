@@ -1,4 +1,6 @@
 "use client";
+import {PendingFields} from './ui/form-state';
+import {useDialogPending} from './dialog';
 import {InputControl} from './ui/input-control';
 // Rediseño v2 (campaña #41 / spec #43 §1): identidad y apariencia del cliente.
 // La paleta y el mapeo de color viven en ./client-identity-data (puros).
@@ -48,28 +50,31 @@ export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true,l
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{color_key:identityColor(color)}});
  const [error,setError]=useState('');
  const [saving,setSaving]=useState(false),pending=useRef(false);
+ const [photoSaving,setPhotoSaving]=useState(false),photoPending=useRef(false);
+ const busy=saving||photoSaving;
+ useDialogPending(busy,form.formState.isDirty&&!busy);
  async function saveColor(value:ClientColorKey){
-  if(pending.current||form.getValues('color_key')===value)return;
-  const previous=form.getValues('color_key');pending.current=true;setSaving(true);setError('');form.setValue('color_key',value);
+  if(pending.current||photoPending.current||form.getValues('color_key')===value)return;
+  const previous=form.getValues('color_key');pending.current=true;setSaving(true);setError('');form.setValue('color_key',value,{shouldDirty:true});
   try{const values=schema.parse({color_key:value});await api(`/api/agency/clients/${id}`,values,'PATCH');form.reset(values);notify({tone:'success',message:'Color del cliente guardado.'});try{await refresh();}catch{setError('Color guardado. Actualizá la página para refrescar las otras vistas.');}}
-  catch(e){form.setValue('color_key',previous);setError(e instanceof Error?e.message:'No se pudo guardar.');}
+  catch(e){form.setValue('color_key',previous,{shouldDirty:true});setError(e instanceof Error?e.message:'No se pudo guardar.');}
   finally{pending.current=false;setSaving(false);}
  }
  const current=form.watch('color_key');
  return <section className="grid gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4 md:grid-cols-2 md:p-5">
   {showIdentity&&<div className="md:col-span-2"><ClientLegalIdentity name={name} legalName={legalName} representativeName={representativeName} linked={linked} restricted={restricted} logo={logo} color={current}/></div>}
-  <ProfilePhoto label="Logo o foto del cliente" name={name} photo={logo||null} save={async photo=>{await api(`/api/agency/clients/${id}`,{logo_url:photo},'PATCH');await refresh();}}/>
-  <form noValidate className="grid content-start gap-3" onSubmit={event=>event.preventDefault()}>
-   <fieldset disabled={saving} className="min-w-0 border-0 p-0">
+  <ProfilePhoto disabled={saving} onPendingChange={value=>{photoPending.current=value;setPhotoSaving(value);}} label="Logo o foto del cliente" name={name} photo={logo||null} save={async photo=>{await api(`/api/agency/clients/${id}`,{logo_url:photo},'PATCH');try{await refresh();}catch{notify({tone:'warning',message:'Logo guardado. Actualizá la página para refrescar las otras vistas.'});}}}/>
+  <form noValidate aria-busy={busy} className="grid content-start gap-3" onSubmit={event=>event.preventDefault()}>
+   <PendingFields pending={busy}><fieldset disabled={busy} className="min-w-0 border-0 p-0">
     <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Color identificador</legend>
     <div className="flex flex-wrap gap-2">
      {clientColors.map(([key,label])=>{const active=current===key;return <label key={key} className={`identity-${key} flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${active?'border-fono/60 bg-fono/10 text-fore':'border-interactivo bg-ink-800 text-mute hover:border-fono/40 hover:text-fore'}`}>
-      <InputControl type="radio" name="color_key" value={key} checked={active} disabled={saving} className="sr-only" onChange={()=>void saveColor(key)}/>
+      <InputControl type="radio" name="color_key" value={key} checked={active} disabled={busy} className="sr-only" onChange={()=>void saveColor(key)}/>
       <span className="h-3.5 w-3.5 shrink-0 rounded-full" style={{background:'var(--client-accent)'}} aria-hidden="true"/>
       {label}
      </label>;})}
     </div>
-   </fieldset>
+   </fieldset></PendingFields>
    <p className="text-xs leading-5 text-mute">Se guarda al elegir. Identifica al cliente en sus proyectos y piezas; no cambia el estado de producción.</p>
    {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
    {saving&&<p role="status" className="text-xs text-mute">Guardando color…</p>}
