@@ -23,7 +23,7 @@ export function ClientReporting({id,role,onSaved}:{id:string|number;role:string;
 }
 
 function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boolean;financial:boolean;onSaved?:()=>void|Promise<void>}){
- const {data,termData,record,commercial,draft,setDraft,terms,setTerms,error,notice,saving,dirty,editable,termsEditable,reload,save}=useClientReportingData({id,financial,writable,onSaved});
+ const {data,termData,record,commercial,audit,setAudit,historyError,draft,setDraft,terms,setTerms,error,notice,saving,dirty,editable,termsEditable,reload,save}=useClientReportingData({id,financial,writable,onSaved});
  const disabled=!editable||saving;
  return <section className="grid gap-4" aria-label="Datos comerciales del cliente" aria-busy={saving||(!data&&!error)}>
   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -61,6 +61,10 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
      <Input id="client-reporting-relationship" type="date" className="w-40" min="1900-01-01" max={todayAsuncion()} value={draft.relationshipStartedOn} disabled={disabled} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setDraft(current=>({...current,relationshipStartedOn:event.target.value}))}/>
     </FormField>
     {financial&&termData?<>
+     {termsEditable?<>
+      <FormField label="Vigente desde" htmlFor="client-reporting-effective"><Input id="client-reporting-effective" type="date" value={audit.effectiveFrom} disabled={saving} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAudit(current=>({...current,effectiveFrom:event.target.value}))}/></FormField>
+      <FormField label="Motivo del cambio" htmlFor="client-reporting-reason"><Input id="client-reporting-reason" maxLength={1000} value={audit.reason} disabled={saving} placeholder="Por qué cambia el plan o sus condiciones" onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setAudit(current=>({...current,reason:event.target.value}))}/></FormField>
+     </>:null}
      <FormField label="Plan comercial" htmlFor="client-reporting-terms-plan">
       <Select id="client-reporting-terms-plan" value={terms.planId} disabled={!termsEditable||saving} onChange={(event: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setTerms(current=>({...current,planId:event.target.value}))}>
        <option value="">Elegí un plan</option>
@@ -101,6 +105,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
     </>:null}
    </div>
   </>:null}
+  {historyError?<Aviso tono="error" role="alert">{historyError}</Aviso>:null}
   {error?<Aviso tono="error" role="alert">{error}</Aviso>:null}
   {notice?<Aviso tono="ok" role="status">{notice}</Aviso>:null}
   {data&&editable?<div className="flex flex-wrap gap-2">

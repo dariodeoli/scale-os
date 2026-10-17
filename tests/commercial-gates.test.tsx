@@ -51,14 +51,15 @@ test('client editor shows Plan y pago only for commercial-terms roles and never 
   await settle();
   respond(requests.find(request=>request.url.endsWith('/api/agency/clients/1')),{record:{id:'1',name:'ACME',legal_name:'',tax_id:'',lifecycle_status:'active',updated_at:'2026-09-20T12:00:00Z'}});
   await settle();
-  const terms=requests.find(request=>request.url.endsWith('/api/agency/clients/1/commercial-terms'));
+  let terms=requests.find(request=>request.url.endsWith('/api/agency/clients/1/commercial-terms'));
   if(allowed.includes(role)){
+   const history=requests.find(request=>request.url.endsWith('/api/agency/clients/1/plan-history'));
+   assert(history,`${role} obtains the optimistic history revision first`);
+   respond(history,{records:[],revision:'0'});
+   await settle();
+   terms=requests.find(request=>request.url.endsWith('/api/agency/clients/1/commercial-terms'));
    assert(terms,`${role} fetches commercial terms to edit them`);
    respond(terms,{clientId:'1',archived:false,terms:null,plans:[],collaborators:[]});
-   await settle();
-   const history=requests.find(request=>request.url.endsWith('/api/agency/clients/1/plan-history'));
-   assert(history,`${role} obtains the optimistic history revision`);
-   respond(history,{records:[],revision:'0'});
    await settle();
    const rendered=text(renderer.root);
    assert(rendered.includes('Plan y pago'),`${role} sees Plan y pago`);
