@@ -15,6 +15,7 @@ import {emailPasswordAuth} from './email-password-auth.js';
 import {loginOrganization} from './default-organization.js';
 import {passwordAccount,registrationIdentity,existingAccount} from './existing-account.js';
 import { financeControls } from './finance-controls.js';
+import {economicHistory} from './economic-history.js';
 import {financeTreasury} from './finance-treasury.js';
 import { contentReview } from './content-review.js';
 import { recordLifecycle, visibleRecord } from './record-lifecycle.js';
@@ -277,7 +278,9 @@ async function init() {
      "20261017_client_legal_profile.sql",
      "20261017_inventory_ownership.sql",
      "20261017_finance_periods_receipts.sql",
-     "20261017_expense_currency_precision.sql"
+     "20261017_expense_currency_precision.sql",
+     "20261017_client_representative_link.sql",
+     "20261018_economic_history.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -422,6 +425,7 @@ const server = http.createServer(async (req,res) => {
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
     if(await financeTreasury({req,res,url,db,session,body,send}))return;
+    if(await economicHistory({req,res,url,db,session,body,send}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;
     if(await contentReview({req,res,url,db,session,body,send}))return;
