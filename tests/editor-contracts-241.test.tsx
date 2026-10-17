@@ -41,7 +41,7 @@ test('Lookup conserva destinos editados y cancela RUC modificado; respuesta viej
  const writes:Record<string,string>[]=[];
  const fields=[{key:'tax',label:'RUC',lookup:{label:'Buscar',onApplied:()=>{applied++;},run:async(_value:string,context?:{signal:AbortSignal})=>{signal=context?.signal;return new Promise<Record<string,string>>(done=>{resolve=done;});}}},{key:'legal',label:'Razón social'}];
  await act(async()=>{r=create(<Editor fields={fields} defaults={{tax:'80012345',legal:'Manual'}} save={async values=>{writes.push(values);}}/>);});
- const lookup=()=>r!.root.findAllByType('button').find(button=>button.props.children==='Buscar')!.props.onClick();
+ const lookup=()=>r!.root.findAllByType('button').find(button=>React.Children.toArray(button.props.children).join('')==='Buscar')!.props.onClick();
  await act(async()=>{lookup();await tick();});await change(r!,'legal','Editado mientras buscaba');
  await act(async()=>{resolve({tax:'80012345-6',legal:'Proveedor'});await tick();});
  await act(async()=>{await submit(r!);});assert.equal(applied,0);assert.deepEqual(writes[0],{tax:'80012345',legal:'Editado mientras buscaba'});

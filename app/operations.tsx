@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {validateCivilDate,validateTime} from './ui/temporal-value';
+import {LookupField,type LookupState} from './ui/smart-field';
 import { Building2, MessageSquare, Star } from "lucide-react";
 import { AmountInput, SelectCustom, type SelectChoice } from './profile-controls';
 import {PHONE_ERROR, phoneValid, emailValid, EMAIL_ERROR} from './field-rules';
@@ -33,8 +34,9 @@ import {canOpenPeopleWorkspace} from './capabilities';
 /** Structured field errors are consumed only when the API explicitly names fields. */
 export class ApiFieldError extends Error {
   readonly fieldErrors:Record<string,string>;
-  constructor(message:string,fields:unknown){
-    super(message);this.name='ApiFieldError';this.fieldErrors={};
+  readonly status?:number;
+  constructor(message:string,fields:unknown,status?:number){
+    super(message);this.name='ApiFieldError';this.fieldErrors={};this.status=status;
     if(fields&&typeof fields==='object'&&!Array.isArray(fields))for(const [key,value] of Object.entries(fields)){
       if(typeof value==='string'&&value.trim()&&key!=='__proto__'&&key!=='constructor'&&key!=='prototype')Object.defineProperty(this.fieldErrors,key,{value,enumerable:true});
     }
@@ -68,7 +70,7 @@ export async function api<T>(
     if (!r.ok) throw new Error(r.status >= 500 ? "El servidor no pudo completar la operación. Probá de nuevo en unos segundos." : `No se pudo completar la operación (HTTP ${r.status}).`);
     throw new Error("El servidor devolvió una respuesta inválida. Reintentá.");
   }
-  if (!r.ok) throw new ApiFieldError(typeof data?.error==='string'?data.error:"No se pudo completar la operación",data?.fieldErrors);
+  if (!r.ok) throw new ApiFieldError(typeof data?.error==='string'?data.error:"No se pudo completar la operación",data?.fieldErrors,r.status);
   notifyMutation(path,body===undefined?'GET':method,body,data);
   if(body!==undefined&&/^\/api\/agency\/(productivity\/profile|collaborators(?:\/\d+)?)$/.test(path))window.dispatchEvent(new Event('scale:identity-changed'));
   return data as T;
@@ -102,9 +104,10 @@ export type Field = {
   valueFrom?: (values: Record<string, string>) => string | undefined;
   lookup?: {
     label:string;
-    run:(value:string,context?:{signal:AbortSignal;snapshot:Readonly<Record<string,string>>})=>Promise<Record<string,string>>;
+    run:(value:string,context?:{signal:AbortSignal;snapshot:Readonly<Record<string,string>>;onReview:()=>void})=>Promise<Record<string,string>>;
     /** Called only after the snapshot still matches and returned fields are applied. */
     onApplied?:(values:Record<string,string>)=>void;
+    errorState?:(cause:unknown)=>'not-found'|'error';
   };
   /** Deshabilita el campo según los valores actuales del formulario (p. ej. dependientes de un interruptor maestro). */
   disabled?: boolean | ((values: Record<string, string>) => boolean);
@@ -128,6 +131,7 @@ export function Editor({
   collapseSections = false,
   secondaryAction,
   formHandle,
+  onValuesChange,
 }: {
   fields: Field[];
   defaults: Record<string, string>;
@@ -142,6 +146,8 @@ export function Editor({
   /** Segundo guardado (p. ej. «Guardar y crear otro»): misma validación, deja el formulario limpio y enfocado en el primer campo. */
   secondaryAction?: {label: string; save: (v: Record<string, string>) => Promise<void>};
   formHandle?:Ref<EditorHandle>;
+  /** Observes draft changes without resetting the form or selecting any domain entity. */
+  onValuesChange?:(values:Readonly<Record<string,string>>)=>void;
 }) {
   const serverErrors=useRef<Record<string,{value:string;message:string}>>({});
   const shape: Record<string, z.ZodString> = {};
@@ -173,6 +179,8 @@ export function Editor({
     defaultValues: defaults,
   });
   const currentValues=form.watch();
+  const valuesObserver=useRef(onValuesChange),lastObserved=useRef('');valuesObserver.current=onValuesChange;
+  useEffect(()=>{const signature=JSON.stringify(currentValues);if(signature!==lastObserved.current){lastObserved.current=signature;valuesObserver.current?.({...currentValues});}},[currentValues]);
   useEffect(()=>{
     for(const field of fields){
       const next=field.valueFrom?.(currentValues);
@@ -182,14 +190,14 @@ export function Editor({
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
-  const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,string>>({});
+  const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,{state:LookupState;message:string}>>({});
   const lookupRequest=useRef<{generation:number;controller:AbortController;key:string;value:string}|null>(null),lookupGeneration=useRef(0);
   const fieldElements=useRef(new Map<string,HTMLDivElement>()),[focusTarget,setFocusTarget]=useState<{key:string}|null>(null);
   const pending=form.formState.isSubmitting||savingNow;
   useEffect(()=>()=>{lookupGeneration.current++;lookupRequest.current?.controller.abort();},[]);
   useEffect(()=>{
     const request=lookupRequest.current;
-    if(request&&form.getValues(request.key)!==request.value){lookupGeneration.current++;request.controller.abort();lookupRequest.current=null;setLookupBusy('');setLookupNotices(current=>({...current,[request.key]:'El valor cambió. Volvé a buscar para usar los datos actuales.'}));}
+    if(request&&form.getValues(request.key)!==request.value){lookupGeneration.current++;request.controller.abort();lookupRequest.current=null;setLookupBusy('');setLookupNotices(current=>({...current,[request.key]:{state:'conflict',message:'El valor cambió. Volvé a buscar para usar los datos actuales.'}}));}
   },[currentValues,form]);
   useEffect(()=>{
     if(!focusTarget||pending)return;
@@ -231,21 +239,21 @@ export function Editor({
     const snapshot={...form.getValues()},value=(snapshot[f.key]||'').trim();
     lookupRequest.current?.controller.abort();lookupRequest.current=null;setLookupBusy('');
     const generation=++lookupGeneration.current,controller=new AbortController();
-    setLookupNotices(current=>({...current,[f.key]:''}));
-    if(!value){setLookupNotices(current=>({...current,[f.key]:`Escribí ${f.label} primero.`}));return;}
+    setLookupNotices(current=>{const next={...current};delete next[f.key];return next;});
+    if(!value){setLookupNotices(current=>({...current,[f.key]:{state:'error',message:`Escribí ${f.label} primero.`}}));return;}
     lookupRequest.current={generation,controller,key:f.key,value:snapshot[f.key]};setLookupBusy(f.key);
     try{
-      const found=await f.lookup.run(value,{signal:controller.signal,snapshot});
+      const found=await f.lookup.run(value,{signal:controller.signal,snapshot,onReview:()=>{if(!controller.signal.aborted&&generation===lookupGeneration.current)setLookupNotices(current=>({...current,[f.key]:{state:'found',message:'Revisá los datos encontrados antes de aplicarlos.'}}));}});
       if(controller.signal.aborted||generation!==lookupGeneration.current)return;
       const known=new Set(fields.map(field=>field.key));
       const entries=Object.entries(found).filter(([key])=>known.has(key));
       if(form.getValues(f.key)!==snapshot[f.key]||entries.some(([key])=>form.getValues(key)!==snapshot[key])){
-        setLookupNotices(current=>({...current,[f.key]:'Editaste estos datos durante la consulta. Se conservaron tus cambios; volvé a buscar para revisarlos.'}));return;
+        setLookupNotices(current=>({...current,[f.key]:{state:'conflict',message:'Editaste estos datos durante la consulta. Se conservaron tus cambios; volvé a buscar para revisarlos.'}}));return;
       }
       for(const [key,next] of entries)form.setValue(key,String(next),{shouldValidate:true,shouldDirty:true});
       setInteracted(true);f.lookup.onApplied?.(Object.fromEntries(entries));
-      setLookupNotices(current=>({...current,[f.key]:'Datos encontrados. Revisá y guardá.'}));
-    }catch(cause){if(!controller.signal.aborted&&generation===lookupGeneration.current)setLookupNotices(current=>({...current,[f.key]:message(cause)}));}
+      setLookupNotices(current=>({...current,[f.key]:{state:'found',message:'Datos encontrados. Revisá y guardá.'}}));
+    }catch(cause){if(!controller.signal.aborted&&generation===lookupGeneration.current)setLookupNotices(current=>({...current,[f.key]:{state:f.lookup?.errorState?.(cause)||'error',message:message(cause)}}));}
     finally{if(generation===lookupGeneration.current){lookupRequest.current=null;setLookupBusy('');}}
   }
   const focusError=(key:string)=>{const section=fields.find(field=>field.key===key)?.section;if(section)revealSection(section);setFocusTarget({key});};
@@ -257,14 +265,18 @@ export function Editor({
     // el guardado del formulario conserva el valor tal como se guardó antes.
     const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
     return <div ref={element=>{if(element)fieldElements.current.set(f.key,element);else fieldElements.current.delete(f.key);}} key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
-      {f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><input id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
+      {f.lookup?<LookupField id={id} label={<>{f.label}{f.optional&&<OptionalMark/>}</>} help={f.help?<small className="field-help">{f.help}</small>:undefined}
+        error={invalid?<span className="error">{String(form.formState.errors[f.key]?.message)}</span>:undefined} disabled={fieldDisabled}
+        state={lookupBusy===f.key&&lookupNotices[f.key]?.state!=='found'?'loading':lookupNotices[f.key]?.state||'idle'} policy={{allowed:lookupBusy!==f.key}} message={lookupNotices[f.key]?.message}
+        lookupLabel={f.lookup.label} onLookup={()=>void runLookup(f)} placeholder={f.placeholder} maxLength={f.maxLength}
+        {...form.register(f.key)}/>:f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><input id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
-        ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} disabled={fieldDisabled} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span className={f.lookup?'ops-lookup-row':undefined}><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} min={f.min} max={f.max} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/>{f.lookup&&<button type="button" className="text-button ops-lookup-button" disabled={fieldDisabled||lookupBusy===f.key} onClick={()=>void runLookup(f)}>{lookupBusy===f.key?'Buscando…':f.lookup.label}</button>}</span>}
+        ) : f.type === 'textarea' ? <textarea id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} disabled={fieldDisabled} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span><input id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} min={f.min} max={f.max} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/></span>}
       </label>}
-      {f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
-      {invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
-      {lookupNotices[f.key]&&<small id={`${id}-lookup`} className="field-help ops-lookup-note" role="status">{lookupNotices[f.key]}</small>}
+      {!f.lookup&&f.help&&<small id={`${id}-help`} className="field-help">{f.help}</small>}
+      {!f.lookup&&invalid&&<small id={`${id}-error`} className="error" role="alert">{String(form.formState.errors[f.key]?.message)}</small>}
+
       {f.after}
     </div>;
   };

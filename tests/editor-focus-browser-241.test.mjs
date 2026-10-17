@@ -11,7 +11,7 @@ const bundle=await build({stdin:{contents:`
 import React from 'react';import{createRoot}from'react-dom/client';
 import{Editor,ApiFieldError}from'./app/operations';import{Dialog}from'./app/dialog';
 const root=createRoot(document.getElementById('root'));window.writes=[];
-window.mount=(mode)=>root.render(<Dialog key={mode} title="Editor QA" close={()=>{window.closed=true;}}><Editor collapseSections fields={mode==='phone'?[{key:'phone',label:'Teléfono',type:'phone'}]:mode==='focus'?[
+window.mount=(mode)=>root.render(<Dialog key={mode} title={"Editor QA: "+mode} close={()=>{window.closed=true;}}><Editor collapseSections fields={mode==='phone'?[{key:'phone',label:'Teléfono',type:'phone'}]:mode==='focus'?[
  {key:'name',label:'Nombre',section:'Identidad'},
  {key:'email',label:'Correo',type:'email',optional:true,section:'Contacto'},
  {key:'role',label:'Permiso',choices:[{value:'',label:'Seleccionar'},{value:'viewer',label:'Lectura'}],section:'Acceso'}
@@ -37,14 +37,14 @@ try{
  assert.equal(await page.evaluate(()=>document.activeElement?.getAttribute('aria-haspopup')),'listbox');
  await page.keyboard.press('ArrowDown');await page.waitForSelector('[role="option"]');await page.keyboard.press('End');await page.keyboard.press('Enter');
  await page.click('button[type="submit"]');await page.waitForFunction(()=>window.writes.length===1);assert.equal(await page.evaluate(()=>window.writes[0].role),'viewer');
- await page.evaluate(()=>{window.writes=[];window.mount('server');});await page.waitForSelector('[data-field="email"]');
+ await page.evaluate(()=>{window.writes=[];window.mount('server');});await page.waitForFunction(()=>document.querySelector('.dialog-heading h2')?.textContent==='Editor QA: server'&&!!document.querySelector('.dialog-footer button[type=submit]')?.form);
  await page.click('button[type="submit"]');await page.waitForFunction(()=>document.activeElement?.closest('[data-field]')?.getAttribute('data-field')==='email');
  assert.match(await page.$eval('[data-field="email"]',node=>node.textContent),/Correo ya registrado/);
  await page.click('button[type="submit"]');assert.equal(await page.evaluate(()=>window.writes.length),1,'unchanged server error prevents repeat write');
  await page.type('[data-field="email"] input','x');await page.click('button[type="submit"]');await page.waitForFunction(()=>window.writes.length===2);
- await page.evaluate(()=>window.mount('phone'));await page.waitForSelector('[data-field="phone"]');
+ await page.evaluate(()=>window.mount('phone'));await page.waitForFunction(()=>document.querySelector('.dialog-heading h2')?.textContent==='Editor QA: phone'&&!!document.querySelector('.dialog-footer button[type=submit]')?.form);
  await page.click('button[type="submit"]');await page.waitForFunction(()=>document.activeElement?.type==='tel');
- await page.evaluate(()=>{window.writes=[];window.mount('lookup');});await page.waitForSelector('[data-field="tax"]');
+ await page.evaluate(()=>{window.writes=[];window.mount('lookup');});await page.waitForFunction(()=>document.querySelector('.dialog-heading h2')?.textContent==='Editor QA: lookup'&&!!document.querySelector('.dialog-footer button[type=submit]')?.form);
  await page.click('[data-field="tax"] button');await page.waitForFunction(()=>typeof window.lookupResolve==='function');
  await page.click('[data-field="legal"] input');await page.keyboard.press('End');await page.type('[data-field="legal"] input',' editado');
  await page.evaluate(()=>window.lookupResolve({tax:'80012345-6',legal:'Proveedor'}));
