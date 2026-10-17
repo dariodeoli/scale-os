@@ -6,10 +6,10 @@
 // Un solo diseño: cápsula de persona (`PersonContainer`) cuando la opción es
 // una persona, y fila compacta con `FotoPerfil` para registros (logo de cliente
 // entero, iniciales cuando no hay foto). El contexto lo dibuja quien llama.
-import {useMemo, useState, type ReactNode} from 'react';
+import {type ReactNode} from 'react';
 import {FotoPerfil} from './foto-perfil';
 import {PersonContainer} from './person-container';
-import {SearchField} from './search-field';
+import {Selector} from './ui/select';
 import {PersonSelect} from './profile-controls';
 import './entity-picker.css';
 
@@ -46,39 +46,16 @@ export type EntityPickerProps = {
 };
 
 export function EntityPicker({legend, options, value, onChange, placeholder = 'Buscar…', searchLabel = 'Buscar', disabled = false, error, allowEmpty = false, emptyLabel = 'Sin asignar', className}: EntityPickerProps) {
-  const [search, setSearch] = useState('');
-  const query = search.trim().toLocaleLowerCase('es');
-  const visible = useMemo(() => options.filter(option => !query || `${option.name} ${option.secondary || ''} ${option.searchText || ''}`.toLocaleLowerCase('es').includes(query)), [options, query]);
-  const withSearch = options.length > 6;
-  if(options.length>0&&options.every(option=>option.person))return <div className={className}><PersonSelect label={legend} value={value} onChange={onChange} disabled={disabled} invalid={Boolean(error)} choices={[...(allowEmpty?[{value:'',label:emptyLabel}]:[]),...options.map(option=>({value:option.id,label:option.name,photoUrl:option.photoUrl,secondary:option.secondary,searchText:option.searchText,kind:'person' as const}))]}/>{error?<small className="error" role="alert">{error}</small>:null}</div>;
+  if(options.length>0&&options.every(option=>option.person))return <div className={className}><PersonSelect label={legend} value={value} onChange={onChange} disabled={disabled} invalid={Boolean(error)} error={error} choices={[...(allowEmpty?[{value:'',label:emptyLabel}]:[]),...options.map(option=>({value:option.id,label:option.name,photoUrl:option.photoUrl,secondary:option.secondary,searchText:option.searchText,kind:'person' as const}))]}/></div>;
   return <fieldset className={className ? `entity-picker ${className}` : 'entity-picker'} disabled={disabled} aria-invalid={error ? true : undefined}>
     <legend>{legend}</legend>
-    {withSearch ? <SearchField label={searchLabel} value={search} onChange={setSearch} placeholder={placeholder} disabled={disabled} className="w-full"/> : null}
-    {allowEmpty ? <button type="button" className={value ? 'choice' : 'choice active'} aria-pressed={!value} disabled={disabled} onClick={() => onChange('')}>{emptyLabel}</button> : null}
-    <div className="entity-picker-options" role="group" aria-label={`${legend}: opciones`}>
-      {visible.map(option => <button
-        key={option.id}
-        type="button"
-        className={option.id === value ? 'choice active' : 'choice'}
-        aria-pressed={option.id === value}
-        disabled={disabled}
-        title={option.secondary ? `${option.name} · ${option.secondary}` : option.name}
-        onClick={() => onChange(option.id)}
-      >
-        {option.person
-          ? <PersonContainer name={option.name} photoUrl={option.photoUrl} secondary={option.secondary} size="sm"/>
-          : <span className="entity-picker-main">
-            <FotoPerfil nombre={option.name} foto={option.photoUrl} tamano="sm" variante={option.logo ? 'logo' : 'persona'}/>
-            <span className="entity-picker-text">
-              <b title={option.name}>{option.name}</b>
-              {option.secondary ? <small title={option.secondary}>{option.secondary}</small> : null}
-            </span>
-          </span>}
-        {option.context ? <span className="entity-picker-context">{option.context}</span> : null}
-      </button>)}
-    </div>
-    {withSearch && !visible.length ? <small className="field-help">Sin coincidencias para «{search.trim()}».</small> : null}
-    {!withSearch && !options.length ? <small className="field-help">No hay opciones disponibles.</small> : null}
-    {error ? <small className="error" role="alert">{error}</small> : null}
+    <Selector label={legend} hideLabel presentation="inline" variant="entity" value={value} onChange={onChange} disabled={disabled} error={error}
+      searchable={options.length>6} searchLabel={searchLabel} searchPlaceholder={placeholder}
+      options={[...(allowEmpty?[{value:'',primary:emptyLabel,kind:'plain' as const,pinned:true}]:[]),...options.map(option=>({value:option.id,primary:option.name,secondary:option.secondary,avatarUrl:option.photoUrl,kind:option.person?'person' as const:'entity' as const,searchText:option.searchText}))]}
+      optionsClassName="entity-picker-options" renderOption={option=>{
+        const source=options.find(item=>item.id===option.value);
+        if(!source)return option.primary;
+        return <>{source.person?<PersonContainer name={source.name} photoUrl={source.photoUrl} secondary={source.secondary} size="sm"/>:<span className="entity-picker-main"><FotoPerfil nombre={source.name} foto={source.photoUrl} tamano="sm" variante={source.logo?'logo':'persona'}/><span className="entity-picker-text"><b title={source.name}>{source.name}</b>{source.secondary?<small title={source.secondary}>{source.secondary}</small>:null}</span></span>}{source.context?<span className="entity-picker-context">{source.context}</span>:null}</>;
+      }}/>
   </fieldset>;
 }

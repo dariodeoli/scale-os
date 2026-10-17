@@ -1,7 +1,7 @@
 'use client';
 
-import {useId,useState} from 'react';
-import {SearchField} from './search-field';
+import {useId} from 'react';
+import {Selector} from './ui/select';
 import './assignee-picker.css';
 import {PersonContainer} from './person-container';
 import {isTechnicalDemoEmail,personDisplayName} from './actor-identity';
@@ -31,7 +31,7 @@ export function assigneeSelection(ids:readonly (string|number)[],primary?:string
 
 // Controlled, network-free field: the parent owns the tenant, loading and save lifecycle.
 export function AssigneePicker({members,value,onChange,disabled=false,loading=false,error,label='Responsables'}:AssigneePickerProps){
- const id=useId(),[search,setSearch]=useState('');
+ const id=useId();
  const selected=assigneeSelection(value.assigned_user_ids,value.assigned_user_id);
  const options=new Map<string,AssigneeMember>();
  for(const member of members){const person=key(member.id);if(person&&member.active===true&&!member.removed_at&&!options.has(person))options.set(person,member);}
@@ -39,8 +39,6 @@ export function AssigneePicker({members,value,onChange,disabled=false,loading=fa
  // nombre y, si falta, a la etiqueta base; el contacto técnico queda oculto.
  const secondary=(member?:AssigneeMember)=>member?.full_name&&member?.email&&!isTechnicalDemoEmail(member.email)?member.email:undefined;
  const name=(person:string)=>{const member=options.get(person);return personDisplayName(member?.full_name?.trim()||member?.email,'Persona no disponible');};
- const query=search.trim().toLocaleLowerCase('es');
- const visible=Array.from(options).filter(([,member])=>`${member.full_name||''} ${member.email||''}`.toLocaleLowerCase('es').includes(query));
  const locked=disabled||loading;
  function toggle(person:string){
   if(locked)return;
@@ -56,11 +54,13 @@ export function AssigneePicker({members,value,onChange,disabled=false,loading=fa
    <button type="button" className="assignee-primary" disabled={locked||!options.has(person)} aria-pressed={selected.assigned_user_id===person} aria-label={`Usar como principal: ${name(person)}`} onClick={()=>{if(!locked&&options.has(person))onChange({...selected,assigned_user_id:person});}}>{selected.assigned_user_id===person?'Principal':'Hacer principal'}</button>
    <button type="button" className="assignee-remove" disabled={locked} aria-label={`Quitar a ${name(person)}`} title={`Quitar a ${name(person)}`} onClick={()=>toggle(person)}>×</button>
   </li>)}</ul>:<p className="assignee-help">Sin responsables asignados.</p>}
-  <SearchField className="assignee-search" label="Buscar integrante" value={search} onChange={setSearch} placeholder="Nombre o correo" disabled={locked}/>
-  {loading?<p role="status">Cargando integrantes…</p>:<div className="assignee-options">{visible.map(([person,member])=><label className="assignee-option" key={person}>
-   <input type="checkbox" checked={selected.assigned_user_ids.includes(person)} disabled={locked||selected.assigned_user_ids.length>=100&&!selected.assigned_user_ids.includes(person)} onChange={()=>toggle(person)}/>
-   <span><PersonContainer name={name(person)} photoUrl={member.photo_url} secondary={secondary(member)} verified/></span>
-  </label>)}{!visible.length?<p className="assignee-help">{options.size?'No hay integrantes que coincidan.':'No hay integrantes activos disponibles.'}</p>:null}</div>}
+  <Selector label={label} hideLabel presentation="inline" variant="person" multiple value={selected.assigned_user_ids}
+   onChange={ids=>{if(!locked)onChange(assigneeSelection(ids,selected.assigned_user_id));}}
+   options={Array.from(options,([person,member])=>({value:person,primary:name(person),secondary:secondary(member),avatarUrl:member.photo_url,kind:'person' as const,searchText:isTechnicalDemoEmail(member.email)?member.full_name||'':member.email,disabled:selected.assigned_user_ids.length>=100&&!selected.assigned_user_ids.includes(person)}))}
+   searchable searchLabel="Buscar integrante" searchPlaceholder="Nombre o correo" disabled={disabled} loading={loading}
+   loadingLabel="Cargando integrantes…" emptyLabel="No hay integrantes activos disponibles." noResultsLabel="No hay integrantes que coincidan."
+   showMissingSelection={false} optionsClassName="assignee-options" optionClassName="assignee-option"
+   renderOption={option=><span><PersonContainer name={option.primary} photoUrl={option.avatarUrl} secondary={option.secondary} verified/></span>}/>
   {selected.assigned_user_ids.some(person=>!options.has(person))&&!loading?<p role="status">Hay personas sin acceso activo. Quitalas de la selección antes de guardar.</p>:null}
   {selected.assigned_user_ids.length>=100?<p role="status">Máximo 100 responsables.</p>:null}
   {error?<p className="error" role="alert" id={`${id}-error`}>{error}</p>:null}

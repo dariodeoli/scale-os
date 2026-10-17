@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {act,create} from 'react-test-renderer';
 
 Object.assign(globalThis,{React});
+require.extensions['.css']=()=>{};
 const {AmountInput}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const changed:string[]=[];
 const prefixOf=(renderer:ReturnType<typeof create>)=>JSON.stringify(renderer.toJSON());

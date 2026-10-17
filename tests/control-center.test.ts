@@ -23,8 +23,8 @@ assert.equal(normalizeSearch(undefined as unknown as string),'');
 assert.equal(normalizeSearch(null as unknown as string),'');
 assert.equal(normalizeSearch(123 as unknown as string),'123');
 // Barrido del mismo patrón (issue #65): ningún `normalize` sobre un valor sin guarda.
-const profileControls=readFileSync(new URL('../app/profile-controls.tsx',import.meta.url),'utf8');
-assert(profileControls.includes('const foldSearch')&&profileControls.includes("String(value ?? '')"),'el SelectCustom pliega labels y búsquedas con guarda');
+const profileControls=readFileSync(new URL('../app/ui/select.tsx',import.meta.url),'utf8');
+assert(profileControls.includes('const foldSelectSearch')&&profileControls.includes("String(value??'')"),'el SelectCustom pliega labels y búsquedas con guarda');
 assert(!/c\.label\.normalize\(/.test(profileControls),'no queda un normalize directo sobre el label de una opción');
 const permissionsMatrix=readFileSync(new URL('../app/permissions-matrix.tsx',import.meta.url),'utf8');
 assert(permissionsMatrix.includes("String(row?.id??'')")&&permissionsMatrix.includes("String(row?.label??'')"),'la matriz de permisos arma el texto con guarda');

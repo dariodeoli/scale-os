@@ -50,8 +50,8 @@ try{
  await page.waitForFunction(()=>document.querySelector('.dialog-footer button')?.textContent==='Acción oculta');
  await page.$eval('#hidden-form',element=>{element.hidden=true;});
  await page.waitForFunction(()=>document.querySelectorAll('.dialog-footer button').length===0);
- await page.click('input[aria-label="Custodio"]');
- await page.waitForFunction(()=>document.querySelector('input[aria-label="Custodio"]').getAttribute('aria-expanded')==='true');
+ await page.click('.ops-person-select [aria-haspopup="listbox"]');
+ await page.waitForFunction(()=>document.querySelector('.ops-person-select [aria-haspopup="listbox"]').getAttribute('aria-expanded')==='true');
  await page.keyboard.press('Escape');
  assert.equal(await page.evaluate(()=>window.closeCount),0,'the first Escape closes the person menu');
  await page.keyboard.press('Escape');
