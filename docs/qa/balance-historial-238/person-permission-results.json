@@ -1,0 +1,62 @@
+{
+  "scope": "permission",
+  "source": "f1feaacdd4a0c58ae97279e57da69cd585c7014f",
+  "checks": [
+    {
+      "name": "Restricted actor receives internal directory without management sheet",
+      "passed": true
+    },
+    {
+      "name": "Same finance actor has effective salary.view false",
+      "passed": true
+    },
+    {
+      "name": "Equipo UI requested no salary history",
+      "passed": true
+    },
+    {
+      "name": "Restricted actor has no Remuneraci\u00f3n tab",
+      "passed": true
+    },
+    {
+      "name": "Restricted actor mounts no salary panel",
+      "passed": true
+    },
+    {
+      "name": "No salary controls or monetary fallback mounted",
+      "passed": true
+    },
+    {
+      "name": "API still redacts both salary amounts",
+      "passed": true
+    },
+    {
+      "name": "Restricted salary history remains403",
+      "passed": true
+    },
+    {
+      "name": "No business mutation attempted",
+      "passed": true
+    }
+  ],
+  "geometry": [],
+  "blockedWrites": [
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    },
+    {
+      "method": "POST",
+      "path": "/core-api/api/agency/presence/heartbeat"
+    }
+  ],
+  "salaryHistoryRequests": [
+    "/core-api/api/agency/collaborators/11/salary-history"
+  ],
+  "screenshots": [],
+  "passed": true
+}
