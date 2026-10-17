@@ -172,7 +172,7 @@ test('#138 adopción: kit ⋯, esqueleto del Resumen, vacío compacto y KPIs de 
   assert.match(workHistory,/<EmployeeTasks \{\.\.\.props\}/,'los pendientes internos delegan al mismo dashboard que el proyecto');
   const tasks=file('app/employee-tasks.tsx');
   assert.match(tasks,/className="employee-task-card"/,'las tareas reúnen estado, entrega, responsables y checklist en una tarjeta');
-  assert.match(tasks,/record\.can_edit\?<button/,'editar requiere el permiso efectivo del API');
+  assert.match(tasks,/record\.can_edit\?<Button variant="ghost"/,'editar requiere el permiso efectivo del API');
   assert.match(tasks,/<EmptyBlock title="No hay tareas en esta vista\."/,'el vacío describe el filtro actual');
 
   const preferencias=file('app/sections/preferencias.tsx');
@@ -181,3 +181,17 @@ test('#138 adopción: kit ⋯, esqueleto del Resumen, vacío compacto y KPIs de 
 });
 
 console.log('PASS: patrones #138 — tarjeta compacta, menú ⋯, esqueletos, vacío compacto y adopción en el shell');
+
+// #241: la migración conserva la jerarquía visual de clases dinámicas existentes.
+test('Button infiere variantes visuales existentes y respeta una variante explícita',async()=>{
+ const {Button}=require('../app/ui/button') as typeof import('../app/ui/button');
+ for(const [className,expected] of [['text-button warn','ghost'],['text-button positive','ghost'],['secondary danger','danger'],['primary','primary'],['secondary','secondary'],['icon-button','secondary']] as const){
+  await act(async()=>{renderer=create(<Button className={className}>Acción</Button>);});
+  const host=renderer.root.findByType('button');assert.equal(host.props['data-variant'],expected);
+  assert.equal(host.props.type,'button');assert.equal(host.props.children,'Acción');
+  act(()=>renderer.unmount());
+ }
+ await act(async()=>{renderer=create(<Button variant="outline" className="primary">Acción explícita</Button>);});
+ assert.equal(renderer.root.findByType('button').props['data-variant'],'outline');
+ act(()=>renderer.unmount());
+});

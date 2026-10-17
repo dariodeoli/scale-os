@@ -197,7 +197,7 @@ test('presupuestos vacío: el CTA canónico sólo aparece con permiso',async()=>
  const creates=renderer.root.findAllByType('button').filter(button=>text(button).includes('Nuevo presupuesto'));
  assert.equal(creates.length,2,'owner ve el alta en el encabezado y en el vacío');
  assert.equal(creates[0].props['data-variant'],'primary','el encabezado siempre muestra Nuevo presupuesto');
- assert.equal(creates[1].props.className,'primary ','el vacío usa el botón canónico EmptyCta');
+ assert.equal(creates[1].props['data-variant'],'primary','el vacío usa el botón canónico EmptyCta');
  act(()=>{creates[1].props.onClick();});
  assert.equal(created,1,'el CTA abre el alta del shell');
  act(()=>renderer.unmount());

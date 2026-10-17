@@ -55,10 +55,10 @@ test("superadmin hides every mutation control from a viewer and keeps the panel 
   assert.match(page, /\{writable && subscriptionAgency \? \(/);
   assert.match(page, /\{confirming && writable && \(/);
   assert.match(page, /\{writable && \(\s*<form className="platform-admin-coupon/);
-  assert.match(page, /\{writable \? <ListActions>\s*<button\s+type="button"\s+className=\{"text-button " \+/);
+  assert.match(page, /\{writable \? <ListActions>\s*<Button\s+type="button"\s+className=\{"text-button " \+/);
   // El acceso manual vive en un solo helper con gate de escritura y se reusa
   // en la tabla y en las tarjetas (una definición, dos contenedores).
-  assert.equal((page.match(/\{writable && \(\s*<button\s+type="button"\s+className="text-button platform-admin-inline-action"/g) ?? []).length, 1, "el acceso manual queda detrás de writable");
+  assert.equal((page.match(/\{writable && \(\s*<Button variant="ghost"\s+type="button"\s+className="text-button platform-admin-inline-action"/g) ?? []).length, 1, "el acceso manual queda detrás de writable");
   assert.equal((page.match(/\{actions\(agency\)\}/g) ?? []).length, 2, "la tabla y las tarjetas comparten las acciones");
   assert.match(page, /\{writable \? <ListActions>\{actions\(agency\)\}<\/ListActions> : null\}/);
   assert.match(page, /\{writable \? <div className="mt-auto/);

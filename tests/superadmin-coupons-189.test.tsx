@@ -143,7 +143,7 @@ test('estado manual: gracias en un clic con un solo botón primario y opciones a
   const root = await mount(<SubscriptionDialog {...props}/>);
   const labels = buttons(root).map((entry) => text(entry).trim()).filter(Boolean);
   assert.deepEqual(labels.slice(0, 4), ['+7 días', '+1 mes', '+3 meses', 'Aplicar cupón']);
-  assert.equal(buttons(root).filter((entry) => entry.props.className === 'primary').length, 1, 'un solo botón primario arriba');
+  assert.equal(buttons(root).filter((entry) => entry.props['data-variant'] === 'primary').length, 1, 'un solo botón primario arriba');
   assert.ok(text(renderer!.root).includes('Acceso manual activo') && text(renderer!.root).includes('Vence'), 'estado y vencimiento visibles');
   assert.ok(root.findByType('details').findByType('summary'), 'opciones avanzadas plegadas');
   assert.equal(text(root.findByType('summary')), 'Opciones avanzadas');

@@ -79,7 +79,7 @@ test('#133: parcial/seña y división en partes con suma exacta', () => {
  const data = file('app/ia-cobro-data.ts');
  assert(dialog.includes('PartesDivision'), 'la división tiene su bloque en la misma confirmación');
  assert(dialog.includes('Dividir en partes') && dialog.includes('Usar una sola cuenta'), 'la división se activa y se desactiva de forma explícita');
- assert(dialog.includes('Agregar parte') && dialog.includes('>Quitar</button>'), 'las partes se agregan y se quitan');
+ assert(dialog.includes('Agregar parte') && dialog.includes('>Quitar</Button>'), 'las partes se agregan y se quitan');
  assert(dialog.includes('Suma: ${money(suma'), 'la suma visible acompaña la edición con el formato único de dinero');
  assert(data.includes('La suma de las partes'), 'el error de suma se explica sin efectos');
  assert(dialog.includes('const partesProblema=validarPartesIa(partes,cobro.monto)') && dialog.includes("actualizar({estado:'error',mensaje:partesProblema})"), 'la suma inválida se muestra en la tarjeta sin ejecutar');
