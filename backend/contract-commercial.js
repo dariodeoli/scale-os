@@ -1,6 +1,7 @@
 import {roleCan} from './permissions.js';
 import {assertRecordAvailable} from './record-lifecycle.js';
 import {fail,id} from './suite-validation.js';
+import {zoneTodaySql} from './business-time.js';
 
 const parse=value=>typeof value==='string'?JSON.parse(value):value;
 const listing=value=>(parse(value)||[]).map(item=>typeof item==='string'?item:`${item.quantity ?? 1} × ${item.description ?? ''}`).join('\n');
@@ -42,7 +43,7 @@ export async function fillContractCommercial(c,u,b,put){
  // The selected client's negotiated terms are more sensitive than catalog
  // prices. Respect their independent permission and match the actual plan ID.
  if(!b.client_id||!roleCan(u,'commercial-terms.manage'))return;
- const term=(await c.query(`select *,case when monthly_price is not null then round(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end,2)::text else recurring_amount::text end as contract_amount from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and plan_id=$3 and effective_until is null and coalesce(starts_on,effective_from)<=current_date and (ends_on is null or ends_on>=current_date) order by coalesce(effective_from,starts_on) desc,id desc limit 1`,[u.organization_id,id(b.client_id),row.id])).rows[0];
+ const term=(await c.query(`select *,case when monthly_price is not null then round(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end,2)::text else recurring_amount::text end as contract_amount from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and plan_id=$3 and effective_until is null and coalesce(starts_on,effective_from)<=${zoneTodaySql} and (ends_on is null or ends_on>=${zoneTodaySql}) order by coalesce(effective_from,starts_on) desc,id desc limit 1`,[u.organization_id,id(b.client_id),row.id])).rows[0];
  if(!term)return;
  const putTerm=(key,value)=>put('agreement.'+key,value,'client-commercial-terms',term.id);
  putTerm('amount',term.contract_amount);putTerm('currency',term.currency);putTerm('plan_name',term.plan_name||row.name);

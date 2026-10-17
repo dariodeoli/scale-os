@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
+import {zoneTodaySql} from './business-time.js';
 import {contracts,contractVariables,contractBody,contractMissing,contractHtml,contractAiMetadata} from './contracts.js';
 const pg=new PGlite();await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const file of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260910_ruc_lookup.sql','20260913_ruc_collaboration.sql','20260930_personal_data.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260915_optional_commission_terms.sql','20260915_billing_cadence_and_coupons.sql','20260915_client_terms_end_date.sql','20261017_contract_documents.sql','20261017_client_legal_profile.sql'])await pg.exec(await fs.readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
@@ -102,6 +103,15 @@ const term=(await one(`insert into agency_client_commercial_terms(organization_i
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.amount'],'89.99');assert.equal(r.variables['agreement.payment_terms'],'Cobro cada 3 meses');assert.equal(r.variables['agreement.deliverables'],'Dos piezas pactadas');assert.equal(r.sources['agreement.amount'].source,'client-commercial-terms');assert.equal(String(r.sources['agreement.amount'].record_id),String(term));
 const catalogOnly={...sales,capabilities:{...sales.capabilities,'commercial-terms.manage':false}};r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client},catalogOnly);assert.equal(r.variables['agreement.amount'],'12.64','negotiated prices require their independent permission');
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:unnamed});assert.equal(r.variables['agreement.amount'],'12.64','never reuse another client terms');
+// The negotiated agreement is active on today's Asunción date even when
+// the database session has already crossed a different civil-day boundary.
+await query(`update agency_client_commercial_terms set starts_on=${zoneTodaySql},ends_on=${zoneTodaySql} where id=$1`,[term]);
+let differentCivilDates=0;
+for(const timezone of ['Etc/GMT+12','Etc/GMT-14']){
+ await query(`set time zone '${timezone}'`);const days=await one(`select current_date::text as database_date,${zoneTodaySql}::text as business_date`);if(days.database_date!==days.business_date)differentCivilDates++;
+ r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.amount'],'89.99','negotiated agreement validity follows Asunción, independent of database timezone');assert.equal(r.sources['agreement.amount'].source,'client-commercial-terms');
+}
+assert(differentCivilDates>0,'test exercises a real database/business civil-day difference without replacing the clock');await query("set time zone 'UTC'");
 r=await call(root,'POST',{template_id:template.id,title:'Desde presupuesto',client_id:client,budget_id:budget,variables:{'agreement.amount':'2000.01'}});assert.equal(r.status,201,JSON.stringify(r));assert.equal(r.contract.variables['agreement.amount'],'2000.01');assert.equal(r.contract.sources['agreement.amount'].source,'manual');assert.equal(r.contract.sources['agreement.currency'].source,'budget');
 await query('update agency_plans set active=false where id=$1',[plan]);assert.equal((await call(root+'/autofill','POST',{plan_id:plan})).status,409);assert.equal((await call(root+'/config')).plans.some(p=>String(p.id)===String(plan)),false);await query('update agency_plans set active=true where id=$1',[plan]);
 for(const [kind,key] of [['plans',plan],['budgets',budget]]){await query('insert into agency_archived_records(organization_id,kind,record_id,removed_by) values($1,$2,$3,$4)',[org,kind,key,uid]);assert.equal((await call(root+'/autofill','POST',{[kind==='plans'?'plan_id':'budget_id']:key,client_id:client})).status,409);assert.equal((await call(root+'/config'))[kind].some(row=>String(row.id)===String(key)),false);}
