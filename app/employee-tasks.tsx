@@ -4,16 +4,16 @@ import {useTemporalFilter} from './use-temporal-filter';
 import {InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {PersonContainer} from './person-container';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useId,useRef,useState} from 'react';
 import {Editor,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip} from './ui-v2';
+import {EmptyBlock,ErrorBlock,LoadingBlock,StateChip,ViewSwitch,type CollectionView} from './ui-v2';
 import {TASK_BUCKETS,TASK_PRIORITIES,TASK_STATUSES,TASKS_CHANGED,TaskRequestError,taskMaterialUrl,taskRequest,tasksChanged,type Task,type TaskContext} from './employee-tasks-model';
 import './employee-tasks.css';
 import {Button as ScaleButton} from "./ui/button";
 
-export type EmployeeTasksProps={organizationId?:string;userId?:string;projectId?:string;canView?:boolean};
+export type EmployeeTasksProps={organizationId?:string;userId?:string;projectId?:string;canView?:boolean;compact?:boolean};
 const blankContext:TaskContext={people:[],projects:[],clients:[],can_assign:false,can_edit:false};
 const message=(cause:unknown)=>cause instanceof Error?cause.message:'No se pudo completar la operación.';
 const label=(options:{value:string;label:string}[],value:string)=>options.find(option=>option.value===value)?.label||'Sin estado';
@@ -22,18 +22,22 @@ export function EmployeeTasks(props:EmployeeTasksProps){
  if(!props.organizationId||!props.userId||props.canView===false)return null;
  return <TaskDashboard key={`${props.organizationId}:${props.userId}:${props.projectId||''}`} {...props}/>;
 }
-function TaskDashboard({projectId}:EmployeeTasksProps){
+function TaskDashboard({projectId,compact=false}:EmployeeTasksProps){
+ const [expanded,setExpanded]=useState(false);const [view,setView]=useState<CollectionView>('grid');const listId=useId();const preview=compact&&!expanded;
  const [context,setContext]=useState<TaskContext>(blankContext),[records,setRecords]=useState<Task[]>([]),[counts,setCounts]=useState<Record<string,number>>({}),[bucket,setBucket]=useState(projectId?'all':'today'),[assignee,setAssignee]=useState('me'),[project,setProject]=useState(projectId||''),[client,setClient]=useState(''),[offset,setOffset]=useState(0),[hasMore,setHasMore]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[reload,setReload]=useState(0),[edit,setEdit]=useState<Task|'new'|null>(null),[detail,setDetail]=useState<Task|null>(null),[detailLoading,setDetailLoading]=useState(false);
  const validRange=(range:{from:string;to:string})=>(!range.from||validateCivilDate(range.from))&&(!range.to||validateCivilDate(range.to))&&(!range.from||!range.to||range.from<=range.to);
  const [range,,rangeDraft,setRangeDraft]=useTemporalFilter({from:'',to:''},value=>validRange(value)?value:null);
  const {from,to}=range;
  function dateFilter(key:'from'|'to',value:string){const next={...rangeDraft,[key]:value};setRangeDraft(next);if(validRange(next))setOffset(0);}
+ const lastQuery=useRef('');
  const generation=useRef(0),mounted=useRef(true),controller=useRef<AbortController|null>(null);
  useEffect(()=>{mounted.current=true;const refresh=()=>setReload(value=>value+1);window.addEventListener(TASKS_CHANGED,refresh);return()=>{mounted.current=false;controller.current?.abort();window.removeEventListener(TASKS_CHANGED,refresh);};},[]);
  useEffect(()=>{const abort=new AbortController();taskRequest<TaskContext>('/context',undefined,'GET',abort.signal).then(value=>{if(!abort.signal.aborted&&mounted.current)setContext(value);}).catch(cause=>{if(!abort.signal.aborted)setError(message(cause));});return()=>abort.abort();},[reload]);
  useEffect(()=>{
- const abort=new AbortController();const current=++generation.current;setLoading(true);setError('');setRecords([]);
+ const abort=new AbortController();const current=++generation.current;setLoading(true);setError('');
  const query=new URLSearchParams({assignee,bucket,limit:'10',offset:String(offset)});if(project)query.set('project_id',project);if(client)query.set('client_id',client);if(from)query.set('from',from);if(to)query.set('to',to);
+ // Keep the opener mounted on a same-view refresh so Dialog can return keyboard focus.
+ if(lastQuery.current!==query.toString())setRecords([]);lastQuery.current=query.toString();
  taskRequest<{records:Task[];counts:Record<string,number>;page?:{has_more?:boolean;hasMore?:boolean;total?:number};can_assign:boolean;can_edit:boolean}>(`?${query}`,undefined,'GET',abort.signal).then(result=>{if(abort.signal.aborted||generation.current!==current)return;setRecords(result.records);setCounts(result.counts||{});setHasMore(result.page?.hasMore??result.page?.has_more??result.records.length===10);setContext(value=>({...value,can_assign:result.can_assign,can_edit:result.can_edit}));}).catch(cause=>{if(!abort.signal.aborted)setError(message(cause));}).finally(()=>{if(!abort.signal.aborted)setLoading(false);});return()=>abort.abort();
  },[assignee,bucket,project,client,from,to,offset,reload]);
  const filter=(set:(value:string)=>void)=>(value:string)=>{set(value);setOffset(0);};
@@ -42,8 +46,11 @@ function TaskDashboard({projectId}:EmployeeTasksProps){
  try{controller.current?.abort();const abort=new AbortController();controller.current=abort;const result=await taskRequest<{record:Task}>(`/${record.id}${path}`,{expected_version:record.version,...(body as object)},method,abort.signal);if(mounted.current){if(result.record)setDetail(value=>value?{...value,...result.record}:null);tasksChanged();}return result.record;}
  catch(cause){if(cause instanceof TaskRequestError&&cause.status===409){tasksChanged();throw new Error('La tarea cambió. Conservamos tu borrador; recargá la versión actual antes de volver a guardar.');}throw cause;}
  }
- return <section className="panel employee-tasks" aria-label={projectId?'Tareas del proyecto':'Mis tareas'}>
- <div className="employee-tasks-head"><div><h3 className="font-semibold">{projectId?'Tareas del proyecto':'Mis tareas'}</h3><p className="form-note">Responsables, materiales y seguimiento del equipo.</p></div>{context.can_edit?<ScaleButton type="button" className="primary" onClick={()=>setEdit('new')} variant="primary">Crear tarea</ScaleButton>:null}</div>
+ return <section className={`panel employee-tasks${preview?' employee-tasks-preview':''}`} aria-label={projectId?'Tareas del proyecto':'Mis tareas'}>
+ <div className="employee-tasks-head"><div><h3 className="font-semibold">{projectId?'Tareas del proyecto':'Mis tareas'}</h3>{!preview?<p className="form-note">Responsables, materiales y seguimiento del equipo.</p>:null}</div>{context.can_edit?<ScaleButton type="button" className="primary" onClick={()=>setEdit('new')} variant="primary">Crear tarea</ScaleButton>:null}</div>
+ {compact?<div className="employee-tasks-overview"><span>Hoy{counts.today!==undefined?` · ${counts.today}`:''}</span>{counts.overdue>0?<ScaleButton type="button" variant="ghost" onClick={()=>{setBucket('overdue');setOffset(0);setExpanded(true);}}>Vencidas · {counts.overdue}</ScaleButton>:null}<ScaleButton type="button" variant="secondary" aria-expanded={expanded} aria-controls={listId} onClick={()=>setExpanded(value=>!value)}>{expanded?'Volver al resumen de tareas':'Ver todas mis tareas'}</ScaleButton></div>:null}
+ <div id={listId} className="min-w-0" hidden={preview}>
+ <div className="employee-tasks-view"><span className="form-note">Vista de tareas</span><ViewSwitch value={view} onChange={setView}/></div>
  <div className="employee-tasks-tabs" aria-label="Estado de tareas">{TASK_BUCKETS.map(([value,title])=><button key={value} type="button" className={value===bucket?'primary':'secondary'} aria-pressed={value===bucket} onClick={()=>{setBucket(value);setOffset(0);}}>{title} {counts[value]!==undefined?`(${counts[value]})`:''}</button>)}</div>
  <details><summary className="min-h-11 cursor-pointer">Filtrar tareas</summary><div className="employee-tasks-filters">
  {context.can_assign?<SelectCustom label="Empleado" value={assignee} onChange={filter(setAssignee)} choices={[{value:'me',label:'Mis tareas'},{value:'all',label:'Todo el equipo'},...context.people.map(person=>({value:String(person.id),label:person.full_name,photoUrl:person.photo_url,kind:'person' as const}))]}/>:null}
@@ -51,11 +58,12 @@ function TaskDashboard({projectId}:EmployeeTasksProps){
  <SelectCustom label="Cliente" value={client} onChange={filter(setClient)} choices={[{value:'',label:'Todos los clientes'},...context.clients.map(item=>({value:String(item.id),label:item.name}))]}/>
  <label className="ops-label">Desde<InputControl className="ops-input" type="date" value={rangeDraft.from} onChange={event=>dateFilter('from',event.target.value)}/></label><label className="ops-label">Hasta<InputControl className="ops-input" type="date" value={rangeDraft.to} min={validateCivilDate(rangeDraft.from)?rangeDraft.from:undefined} onChange={event=>dateFilter('to',event.target.value)}/></label>
  </div></details>
+ </div>
  {error?<ErrorBlock title="No se pudieron cargar las tareas." description={error} onRetry={()=>setReload(value=>value+1)}/>:null}
  {loading||detailLoading?<LoadingBlock label="Cargando tareas…" lines={2}/>:null}
  {!loading&&!error&&!records.length?<EmptyBlock title="No hay tareas en esta vista." description="Probá otra fecha o categoría."/>:null}
- <div className="employee-tasks-grid">{records.map(record=><article key={record.id} className="employee-task-card"><h4>{record.title}</h4><div className="flex flex-wrap gap-2"><StateChip tone={record.status==='done'?'ok':'info'}>{label(TASK_STATUSES,record.status)}</StateChip><StateChip tone={record.priority==='urgent'||record.priority==='high'?'warn':'mute'}>{label(TASK_PRIORITIES,record.priority)}</StateChip></div><dl><dt>Entrega</dt><dd>{dateLabel(record.due_date)}{record.due_time?` · ${record.due_time.slice(0,5)}`:''}</dd><dt>Responsables</dt><dd>{(record.people||record.assignees)?.map(person=>person.full_name).join(', ')||'Sin asignar'}</dd><dt>Proyecto / cliente</dt><dd>{[record.project_name,record.client_name].filter(Boolean).join(' · ')||'Sin vínculo'}</dd><dt>Checklist</dt><dd>{record.checklist?.filter(item=>item.completed).length||0} / {record.checklist?.length||0}</dd></dl><div className="employee-task-actions"><ScaleButton type="button" className="secondary" onClick={()=>void open(record)} variant="secondary">Ver detalle</ScaleButton>{record.can_edit?<ScaleButton type="button" className="text-button" onClick={()=>void open(record,true)} variant="ghost">Editar / reprogramar</ScaleButton>:null}</div></article>)}</div>
- <div className="employee-task-actions"><ScaleButton type="button" className="secondary" disabled={loading||offset===0} onClick={()=>setOffset(value=>Math.max(0,value-10))} variant="secondary">Anterior</ScaleButton><span className="form-note">Página {offset/10+1}</span><ScaleButton type="button" className="secondary" disabled={loading||!hasMore} onClick={()=>setOffset(value=>value+10)} variant="secondary">Siguiente</ScaleButton></div>
+ <div className={`employee-tasks-grid${!preview&&view==='list'?' employee-tasks-list':''}`}>{preview&&bucket!=='today'?<p className="form-note">Vista actual: {TASK_BUCKETS.find(([value])=>value===bucket)?.[1]}. Tus filtros se conservan.</p>:null}{(preview?records.slice(0,1):records).map(record=><article key={record.id} data-task-id={record.id} className="employee-task-card"><h4>{record.title}</h4><div className="flex flex-wrap gap-2"><StateChip tone={record.status==='done'?'ok':'info'}>{label(TASK_STATUSES,record.status)}</StateChip><StateChip tone={record.priority==='urgent'||record.priority==='high'?'warn':'mute'}>{label(TASK_PRIORITIES,record.priority)}</StateChip></div>{preview?<p className="employee-task-preview-context">{[record.project_name,record.client_name].filter(Boolean).join(' · ')||'Sin vínculo'} · {dateLabel(record.due_date)}{record.due_time?` · ${record.due_time.slice(0,5)}`:''} · Checklist {record.checklist?.filter(item=>item.completed).length||0}/{record.checklist?.length||0}</p>:<dl><dt>Entrega</dt><dd>{dateLabel(record.due_date)}{record.due_time?` · ${record.due_time.slice(0,5)}`:''}</dd><dt>Responsables</dt><dd>{(record.people||record.assignees)?.map(person=>person.full_name).join(', ')||'Sin asignar'}</dd><dt>Proyecto / cliente</dt><dd>{[record.project_name,record.client_name].filter(Boolean).join(' · ')||'Sin vínculo'}</dd><dt>Checklist</dt><dd>{record.checklist?.filter(item=>item.completed).length||0} / {record.checklist?.length||0}</dd></dl>}<div className="employee-task-actions"><ScaleButton type="button" className="secondary" onClick={()=>void open(record)} variant="secondary">{preview?'Ver checklist y detalle':'Ver detalle'}</ScaleButton>{record.can_edit&&!preview?<ScaleButton type="button" className="text-button" onClick={()=>void open(record,true)} variant="ghost">Editar / reprogramar</ScaleButton>:null}</div></article>)}</div>
+ {!preview?<div className="employee-task-actions"><ScaleButton type="button" className="secondary" disabled={loading||offset===0} onClick={()=>setOffset(value=>Math.max(0,value-10))} variant="secondary">Anterior</ScaleButton><span className="form-note">Página {offset/10+1}</span><ScaleButton type="button" className="secondary" disabled={loading||!hasMore} onClick={()=>setOffset(value=>value+10)} variant="secondary">Siguiente</ScaleButton></div>:null}
  {edit?<Dialog title={edit==='new'?'Nueva tarea':'Editar / reprogramar tarea'} close={()=>setEdit(null)} size="amplio"><TaskEditor record={edit==='new'?null:edit} context={context} projectId={projectId} save={async body=>{if(edit==='new'){const abort=new AbortController();controller.current=abort;await taskRequest('',{...body,expected_version:0},'POST',abort.signal);}else await mutate(edit,body);if(mounted.current){setEdit(null);tasksChanged();}}} refresh={async()=>{if(edit!=='new'){const current=await taskRequest<{record:Task}>(`/${edit.id}`);setEdit(current.record);return current.record;}}}/></Dialog>:null}
  {detail?<Dialog title={detail.title} close={()=>setDetail(null)} size="amplio"><TaskDetail key={detail.id} record={detail} mutate={mutate} refresh={async()=>{await open(detail);}}/></Dialog>:null}
  </section>;

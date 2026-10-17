@@ -36,6 +36,8 @@ type ProduccionSectionProps = {
   hasProductionFilters: boolean;
   productionClientId: string;
   preferenceWarning: string;
+  retryPreferences: () => void;
+  preferencesSaving: boolean;
   updatePreferences: (change: Partial<WorkspacePreferences>) => void;
   /** El shell está releyendo clientes/proyectos: no decorar identidad hasta el dato fresco. */
   identityLoading?: boolean;
@@ -57,7 +59,7 @@ type ProduccionSectionProps = {
   boardRefresh?: number;
 };
 const VIEW_OPTIONS: [string, string, string][] = [['Tablero','Tablero','grid'],['Mi día','Mi día','clock'],['Calendario','Calendario','calendar'],['Lista y lotes','Lista y lotes','list']];
-export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, updatePreferences, projects, user, setActive, setDetail, createOrder, identityLoading=false, boardRefresh=0}: ProduccionSectionProps){
+export function ProduccionSection({productionView, preferences, changeProductionView, clients, selectedProductionClient, setProductionClientId, preferencesReady, setProductionFiltersDialogScope, preferenceScope, hasProductionFilters, productionClientId, preferenceWarning, retryPreferences, preferencesSaving, updatePreferences, projects, user, setActive, setDetail, createOrder, identityLoading=false, boardRefresh=0}: ProduccionSectionProps){
   const [draggedOrderId,setDraggedOrderId]=useState<string|null>(null);
   const today=useLocalCalendarDay();
   const filters=useMemo(()=>({clientId:selectedProductionClient,mine:preferences.production.mine,week:preferences.production.week,userId:String(user?.id||''),today}),[selectedProductionClient,preferences.production.mine,preferences.production.week,user?.id,today]);
@@ -144,7 +146,7 @@ export function ProduccionSection({productionView, preferences, changeProduction
   return (
     <ListPage aria-label="Producción" primaryAction={createOrder?<ScaleButton type="button" className="primary" onClick={createOrder} variant="primary"><Plus size={18}/> Nueva orden</ScaleButton>:undefined} toolbar={toolbar}>
       {productionView==='Tablero'&&hasProductionFilters&&<p className="m-0 text-xs text-mute" role="status">Filtros guardados del tablero · Todos los estados. La semana va de lunes a domingo según la hora local de tu dispositivo.{productionClientId&&!selectedProductionClient?' El cliente guardado ya no está disponible; se muestran todos los clientes.':''}</p>}
-      {productionView==='Tablero'&&preferenceWarning?<p className="m-0 text-xs text-mute" role="status">{preferenceWarning}</p>:null}
+      {productionView==='Tablero'&&preferenceWarning?<p className="m-0 text-xs text-mute" role="status">{preferenceWarning} <ScaleButton type="button" variant="secondary" disabled={preferencesSaving} onClick={retryPreferences}>Reintentar sincronización</ScaleButton></p>:null}
       {/* El planificador comparte la carga con el tablero: con error no se pinta un
           vacío falso ("No hay piezas") y con la primera carga va el esqueleto. */}
       {productionView!=="Tablero"&&(boardData.error

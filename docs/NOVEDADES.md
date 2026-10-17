@@ -2,6 +2,23 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.194
+
+- **Tareas a mano**: Inicio prioriza una tarea propia de hoy, su checklist y las
+  urgencias; la lista completa permite alternar lista y cuadrícula con los mismos datos.
+- **Estudio móvil**: las reservas de hoy aparecen antes del calendario mensual;
+  los filtros se conservan al volver al mes completo.
+- **Contratos más directos**: «Nuevo contrato» es la acción principal y la gestión
+  de modelos y plantillas queda reunida en una entrada secundaria.
+- **Varios contactos por cliente**: nombre, rol, correo y teléfono adicionales,
+  sin reemplazar el contacto principal; edición protegida ante cambios simultáneos.
+- **Preferencias de tu cuenta**: inicio y filtros se sincronizan por usuario y
+  empresa, con recuperación visible si falla la conexión.
+- **Domicilio legal coherente**: elegir una localidad vincula ciudad y departamento;
+  los datos manuales y anteriores se conservan para su revisión.
+- **Finanzas más livianas**: los logos bancarios se cargan por institución visible,
+  conservando las imágenes originales y el selector compartido.
+
 ## v1.0.193
 
 - **Acceso más ligero**: la pantalla de inicio de sesión descarga menos contenido

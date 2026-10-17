@@ -9,7 +9,7 @@ Object.defineProperty(globalThis,'document',{configurable:true,value:{activeElem
 
 const {EntityPicker}=require('../app/entity-picker') as typeof import('../app/entity-picker');
 const {InvoiceForm,PaymentForm,AccountForm}=require('../app/workspace-forms') as typeof import('../app/workspace-forms');
-const {BancoCombobox}=require('owncoding-ui') as typeof import('owncoding-ui');
+const {BancoComboboxLazy:BancoCombobox}=require('owncoding-ui/financial-lazy') as typeof import('owncoding-ui/financial-lazy');
 const {AmountInput,PersonSelect}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const {dateLabel}=require('../app/forecast-data') as typeof import('../app/forecast-data');
 const {listMonthLabel}=require('../app/month-format') as typeof import('../app/month-format');

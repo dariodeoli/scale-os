@@ -1,3 +1,4 @@
+import {companyLocalityCatalog,companyLocalityProfile,companyLocalityProvenance,CompanyLocalityValidationError} from './company-locality.js';
 import {assertDemoEffectAllowed,isDemoActor} from './demo-effects.js';
 import {roleCan} from './permissions.js';
 import {fillContractCommercial} from './contract-commercial.js';
@@ -89,15 +90,15 @@ export async function contracts({req,res,url,db,session,body,send,pdfRenderer=re
   const mutate=req.method!=='GET';if(mutate&&path!==profilePath&&!roleCan(u,'contracts.manage'))fail('Sin permiso para gestionar contratos',403);
   let result,status=200;
   if(path===profilePath){
-   if(req.method==='GET')result={profile:hydrate((await c.query('select * from agency_company_legal_profiles where organization_id=$1',[u.organization_id])).rows[0])||{revision:0,city:'',department:'',legal_representative_name:'',legal_representative_document:'',legal_representative_role:'',provenance:{}}};
+   if(req.method==='GET')result={profile:companyLocalityProfile(hydrate((await c.query('select * from agency_company_legal_profiles where organization_id=$1',[u.organization_id])).rows[0])||{revision:0,city:'',department:'',legal_representative_name:'',legal_representative_document:'',legal_representative_role:'',provenance:{}}),locality_catalog:companyLocalityCatalog()};
    else if(req.method==='PATCH'){
     const b=object(await body(req));await c.query('select id from organizations where id=$1 for update',[u.organization_id]);
     const old=hydrate((await c.query('select * from agency_company_legal_profiles where organization_id=$1',[u.organization_id])).rows[0])||{revision:0};
     if(!Number.isSafeInteger(b.expected_revision)||b.expected_revision!==old.revision)fail('El perfil cambió. Actualizá antes de guardar.',409);
     const fields=['city','department','legal_representative_name','legal_representative_document','legal_representative_role'];
-    if(Object.keys(b).some(k=>!fields.includes(k)&&k!=='expected_revision'))fail('Campo de perfil inválido');
-    const values=fields.map(k=>clean(b[k]??old[k]??'',k.includes('document')?60:160)),provenance={...(old.provenance||{})};for(const key of fields)if(Object.hasOwn(b,key))provenance[key]={source:'manual',updated_by:String(u.id)};
-    const row=(await c.query('insert into agency_company_legal_profiles(organization_id,city,department,legal_representative_name,legal_representative_document,legal_representative_role,provenance,revision,updated_by) values($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9) on conflict(organization_id) do update set city=excluded.city,department=excluded.department,legal_representative_name=excluded.legal_representative_name,legal_representative_document=excluded.legal_representative_document,legal_representative_role=excluded.legal_representative_role,provenance=excluded.provenance,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=now() returning *',[u.organization_id,...values,JSON.stringify(provenance),old.revision+1,u.id])).rows[0];result={profile:hydrate(row)};await audit(c,u,'company-profile',u.organization_id,'update',row.revision);
+    if(Object.keys(b).some(k=>!fields.includes(k)&&!['expected_revision','locality_id','locality_catalog_version'].includes(k)))fail('Campo de perfil inválido');
+    const values=fields.map(k=>clean(b[k]??old[k]??'',k.includes('document')?60:160)),provenance=companyLocalityProvenance(b,old,{city:values[0],department:values[1]},u.id);for(const key of fields)if(!['city','department'].includes(key)&&Object.hasOwn(b,key))provenance[key]={source:'manual',updated_by:String(u.id)};
+    const row=(await c.query('insert into agency_company_legal_profiles(organization_id,city,department,legal_representative_name,legal_representative_document,legal_representative_role,provenance,revision,updated_by) values($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9) on conflict(organization_id) do update set city=excluded.city,department=excluded.department,legal_representative_name=excluded.legal_representative_name,legal_representative_document=excluded.legal_representative_document,legal_representative_role=excluded.legal_representative_role,provenance=excluded.provenance,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=now() returning *',[u.organization_id,...values,JSON.stringify(provenance),old.revision+1,u.id])).rows[0];result={profile:companyLocalityProfile(hydrate(row))};await audit(c,u,'company-profile',u.organization_id,'update',row.revision);
    }else fail('Método no permitido',405);
   }else if(path==='/api/agency/contracts/config'&&req.method==='GET'){
    const manage=roleCan(u,'contracts.manage'),bank=bankAccess(u)&&roleCan(u,'finance.view'),commercial=manage&&roleCan(u,'budgets.manage');
@@ -154,5 +155,5 @@ export async function contracts({req,res,url,db,session,body,send,pdfRenderer=re
    }else fail('Método no permitido',405);
   }
   await c.query('commit');tx=false;send(res,status,result);return true;
- }catch(error){if(tx)await c.query('rollback');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de contratos.'});return true;}finally{c?.release();}
+ }catch(error){if(tx)await c.query('rollback');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de contratos.',...(error instanceof CompanyLocalityValidationError?{fieldErrors:error.fieldErrors}:{})});return true;}finally{c?.release();}
 }

@@ -1,0 +1,88 @@
+{
+  "scope": "Actual company editor with canonical controls, OwnCoding0.68.19 from isolated backend dependency (esbuild alias, shared frontend dependencies unchanged); synthetic API/catalog and shell, no full auth/session or production validation.",
+  "reports": [
+    {
+      "width": 390,
+      "theme": "light",
+      "scrollWidth": 390,
+      "selectHeight": 44
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "scrollWidth": 390,
+      "selectHeight": 44
+    },
+    {
+      "width": 390,
+      "theme": "contrast",
+      "scrollWidth": 390,
+      "selectHeight": 44
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "scrollWidth": 1440,
+      "selectHeight": 44
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "scrollWidth": 1440,
+      "selectHeight": 44
+    },
+    {
+      "width": 1440,
+      "theme": "contrast",
+      "scrollWidth": 1440,
+      "selectHeight": 44
+    }
+  ],
+  "errorsPreserveDraft": [
+    400,
+    409
+  ],
+  "manualSavePreservesLegacy": true,
+  "selectedSaveIncludesVersion": true,
+  "writes": [
+    {
+      "locality_id": "fixture:a",
+      "city": "Ciudad de prueba",
+      "department": "Departamento A",
+      "legal_representative_name": "Representante sintético",
+      "legal_representative_document": "",
+      "legal_representative_role": "",
+      "locality_catalog_version": "owncoding-ui@0.68.19",
+      "expected_revision": 4
+    },
+    {
+      "locality_id": "fixture:a",
+      "city": "Ciudad de prueba",
+      "department": "Departamento A",
+      "legal_representative_name": "Representante sintético",
+      "legal_representative_document": "",
+      "legal_representative_role": "",
+      "locality_catalog_version": "owncoding-ui@0.68.19",
+      "expected_revision": 4
+    },
+    {
+      "locality_id": null,
+      "city": "Ciudad histórica libre",
+      "department": "Nombre anterior",
+      "legal_representative_name": "Representante sintético",
+      "legal_representative_document": "",
+      "legal_representative_role": "",
+      "expected_revision": 4
+    },
+    {
+      "locality_id": "fixture:a",
+      "city": "Ciudad de prueba",
+      "department": "Departamento A",
+      "legal_representative_name": "Representante sintético",
+      "legal_representative_document": "",
+      "legal_representative_role": "",
+      "locality_catalog_version": "owncoding-ui@0.68.19",
+      "expected_revision": 5
+    }
+  ]
+}

@@ -12,6 +12,7 @@ const cases=[
  ['node','tests/options-select-browser.test.mjs'],
  ['node','tests/editor-focus-browser-241.test.mjs'],
  ['node','tests/client-matches-browser-241.test.mjs'],
+ ['node','tests/client-contacts-browser-184.test.mjs'],
  ['node','tests/workspace-form-lifecycle-browser-241.test.mjs'],
  ['node','tests/access-forms-browser-241.test.mjs'],
  ['node','tests/ui-temporal-drafts-browser-241.test.mjs'],

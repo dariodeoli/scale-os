@@ -1,0 +1,3999 @@
+{
+  "buildId": "idq89FzslJpah3GGyKU5u",
+  "compiledSource": "bf7ae3983582c6fd6ae36cb8c3e58aa1e3339b4b",
+  "fixture": {
+    "id": "37",
+    "projectId": "93",
+    "title": "QA207 SPA 1792273933681",
+    "originalVersion": 25
+  },
+  "checks": [
+    {
+      "name": "Single initial browser document",
+      "passed": true,
+      "details": {
+        "documents": [
+          {
+            "url": "/resumen",
+            "method": "GET"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 25
+      }
+    },
+    {
+      "name": "1440 initial own task",
+      "passed": true
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 25,
+        "after": 26,
+        "request": {
+          "expected_version": 25,
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": true
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "32",
+          "37",
+          "36",
+          "31",
+          "30",
+          "29",
+          "33",
+          "35",
+          "34"
+        ],
+        "version": 26,
+        "counts": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 3,
+          "completed": 1,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 26
+      }
+    },
+    {
+      "name": "1440 checklist visible in Project through SPA navigation",
+      "passed": true
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 26,
+        "after": 27,
+        "request": {
+          "expected_version": 26,
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "37",
+          "36"
+        ],
+        "version": 27,
+        "counts": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 27
+      }
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 27,
+        "after": 28,
+        "request": {
+          "expected_version": 27,
+          "title": "QA207 SPA 1792273933681",
+          "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+          "priority": "urgent",
+          "status": "pending",
+          "due_date": "2026-10-18",
+          "due_time": "13:45",
+          "project_id": "93",
+          "client_id": "94",
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ],
+          "materials": [],
+          "assigned_user_ids": [
+            "42"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-18",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "32",
+          "36",
+          "31",
+          "30",
+          "29",
+          "37",
+          "33",
+          "35",
+          "34"
+        ],
+        "version": 28,
+        "counts": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 2,
+          "overdue": 2,
+          "completed": 1,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "overdue",
+        "to": "upcoming",
+        "before": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 3,
+          "completed": 1,
+          "undated": 1
+        },
+        "after": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 2,
+          "overdue": 2,
+          "completed": 1,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 28
+      }
+    },
+    {
+      "name": "1440 reprogrammed date visible in Project",
+      "passed": true
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 28
+      }
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 28,
+        "after": 29,
+        "request": {
+          "expected_version": 28,
+          "title": "QA207 SPA 1792273933681",
+          "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+          "priority": "urgent",
+          "status": "pending",
+          "due_date": "2026-10-17",
+          "due_time": "13:45",
+          "project_id": "93",
+          "client_id": "94",
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ],
+          "materials": [],
+          "assigned_user_ids": [
+            "42"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "37",
+          "36"
+        ],
+        "version": 29,
+        "counts": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "upcoming",
+        "to": "overdue",
+        "before": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 1,
+          "overdue": 1,
+          "completed": 0,
+          "undated": 0
+        },
+        "after": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 29
+      }
+    },
+    {
+      "name": "1440 Project date change visible in Summary",
+      "passed": true
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 29,
+        "after": 30,
+        "request": {
+          "expected_version": 29,
+          "status": "done"
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "done",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "32",
+          "36",
+          "31",
+          "30",
+          "29",
+          "33",
+          "35",
+          "34",
+          "37"
+        ],
+        "version": 30,
+        "counts": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 2,
+          "completed": 2,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "overdue",
+        "to": "completed",
+        "before": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 3,
+          "completed": 1,
+          "undated": 1
+        },
+        "after": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 2,
+          "completed": 2,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 30
+      }
+    },
+    {
+      "name": "1440 completed state visible in Project",
+      "passed": true
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 30
+      }
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 30,
+        "after": 31,
+        "request": {
+          "expected_version": 30,
+          "title": "QA207 SPA 1792273933681",
+          "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+          "priority": "urgent",
+          "status": "pending",
+          "due_date": "2026-10-17",
+          "due_time": "13:45",
+          "project_id": "93",
+          "client_id": "94",
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ],
+          "materials": [],
+          "assigned_user_ids": [
+            "42"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "37",
+          "36"
+        ],
+        "version": 31,
+        "counts": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "completed",
+        "to": "overdue",
+        "before": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 1,
+          "completed": 1,
+          "undated": 0
+        },
+        "after": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 31
+      }
+    },
+    {
+      "name": "1440 final state restored in Summary",
+      "passed": true
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 31
+      }
+    },
+    {
+      "name": "390 initial own task",
+      "passed": true
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 31,
+        "after": 32,
+        "request": {
+          "expected_version": 31,
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": true
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "32",
+          "37",
+          "36",
+          "31",
+          "30",
+          "29",
+          "33",
+          "35",
+          "34"
+        ],
+        "version": 32,
+        "counts": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 3,
+          "completed": 1,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 32
+      }
+    },
+    {
+      "name": "390 checklist visible in Project through SPA navigation",
+      "passed": true
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 32,
+        "after": 33,
+        "request": {
+          "expected_version": 32,
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "37",
+          "36"
+        ],
+        "version": 33,
+        "counts": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 33
+      }
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 33,
+        "after": 34,
+        "request": {
+          "expected_version": 33,
+          "title": "QA207 SPA 1792273933681",
+          "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+          "priority": "urgent",
+          "status": "pending",
+          "due_date": "2026-10-18",
+          "due_time": "13:45",
+          "project_id": "93",
+          "client_id": "94",
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ],
+          "materials": [],
+          "assigned_user_ids": [
+            "42"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-18",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "32",
+          "36",
+          "31",
+          "30",
+          "29",
+          "37",
+          "33",
+          "35",
+          "34"
+        ],
+        "version": 34,
+        "counts": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 2,
+          "overdue": 2,
+          "completed": 1,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "overdue",
+        "to": "upcoming",
+        "before": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 3,
+          "completed": 1,
+          "undated": 1
+        },
+        "after": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 2,
+          "overdue": 2,
+          "completed": 1,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 34
+      }
+    },
+    {
+      "name": "390 reprogrammed date visible in Project",
+      "passed": true
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 34
+      }
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 34,
+        "after": 35,
+        "request": {
+          "expected_version": 34,
+          "title": "QA207 SPA 1792273933681",
+          "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+          "priority": "urgent",
+          "status": "pending",
+          "due_date": "2026-10-17",
+          "due_time": "13:45",
+          "project_id": "93",
+          "client_id": "94",
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ],
+          "materials": [],
+          "assigned_user_ids": [
+            "42"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "37",
+          "36"
+        ],
+        "version": 35,
+        "counts": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "upcoming",
+        "to": "overdue",
+        "before": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 1,
+          "overdue": 1,
+          "completed": 0,
+          "undated": 0
+        },
+        "after": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 35
+      }
+    },
+    {
+      "name": "390 Project date change visible in Summary",
+      "passed": true
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 35,
+        "after": 36,
+        "request": {
+          "expected_version": 35,
+          "status": "done"
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "done",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "32",
+          "36",
+          "31",
+          "30",
+          "29",
+          "33",
+          "35",
+          "34",
+          "37"
+        ],
+        "version": 36,
+        "counts": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 2,
+          "completed": 2,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "overdue",
+        "to": "completed",
+        "before": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 3,
+          "completed": 1,
+          "undated": 1
+        },
+        "after": {
+          "all": 9,
+          "today": 3,
+          "upcoming": 1,
+          "overdue": 2,
+          "completed": 2,
+          "undated": 1
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 36
+      }
+    },
+    {
+      "name": "390 completed state visible in Project",
+      "passed": true
+    },
+    {
+      "name": "Navigation /proyectos stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Project filter uses same project/task IDs",
+      "passed": true,
+      "details": {
+        "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93"
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 36
+      }
+    },
+    {
+      "name": "Same task CAS increments exactly once",
+      "passed": true,
+      "details": {
+        "before": 36,
+        "after": 37,
+        "request": {
+          "expected_version": 36,
+          "title": "QA207 SPA 1792273933681",
+          "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+          "priority": "urgent",
+          "status": "pending",
+          "due_date": "2026-10-17",
+          "due_time": "13:45",
+          "project_id": "93",
+          "client_id": "94",
+          "checklist": [
+            {
+              "id": "qa207-check",
+              "text": "Comprobar sincronización",
+              "completed": false
+            }
+          ],
+          "materials": [],
+          "assigned_user_ids": [
+            "42"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Mutation result matches requested change",
+      "passed": true,
+      "details": {
+        "status": "pending",
+        "date": "2026-10-17",
+        "checked": false
+      }
+    },
+    {
+      "name": "Mounted task dashboard invalidates/refetches same ID and version without page reload",
+      "passed": true,
+      "details": {
+        "ids": [
+          "37",
+          "36"
+        ],
+        "version": 37,
+        "counts": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Actual civil/time bucket counters invalidate without reload",
+      "passed": true,
+      "details": {
+        "from": "completed",
+        "to": "overdue",
+        "before": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 1,
+          "completed": 1,
+          "undated": 0
+        },
+        "after": {
+          "all": 2,
+          "today": 0,
+          "upcoming": 0,
+          "overdue": 2,
+          "completed": 0,
+          "undated": 0
+        }
+      }
+    },
+    {
+      "name": "Task mutation stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Navigation /resumen stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    },
+    {
+      "name": "Detail reads the same task ID",
+      "passed": true,
+      "details": {
+        "version": 37
+      }
+    },
+    {
+      "name": "390 final state restored in Summary",
+      "passed": true
+    },
+    {
+      "name": "Task IDs unchanged after UI sequence; no mirrors",
+      "passed": true
+    },
+    {
+      "name": "No POST tasks from UI",
+      "passed": true
+    },
+    {
+      "name": "No runtime errors or providers",
+      "passed": true
+    },
+    {
+      "name": "Final SPA assertion stays in one document/session",
+      "passed": true,
+      "details": {
+        "origin": 1792274285800.3,
+        "marker": "a3bd7cba-d219-4acb-967c-2b1836a7cd6c",
+        "documentRequests": 1
+      }
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 25,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 25,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 25,
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": true
+          }
+        ]
+      },
+      "id": "37",
+      "version": 26,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": true
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 26,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 26,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 26,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": true
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 26,
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ]
+      },
+      "id": "37",
+      "version": 27,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 27,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 27,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 27,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 27,
+        "title": "QA207 SPA 1792273933681",
+        "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+        "priority": "urgent",
+        "status": "pending",
+        "due_date": "2026-10-18",
+        "due_time": "13:45",
+        "project_id": "93",
+        "client_id": "94",
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ],
+        "materials": [],
+        "assigned_user_ids": [
+          "42"
+        ]
+      },
+      "id": "37",
+      "version": 28,
+      "statusValue": "pending",
+      "dueDate": "2026-10-18",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 28,
+          "status": "pending",
+          "dueDate": "2026-10-18"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 2,
+        "overdue": 2,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 28,
+          "status": "pending",
+          "dueDate": "2026-10-18"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 1,
+        "overdue": 1,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 28,
+      "statusValue": "pending",
+      "dueDate": "2026-10-18",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 28,
+          "status": "pending",
+          "dueDate": "2026-10-18"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 1,
+        "overdue": 1,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 28,
+      "statusValue": "pending",
+      "dueDate": "2026-10-18",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 28,
+        "title": "QA207 SPA 1792273933681",
+        "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+        "priority": "urgent",
+        "status": "pending",
+        "due_date": "2026-10-17",
+        "due_time": "13:45",
+        "project_id": "93",
+        "client_id": "94",
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ],
+        "materials": [],
+        "assigned_user_ids": [
+          "42"
+        ]
+      },
+      "id": "37",
+      "version": 29,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 29,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 29,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 29,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 29,
+        "status": "done"
+      },
+      "id": "37",
+      "version": 30,
+      "statusValue": "done",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 30,
+          "status": "done",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 2,
+        "completed": 2,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 30,
+          "status": "done",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 1,
+        "completed": 1,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 30,
+      "statusValue": "done",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 30,
+          "status": "done",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 1,
+        "completed": 1,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 30,
+      "statusValue": "done",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 30,
+        "title": "QA207 SPA 1792273933681",
+        "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+        "priority": "urgent",
+        "status": "pending",
+        "due_date": "2026-10-17",
+        "due_time": "13:45",
+        "project_id": "93",
+        "client_id": "94",
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ],
+        "materials": [],
+        "assigned_user_ids": [
+          "42"
+        ]
+      },
+      "id": "37",
+      "version": 31,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 31,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 31,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 31,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 31,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 31,
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": true
+          }
+        ]
+      },
+      "id": "37",
+      "version": 32,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": true
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 32,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 32,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 32,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": true
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 32,
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ]
+      },
+      "id": "37",
+      "version": 33,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 33,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 33,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 33,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 33,
+        "title": "QA207 SPA 1792273933681",
+        "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+        "priority": "urgent",
+        "status": "pending",
+        "due_date": "2026-10-18",
+        "due_time": "13:45",
+        "project_id": "93",
+        "client_id": "94",
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ],
+        "materials": [],
+        "assigned_user_ids": [
+          "42"
+        ]
+      },
+      "id": "37",
+      "version": 34,
+      "statusValue": "pending",
+      "dueDate": "2026-10-18",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 34,
+          "status": "pending",
+          "dueDate": "2026-10-18"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 2,
+        "overdue": 2,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 34,
+          "status": "pending",
+          "dueDate": "2026-10-18"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 1,
+        "overdue": 1,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 34,
+      "statusValue": "pending",
+      "dueDate": "2026-10-18",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 34,
+          "status": "pending",
+          "dueDate": "2026-10-18"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 1,
+        "overdue": 1,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 34,
+      "statusValue": "pending",
+      "dueDate": "2026-10-18",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 34,
+        "title": "QA207 SPA 1792273933681",
+        "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+        "priority": "urgent",
+        "status": "pending",
+        "due_date": "2026-10-17",
+        "due_time": "13:45",
+        "project_id": "93",
+        "client_id": "94",
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ],
+        "materials": [],
+        "assigned_user_ids": [
+          "42"
+        ]
+      },
+      "id": "37",
+      "version": 35,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 35,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 35,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 35,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 35,
+        "status": "done"
+      },
+      "id": "37",
+      "version": 36,
+      "statusValue": "done",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 36,
+          "status": "done",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 2,
+        "completed": 2,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 36,
+          "status": "done",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 1,
+        "completed": 1,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 36,
+      "statusValue": "done",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "37",
+          "version": 36,
+          "status": "done",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 1,
+        "completed": 1,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 36,
+      "statusValue": "done",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "request": {
+        "expected_version": 36,
+        "title": "QA207 SPA 1792273933681",
+        "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+        "priority": "urgent",
+        "status": "pending",
+        "due_date": "2026-10-17",
+        "due_time": "13:45",
+        "project_id": "93",
+        "client_id": "94",
+        "checklist": [
+          {
+            "id": "qa207-check",
+            "text": "Comprobar sincronización",
+            "completed": false
+          }
+        ],
+        "materials": [],
+        "assigned_user_ids": [
+          "42"
+        ]
+      },
+      "id": "37",
+      "version": 37,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0&project_id=93",
+      "records": [
+        {
+          "id": "37",
+          "version": 37,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 2,
+        "today": 0,
+        "upcoming": 0,
+        "overdue": 2,
+        "completed": 0,
+        "undated": 0
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/context",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=today&limit=10&offset=0",
+      "records": [
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks",
+      "query": "?assignee=me&bucket=all&limit=10&offset=0",
+      "records": [
+        {
+          "id": "32",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-16"
+        },
+        {
+          "id": "37",
+          "version": 37,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "36",
+          "version": 3,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "31",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "30",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "29",
+          "version": 1,
+          "status": "in_progress",
+          "dueDate": "2026-10-17"
+        },
+        {
+          "id": "33",
+          "version": 1,
+          "status": "pending",
+          "dueDate": "2026-10-19"
+        },
+        {
+          "id": "35",
+          "version": 1,
+          "status": "pending",
+          "dueDate": null
+        },
+        {
+          "id": "34",
+          "version": 1,
+          "status": "done",
+          "dueDate": "2026-10-16"
+        }
+      ],
+      "counts": {
+        "all": 9,
+        "today": 3,
+        "upcoming": 1,
+        "overdue": 3,
+        "completed": 1,
+        "undated": 1
+      }
+    },
+    {
+      "method": "GET",
+      "status": 200,
+      "path": "/core-api/api/agency/productivity/internal-tasks/37",
+      "query": "",
+      "id": "37",
+      "version": 37,
+      "statusValue": "pending",
+      "dueDate": "2026-10-17",
+      "checklist": [
+        {
+          "id": "qa207-check",
+          "text": "Comprobar sincronización",
+          "completed": false
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "url": "/resumen",
+      "method": "GET"
+    }
+  ],
+  "runtimeErrors": [],
+  "external": [],
+  "screens": [
+    "/tmp/scale207-advanced/1440-summary-checklist.png",
+    "/tmp/scale207-advanced/1440-project-checklist-restored.png",
+    "/tmp/scale207-advanced/1440-summary-reprogrammed.png",
+    "/tmp/scale207-advanced/1440-project-date-restored.png",
+    "/tmp/scale207-advanced/1440-summary-done.png",
+    "/tmp/scale207-advanced/1440-project-status-restored.png",
+    "/tmp/scale207-advanced/1440-summary-restored.png",
+    "/tmp/scale207-advanced/390-summary-checklist.png",
+    "/tmp/scale207-advanced/390-project-checklist-restored.png",
+    "/tmp/scale207-advanced/390-summary-reprogrammed.png",
+    "/tmp/scale207-advanced/390-project-date-restored.png",
+    "/tmp/scale207-advanced/390-summary-done.png",
+    "/tmp/scale207-advanced/390-project-status-restored.png",
+    "/tmp/scale207-advanced/390-summary-restored.png"
+  ],
+  "taskToggleClicks": [
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_a_",
+      "expanded": "false",
+      "trusted": true
+    },
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_u_",
+      "expanded": "false",
+      "trusted": true
+    },
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_26_",
+      "expanded": "false",
+      "trusted": true
+    },
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_36_",
+      "expanded": "false",
+      "trusted": true
+    },
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_3p_",
+      "expanded": "false",
+      "trusted": true
+    },
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_51_",
+      "expanded": "false",
+      "trusted": true
+    },
+    {
+      "path": "/resumen",
+      "text": "Ver todas mis tareas",
+      "controls": "_r_61_",
+      "expanded": "false",
+      "trusted": true
+    }
+  ],
+  "finalRecord": {
+    "id": "37",
+    "organization_id": "9",
+    "title": "QA207 SPA 1792273933681",
+    "description": "Fixture privada de sincronización; no usar fuera de loopback.",
+    "status": "pending",
+    "due_date": "2026-10-17",
+    "assigned_user_id": "42",
+    "source_key": null,
+    "created_at": "2026-10-17T21:52:13.695Z",
+    "updated_at": "2026-10-17T21:58:20.252Z",
+    "priority": "urgent",
+    "due_time": "13:45",
+    "project_id": "93",
+    "client_id": "94",
+    "created_by_user_id": "42",
+    "updated_by_user_id": "42",
+    "completed_at": null,
+    "version": 37,
+    "checklist": [
+      {
+        "id": "qa207-check",
+        "text": "Comprobar sincronización",
+        "completed": false
+      }
+    ],
+    "materials": [],
+    "assigned_user_ids": [
+      "42"
+    ],
+    "people": [
+      {
+        "id": "42",
+        "full_name": "Sebastián Benítez",
+        "photo_url": null
+      }
+    ],
+    "comments": [],
+    "can_edit": true,
+    "can_complete": true
+  },
+  "passed": true,
+  "endpointEvidence": {
+    "capturedAt": "2026-10-17T21:58:56.293Z",
+    "api": {
+      "status": 200,
+      "ok": true,
+      "database": "ready",
+      "version": "1.0.194"
+    },
+    "frontend": {
+      "status": 200,
+      "containsVersion194": true,
+      "containsExpectedBuildId": true
+    },
+    "sourceIdentification": "Approved compiled source supplied by integrator; BUILD_ID compared against local HTTP HTML"
+  }
+}

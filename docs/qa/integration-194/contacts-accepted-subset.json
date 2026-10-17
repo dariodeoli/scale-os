@@ -1,0 +1,70 @@
+{
+  "source": "bf7ae3983582c6fd6ae36cb8c3e58aa1e3339b4b",
+  "method": "Extracts completed contact UI checks from recorded raw run, without browser replay; later locality selector failure preserved separately.",
+  "rawOverallPassed": false,
+  "rawOverallError": "Error: Selector absent Localidad del catálogo de Paraguay\n    at selector (file:///workspace/.worktrees/qa-integration194/docs/qa/integration-194/contacts-locality-browser.mjs:3:1219)\n    at async choose (file:///workspace/.worktrees/qa-integration194/docs/qa/integration-194/contacts-locality-browser.mjs:3:1295)\n    at async file:///workspace/.worktrees/qa-integration194/docs/qa/integration-194/contacts-locality-browser.mjs:7:420",
+  "observedChecksPassed": 13,
+  "failedInSubset": 0,
+  "checks": [
+    {
+      "name": "1440 contact UI creates201/v1",
+      "passed": true,
+      "details": {
+        "id": "2",
+        "version": 1
+      }
+    },
+    {
+      "name": "1440 independent local API advances contact version",
+      "passed": true
+    },
+    {
+      "name": "1440 real409 preserves editor draft",
+      "passed": true
+    },
+    {
+      "name": "1440 explicit reload replaces draft with server value",
+      "passed": true
+    },
+    {
+      "name": "1440 UI update uses refreshedCAS",
+      "passed": true
+    },
+    {
+      "name": "1440 UI delete confirmed200",
+      "passed": true
+    },
+    {
+      "name": "390 contact UI creates201/v1",
+      "passed": true,
+      "details": {
+        "id": "3",
+        "version": 1
+      }
+    },
+    {
+      "name": "390 independent local API advances contact version",
+      "passed": true
+    },
+    {
+      "name": "390 real409 preserves editor draft",
+      "passed": true
+    },
+    {
+      "name": "390 explicit reload replaces draft with server value",
+      "passed": true
+    },
+    {
+      "name": "390 UI update uses refreshedCAS",
+      "passed": true
+    },
+    {
+      "name": "390 UI delete confirmed200",
+      "passed": true
+    },
+    {
+      "name": "184 effective denied actor hides contact actions",
+      "passed": true
+    }
+  ]
+}

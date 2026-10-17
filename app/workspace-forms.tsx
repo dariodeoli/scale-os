@@ -2,7 +2,7 @@
 import {InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {useState} from 'react';
-import {BancoCombobox} from 'owncoding-ui';
+import {BancoComboboxLazy as BancoCombobox} from 'owncoding-ui/financial-lazy';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';

@@ -1,0 +1,10 @@
+{
+  "version": "0.68.19",
+  "lockedSha": "git+ssh://git@github.com/dariodeoli/owncoding-ui.git#7cf63ad530384b2887551ddb50c9261270762202",
+  "distFiles": 273,
+  "originalResourceKeys": 89,
+  "institutionGroups": 53,
+  "packagePackSha256": "051815212fe377e94f787938ca846d3515dea5ac3bd183c3f94d57b7a6b7cdb1",
+  "verification": "All89 loader keys target runtime-identical institutional modules compared with the final19 pack build.273 file paths/bytes are not asserted identical: absolute virtual source paths change53 group chunk hashes and source maps; common runtime entries remain identical except the loader path table.",
+  "originalResourcesVerifiedAgainstLegacySha256": 89
+}

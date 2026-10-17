@@ -24,7 +24,7 @@ const allowlist: Record<string, {count: number; why: string}> = {
   'app/ia-cobro-data.ts': {count: 1, why: 'valida AAAA-MM-DD ida y vuelta anclada a T12:00Z'},
   'app/inventory-data.ts': {count: 1, why: 'aritmética de días civiles anclados a T00:00Z'},
   'app/production-filter.ts': {count: 2, why: 'semana civil calculada sobre T12:00Z'},
-  'app/studio-data.ts': {count: 1, why: 'días del mes generados con Date.UTC'},
+  'app/studio-data.ts': {count: 2, why: 'días del mes y límite del día civil siguiente calculados con Date.UTC; ninguna fecha por defecto sale del reloj UTC'},
   'app/weekly-automatic.tsx': {count: 3, why: 'lunes y domingo de una semana civil anclada a T12:00Z'},
 };
 const root = join(__dirname, '..');

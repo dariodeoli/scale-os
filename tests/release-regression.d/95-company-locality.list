@@ -1,0 +1,2 @@
+# Empresa: localidad de catálogo opt-in, manual/legado y errores canónicos
+node --import tsx --test tests/company-locality.test.tsx

@@ -6,13 +6,13 @@ import {readFile} from 'node:fs/promises';
 const templateSlug = 'scale-demo-controles-20260908';
 const uuid = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
 const scopedTables = `organizations organization_members sessions events oauth_handoffs
- agency_clients agency_projects agency_work_orders agency_budgets agency_budget_items
+ agency_clients agency_client_contacts agency_projects agency_work_orders agency_budgets agency_budget_items
  bank_accounts agency_invoices agency_payments account_transfers agency_collaborators
  agency_commissions agency_project_comments agency_payouts agency_payment_reversals
  agency_statement_lines agency_reconciliation_matches agency_content_reviews agency_referral_discounts
  agency_archived_records agency_plans agency_leads agency_pipeline_stages agency_inventory_maintenance agency_inventory agency_exchange_rates agency_settings
  agency_user_profiles agency_order_comments agency_internal_tasks agency_source_events agency_work_templates
- agency_template_runs agency_demo_sessions agency_notification_preferences agency_notifications
+ agency_template_runs agency_demo_sessions agency_notification_preferences agency_notifications agency_workspace_preferences
  agency_recurring_plans agency_presence_tabs agency_usage_sessions agency_job_roles agency_job_catalogs
  agency_invite_links agency_access_requests oauth_states
  agency_project_assignees agency_work_order_assignees agency_inventory_categories
