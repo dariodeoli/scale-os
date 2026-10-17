@@ -2,6 +2,22 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.191
+
+- **Crear cuenta también reconoce tu acceso**: con Google o con correo y
+  contraseña válidos, una cuenta existente vuelve a su espacio y conserva sus
+  empresas y permisos. La ficha de agencia se solicita a las identidades nuevas.
+- **Contratado y pagado en Balance**: clientes con logo, plan, contratado,
+  cobrado en el mes y requisito de factura; equipo con foto, salario previsto,
+  ajustes y pagos. Ambas tablas comparten columnas y títulos alineados.
+- **Importes con cronología**: los cambios de plan y salario conservan valores
+  anteriores, vigencia, motivo y autor. Los valores antiguos sin vigencia
+  acreditada se identifican explícitamente como datos históricos incompletos.
+- **Ficha del cliente**: logo visible y responsable legal junto al nombre;
+  una casilla permite mantener ambos nombres vinculados, sin copiar documentos.
+- **Cuenta nueva desde el cobro**: «Agregar cuenta» abre la ficha compartida y
+  permite volver al pago sin perder el borrador ni inventar un saldo inicial.
+
 ## v1.0.190
 
 - **Landing y acceso renovados**: recorrido de las funciones actuales con capturas
