@@ -4,7 +4,12 @@ import {fail,id} from './suite-validation.js';
 import {zoneTodaySql} from './business-time.js';
 
 const parse=value=>typeof value==='string'?JSON.parse(value):value;
-const listing=value=>(parse(value)||[]).map(item=>typeof item==='string'?item:`${item.quantity ?? 1} × ${item.description ?? ''}`).join('\n');
+const listing=value=>(parse(value)||[]).map(item=>{
+ if(typeof item==='string')return item.trim();
+ const description=typeof item?.description==='string'?item.description.trim():'';
+ if(!description)return '';
+ return item.quantity===undefined||item.quantity===null||item.quantity===''?description:`${item.quantity} × ${description}`;
+}).filter(Boolean).join('\n');
 const date=value=>value instanceof Date?value.toISOString().slice(0,10):String(value??'').slice(0,10);
 const decimal=value=>['string','number'].includes(typeof value)&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(String(value))&&Number.isFinite(Number(value));
 const pricedItems=items=>Array.isArray(items)&&items.length>0&&items.every(item=>item&&typeof item==='object'&&!Array.isArray(item)&&decimal(item.quantity)&&Number(item.quantity)>0&&decimal(item.unitPrice??item.unit_price)&&Number(item.unitPrice??item.unit_price)>=0);
