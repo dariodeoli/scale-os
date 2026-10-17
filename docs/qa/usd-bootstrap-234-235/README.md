@@ -43,3 +43,13 @@ Al continuar el flujo real se encontró una segunda causa en `FormField`: mostra
 El harness corrigió un supuesto de etiqueta: las deudas se muestran con fecha completa, por lo que se seleccionó su motivo sintético único. Ese error del selector no se clasificó como fallo del producto. Los errores de caret, remonte por validación y bootstrap sí se reprodujeron como comportamientos del producto y se revalidaron tras sus respectivas correcciones.
 
 El inicio anónimo adaptó sólo el header Origin del POST demo al origen canónico permitido; el proxy local adaptó cookies para localhost. No se contactó producción, no se probaron proveedores reales y no se repitieron los 79 checks independientes documentados en `../demo-232/`. La demo persiste temporalmente en el servidor y tiene TTL; no se afirma borrado físico automático ni datos guardados exclusivamente en el navegador.
+
+## Consumo fijado por el integrador
+
+Scale fija `owncoding-ui#v0.68.16`; el lock resuelve al commit de main
+`093239310d1f0ec4611e021beff07760d5000ba8`. El paquete instalado informa
+0.68.16 y su `dist/index.js` SHA256 coincide exactamente con el build final
+probado arriba: `16285ae25a08c7395ba2c3241b26b86a9126f50d710d1667f3a776f225559201`.
+Los PRs de biblioteca 50 y 52, y el CI de su main final (39010837945),
+pasaron antes de publicar el tag. Esto acredita el paquete consumido por Scale;
+la galería independiente requiere su propio despliegue y no se da por actualizada.
