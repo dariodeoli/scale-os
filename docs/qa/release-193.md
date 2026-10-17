@@ -20,6 +20,6 @@ Smoke32rutas(16×1440/390)ycuentaBanco39assertsUI aprobadas,cero erroresruntime/
 
 ## Incidente y publicación
 
-#253: el17/10/2026desde11:40America/Asuncion laAPIpública respondió503texto`no available server`; elregistrodelusuarioconfirmóauth/me,providers ymaintenance503. No se atribuye causa de contenedor/base/memoria sinlogsCoolify. La optimización del frontend y la recuperación de disponibilidad se verifican por separado.
+#253: el17/10/2026desde12:40America/Asuncion laAPIpública respondió503texto`no available server`; elregistrodelusuarioconfirmóauth/me,providers ymaintenance503. No se atribuye causa de contenedor/base/memoria sinlogsCoolify. La optimización del frontend y la recuperación de disponibilidad se verifican por separado.
 
 Preparación193/CI/merge/smokepúblico pendientes al redactar. No se hizo undeploy adicional delSHA192. La próxima publicación autorizada debe hacerse una vez para el nuevoSHA, con ambos servicios yhealthdatabase ready comprobados. Sinmigracionesnuevas; backend sólo metadata deversión.

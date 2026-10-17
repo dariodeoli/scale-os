@@ -21,7 +21,7 @@ const workspace=read('app/scale-workspace.tsx');
 assert(!exists('app/date-format.ts'),'la copia local app/date-format.ts se retiró');
 assert(!exists('app/due-status.ts'),'la copia local app/due-status.ts se retiró');
 const listFormat=read('app/list-format.tsx');
-assert.match(listFormat,/from 'owncoding-ui'/,'list-format delega en los objetos de la librería');
+assert.match(listFormat,/from 'owncoding-ui/core'/,'list-format delega en los objetos de la librería');
 assert.doesNotMatch(listFormat,/new Intl\.DateTimeFormat/,'list-format ya no arma fechas con Intl propio');
 assert.match(listFormat,/fechaLista\(value/,'listDateFull sale de fechaLista');
 assert.match(listFormat,/fechaListaCorta\(value/,'listDateShort sale de fechaListaCorta');

@@ -36,7 +36,7 @@ test('list dates delegate to the shared library with the app empty contract',()=
  assert.equal(listDateFull('2026-09-17T14:30:00.000Z','09:00'),'17 sept 26 · 09:00','an explicit hour wins');
  assert.equal(listDateShort(''),null);assert.equal(listDateShort('invalid'),null);assert.equal(listDateFull(null),null);
  // Una sola implementación: el formato de la app es el de la librería, sin Intl propio.
- assert.match(listFormatSource,/from 'owncoding-ui'/,`list-format usa los objetos de la librería`);
+ assert.match(listFormatSource,/from 'owncoding-ui/core'/,`list-format usa los objetos de la librería`);
  assert.doesNotMatch(listFormatSource,/new Intl\.DateTimeFormat/,'list-format ya no arma fechas a mano');
  assert.match(listFormatSource,/fechaLista\(value/,'listDateFull delega en fechaLista');
  assert.match(listFormatSource,/fechaListaCorta\(value/,'listDateShort delega en fechaListaCorta');
