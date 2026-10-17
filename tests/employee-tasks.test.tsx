@@ -19,7 +19,7 @@ const reads:string[]=[];
 const request=async(path:string,body?:unknown)=>{reads.push(path);if(body){writes.push(body);return {record:{...base,status:'done'}};}if(path==='/context')return context;if(path==='/1')return {record:base};if(path.includes('project_id=slow'))return await new Promise(resolve=>{deferred=resolve;});return {records:listRecords,counts:{today:listRecords.length},page:{has_more:false},can_assign:false,can_edit:false};};
 const exportsObj:any={};
 const passthrough=({children,...props}:any)=><div {...props}>{children}</div>;
-const customRequire=(name:string)=>name==='react'?React:name==='./ui/button'?require('../app/ui/button'):name==='./use-temporal-filter'?{useTemporalFilter}:name==='./ui/temporal-value'?temporalValue:name==='./ui/input-control'?{InputControl}:name==='./ui/input'?require('../app/ui/input'):name==='./operations'?{Editor:(props:any)=>{editorProps=props;return <div data-editor="true"/>;}}:name==='./dialog'?{Dialog:passthrough}:name==='./profile-controls'?{SelectCustom:({label}:any)=><span>{label}</span>}:name==='./ui-v2'?{EmptyBlock:passthrough,ErrorBlock:passthrough,LoadingBlock:passthrough,StateChip:passthrough}:name==='./employee-tasks-model'?{...model,taskRequest:request,tasksChanged:()=>{}}:{};
+const customRequire=(name:string)=>name==='react'?React:name==='./ui/button'?require('../app/ui/button'):name==='./use-temporal-filter'?{useTemporalFilter}:name==='./ui/temporal-value'?temporalValue:name==='./ui/input-control'?{InputControl}:name==='./ui/input'?require('../app/ui/input'):name==='./operations'?{Editor:(props:any)=>{editorProps=props;return <div data-editor="true"/>;}}:name==='./dialog'?{Dialog:passthrough}:name==='./profile-controls'?{SelectCustom:({label}:any)=><span>{label}</span>}:name==='./ui-v2'?{EmptyBlock:passthrough,ErrorBlock:passthrough,LoadingBlock:passthrough,StateChip:passthrough,ViewSwitch:({value,onChange}:any)=><button data-view={value} onClick={()=>onChange(value==='grid'?'list':'grid')}>Cambiar vista</button>}:name==='./employee-tasks-model'?{...model,taskRequest:request,tasksChanged:()=>{}}:{};
 new Function('require','exports','React',compiled)(customRequire,exportsObj,React);
 const {EmployeeTasks,TaskEditor,TaskDetail}=exportsObj;
 const flush=async()=>{await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});};
@@ -51,7 +51,7 @@ async function run(){
  assert.equal(renderer.root.findByProps({id:toggle()!.props['aria-controls']}).props.hidden,true,'tabs and filters remain mounted but hidden');
  const beforeExpandReads=reads.length;
  await act(async()=>toggle()!.props.onClick());
- assert.equal(articles().length,3,'all fetched tasks remain reachable');assert.equal(reads.length,beforeExpandReads,'expand does not refetch or duplicate tasks');
+ assert.equal(articles().length,3,'all fetched tasks remain reachable');const beforeView=JSON.stringify(articles().map(node=>node.findByType('h4').children));await act(async()=>renderer.root.findByProps({'data-view':'grid'}).props.onClick());assert.equal(renderer.root.findAllByProps({className:'employee-tasks-grid employee-tasks-list'}).length,1);assert.equal(JSON.stringify(articles().map(node=>node.findByType('h4').children)),beforeView,'list and grid contain identical records');assert.equal(reads.length,beforeExpandReads,'expand does not refetch or duplicate tasks');
  await setDate(0,'2026-01-01');
  await act(async()=>toggle()!.props.onClick());await act(async()=>toggle()!.props.onClick());
  assert.equal(dates()[0].props.value,'2026-01-01','collapse/expand preserves filter draft');

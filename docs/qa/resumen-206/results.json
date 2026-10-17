@@ -6,9 +6,9 @@
       "theme": "light",
       "compact": 0,
       "overflow": 0,
-      "taskTop": 331.125,
-      "tasksHeight": 597.703125,
-      "urgentTop": 888.578125,
+      "taskTop": 385.125,
+      "tasksHeight": 651.703125,
+      "urgentTop": 942.578125,
       "cards": 3
     },
     {
@@ -26,9 +26,9 @@
       "theme": "dark",
       "compact": 0,
       "overflow": 0,
-      "taskTop": 331.125,
-      "tasksHeight": 597.703125,
-      "urgentTop": 888.578125,
+      "taskTop": 385.125,
+      "tasksHeight": 651.703125,
+      "urgentTop": 942.578125,
       "cards": 3
     },
     {
@@ -46,9 +46,9 @@
       "theme": "contrast",
       "compact": 0,
       "overflow": 0,
-      "taskTop": 331.125,
-      "tasksHeight": 597.703125,
-      "urgentTop": 888.578125,
+      "taskTop": 385.125,
+      "tasksHeight": 651.703125,
+      "urgentTop": 942.578125,
       "cards": 3
     },
     {
@@ -66,9 +66,9 @@
       "theme": "light",
       "compact": 0,
       "overflow": 0,
-      "taskTop": 383.125,
-      "tasksHeight": 1357.578125,
-      "urgentTop": 1792.015625,
+      "taskTop": 437.125,
+      "tasksHeight": 1411.578125,
+      "urgentTop": 1846.015625,
       "cards": 3
     },
     {
@@ -86,9 +86,9 @@
       "theme": "dark",
       "compact": 0,
       "overflow": 0,
-      "taskTop": 383.125,
-      "tasksHeight": 1357.578125,
-      "urgentTop": 1792.015625,
+      "taskTop": 437.125,
+      "tasksHeight": 1411.578125,
+      "urgentTop": 1846.015625,
       "cards": 3
     },
     {
@@ -106,9 +106,9 @@
       "theme": "contrast",
       "compact": 0,
       "overflow": 0,
-      "taskTop": 383.125,
-      "tasksHeight": 1357.578125,
-      "urgentTop": 1792.015625,
+      "taskTop": 437.125,
+      "tasksHeight": 1411.578125,
+      "urgentTop": 1846.015625,
       "cards": 3
     },
     {
