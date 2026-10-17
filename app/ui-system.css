@@ -67,7 +67,7 @@
 @media(max-width:767px){
  .control-shell :is(.workspace-page-header,.ui-page-header) .header-actions{flex:1 1 100%}
  .control-shell .ui-filter-toolbar>:is(.ops-select,.search-field){flex:1 1 10rem}
- .control-shell .ui-filter-summary{min-height:44px}
+ .control-shell .ui-filter-summary{min-height:0;line-height:1.5}
  .control-shell a.text-button{display:inline-flex;align-items:center;min-height:44px}
 }
 
