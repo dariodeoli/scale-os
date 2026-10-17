@@ -1,0 +1,3 @@
+# Balance: caja exacta, monedas separadas y permisos efectivos
+node --import tsx --test tests/finance-balance.test.ts
+node --import tsx --test tests/finance-collections.test.tsx

@@ -1,5 +1,6 @@
 "use client";
 import type {ChangeEvent, Dispatch, SetStateAction} from 'react';
+import {FinanceCollections} from '../finance-collections';
 import {Plus} from 'lucide-react';
 import {EmptyBlock, ErrorBlock, FilterToolbar, ListPage, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {Aviso, SearchField, SegmentedField} from 'owncoding-ui';
@@ -85,6 +86,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
   const failed = moraState === 'error';
   // Encabezado propio (ownsHeader): título del shell + «Registrar factura» en una fila.
   return <ListPage aria-label="Cobranza y mora" primaryAction={onCreateInvoice && roleCan(user?.role, 'invoices.manage') ? <button type="button" className="primary" onClick={() => onCreateInvoice()}><Plus size={16} aria-hidden="true"/>Registrar factura</button> : undefined}>
+    <FinanceCollections user={user}/>
     {loading ? <LoadingBlock label="Cargando cobranza…" lines={5}/>
     : failed && !paymentStatuses.length ? <ErrorBlock title="No se pudo cargar la cobranza" description="Reintentá para ver el saldo pendiente, la antigüedad de cada cliente y el DSO del mes." onRetry={onRetry}/>
     : <>
