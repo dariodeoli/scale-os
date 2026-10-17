@@ -83,6 +83,10 @@ try{
  }
  // #239: nombre vinculado explícito, persistente y protegido en todos los caminos.
  await pg.exec(await fs.readFile(new URL('./migrations/20261017_client_representative_link.sql',import.meta.url),'utf8'));
+ const longLegal='L'.repeat(160);
+ const longLinked=await alta('/api/agency/clients',{name:'Nombre comercial corto',legal_name:longLegal,legal_representative_same_as_client:true});
+ assert.equal(longLinked.status,201);assert.equal(longLinked.client.legal_representative_name,longLegal,'la razón social de160 caracteres se conserva completa');
+ assert.equal((await editar(`/api/agency/clients/${longLinked.client.id}`,{legal_name:'R'.repeat(160)})).record.legal_representative_name,'R'.repeat(160));
  const linkedProfile={name:'Cliente comercial',legal_name:'Persona jurídica declarada',legal_representative_same_as_client:true,legal_representative_name:'No debe imponerse',document_type:'ruc',document_number:'RUC-DECLARADO',legal_representative_document:'CI-INDEPENDIENTE',legal_representative_role:'Cargo declarado'};
  const linked=await alta('/api/agency/clients',linkedProfile);
  assert.equal(linked.status,201,JSON.stringify(linked));
@@ -115,6 +119,13 @@ try{
  await editar(`/api/agency/clients/${linkedId}`,{legal_name:'Identidad actual posterior'});
  assert.deepEqual((await query('select * from agency_contract_versions where id=$1',[version.id])).rows[0],version,'el contrato emitido conserva su snapshot');
  assert.equal(emptyLegal.client.legal_representative_same_as_client,false,'no se infiere una relación para otros clientes');
+ await query('alter table agency_clients add column if not exists personal_data_blocked_at timestamptz');
+ await query("update agency_clients set legal_representative_name='' where id=$1",[longLinked.client.id]);
+ await query('update agency_clients set personal_data_blocked_at=now() where id=$1',[longLinked.client.id]);
+ const suppressed=(await query('select legal_name,legal_representative_name,legal_representative_same_as_client from agency_clients where id=$1',[longLinked.client.id])).rows[0];
+ assert.equal(suppressed.legal_name,'R'.repeat(160),'la retención fiscal conserva la razón social');
+ assert.equal(suppressed.legal_representative_name,'','la supresión no reconstruye el representante');
+ assert.equal(suppressed.legal_representative_same_as_client,false);
  console.log('PASS #239: vínculo explícito, rename/toggle/reopen, documentos independientes, permisos/tenant y snapshot emitido');
  const clientPaths={name:'Cliente paridad',email:'paridad@example.invalid',phone:'+595 981123456',tax_id:'80012345-6',legal_name:'Razón social de prueba',notes:'Nota de alta'};
  const altaCliente=await alta('/api/agency/clients',clientPaths);
