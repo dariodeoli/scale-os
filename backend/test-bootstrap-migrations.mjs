@@ -18,7 +18,7 @@ const precisionIndex=migrationOrder.indexOf(precision);
 assert.notEqual(precisionIndex,-1,'precision migration remains an explicit historical boundary');
 const throughPrecision=migrationOrder.slice(0,precisionIndex+1);
 const beforePrecision=throughPrecision.slice(0,-1);
-const economicUpgrade=['20261017_client_representative_link.sql','20261018_economic_history.sql'];
+const economicUpgrade=['20261017_client_representative_link.sql','20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql'];
 assert.equal(beforePrecision.length,110,'the tracked 110-file fixture stays frozen');
 assert.equal(throughPrecision.length,111,'the precision upgrade remains migration 111');
 assert.deepEqual(migrationOrder.slice(precisionIndex+1),economicUpgrade,'new migrations follow the preserved 111-file baseline');
@@ -136,11 +136,11 @@ try{
  const beforeEconomic=await snapshot(),tracker111=(await query('select * from schema_migrations order by filename')).rows;
  assert.equal(tracker111.filter(row=>throughPrecision.includes(row.filename)).length,111);
  await restartConnection();await copy(economicUpgrade);
- assert.deepEqual(await bootstrap(),{curated:economicUpgrade,pending:[]},'111->113 executes exactly the two new migrations');
+ assert.deepEqual(await bootstrap(),{curated:economicUpgrade,pending:[]},'111->114 executes exactly the three new migrations');
  const afterEconomic=await snapshot();
  assertEconomicUpgradePreserves(beforeEconomic,afterEconomic);
- assert.deepEqual((await query('select * from schema_migrations where filename<>$1 and filename<>$2 order by filename',economicUpgrade)).rows,tracker111,'all prior tracker timestamps survive 111->113');
- assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[migrationOrder])).rows[0].n,113);
+ assert.deepEqual((await query('select * from schema_migrations where not(filename=any($1::text[])) order by filename',[economicUpgrade])).rows,tracker111,'all prior tracker timestamps survive 111->114');
+ assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[migrationOrder])).rows[0].n,114);
  assert.equal(afterEconomic.salaryHistory.length,beforeEconomic.agency_collaborators.length,'one baseline per existing person');
  const baseline=afterEconomic.salaryHistory.find(row=>String(row.collaborator_id)===String(economic.person));
  assert(baseline,'the legacy salary has a history baseline');
@@ -155,11 +155,11 @@ try{
  await rejectedWrite('update agency_salary_history set reason=$1 where id=$2',['Rewritten history',baseline.id],/append-only/i);
  await rejectedWrite('delete from agency_salary_history where id=$1',[baseline.id],/append-only/i);
  await rejectedWrite('update agency_client_commercial_terms set recurring_amount=999 where client_id=$1',[economic.client],/immutable|append/i);
- upgraded=await snapshot();const tracker113=(await query('select * from schema_migrations order by filename')).rows;
+ upgraded=await snapshot();const trackerLatest=(await query('select * from schema_migrations order by filename')).rows;
  for(let restart=0;restart<2;restart++){
-  await restartConnection();assert.deepEqual(await bootstrap(),{curated:[],pending:[]},'113-file process restart has no migration replay');
-  assert.deepEqual(await snapshot(),upgraded,'113 restart preserves baselines, invoices, payouts, cents and ownership trace');
-  assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,tracker113);
+  await restartConnection();assert.deepEqual(await bootstrap(),{curated:[],pending:[]},'114-file process restart has no migration replay');
+  assert.deepEqual(await snapshot(),upgraded,'114 restart preserves baselines, invoices, payouts, cents and ownership trace');
+  assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,trackerLatest);
  }
  // A later failure rolls back earlier new DDL AND tracker rows in the same TX.
  const beforeFailure='20271002_bootstrap_before_failure.sql',failure='20271003_bootstrap_failure.sql';
@@ -185,5 +185,5 @@ try{
  assert.equal((await query("select count(*)::int as n from agency_clients where name='Legacy client preserved'")).rows[0].n,1);
  assert.equal((await query("select numeric_scale from information_schema.columns where table_name='agency_expenses' and column_name='amount'")).rows[0].numeric_scale,2);
  assert.deepEqual(await bootstrap(),{curated:[],pending:[]});
- console.log(`PASS bootstrap: ${migrationOrder.length} curated files fresh/legacy; tracked 110->111 and 111->113 upgrades preserve ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding`);
+ console.log(`PASS bootstrap: ${migrationOrder.length} curated files fresh/legacy; tracked 110->111 and 111->114 upgrades preserve ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding`);
 }finally{await pg.close();await fs.rm(directory,{recursive:true,force:true});if(storage)await fs.rm(storage,{recursive:true,force:true});}
