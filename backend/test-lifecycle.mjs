@@ -73,7 +73,7 @@ assert.equal((await query('select balance,active from bank_accounts where id=$1'
 assert.equal((await call(`/api/agency/members/${uid}`,'DELETE')).status,400,'self removal');
 assert.equal((await call(`/api/agency/members/0${uid}`,'DELETE')).status,400,'self removal with equivalent ID');
 assert.equal((await call(`/api/agency/members/${uid}`,'DELETE',{...user,id:memberId,role:'admin'})).status,403,'admin cannot remove owner');
-assert.equal((await call(`/api/agency/members/${uid}`,'DELETE',{...user,id:memberId})).status,400,'last owner safeguard');
+assert.equal((await call(`/api/agency/members/${uid}`,'DELETE',{...user,id:memberId})).status,403,'a stale owner role cannot remove the last owner');
 assert.equal((await call(`/api/agency/members/${memberId}`,'DELETE')).status,200);
 assert.equal((await query('select * from sessions where id=$1',['archive-session'])).rows.length,0);
 assert.equal((await query('select * from sessions where id=$1',['other-session'])).rows.length,1);

@@ -17,7 +17,7 @@ const errorMessage=(e:unknown)=>e instanceof Error?e.message:'No se pudo complet
 
 /** ¿Este rol puede mover el registro a la papelera? Fuente única con el NAV. */
 export function canRemoveRecord(kind:string,role:string){
- const capability=roles[kind];
+ const capability=kind==='members'?'members.manage':roles[kind];
  return Boolean(capability&&roleCan(role,capability));
 }
 

@@ -1,3 +1,4 @@
+import {lockMemberManager} from './member-access.js';
 import {currencies} from './currencies.js';
 import {zoneTodaySql} from './business-time.js';
 import {patchUrgency} from './urgency.js';
@@ -110,7 +111,7 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
   await c.query('begin');transaction=true;await c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket.remoteAddress||'']);
   let result,status=200;
   if(kind==='members'){
-   await c.query('select id from organizations where id=$1 for update',[org]);
+   const manager=await lockMemberManager(c,user);
    const current=(await c.query('select m.*,u.email from organization_members m join users u on u.id=m.user_id where m.user_id=$1 and m.organization_id=$2 and m.removed_at is null for update of m',[key,org])).rows[0];if(!current)fail('Integrante no encontrado',404);
    if(action==='resend'&&req.method==='POST'){if(!current.active)fail('Reactivá el acceso antes de invitar');await c.query('commit');transaction=false;const emailSent=await sendInvitation(current.email,user.organization_name,current.role).catch(()=>false);send(res,200,{emailSent});return true;}
    if(req.method!=='PATCH'||action)fail('Método no permitido',405);
@@ -120,8 +121,8 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
    if(b.expected_role!==undefined&&b.expected_role!==current.role)fail('Otra persona cambió el rol de este integrante. Recargá para ver el valor actual.',409);
    if(b.expected_active!==undefined&&b.expected_active!==current.active)fail('Otra persona cambió el acceso de este integrante. Recargá para ver el valor actual.',409);
    if(BigInt(key)===BigInt(user.id)&&(role!==current.role||!active))fail('No podés quitarte tu propio acceso');
-   if(user.role!=='owner'&&(current.role==='owner'||role==='owner'))fail('Solo el propietario puede cambiar este rol',403);
-   if(current.role==='owner'&&(!active||role!=='owner')){const n=await c.query("select count(*)::int as count from organization_members where organization_id=$1 and role='owner' and active=true",[org]);if(n.rows[0].count<=1)fail('Debe quedar al menos un propietario activo');}
+   if(manager.role!=='owner'&&(current.role==='owner'||role==='owner'))fail('Solo el propietario puede cambiar este rol',403);
+   if(current.role==='owner'&&(!active||role!=='owner')){const n=await c.query("select count(*)::int as count from organization_members where organization_id=$1 and role='owner' and active=true and removed_at is null",[org]);if(n.rows[0].count<=1)fail('Debe quedar al menos un propietario activo');}
    const swapped=(await c.query('update organization_members set role=$1,active=$2 where user_id=$3 and organization_id=$4 and role=$5 and active=$6 returning user_id',[role,active,key,org,current.role,current.active])).rows[0];
    if(!swapped)fail('Otra persona cambió el rol de este integrante. Recargá para ver el valor actual.',409);await c.query('delete from sessions where user_id=$1 and organization_id=$2',[key,org]);result={ok:true};
    if(!current.active&&active&&typeof sendAccessGranted==='function')grantedNotify={email:current.email,organizationName:user.organization_name,role};

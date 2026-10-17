@@ -6,7 +6,7 @@ import {currencyChoices} from './currencies';
 import {PersonPhotoField} from './person-photo';
 import {RemoveRecord} from './archive-controls';
 import {TeamAccess} from './team-access';
-import {TeamMember,teamRoleLabels} from './team-directory';
+import {TeamMember,teamRoleLabels,isCurrentTeamMember} from './team-directory';
 import {PersonSheet,type SheetTab,type SheetTabId} from './person-sheet';
 import {AVISO_REFRESCO,completeSave} from './save-completion';
 import {notify} from './feedback';
@@ -69,8 +69,8 @@ function accessMessage(access:CollaboratorSave['access']){
 }
 
 /** ¿Este acceso se puede editar desde la ficha? (no el propio ni el de un dueño sin ser dueño). */
-function accessEditable(member:TeamMember|null,role:string,currentEmail:string){
-  return Boolean(member&&!member.removed_at&&member.email!==currentEmail&&!(member.role==='owner'&&role!=='owner'));
+function accessEditable(member:TeamMember|null,role:string,currentUserId:string){
+  return Boolean(member&&!member.removed_at&&!isCurrentTeamMember(member,currentUserId)&&!(member.role==='owner'&&role!=='owner'));
 }
 
 function ProfileTab({role,person,member,seedEmail,load,onCreated}:{role:string;person:Person|null;member:TeamMember|null;seedEmail:string;load:()=>Promise<void>;onCreated:(person:Person)=>void}){
@@ -115,8 +115,8 @@ function ProfileTab({role,person,member,seedEmail,load,onCreated}:{role:string;p
   </>;
 }
 
-function AccessTab({role,currentEmail,person,member,ambiguous,load}:{role:string;currentEmail:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;load:()=>Promise<void>}){
-  const editable=accessEditable(member,role,currentEmail);
+function AccessTab({role,currentUserId,person,member,ambiguous,load}:{role:string;currentUserId:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;load:()=>Promise<void>}){
+  const editable=accessEditable(member,role,currentUserId);
   const [draft,setDraft]=useState<{role:string;active:string}|null>(null);
   const [busy,setBusy]=useState(''),[error,setError]=useState('');
   useEffect(()=>{setDraft(member&&editable?{role:member.role,active:String(member.active!==false)}:null);},[member?.id,member?.role,member?.active,member?.removed_at,editable]);
@@ -194,11 +194,11 @@ export type SheetTarget={personId:string|null;memberId:string|null;seedEmail:str
  * Ficha de una persona de Equipo. Cada pestaña guarda por separado (perfil,
  * acceso, remuneración): no hay un guardado a medias entre ellas (#186 E3).
  */
-export function TeamPersonSheet({role,currentEmail,person,member,ambiguous,seedEmail,tab,defaultCurrency,load,onCreated,close}:{role:string;currentEmail:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;seedEmail:string;tab:SheetTabId;defaultCurrency:string;load:()=>Promise<void>;onCreated:(person:Person)=>void;close:()=>void}){
+export function TeamPersonSheet({role,currentEmail,currentUserId='',person,member,ambiguous,seedEmail,tab,defaultCurrency,load,onCreated,close}:{role:string;currentEmail:string;currentUserId?:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;seedEmail:string;tab:SheetTabId;defaultCurrency:string;load:()=>Promise<void>;onCreated:(person:Person)=>void;close:()=>void}){
   const salaryView=roleCan(role,'salary.view');
   const canManageAccess=roleCan(role,'members.manage');
   const tabs:SheetTab[]=[{id:'perfil',label:'Perfil',content:<ProfileTab role={role} person={person} member={member} seedEmail={seedEmail} load={load} onCreated={onCreated}/>}];
-  if(canManageAccess&&(person||member))tabs.push({id:'acceso',label:'Acceso',content:<AccessTab role={role} currentEmail={currentEmail} person={person} member={member} ambiguous={ambiguous} load={load}/>});
+  if(canManageAccess&&(person||member))tabs.push({id:'acceso',label:'Acceso',content:<AccessTab role={role} currentUserId={currentUserId} person={person} member={member} ambiguous={ambiguous} load={load}/>});
   // Sin `salary.view` la pestaña no se arma: ni su contenido ni sus datos existen.
   if(salaryView&&person)tabs.push({id:'remuneracion',label:'Remuneración',content:<PayTab person={person} defaultCurrency={defaultCurrency} load={load}/>});
   const title=person?'Editar persona':'Nueva persona';

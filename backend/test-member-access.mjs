@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+import {migrationOrder} from './scripts/migration-order.mjs';
+import {agencyCore} from './agency-core.js';
+import {suite} from './agency-suite.js';
+import {recordLifecycle} from './record-lifecycle.js';
+const pg=new PGlite();
+try{
+ await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
+ for(const file of migrationOrder)await pg.exec(await fs.readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
+ const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
+ const insert=async(sql,args)=>(await query(sql+' returning id',args)).rows[0].id;
+ const org=await insert("insert into organizations(slug,name) values('member-owner-fixture','Member owner fixture')");
+ const other=await insert("insert into organizations(slug,name) values('member-other-fixture','Other fixture')");
+ const a=await insert("insert into users(email,password_hash) values('member-owner-a@example.invalid','global-password-preserved')");
+ const b=await insert("insert into users(email,password_hash) values('member-owner-b@example.invalid','global-password-preserved')");
+ const admin=await insert("insert into users(email,password_hash) values('member-admin@example.invalid','unused')");
+ const worker=await insert("insert into users(email,password_hash) values('member-worker@example.invalid','unused')");
+ await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner'),($1,$3,'owner'),($1,$4,'admin'),($1,$5,'editor'),($6,$3,'owner')",[org,a,b,admin,worker,other]);
+ await query("insert into sessions(id,user_id,organization_id,expires_at) values('owner-b-here',$1,$2,now()+interval '1 day'),('owner-b-elsewhere',$1,$3,now()+interval '1 day')",[b,org,other]);
+ const actor={id:String(a),organization_id:org,role:'owner'};
+ async function call(path,method='GET',payload={},as=actor){
+  let result;const args={req:{method,socket:{remoteAddress:'member-fixture'}},res:{},url:new URL('https://fixture.invalid'+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>result={status,...data},auditContext:async()=>{},sendInvitation:async()=>true};
+  try{assert(await recordLifecycle(args)||await agencyCore(args)||await suite(args));}catch(error){result={status:error.status||500,error:error.message};}return result;
+ }
+ assert.equal((await call(`/api/agency/members/${a}`,'DELETE')).status,400);
+ assert.equal((await call(`/api/agency/members/0${a}`,'DELETE')).status,400);
+ assert.equal((await call(`/api/agency/members/${a}/permanent`,'DELETE')).status,400,'self purge normalizes string IDs');
+ assert.equal((await call(`/api/agency/members/${b}`,'DELETE',{}, {...actor,id:admin,role:'admin'})).status,403);
+ assert.equal((await call(`/api/agency/members/${b}`,'DELETE',{}, {...actor,id:admin})).status,403,'DB role overrides stale owner session');
+ assert.equal((await call(`/api/agency/members/${b}/permanent`,'DELETE')).status,409,'active access must be revoked first');
+ assert.equal((await query('select count(*)::int as n from agency_collaborators where organization_id=$1 and user_id=$2',[org,b])).rows[0].n,0,'owner has no ficha');
+ assert.equal((await call(`/api/agency/members/${b}`,'DELETE')).status,200,'owner revokes another owner with no ficha');
+ assert.equal((await query("select count(*)::int as n from sessions where id='owner-b-here'")).rows[0].n,0);
+ assert.equal((await query("select count(*)::int as n from sessions where id='owner-b-elsewhere'")).rows[0].n,1);
+ assert.equal((await query('select password_hash from users where id=$1',[b])).rows[0].password_hash,'global-password-preserved');
+ assert.equal((await query('select active from organization_members where organization_id=$1 and user_id=$2',[other,b])).rows[0].active,true);
+ const stale={...actor,id:b};
+ assert.equal((await call(`/api/agency/members/${a}`,'DELETE',{},stale)).status,403,'stale actor cannot remove remaining owner');
+ assert.equal((await call(`/api/agency/members/${a}`,'PATCH',{active:false},stale)).status,403);
+ assert.equal((await call('/api/agency/members','POST',{email:'member-owner-b@example.invalid',role:'owner'},stale)).status,403,'stale invitation cannot reinstate actor');
+ assert.equal((await call(`/api/agency/members/${b}/permanent`,'DELETE')).status,200);
+ assert.equal((await query('select purged_at is not null as purged from organization_members where organization_id=$1 and user_id=$2',[org,b])).rows[0].purged,true);
+ assert.equal((await call(`/api/agency/members/${a}`,'DELETE',{}, {...actor,organization_id:other,id:b})).status,404);
+ const person=await insert("insert into agency_collaborators(organization_id,user_id,full_name,email,compensation_type,compensation_amount,currency) values($1,$2,'History fixture','member-worker@example.invalid','fixed',12345,'PYG')",[org,worker]);
+ assert.equal((await call(`/api/agency/members/${worker}`,'DELETE')).status,200);
+ assert.equal((await query('select compensation_amount from agency_collaborators where id=$1',[person])).rows[0].compensation_amount,'12345.00');
+ assert.equal((await query("select count(*)::int as n from agency_operation_audit where organization_id=$1 and table_name='organization_members'",[org])).rows[0].n>0,true);
+ assert.equal((await query("select count(*)::int as n from organization_members where organization_id=$1 and role='owner' and active and removed_at is null",[org])).rows[0].n,1);
+ console.log('PASS member access: owner without ficha, current DB role, stale actor denial, scoped sessions, self/last-owner safeguards, tenant boundaries, global identity/salary/audit retention');
+}finally{await pg.close();}
