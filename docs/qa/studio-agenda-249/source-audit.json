@@ -1,0 +1,24 @@
+{
+  "base": "2ecdc7f3",
+  "counts": {
+    "canonical": 591,
+    "structural": 55,
+    "renderer": 1
+  },
+  "unreviewed": 0,
+  "reviewedManifest": "docs/audits/241-ui-actions-reviewed.json",
+  "widgetsChanged": 0,
+  "changedSources": [
+    {
+      "file": "app/studio-workspace.tsx",
+      "changed": false,
+      "sha256": "f64a078799e9ebfcdf19e4a9135d66753dba286c82e24325d1f6e0f40a72ac8f"
+    }
+  ],
+  "newCanonicalActions": [
+    "Hoy",
+    "Mes completo",
+    "Ver mes completo"
+  ],
+  "note": "The shared final snapshot still describes 588 canonical actions; the integrator refreshes it after all194 changes."
+}

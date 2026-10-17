@@ -1,0 +1,2 @@
+# Estudio: agenda/hoy móvil y calendario mensual sin alterar reglas
+node --import tsx --test tests/studio-agenda.test.tsx

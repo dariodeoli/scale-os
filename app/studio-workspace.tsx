@@ -25,9 +25,10 @@ import {notify} from './feedback';
 import {BulkBar,FilterToolbar,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,useBulkSelection,type Column} from './ui-v2';
 import {api,Dialog,Editor} from './operations';
 import {ActorIdentity} from './actor-identity';
+import {listDateShort} from './list-format';
 import {OPS_TIME_ZONE} from './ops-time';
 import {BATCH_LIMITS, limitSelection} from './capabilities';
-import {STUDIO_PRODUCTION_TYPES,studioCanManageReservation,studioMonthGrid,studioProductionTypeLabel,studioReservationsOverlap,type StudioContext as Context,type StudioProductionType as ProductionType,type StudioReservation,type StudioSpace} from './studio-data';
+import {STUDIO_PRODUCTION_TYPES,studioCanManageReservation,studioMonthGrid,studioReservationsOnDay,studioProductionTypeLabel,studioReservationsOverlap,type StudioContext as Context,type StudioProductionType as ProductionType,type StudioReservation,type StudioSpace} from './studio-data';
 import {opsLocalTime,opsUtcTime} from './ops-time';
 import {useStudioCatalog} from './use-studio-data';
 import {Button as ScaleButton} from "./ui/button";
@@ -52,6 +53,9 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 export function StudioWorkspace({role}:{role:string}){return ['owner','admin','management','production','finance','editor','viewer','sales','collaborator'].includes(role)?<StudioPanel/>:null;}
 function StudioPanel(){
  const [month,,monthDraft,setMonthDraft]=useTemporalFilter(()=>opsLocalTime(new Date()).slice(0,7),value=>validateMonth(value)?value:null);
+ const [today,setToday]=useState(()=>opsLocalTime(new Date()).slice(0,10));
+ const [mobileView,setMobileView]=useState<'today'|'month'>('today');
+ const goToday=()=>{const current=opsLocalTime(new Date()).slice(0,10);setToday(current);setMonthDraft(current.slice(0,7));setMobileView('today');};
  const [refresh,setRefresh]=useState(0),[editSpace,setEditSpace]=useState<StudioSpace|'new'|null>(null),[editReservation,setEditReservation]=useState<StudioReservation|'new'|null>(null),[cancel,setCancel]=useState<StudioReservation|null>(null),[busy,setBusy]=useState(false);
  const {context,spaces,reservations,loading,error:loadError}=useStudioCatalog(month,refresh);
  const [actionError,setError]=useState('');
@@ -71,6 +75,8 @@ function StudioPanel(){
   const needle=fold(query.trim());
   return reservations.filter(reservation=>(!spaceFilter||String(reservation.space_id)===spaceFilter)&&(!statusFilter||reservation.status===statusFilter)&&(!needle||fold([reservation.title,reservation.space_name,reservation.space_scenario,studioProductionTypeLabel(reservation.production_type),reservation.project_name,reservation.actor_name,...reservation.responsible_members.map(person=>person.name)].join(' ')).includes(needle)));
  },[reservations,query,spaceFilter,statusFilter]);
+ const todayReservations=useMemo(()=>studioReservationsOnDay(today,shown),[today,shown]);
+ const mobileReservations=mobileView==='today'?todayReservations:shown;
  const filtersActive=Boolean(query.trim()||spaceFilter||statusFilter);
  const clearFilters=()=>{setQuery('');setSpaceFilter('');setStatusFilter('');};
  const visibleSelectable=useMemo(()=>shown.filter(reservationSelectable).map(reservation=>String(reservation.id)),[shown,context]);
@@ -124,13 +130,15 @@ function StudioPanel(){
   {canReserve?<Button type="button" disabled={!activeSpaces.length} onClick={()=>setEditReservation('new')}>Nueva reserva</Button>:null}
  </>:undefined;
  const showReservations=Boolean(spaces.length||reservations.length);
- const toolbar=!loading&&!error&&showReservations?<FilterToolbar className="mb-0" summary={`${shown.length} de ${reservations.length} reserva${reservations.length===1?'':'s'}`}>
+ const toolbar=!loading&&!error&&showReservations?<FilterToolbar className="mb-0" summary={`${shown.length} de ${reservations.length} reserva${reservations.length===1?'':'s'} en el mes`}>
   <SearchField className="w-full sm:w-64" label="Buscar reserva" hideLabel value={query} onChange={(nextSearchValue)=>setQuery(nextSearchValue)} placeholder="Reserva, espacio, proyecto o persona…"/>
+  <div className="grid w-full grid-cols-2 gap-3 sm:contents">
   <div className="w-full sm:w-52"><SelectCustom label="Espacio" choices={spaceChoices} value={spaceFilter} onChange={setSpaceFilter}/></div>
   <div className="w-full sm:w-44"><SelectCustom label="Estado" choices={statusChoices} value={statusFilter} onChange={setStatusFilter}/></div>
-  <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={monthDraft} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setMonthDraft(event.target.value)}/></div>
+  </div>
+  <div className="flex items-center gap-2"><Label htmlFor="studio-month" className="whitespace-nowrap">Mes</Label><Input id="studio-month" className="w-44" type="month" value={monthDraft} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{setMonthDraft(event.target.value);setMobileView('month');}}/></div>
   {filtersActive?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={clearFilters} variant="ghost">Limpiar filtros</ScaleButton>:null}
-  {visibleSelectable.length?<ScaleButton type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations} variant="ghost">Seleccionar visibles</ScaleButton>:null}
+  {visibleSelectable.length?<span className={mobileView==='today'?'hidden md:contents':'contents'}><ScaleButton type="button" className="text-button min-h-11 md:min-h-8" title={`Seleccioná hasta ${BATCH_LIMITS.studioReservations} reservas del mes para cancelarlas juntas`} onClick={selectVisibleReservations} variant="ghost">Seleccionar visibles</ScaleButton></span>:null}
  </FilterToolbar>:undefined;
  const bulkBar=!loading&&!error?<BulkBar count={bulk.count} total={BATCH_LIMITS.studioReservations} label="seleccionada" onClear={bulk.clear}>
   <ScaleButton type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={()=>setBulkCancel(true)} variant="secondary">Cancelar</ScaleButton>
@@ -148,15 +156,20 @@ function StudioPanel(){
     <h2 className="m-0 text-[17px] font-semibold tracking-tight text-fore">Calendario del estudio</h2>
     <p className="m-0 min-w-0 flex-1 truncate text-xs leading-5 text-mute" title="Horario de Asunción. Una reserva activa bloquea únicamente su espacio.">Horario de Asunción. Una reserva activa bloquea únicamente su espacio.</p>
    </div>
-   <StudioCalendar month={month} reservations={reservations}/>
-   <div data-list="studio-reservations" className="grid min-w-0 gap-2 md:hidden">
-    {shown.map(reservation=><article data-list-row="studio-reservations" className="grid min-w-0 gap-2 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3" key={reservation.id}>
+   <div className="flex min-w-0 flex-wrap items-center gap-2 md:hidden" role="group" aria-label="Vista de reservas">
+    <Button type="button" className="min-w-11" size="compact" variant={mobileView==='today'?'primary':'outline'} aria-pressed={mobileView==='today'} onClick={goToday}>Hoy</Button>
+    <Button type="button" className="min-w-11" size="compact" variant={mobileView==='month'?'primary':'outline'} aria-pressed={mobileView==='month'} onClick={()=>setMobileView('month')}>Mes completo</Button>
+    {mobileView==='today'?<time dateTime={today} className="ml-auto text-xs tabular-nums text-mute">{listDateShort(today)}</time>:null}
+   </div>
+   <div className={mobileView==='today'?'hidden md:block':undefined} data-studio-month-calendar><StudioCalendar month={month} reservations={reservations}/></div>
+   <div data-list="studio-reservations" data-studio-mobile-view={mobileView} className="grid min-w-0 gap-2 md:hidden">
+    {mobileReservations.map(reservation=><article data-list-row="studio-reservations" className="grid min-w-0 gap-2 rounded-xl border border-ink-600/60 bg-ink-800/40 p-3" key={reservation.id}>
      <div className="flex min-w-0 items-start justify-between gap-2"><div className="min-w-0"><b className="block truncate text-[13px] font-semibold text-fore" title={reservation.title}>{reservation.title}</b><p className="m-0 truncate text-xs text-mute" title={rowTitle(reservation)}>{rowTitle(reservation)}</p></div><StateChip tone={reservation.status==='reserved'?'info':'mute'}>{reservation.status==='reserved'?'Reservada':'Cancelada'}</StateChip></div>
      <p className="m-0 text-xs leading-5 tabular-nums text-mute">{dateTime(reservation.starts_at)} → {dateTime(reservation.ends_at)}</p>
      <div className="grid grid-cols-1 gap-1 text-xs text-mute"><p className="m-0 truncate" title={reservation.project_name||'Sin proyecto vinculado'}>Proyecto: {reservation.project_name||'Sin proyecto vinculado'}</p><p className="m-0 truncate" title={responsibles(reservation)}>Responsables: {responsibles(reservation)}</p></div>
      {(reservationSelectable(reservation)||canAct(reservation))?<div className="flex min-h-11 items-center justify-between gap-2 border-t border-ink-600/60 pt-2"><span>{reservationSelectable(reservation)?<label className="flex min-h-11 items-center gap-2 text-xs text-mute"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar reserva: ${reservation.title}`} checked={bulk.has(String(reservation.id))} onChange={()=>toggleReservation(String(reservation.id))}/><span>Seleccionar</span></label>:null}</span>{canAct(reservation)?<span className={`flex items-center gap-1 ${ICON_TARGETS}`}><IconAction icon="edit" label={`Editar reserva: ${reservation.title}`} onClick={()=>setEditReservation(reservation)}/><IconAction icon="close" tone="warn" label={`Cancelar reserva: ${reservation.title}`} onClick={()=>setCancel(reservation)}/></span>:null}</div>:null}
     </article>)}
-    {!reservations.length?emptyReservations:!shown.length?noMatches:null}
+    {mobileView==='today'?!todayReservations.length?<EmptyState compact icon="calendar" title={filtersActive?'No hay reservas para hoy con estos filtros.':'No hay reservas para hoy.'} description="Horario de Asunción. El mes completo conserva las reservas de otras fechas." action={<Button type="button" variant="outline" onClick={()=>setMobileView('month')}>Ver mes completo</Button>}/>:null:!reservations.length?emptyReservations:!shown.length?noMatches:null}
    </div>
    <div data-list="studio-reservations" className="hidden min-w-0 md:block">
     {shown.length?<ListGrid label="Reservas del estudio" template={RESERVATION_TEMPLATE} columns={RESERVATION_COLUMNS} minWidthClass="min-w-[60rem]" pinnedActions className={RESERVATION_COLS}>

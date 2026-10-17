@@ -87,3 +87,11 @@ export function studioMonthGrid(month:string,reservations:StudioReservation[]):S
   }),
  };
 }
+
+/** Agenda civil con el mismo intervalo semiabierto del calendario; conserva estados y filtros del consumidor. */
+export function studioReservationsOnDay(date:string,reservations:StudioReservation[]):StudioReservation[]{
+ const [year,month,day]=date.split('-').map(Number);
+ const next=new Date(Date.UTC(year,month-1,day+1)).toISOString().slice(0,10);
+ const from=opsUtcTime(`${date}T00:00`),to=opsUtcTime(`${next}T00:00`);
+ return reservations.filter(row=>row.starts_at<to&&row.ends_at>from).sort((a,b)=>a.starts_at.localeCompare(b.starts_at)||a.ends_at.localeCompare(b.ends_at)||String(a.id).localeCompare(String(b.id)));
+}
