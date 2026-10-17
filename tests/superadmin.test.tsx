@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import ts from "typescript";
 
 // Fuente concatenada del panel global (issue #46): la pantalla se descompuso en
 // page + model (tipos y helpers) + states + audit, y los contratos siguen valiendo.
@@ -98,11 +99,20 @@ test("superadmin normalizes absent and invalid dashboard metric values", () => {
 test("superadmin keeps its operational controls accessible and responsive", () => {
   assert.match(
     styles,
-    /\.platform-admin-page :is\(button, a, input, select, textarea\):focus-visible \{[\s\S]*?outline: 3px solid/,
+    /\.platform-admin-page :is\(button, a, input, select, textarea\):focus-visible:not\(:where\(\[data-ui-button\]\)\) \{[\s\S]*?outline: 3px solid/,
   );
+  // Canonical actions own their focus styling; the legacy rule excludes them.
+  // Both routes still require a real 3px focus outline rather than dropping it.
+  const uiStyles=readFileSync(new URL("../app/ui-system.css",import.meta.url),"utf8");
+  const tokens=readFileSync(new URL("../app/ui-tokens.css",import.meta.url),"utf8");
+  assert.match(uiStyles,/\[data-ui-button\]\[data-ui-variant\]:focus-visible\{outline:var\(--ui-focus-width\) solid var\(--focus-ring\);outline-offset:var\(--ui-focus-offset\)/);
+  assert.match(tokens,/--ui-focus-width:3px;/);
   assert.match(styles, /\.platform-admin-page \{[\s\S]*?overflow-x: clip;/);
   // Targets móviles del panel (el escritorio usa el control de 40 px del sistema).
-  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: none; min-height: 44px; min-width: 44px;/);
+  assert.match(styles, /\.platform-admin-actions \.secondary \{ flex: none; justify-content: center/);
+  assert.match(styles, /\.platform-admin-actions \.secondary:not\(:where\(\[data-ui-button\]\)\) \{ min-height: 44px; min-width: 44px;/);
+  assert.match(uiStyles,/@media\(max-width:760px\),\(pointer:coarse\)\{\[data-ui-button\]\[data-ui-size=compact\]\{--ui-button-height:44px/);
+  assert.match(uiStyles,/\[data-ui-button\]\[data-ui-icon-button\]\{width:var\(--ui-button-height\);min-width:var\(--ui-button-height\)/);
   assert.match(
     styles,
     /@media\s*\(max-width:\s*760px\)\s*\{[\s\S]*?\.platform-admin-table-wrap \{[\s\S]*?display: none;/,
@@ -187,7 +197,7 @@ test("shell (guía §2/§7): riel lateral desde la lista única de secciones + b
   assert.match(styles, /@media \(min-width: 1200px\) \{\s*\.platform-admin-page\.platform-shell \{ grid-template-columns: 14rem minmax\(0, 1fr\) \}/);
   assert.match(styles, /@media \(max-width: 760px\) \{\s*\.platform-shell > \.platform-sidebar \{ position: sticky; top: 0;/);
   assert.match(styles, /\.platform-shell nav\.platform-sidebar-nav \{ flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none \}/);
-  assert.match(styles, /\.platform-shell \.platform-nav-item\[aria-current="page"\] \{ background: var\(--violet-soft\)/);
+  assert.match(styles, /\.platform-shell \.platform-nav-item\[aria-current="page"\]:not\(:where\(\[data-ui-button\]\)\) \{ background: var\(--violet-soft\)/);
 });
 
 test("rediseño #102: ninguna capacidad del panel se pierde", () => {
@@ -223,8 +233,35 @@ test("rediseño #102: ninguna capacidad del panel se pierde", () => {
   assert.match(page, /requireText=\{PLATFORM_DELETE_WORD\}/);
   assert.match(page, /export const PLATFORM_DELETE_WORD = "ELIMINAR"/);
   assert.match(page, /PlatformConfirmDialog/);
-  assert.match(page, /label="Buscar en la auditoría"/);
-  assert.match(page, /<Select aria-label="Filtrar por acción"/);
+  const auditSource=readFileSync(new URL("../app/superadmin/audit.tsx",import.meta.url),"utf8");
+  const audit=ts.createSourceFile('audit.tsx',auditSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  function localImport(exported:string,module:string){
+    for(const statement of audit.statements){
+      if(!ts.isImportDeclaration(statement)||!ts.isStringLiteral(statement.moduleSpecifier)||statement.moduleSpecifier.text!==module)continue;
+      const bindings=statement.importClause?.namedBindings;
+      if(bindings&&ts.isNamedImports(bindings)){const entry=bindings.elements.find(spec=>(spec.propertyName||spec.name).text===exported);if(entry)return entry.name.text;}
+    }
+    assert.fail(`Missing local ${exported} import from ${module}`);
+  }
+  function namedControl(tag:string,label:string,setter:string){
+    let found:ts.JsxOpeningElement|ts.JsxSelfClosingElement|undefined;
+    function walk(node:ts.Node){if((ts.isJsxOpeningElement(node)||ts.isJsxSelfClosingElement(node))&&node.tagName.getText(audit)===tag&&node.attributes.properties.some(prop=>ts.isJsxAttribute(prop)&&prop.name.getText(audit)==='label'&&prop.initializer&&ts.isStringLiteral(prop.initializer)&&prop.initializer.text===label))found=node;ts.forEachChild(node,walk);}
+    walk(audit);assert(found,`${label}: control with its exact accessible label`);
+    const properties=found.attributes.properties;
+    assert(properties.some(prop=>ts.isJsxAttribute(prop)&&prop.name.getText(audit)==='hideLabel'&&!prop.initializer),'hidden visual label remains declared for accessible naming');
+    const change=properties.find(prop=>ts.isJsxAttribute(prop)&&prop.name.getText(audit)==='onChange') as ts.JsxAttribute;
+    assert(change?.initializer&&ts.isJsxExpression(change.initializer)&&change.initializer.expression&&ts.isArrowFunction(change.initializer.expression));
+    const callback=change.initializer.expression;
+    assert(ts.isCallExpression(callback.body)&&callback.body.expression.getText(audit)===setter);
+    assert.equal(callback.body.arguments[0].getText(audit),callback.parameters[0].name.getText(audit),'controlled value is forwarded without a synthetic event proxy');
+    return found;
+  }
+  namedControl(localImport('SearchField','../search-field'),'Buscar en la auditoría','setQuery');
+  namedControl(localImport('OptionsSelect','../ui/options-select'),'Filtrar por acción','setAction');
+  assert.match(auditSource,/<option value="">Todas las acciones<\/option>/);
+  assert.match(auditSource,/if \(action && entry.action !== action\) return false;/);
+  assert.match(auditSource,/\(query \|\| action\)/);
+  assert.match(auditSource,/setQuery\(""\); setAction\(""\)/);
   // Permisos: viewer nunca ve controles mutantes (mismo gate de siempre).
   assert.match(page, /const writable = myRole === "admin"/);
 });
