@@ -12,6 +12,7 @@ export function useSingleFlightSubmit(submit:(event?:BaseSyntheticEvent)=>Promis
  const submitRef=useRef(submit);
  submitRef.current=submit;
  const onSubmit=useCallback(async(event?:BaseSyntheticEvent)=>{
+  event?.preventDefault();
   if(submitting.current)return;
   submitting.current=true;
   setPendiente(true);

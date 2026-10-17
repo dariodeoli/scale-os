@@ -39,17 +39,25 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
   useEffect(()=>()=>{pendingRef.current?.reject(new Error('Consulta cancelada.'));},[]);
   // La consulta devuelve un registro, no escribe: la promesa del campo sólo se
   // resuelve con «Aplicar»; «Descartar» la rechaza y la ficha queda como estaba.
-  const rucLookup={label:'Buscar',run:async(ruc:string)=>{
-    const found=await lookupRuc(ruc);
+  const rucLookup={label:'Buscar',onApplied:()=>{rucAppliedRef.current=true;},run:async(ruc:string,context?:{signal:AbortSignal})=>{
+    const signal=context?.signal;
+    const found=await lookupRuc(ruc,signal);
+    if(signal?.aborted)throw new Error('Consulta cancelada.');
     return new Promise<Record<string,string>>((resolve,reject)=>{
       pendingRef.current?.reject(new Error('Consulta reemplazada por una nueva.'));
-      const next:PendingRuc={record:found,resolve,reject};
-      pendingRef.current=next;setPending(next);
+      const finish=(error?:Error,values?:Record<string,string>)=>{
+        signal?.removeEventListener('abort',cancel);
+        if(pendingRef.current===next){pendingRef.current=null;setPending(null);}
+        if(error)reject(error);else resolve(values||{});
+      };
+      const cancel=()=>finish(new Error('Consulta cancelada.'));
+      const next:PendingRuc={record:found,resolve:values=>finish(undefined,values),reject:error=>finish(error)};
+      pendingRef.current=next;setPending(next);signal?.addEventListener('abort',cancel,{once:true});
     });
   }};
   const rucAfter=pending?<RucConfirmCard record={pending.record}
-    onApply={()=>{const current=pending;setPending(null);rucAppliedRef.current=true;current.resolve(rucApplyValues(current.record));}}
-    onDiscard={()=>{const current=pending;setPending(null);current.reject(new Error('Descartaste los datos del RUC; la ficha no cambió.'));}}/>:null;
+    onApply={()=>pending.resolve(rucApplyValues(pending.record))}
+    onDiscard={()=>pending.reject(new Error('Descartaste los datos del RUC; la ficha no cambió.'))}/>:null;
   const restricted=record?.contact_restricted===true;
   const fields=clientFields({mode,plan,planRequired,restricted,rucLookup,rucAfter});
   const defaults=mode==='create'?CLIENT_CREATE_DEFAULTS:clientEditDefaults(record,plan);

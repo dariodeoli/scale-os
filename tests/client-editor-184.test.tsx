@@ -425,3 +425,20 @@ test('plan monetario entero acepta ceros decimales del MoneyInput real y rechaza
   act(()=>renderer.unmount());
  }
 });
+
+test('RUC confirmado no sobrescribe razón social editada durante revisión y cambiar RUC cancela tarjeta',async()=>{
+ let renderer=await mountWithRuc();
+ await change(renderer,'legal_name','Razón social manual reciente');
+ await act(async()=>{buttonWith(renderer,'Aplicar')!.props.onClick();});await settle();
+ assert.match(text(renderer.root),/Se conservaron tus cambios/);
+ await submit(renderer);
+ let body=calls.filter(call=>call.method==='POST'&&call.url==='/api/agency/clients').at(-1)?.body;
+ assert.equal(body?.legal_name,'Razón social manual reciente');assert.equal(body?.tax_id,'80168807');
+ act(()=>renderer.unmount());
+ renderer=await mountWithRuc();await change(renderer,'tax_id','80012345');await settle();
+ assert.equal(buttonWith(renderer,'Aplicar'),undefined,'cambiar consulta invalida la confirmación previa');
+ await submit(renderer);
+ body=calls.filter(call=>call.method==='POST'&&call.url==='/api/agency/clients').at(-1)?.body;
+ assert.equal(body?.tax_id,'80012345');assert.equal(body?.legal_name,'');
+ act(()=>renderer.unmount());
+});
