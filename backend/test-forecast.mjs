@@ -4,6 +4,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {identitySchema} from './scripts/test-identity-schema.mjs';
 import {financialForecast,forecastMonth,companyCurrency} from './forecast.js';
 import {financeControls} from './finance-controls.js';
+import {openingReceivableForecast} from './forecast-opening-receivables.js';
 import {suite} from './agency-suite.js';
 import {inventoryReservations} from './inventory-reservations.js';
 import {operations} from './operations.js';
@@ -284,7 +285,7 @@ const usdRows=projected.records.filter(row=>row.currency==='USD'),pygRows=projec
 assert.equal(usdRows.length,3);assert.equal(pygRows.length,3);
 assert.equal(projected.records.some(row=>row.currency==='EUR'),false,'all-zero currencies stay out of the projection');
 assert.deepEqual(usdRows.map(row=>row.month),['2026-09','2026-10','2026-11'],'series months follow calendar order');
-assert.deepEqual(usdRows.map(row=>row.projected_cash),[1860,3569,3369],'projected cash: opening balance (already holding registered collections) plus expected billing still to collect, minus costs');
+assert.deepEqual(usdRows.map(row=>row.projected_cash),[1835,3544,3344],'projected cash includes only unpaid invoices: the legacy paid invoice of 25.20 is never collected twice');
 assert.deepEqual(usdRows.map(row=>row.projected_result),[60,2209,100],'projected result follows issued plus accepted minus costs');
 assert.deepEqual(usdRows.map(row=>row.collected),[0,500,300],'collections land in their month');
 assert.deepEqual(usdRows.map(row=>row.expected),[260,2609,300],'expected billing lands in its month');
@@ -465,5 +466,45 @@ await invoice({organization:partialOrg,customer:partialClient,total:250,issued:'
 const partial=await call('/api/agency/forecast?month=2031-03&months=2','GET',{},partialUser);
 assert.deepEqual(partial.opening_balance.records,[{currency:'USD',amount:400}],'the partial payment is already in the balance');
 assert.deepEqual(partial.projection.records.map(row=>[row.month,row.collected,row.expected,row.projected_cash]),[['2031-03',400,1000,1000],['2031-04',0,250,1250]],'a partial payment still projects the remaining 600; a month without payments adds its full expected billing');
+// A payment received before the invoice month already increased cash and reduced
+// the invoice balance; collected_actual in the invoice month is zero, not a reason
+// to project that advance for a second time.
+const advanceOrg=(await query("insert into organizations(slug,name) values('forecast-cash-advance','Cash advance') returning id")).rows[0].id;
+const advanceUser={...user,organization_id:advanceOrg};
+const advanceClient=(await query("insert into agency_clients(organization_id,name) values($1,'Anticipo') returning id",[advanceOrg])).rows[0].id;
+const advanceAccount=(await query("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Caja anticipo','bank','USD',0) returning id",[advanceOrg])).rows[0].id;
+const advanceInvoice=await invoice({organization:advanceOrg,customer:advanceClient,total:1000,issued:'2032-03-05'});
+await query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference) values($1,$2,$3,400,'2032-02-20','Anticipo anterior')",[advanceOrg,advanceInvoice,advanceAccount]);
+const advance=await call('/api/agency/forecast?month=2032-03','GET',{},advanceUser);
+assert.deepEqual(advance.projection.records.map(row=>[row.collected,row.expected,row.projected_cash,row.projected_result]),[[0,1000,1000,1000]],'previous-month advance remains in cash and only the remaining 600 is projected');
+// Receipt for another customer and an invoice outside the projection month must
+// never reduce the amount still expected from this month's unpaid invoice.
+const unrelatedClient=(await query("insert into agency_clients(organization_id,name) values($1,'Otro cliente') returning id",[advanceOrg])).rows[0].id;
+const unrelatedInvoice=await invoice({organization:advanceOrg,customer:unrelatedClient,total:250,issued:'2032-01-10'});
+await query("insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference) values($1,$2,$3,250,'2032-03-10','Factura ajena enero')",[advanceOrg,unrelatedInvoice,advanceAccount]);
+const unrelated=await call('/api/agency/forecast?month=2032-03','GET',{},advanceUser);
+assert.deepEqual(unrelated.projection.records.map(row=>[row.collected,row.expected,row.projected_cash,row.projected_result]),[[250,1000,1250,1000]],'unrelated 250 is actual cash, not settlement of the unpaid 600');
+// The real canonical balance view is exercised by the money module suite. This
+// fixture supplies only its documented read contract to test forecast policy:
+// a previous receivable is not a new invoice, payment or ledger movement.
+await pg.exec(`create temp table forecast_opening_receivable_fixture(organization_id bigint,currency text,outstanding_amount numeric(30,2),expected_on date,forecast_included boolean);
+create temp view agency_opening_receivable_balances as select * from forecast_opening_receivable_fixture;`);
+const priorBefore=await call('/api/agency/forecast?month=2032-03&months=2','GET',{},advanceUser);
+for(const values of [[advanceOrg,'USD','90','2032-03-31',true],[advanceOrg,'USD','10','2032-04-01',true],[advanceOrg,'PYG','700','2032-03-01',true],[advanceOrg,'USD','50',null,true],[advanceOrg,'USD','999','2032-03-20',false],[advanceOrg,'USD','888','2032-05-01',true],[advanceOrg,'USD','0','2032-03-02',true],[advanceOrg,'USD','-1','2032-03-02',true],[other,'USD','77777','2032-03-01',true]])await query('insert into forecast_opening_receivable_fixture values($1,$2,$3,$4,$5)',values);
+const prior=await call('/api/agency/forecast?month=2032-03&months=2','GET',{},advanceUser);
+assert.equal(prior.status,200);
+assert.deepEqual(prior.opening_receivables.records,[{month:'2032-03',currency:'PYG',receivable_count:1,amount:'700.00'},{month:'2032-03',currency:'USD',receivable_count:1,amount:'90.00'},{month:'2032-04',currency:'USD',receivable_count:1,amount:'10.00'}],'only tenant, positive, included and explicitly scheduled debts enter their exact month/currency');
+assert.deepEqual(prior.opening_receivables.undated_records,[{currency:'USD',receivable_count:1,amount:'50.00'}],'included debt without expected date is reported but never scheduled');
+const priorUsd=prior.projection.records.filter(row=>row.currency==='USD');
+assert.deepEqual(priorUsd.map(row=>row.projected_cash),[1340,1350]);
+assert.deepEqual(priorUsd.map(row=>row.projected_result),priorBefore.projection.records.filter(row=>row.currency==='USD').map(row=>row.projected_result),'prior receivables do not create new revenue');
+assert.deepEqual(prior.invoiced,priorBefore.invoiced,'manual prior debt is never invoiced implicitly');
+assert.deepEqual(prior.collected_actual,priorBefore.collected_actual,'manual prior debt is never received implicitly');
+assert.equal(prior.projection.records.find(row=>row.currency==='PYG'&&row.month==='2032-03').projected_cash,700,'another currency is never converted into USD');
+assert.equal(prior.projection.records.find(row=>row.currency==='PYG'&&row.month==='2032-03').projected_result,0);
+assert.equal((await call('/api/agency/forecast?month=2032-03','GET',{}, {...advanceUser,role:'viewer'})).status,403,'prior receivables do not relax financial authorization');
+await query("insert into forecast_opening_receivable_fixture values($1,'EUR',9007199254740993.01,null,true),($1,'EUR',0.09,null,true)",[advanceOrg]);
+const exactPrior=await openingReceivableForecast(db,advanceOrg,'2032-03',2);
+assert.equal(exactPrior.undated_records.find(row=>row.currency==='EUR').amount,'9007199254740993.10','source sums remain exact SQL strings, beyond JS integer precision');
 await pg.close();
-console.log('PASS: forecast dates, timezone, fixed-salary authorization, signed salary overrides and per-person members, commercial-term role and integer validation, auditable planned-expense recurrence, revenue/payment segregation, leap/year boundaries, exact totals, zero, no pipeline, invoice/budget dedup, cancelled/draft/archive exclusion, role and tenant isolation; multi-month cash projection and estimated result per currency, contracted versus invoiced per client, six default currencies, partial settings, new versus existing records, real expenses with debits, cash movements, idempotent reversals and tenant isolation, no external writes');
+console.log('PASS: forecast dates, timezone, fixed-salary authorization, signed salary overrides and per-person members, commercial-term role and integer validation, auditable planned-expense recurrence, revenue/payment segregation, leap/year boundaries, exact totals, zero, no pipeline, invoice/budget dedup, cancelled/draft/archive exclusion, role and tenant isolation; multi-month cash projection and estimated result per currency, contracted versus invoiced per client, six default currencies, partial settings, new versus existing records, real expenses with debits, cash movements, idempotent reversals and tenant isolation, prior-month advances and unrelated receipts, explicit scheduling of prior receivables without new revenue, undated/excluded balances and exact source amounts, no external writes');
