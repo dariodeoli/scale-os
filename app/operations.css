@@ -89,7 +89,7 @@
   padding: 28px;
   box-shadow: var(--shadow-md);
 }
-.ops-form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:14px 16px; }
+.ops-form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:14px 16px; }
 .ops-form-grid>div,.ops-form-grid>label,.ops-form-grid>fieldset{min-width:0}
 .ops-form-grid>fieldset{grid-column:1 / -1}
 .ops-form-grid .choice{max-width:100%;min-width:0;overflow-wrap:anywhere;white-space:normal}
@@ -221,7 +221,7 @@
 .person-access-body{display:grid;gap:10px;padding:4px 16px 16px!important}
 .person-access-body .form-note{margin:0}
 .person-access-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.team-directory-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
+.team-directory-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr))}
 .team-directory-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--ui-control-gap-lg,12px);padding:var(--ui-card-padding,16px);min-height:var(--ui-card-min-height,120px);text-align:center}
 .person-identity-panel>*{min-width:0}
 .ops-profile-section:not(:has(>summary))>h3{padding:12px 14px 0;margin:0;font-size:13px}
@@ -325,3 +325,28 @@
 /* A 768–1024 la grilla financiera de 2 columnas deja paneles de ~210 px: una sola columna. */
 @media(max-width:1024px){.control-shell .finance-grid{grid-template-columns:minmax(0,1fr)}}
 .ops-profile-section[hidden]{display:none}.ops-section-errors{color:var(--danger);font-weight:600}.form-error-summary .text-button{padding-inline:2px;font-weight:600}.ops-stepper{display:flex;align-items:center;justify-content:space-between;gap:8px}.ops-stepper>span{font-size:12px;color:var(--text-muted,var(--muted));white-space:nowrap}@media(max-width:540px){.ops-stepper>button{min-height:44px}}
+
+/* One semantic layout for the shared Editor and domain forms. Width follows
+   the field's content, while mobile keeps a single readable column. */
+.ops-form-grid [data-span]{min-width:0}
+.ops-person-select .buscador-personas{min-width:0}
+.ops-person-select input{width:100%}
+@media(min-width:640px){
+ .ops-form-grid:has(>[data-span]){grid-template-columns:repeat(12,minmax(0,1fr))}
+ .ops-form-grid:has(>[data-span])>:is(div,label):not(.ops-wide,.form-actions,.dialog-actions,.error,.form-note,.inventory-full){grid-column:span 6}
+ .ops-form-grid [data-span="2"]{grid-column:span 2!important}
+ .ops-form-grid [data-span="3"]{grid-column:span 3!important}
+ .ops-form-grid [data-span="4"]{grid-column:span 4!important}
+ .ops-form-grid [data-span="6"]{grid-column:span 6!important}
+ .ops-form-grid [data-span="12"]{grid-column:1/-1!important}
+}
+.inventory-item-form{grid-template-columns:minmax(0,1fr)}
+.inventory-item-form>*,.inventory-item-form fieldset>*{min-width:0}
+@media(min-width:640px){
+ .inventory-item-form{grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
+ .inventory-item-form>div{grid-column:span 3}
+ .inventory-item-form>.inventory-name{grid-column:span 6}
+ .inventory-item-form>.inventory-currency{grid-column:span 2}
+ .inventory-item-form>.inventory-value{grid-column:span 4}
+ .inventory-item-form>:is(p,fieldset,details,.inventory-full){grid-column:1/-1}
+}

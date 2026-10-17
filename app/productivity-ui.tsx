@@ -67,7 +67,7 @@ const localDay=todayAsuncion;
 function usePeople(){
  const [people,setPeople]=useState<Row[]>([]),[error,setError]=useState(''),[reload,setReload]=useState(0);
  useEffect(()=>{let alive=true;const load=()=>{void api<{people:Row[]}>('/api/agency/productivity/people').then(d=>{if(alive){setPeople(d.people);setError('');}}).catch(cause=>{if(alive)setError(errorText(cause));});};load();window.addEventListener('scale:identity-changed',load);return()=>{alive=false;window.removeEventListener('scale:identity-changed',load);};},[reload]);
- return {choices:[{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email')}))],error,retry:()=>setReload(value=>value+1)};
+ return {choices:[{value:'',label:'Sin asignar'},...people.map(p=>({value:String(p.id),label:s(p,'full_name')||s(p,'email'),photoUrl:s(p,'photo_url'),kind:'person' as const}))],error,retry:()=>setReload(value=>value+1)};
 }
 /** La lista de personas puede fallar: se dice y se ofrece reintento, nunca "Sin asignar" mudo. */
 function PeopleNotice({error,retry}:{error:string;retry:()=>void}){

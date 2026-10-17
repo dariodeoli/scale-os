@@ -5,6 +5,8 @@ import {createPortal} from 'react-dom';
 import {X} from 'lucide-react';
 import {createLayerStack} from './overlay-stack';
 import './dialog.css';
+import {DialogContext,type DialogCloseOptions} from './dialog-context';
+export {useDialogClose,type DialogCloseOptions} from './dialog-context';
 const layers=createLayerStack();
 let originalOverflow='';
 const FooterContext=createContext<HTMLElement|null>(null);
@@ -96,12 +98,6 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
 export function useOverlay(panel:RefObject<HTMLElement>,close:()=>void,options:OverlayOptions={}){
  return useOverlayState(panel,close,options).requestClose;
 }
-/** `afterSave`: cierre posterior a un guardado exitoso; no pregunta por cambios sin guardar. */
-export type DialogCloseOptions={afterSave?:boolean};
-type DialogControls={requestClose:(options?:DialogCloseOptions)=>void;setPending:(id:symbol,pending:boolean)=>void;setDirty:(id:symbol,dirty:boolean)=>void};
-const DialogContext=createContext<DialogControls|null>(null);
-/** Opt-in dismissal; undefined for inline forms rendered outside a Dialog. Con cambios sin guardar pide confirmar, salvo `{afterSave:true}`. */
-export function useDialogClose(){return useContext(DialogContext)?.requestClose;}
 /**
  * Each form owns one registration. One idle form cannot unlock another saving form.
  * `dirty`: el formulario tiene cambios sin guardar; Escape, el fondo, «Cerrar» y
@@ -147,7 +143,25 @@ export function Dialog({title,close,children,variant='modal',busy=false,size:req
 // validation, keyboard submission and disabled/pending state for the real form.
 export function FormActions({children}:{children:ReactNode}){
  const footer=useContext(FooterContext),anchor=useRef<HTMLSpanElement>(null),id=useId();
- const [formId,setFormId]=useState('');
+ const [formId,setFormId]=useState(''),[visible,setVisible]=useState(true);
+ // A portal escapes collapsed sections. Keep actions with their form until all
+ // logical ancestors are visible, then use the fixed dialog footer. This does
+ // not rely on layout rectangles (which are absent in DOM test environments).
+ useLayoutEffect(()=>{
+  const element=anchor.current;
+  if(!element)return;
+  const ancestors:HTMLElement[]=[];
+  for(let node=element.parentElement;node;node=node.parentElement)ancestors.push(node);
+  const update=()=>setVisible(!ancestors.some(node=>node.hidden||node.hasAttribute?.('inert')||node.getAttribute?.('aria-hidden')==='true'||node.tagName==='DETAILS'&&!(node as HTMLDetailsElement).open));
+  update();
+  const Observer=element.ownerDocument?.defaultView?.MutationObserver;
+  const observer=Observer?new Observer(update):null;
+  for(const node of ancestors){
+   observer?.observe(node,{attributes:true,attributeFilter:['hidden','open','inert','aria-hidden']});
+   if(node.tagName==='DETAILS')node.addEventListener('toggle',update);
+  }
+  return()=>{observer?.disconnect();for(const node of ancestors)if(node.tagName==='DETAILS')node.removeEventListener('toggle',update);};
+ },[footer]);
  // The footer is mounted after the form. Re-check when it becomes available so
  // a dialog that closes and reopens immediately never keeps a stale form target.
  useLayoutEffect(()=>{const form=anchor.current?.closest('form');if(!form){setFormId('');return;}if(!form.id)form.id=id;setFormId(form.id);},[id,footer]);
@@ -159,7 +173,7 @@ export function FormActions({children}:{children:ReactNode}){
   const associate=child.type==='button'||child.props.type==='submit';
   return associate?cloneElement(child,{form:formId||undefined}):child;
  })}</div>;
- return <><span hidden ref={anchor}/>{footer?createPortal(actions,footer):actions}</>;
+ return <><span hidden ref={anchor}/>{footer&&visible?createPortal(actions,footer):actions}</>;
 }
 
 /**

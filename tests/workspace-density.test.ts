@@ -19,7 +19,7 @@ const wideFields=fields.match(/\[([^\]]+)\]\.includes\(f\.key\)/)?.[1];
 assert(wideFields,'Editor must identify fields that span the form');
 const wideKeys=new Set(Array.from(wideFields.matchAll(/['"]([^'"]+)['"]/g),match=>match[1]));
 for(const key of ['title','description','drive_url','drive_links','address','notes','legal_name'])assert(wideKeys.has(key),`${key} must remain full width`);
-assert(css.includes('repeat(auto-fit,minmax(min(100%,220px),1fr))'));
+assert(css.includes('repeat(auto-fit,minmax(min(100%,180px),1fr))'));
 assert(css.includes('.ops-form-grid>.dialog-actions'));
 assert(css.includes('@media (max-width:540px)'));
 console.log('PASS: one compact demo toolbar, separate profile/logout, bounded sidebar footer and responsive form columns (visual QA separate)');
