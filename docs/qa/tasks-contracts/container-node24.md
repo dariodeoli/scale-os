@@ -1,48 +1,38 @@
 # Verificación de contenedores Node 24
 
-Se usó exclusivamente el daemon local `unix:///var/run/docker.sock`, limpiando
-los selectores de endpoint/contexto/TLS de Docker para cada comando. No se
-modificaron configuración Docker, credenciales de registry ni Dockerfiles del
-repositorio. Recursos disponibles al iniciar: 5 CPU, 33 GiB de RAM y 28 GiB de
-espacio libre.
+Fecha: 17/10/2026. Builds locales completos de web y API aprobados; ninguna
+imagen publicada ni desplegada por esta comprobación.
 
 ## Resultados
 
-- `node:24-alpine` resolvió a
+- Base `node:24-alpine`, digest
   `sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f`:
-  Node **24.22.0**, Alpine **3.24.2**, `libssl.so.3` disponible. Node satisface
-  el requisito `>=24.15.0 <25` de owncoding-ui.
-- Una imagen **parcial de dependencias del API** instaló correctamente el lock
-  con `npm ci --omit=dev --strict-ssl=true`. En esa imagen funcionan imports de
-  `pg` y `puppeteer-core`, y sharp **0.35.4** con libvips **8.18.6** generó un
-  WebP válido de 44 bytes. Esto confirma carga de la dependencia nativa en musl.
-- El build completo del backend quedó **bloqueado** al descargar índices de
-  `https://dl-cdn.alpinelinux.org/alpine/v3.24/`: el proxy devolvió **403 CONNECT**.
-  Los mensajes posteriores de apk «no such package» no prueban que falten los
-  paquetes: no se pudo cargar su índice.
-- Por ese bloqueo **no se validaron** instalación de `postgresql18-client`,
-  versión de `pg_dump`, Chromium ni generación PDF dentro de la imagen final.
-  Tampoco se completó el build de la imagen frontend.
+  Node **24.22.0**, Alpine **3.24.2**, compatible con owncoding-ui.
+- API: build completo `scale-qa-api:node24`; `npm ci --omit=dev` y paquetes
+  Alpine instalados con TLS activo. `pg_dump` **18.6**, Chromium **155**,
+  imports pg/Puppeteer y sharp **0.35.4** con libvips **8.18.6** aprobados.
+  Sharp generó WebP válido. El renderer real `contractHtml` → `renderBudgetPdf`
+  produjo PDF de **31.076 bytes**, **5 páginas A4**; firma, título y cláusula 55
+  comprobados con pdfinfo/pdftotext.
+- Web: build multietapa completo `scale-qa-web:node24`: instalación npm,
+  dependencia Git owncoding-ui, Prisma generate y Next build **v1.0.188**.
+  Runtime como **UID 1001**, `.next/BUILD_ID` presente; GET `/resumen` **200**
+  (17.436 bytes). El contenedor temporal de smoke fue detenido/eliminado.
 
-## Diferencias respecto a producción y continuación
+## Alcance y diferencias
 
-Los Dockerfiles temporales en `/tmp/scale-container-qa/` agregan únicamente
-montajes BuildKit de `/etc/ssl/certs/ca-certificates.crt` como secreto
-`system_ca` y variables de trust por cada `RUN` con red: `SSL_CERT_FILE` para
-apk, `NODE_EXTRA_CA_CERTS` para Node/npm/Prisma y `GIT_SSL_CAINFO` para Git.
-El certificado no se copia a ninguna capa; TLS y verificaciones permanecen
-activados. La variante parcial instala sólo dependencias npm, omite apk y el
-código API, y **no equivale a la imagen de producción**.
+Se usó únicamente el daemon local `unix:///var/run/docker.sock`, limpiando sus
+selectores de endpoint/contexto/TLS por comando y conservando credenciales.
+Los Dockerfiles temporales de `/tmp/scale-container-qa/` agregan sólo montajes
+BuildKit de la CA pública del entorno y variables de confianza por cada RUN con
+red (`SSL_CERT_FILE`, `NODE_EXTRA_CA_CERTS`, `GIT_SSL_CAINFO`). No se copió la CA
+a capas ni se desactivó verificación TLS. Los Dockerfiles fuente sólo cambian
+la versión Node; no contienen certificados ni secretos del entorno cloud.
 
-Buildx usa `BUILDX_CONFIG=/tmp/scale-container-qa/buildx` porque su ubicación
-predeterminada es de sólo lectura; `DOCKER_CONFIG` y los logins no cambian.
+El primer intento quedó bloqueado por HTTP 403 del proxy a Alpine. Tras responder
+ese host, se repitieron y completaron los builds, incluyendo PostgreSQL18-client
+y Chromium. Esta evidencia reemplaza el bloqueo inicial; no es evidencia de
+que Coolify haya desplegado estas imágenes locales.
 
-Para continuar hace falta permitir `dl-cdn.alpinelinux.org` en la configuración
-del entorno y repetir el paso apk con verificación activa. Después corresponde
-probar `pg_dump --version` y PDF con Chromium en el contenedor, y construir el
-frontend. El lock frontend referencia owncoding-ui por Git SSH: si falla ese
-paso debe verificarse el mecanismo de autenticación del build de despliegue,
-sin copiar credenciales a capas ni sustituir dependencias.
-
-Ninguna imagen fue publicada ni desplegada. Los builds y la QA anteriores en el
-host siguen siendo evidencia separada de esta comprobación de contenedores.
+Logs, JSON y PDF temporales: `/tmp/scale-container-qa/`, fuera del repositorio.
+Buildx usó configuración escribible temporal; DOCKER_CONFIG y logins intactos.

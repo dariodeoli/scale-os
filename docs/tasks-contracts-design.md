@@ -92,15 +92,16 @@ El build requería generar Prisma y la red bloqueaba `binaries.prisma.sh`.
 - Compras: únicamente papel adhesivo compatible con la impresora existente,
   previa confirmación de modelo y tamaños. No comprar impresora ni reconstruir
   códigos. Probar impresión/lectura física queda separado del desarrollo.
-- OwnData y Ocoin: verificar repositorio/servicio, acceso, esquema, costo y
-  condiciones antes de reutilizar. No asumir credenciales compartidas.
-- La API de GitHub devuelve Forbidden en este entorno; la creación del issue
-  del backlog queda pendiente de acceso. El checkout Git sí pudo actualizarse.
-- No desplegar ni usar datos de producción sin autorización explícita.
+- OwnData: repositorio auditado y adaptador opt-in implementado, sin activar;
+  habilitación comercial/licencia y secreto empresarial pendientes (#213).
+  Ocoin no identificado. Ver `docs/owndata-scale-integration.md`.
+- Seguimiento publicado en GitHub: #202–#218; API accesible al preparar la entrega.
+- El dueño autorizó implementar, mergear y desplegar. El cierre exige evidencia
+  real de CI/publicación y mantiene pendientes físicos/externos abiertos.
 
 ## Reversión
 
 Migraciones aditivas: revertir el código de la funcionalidad y conservar tablas
 y datos. No deshacer migraciones eliminando documentos/tareas. Mantener las
 versiones emitidas inmutables y las tareas previas. Desplegar gradualmente sólo
-tras QA y autorización; no se ejecuta despliegue como parte de esta entrega.
+tras QA y CI; registrar el SHA y resultado real de publicación en el PR/issues.

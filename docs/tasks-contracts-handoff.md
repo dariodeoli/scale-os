@@ -39,7 +39,7 @@ montajes en inicio, proyectos, configuración y navegación.
 
 ## Validación
 
-- Regresión frontend completa: **229 entradas aprobadas**.
+- Regresión frontend completa: **230 entradas aprobadas** en preparación de v1.0.188.
 - `npm --prefix backend run test:release`: **46 suites aprobadas**, incluyendo
   tareas, contratos y la prueba de Estudio corregida.
 - Suites específicas de tareas/contratos, productividad, historial y Estudio:
@@ -54,8 +54,8 @@ montajes en inicio, proyectos, configuración y navegación.
   aprobado, incluida verificación de tipos y artefacto `.next/BUILD_ID`.
 - Cuatro pruebas del modo de preparación de release aprobadas: sin push ni
   webhook; ausencia de artefacto e argumentos inválidos bloquean la preparación.
-- Contenedores Node 24: dependencias nativas verificadas; build completo
-  pendiente por bloqueo de red Alpine. Ver `docs/qa/tasks-contracts/container-node24.md`.
+- Contenedores Node 24 web/API completos aprobados, incluyendo pg_dump 18,
+  Chromium/PDF y runtime web sin privilegios. Ver `docs/qa/tasks-contracts/container-node24.md`.
 
 ## Integración y publicación
 
@@ -70,7 +70,9 @@ montajes en inicio, proyectos, configuración y navegación.
 
 La configuración de red guardada es un borrador para revisión; no equivale a
 haberla aplicado. GitHub API y Prisma ya respondieron en esta instancia;
-producción y Alpine siguen sin verificación por bloqueo del proxy.
+producción y Alpine inicialmente bloqueados ya responden. Antes de publicar,
+web y API sirven v1.0.187 y `/health` indica `database: ready`. La comprobación
+Docker completa se retomó por separado.
 
 ## Límites y reversión
 
