@@ -135,6 +135,16 @@ async function runCases(){
  const a=await tenant('pg-fixture-a'),b=await tenant('pg-fixture-b');
  const item=async(name,tenant=a)=>ok(await call('inventory','POST',{name,category:'Concurrency fixture',storage_shelf:'Initial'},tenant.actor),201).record.id;
  const camera=await item('Camera fixture'),audio=await item('Audio fixture'),adjacent=await item('Adjacent fixture'),foreign=await item('Tenant B fixture',b);
+ const historicalUser=await insert('insert into users(email,password_hash) values($1,$2)',['historical-custodian@example.invalid','fixture-not-a-password']);
+ await pool.query("insert into organization_members(organization_id,user_id,role) values($1,$2,'production')",[a.actor.organization_id,historicalUser]);
+ const historicalAsset=ok(await call('inventory','POST',{name:'Historical custody',custodian_user_id:historicalUser},a.actor),201).record;
+ await pool.query('update organization_members set active=false where organization_id=$1 and user_id=$2',[a.actor.organization_id,historicalUser]);
+ const retained=ok(await call(`inventory/${historicalAsset.id}`,'PATCH',{name:'Updated historical asset',value:'275',custodian_user_id:historicalUser},a.actor)).record;
+ assert.equal(Number(retained.value),275);assert.equal(String(retained.custodian_user_id),String(historicalUser));
+ assert.equal((await call(`inventory/${camera}`,'PATCH',{custodian_user_id:historicalUser},a.actor)).status,400,'a new inactive custodian cannot be assigned');
+ assert.equal((await call(`inventory/${camera}`,'PATCH',{custodian_user_id:b.actor.id},a.actor)).status,400,'a foreign member cannot be assigned as custodian');
+ assert.equal((await call(`inventory/${historicalAsset.id}`,'PATCH',{name:'Foreign attempt',custodian_user_id:historicalUser},b.actor)).status,400,'preserving the same identity cannot bypass tenant checks');
+ console.log('PASS historical inactive custody: unchanged identity edits return 200; new inactive/foreign assignments remain 400');
  const aLocation=ok(await call('inventory-locations','POST',{name:'PostgreSQL template'},a.actor),201).location;
  const bLocation=ok(await call('inventory-locations','POST',{name:'PostgreSQL template'},b.actor),201).location;
  const templateItem=ok(await call('inventory','POST',{name:'Composite FK fixture',category:'Concurrency fixture',storage_location_id:aLocation.id},a.actor),201).record;

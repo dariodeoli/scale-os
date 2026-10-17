@@ -133,7 +133,15 @@ assert.equal((await call('inventory/batch','POST',{ids:[owned.id,unknown.id],cha
 assert.equal((await query('select count(*)::int as count from agency_inventory_trace')).rows[0].count,beforeAudit,'a rejected batch writes no partial audit');
 assert.equal((await call('inventory/batch','POST',{ids:[owned.id],change:{ownership:{kind:'company'}}},viewer)).status,403);
 assert.equal((await call(`inventory/${owned.id}`,'PATCH',{ownership_kind:'company'},{...owner,organization_id:other})).status,400);
+const historicalCustody=(await call('inventory','POST',{name:'Custodia histórica',custodian_user_id:producer.id},owner)).record;
 await query('update organization_members set active=false where organization_id=$1 and user_id=$2',[org,producer.id]);
 assert.equal((await call(`inventory/${owned.id}`,'PATCH',{name:'Nombre actualizado',ownership_kind:'person',owner_user_id:producer.id},owner)).status,200,'an unchanged historical owner survives membership removal');
 assert.equal((await call('inventory','POST',{name:'Nueva atribución inactiva',ownership_kind:'person',owner_user_id:producer.id},owner)).status,400,'a newly selected owner must still be active');
+const preserved=await call(`inventory/${historicalCustody.id}`,'PATCH',{name:'Ficha actualizada',value:'250',custodian_user_id:producer.id},owner);
+assert.equal(preserved.status,200,'a full edit may preserve the same inactive custodian');
+assert.equal(preserved.record.name,'Ficha actualizada');assert.equal(Number(preserved.record.value),250);assert.equal(String(preserved.record.custodian_user_id),String(producer.id));
+assert.equal((await call(`inventory/${unknown.id}`,'PATCH',{custodian_user_id:producer.id},owner)).status,400,'a new attribution to an inactive custodian remains forbidden');
+assert.equal((await call('inventory','POST',{name:'Nueva custodia inactiva',custodian_user_id:producer.id},owner)).status,400);
+assert.equal((await call(`inventory/${historicalCustody.id}`,'PATCH',{name:'Intento ajeno',custodian_user_id:producer.id},{...owner,organization_id:other})).status,400,'historical-custody preservation never bypasses tenant scoping');
+assert.equal((await call(`inventory/${unknown.id}`,'PATCH',{custodian_user_id:producer.id,ownership_kind:'person',owner_user_id:producer.id},owner)).status,400,'an inactive identity cannot be newly assigned to either relationship');
 await pg.close();console.log('PASS: inventory value, linear depreciation caps, maintenance log with audit/void, validation and tenant isolation');

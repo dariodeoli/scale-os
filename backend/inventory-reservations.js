@@ -367,7 +367,7 @@ async function saveItem(c,user,org,key,payload){
  if(status==='in_use'&&old.status!=='in_use')fail('Usá Registrar retiro para indicar quién lleva el equipo');
  const custodian=sent('custodian_user_id')?optionalId(payload.custodian_user_id):old.custodian_user_id??null;
  // Solo se valida la pertenencia cuando el PATCH envía un custodio nuevo.
- if(sent('custodian_user_id')&&custodian)await activeMembers(c,org,[custodian]);
+ if(sent('custodian_user_id')&&custodian&&(!key||String(custodian)!==String(old.custodian_user_id)))await activeMembers(c,org,[custodian]);
  const ownership=option(sent('ownership_kind')?payload.ownership_kind:old.ownership_kind||'unspecified',['unspecified','company','person']);
  const owner=sent('owner_user_id')?optionalId(payload.owner_user_id):old.owner_user_id??null;
  if(ownership==='person'&&!owner)fail('Elegí la persona propietaria del equipo');
