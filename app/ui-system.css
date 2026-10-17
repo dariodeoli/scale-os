@@ -83,6 +83,8 @@
 .foto-perfil-cuadrado{border-radius:min(var(--ui-radius-control,10px),calc(var(--foto-perfil-size) * .25))}
 .foto-perfil-logo{background:var(--surface-raised,var(--surface));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line-strong) 70%,transparent)}
 .foto-perfil-logo img{object-fit:contain;object-position:center;padding:calc(var(--foto-perfil-size) * .08)}
+/* Un cuadrado completo cabe dentro del círculo con ~15 % de margen por lado. */
+.foto-perfil-logo.foto-perfil-circulo img{padding:15%}
 .foto-perfil-xs{--foto-perfil-size:22px}
 .foto-perfil-sm{--foto-perfil-size:24px}
 .foto-perfil-md{--foto-perfil-size:28px}
