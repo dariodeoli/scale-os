@@ -305,4 +305,4 @@ const boundary=await maintenance(db,{dryRun:true,env:{DEMO_CLEANUP_BATCH_SIZE:'2
 assert.equal(boundary.demos.some(d=>d.organizationId===beforeGrace),false,'TTL expiry alone does not skip the 24h grace');
 assert.equal(boundary.demos.find(d=>d.organizationId===afterGrace)?.status,'eligible');
 await pg.close();
-console.log('PASS: 16 modern demo tables, issued contract/closed-period guards, verified-receipt scheduled cleanup, grace boundaries; expired private/public demos, grace and markers, canonical users and real finance preserved, FK/cascade refusal, rollback restores immutable guards, bounded configurable retention, dry-run, idempotency and scheduling');
+console.log(`PASS: ${modernTables.length} modern demo tables, issued contract/closed-period guards, verified-receipt scheduled cleanup, grace boundaries; expired private/public demos, grace and markers, canonical users and real finance preserved, FK/cascade refusal, rollback restores immutable guards, bounded configurable retention, dry-run, idempotency and scheduling`);
