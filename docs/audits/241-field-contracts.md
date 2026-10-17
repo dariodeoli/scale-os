@@ -1,6 +1,6 @@
 # #241 · Contratos de campos de Scale OS
 
-Auditoría estática de la aplicación local en `17fb189e`. Complementa [el inventario de componentes](241-ui-components.md). Este documento registra el comportamiento encontrado; **no introduce reglas nuevas ni declara completada la unificación**. No se consultó el repositorio, web ni código distribuido de OwnCoding UI: sus imports locales se describen como dependencias existentes, sin inferir su implementación.
+Auditoría estática de la aplicación local en `17fb189e`, con revisión puntual de importes enteros en `11a71500` (candidato de entrega191). Complementa [el inventario de componentes](241-ui-components.md). Este documento registra el comportamiento encontrado; **no introduce reglas nuevas ni declara completada la unificación**. No se consultó el repositorio, web ni código distribuido de OwnCoding UI: sus imports locales se describen como dependencias existentes, sin inferir su implementación.
 
 ## 1. Fuentes y alcance
 
@@ -92,16 +92,29 @@ Una futura UI puede compartir el control visual de selección/búsqueda, pero ne
 | Ajuste salarial mensual | Entero **con signo**, distinto0, valor absoluto≤999999999999; nota≤1000 | [Operations](../../backend/operations.js), [DB firmado](../../backend/migrations/20260915_salary_override_signed.sql). Reutilizar sólo input positivo rompería descuentos |
 | Presupuesto/ítems | Helper `amount` admite0; quantity>0 y≤999999; máximo100 ítems, descripción500; producto total también pasa por amount. IVA ratio0/.05/.1 | [Validadores](../../backend/suite-validation.js), [presupuestos](../../backend/agency-suite.js). Cantidad no es dinero ni porcentaje |
 
-`AmountInput` local es adaptador ya existente sobre `MoneyInput`. `integerOnly` existe como prop local; **Editor valida `Field.integer` por regex pero no pasa esa bandera a AmountInput** en este SHA. Puede permitir escribir decimales para después rechazarlos en submit; registrar la diferencia antes de consolidar.
+`AmountInput` local es adaptador ya existente sobre `MoneyInput`. `integerOnly` existe como prop local; Editor todavía no pasa esa bandera a AmountInput. En `17fb189e`, `Field.integer` sólo validaba regex de dígitos; **`11a71500` corrige específicamente dinero entero**: acepta ceros decimales de presentación y normaliza antes del `save`, conservando el rechazo de centavos reales. No debe diagnosticarse ya `1000.00` como fracción inválida en ese flujo. Cantidades/porcentajes enteros siguen usando su regla de dígitos.
 
 `app/amount-format.ts` conserva funciones de normalización locales con heurísticas de separadores (`1.234`/`1,234` se interpretan como miles); el adaptador visible delega a un control importado. No asumir que esos helpers y el control tienen idéntica semántica sólo por el nombre. Los tests existentes de pegado/caret son la evidencia reutilizable.
+
+### Revisión puntual de dinero entero · `11a71500`
+
+[El helper `normalizeWholeMoney`](../../app/amount-format.ts) distingue un importe entero de su presentación con ceros decimales. Acepta string/number no negativo representable como entero seguro y únicamente sufijo `.0` o `.00`: `1000`, `1000.0` y `1000.00` producen el string canónico `1000`. `1000.25`, `1000.000`, negativos, notación exponencial en el string, espacios y ceros iniciales no canónicos se rechazan; no se redondean ni se eliminan centavos reales. Requerido/cero/positivo siguen dependiendo del consumidor.
+
+Cambios de consumidores en ese commit:
+
+- `Editor`: usa el helper sólo si `type='money' && integer`; normaliza el valor antes de entregar `save`. `type='number' && integer` mantiene regex de dígitos y los campos monetarios decimales no pasan por este helper.
+- [ClientEditor](../../app/client-editor-data.ts): normaliza defaults del plan y `planTermsPayload` antes de enviar `recurringAmount`; conserva inválidos reales para que se rechacen, en vez de truncarlos.
+- [ClientReporting](../../app/client-reporting-data.ts): aplica el mismo helper para defaults/payload del plan, evitando diferencias entre los dos editores.
+- Los contratos backend de importe recurrente y gasto planificado siguen siendo enteros. Esto no habilita `1000.25` en planes/previsión ni altera cobros/gastos reales USD con centavos.
+
+Evidencia de código: commit `11a71500df5063adfff92b6c21855b07a897226e`, archivos anteriores y casos existentes ampliados en `tests/shared-editor.test.tsx`, `tests/client-editor-184.test.tsx` y `tests/client-reporting.test.tsx`. Esta actualización documental se verificó leyendo el diff; no repitió esas suites.
 
 ## 6. Fechas, horas y errores de formulario
 
 - [`business-time`](../../backend/business-time.js) distingue `zoneDate/zoneToday` de `civilDate` y usa America/Asuncion. Convertir `date` por `new Date(...).toISOString()` indiscriminadamente puede cambiar el día con otro driver/zona.
 - [`ops-time`](../../app/ops-time.ts) convierte hora civil a UTC con IANA y verifica round-trip; conserva24h. Reservas API exigen zona y calendario válido. `type=time` de tareas acepta hora sola, no un instante UTC.
 - Pagos retroactivos, cierres/reaperturas, edición salarial y condiciones comerciales tienen reglas de vigencia y revisiones. El input de fecha comparte presentación; su `min/max` y errores de negocio provienen del consumidor. Fecha de vencimiento, promesa de cobro, fecha de caja e inicio/vigencia contractual **son campos diferentes**, no defaults intercambiables.
-- `Editor` crea Zod con requerido mínimo1, validación de enteros, email, teléfono y callbacks por campo. No aplica `.max(f.maxLength)`, trim general ni validación genérica de date/time. El `<form noValidate>` impide confiar en restricciones nativas como validación final; `maxLength` restringe escritura, no todos los valores programáticos.
+- `Editor` crea Zod con requerido mínimo1, validación contextual de enteros (dinero con `normalizeWholeMoney` desde11a), email, teléfono y callbacks por campo. No aplica `.max(f.maxLength)`, trim general ni validación genérica de date/time. El `<form noValidate>` impide confiar en restricciones nativas como validación final; `maxLength` restringe escritura, no todos los valores programáticos.
 - En error de `save`, conserva valores y muestra un error general; no implementa un mapa universal `backend.fieldErrors`→`setError(campo)`. El API suele entregar `{error:string}`; conflictos409 y cupos429 no son errores de formato de un input.
 - La guardia `saving.current` previene doble submit local; formularios específicos conservan requestId/revisión para el API. No reemplazar esa idempotencia de negocio por un botón disabled. `form.reset` ocurre tras éxito, con opciones `resetOnSave`/«crear otro»; lookup genérico sí parchea valores, mientras el adaptador RUC agrega confirmación explícita.
 - Los campos disabled siguen presentes en el schema del Editor. Un legado inválido o dato reservado podría validarse al guardar otra sección; requiere comprobar el caso de consumidor antes de migrar, no cambiar silenciosamente reglas.
