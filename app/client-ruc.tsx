@@ -17,10 +17,10 @@ export function rucApplyValues(record:RucRecord){
 }
 
 /** Consulta al proveedor con el RUC tal como se escribió (sin inventar el dígito verificador). */
-export async function lookupRuc(raw:string):Promise<RucRecord>{
+export async function lookupRuc(raw:string,signal?:AbortSignal):Promise<RucRecord>{
  const ruc=normalizeTaxId(raw)||'';
  if(!taxIdValid(ruc))throw new Error(MENSAJE_RUC);
- const data=await api<{record:RucRecord|null}>('/api/agency/ruc-lookup',{ruc});
+ const data=await api<{record:RucRecord|null}>('/api/agency/ruc-lookup',{ruc},'POST',{signal});
  if(!data.record)throw new Error('No encontramos una ficha publicada para ese RUC. Podés cargar los datos manualmente.');
  return data.record;
 }
