@@ -41,10 +41,12 @@ test('suspended access uses the canonical chip with bad tone and collaborator ph
 });
 
 test('team list view is a thin ListGrid with one shared template and contact data is never cut',()=>{
- assert.match(team,/const TEAM_TEMPLATE='grid-cols-\[minmax\(13rem,1\.6fr\)_minmax\(12rem,1\.3fr\)_6rem_minmax\(9rem,0\.9fr\)_4\.5rem\]'/,'Persona tiene el mayor fr de la plantilla');
+ assert.match(team,/const TEAM_TEMPLATE='grid-cols-\[minmax\(13rem,1\.6fr\)_minmax\(12rem,1\.3fr\)_7rem_8rem_7rem_4\.5rem\]'/,'Persona tiene el mayor fr de la plantilla');
  assert.match(team,/<ListGrid label="Equipo" template=\{TEAM_TEMPLATE\} columns=\{TEAM_COLUMNS\}/);
  assert.match(team,/<ListRow key=\{facts\.key\} template=\{TEAM_TEMPLATE\}/,'el encabezado y las filas comparten la plantilla');
- for(const label of ['Persona','Datos','Estado','Acceso','Acciones'])assert.match(team,new RegExp(`label:'${label}'`),`columna ${label}`);
+ for(const label of ['Persona','Datos','Estado laboral','Permiso','Acceso','Acciones'])assert.match(team,new RegExp(`label:'${label}'`),`columna ${label}`);
+ assert.match(team,/key:'status',label:'Estado laboral',align:'center'/,'Estado laboral alinea su encabezado con la celda');
+ assert.match(team,/key:'access',label:'Acceso',align:'center'/,'Acceso alinea el encabezado con Habilitado');
  assert.match(team,/title=\{\[facts\.emailTitle\|\|facts\.email,\.\.\.facts\.meta\]\.join\(' · '\)\}/,'el correo truncado conserva su tooltip');
 });
 
