@@ -42,7 +42,7 @@ test('every list view carries the same column-header and alignment contract',()=
   assert.match(workspace,/PROJECT_COLUMNS: Column\[\] = \[[\s\S]*?Proyecto[\s\S]*?Estado[\s\S]*?Fechas y piezas[\s\S]*?Responsables[\s\S]*?Acciones/,'the project list declares its column header');
   assert.match(workspace,/ListGrid label=\{label\} template="grid-cols-\[var\(--project-cols\)\]" columns=\{PROJECT_COLUMNS\}/,'the project header consumes the shared template');
   const equipo=teamWorkspaceSource();
-  assert.match(equipo,/const TEAM_COLUMNS:Column\[\]=\[[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado[\s\S]*?Acceso[\s\S]*?Acciones/,'the team list shows its column header');
+  assert.match(equipo,/const TEAM_COLUMNS:Column\[\]=\[[\s\S]*?Persona[\s\S]*?Datos[\s\S]*?Estado laboral[\s\S]*?Permiso[\s\S]*?Acceso[\s\S]*?Acciones/,'the team list shows its six column headers');
   const clientes=sectionSource('clientes.tsx');
   assert.match(clientes,/ListRow template=\{CLIENT_TEMPLATE\} className="client-hub-row"/,'client rows consume the shared template');
   // Encabezado y filas comparten UNA plantilla por lista (variable CSS o clase Tailwind).
@@ -202,7 +202,7 @@ test('lists are thin rows and grids are big distributed cards',()=>{
 });
 
 test('dense list templates keep a silent horizontal escape hatch',()=>{
-  assert.match(teamWorkspaceSource(),/<ListGrid label="Equipo"[^>]*minWidthClass="min-w-\[48rem\]" pinnedActions>/,'the team list scrolls inside ListGrid (silent-scroll) instead of spilling out of its panel');
+  assert.match(teamWorkspaceSource(),/<ListGrid label="Equipo"[^>]*minWidthClass="min-w-\[56rem\]" pinnedActions>/,'the team list scrolls inside ListGrid (silent-scroll) instead of spilling out of its panel');
   assert.match(read('app/ui-v2.tsx'),/silent-scroll min-w-0 overflow-x-auto/,'ListGrid keeps the scroll silent');
   const uiV2=read('app/ui-v2.tsx');
   assert.match(uiV2,/silent-scroll min-w-0 overflow-x-auto/,'la lista v2 conserva el scroll horizontal silencioso');
