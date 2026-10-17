@@ -57,12 +57,13 @@ export function taskMaterials(value){
 }
 
 /** Ficha legal reutilizable. PATCH valida sólo las claves presentes; nunca infiere CI/RUC. */
-export const clientLegalFields=['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type'];
+export const clientLegalFields=['legal_representative_same_as_client','address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type'];
 export function clientLegalProfile(incoming){
- const limits={address:400,city:120,department:120,document_number:80,legal_representative_name:120,legal_representative_document:80,legal_representative_role:120};
+ const limits={address:400,city:120,department:120,document_number:80,legal_representative_name:160,legal_representative_document:80,legal_representative_role:120};
  const out={};
  for(const key of clientLegalFields){
   if(!Object.hasOwn(incoming,key))continue;
+  if(key==='legal_representative_same_as_client'){if(typeof incoming[key]!=='boolean')fail('Indicá si el representante es el mismo cliente.');out[key]=incoming[key];continue;}
   const value=incoming[key]??'';
   out[key]=key==='document_type'?option(value,['','ci','ruc','passport','other']):key==='party_type'?option(value,['','person','company']):text(value,limits[key]);
  }
