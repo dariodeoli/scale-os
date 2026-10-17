@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-export const modernTables=['agency_company_legal_profiles','agency_contract_templates','agency_contracts','agency_contract_versions','agency_contract_audit','agency_internal_tasks','agency_internal_task_assignees','agency_internal_task_comments','agency_payment_links','agency_account_openings','agency_opening_receivables','agency_payment_applications','agency_payment_application_reversals','agency_payment_date_corrections','agency_finance_periods','agency_finance_period_events','agency_salary_history'];
+export const modernTables=['agency_client_contacts','agency_company_legal_profiles','agency_contract_templates','agency_contracts','agency_contract_versions','agency_contract_audit','agency_internal_tasks','agency_internal_task_assignees','agency_internal_task_comments','agency_payment_links','agency_account_openings','agency_opening_receivables','agency_payment_applications','agency_payment_application_reversals','agency_payment_date_corrections','agency_finance_periods','agency_finance_period_events','agency_salary_history'];
 // Test-only synthetic data: exercise FK ordering, immutable documents and closed periods.
 export async function modernState(query,org,owner){
  const one=async(sql,args)=>(await query(sql,args)).rows[0];
  const insert=async(sql,args)=>(await one(sql+' returning id',args)).id;
  const client=(await one('select id from agency_clients where organization_id=$1 order by id limit 1',[org])).id;
+ await query("insert into agency_client_contacts(organization_id,client_id,name,email) values($1,$2,'Contacto ficticio','contacto@example.invalid')",[org,client]);
  const project=(await one('select id from agency_projects where organization_id=$1 order by id limit 1',[org])).id;
  const account=(await one("select id from bank_accounts where organization_id=$1 and currency='PYG' order by id limit 1",[org])).id;
  const collaborator=await insert("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency) values($1,'Persona ficticia historial','fixed',1000,'PYG')",[org]);

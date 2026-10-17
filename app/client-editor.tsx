@@ -8,6 +8,7 @@ import {Notice as Aviso} from './ui/notice';
 import {useEffect,useRef,useState} from 'react';
 import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {api,Dialog,Editor,ApiFieldError} from './operations';
+import {ClientContacts} from './client-contacts';
 import {ClientMatches,useClientMatches,type ClientMatch} from './client-matches';
 import {roleCan} from './capabilities';
 import {completeSave} from './save-completion';
@@ -148,6 +149,8 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
     <AvisoPrivacidad finalidad={PRIVACY_CLIENT_FINALITY} detalle={PRIVACY_CLIENT_DETAIL} politicaUrl={PRIVACY_POLICY_URL} derechosUrl={PRIVACY_RIGHTS_URL} compact className="mb-3"/>
     {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
     {mode==='edit'&&record&&<ClientAppearance id={String(clientId)} name={String(record.name??'')} logo={String(record.logo_url??'')} color={String(record.color_key??'')} legalName={String(record.legal_name??'')} representativeName={String(record.legal_representative_name??'')} linked={record.legal_representative_same_as_client===true} restricted={record.contact_restricted===true} refresh={async()=>{await refresh();await load();}}/>}
+    {mode==='create'?<p className="form-note">Después de guardar la ficha podés agregar contactos adicionales sin cambiar el correo o teléfono principal.</p>:null}
+    {mode==='edit'&&record&&clientId?<ClientContacts clientId={clientId} restricted={record.contact_restricted===true}/>:null}
     {canPlan&&record?<ScaleButton type="button" className="secondary mb-3" onClick={()=>setHistoryOpen(true)} variant="secondary">Historial del plan</ScaleButton>:null}
     {historyOpen&&clientId&&record?<FinanceHistoryDialog kind="plan" id={clientId} name={String(record.name??'')} close={()=>setHistoryOpen(false)}/>:null}
     {planError&&<Aviso tono="error" compact role="alert">{planError}</Aviso>}

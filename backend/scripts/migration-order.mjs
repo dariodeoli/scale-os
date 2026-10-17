@@ -115,4 +115,5 @@ export const migrationOrder = [
   '20261018_economic_history.sql',
   '20261018_commercial_same_month_revisions.sql',
   '20261018_workspace_preferences.sql',
+  '20261018_client_contacts.sql',
 ];
