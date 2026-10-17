@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,Building2,ChevronDown,Circle,CircleCheck,CircleDashed,CircleHelp,EyeOff} from 'lucide-react';
 import {AyudaModulo} from 'owncoding-ui';
@@ -27,7 +30,7 @@ export type WorkspaceGuideProps = WorkspaceGuideIdentity & {
 };
 
 function GuideStep({step,navigate}:{step:WorkspaceGuideStep;navigate:(module:string)=>void}){
- return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><button type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}<ArrowUpRight size={14}/></button></article>;
+ return <article className="ops-card"><h3>{step.title}</h3><p className="form-note">{step.description}</p><p className="form-note" role="status">{step.statusLabel}</p><Button variant="ghost" type="button" className="text-button" onClick={()=>navigate(step.module)}>Abrir {step.module}<ArrowUpRight size={14}/></Button></article>;
 }
 
 /** The keyed child resets open/dismissed UI synchronously when identity, role or demo changes. */
@@ -89,7 +92,7 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
      {suggestion?<span className="hidden min-w-0 flex-1 truncate text-[11.5px] text-mute sm:block" title={suggestion.description}>Siguiente: {suggestion.title}</span>:<span className="hidden min-w-0 flex-1 text-[11.5px] text-mute sm:block">Todo listo</span>}
      <ChevronDown size={16} aria-hidden="true" className={`shrink-0 text-mute transition-transform ${open?'rotate-180':''}`}/>
     </button>
-    <button type="button" className="text-button shrink-0" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</button>
+    <Button variant="ghost" type="button" className="text-button shrink-0" onClick={dismiss}><EyeOff size={14}/>Ocultar primeros pasos</Button>
    </div>
    {open&&<div className="grid gap-2 border-t border-ink-600 pb-2 pt-3">
     <ul className="grid gap-1">
@@ -103,18 +106,18 @@ function ScopedWorkspaceGuide({navigate,role,userId,organizationId,demo=false,da
      </li>)}
     </ul>
     {demoNote}
-    <button type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)}>Abrir guía completa</button>
+    <Button variant="secondary" type="button" className="secondary justify-self-start" onClick={()=>setOpen(true)}>Abrir guía completa</Button>
    </div>}
   </section>;
  }
- return <><button type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</button>{guideDialog}</>;
+ return <><Button variant="secondary" type="button" className="secondary" onClick={()=>setOpen(true)}>Guía del panel</Button>{guideDialog}</>;
 }
 export function NewCompany(){
  const [open,setOpen]=useState(false);
  return <section className="panel settings-card workspace-company-card" aria-labelledby="workspace-company-title"><div className="settings-card-heading"><span className="settings-card-icon" aria-hidden="true"><Building2 size={18}/></span><div><h2 id="workspace-company-title">Empresas</h2><p>Cambiá de empresa o creá un espacio separado para otra operación.</p></div></div>
   <CompanySettings/>
   <details className="settings-disclosure"><summary>Cómo funciona una empresa adicional</summary><div><p>Cada empresa tendrá sus propios clientes, equipo, proyectos y finanzas. Solo tu usuario tendrá acceso inicial.</p><p>Las nuevas empresas incluyen 30 días gratis. Después: US$10 o G. 50.000 al mes por empresa, con 2 días de gracia. Al comenzar el tercer día sin pagar se suspende el uso, sin borrar los datos. No se realiza ningún cobro al crearla.</p><p><strong>Precio de lanzamiento.</strong> {founderPricingNote}</p></div></details>
-  <div className="settings-card-actions"><button className="secondary" onClick={()=>setOpen(true)}>Crear otra empresa</button></div>
+  <div className="settings-card-actions"><Button variant="secondary" type="submit" className="secondary" onClick={()=>setOpen(true)}>Crear otra empresa</Button></div>
   {open&&<Dialog title="Nueva empresa · 30 días gratis" close={()=>setOpen(false)}><Editor fields={[{key:'name',label:'Nombre de la empresa'},{key:'slug',label:'Código único (letras, números y guiones)'},{key:'billingCurrency',label:'Suscripción después de la prueba',choices:[{value:'USD',label:'US$10 al mes'},{value:'PYG',label:'G. 50.000 al mes'}]}]} defaults={{name:'',slug:'',billingCurrency:'USD'}} label="Crear empresa e iniciar prueba" save={async v=>{const d=await api<{organization:{id:string}}>('/api/auth/organizations',v);await api('/api/auth/switch-organization',{organizationId:d.organization.id});window.location.assign('/');}}/></Dialog>}
  </section>;
 }

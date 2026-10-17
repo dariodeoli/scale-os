@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 // Modo mantenimiento en el espacio de trabajo. El estado sale de la ruta pública
 // del API (`/api/public/maintenance`, siempre permitida): si está activo y la
 // sesión no es de un administrador global, el shell muestra la pantalla de
@@ -39,7 +41,7 @@ export function MaintenanceScreen({message, until, onRetry}: {message: string; u
       <p className="whitespace-pre-line break-words text-[14px] leading-relaxed text-fore/85">{message || "Estamos haciendo mejoras en Scale OS. Volvé a intentar en unos minutos."}</p>
       {end ? <p className="text-[13px] text-mute">Fin estimado: <b className="list-date whitespace-nowrap text-fore">{end}</b> (hora de Asunción)</p> : null}
       <p className="text-[12.5px] text-mute">Tus datos están a salvo. Esta pantalla se actualiza sola cuando el servicio vuelve.</p>
-      <button type="button" className="secondary inline-flex min-h-11 items-center justify-center gap-2" onClick={onRetry ?? (() => window.location.reload())}><RefreshCw size={14} aria-hidden="true"/>Reintentar</button>
+      <Button variant="secondary" type="button" className="secondary inline-flex min-h-11 items-center justify-center gap-2" onClick={onRetry ?? (() => window.location.reload())}><RefreshCw size={14} aria-hidden="true"/>Reintentar</Button>
     </div>
   </main>;
 }

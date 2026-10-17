@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {esToken,extractTokenFromUrl} from 'owncoding-ui';
@@ -45,7 +47,7 @@ export default function VerifyEmailPage(){
    <p role="status" className={state==='error'||state==='missing'?'text-sm text-bad':'text-sm text-ok'} aria-live="polite">{message}</p>
    {state==='error'||state==='missing'?<form className="grid gap-3" onSubmit={resendVerification}>
     <label htmlFor="verify-email" className="grid gap-1.5 text-xs text-mute">Correo de la cuenta<EmailField id="verify-email" value={email} onChange={setEmail} disabled={resending}/></label>
-    <button className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</button>
+    <Button variant="primary" className="primary" type="submit" disabled={!email||resending}>{resending?'Enviando…':'Reenviar correo de verificación'}</Button>
     {resendMessage?<p role="status" className="text-xs text-mute">{resendMessage}</p>:null}
     <p className="flex flex-wrap gap-3 text-[11.5px] text-mute"><Link className="inline-flex min-h-11 items-center" href="/registro">Volver al registro</Link><Link className="inline-flex min-h-11 items-center" href="/">Ir al inicio de sesión</Link></p>
    </form>:null}

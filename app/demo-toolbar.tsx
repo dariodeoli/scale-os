@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useState} from 'react';
 import {api} from './operations';
 import {teamRoleLabels} from './team-directory';
@@ -41,7 +43,7 @@ export function DemoToolbar({role}:{role:string}){
     <label className="grid gap-1.5 text-xs font-semibold text-mute">Probar permiso
      <select className="min-h-11 rounded-lg border border-ink-600 bg-ink-800 px-2 text-sm font-medium text-fore" value={role} disabled={busy} onChange={e=>void changeRole(e.target.value)}>{roleOptions}</select>
     </label>
-    <button className="secondary justify-self-start" type="button" onClick={()=>{setControls(false);setClientView(true);}}>Así te ve tu cliente</button>
+    <Button variant="secondary" className="secondary justify-self-start" type="button" onClick={()=>{setControls(false);setClientView(true);}}>Así te ve tu cliente</Button>
     <a className="secondary justify-self-start" href="https://sistema.scaleparaguay.com/demo" title="Reiniciar demo" aria-label="Reiniciar demo"><RotateCcw size={15}/>Reiniciar demo</a>
     {error&&<p role="alert" className="rounded-lg border border-bad bg-ink-800 p-2 text-bad">{error}</p>}
    </div>
@@ -52,5 +54,5 @@ export function DemoToolbar({role}:{role:string}){
 }
 
 export function DemoWelcome({close}:{close:()=>void}){
- return <Dialog title="Tu Demo está lista" close={close} size="corto"><div className="grid gap-3.5 [&_.primary]:justify-self-start [&_p]:m-0 [&_p]:leading-relaxed [&_p]:text-mute [&_strong]:text-fore"><p><strong>20 clientes ficticios, 5 colaboradores y 80 piezas</strong> para explorar proyectos, producción, presupuestos y finanzas.</p><p>Tu Demo es privado, dura hasta 24 horas y no envía correos ni usa dinero real. Cada inicio crea una experiencia nueva.</p><button type="button" className="primary" onClick={close}>Explorar el Demo</button></div></Dialog>;
+ return <Dialog title="Tu Demo está lista" close={close} size="corto"><div className="grid gap-3.5 [&_.primary]:justify-self-start [&_p]:m-0 [&_p]:leading-relaxed [&_p]:text-mute [&_strong]:text-fore"><p><strong>20 clientes ficticios, 5 colaboradores y 80 piezas</strong> para explorar proyectos, producción, presupuestos y finanzas.</p><p>Tu Demo es privado, dura hasta 24 horas y no envía correos ni usa dinero real. Cada inicio crea una experiencia nueva.</p><Button variant="primary" type="button" className="primary" onClick={close}>Explorar el Demo</Button></div></Dialog>;
 }

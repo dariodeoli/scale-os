@@ -1,4 +1,7 @@
 "use client";
+import {Input} from './ui/input';
+import {FotoPerfil} from './foto-perfil';
+
 import { MoneyInput, BuscadorPersonas } from 'owncoding-ui';
 import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react';
 import {createPortal} from 'react-dom';
@@ -33,10 +36,20 @@ export function AmountInput({ value, currency, onChange,disabled=false,id,invali
   />;
 }
 
-export type SelectChoice={value:string;label:string;photoUrl?:string|null;secondary?:string;searchText?:string;kind?:'person'|'entity'};
-export function SelectCustom(props: { label: string; value: string; choices: SelectChoice[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
+export type SelectChoice={value:string;label:string;photoUrl?:string|null;secondary?:string;searchText?:string;kind?:'person'|'entity';disabled?:boolean};
+export type SelectProps={
+ label:string;value:string;choices:SelectChoice[];onChange:(value:string)=>void;
+ disabled?:boolean;invalid?:boolean;describedBy?:string;
+ /** El tipo explícito evita inferir una persona a partir del logo de una entidad. */
+ kind?:'person'|'entity';
+ /** Estados y búsqueda opt-in del selector simple; PersonSelect conserva su contrato propio. */
+ loading?:boolean;error?:string|null;searchable?:boolean;
+ loadingText?:string;emptyText?:string;noResultsText?:string;
+};
+export function SelectCustom(props: SelectProps) {
  const {label,choices}=props;
- const people=choices.some(choice=>choice.kind==='person'||choice.photoUrl!==undefined)||/persona|custodio|responsable|empleado|integrante|asignad[oa]|vendedor|colaborador/i.test(label);
+ const explicitEntity=props.kind==='entity'||choices.some(choice=>choice.kind==='entity');
+ const people=props.kind==='person'||(props.kind!=='entity'&&(choices.some(choice=>choice.kind==='person')||(!explicitEntity&&(choices.some(choice=>choice.photoUrl!==undefined)||/persona|custodio|responsable|empleado|integrante|asignad[oa]|vendedor|colaborador/i.test(label)))));
  if(people)return <PersonSelect {...props}/>;
  return <PlainSelect {...props}/>;
 }
@@ -53,31 +66,70 @@ export function PersonSelect({label,value,choices,onChange,disabled=false,invali
   <BuscadorPersonas id={id} personas={choices.filter(choice=>choice.value!=='').map(choice=>({id:String(choice.value),nombre:choice.label,fotoUrl:choice.photoUrl,detalle:choice.secondary,email:choice.searchText}))} valor={String(value)} onCambiar={person=>onChange(person?.id?String(person.id):'')} placeholder={blank?.label||'Buscar persona…'} opcionVacia={blank?.label} ariaLabel={label} etiquetaLista={label} avatarSeleccionado desplegable maxResultados={Math.max(30,choices.length)} disabled={disabled}/>
  </div>;
 }
-function PlainSelect({ label, value, choices, onChange,disabled=false,invalid,describedBy }: { label: string; value: string; choices: SelectChoice[]; onChange: (value: string)=>void;disabled?:boolean;invalid?:boolean;describedBy?:string }) {
-  const [open,setOpen]=useState(false),[query,setQuery]=useState('');const root=useRef<HTMLDivElement>(null);const trigger=useRef<HTMLButtonElement>(null);const id=useId();
-  const menu=useRef<HTMLDivElement>(null);
-  const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
-  const filtered=choices.filter(c=>foldSearch(c.label).includes(foldSearch(query)));
-  const selectedLabel=choices.find(c=>String(c.value)===String(value))?.label||'Seleccionar…';
-  useEffect(()=>{if(!open)setQuery('');},[open]);
-  useEffect(()=>{if(disabled)setOpen(false);},[disabled]);
-  useLayoutEffect(()=>{if(!open){setFloating(null);return;}const update=()=>{if(!trigger.current)return;setFloating({target:root.current?.closest('[role="dialog"]')||document.body,style:selectPosition(trigger.current.getBoundingClientRect(),{width:window.innerWidth,height:window.innerHeight},Math.min(380,choices.length*44+12+(choices.length>8?48:0)))});};update();window.addEventListener('resize',update);const scroll=(event:Event)=>{if(!menu.current?.contains(event.target as Node))update();};window.addEventListener('scroll',scroll,true);return()=>{window.removeEventListener('resize',update);window.removeEventListener('scroll',scroll,true);};},[open,choices.length]);
-  useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node)&&!menu.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[open]);
-  const hasFloating=!!floating;
-  useEffect(()=>{if(open&&hasFloating)menu.current?.querySelector<HTMLElement>('[aria-selected="true"], [role="option"]')?.focus();},[open,hasFloating]);
-  return <div className="ops-select" ref={root} onKeyDown={e=>{
-    if(e.key==='Escape'&&open){e.preventDefault();e.stopPropagation();setOpen(false);trigger.current?.focus();}
-    if(e.key==='Tab'&&open){setOpen(false);trigger.current?.focus();}
-    if(open&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const options=Array.from(menu.current?.querySelectorAll<HTMLButtonElement>('[role="option"]')||[]);const current=options.indexOf(document.activeElement as HTMLButtonElement);const next=e.key==='Home'?0:e.key==='End'?options.length-1:(current+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;options[next]?.focus();}
-  }}>
-    <span className="ops-label" id={`${id}-label`}>{label}</span>
-    <button type="button" ref={trigger} disabled={disabled} title={selectedLabel} className="ops-select-trigger" aria-invalid={invalid||undefined} aria-describedby={describedBy} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!disabled} aria-controls={open&&!disabled?id:undefined} onClick={()=>{if(!disabled)setOpen(!open);}} onKeyDown={e=>{if(!disabled&&!open&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();setOpen(true);}}}>
-      <span id={`${id}-value`}>{selectedLabel}</span><ChevronDown size={16}/>
-    </button>
-    {open&&!disabled&&floating&&createPortal(<div className="ops-select-options ops-select-floating" ref={menu} style={floating.style}>
-      {choices.length>8&&<input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(['Home','End'].includes(e.key))e.stopPropagation();}}/>}
-      <div role="listbox" id={id} aria-labelledby={`${id}-label`}>{filtered.map(c=><button type="button" role="option" aria-selected={String(value)===String(c.value)} key={c.value} onClick={()=>{onChange(String(c.value));setOpen(false);trigger.current?.focus();}}>{c.label}</button>)}</div>
-      {!filtered.length&&<p>No hay opciones disponibles.</p>}
-    </div>,floating.target)}
-  </div>;
+/** Salida del portal al orden de tabulación del formulario, nunca de vuelta al trigger. */
+function adjacentControl(trigger:HTMLElement,menu:HTMLElement|null,backward:boolean):HTMLElement|undefined {
+ const controls=Array.from(document.querySelectorAll<HTMLElement>('a[href],button,input,select,textarea,[tabindex]')).filter(control=>
+  control.tabIndex>=0&&!control.hasAttribute('disabled')&&!control.closest('[hidden],[inert],[aria-hidden="true"]')&&!menu?.contains(control)&&control.getClientRects().length>0);
+ const index=controls.indexOf(trigger);
+ return index<0?undefined:controls[index+(backward?-1:1)];
+}
+function ChoiceContent({choice}:{choice:SelectChoice}){
+ return <span className="ops-select-choice-identity">
+  {(choice.photoUrl||choice.kind)&&<FotoPerfil nombre={choice.label} foto={choice.photoUrl} tamano="sm" variante={choice.kind==='entity'?'logo':'persona'}/>}
+  <span><span>{choice.label}</span>{choice.secondary&&<small className="ops-select-choice-secondary">{choice.secondary}</small>}</span>
+ </span>;
+}
+function PlainSelect({label,value,choices,onChange,disabled=false,invalid,describedBy,loading=false,error,searchable,loadingText='Cargando opciones…',emptyText='No hay opciones disponibles.',noResultsText='No hay coincidencias.'}:SelectProps) {
+ const [open,setOpen]=useState(false),[query,setQuery]=useState('');
+ const root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDivElement>(null),id=useId();
+ const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
+ const filtered=choices.filter(choice=>foldSearch([choice.label,choice.secondary,choice.searchText].filter(Boolean).join(' ')).includes(foldSearch(query)));
+ const selected=choices.find(choice=>String(choice.value)===String(value)),selectedLabel=selected?.label||'Seleccionar…';
+ const hasSearch=searchable??choices.length>8,blocked=loading||Boolean(error);
+ useEffect(()=>{if(!open)setQuery('');},[open]);
+ useEffect(()=>{if(disabled)setOpen(false);},[disabled]);
+ useLayoutEffect(()=>{
+  if(!open){setFloating(null);return;}
+  const update=()=>{if(!trigger.current)return;setFloating({target:root.current?.closest('[role="dialog"]')||document.body,style:selectPosition(trigger.current.getBoundingClientRect(),{width:window.innerWidth,height:window.innerHeight},Math.min(380,Math.max(80,choices.length*44+12+(hasSearch?48:0))))});};
+  update();window.addEventListener('resize',update);
+  const scroll=(event:Event)=>{if(!menu.current?.contains(event.target as Node))update();};
+  window.addEventListener('scroll',scroll,true);
+  return()=>{window.removeEventListener('resize',update);window.removeEventListener('scroll',scroll,true);};
+ },[open,choices.length,hasSearch]);
+ useEffect(()=>{if(!open)return;const close=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node)&&!menu.current?.contains(event.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[open]);
+ const hasFloating=!!floating;
+ useEffect(()=>{
+  if(open&&hasFloating&&!blocked){
+   const preferred=menu.current?.querySelector<HTMLElement>('[role="option"][aria-selected="true"]:not([disabled])')||menu.current?.querySelector<HTMLElement>('[role="option"]:not([disabled])');
+   preferred?.focus();
+  }
+ },[open,hasFloating,blocked]);
+ return <div className="ops-select" ref={root} onKeyDown={event=>{
+  if(event.key==='Escape'&&open){event.preventDefault();event.stopPropagation();setOpen(false);trigger.current?.focus();}
+  if(event.key==='Tab'&&open){
+   const next=trigger.current?adjacentControl(trigger.current,menu.current,event.shiftKey):undefined;
+   if(next){event.preventDefault();next.focus();}
+   setOpen(false);
+  }
+  if(open&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+   event.preventDefault();
+   const options=Array.from(menu.current?.querySelectorAll<HTMLButtonElement>('[role="option"]:not([disabled])')||[]);
+   if(!options.length)return;
+   const current=options.indexOf(document.activeElement as HTMLButtonElement);
+   const next=event.key==='Home'?0:event.key==='End'?options.length-1:current<0?(event.key==='ArrowUp'?options.length-1:0):(current+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;
+   options[next]?.focus();
+  }
+ }}>
+  <span className="ops-label" id={`${id}-label`}>{label}</span>
+  <button type="button" ref={trigger} disabled={disabled} title={selectedLabel} className="ops-select-trigger" aria-invalid={invalid||undefined} aria-describedby={describedBy} aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="listbox" aria-expanded={open&&!disabled} aria-controls={open&&!disabled?id:undefined} onClick={()=>{if(!disabled)setOpen(!open);}} onKeyDown={event=>{if(!disabled&&!open&&['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();setOpen(true);}}}>
+   <span id={`${id}-value`}>{selected&&(selected.photoUrl||selected.secondary)?<ChoiceContent choice={selected}/>:selectedLabel}</span><ChevronDown size={16}/>
+  </button>
+  {open&&!disabled&&floating&&createPortal(<div className="ops-select-options ops-select-floating" ref={menu} style={floating.style}>
+   {hasSearch&&<Input type="search" aria-label={`Buscar ${label.toLowerCase()}`} placeholder="Buscar…" value={query} onChange={event=>setQuery(event.target.value)} onKeyDown={event=>{if(['Home','End'].includes(event.key))event.stopPropagation();}}/>}
+   <div role="listbox" id={id} aria-labelledby={`${id}-label`} aria-busy={loading||undefined}>
+    {!blocked&&filtered.map(choice=><button type="button" role="option" disabled={choice.disabled} aria-disabled={choice.disabled||undefined} aria-selected={String(value)===String(choice.value)} key={choice.value} onClick={()=>{if(choice.disabled||blocked)return;onChange(String(choice.value));setOpen(false);trigger.current?.focus();}}>{choice.photoUrl||choice.secondary?<ChoiceContent choice={choice}/>:choice.label}</button>)}
+   </div>
+   {loading?<p role="status">{loadingText}</p>:error?<p role="alert">{error}</p>:!filtered.length?<p role="status">{choices.length?noResultsText:emptyText}</p>:null}
+  </div>,floating.target)}
+ </div>;
 }

@@ -1,4 +1,8 @@
 "use client";
+import {Input} from '../ui/input';
+
+import {Button} from '../ui/button';
+
 import {useEffect,useState} from 'react';
 import {AvisoPrivacidad,ConsentimientoDatos,registroConsentimiento} from 'owncoding-ui';
 import {teamRoleLabels} from '../team-directory';
@@ -113,20 +117,20 @@ export default function InvitationPage(){
     <ConsentimientoDatos checked={dataConsent} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>{setDataConsent(event.target.checked);setConsentError('');}} finalidad="Acepto el tratamiento de mis datos para crear mi cuenta y trabajar en este espacio." detalle="Nombre, correo y actividad de trabajo; la agencia donde te invitan es responsable de estos datos." politicaUrl="/privacidad" version={PRIVACY_NOTICE.version} error={consentError||undefined}/>
     <div className="grid gap-2">
      <a className="primary login-button" referrerPolicy="no-referrer" onClick={continueWithGoogle} href={'/core-api/api/auth/google/start?invite='+encodeURIComponent(state.token)}>Continuar con Google</a>
-     {!passwordOpen?<button type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</button>:
+     {!passwordOpen?<Button variant="secondary" type="button" className="secondary login-button" onClick={()=>{setPasswordOpen(true);setPasswordError('');setPasswordNotice('');}}>Crear cuenta con correo</Button>:
       <form className="grid gap-4" onSubmit={registerWithPassword}>
-       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
+       <label className="grid gap-1.5 text-xs text-mute">Nombre y apellido<Input name="full_name" maxLength={120} autoComplete="name" placeholder="Cómo te llamamos" className="h-11 rounded-lg border border-ink-500 bg-ink-800 px-3 text-base text-fore outline-none transition focus:border-fono focus:ring-1 focus:ring-fono/40 md:h-9 md:text-sm"/></label>
        <label className="grid gap-1.5 text-xs text-mute">Correo<EmailField value={email} onChange={setEmail} required placeholder="tu@correo.com"/></label>
        <PasswordField label="Contraseña" name="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="8+ caracteres" required minLength={8}/>
        <PasswordField label="Repetí tu contraseña" name="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" placeholder="Repetí la contraseña" required minLength={8}/>
-       <button className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</button>
+       <Button variant="primary" type="submit" className="primary login-button" disabled={passwordBusy}>{passwordBusy?'Creando cuenta…':'Verificar mi correo y continuar'}</Button>
        {passwordError?<p className="error" role="alert">{passwordError}</p>:null}
        {passwordNotice?<p className="success" role="status">{passwordNotice}</p>:null}
       </form>}
     </div>
    </>:<div className="grid gap-3" role="status" aria-live="polite">
     <p className="text-sm text-mute">{notice?.message}</p>
-    {state.status==='connection'?<button type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</button>:null}
+    {state.status==='connection'?<Button variant="primary" type="button" className="primary login-button" onClick={()=>{setState({status:'loading'});setAttempt(value=>value+1);}}>Reintentar comprobación</Button>:null}
    </div>}
    <p className="text-[11.5px] text-mute"><a href="https://app.scaleparaguay.com/" referrerPolicy="no-referrer">{state.status==='pending'?'Consultar mi acceso':'Ir al inicio de sesión'}</a></p>
   </div>

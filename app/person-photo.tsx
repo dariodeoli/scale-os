@@ -1,4 +1,9 @@
 "use client";
+
+import {Input} from './ui/input';
+
+import {Button} from './ui/button';
+
 import {useEffect,useRef,useState} from 'react';
 import dynamic from 'next/dynamic';
 import {Crop,Link2,Trash2} from 'lucide-react';
@@ -42,12 +47,12 @@ export function PersonPhotoField({photo,name,save}:{photo:string|null;name:strin
    <FotoPerfil nombre={name} foto={current&&!failed?current:''} tamano="xl" onClick={()=>fileInput.current?.click()} disabled={processing} etiqueta={current&&!failed?`Cambiar foto de ${name}`:`Elegir foto de ${name}`} badge={<Crop size={12}/>}/>
    <div className="profile-photo-controls">
     <label className="photo-upload">{processing?'Preparando…':'Elegir foto'}<input ref={fileInput} type="file" accept={PHOTO_ACCEPT} aria-label={`Elegir foto (${PHOTO_FORMATS}; hasta 4 MB)`} disabled={processing} onChange={async event=>{const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file)return;await run(async()=>{await pick(file);},'Foto guardada. Podés ajustar el encuadre.');}}/></label>
-    <button type="button" className="text-button" disabled={processing} onClick={()=>setLinkMode(value=>!value)}><Link2 size={14}/>{linkMode?'Ocultar enlace':'Usar enlace'}</button>
-    {original||current?.startsWith('data:image/')?<button type="button" className="text-button" disabled={processing} onClick={openCrop}><Crop size={14}/>Recortar</button>:null}
-    {current?<button type="button" className="text-button danger" disabled={processing} onClick={remove}><Trash2 size={14}/>Quitar foto</button>:null}
+    <Button variant="ghost" type="button" className="text-button" disabled={processing} onClick={()=>setLinkMode(value=>!value)}><Link2 size={14}/>{linkMode?'Ocultar enlace':'Usar enlace'}</Button>
+    {original||current?.startsWith('data:image/')?<Button variant="ghost" type="button" className="text-button" disabled={processing} onClick={openCrop}><Crop size={14}/>Recortar</Button>:null}
+    {current?<Button variant="ghost" type="button" className="text-button danger" disabled={processing} onClick={remove}><Trash2 size={14}/>Quitar foto</Button>:null}
    </div>
   </div>
-  {linkMode&&<div className="form-stack"><label>Enlace directo a la imagen<input type="url" value={link} placeholder="https://…/foto.jpg" disabled={processing} onChange={event=>setLink(event.target.value)}/></label><div className="inline-actions"><button type="button" className="primary" disabled={processing||!link.trim()} onClick={saveLink}>{processing?'Guardando…':'Guardar enlace'}</button></div></div>}
+  {linkMode&&<div className="form-stack"><label>Enlace directo a la imagen<Input type="url" value={link} placeholder="https://…/foto.jpg" disabled={processing} onChange={event=>setLink(event.target.value)}/></label><div className="inline-actions"><Button variant="primary" type="button" className="primary" disabled={processing||!link.trim()} onClick={saveLink}>{processing?'Guardando…':'Guardar enlace'}</Button></div></div>}
   {failed&&<p className="error" role="alert">Esta imagen no se puede mostrar acá. El enlace puede haber vencido o el sitio bloquea mostrarla fuera de su propia página. Subí el archivo o probá otro enlace público.</p>}
   {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   <p className="form-note">{PHOTO_FORMATS} · Hasta 4 MB. Al subir se guarda automáticamente.</p>

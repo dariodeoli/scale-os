@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from './ui/button';
+
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
 // DSN para la referencia de Clientes (#42): mismos props y objetos de la
 // librería, con la lógica pura centralizada en ./client-directory-data.
@@ -9,7 +12,8 @@
 // En mobile se apila sólo lo que no entra, con targets de 44 px.
 import { Plus } from "lucide-react";
 import type {ChangeEvent} from 'react';
-import {Button, Label, SearchField, Select} from 'owncoding-ui';
+import {Label, Select} from 'owncoding-ui';
+import {SearchField} from './search-field';
 import {ViewSwitch, type CollectionView} from './ui-v2';
 import {directorySummaryText} from './client-directory-data';
 import { clientStatuses } from "./client-status";
@@ -71,10 +75,7 @@ export function ClientDirectoryToolbar({
         </h1>
         <p className="directory-summary min-w-0 truncate text-[12px] leading-5 tabular-nums text-mute" role="status" aria-atomic="true" title={loading ? undefined : summary}>{loading ? 'Cargando el directorio…' : summary}</p>
       </div>
-      {/* El icono de la librería es absoluto y el padding base del shell lo pisa
-          (ui-system.css): se refuerza el pl/pr igual que Finanzas/Mora para que
-          el placeholder no quede debajo de la lupa. Causa raíz compartida: DSN. */}
-      <SearchField className="client-directory-search w-full sm:w-72 [&>input]:!pl-9 [&>input]:!pr-9 [&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7" type="search" ariaLabel="Buscar clientes" value={query} onChange={(event:ChangeEvent<HTMLInputElement>)=>onQueryChange(event.target.value)} placeholder={contactVisible?'Buscar por nombre, correo o teléfono':'Buscar por nombre'}/>
+      <SearchField className="client-directory-search w-full sm:w-72" ariaLabel="Buscar clientes" value={query} onChange={value=>onQueryChange(value)} placeholder={contactVisible?'Buscar por nombre, correo o teléfono':'Buscar por nombre'}/>
       <div className="min-w-0">
         <Label htmlFor="clientes-estado" className="sr-only">Estado</Label>
         <Select id="clientes-estado" aria-label="Estado" value={status} onChange={(event:ChangeEvent<HTMLSelectElement>)=>onStatusChange(event.target.value)} className="min-w-[11rem]">
@@ -86,7 +87,7 @@ export function ClientDirectoryToolbar({
       <div className="client-directory-view-controls" role="group" aria-label="Vista del directorio">
         <ViewSwitch value={view} onChange={onViewChange}/>
       </div>
-      {query || status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</button> : null}
+      {query || status ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}}>Limpiar filtros</Button> : null}
       {children}
       {canCreate && (
         <Button

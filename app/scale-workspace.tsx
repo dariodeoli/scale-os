@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from './ui/button';
+
 import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
@@ -715,7 +718,7 @@ export default function Home() {
   function projectEntry(project:Project){
     return <ProjectCard key={project.id} project={project} taskIdentity={user?{organizationId:String(user.organization_id),userId:String(user.id),canView:user.role==='owner'||user.capabilities?.['tasks.view']!==false}:undefined} client={identityLoading?undefined:clients.find(c=>String(c.id)===String(project.client_id))} selectable={canManageProjects} selected={projectBulk.has(String(project.id))} onSelect={()=>projectBulk.toggle(String(project.id))}>
       <ProjectComments projectId={project.id} name={project.name} role={user?.role||'viewer'}/>
-      {canManageProjects?<button type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</button>:null}
+      {canManageProjects?<Button variant="ghost" type="button" className="text-button" disabled={archiveBusy===`project:${project.id}`} onClick={()=>void setProjectArchive(project.id,project.active===false)}>{project.active===false?'Reactivar':'Archivar'}</Button>:null}
       <RecordEditor kind="projects" recordId={project.id} name={project.name} role={user?.role||'viewer'} refresh={load}/>
     </ProjectCard>;
   }
@@ -917,7 +920,7 @@ export default function Home() {
             />
             <PasswordPanel/>
             {toast && <p className="error" role="alert">{toast}</p>}
-            <button className="primary login-button">Continuar</button>
+            <Button variant="primary" type="submit" className="primary login-button">Continuar</Button>
           </form>
           <AvisoPrivacidad compact finalidad="Privacidad de tus datos." politicaUrl="/privacidad" derechosUrl="/privacidad#derechos"/>
       </AccessLayout>
@@ -929,7 +932,7 @@ export default function Home() {
   const sectionTabs = active!=='Sin acceso'&&childSections(active).length>1 ? <TabScroller className="mb-3" label="apartados"><nav className="section-tabs [&>a]:no-underline" aria-label={`Apartados de ${activeParent}`}>{allowedChildren(activeParent).map(label=><Link key={label} href={sectionPath(label)} onMouseEnter={()=>prefetchSection(label)} onFocus={()=>prefetchSection(label)} aria-current={active===label?'page':undefined}>{tabLabels[label]||label}</Link>)}</nav></TabScroller> : null;
   const firstName = user?.full_name?.trim().split(/\s+/)[0] || (!technicalEmail(user?.email) ? user?.email.split("@")[0] : '') || "Usuario";
   const companyLabel = user?.demo_owner_user_id&&/^Demo\b/i.test(user.organization_name||'')?'Mi agencia':user?.organization_name || 'Organización';
-  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name} logo={user.organization_logo_url}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><button className="secondary" onClick={logout}>Cerrar sesión</button><WorkspaceFooter/></div></main>;
+  if(user?.subscription?.hasAccess===false)return <main className="login-page"><div className="login-card"><WorkspaceBrand/><CompanySelector name={user.organization_name} logo={user.organization_logo_url}/><SubscriptionPanel key={user.organization_id} state={user.subscription} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/><Button variant="secondary" type="submit" className="secondary" onClick={logout}>Cerrar sesión</Button><WorkspaceFooter/></div></main>;
 
   // Ítem de nav (riel y drawer): mismo esqueleto, tono por superficie. El riel
   // marca el activo con barra dorada y tile de ícono; el drawer usa el tono de
@@ -1029,7 +1032,7 @@ export default function Home() {
           <SelectCustom label="Responsable" value={preferences.production.mine?'mine':'all'} choices={[{value:'all',label:'Todas las asignaciones'},{value:'mine',label:'Asignadas a mí'}]} onChange={value=>updatePreferences({production:{...preferences.production,mine:value==='mine'}})}/>
           <SelectCustom label="Fecha de entrega" value={preferences.production.week?'week':'all'} choices={[{value:'all',label:'Todas las fechas'},{value:'week',label:'Vencen esta semana (hora local)'}]} onChange={value=>updatePreferences({production:{...preferences.production,week:value==='week'}})}/>
           <p className="form-note">De lunes a domingo según el calendario local de tu dispositivo. Incluye todos los estados; las órdenes sin fecha quedan fuera del filtro semanal. Se combina con el cliente elegido y se guarda para vos en esta empresa y navegador.</p>
-          <button className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</button>
+          <Button variant="ghost" type="submit" className="text-button" onClick={()=>updatePreferences({production:defaultWorkspacePreferences().production})}><RotateCcw size={14}/>Restablecer filtros</Button>
           {preferenceWarning&&<p className="form-note" role="status">{preferenceWarning}</p>}
         </div></Dialog>}
         {subscriptionOpen&&user&&active!=='Configuración'&&<Dialog title="Suscripción de tu agencia" close={()=>setSubscriptionOpen(false)}><SubscriptionPanel embedded key={user.organization_id} state={user.subscription||null} error={subscriptionError} onRefresh={refreshSubscription} organizationName={user.organization_name}/></Dialog>}
@@ -1091,9 +1094,9 @@ export default function Home() {
             </div>
             <div className="header-actions flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-start">
               {(active==='Resumen'&&canCreateRecord(active)) && (
-                <button className="primary" onClick={() => setModal("order")}>
+                <Button variant="primary" type="submit" className="primary" onClick={() => setModal("order")}>
                   <Plus size={18} /> Nueva orden
-                </button>
+                </Button>
               )}
             </div>
           </>}

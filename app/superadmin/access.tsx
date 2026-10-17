@@ -1,10 +1,13 @@
 "use client";
+import {Button} from '../ui/button';
+
 // Accesos entre agencias del panel global.
 // Rediseño #80: panel del sistema con lista densa v2 y tarjetas cuando la
 // plantilla no entra; las acciones mutantes quedan detrás de `writable`.
 import {useMemo, useState} from "react";
 import {Eye, ShieldCheck, Trash2} from "lucide-react";
-import {Nota, SearchField} from "owncoding-ui";
+import {Nota} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {EmptyBlock, FilterToolbar, ListActions, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from "./model";
 import {PersonContainer} from "../person-container";
@@ -47,7 +50,7 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
   const actions = (person: Person) => {
     if (!writable) return null;
     if (selfRow(person)) return (
-      <button
+      <Button variant="ghost"
         type="button"
         className="text-button platform-admin-danger"
         disabled={busy}
@@ -57,11 +60,11 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       >
         <Trash2 size={14} aria-hidden="true" />
         Eliminar mi cuenta
-      </button>
+      </Button>
     );
     return <>
       {person.platform_role !== "admin" && (
-        <button
+        <Button variant="ghost"
           type="button"
           className="text-button"
           disabled={busy}
@@ -69,10 +72,10 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
         >
           <ShieldCheck size={14} aria-hidden="true" />
           Hacer admin global
-        </button>
+        </Button>
       )}
       {person.platform_role !== "viewer" && (
-        <button
+        <Button variant="ghost"
           type="button"
           className="text-button"
           disabled={busy}
@@ -80,19 +83,19 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
         >
           <Eye size={14} aria-hidden="true" />
           Solo lectura
-        </button>
+        </Button>
       )}
       {person.platform_role && (
-        <button
+        <Button variant="ghost"
           type="button"
           className="text-button"
           disabled={busy}
           onClick={() => void setPlatformAccess(person, "none")}
         >
           Quitar acceso
-        </button>
+        </Button>
       )}
-      <button
+      <Button variant="ghost"
         type="button"
         className="text-button platform-admin-danger"
         disabled={busy}
@@ -102,7 +105,7 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
       >
         <Trash2 size={14} aria-hidden="true" />
         Eliminar usuario
-      </button>
+      </Button>
     </>;
   };
   // Foto + nombre real + correo (secundario): solo identidad visible, nunca datos sensibles.
@@ -130,8 +133,8 @@ export function PlatformAccess({busy, state, page, onMore, writable, setConfirmi
         <small className="text-[12px] leading-[1.35] text-mute">El acceso global no cambia los permisos de cada agencia</small>
       </div>
       <FilterToolbar summary={`${visible.length} de ${state.users.length}`}>
-        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar usuario" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Correo del usuario"/>
-        {query ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setQuery("")}>Limpiar filtros</button> : null}
+        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" ariaLabel="Buscar usuario" value={query} onChange={value=> setQuery(value)} placeholder="Correo del usuario"/>
+        {query ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setQuery("")}>Limpiar filtros</Button> : null}
       </FilterToolbar>
       {!writable && (
         <Nota tono="info" como="div" compact className="mb-3">Solo lectura: podés consultar la administración global, no modificarla.</Nota>

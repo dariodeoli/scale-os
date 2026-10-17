@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 // Estados del panel global (#102, rediseño #155 fase 2): filas compactas —el
 // detalle vive en el texto muted o en el tooltip—, borde tokenizado para alto
 // contraste, acción de recuperación en el error y skeleton con la forma real
@@ -35,7 +37,7 @@ export function PlatformNotices({state, error, bootstrap, onRetry}: {state: Stat
       <div className="min-w-0">
         <b className="block text-[13.5px] font-semibold text-fore">No pudimos actualizar el control global</b>
         <Aviso tono="error" compact className="mt-1">{error}</Aviso>
-        {onRetry ? <button type="button" className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" onClick={onRetry}><RefreshCw size={14} aria-hidden="true"/>Reintentar</button> : null}
+        {onRetry ? <Button variant="secondary" type="button" className="secondary mt-2 inline-flex min-h-11 items-center gap-2 md:min-h-8" onClick={onRetry}><RefreshCw size={14} aria-hidden="true"/>Reintentar</Button> : null}
       </div>
     </section> : null}
   </div>;
@@ -92,6 +94,6 @@ export function PlatformAdminSkeleton() {
 export function PlatformMore({loaded,total,hasMore,busy,onMore,label='registros'}: {loaded:number;total:number|null;hasMore:boolean;busy:boolean;onMore:()=>void;label?:string}) {
   return <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
     <span className="text-xs tabular-nums text-mute" role="status">{total===null?`${formatPlatformMetric(loaded)} ${label}`:`${formatPlatformMetric(loaded)} de ${formatPlatformMetric(total)} ${label}`}</span>
-    {hasMore?<button type="button" className="secondary" disabled={busy} onClick={onMore}>Ver más</button>:null}
+    {hasMore?<Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={onMore}>Ver más</Button>:null}
   </div>;
 }

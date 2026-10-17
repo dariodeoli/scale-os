@@ -1,4 +1,6 @@
 'use client';
+import {Button} from './ui/button';
+
 // Primitivas únicas v2 (campaña #41, DESIGN-SYSTEM.md §Sistema v2).
 //
 // Envuelven objetos de `owncoding-ui` para fijar la semántica de Scale OS:
@@ -404,7 +406,7 @@ export function EmptyBlock({title, description, action, icon, compact = false, c
  * (mismo objeto, mismo target de 44 px en móvil y mismo texto sobre marca).
  */
 export function EmptyCta({label, onClick, icon, className}: {label: string; onClick: () => void; icon?: ReactNode; className?: string}) {
-  return <button type="button" className={`primary ${className ?? ''}`} onClick={onClick}>{icon}{label}</button>;
+  return <Button type="button" className={`primary ${className ?? ''}`} onClick={onClick}>{icon}{label}</Button>;
 }
 
 /**
@@ -481,9 +483,9 @@ export function BulkBar({count, total, label = 'seleccionado', children, onSelec
   return <div role="status" aria-live="polite" data-bulk-bar className={`bulk-bar ${sticky ? 'bulk-bar-sticky' : ''} ${className ?? ''}`}>
     <span className="bulk-count"><b>{count}</b>{total !== undefined ? <> de {total}</> : null} {label}{count === 1 ? '' : 's'}</span>
     <div className="inline-actions bulk-actions">
-      {onSelectVisible && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</button>}
+      {onSelectVisible && <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onSelectVisible}>{selectVisibleLabel}</Button>}
       {children}
-      {onClear && <button type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear}>Limpiar</button>}
+      {onClear && <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" disabled={busy} onClick={onClear}>Limpiar</Button>}
     </div>
   </div>;
 }

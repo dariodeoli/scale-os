@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {AlertTriangle,Download} from 'lucide-react';
 import {StateChip,ErrorBlock,LoadingBlock} from './ui-v2';
@@ -90,7 +92,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
        <ConsentState consent={latest(purpose.id)}/>
       </div>
       <p className="text-[11.5px] leading-5 text-mute">{purpose.detalle}</p>
-      {latest(purpose.id)?.aceptado?<button type="button" className={`text-button w-fit ${ACTION}`} disabled={revoking===purpose.id} onClick={()=>void revoke(purpose)}>{revoking===purpose.id?'Revocando…':'Revocar este consentimiento'}</button>:null}
+      {latest(purpose.id)?.aceptado?<Button type="button" className={`text-button w-fit ${ACTION}`} disabled={revoking===purpose.id} onClick={()=>void revoke(purpose)}>{revoking===purpose.id?'Revocando…':'Revocar este consentimiento'}</Button>:null}
      </li>)}
     </ul>
    </section>
@@ -108,7 +110,7 @@ export function MyDataPanel({profile,close}:{profile:ProfileData;close:()=>void}
       <StateChip tone="mute">Próximamente</StateChip>
      </li>)}
     </ul>:<div className="flex flex-wrap gap-2">
-     {REQUEST_TYPES.map(type=><button key={type.value} type="button" className={`secondary ${ACTION}`} onClick={()=>setRequestType(type.value)}>{type.label}</button>)}
+     {REQUEST_TYPES.map(type=><Button key={type.value} type="button" className={`secondary ${ACTION}`} onClick={()=>setRequestType(type.value)}>{type.label}</Button>)}
     </div>}
     {bridge?<p className="text-[11.5px] leading-5 text-mute">Mientras la base técnica esté pendiente, estos pedidos se registran por el canal alternativo de arriba: el equipo los carga y podés seguirlos con tu referencia.</p>:null}
     {data?.exportPath?<a className={`secondary w-fit ${ACTION}`} href={`/core-api${data.exportPath}`} download="mis-datos.json"><Download size={15} aria-hidden="true"/>Descargar copia de mis datos</a>:<p className="text-[11.5px] text-mute">{bridge?'La descarga en autoservicio se habilita con la base del API; pedila por el canal alternativo y el equipo la prepara.':'Sin descarga disponible por ahora.'}</p>}

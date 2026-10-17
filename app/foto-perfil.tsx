@@ -10,7 +10,7 @@
 // client-identity, las miniaturas del visor y las previews de perfil).
 // Las fotos de equipo del Inventario quedan fuera (no son de persona).
 import {useEffect,useState,type ReactNode} from 'react';
-import {actorInitials,safePhoto} from './actor-identity';
+import {actorInitials,safePhoto} from './identity-photo-policy';
 
 export type FotoPerfilTamano='xs'|'sm'|'md'|'lg'|'xl'|'2xl'|'3xl';
 export type FotoPerfilForma='circulo'|'cuadrado';

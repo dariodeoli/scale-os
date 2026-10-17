@@ -57,9 +57,9 @@ test('la fila y la tarjeta ofrecen Perfil · Acceso · Eliminar en el menú ⋯ 
 test('los vacíos de plataforma ofrecen el CTA contextual que corresponda',()=>{
  assert.match(team,/<Plus size=\{16\} aria-hidden="true"\/>Agregar primera persona/);
  assert.match(team,/title=\{hasFilters\?'Sin coincidencias':'Todavía no hay personas'\}/);
- assert.match(read('app/invite-links.tsx'),/action=\{<button type="button" className="secondary" onClick=\{focusCreate\}>Generar enlace<\/button>\}/);
+ assert.match(read('app/invite-links.tsx'),/action=\{<Button variant="secondary" type="button" className="secondary" onClick=\{focusCreate\}>Generar enlace<\/Button>\}/);
  assert.match(read('app/invite-links.tsx'),/ref=\{createCard\}/);
- assert.match(read('app/permissions-matrix.tsx'),/description="El API no devolvió la matriz de capacidades\." action=\{<button type="button" className="secondary" onClick=\{\(\)=>void load\(\)\}>Reintentar<\/button>\}/);
+ assert.match(read('app/permissions-matrix.tsx'),/description="El API no devolvió la matriz de capacidades\." action=\{<Button variant="secondary" type="button" className="secondary" onClick=\{\(\)=>void load\(\)\}>Reintentar<\/Button>\}/);
  assert.match(read('app/superadmin/catalog.tsx'),/Crear el primer cupón/);
  assert.match(read('app/superadmin/catalog.tsx'),/ref=\{codeRef\}/);
 });

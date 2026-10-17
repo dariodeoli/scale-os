@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 /**
  * Proyectos (dominio OPS) — tarjeta/lista y detalle v2 (campaña #41, spec #44).
  *
@@ -99,7 +101,7 @@ function ProjectDetail({project,client,onClose,taskIdentity}:{project:ProjectVie
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Responsables</h4>
-        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <button type="button" className="text-button" onClick={()=>setReload(value=>value+1)}>Reintentar</button></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
+        {data?assigneesError?<p className="flex flex-wrap items-center gap-2 text-[13px] text-mute">No se pudieron cargar los responsables. <Button variant="ghost" type="button" className="text-button" onClick={()=>setReload(value=>value+1)}>Reintentar</Button></p>:<AssignedPeople people={data.assignees}/>:<LoadingBlock label="Cargando responsables…" lines={1}/>}
       </section>
       <section className="grid min-w-0 gap-2">
         <h4 className="text-sm font-semibold text-fore">Enlaces de archivo o carpeta de Drive</h4>

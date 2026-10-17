@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {Check,ChevronDown,ShieldCheck,X} from 'lucide-react';
 import {api,Dialog} from './operations';
@@ -127,7 +130,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
  const body=<>
   <p className="m-0 flex items-start gap-2 text-xs text-mute"><ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0"/> Definí qué puede hacer cada cargo. El Dueño siempre conserva todos los permisos. Los cambios se guardan por empresa y se auditan.</p>
   {error?<ErrorBlock title="No pudimos guardar el permiso" description={error} onRetry={()=>void load()}/>:null}
-  {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>}/>:<>
+  {loading?<LoadingBlock label="Cargando permisos…" lines={4}/>:!data?<EmptyBlock title="Sin datos de permisos" description="El API no devolvió la matriz de capacidades." action={<Button variant="secondary" type="button" className="secondary" onClick={()=>void load()}>Reintentar</Button>}/>:<>
    {explorer&&<>
     <details className="group rounded-xl border border-ink-600 bg-ink-800">
      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 p-4">
@@ -142,7 +145,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="m-0 text-[15px] font-semibold tracking-tight text-fore">Permisos por módulo</h3><p className="m-0 text-xs text-mute">Tocá una pastilla para habilitar o quitar el permiso de ese cargo.</p></div>
     <ModulePermissions data={data} owner={owner} busy={busy} toggle={toggle}/>
    </div>
-   {owner?<div className="flex justify-end"><button type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</button></div>:<p className="m-0 text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
+   {owner?<div className="flex justify-end"><Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()}>Restablecer todos los permisos por defecto</Button></div>:<p className="m-0 text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
   </>}
  </>;
  return explorer?<ListPage aria-label="Roles y permisos" aria-busy={loading||busy} kpis={kpis}>{body}</ListPage>:<div className="grid gap-4" aria-busy={loading||busy}>{body}</div>;

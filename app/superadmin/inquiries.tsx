@@ -1,4 +1,8 @@
 "use client";
+import {Button} from '../ui/button';
+
+import {Textarea} from '../ui/input';
+
 // Consultas de la landing (formulario «¿Tenés alguna duda?»): bandeja del panel
 // global. Lista densa v2 (Fecha · Nombre/empresa · Contacto · Mensaje · Estado ·
 // Acciones) con tarjetas cuando la plantilla no entra, filtro por estado (en el
@@ -123,7 +127,7 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
     ...(whatsappHref(inquiry.whatsapp) ? [{id: "whatsapp", label: "Abrir WhatsApp", icono: "phone", onClick: () => openExternal(whatsappHref(inquiry.whatsapp))}] : []),
   ];
   const primary = (inquiry: Inquiry) => writable && inquiry.status === "new"
-    ? <button type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(inquiry, {status: "contacted"}, "Consulta marcada como contactada.")}>Marcar contactada</button>
+    ? <Button variant="ghost" type="button" className="text-button platform-admin-inline-action" disabled={busy} onClick={() => void patch(inquiry, {status: "contacted"}, "Consulta marcada como contactada.")}>Marcar contactada</Button>
     : null;
   const actions = (inquiry: Inquiry) => <>
     {primary(inquiry)}
@@ -168,7 +172,7 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
           {(Object.keys(INQUIRY_STATUS) as InquiryStatus[]).map((key) => <option key={key} value={key}>{INQUIRY_STATUS[key].label}s{counts ? ` (${formatPlatformMetric(counts[key])})` : ""}</option>)}
         </Select>
       </label>
-      {status ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")}>Limpiar filtro</button> : null}
+      {status ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setStatus("")}>Limpiar filtro</Button> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar las consultas" description={error} onRetry={() => void load()}/>
@@ -209,7 +213,7 @@ export function PlatformInquiries({writable, onError, onCounts}: Props) {
     >
       <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
         Nota interna
-        <textarea value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: llamar el lunes, pidió demo para 5 usuarios" onChange={(event) => setNote(event.target.value)}/>
+        <Textarea value={note} disabled={busy} maxLength={2000} rows={4} placeholder="Ej.: llamar el lunes, pidió demo para 5 usuarios" onChange={(event) => setNote(event.target.value)}/>
       </label>
     </ConfirmDialog> : null}
   </section>;

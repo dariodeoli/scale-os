@@ -1,4 +1,10 @@
 "use client";
+
+import {Input, Textarea} from '../ui/input';
+
+import {Button} from '../ui/button';
+import {DateTimeInput} from '../ui/temporal-input';
+
 // Comunicados del panel global: alta/edición con vista previa (el mismo banner que
 // ve la persona en su espacio), publicar/despublicar y lista con % de lecturas
 // sobre usuarios reales (sin demo). Sección independiente: se registra con una
@@ -180,12 +186,12 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
         <div className="grid min-w-0 gap-3">
           <label className={FIELD}>
             <span className="flex justify-between gap-2">Título <span className="tabular-nums" aria-hidden="true">{titleLeft}</span></span>
-            <input ref={titleRef} value={draft.title} maxLength={ANNOUNCEMENT_TITLE_MAX} required placeholder="Ej.: Nueva vista de producción" aria-describedby="announcement-title-left" onChange={(event) => setDraft({...draft, title: event.target.value})}/>
+            <Input ref={titleRef} value={draft.title} maxLength={ANNOUNCEMENT_TITLE_MAX} required placeholder="Ej.: Nueva vista de producción" aria-describedby="announcement-title-left" onChange={(event) => setDraft({...draft, title: event.target.value})}/>
             <span id="announcement-title-left" className="sr-only">Quedan {titleLeft} caracteres</span>
           </label>
           <label className={FIELD}>
             <span className="flex justify-between gap-2">Mensaje <span className="tabular-nums" aria-hidden="true">{messageLeft}</span></span>
-            <textarea value={draft.message} maxLength={ANNOUNCEMENT_MESSAGE_MAX} rows={4} required placeholder="Texto plano, sin HTML. Los saltos de línea se respetan." onChange={(event) => setDraft({...draft, message: event.target.value})}/>
+            <Textarea value={draft.message} maxLength={ANNOUNCEMENT_MESSAGE_MAX} rows={4} required placeholder="Texto plano, sin HTML. Los saltos de línea se respetan." onChange={(event) => setDraft({...draft, message: event.target.value})}/>
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <SelectCustom label="Tipo" value={draft.kind} choices={KINDS.map((kind) => ({value: kind, label: ANNOUNCEMENT_KIND_LABEL[kind]}))} onChange={(value) => setDraft({...draft, kind: value as AnnouncementKind})}/>
@@ -193,8 +199,8 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
           </div>
           <SelectCustom label="Audiencia" value={draft.organizationId} choices={[{value: "", label: "Todas las agencias"}, ...agencies.map((agency) => ({value: String(agency.id), label: agency.name || `Agencia #${agency.id}`}))]} onChange={(value) => setDraft({...draft, organizationId: value})}/>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className={FIELD}>Vigente desde<OptionalMark/><input type="datetime-local" className="max-w-[14rem]" value={draft.startsAt} onChange={(event) => setDraft({...draft, startsAt: event.target.value})}/></label>
-            <label className={FIELD}>Vigente hasta<OptionalMark/><input type="datetime-local" className="max-w-[14rem]" value={draft.endsAt} min={draft.startsAt || undefined} onChange={(event) => setDraft({...draft, endsAt: event.target.value})}/></label>
+            <label className={FIELD}>Vigente desde<OptionalMark/><DateTimeInput  className="max-w-[14rem]" value={draft.startsAt} onChange={(event) => setDraft({...draft, startsAt: event.target.value})}/></label>
+            <label className={FIELD}>Vigente hasta<OptionalMark/><DateTimeInput  className="max-w-[14rem]" value={draft.endsAt} min={draft.startsAt || undefined} onChange={(event) => setDraft({...draft, endsAt: event.target.value})}/></label>
           </div>
           <p className="text-[11.5px] text-mute">Sin «desde» empieza al publicar; sin «hasta» queda vigente hasta despublicarlo. Hora de Asunción.</p>
         </div>
@@ -206,9 +212,9 @@ export function PlatformAnnouncements({writable, agencies, onError}: Props) {
       </div>
       {formError ? <p className="error form-error-summary" role="alert">{formError}</p> : null}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        {editing ? <button type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }}>Cancelar edición</button> : null}
-        <button type="submit" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy}>{editing ? "Guardar cambios" : "Guardar borrador"}</button>
-        {!editing?.published_at ? <button type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void save(null, true)}>{editing ? "Guardar y publicar" : "Publicar"}</button> : null}
+        {editing ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-10" disabled={busy} onClick={() => { setEditing(null); setDraft(EMPTY_ANNOUNCEMENT); setFormError(""); }}>Cancelar edición</Button> : null}
+        <Button variant="secondary" type="submit" className="secondary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy}>{editing ? "Guardar cambios" : "Guardar borrador"}</Button>
+        {!editing?.published_at ? <Button variant="primary" type="button" className="primary min-h-11 whitespace-nowrap md:min-h-10" disabled={busy} onClick={() => void save(null, true)}>{editing ? "Guardar y publicar" : "Publicar"}</Button> : null}
       </div>
     </form> : null}
     <div ref={tableRef} className="min-w-0">
@@ -252,7 +258,7 @@ export function AnnouncementList({items, writable, busy, fits, onToggle, onEdit,
     {id: "delete", label: "Eliminar comunicado", icono: "trash", peligro: true, onClick: () => onRemove(item)},
   ];
   const actions = (item: PlatformAnnouncement) => writable ? <>
-    <button type="button" className="text-button platform-admin-inline-action" disabled={busy || (!item.published_at && item.status === "expired")} onClick={() => onToggle(item)}>{item.published_at ? "Despublicar" : "Publicar"}</button>
+    <Button variant="ghost" type="button" className="text-button platform-admin-inline-action" disabled={busy || (!item.published_at && item.status === "expired")} onClick={() => onToggle(item)}>{item.published_at ? "Despublicar" : "Publicar"}</Button>
     <EdgeAwareMenu><ActionMenu label={`Acciones del comunicado ${item.title}`} items={menu(item)}/></EdgeAwareMenu>
   </> : null;
   const identity = (item: PlatformAnnouncement) => <span className="grid min-w-0 gap-0.5">

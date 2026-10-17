@@ -1,7 +1,10 @@
 "use client";
+import {Button} from '../ui/button';
+
 import {useEffect,useMemo,useState} from 'react';
 import {Plus,Pencil} from 'lucide-react';
-import {Button,SearchField} from 'owncoding-ui';
+
+import {SearchField} from '../search-field';
 import {api,Dialog} from '../operations';
 import {roleCan} from '../capabilities';
 import {QuoteComposer} from '../quote-composer';
@@ -68,7 +71,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       /* Reorganización IA: con dos indicadores la tira de KPIs dejaba media fila
          vacía; el conteo y el valor de ítems viajan en la misma fila del buscador. */
       toolbar={plans.length?<FilterToolbar className="mb-0">
-        <SearchField className="w-full sm:w-72" ariaLabel="Buscar plan" value={query} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setQuery(event.target.value)} placeholder="Nombre o moneda…"/>
+        <SearchField className="w-full sm:w-72" ariaLabel="Buscar plan" value={query} onChange={value=>setQuery(value)} placeholder="Nombre o moneda…"/>
         <p className="m-0 ml-auto flex flex-wrap items-baseline justify-end gap-x-1.5 text-xs tabular-nums text-mute">
           <span className="whitespace-nowrap">{shown.length} de {windowState.total ?? plans.length}</span>
           <span className="whitespace-nowrap">· {active.length} activo{active.length===1?'':'s'} · {archived.length} archivado{archived.length===1?'':'s'}</span>
@@ -80,7 +83,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       {windowState.hasMore ? <div className="bulk-bar" role="status" aria-live="polite">
         <span className="bulk-count">{windowLabel(windowState.loaded, windowState.total, 'plan', 'planes')} · los indicadores cuentan lo cargado</span>
         <div className="inline-actions bulk-actions">
-          <button type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</button>
+          <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={moreBusy} onClick={()=>void cargarMas()}>{moreBusy?'Cargando…':'Ver más'}</Button>
         </div>
       </div> : null}
 
@@ -89,7 +92,7 @@ export function PlanesSection({user}: PlanesSectionProps){
       ) : null}
 
       {plans.length&&!shown.length ? (
-        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<button type="button" className="secondary" onClick={()=>setQuery('')}>Limpiar búsqueda</button>}/>
+        <EmptyBlock compact icon="filter" title="Ningún plan coincide con la búsqueda." action={<Button variant="secondary" type="button" className="secondary" onClick={()=>setQuery('')}>Limpiar búsqueda</Button>}/>
       ) : plans.length ? (
         <PlanComparison
           plans={shown}

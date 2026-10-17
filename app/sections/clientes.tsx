@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from '../ui/button';
+
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
 import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
@@ -275,7 +278,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
           ? {valor: '—', hint: 'Sin dato'}
           : billingEstado === 'listo'
             ? {valor: <span>{moneyKpi(Number(billingBase.total), billingBase.currency)} <span className="text-[0.55em] font-medium text-mute">/ mes</span></span>, hint: <>{billingResto.map(item => <span key={item.currency}>{moneyKpi(Number(item.total), item.currency)} / mes · </span>)}Expectativa vigente por mes</>}
-            : {valor: '—', hint: <><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>{canManageTerms && sinPlan > 0 ? <> · <button type="button" className="text-button min-h-11 md:min-h-0" onClick={() => setClientStatusFilter('sin_plan')}>{sinPlan === 1 ? 'Ver el cliente sin plan' : `Ver los ${sinPlan} sin plan`}</button></> : null}</>};
+            : {valor: '—', hint: <><StateChip tone="mute" title="No hay contratos comerciales activos">Sin contratos</StateChip>{canManageTerms && sinPlan > 0 ? <> · <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-0" onClick={() => setClientStatusFilter('sin_plan')}>{sinPlan === 1 ? 'Ver el cliente sin plan' : `Ver los ${sinPlan} sin plan`}</Button></> : null}</>};
 
   const mountedLive = windowSlice(liveClients, visible);
   // Ventana de montaje (#135 P4): la tabla densa monta sólo el tramo visible
@@ -296,12 +299,12 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
     {canManageClients && selectedClients.length ? <div className="bulk-bar" role="status" aria-live="polite">
       <span className="bulk-count"><b>{selectedClients.length}</b> de {BATCH_LIMITS.clients} seleccionado{selectedClients.length === 1 ? '' : 's'}</span>
       <div className="inline-actions bulk-actions">
-        <button type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</button>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</button>
-        <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</button>
-        {canManageTerms ? <button type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => setAssignPlan(true)}>Asignar plan</button> : null}
-        <button type="button" className="secondary min-h-11 md:min-h-10" onClick={exportCsv}>Exportar CSV</button>
-        <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</button>
+        <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={selectVisibleClients}>Seleccionar visibles</Button>
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => {setBulkError(''); setConfirmArchive(true);}}>Archivar</Button>
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => void runBatch(false)}>Reactivar</Button>
+        {canManageTerms ? <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" disabled={bulkBusy} onClick={() => setAssignPlan(true)}>Asignar plan</Button> : null}
+        <Button variant="secondary" type="button" className="secondary min-h-11 md:min-h-10" onClick={exportCsv}>Exportar CSV</Button>
+        <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setSelectedClients([])}>Limpiar</Button>
       </div>
     </div> : null}
 
@@ -333,7 +336,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
 
     {hidden > 0 ? <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-lg border border-ink-600 bg-ink-800 px-3 py-2" role="status" aria-live="polite">
       <span className="text-xs tabular-nums text-mute">Se muestran {mountedLive.length} de {liveClients.length} {liveClients.length === 1 ? 'cliente' : 'clientes'} que coinciden</span>
-      <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setVisible(count => count + LIST_WINDOW.clients)}>Ver más</button>
+      <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => setVisible(count => count + LIST_WINDOW.clients)}>Ver más</Button>
     </div> : null}
 
     {!liveClients.length && archivedClients.length && clientStatusFilter !== 'inactive' ? <p className="text-[13px] text-mute" role="status">Los clientes que coinciden con los filtros están archivados. Abrí «Archivados» para verlos.</p> : null}
@@ -346,7 +349,7 @@ export function ClientesSection({dataState = 'ready', user, clientView, clientSt
             ? <ErrorBlock title="No se pudieron cargar los clientes." description="Revisá la conexión y volvé a intentar; no se inventa un directorio vacío." onRetry={() => void load()}/>
             : <EmptyBlock title="Todavía no hay clientes. Creá el primero para empezar." description="Cargá la ficha con RUC o de forma manual; después podés sumar proyectos y piezas." action={canManageClients&&onCreate ? <EmptyCta label="Nuevo cliente" onClick={()=>onCreate()} icon={<Plus aria-hidden="true" size={16}/>}/> : undefined}/>
       ) : (
-        <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<button className="text-button min-h-11 md:min-h-8" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</button>}/>
+        <EmptyBlock title={clientSearch.trim() ? 'No hay clientes que coincidan con tu búsqueda y filtros.' : 'No hay clientes con este estado.'} description="Probá con otro término o restablecé los filtros." action={<Button variant="ghost" className="text-button min-h-11 md:min-h-8" type="button" onClick={() => {setClientSearch(''); setClientStatusFilter('');}}><X size={14}/>Limpiar filtros</Button>}/>
       )
     ) : null}
 

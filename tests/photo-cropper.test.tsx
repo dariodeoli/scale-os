@@ -30,7 +30,7 @@ async function main(){
  let renderer:ReactTestRenderer,closed=0,fail=true;const saved:string[]=[];
  await act(async()=>{renderer=create(<PhotoCropper source={source} name="Ana" close={()=>closed++} save={async value=>{if(fail)throw Error('No guardado');saved.push(value);}}/>);});
  const crop=()=>renderer!.root.findByType(CropperStub);
- const saveButton=()=>renderer!.root.findAllByType('button').find(b=>b.props.className==='primary')!;
+ const saveButton=()=>renderer!.root.findAllByType('button').find(b=>b.props['data-variant']==='primary')!;
  assert.equal(crop().props.objectFit,'cover');assert.equal(crop().props.restrictPosition,true);assert.equal(crop().props.aspect,1);assert.equal(crop().props.cropShape,'round');
  assert.equal(saveButton().props.disabled,true,'A crop must be available before saving');
  await act(async()=>{crop().props.onCropComplete({},area);});

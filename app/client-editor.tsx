@@ -36,7 +36,7 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
   useEffect(()=>()=>{pendingRef.current?.reject(new Error('Consulta cancelada.'));},[]);
   // La consulta devuelve un registro, no escribe: la promesa del campo sólo se
   // resuelve con «Aplicar»; «Descartar» la rechaza y la ficha queda como estaba.
-  const rucLookup={label:'Buscar',run:async(ruc:string)=>{
+  const rucLookup={label:'Buscar',confirmedByProvider:true,run:async(ruc:string)=>{
     const found=await lookupRuc(ruc);
     return new Promise<Record<string,string>>((resolve,reject)=>{
       pendingRef.current?.reject(new Error('Consulta reemplazada por una nueva.'));

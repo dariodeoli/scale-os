@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from '../ui/button';
+
 // «Errores» del panel global: errores del API y de la web agrupados por huella
 // (mensaje normalizado + primer frame). Lista densa v2 (Mensaje · Origen · Ruta
 // · Ocurrencias · Última vez · Estado · Acciones) con tarjetas cuando no entra,
@@ -125,7 +128,7 @@ export function PlatformErrors({writable, onError, onCounts, initialData}: Props
     ...(writable && group.status !== "new" ? [{id: "reopen", label: "Reabrir como nuevo", icono: "refresh", onClick: () => void patch(group, "new", "Error reabierto.")}] : []),
   ];
   const actions = (group: ErrorGroup) => <>
-    <button type="button" className="text-button platform-admin-inline-action" onClick={() => void openDetail(group)}>Ver detalle</button>
+    <Button variant="ghost" type="button" className="text-button platform-admin-inline-action" onClick={() => void openDetail(group)}>Ver detalle</Button>
     <EdgeAwareMenu><ActionMenu label={`Acciones del error: ${group.message.slice(0, 60)}`} items={items(group).filter((item) => item.id !== "detail")}/></EdgeAwareMenu>
   </>;
   const chip = (group: ErrorGroup) => <StateChip tone={ERROR_STATUS[group.status]?.tone ?? "mute"} title={group.resolved_at ? `${ERROR_STATUS[group.status]?.label} · ${listDateFull(group.resolved_at)}${group.resolved_by_email ? ` · ${group.resolved_by_email}` : ""}` : undefined}>{ERROR_STATUS[group.status]?.label ?? group.status}</StateChip>;
@@ -158,7 +161,7 @@ export function PlatformErrors({writable, onError, onCounts, initialData}: Props
           {(Object.keys(ERROR_SOURCE) as ErrorSource[]).map((key) => <option key={key} value={key}>{ERROR_SOURCE[key]}</option>)}
         </Select>
       </label>
-      {status || source ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => { setStatus(""); setSource(""); }}>Limpiar filtros</button> : null}
+      {status || source ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => { setStatus(""); setSource(""); }}>Limpiar filtros</Button> : null}
     </FilterToolbar>
     <div ref={tableRef} className="min-w-0">
       {error ? <ErrorBlock title="No pudimos cargar los errores" description={error} onRetry={() => void load()}/>
@@ -218,9 +221,9 @@ export function ErrorDetailDialog({group, error, writable, busy, onClose, onStat
           : <p className="form-note">Sin stack: el error llegó solo con el mensaje.</p>}
       </div>
       {writable ? <div className="inline-actions">
-        {group.status !== "resolved" ? <button type="button" className="primary" disabled={busy} onClick={() => onStatus("resolved", "Error marcado como resuelto.")}>Marcar resuelto</button> : null}
-        {group.status !== "ignored" ? <button type="button" className="secondary" disabled={busy} onClick={() => onStatus("ignored", "Error ignorado.")}>Ignorar</button> : null}
-        {group.status !== "new" ? <button type="button" className="secondary" disabled={busy} onClick={() => onStatus("new", "Error reabierto.")}>Reabrir</button> : null}
+        {group.status !== "resolved" ? <Button variant="primary" type="button" className="primary" disabled={busy} onClick={() => onStatus("resolved", "Error marcado como resuelto.")}>Marcar resuelto</Button> : null}
+        {group.status !== "ignored" ? <Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={() => onStatus("ignored", "Error ignorado.")}>Ignorar</Button> : null}
+        {group.status !== "new" ? <Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={() => onStatus("new", "Error reabierto.")}>Reabrir</Button> : null}
       </div> : null}
     </div>
   </Dialog>;
@@ -241,7 +244,7 @@ export function ErrorsKpi({onError, onGoTo}: {onError?: (cause: unknown) => bool
     return () => { active = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const hint = <span className="platform-kpi-hint">
-    {onGoTo ? <button type="button" className="text-button platform-kpi-delta" onClick={() => onGoTo("errores")}>{last24h ? `${formatPlatformMetric(last24h.new_groups)} nuevos · ver errores` : "Ver errores"}</button>
+    {onGoTo ? <Button variant="ghost" type="button" className="text-button platform-kpi-delta" onClick={() => onGoTo("errores")}>{last24h ? `${formatPlatformMetric(last24h.new_groups)} nuevos · ver errores` : "Ver errores"}</Button>
       : <span className="platform-kpi-delta">{last24h ? `${formatPlatformMetric(last24h.new_groups)} nuevos` : "—"}</span>}
     <MetricNote source="Errores agrupados" calc="grupos con actividad en 24 h, API y web"/>
   </span>;

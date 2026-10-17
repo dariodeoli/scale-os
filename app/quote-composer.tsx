@@ -1,4 +1,8 @@
 "use client";
+import {Input, Textarea} from './ui/input';
+
+import {Button} from './ui/button';
+
 // Rediseño v2 (campaña #41 / spec #43 §4-5): compositor de presupuestos y
 // planes con objetos de la librería (Input/Select/MoneyInput/Switch/Button),
 // campos por tipo y vista previa. Esquemas, totales y requests viven en
@@ -13,7 +17,7 @@
 import {OptionalMark} from './field-label';
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Input,MoneyInput,Select,Switch,Textarea,Aviso} from 'owncoding-ui';
+import {FormField, MoneyInput, Select, Switch, Aviso} from 'owncoding-ui';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';
@@ -165,7 +169,7 @@ export function QuoteComposer({mode,record,done,canReorder=true}:{mode:QuoteMode
  {error&&<div className="lg:col-span-2"><Aviso tono="error" role="alert" compact>{error}</Aviso></div>}
  <div className="lg:col-span-2"><SaveActions pending={submission.pendiente} dirty={form.formState.isDirty}>
   {!readiness.ready&&<span className="self-center text-xs text-mute" role="status">{quoteMissingText(readiness.missing)}</span>}
-  <button className="primary" disabled={submission.pendiente||!readiness.ready}>{submission.pendiente?'Guardando…':'Guardar'}</button>
+  <Button variant="primary" type="submit" className="primary" disabled={submission.pendiente||!readiness.ready}>{submission.pendiente?'Guardando…':'Guardar'}</Button>
  </SaveActions></div>
 </form>;
 }

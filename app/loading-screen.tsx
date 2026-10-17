@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect, useState} from 'react';
 import {PersonContainer} from './person-container';
 import {WorkspaceBrand} from './workspace-brand';
@@ -32,7 +34,7 @@ export function LoadingScreen({name,photoUrl,roleLabel}:{name?:string;photoUrl?:
     </div>
     {slow ? <div className="grid justify-items-center gap-2" data-loading-slow>
      <p className="text-[12px] text-mute">Está tardando más de lo normal. Revisá tu conexión.</p>
-     <button type="button" className="secondary" onClick={()=>window.location.reload()}>Recargar</button>
+     <Button variant="secondary" type="button" className="secondary" onClick={()=>window.location.reload()}>Recargar</Button>
     </div> : null}
    </div>
   </div>

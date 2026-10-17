@@ -1,8 +1,11 @@
 "use client";
+import {Button} from '../ui/button';
+
 // Agencias y suscripciones del panel global (#102): toolbar única (búsqueda +
 // estado + contador) y lista densa con tarjetas cuando la plantilla no entra.
 import {useMemo, useState} from "react";
-import {SearchField, Select} from "owncoding-ui";
+import {Select} from 'owncoding-ui';
+import {SearchField} from '../search-field';
 import {dueTone, listDateShort} from "../list-format";
 import {
   EmptyBlock,
@@ -105,7 +108,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
   // conserva la confirmación reforzada existente (palabra corta + reautenticación).
   const actions = (agency: Agency) => <>
     {writable && (
-      <button
+      <Button variant="ghost"
         type="button"
         className="text-button platform-admin-inline-action"
         title="Activar, suspender o extender el acceso manual"
@@ -113,7 +116,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
         onClick={() => void manageSubscription(agency)}
       >
         Gestionar suscripción
-      </button>
+      </Button>
     )}
     {writable && (
       <EdgeAwareMenu><ActionMenu
@@ -145,7 +148,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
         <small className="text-[12px] leading-[1.35] text-mute">Gestioná el acceso manual junto a cada registro</small>
       </div>
       <FilterToolbar summary={`${visible.length} de ${state.agencies.length}`}>
-        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" type="search" ariaLabel="Buscar agencia" value={query} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)} placeholder="Nombre o identificador"/>
+        <SearchField className="min-w-[12rem] flex-1 sm:max-w-72" ariaLabel="Buscar agencia" value={query} onChange={value=> setQuery(value)} placeholder="Nombre o identificador"/>
         <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
           Estado
           <Select aria-label="Filtrar por estado" value={status} onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setStatus(event.target.value)} className="min-w-[11rem]">
@@ -156,7 +159,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             <option value="expiring">Vencen en 7 días</option>
           </Select>
         </label>
-        {(query || status) ? <button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button> : null}
+        {(query || status) ? <Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</Button> : null}
       </FilterToolbar>
       <div ref={tableRef} className="min-w-0">
         {!visible.length ? (
@@ -165,7 +168,7 @@ export function PlatformAgencies({busy, state, page, onMore, writable, setConfir
             icon="building"
             title="No hay agencias que coincidan con el filtro."
             description="Probá con otro nombre o restablecé los filtros."
-            action={<button type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</button>}
+            action={<Button variant="ghost" type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {setQuery(""); setStatus("");}}>Limpiar filtros</Button>}
           />
         ) : tableFits ? (
           <ListGrid label="Agencias y suscripciones" template={writable ? TEMPLATE : TEMPLATE_READONLY} columns={writable ? COLUMNS : COLUMNS_READONLY} minWidthClass={writable ? "min-w-[84rem]" : "min-w-[63rem]"} pinnedActions={writable} className="platform-admin-table-wrap">

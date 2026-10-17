@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 import {useEffect,useState} from 'react';
 import {Editor,api,type Field} from './operations';
 import {SelectCustom} from './profile-controls';
@@ -154,8 +156,8 @@ function AccessTab({role,currentUserId,person,member,ambiguous,load}:{role:strin
       <p className="form-note">Cambiar el permiso o suspender el acceso cierra sus sesiones en esta empresa.</p>
       {error?<p className="error" role="alert">{error}</p>:null}
       <div className="inline-actions">
-        <button type="button" className="primary" disabled={!dirty||Boolean(busy)} onClick={()=>void saveAccess()}>{busy==='save'?'Guardando…':'Guardar acceso'}</button>
-        {member.active!==false?<button type="button" className="secondary" disabled={Boolean(busy)} onClick={()=>void resend()}>Reenviar invitación</button>:null}
+        <Button variant="primary" type="button" className="primary" disabled={!dirty||Boolean(busy)} onClick={()=>void saveAccess()}>{busy==='save'?'Guardando…':'Guardar acceso'}</Button>
+        {member.active!==false?<Button variant="secondary" type="button" className="secondary" disabled={Boolean(busy)} onClick={()=>void resend()}>Reenviar invitación</Button>:null}
         <RemoveRecord kind="members" id={member.id} name={member.email} role={role} done={load}/>
       </div>
     </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>):null}

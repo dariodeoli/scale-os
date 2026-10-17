@@ -21,6 +21,7 @@ const allowlist: Record<string, {count: number; why: string}> = {
   'app/client-format.ts': {count: 1, why: 'addCivilDays: suma días civiles anclados a T12:00Z'},
   'app/client-reporting-data.ts': {count: 1, why: 'valida AAAA-MM-DD ida y vuelta'},
   'app/ia-cobro-data.ts': {count: 1, why: 'valida AAAA-MM-DD ida y vuelta anclada a T12:00Z'},
+  'app/field-rules.ts': {count: 1, why: 'civilDateValid valida AAAA-MM-DD ida y vuelta; no calcula hoy ni un valor por defecto'},
   'app/inventory-data.ts': {count: 1, why: 'aritmética de días civiles anclados a T00:00Z'},
   'app/production-filter.ts': {count: 2, why: 'semana civil calculada sobre T12:00Z'},
   'app/studio-data.ts': {count: 1, why: 'días del mes generados con Date.UTC'},

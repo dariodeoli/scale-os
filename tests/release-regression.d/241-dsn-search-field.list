@@ -1,0 +1,2 @@
+# #241 — objeto SearchField local y adopción transversal real.
+tsx tests/search-field-241.test.tsx

@@ -1,4 +1,9 @@
 "use client";
+
+import {Input} from './ui/input';
+
+import {Button} from './ui/button';
+
 import {useEffect,useRef,useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -112,16 +117,16 @@ export function ProfilePhoto({photo,name,save,label='Foto de perfil',compact=fal
         const file=event.currentTarget.files?.[0];event.currentTarget.value='';if(!file||!startSave())return;
         setError('');setNotice('');try{const source=await photoSource(file);if(!mounted.current)return;const ready=await preparePhoto(file);if(!mounted.current)return;setOriginalSource(source);form.setValue('photo',ready,{shouldDirty:true,shouldValidate:true});await save(ready);if(!mounted.current)return;form.reset({photo:ready});setFailedPhoto('');setNotice(isLogo?'Logo guardado. Podés ajustar el encuadre.':'Foto guardada. Podés ajustar el encuadre.');}catch(e){if(mounted.current)setError(e instanceof Error?e.message:`No se pudo guardar ${theNoun}.`);}finally{finishSave();}
       }}/></label>
-      {!compact&&<><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</>}
+      {!compact&&<><Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</Button>{preview.startsWith('data:image/')&&<Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</Button>}</>}
       </div></div>
-      {compact&&<details className="profile-photo-progressive"><summary>Más opciones de {noun}</summary><div><button type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</button>{preview.startsWith('data:image/')&&<button type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</button>}</div></details>}
-      {useLink&&<label>Enlace directo a la imagen<input type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
+      {compact&&<details className="profile-photo-progressive"><summary>Más opciones de {noun}</summary><div><Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={()=>setUseLink(v=>!v)}><Link2 size={14}/>{useLink?'Ocultar enlace':'Usar enlace de imagen'}</Button>{preview.startsWith('data:image/')&&<Button variant="ghost" type="button" className="text-button" disabled={busy} onClick={openCrop}><Crop size={14}/>Mover y recortar</Button>}</div></details>}
+      {useLink&&<label>Enlace directo a la imagen<Input type="url" value={preview.startsWith('data:')?'':preview} placeholder="https://…/foto.jpg" disabled={busy} onChange={e=>{form.setValue('photo',e.target.value,{shouldDirty:true,shouldValidate:true});setOriginalSource(null);}}/><small>Usá un enlace público de confianza. La imagen se carga desde ese sitio; puede dejar de funcionar si cambia. Para mover o recortar, subí el archivo original.</small></label>}
       {form.formState.errors.photo&&<p role="alert" className="error">{form.formState.errors.photo.message}</p>}
       {preview&&preview===failedPhoto&&<p role="alert" className="error">Esta imagen no se puede mostrar acá. El enlace puede haber vencido o el sitio bloquea mostrarla fuera de su propia página. Subí el archivo o probá otro enlace público.</p>}
       {form.formState.isDirty&&<p className="form-note" role="status">Vista previa: todavía no guardaste el cambio.</p>}
       <p className="form-note">{PHOTO_FORMATS} · Hasta 4 MB. Al subir se guarda automáticamente. Usá el original para mejor nitidez.</p>
       {error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
-      <div className="inline-actions">{form.formState.isDirty&&<button className="primary" disabled={busy}>{busy?'Procesando…':`Guardar ${noun}`}</button>}<button type="button" className="text-button danger" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice(isLogo?'Guardá para quitar el logo.':'Guardá para quitar la foto del perfil.');}}><Trash2 size={14}/>Quitar {noun}</button></div>
+      <div className="inline-actions">{form.formState.isDirty&&<Button variant="primary" type="submit" className="primary" disabled={busy}>{busy?'Procesando…':`Guardar ${noun}`}</Button>}<Button variant="ghost" type="button" className="text-button danger" disabled={busy||!preview} onClick={()=>{form.setValue('photo','',{shouldDirty:true});setOriginalSource(null);setNotice(isLogo?'Guardá para quitar el logo.':'Guardá para quitar la foto del perfil.');}}><Trash2 size={14}/>Quitar {noun}</Button></div>
     </form>
     {cropSource&&<PhotoCropper source={cropSource} name={name} close={()=>setCropSource(null)} save={async value=>{if(!startSave())throw Error(isLogo?'Hay otro logo guardándose. Esperá a que termine.':'Hay otra foto guardándose. Esperá a que termine.');try{await save(value);if(!mounted.current)return;form.reset({photo:value});setFailedPhoto('');setNotice(`${Noun} y encuadre guardados.`);}finally{finishSave();}}}/>}
   </section>;

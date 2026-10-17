@@ -1,4 +1,6 @@
 'use client';
+import {Button} from './ui/button';
+
 
 import {useEffect,useRef,useState} from 'react';
 import {Building2,Star} from 'lucide-react';
@@ -44,13 +46,13 @@ export function CompanySettings(){
      <span role="cell" className="company-settings-role">{roles[company.role]||company.role}</span>
      <div role="cell">{current?<StateChip tone="ok">Empresa abierta</StateChip>:preferred?<StateChip tone="info">Predeterminada</StateChip>:<span className="company-settings-role" aria-hidden="true">—</span>}</div>
      <div role="cell" className="company-settings-actions">
-      {!current&&<button className="secondary company-settings-open" disabled={busy} onClick={()=>void choose(company,false)}>Abrir</button>}
-      {!company.isDemo&&<button className="secondary company-settings-default" disabled={busy} aria-label={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)}><Star size={16} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></button>}
+      {!current&&<Button variant="secondary" type="submit" className="secondary company-settings-open" disabled={busy} onClick={()=>void choose(company,false)}>Abrir</Button>}
+      {!company.isDemo&&<Button variant="secondary" type="submit" className="secondary company-settings-default" disabled={busy} aria-label={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} aria-pressed={preferred} title={preferred?'Empresa predeterminada':'Usar al iniciar sesión'} onClick={()=>void choose(company,true)}><Star size={16} fill={preferred?'currentColor':'none'} aria-hidden="true"/><span className="company-settings-sr-only">{preferred?'Predeterminada':'Usar al iniciar sesión'}</span></Button>}
      </div>
     </ListRow>;
    })}
   </ListGrid>}
   {error&&<p className="error company-settings-feedback" role="alert">{error}</p>}
-  {!data&&error&&<button className="secondary" onClick={()=>{setError('');setAttempt(value=>value+1);}}>Reintentar</button>}
+  {!data&&error&&<Button variant="secondary" type="submit" className="secondary" onClick={()=>{setError('');setAttempt(value=>value+1);}}>Reintentar</Button>}
  </div>;
 }

@@ -1,4 +1,6 @@
 "use client";
+import {Button} from '../ui/button';
+
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -745,7 +747,7 @@ export default function PlatformAdmin() {
             {updated ? <span className="platform-admin-updated" title={`Última actualización ${updated} (hora de Asunción)`}>Actualizado {updated}</span> : null}
           </span>}
           actions={<div className="platform-admin-actions">
-            <button
+            <Button variant="secondary"
               type="button"
               className="secondary"
               onClick={() => void load()}
@@ -755,7 +757,7 @@ export default function PlatformAdmin() {
             >
               <RefreshCw aria-hidden="true" />
               <span className="platform-admin-action-label">Actualizar</span>
-            </button>
+            </Button>
             <Link className="secondary" href={appHome()} aria-label="Volver al panel" title="Volver al panel de la agencia">
               <ArrowLeft aria-hidden="true" />
               <span className="platform-admin-action-label">Panel</span>

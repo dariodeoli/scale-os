@@ -122,7 +122,7 @@ async function run(){
   {id:'3',name:'Gamma',stage:'lead',amount:'300',currency:'PYG',probability:20,notes:'pedir presupuesto Acme'},
  ];
  const control=(renderer:ReactTestRenderer,predicate:(node:ReactTestInstance)=>boolean)=>renderer.root.findAll(node=>typeof node.props?.onChange==='function'&&predicate(node))[0];
- const setSearch=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.props.ariaLabel==='Buscar oportunidades').props.onChange({target:{value}});});
+ const setSearch=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.type==='input'&&node.props['aria-label']==='Buscar oportunidades').props.onChange({target:{value}});});
  const setStageFilter=(renderer:ReactTestRenderer,value:string)=>act(()=>{control(renderer,node=>node.props.id==='pipeline-etapa').props.onChange({target:{value}});});
  const setView=(renderer:ReactTestRenderer,value:'grid'|'list')=>act(()=>{control(renderer,node=>node.props.value==='grid'||node.props.value==='list').props.onChange(value);});
  const cardNames=(renderer:ReactTestRenderer)=>renderer.root.findAllByType('article').map(card=>text(card.findAll(node=>node.type==='h3'||(node.type==='button'&&String(node.props['aria-label']||'').startsWith('Ver oportunidad'))).slice(0,1)[0]));

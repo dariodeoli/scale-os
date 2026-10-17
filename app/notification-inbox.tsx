@@ -1,4 +1,7 @@
 'use client';
+
+import {Button} from './ui/button';
+
 // Bandeja oficial de avisos (owncoding-ui §16, Refs #83): el objeto
 // `CampanaAvisos` dibuja la campana, el contador, el panel, el vacío con acción
 // y cada aviso (contrato `{id, titulo, detalle, tono, fecha, href, leido}`); la
@@ -113,10 +116,10 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
   ?{titulo:loading?'Consultando avisos…':'No pudimos cargar los avisos',detalle:loading?'Un momento.':(message||'Volvé a intentar en un rato.')}
   :{titulo:filter==='all'?'No tenés avisos':'No hay avisos para este filtro',detalle:filter==='all'?'Acá aparecerán tus avisos de asignaciones, comentarios y entregas.':'Probá con otra vista o volvé a todas.'};
  const vacioAccion=!loaded
-  ?(loading?undefined:<button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button>)
+  ?(loading?undefined:<Button variant="secondary" type="button" className="secondary" onClick={()=>void load()}>Reintentar</Button>)
   :filter==='all'
-   ?<button type="button" className="secondary" onClick={()=>void load()}>Actualizar</button>
-   :<button type="button" className="secondary" onClick={()=>changeFilter('all')}>Ver todas</button>;
+   ?<Button variant="secondary" type="button" className="secondary" onClick={()=>void load()}>Actualizar</Button>
+   :<Button variant="secondary" type="button" className="secondary" onClick={()=>changeFilter('all')}>Ver todas</Button>;
  // Bandeja vacía (#147): el vacío ofrece la única acción de refresco y no se
  // apilan los cuatro filtros ni el icono duplicado; sin datos, sólo el estado.
  const mostrarControles=loaded&&!sinAvisos;
@@ -139,7 +142,7 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
       <button type="button" className={ICON_ACTION} title="Actualizar" aria-label="Actualizar notificaciones" disabled={busy||loading} onClick={()=>void load()}><RefreshCw size={17}/></button>
       <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
      </div>
-     {data.next&&!loading&&<button type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</button>}
+     {data.next&&!loading&&<Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={()=>void more()}>Ver avisos anteriores</Button>}
     </>:sinAvisos?<div className="flex flex-wrap items-center gap-1" aria-label="Acciones de notificaciones">
      <button type="button" className={ICON_ACTION} title="Preferencias" aria-label="Abrir preferencias de notificaciones" disabled={busy} onClick={openPreferences}><Settings2 size={17}/></button>
     </div>:null}
@@ -156,9 +159,9 @@ export function NotificationInbox({openOrder,openPreferences}:{openOrder:(id:str
    <time className="whitespace-nowrap text-[11px] tabular-nums text-mute" dateTime={Number.isFinite(new Date(selected.created_at).getTime())?selected.created_at:undefined}>{dateLabel(selected.created_at)}</time>
    <p className="text-[12px] leading-[1.45] text-mute">Leer, resolver o reabrir cambia solo tu propia bandeja; no completa la pieza ni modifica el aviso de otras personas.</p>
    <div className="flex flex-wrap items-center gap-2 border-t border-ink-600 pt-3">
-    {(selected.work_order_id||selected.project_id)&&<button type="button" className="secondary" disabled={busy} onClick={()=>visitNotice(selected)}><ExternalLink size={15}/>{selected.work_order_id?'Ver pieza':'Ver proyecto'}</button>}
-    {!selected.read_at&&<button type="button" className="secondary" disabled={busy} onClick={()=>void mutate('read',selected)}><Check size={16}/>Marcar como leída</button>}
-    <button type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</button>
+    {(selected.work_order_id||selected.project_id)&&<Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={()=>visitNotice(selected)}><ExternalLink size={15}/>{selected.work_order_id?'Ver pieza':'Ver proyecto'}</Button>}
+    {!selected.read_at&&<Button variant="secondary" type="button" className="secondary" disabled={busy} onClick={()=>void mutate('read',selected)}><Check size={16}/>Marcar como leída</Button>}
+    <Button type="button" className={`text-button ${selected.resolved_at?'warn':'positive'}`} disabled={busy} onClick={()=>void mutate(selected.resolved_at?'reopen':'resolve',selected)}>{selected.resolved_at?<><RotateCcw size={15}/>Reabrir aviso</>:<><CircleCheck size={16}/>Resolver aviso</>}</Button>
    </div>
   </div></Dialog>}
  </>;

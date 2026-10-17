@@ -35,6 +35,7 @@ const ALLOWLIST = new Map([
 const FIELD_PRIMITIVES = new Set([
   'Input', 'Select', 'Textarea', 'MoneyInput', 'AmountInput', 'CurrencyField',
   'EmailField', 'PhoneField', 'TextField', 'PasswordField', 'Checkbox', 'Switch',
+  'DateInput', 'TimeInput', 'DateTimeInput',
 ]);
 
 function walk(dir, out = []) {
@@ -102,11 +103,22 @@ function hasText(node) {
   return false;
 }
 
-function forwardsIdProp(node) {
+function forwardsIdProp(node, expression = 'id') {
   for (let current = node.parent; current; current = current.parent) {
     if (ts.isFunctionLike(current) && current.parameters?.length) {
       const first = current.parameters[0].name;
-      return ts.isObjectBindingPattern(first) && first.elements.some((element) => element.name.getText() === 'id' && !element.propertyName);
+      const receivesId = ts.isObjectBindingPattern(first) && first.elements.some((element) => element.name.getText() === 'id' && !element.propertyName);
+      if (!receivesId) return false;
+      if (expression === 'id') return true;
+      // #241: un alias `inputId = id || generatedId` conserva el id que envía
+      // el consumidor; generar uno ignorando `id` no demuestra asociación.
+      return current.body && ts.isBlock(current.body) && current.body.statements.some((statement) =>
+        ts.isVariableStatement(statement) && statement.declarationList.declarations.some((declaration) => {
+          const init = declaration.initializer;
+          return declaration.name.getText() === expression && init && ts.isBinaryExpression(init)
+            && init.operatorToken.kind === ts.SyntaxKind.BarBarToken
+            && ts.isIdentifier(init.left) && init.left.text === 'id';
+        }));
     }
   }
   return false;
@@ -137,7 +149,7 @@ export function scanFile(path) {
       const forValue = map.get('htmlFor');
       if (forValue !== undefined) htmlFor.add(typeof forValue === 'string' ? forValue : forValue.expr);
 
-      if (name === 'button' && !spread && !named) {
+      if ((name === 'button' || name === 'Button') && !spread && !named) {
         const children = ts.isJsxElement(node) ? node.children : [];
         if (!children.some(hasText)) findings.push({rule: 'icon-button', file: rel, line});
       }
@@ -148,7 +160,7 @@ export function scanFile(path) {
         if (!hidden && !ownLabel && !insideLabel && !map.has('aria-label') && !map.has('aria-labelledby')) {
           // Primitiva que reenvía `id` desde sus props: la etiqueta la pone el
           // consumidor, y esos usos se verifican como FIELD_PRIMITIVES.
-          if (!(typeof id === 'object' && id.expr === 'id' && forwardsIdProp(opening))) {
+          if (!(typeof id === 'object' && forwardsIdProp(opening, id.expr))) {
             labelled.push({line, id: id === undefined ? undefined : typeof id === 'string' ? id : id.expr});
           }
         }
@@ -206,6 +218,34 @@ if (process.argv.includes('--report')) {
       [],
       'Corregí el componente (aria-label/title, label htmlFor, alt, role+onKeyDown, aria-labelledby) o justificá la excepción en ALLOWLIST.',
     );
+  });
+
+  test('alias de id sólo se acepta cuando conserva el id externo; campos sin etiqueta siguen fallando', () => {
+    const tmp = join(root, 'tests', '.a11y-static-alias-probe.tsx');
+    writeFileSync(tmp, `
+      export function Good({id}) { const inputId = id || generatedId; return <Input id={inputId}/>; }
+      export function Bad({id}) { const inputId = generatedId; return <Input id={inputId}/>; }
+      export function Caller() { return <EmailField value="sin etiqueta"/>; }
+    `);
+    try {
+      const findings = scanFile(tmp);
+      assert.equal(findings.length, 2);
+      assert.deepEqual(findings.map(item => item.rule), ['input-label', 'input-label']);
+      assert.deepEqual(findings.map(item => item.line), [3, 4]);
+    } finally { rmSync(tmp, {force: true}); }
+  });
+
+  test('primitivas canónicas conservan cobertura de etiqueta y nombre accesible', () => {
+    const tmp = join(root, 'tests', '.a11y-static-primitives-probe.tsx');
+    writeFileSync(tmp, `export function X(){return <div>
+      <DateInput/><TimeInput/><DateTimeInput/>
+      <label>Fecha <DateInput/></label><TimeInput aria-label="Hora"/>
+      <label htmlFor="at">Instante</label><DateTimeInput id="at"/>
+      <Button icon={<Trash/>}/><Button aria-label="Borrar" icon={<Trash/>}/><Button>Guardar</Button>
+    </div>}`);
+    try {
+      assert.deepEqual(scanFile(tmp).map(item => item.rule).sort(), ['icon-button', 'input-label', 'input-label', 'input-label']);
+    } finally { rmSync(tmp, {force: true}); }
   });
 
   test('el escáner detecta violaciones conocidas', () => {

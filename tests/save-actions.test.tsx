@@ -14,6 +14,7 @@ require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{
  useDialogClose:()=>insideDialog?()=>{closes++;}:undefined,
  useDialogPending:(pending:boolean,dirty?:boolean)=>{registeredPending=pending;registeredDirty=Boolean(dirty);},
 }} as NodeModule;
+const {Button}=require('../app/ui/button') as typeof import('../app/ui/button');
 const {SaveActions}=require('../app/save-actions') as typeof import('../app/save-actions');
 
 test('legacy form actions register pending, guard cancellation, preserve submit and remain inline-safe',async()=>{
@@ -26,7 +27,7 @@ test('legacy form actions register pending, guard cancellation, preserve submit 
  const submit=renderer!.root.findAllByType('button').find(button=>button.props.type==='submit')!;
  assert.equal(submit.props.disabled,true,'an unmet form prerequisite must remain disabled');
  assert.equal(submit.props.form,'legacy-form','explicit native form association is retained');
- assert(React.Children.toArray(renderer!.root.findByType(FormActionsStub).props.children).every(child=>React.isValidElement(child)&&child.type==='button'),'FormActions receives direct buttons, without a fragment or container hiding them');
+ assert(React.Children.toArray(renderer!.root.findByType(FormActionsStub).props.children).every(child=>React.isValidElement(child)&&(child.type==='button'||child.type===Button)),'FormActions receives direct native/canonical buttons, without a fragment or container hiding them');
  await act(async()=>cancel().props.onClick());assert.equal(closes,1);
  await act(async()=>renderer!.update(<SaveActions pending>{primary(true)}</SaveActions>));
  assert.equal(registeredPending,true);assert.equal(cancel().props.disabled,true);
@@ -47,6 +48,10 @@ test('legacy form actions register pending, guard cancellation, preserve submit 
  await act(async()=>renderer!.update(<SaveActions pending={false}>{primary()}</SaveActions>));
  assert.equal(renderer!.root.findAllByType('button').length,1,'no cancel action without a Dialog context');
  assert.equal(renderer!.root.findByType('button').props.children,'Guardar original');
+ await act(async()=>renderer!.update(<SaveActions pending={false}><Button type="submit" form="canonical-form" disabled>Guardar canónico</Button></SaveActions>));
+ const canonical=renderer!.root.findByType('button');
+ assert.equal(canonical.props.type,'submit');assert.equal(canonical.props.form,'canonical-form');assert.equal(canonical.props.disabled,true);
+
  await act(async()=>renderer!.unmount());
 });
 

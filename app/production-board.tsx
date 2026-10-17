@@ -1,4 +1,6 @@
 "use client";
+import {Button} from './ui/button';
+
 /**
  * Tablero de Producción (dominio OPS) — contenido v2 (campaña #41, spec #44).
  *
@@ -155,7 +157,7 @@ export function KanbanColumn({
       {orders.map((order) => (
         <DraggableOrder key={order.id} order={order} role={role} refresh={refresh} openOrder={openOrder}/>
       ))}
-      {hasMore && onLoadMore ? <button type="button" className="text-button min-h-11 min-w-11 justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</button> : null}
+      {hasMore && onLoadMore ? <Button variant="ghost" type="button" className="text-button min-h-11 min-w-11 justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-fono focus-visible:ring-offset-2 focus-visible:ring-offset-ink-800 md:min-h-0 md:min-w-0" disabled={loadingMore} aria-label={`Ver más piezas en ${status.label}`} onClick={onLoadMore}>{loadingMore ? 'Trayendo…' : 'Ver más'}</Button> : null}
       {!orders.length ? <p className="py-3 text-center text-[11px] text-mute">{loading?'Cargando piezas…':'Sin piezas en esta etapa'}</p> : null}
     </section>
   );

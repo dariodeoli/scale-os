@@ -1,4 +1,7 @@
 "use client";
+
+import {Button} from '../ui/button';
+
 import dynamic from 'next/dynamic';
 import {ArrowUpRight,Plus} from 'lucide-react';
 import {ControlCenter} from '../control-center';
@@ -32,7 +35,7 @@ const STAGE_TONE: Record<string, ChipTone> = {red: 'bad', yellow: 'warn', green:
 export function ResumenSection({dataState = 'ready', guideProps, user, orders, load, setActive, summary, stageCounts, projects, setDetail, onCreateOrder}: ResumenSectionProps){
   // Primer dato en camino: esqueleto con la forma real del panel (KPIs +
   // tarjetas), sin pantalla vacía ni cifras inventadas (#138).
-  const primaryAction = onCreateOrder ? <button type="button" className="primary" onClick={onCreateOrder}><Plus size={18}/> Nueva orden</button> : undefined;
+  const primaryAction = onCreateOrder ? <Button variant="primary" type="button" className="primary" onClick={onCreateOrder}><Plus size={18}/> Nueva orden</Button> : undefined;
   if (dataState === 'loading' && !orders.length && !projects.length && !summary.active_clients) return <ListPage aria-label="Centro de control" primaryAction={primaryAction}><DashboardSkeleton label="Cargando el panel…" kpis={4} cards={3}/></ListPage>;
   return <ListPage aria-label="Centro de control" primaryAction={primaryAction} className="[&>*]:min-w-0">
     <InternalTasks organizationId={String(user?.organization_id||'')} userId={String(user?.id||'')} canView={user?.role==='owner'||user?.capabilities?.['tasks.view']!==false}/>
@@ -50,7 +53,7 @@ export function ResumenSection({dataState = 'ready', guideProps, user, orders, l
             </StateChip>
           ))}
         </div>
-        <button type="button" className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></button>
+        <Button variant="ghost" type="button" className="text-button" onClick={() => setActive("Producción")}>Abrir Producción<ArrowUpRight size={14}/></Button>
       </section>
       <WorkPlanner orders={orders} userId={String(user?.id||'')} role={user?.role||'viewer'} projects={projects} openOrder={id=>setDetail({kind:'order',id})} refresh={load} navigate={setActive}/>
     </>}/>
