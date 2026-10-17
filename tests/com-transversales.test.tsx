@@ -167,7 +167,7 @@ test('métricas: cargando, error con reintento y vacío con acción',async()=>{
 
 test('copias locales reemplazadas por la librería (§15.5) y resultado con el tono correcto',()=>{
  const due=read('app/list-format.tsx');
- assert.match(due,/from 'owncoding-ui/core'/,'el vencimiento usa la librería');
+ assert.match(due,/from 'owncoding-ui\/core'/,'el vencimiento usa la librería');
  assert.doesNotMatch(due,/Intl\.DateTimeFormat/,'sin copia local del cálculo de días');
  const clientFormat=read('app/client-format.ts');
  assert.match(clientFormat,/import \{diasHasta\} from 'owncoding-ui\/utils'/);

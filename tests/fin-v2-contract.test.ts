@@ -10,7 +10,7 @@ const finanzas=sectionSource('finanzas.tsx'),mora=sectionSource('mora.tsx'),comi
 // ── Contrato v2 de FIN (campaña #41, spec #45): Tailwind + owncoding-ui +
 // primitivas de app/ui-v2.tsx. Reemplaza al contrato del rediseño anterior.
 for(const [name,source] of [['previsión',pre],['informes',informes],['producción semanal',weekly],['conciliación',treasury]] as const){
- assert.match(source,/from 'owncoding-ui/core'/,'${name} usa objetos de la librería'.replace('${name}',name));
+ assert.match(source,/from 'owncoding-ui\/core'/,'${name} usa objetos de la librería'.replace('${name}',name));
  assert.doesNotMatch(source,/-forecast\.css'/,'no quedan hojas de componente en el módulo');
 }
 assert(!existsSync(new URL('../app/financial-forecast.css',import.meta.url)),'la hoja plana de la previsión se retiró');
