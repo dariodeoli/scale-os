@@ -17,8 +17,8 @@ se aplica también a las coincidencias de clientes en IA y a sus fichas.
 - Focales de UI, densidad, shell, fotos, proyectos e IA: aprobadas.
 - Geometría en Chromium a 360, 390, 768, 1024, 1440 y 2576 px: 54 combinaciones
   de encabezados, filtros y tarjetas renderizados desde los componentes reales,
-  con nueve nombres de superficies. Sin desbordamiento horizontal; círculos
-  cuadrados de proporción y controles principales de 44 px en móvil.
+  con nueve nombres de superficies. Sin desbordamiento horizontal; logos
+  circulares con ancho y alto iguales y controles principales de 44 px en móvil.
 - Artefactos locales ignorados: `work/qa-design-compact/geometry.json`,
   `contratos-1440.png`, `contratos-390.png`, `proyectos-1440.png` y
   `proyectos-390.png`.
