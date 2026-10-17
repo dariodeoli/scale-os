@@ -1,5 +1,5 @@
 "use client";
-import {InputControl} from './ui/input-control';
+import {InputBase} from './ui/input';
 import {Children,cloneElement,createContext,isValidElement,useCallback,useContext,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import type {ButtonHTMLAttributes,ReactNode,RefObject} from 'react';
 import {createPortal} from 'react-dom';
@@ -197,7 +197,7 @@ export function ConfirmDialog({open=true,title,description,children,confirmLabel
   <form className="confirm-dialog" data-variant={variant} noValidate onSubmit={event=>{event.preventDefault();if(!busy&&!blocked)onConfirm();}}>
    {description?<div className="confirm-dialog-body">{description}</div>:null}
    {children}
-   {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><InputControl id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
+   {requireText!==undefined?<label htmlFor={inputId}><span>{requireLabel||`Escribí ${requireText} para confirmar`}</span><InputBase id={inputId} name="confirmation" value={typed} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={busy} onChange={event=>setTyped(event.target.value)}/></label>:null}
    {error?<p className="error form-error-summary" role="alert">{error}</p>:null}
    <FormActions>
     <button type="button" className="secondary" disabled={busy} onClick={onCancel}>{cancelLabel}</button>

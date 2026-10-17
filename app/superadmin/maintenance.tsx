@@ -7,7 +7,7 @@ import {InputControl} from '../ui/input-control';
 // login, la landing, los webhooks y /health siguen andando. Cada cambio queda en la
 // auditoría. Sección independiente: se registra con una sola entrada.
 import {useEffect, useState} from "react";
-import {Switch} from "owncoding-ui";
+import {Switch} from '../ui/choice';
 import {OptionalMark} from "../field-label";
 import {ConfirmDialog} from "../dialog";
 import {notify} from "../feedback";

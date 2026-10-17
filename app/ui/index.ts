@@ -35,6 +35,7 @@ export {OptionsSelect, optionsFromChildren} from './options-select';
 export type {OptionsSelectProps} from './options-select';
 export {PendingFields, useSingleFlightSubmit} from '../use-single-flight-submit';
 export {useFormFocus, FormValidationErrors} from './form-focus';
+export {Checkbox, Switch} from './choice';
 
 export {Dialog, ConfirmDialog, FormActions} from '../dialog';
 export type {DialogSize, ConfirmDialogProps} from '../dialog';
