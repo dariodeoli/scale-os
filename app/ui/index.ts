@@ -31,13 +31,14 @@ export {LookupField, LookupReview} from './smart-field';
 export type {LookupFieldProps, LookupReviewProps, LookupState} from './smart-field';
 export {CardSurface} from './surface';
 export {DataTable} from './collection';
+export {OptionsSelect, optionsFromChildren} from './options-select';
+export type {OptionsSelectProps} from './options-select';
+export {PendingFields, useSingleFlightSubmit} from '../use-single-flight-submit';
+export {useFormFocus, FormValidationErrors} from './form-focus';
 
 export {Dialog, ConfirmDialog, FormActions} from '../dialog';
 export type {DialogSize, ConfirmDialogProps} from '../dialog';
 export {SaveActions} from '../save-actions';
-// Compatibility bridge: only the existing form UI and its types, never operations' API functions.
-export {Editor} from '../operations';
-export type {Field as EditorField, EditorHandle} from '../operations';
 export {OptionalMark} from '../field-label';
 
 export {

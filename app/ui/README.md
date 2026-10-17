@@ -12,7 +12,7 @@
 | Adaptadores de texto | `TextField`, `EmailField`, `PasswordField`, `PhoneField`: mantienen `onChange(string)` y ref al input. No cambian las políticas de contraseña ni verifican identidad. |
 | `amount` | `AmountInput`: contrato local `onChange(string)`, moneda explícita y renderer MoneyInput existente. Mantiene precisión/formato/caret, sin convertir monedas. |
 | `number` | `NumberInput`, `PercentageInput`: políticas explícitas, valores parciales intactos, límites y precisión configurables; `numberInputValid` es validación visual exacta. No convierten porcentajes y ratios. |
-| `temporal` | `DateInput`, `TimeInput`, `DateTimeInput`, `MonthInput`: eventos y valores civiles nativos, selector como mejora progresiva. La conversión a instantes pertenece al dominio. |
+| `temporal` | `DateInput`, `TimeInput`, `DateTimeInput`, `MonthInput`: valores civiles con texto parcial conservado, selector preparado con Aplicar/Cancelar y reloj de 24 horas. La conversión a instantes pertenece al dominio. |
 | `button` | `Button`, `IconButton`: botón nativo, variantes/tamaños/colores y pending. Ninguna operación remota. |
 | `select` | `Selector`: opciones suministradas por consumidor; selección simple/múltiple según contrato, búsqueda y accesibilidad. No carga catálogos ni decide permisos. |
 | `smart-field` | `LookupField`, `LookupReview`: presentación de búsqueda/revisión y callbacks. El consumidor decide autorización, consulta, fuente y aplicación de cambios. |
@@ -21,7 +21,9 @@
 
 La entrada también expone selectivamente los diálogos/confirmación/acciones de formulario existentes, los patrones de presentación de `ui-v2` y las identidades visuales `FotoPerfil`, `PersonContainer` y `ActorIdentity`. No agrega una segunda implementación de esos objetos.
 
-`Editor` es un puente transitorio **selectivo** al editor existente en `operations.tsx`; su tipo de campo se llama `EditorField` en esta entrada para distinguirlo del componente `Field`. `EditorHandle` conserva su contrato. Las dependencias internas históricas de `operations`/`ui-v2` no convierten esos módulos completos en API pública ni hacen a este barrel apto para servidor. La separación física de ese código es un alcance posterior; no importar el barrel desde esos módulos.
+`Editor` es una composición de Scale: incluye adaptadores de Drive, políticas de campos, moneda y mensajes del API. Se importa desde `app/scale-ui.ts` (o su entrada histórica `operations`), separado de esta entrada visual. No se publica como primitiva genérica ni se exportan funciones de API. `ui-v2` utiliza el formateador monetario directamente y no depende del módulo de operaciones.
+
+Las identidades `ActorIdentity` y `PersonContainer` son composiciones internas de Scale sobre `FotoPerfil`; sus políticas de medios autorizados y autoría importada no pertenecen a una futura publicación genérica. La portabilidad se decide por módulo, no copiando el barrel entero.
 
 ## Permitido
 
@@ -38,4 +40,4 @@ No añadir `export *`, nuevas llamadas de red, reglas RUC/dirección/código pos
 
 ## Dependencias de integración
 
-La entrada une módulos producidos en ramas coordinadas: `button`, `select`, `temporal`/`input-control`, `smart-field`, bases/campos y fachadas. Aplicar esos lotes antes de comprobar el barrel completo. Las bases no deben importar esta entrada, y el integrador debe verificar TypeScript y ciclos sobre el árbol integrado. Esta entrega no cambia consumidores, auth, estilos ni versiones.
+La entrada une módulos producidos en ramas coordinadas: `button`, `select`, `temporal`/`input-control`, `smart-field`, bases/campos y fachadas. Aplicar esos lotes antes de comprobar el barrel completo. Las bases no deben importar esta entrada, y el integrador debe verificar TypeScript y ciclos sobre el árbol integrado. La validación final debe cubrir el árbol integrado y sus consumidores.

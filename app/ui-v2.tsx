@@ -16,7 +16,7 @@ import {ConfirmDialog} from './dialog';
 import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
-import {money} from './operations';
+import {money} from './money-format';
 import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
 
 export type ChipTone = 'ok' | 'warn' | 'bad' | 'info' | 'mute';
