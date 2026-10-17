@@ -149,7 +149,7 @@ test('statement rows and projected payroll keep fixed columns',()=>{
   assert.match(personnel,/const PERSONNEL_COLUMNS='grid-cols-/,'personal declara una plantilla compartida');
   assert.match(personnel,/<ListGrid[^>]*template=\{PERSONNEL_COLUMNS\}/);
   assert.match(personnel,/<ListRow template=\{PERSONNEL_COLUMNS\}/);
-  assert.match(personnel,/label:'Ajuste del mes'/,'el ajuste ocupa su columna alineada en Balance');
+  assert.match(personnel,/tabIndex=\{canSalary\?0:undefined\} title=\{canSalary\?`Ajuste del mes:/,'el ajuste sigue disponible como detalle con foco en la celda salarial');
 });
 
 test('lists are thin rows and grids are big distributed cards',()=>{
@@ -217,15 +217,16 @@ test('the client portal styles every list it renders',()=>{
   assert.match(portal,/\.delivery-activity\{list-style:none/,'the delivery activity drops the native bullets');
 });
 
-test('the rail navigation keeps one geometry for links and the logout button',()=>{
+test('the rail keeps one geometry and logout uses the accessible header action',()=>{
   const rail=read('app/desktop-sidebar.tsx');
   assert.match(rail,/export const RAIL_ITEM='[^']*min-h-11[^']*font-semibold[^']*'/,'the rail exposes one item geometry for links and buttons');
   assert.match(rail,/hover:bg-white\/10 hover:text-white/,'the rail keeps its hover state');
   const drawer=read('app/mobile-navigation.tsx');
   assert.match(drawer,/\[&_a\]:min-h-11 \[&_button\]:min-h-11/,'the mobile drawer styles the logout button with the link geometry');
   const workspace=workspaceSource();
-  assert.match(workspace,/navItemClass\(false,tone\)/,'the logout button keeps its rail slot');
-  assert.match(workspace,/nav-logout/,'the logout button keeps its rail slot');
+  assert.match(workspace,/<ScaleIconButton type="button" label="Cerrar sesión" title="Cerrar sesión" size="compact" onClick=\{logout\}/,'logout preserves its callback and accessible name in the header');
+  assert.doesNotMatch(workspace,/nav-logout/,'logout no longer has a sidebar entry');
+  assert.match(workspace,/user&&!user\.demo_owner_user_id&&<ReportProblemButton iconOnly/,'reports preserve real-session access and the demo restriction');
 });
 
 console.log('PASS: 24-hour times and hover labels stay wired across the app surfaces');

@@ -7,6 +7,7 @@ Object.assign(globalThis,{React,window:new EventTarget()});require.extensions['.
 const reactDOM=require('react-dom');reactDOM.createPortal=(children:React.ReactNode)=>children;
 Object.defineProperty(globalThis,'document',{configurable:true,value:{activeElement:null,body:{style:{overflow:''}},addEventListener(){},removeEventListener(){}}});
 const {BalanceSection}=require('../app/finance-balance') as typeof import('../app/finance-balance');
+const {FinanceClientsSection}=require('../app/finance-clients') as typeof import('../app/finance-clients');
 const {FinancePersonnelSection}=require('../app/finance-personnel') as typeof import('../app/finance-personnel');
 const {AmountInput}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 const {Editor}=require('../app/operations') as typeof import('../app/operations');
@@ -27,11 +28,34 @@ test('Balance shows one aligned client/person table, truthful monthly cash and i
   const rows=clients.findAllByProps({role:'row'});assert.equal(new Set(rows.map(row=>row.props.className.match(/grid-cols-\[[^\s]+/)[0])).size,1,'all header and data tracks use the same template');
   assert.equal(clients.findAll(node=>node.type==='img'&&node.props.src==='https://example.com/client.png').length,1);
   assert.equal(clients.findAll(node=>node.type==='span'&&String(node.props.className).includes('foto-perfil-circulo')).length,2);
-  const noInvoice=clients.findAllByProps({title:undefined}).find(node=>node.type==='span'&&node.children.includes('No pide factura'));assert(noInvoice);assert.match(String(noInvoice.props.className),/bad/);
-  const text=JSON.stringify(view.toJSON());assert.match(text,/Persona USD/);assert.match(text,/Plan Growth/);assert.match(text,/Pendiente registrado/);assert.match(text,/1\.300/);assert.match(text,/no indica cancelación/);assert.doesNotMatch(text,/Sin factura|Al día|Saldado/);
+  const noInvoice=clients.findAllByProps({role:'img','aria-label':'No pide factura'})[0];assert(noInvoice);assert.match(String(noInvoice.props.className),/bad/);assert.equal(noInvoice.props.title,'No pide factura');assert.equal(noInvoice.props.tabIndex,0);
+  const text=JSON.stringify(view.toJSON());assert.match(text,/Persona USD/);assert.match(text,/Plan Growth/);assert.match(text,/Pendiente registrado/);assert.match(text,/1\.300/);assert.match(text,/no indica cancelación/);assert.doesNotMatch(text,/Sin factura|Al día|Saldado/);assert(text.indexOf('balance-clients-title')<text.indexOf('Resumen contratado y cobrado'),'comparison panels precede cash and summary blocks');
   const paymentCell=clients.findAll(node=>node.type==='span'&&String(node.props.title).includes('Aplicado a facturas emitidas en este mes'))[0];assert.match(paymentCell.props.title,/250/);assert.match(paymentCell.props.title,/mes:.*0/);
  }finally{act(()=>view?.unmount());globalThis.fetch=before;clearDataCache();}
 });
+test('compact panels keep exact currency totals, real overpayment, named plan icons and salary detail',async()=>{
+ let clients!:ReactTestRenderer,team!:ReactTestRenderer;
+ const member=detail.personnel.records[0];
+ try{await act(async()=>{
+  clients=create(<FinanceClientsSection clients={[{...detail.clients.records[0],plan_name:'Silver',contracted_amount:'0.10',received_in_month:'0.20'},{...detail.clients.records[0],client_id:'20',plan_name:'Personalizado',contracted_amount:'0.20',received_in_month:'0.10'},{...detail.clients.records[0],client_id:'21',currency:'PYG',plan_name:'Otro plan real',contracted_amount:'9000000',received_in_month:'10000000'}]} month={month} role="owner" canManageTerms={false} canHistory={false} onReload={()=>{}}/>);
+  team=create(<FinancePersonnelSection members={[{...member,base_amount:'0.10',paid_in_month:'0.20'},{...member,collaborator_id:'30',base_amount:'0.20',paid_in_month:'0.30'},{...member,collaborator_id:'31',currency:'PYG',base_amount:'5000000',paid_in_month:'6000000'}]} month={month} canSalary onReload={()=>{}}/>);
+ });
+ const clientTotals=clients.root.findByProps({'aria-label':'Totales de clientes por moneda'});
+ const salaryTotals=team.root.findByProps({'aria-label':'Totales del equipo por moneda'});
+ const text=(node:any):string=>typeof node==='string'?node:(node.children||[]).map(text).join('');
+ assert.match(text(clientTotals),/Contratado · USD.*0,30/);
+ assert.match(text(clientTotals),/Recibido en mes · USD.*0,30/);
+ assert.match(text(salaryTotals),/Salario base · USD.*0,30/);
+ assert.match(text(salaryTotals),/Pagado en mes · USD.*0,50/);
+ assert.match(text(salaryTotals),/Pagado en mes · PYG.*6\.000\.000/,'real payout is not capped at salary base');
+ for(const name of ['Silver','Personalizado','Otro plan real']){const icon=clients.root.findByProps({role:'img','aria-label':name});assert.equal(icon.props.title,name);assert.equal(icon.props.tabIndex,0);assert.equal(icon.findByProps({className:'sr-only'}).children.join(''),name);}
+ assert.match(clients.root.findByProps({role:'img','aria-label':'Silver'}).findByType('svg').props.className,/lucide-gem/);
+ assert.match(clients.root.findByProps({role:'img','aria-label':'Personalizado'}).findByType('svg').props.className,/lucide-sliders-horizontal/);
+ const table=team.root.findByProps({role:'table'});assert.deepEqual(table.findAllByProps({role:'columnheader'}).map(header=>header.children.join('')),['Persona','Salario base','Pagado en mes','Acciones']);
+ const detailCell=team.root.findAll(node=>node.type==='span'&&String(node.props.title).includes('Ajuste del mes:'))[0];assert.equal(detailCell.props.tabIndex,0);assert.match(detailCell.props.title,/Cierre previsto:.*90,25/);
+ }finally{act(()=>{clients?.unmount();team?.unmount();});}
+});
+
 test('salary changes use canonical Editor with revision, reason and effective date, retain retry UUID and open chronology',async()=>{
  clearDataCache();const before=globalThis.fetch,writes:{path:string;body:any}[]=[];let fail=true;
  let history:FinanceHistoryPayload={revision:'1',records:[baseline]};

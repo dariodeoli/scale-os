@@ -44,7 +44,8 @@ assert.doesNotMatch(pre,/md:hidden/,'las listas de la previsión ya no duplican 
 assert.match(balance,/<FinanceClientsSection/,'Balance monta el detalle de clientes');
 assert.match(balance,/<FinancePersonnelSection/,'Balance monta el detalle de salarios');
 assert.doesNotMatch(pre,/<FinanceClientsSection|<FinancePersonnelSection|forecast-person-row/,'el detalle no se replica en la proyección');
-assert.match(balanceCss,/\.finance-balance-columns\{[^}]*grid-template-columns:minmax\(0,1fr\)/,'los dos paneles completos se apilan y no comprimen sus columnas en media pantalla');
+assert.match(balanceCss,/\.finance-balance-columns\{[^}]*grid-template-columns:minmax\(0,1fr\)/,'en móvil los paneles se apilan');
+assert.match(balanceCss,/@media\(min-width:1024px\)\{\.finance-balance-columns\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'en escritorio las dos mitades son iguales');
 for(const [source,template] of [[clients,'CLIENT_FINANCE_COLUMNS'],[personnel,'PERSONNEL_COLUMNS']]){
  assert.match(source,new RegExp(`<ListGrid[^>]*template=\\{${template}\\}`),'encabezado y filas usan la misma plantilla');
  assert.match(source,new RegExp(`<ListRow template=\\{${template}\\}`),'las filas comparten la plantilla del encabezado');

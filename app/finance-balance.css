@@ -11,8 +11,8 @@
 .finance-detail-actions>button{flex-shrink:0}
 .finance-detail-actions>button:not(:where([data-ui-button])){width:32px;height:32px}
 .finance-inline-account{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.finance-client-table>div{min-width:max(59rem,calc(37.5rem + 2 * var(--finance-amount-width)))}
-.finance-personnel-table>div{min-width:max(68rem,calc(22rem + 5 * var(--finance-amount-width)))}
+.finance-client-table>div{min-width:max(29rem,calc(18.5rem + 2 * var(--finance-amount-width)))}
+.finance-personnel-table>div{min-width:max(28rem,calc(17rem + 2 * var(--finance-amount-width)))}
 .finance-history{display:grid;gap:10px;min-width:0;margin-top:16px}
 .finance-history-list{display:grid;gap:10px;list-style:none;margin:0;padding:0}
 .finance-history-entry{display:grid;gap:8px;padding:12px;border:1px solid var(--border-subtle);border-radius:12px;min-width:0}
@@ -20,3 +20,22 @@
 .finance-history-entry time{font-size:12px;color:var(--text-muted)}
 .finance-history-reason{font-size:13px;overflow-wrap:anywhere;margin:0}
 @media(max-width:767px){.finance-detail-actions>button:not(:where([data-ui-button])){width:44px;height:44px}.finance-detail-section{padding:10px}.finance-history-entry>header{align-items:flex-start}}
+
+/* #247: equal comparison panels; long amounts scroll inside their own table. */
+@media(min-width:1024px){.finance-balance-columns{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+.finance-panel-totals{display:grid;gap:6px;min-width:0}
+.finance-panel-totals dl{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:8px;background:var(--surface-sunken);border-radius:var(--ui-radius-control)}
+.finance-panel-totals dl>div{min-width:0;display:grid;gap:2px}
+.finance-panel-totals dt{font-size:10px;color:var(--text-muted)}
+.finance-panel-totals dd{margin:0;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.finance-detail-section .person-container-name{font-size:12px}
+.finance-detail-section .finance-detail-amount{font-size:12px}
+.finance-plan-cell,.finance-plan-icon,.finance-invoice-icon{display:inline-flex;align-items:center;justify-content:center}
+.finance-plan-icon,.finance-invoice-icon{width:28px;height:28px;border-radius:var(--ui-radius-control)}
+.finance-plan-icon:focus-visible,.finance-invoice-icon:focus-visible,.finance-detail-amount:focus-visible{outline:var(--ui-focus-width) solid var(--focus-ring);outline-offset:2px}
+
+@media(min-width:1024px){.finance-balance-columns>.finance-detail-section>.finance-balance-help{min-height:3.6em}}
+
+.finance-client-table{--finance-client-actions-width:4.25rem}
+.finance-personnel-table{--finance-personnel-actions-width:6.5rem}
+@media(max-width:760px),(pointer:coarse){.finance-personnel-table{--finance-personnel-actions-width:9rem}.finance-client-table{--finance-client-actions-width:6rem}.finance-client-table>div{min-width:max(30.75rem,calc(20.75rem + 2 * var(--finance-amount-width)))}.finance-personnel-table>div{min-width:max(31rem,calc(20rem + 2 * var(--finance-amount-width)))}}
