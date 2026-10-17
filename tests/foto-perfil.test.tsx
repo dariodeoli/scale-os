@@ -42,7 +42,8 @@ test('objeto único de foto: tamaño, forma, variante y botón (#107)',async()=>
  await act(async()=>{renderer=create(<FotoPerfil nombre="Estudio" tamano="xl" forma="cuadrado" variante="logo" foto="https://cdn.example/logo.png"/>);});
  const logo=renderer.toJSON() as any;
  assert(String(logo.props.className).includes('foto-perfil-logo')&&String(logo.props.className).includes('foto-perfil-cuadrado'));
- assert(system.includes('.foto-perfil-logo img{object-fit:contain'),'el logo se ve entero');
+ assert(system.includes('.foto-perfil-logo img{object-fit:contain'),'el logo conserva contain');
+ assert(system.includes('.foto-perfil-logo.foto-perfil-circulo img{padding:0}'),'el logo circular usa la máscara del objeto sin encerrar un fondo cuadrado en padding');
  assert(system.includes('.foto-perfil img{display:block;width:100%;height:100%;object-fit:cover;object-position:center top}'),'la persona encuadra desde el borde superior');
  let clicks=0;
  await act(async()=>{renderer=create(<FotoPerfil nombre="Ana Pérez" tamano="3xl" foto="https://cdn.example/a.webp" onClick={()=>{clicks+=1;}} etiqueta="Cambiar foto de Ana Pérez" badge={<span>ij</span>}/>);});
