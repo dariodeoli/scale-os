@@ -1,8 +1,7 @@
 # Candidato 1.0.191 — validación de integración
 
 17/10/2026. Código funcional final: `2a89a8b6`; contratos de pruebas alineados
-en `47170559`; evidencia final de permisos en `f4958be6`. Este registro describe
-validación local, no anticipa CI, merge ni producción.
+en `47170559`; evidencia final de permisos en `f4958be6`. Este registro conserva la validación local y añade la verificación pública posterior al merge.
 
 ## Gates ejecutados
 
@@ -37,6 +36,18 @@ ni correo reales, proveedor RUC real ni escrituras de prueba en producción.
 
 ## Publicación y seguimiento
 
-El integrador registrará PR, SHA de main, CI y smoke web/API en GitHub al
-publicar. Los issues #237–240 permanecen abiertos hasta esa verificación.
+Publicado mediante [PR #244](https://github.com/dariodeoli/scale-os/pull/244).
+Main: `df800790c88f9e830c2b4fc246984f42730d5509` (v1.0.191).
+[CI de main](https://github.com/dariodeoli/scale-os/actions/runs/39017188566): ambos gates aprobados, igual que en el candidato.
+
+17/10/2026 09:00 UTC: `npm run release:smoke` PASS contra producción.
+`/status` y `/registro` publican v1.0.191; API `/health` devuelve v1.0.191,
+`ok=true` y `database=ready`. Landing `/scale-os.html` coincide byte por byte
+con main: SHA-256 `b0893d4acaf9faedf655d19680213de0c926562252a2f84a2cbb9e4703bce01f`.
+
+El dueño confirmó que Coolify esperaba otro deploy. Se esperó la publicación
+sin lanzar un segundo deploy. No se dispone del SHA interno del proveedor;
+el SHA de integración se acredita mediante GitHub y la versión pública mediante
+los endpoints, sin afirmar observaciones internas de infraestructura.
+Los issues #237–240 se actualizan con esta evidencia y se cierran tras el smoke.
 #241 continúa como campaña separada de biblioteca y catálogo.
