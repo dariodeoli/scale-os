@@ -9,6 +9,7 @@ import {economicHistorySchema,economicHistoryCases} from './test-economic-histor
 import {economicHistory} from './economic-history.js';
 import {financeTreasury} from './finance-treasury.js';
 import {reports} from './reports.js';
+import {operations} from './operations.js';
 import {commercialLifecycle} from './commercial-lifecycle.js';
 import {fillContractCommercial} from './contract-commercial.js';
 import {randomUUID} from 'node:crypto';
@@ -29,7 +30,7 @@ try{
  const info=(await pool.query("select current_setting('data_directory') as data,current_setting('listen_addresses') as listen,inet_server_addr() as address,version() as version")).rows[0];assert.equal(realpathSync(info.data),data);assert.equal(info.listen,'');assert.equal(info.address,null);console.log(info.version+'; Unix socket only');
  await economicHistorySchema(pool);
  const {actor,person,customer}=await economicHistoryCases(pool);
- async function call(path,method,payload,db=pool){let response;const args={req:{method,socket:{remoteAddress:'fixture'}},res:{},url:new URL('https://fixture.invalid/api/agency'+path),db,session:async()=>actor,body:async()=>payload,send:(_,status,data)=>response={status,...data}};for(const f of [economicHistory,financeTreasury,reports,commercialLifecycle])if(await f(args))return response;throw Error(path);}
+ async function call(path,method,payload,db=pool){let response;const args={req:{method,socket:{remoteAddress:'fixture'}},res:{},url:new URL('https://fixture.invalid/api/agency'+path),db,session:async()=>actor,body:async()=>payload,send:(_,status,data)=>response={status,...data}};for(const f of [economicHistory,financeTreasury,reports,commercialLifecycle,operations])if(await f(args))return response;throw Error(path);}
  const pathSalary='/collaborators/'+person+'/salary-history';
  let state=await call(pathSalary,'GET');
  const change={amount:'901.25',currency:'USD',compensationType:'fixed',effectiveFrom:'2026-11-01',reason:'Cambio concurrente acordado',requestId:randomUUID(),expectedRevision:state.revision};
@@ -37,6 +38,12 @@ try{
  assert.deepEqual(results.map(r=>r.status).sort(),[201,409],JSON.stringify(results));
  state=await call(pathSalary,'GET');const duplicate={...change,amount:'950.25',effectiveFrom:'2026-12-01',expectedRevision:state.revision,requestId:randomUUID()};
  const retries=await Promise.all([call(pathSalary,'POST',duplicate),call(pathSalary,'POST',duplicate)]);assert.deepEqual(retries.map(r=>r.status).sort(),[200,201]);
+ const beforeContact=await call(pathSalary,'GET');
+ assert.equal((await call('/collaborators/'+person,'PATCH',{notes:'Contacto sin alterar acuerdo futuro'})).status,200);
+ assert.equal((await call(pathSalary,'GET')).revision,beforeContact.revision,'metadata leaves future salary event unchanged');
+ const staleTeam=await call('/collaborators/'+person,'PATCH',{compensation_amount:'999',currency:'USD'});assert.equal(staleTeam.status,409,JSON.stringify(staleTeam));assert.match(staleTeam.error,/later salary agreement/);
+ const futureSource=(await pool.query('select compensation_amount::text,monthly_salary_amount::text,currency,monthly_salary_currency from agency_collaborators where organization_id=$1 and id=$2',[actor.organization_id,person])).rows[0];assert.equal(futureSource.compensation_amount,'950.25');assert.equal(futureSource.monthly_salary_amount,'950.25');assert.equal(futureSource.currency,'USD');assert.equal(futureSource.monthly_salary_currency,'USD');
+ assert.equal((await pool.query("select agency_salary_at($1,$2,'2026-08-31')->>'amount' as amount",[actor.organization_id,person])).rows[0].amount,'600.00');
  // Concurrent price corrections on the same effective month also use CAS.
  const pathPlan='/clients/'+customer+'/commercial-terms',pathHistory='/clients/'+customer+'/plan-history';
  const plan=(await pool.query('select plan_id from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null',[actor.organization_id,customer])).rows[0].plan_id;

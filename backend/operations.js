@@ -150,8 +150,19 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
         select $1,$2,$3,case when $3::text is null then now() else null end from organization_person_identity where user_id=$1 and organization_id=$4 and not is_demo
         on conflict(user_id) do update set photo_url=excluded.photo_url,photo_removed_at=excluded.photo_removed_at,updated_at=now()`,[uid,name,photo||null,org]);
     }
-    const salaryAmount=Object.hasOwn(incoming,'monthly_salary_amount')?monthlySalary(incoming.monthly_salary_amount):previous.monthly_salary_amount??null,salaryCurrency=salaryAmount===null?null:option(b.monthly_salary_currency||'PYG',currencies);
-    const values=[org,uid,name,contact,photo||null,jobTitle,option(b.compensation_type,['fixed','variable','hourly','per_project']),money(b.compensation_amount,true),Boolean(b.invoices_company),start,day,b.active!==false,text(b.notes||''),option(b.currency,currencies),end,salaryAmount,salaryCurrency];
+    const compensationType=option(b.compensation_type,['fixed','variable','hourly','per_project']),compensationAmount=money(b.compensation_amount,true),compensationCurrency=option(b.currency,currencies);
+    let salaryAmount=Object.hasOwn(incoming,'monthly_salary_amount')?monthlySalary(incoming.monthly_salary_amount):previous.monthly_salary_amount??null,salaryCurrency=salaryAmount===null?null:option(b.monthly_salary_currency||'PYG',currencies);
+    // Fixed remuneration and its explicit monthly amount describe one salary.
+    // Team edits must not leave the monthly snapshot shadowing a stale amount.
+    // Other modalities keep an independent fee; contact-only saves do not create
+    // an agreement, nor replace an explicitly supplied monthly salary.
+    const compensationChanged=(Object.hasOwn(incoming,'compensation_type')&&compensationType!==previous.compensation_type)||(Object.hasOwn(incoming,'compensation_amount')&&compensationAmount!==Number(previous.compensation_amount))||(Object.hasOwn(incoming,'currency')&&compensationCurrency!==previous.currency);
+    const explicitMonthly=Object.hasOwn(incoming,'monthly_salary_amount')||Object.hasOwn(incoming,'monthly_salary_currency');
+    if(previous.id&&compensationType==='fixed'&&salaryAmount!==null&&compensationChanged&&!explicitMonthly){
+     if(compensationCurrency==='PYG'&&!Number.isInteger(compensationAmount))fail('El salario en guaraníes debe ser un entero');
+     salaryAmount=compensationAmount;salaryCurrency=compensationCurrency;
+    }
+    const values=[org,uid,name,contact,photo||null,jobTitle,compensationType,compensationAmount,Boolean(b.invoices_company),start,day,b.active!==false,text(b.notes||''),compensationCurrency,end,salaryAmount,salaryCurrency];
     if(collaboratorMatch[1]) {await belongs(c,'agency_collaborators',collaboratorMatch[1],org);values.push(collaboratorMatch[1]);result={collaborator:(await c.query('update agency_collaborators set user_id=$2,full_name=$3,email=$4,photo_url=$5,job_title=$6,compensation_type=$7,compensation_amount=$8,invoices_company=$9,started_on=$10,payment_day=$11,active=$12,notes=$13,currency=$14,ended_on=$15,monthly_salary_amount=$16,monthly_salary_currency=$17,updated_at=now() where organization_id=$1 and id=$18 returning *',values)).rows[0]};}
     else {result={collaborator:(await c.query('insert into agency_collaborators(organization_id,user_id,full_name,email,photo_url,job_title,compensation_type,compensation_amount,invoices_company,started_on,payment_day,active,notes,currency,ended_on,monthly_salary_amount,monthly_salary_currency) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) returning *',values)).rows[0]};status=201;}
     result.collaborator=(await c.query('update agency_collaborators set job_role_id=$1 where id=$2 and organization_id=$3 returning *',[jobId,result.collaborator.id,org])).rows[0];result.access={status:access.status};result.collaborator=withoutSalary(result.collaborator);

@@ -101,7 +101,7 @@ async function controlCenter(connection,organization,financial){
  // A custom stage counts as closed only through its kind; legacy slugs keep the
  // literal fallback so metrics never depend on the stage editor.
  const activeProspects=(await connection.query("select count(*)::int as count from agency_leads l where l.organization_id=$1 and l.stage not in ('won','lost') and not exists(select 1 from agency_pipeline_stages s where s.organization_id=l.organization_id and s.slug=l.stage and s.kind in ('won','lost')) and "+visibleRecord('l','leads'),[organization])).rows[0].count;
- const contractedBilling=financial?(await connection.query(`select currency,sum(round(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end,case when currency='PYG' then 0 else 2 end))::text as net_monthly
+ const contractedBilling=financial?(await connection.query(`select currency,sum(round(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end,case when currency='PYG' then 0 else 2 end))::numeric(22,2)::text as net_monthly
   from agency_commercial_terms_on($1,${zoneTodaySql}) where cadence='monthly' group by currency order by currency`,[organization])).rows:null;
  return {
   active_clients:activeClients,

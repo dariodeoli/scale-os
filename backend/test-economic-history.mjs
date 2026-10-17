@@ -41,11 +41,42 @@ export async function economicHistoryCases(db){
  h=await call(history);assert.equal(h.records.length,3);assert.equal(h.records[0].before_amount,'1200.00');assert.equal(h.records[0].after_amount,'1500.00');assert.equal(h.records[0].before_plan_name,'Plan B');
  const correction=terms(1600,'2026-09-01',h.revision,planB);r=await call(commercial,'PATCH',correction);assert.equal(r.status,200,JSON.stringify(r));
  const sameMonth=await call(history);assert.equal(sameMonth.records.length,4);assert.equal(sameMonth.records[0].before_amount,'1500.00');assert.equal(sameMonth.records[0].after_amount,'1600.00');
+ // IDs are numeric revisions, even once the timeline crosses 9 -> 10.
+ for(const price of [1601,1602,1603,1604,1605,1606,1600]){
+  const current=await call(history);r=await call(commercial,'PATCH',terms(price,'2026-09-01',current.revision,planB));assert.equal(r.status,200,JSON.stringify(r));
+ }
+ const numericPlanHistory=await call(history),maxPlan=await one('select max(id)::text as revision from agency_client_commercial_terms where organization_id=$1 and client_id=$2',[org,customer]);
+ assert.equal(numericPlanHistory.revision,maxPlan.revision);assert.equal(numericPlanHistory.records[0].id,maxPlan.revision);
  assert.equal(Number((await one("select sum(recurring_amount) as amount from agency_commercial_terms_for_month($1,'2026-09-01') where client_id=$2",[org,customer])).amount),1600,'canonical month selects one revision');
  assert.equal(Number((await one("select sum(recurring_amount) as amount from agency_commercial_terms_on($1,'2026-09-01') where client_id=$2",[org,customer])).amount),1600,'canonical day selects one revision');
  for(const [month,base,contracted] of [['2026-07','500.00','1000'],['2026-08','600.00','1200'],['2026-09','750.00','1600']]){
   r=await call('/finance/balance-details?month='+month);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.personnel.records[0].base_amount,base);assert.equal(Number(r.clients.records[0].contracted_amount),Number(contracted));
   const forecast=await call('/forecast?month='+month);assert.equal(forecast.status,200,JSON.stringify(forecast));assert.equal(forecast.personnel.records[0].base_amount,Number(base));assert.equal(forecast.contracted_recurring.records[0].amount,Number(contracted));
+ }
+ // Both editors must agree for a fixed salary. Each write is one event,
+ // and current-month changes leave the two preceding agreements untouched.
+ const observedNow=(await one("select to_char(clock_timestamp() at time zone 'America/Asuncion','YYYY-MM') as month")).month;
+ const fixedRow=async()=>{const result=await call('/collaborators');assert.equal(result.status,200);return result.collaborators.find(x=>String(x.id)===String(person));};
+ let fixed=await fixedRow();assert.equal(String(fixed.compensation_amount),'750.00');assert.equal(String(fixed.monthly_salary_amount),'750.00');assert.equal(fixed.currency,fixed.monthly_salary_currency);
+ const currentHistory=await call(salary),eventsBeforeContact=currentHistory.records.length;
+ r=await call('/collaborators/'+person,'PATCH',{notes:'Sólo datos de contacto'});assert.equal(r.status,200,JSON.stringify(r));assert.equal((await call(salary)).records.length,eventsBeforeContact,'contact-only patch cannot add salary history');
+ r=await call('/collaborators/'+person,'PATCH',{compensation_amount:'800.25',currency:'USD'});assert.equal(r.status,200,JSON.stringify(r));
+ fixed=await fixedRow();assert.equal(String(fixed.compensation_amount),'800.25');assert.equal(String(fixed.monthly_salary_amount),'800.25');assert.equal((await call(salary)).records.length,eventsBeforeContact+1);
+ let currentBalance=(await call('/finance/balance-details?month='+observedNow)).personnel.records.find(x=>x.collaborator_id===String(person));assert.equal(currentBalance.base_amount,'800.25');assert.equal(currentBalance.currency,'USD');
+ r=await call('/collaborators/'+person,'PATCH',{compensation_amount:'900',currency:'PYG'});assert.equal(r.status,200,JSON.stringify(r));
+ fixed=await fixedRow();assert.equal(String(fixed.compensation_amount),'900.00');assert.equal(String(fixed.monthly_salary_amount),'900.00');assert.equal(fixed.currency,'PYG');assert.equal(fixed.monthly_salary_currency,'PYG');
+ assert.equal((await call('/collaborators/'+person,'PATCH',{compensation_amount:'900.25',currency:'PYG'})).status,400,'fixed monthly sync rejects fractional guaranies');
+ const beforeBalanceEdit=await call(salary),balanceEdit={amount:'1000.25',currency:'USD',effectiveFrom:observedNow+'-01',reason:'Cambio fijo desde Balance',requestId:randomUUID(),expectedRevision:beforeBalanceEdit.revision};
+ r=await call(salary,'POST',balanceEdit);assert.equal(r.status,201,JSON.stringify(r));assert.equal(r.records.length,beforeBalanceEdit.records.length+1);assert.equal((await call(salary,'POST',balanceEdit)).alreadyRecorded,true);
+ fixed=await fixedRow();assert.equal(String(fixed.compensation_amount),'1000.25');assert.equal(String(fixed.monthly_salary_amount),'1000.25');assert.equal(fixed.currency,'USD');assert.equal(fixed.monthly_salary_currency,'USD');
+ assert.equal((await call(salary,'POST',{...balanceEdit,requestId:randomUUID()})).status,409);
+ assert.equal(await salaryAt('2026-07-31'),'500.00');assert.equal(await salaryAt('2026-08-31'),'600.00');assert.equal(await salaryAt('2026-09-30'),'750.00');
+ for(const mode of ['hourly','per_project']){
+  const feePerson=(await one(`insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency) values($1,$2,$3,50,'USD') returning id`,[org,'Fee '+mode,mode])).id;
+  const feePath='/collaborators/'+feePerson+'/salary-history',feeHistory=await call(feePath);
+  r=await call(feePath,'POST',{amount:'1200',currency:'PYG',effectiveFrom:observedNow+'-01',reason:'Mensual separado de honorario',requestId:randomUUID(),expectedRevision:feeHistory.revision});assert.equal(r.status,201,JSON.stringify(r));
+  const fee=(await call('/collaborators')).collaborators.find(x=>String(x.id)===String(feePerson));assert.equal(fee.compensation_type,mode);assert.equal(String(fee.compensation_amount),'50.00');assert.equal(fee.currency,'USD');assert.equal(String(fee.monthly_salary_amount),'1200.00');assert.equal(fee.monthly_salary_currency,'PYG');
+  r=await call('/collaborators/'+feePerson,'PATCH',{compensation_amount:'75',currency:'USD'});assert.equal(r.status,200,JSON.stringify(r));assert.equal(String(r.collaborator.monthly_salary_amount),'1200.00');assert.equal(r.collaborator.monthly_salary_currency,'PYG');
  }
  const account=(await one("insert into bank_accounts(organization_id,name,account_type,currency) values($1,'Caja','cash','USD') returning id",[org])).id;
  const old=(await one("insert into agency_invoices(organization_id,client_id,number,currency,total,status,issued_on,due_on) values($1,$2,'F-OLD','USD',500,'issued','2026-08-01','2026-08-10') returning id",[org,customer])).id;
@@ -61,7 +92,7 @@ export async function economicHistoryCases(db){
  details=await call('/finance/balance-details?month=2026-09');row=details.clients.records[0];assert.equal(Number(row.received_in_month),350);assert.equal(Number(row.applied_to_month_invoices),100);assert.equal(Number(row.registered_outstanding),1200);
  const restricted={...actor,role:'sales',capabilities:{'finance.view':true,'salary.view':false}};
  assert.equal((await call(salary,'GET',{},restricted)).status,403);assert.equal((await call(salary,'POST',september,restricted)).status,403);
- details=await call('/finance/balance-details?month=2026-09','GET',{},restricted);for(const field of ['base_amount','override_amount','expected_amount','paid_in_month','outstanding_amount'])assert.equal(details.personnel.records[0][field],null);
+ details=await call('/finance/balance-details?month=2026-09','GET',{},restricted);for(const field of ['base_amount','override_amount','expected_amount','paid_in_month','outstanding_amount'])assert.equal(details.personnel.records.find(x=>x.collaborator_id===String(person))[field],null);
  assert.equal((await call('/clients/'+foreign+'/plan-history')).status,404);
  assert.equal((await call('/finance/balance-details','GET',{},null)).status,401);
  assert.equal((await call('/finance/balance-details','GET',{}, {...actor,role:'viewer'})).status,403);
@@ -98,6 +129,7 @@ export async function economicHistoryCases(db){
  await assert.rejects(q('update agency_client_commercial_terms set recurring_amount=recurring_amount+1 where organization_id=$1 and client_id=$2',[org,customer]),/immutable/);
  const auditBefore=await one('select (select count(*) from agency_invoices where organization_id=$1) as invoices,(select sum(balance) from bank_accounts where organization_id=$1) as cash,(select count(*) from agency_payouts where organization_id=$1) as payouts',[org]);
  await call(salary,'POST',await change('800','2026-10-01'));
+ const newestSalary=await call(salary),maxSalary=await one('select max(id)::text as revision from agency_salary_history where organization_id=$1 and collaborator_id=$2',[org,person]);assert.equal(newestSalary.revision,maxSalary.revision);assert.equal(newestSalary.records[0].id,maxSalary.revision);
  const auditAfter=await one('select (select count(*) from agency_invoices where organization_id=$1) as invoices,(select sum(balance) from bank_accounts where organization_id=$1) as cash,(select count(*) from agency_payouts where organization_id=$1) as payouts',[org]);assert.deepEqual(auditBefore,auditAfter);
  r=await call('/finance/periods/2026-09/close','POST',{reason:'Cierre para probar vigencia protegida',expectedRevision:0});assert.equal(r.status,200,JSON.stringify(r));
  const blocked=await change('900','2026-09-01');assert.equal((await call(salary,'POST',blocked)).status,409);

@@ -23,7 +23,7 @@ export async function salaryHistory(c,org,person){
  case when before_state is null then null when before_state->>'monthly_salary_amount' is not null then before_state->>'monthly_salary_amount' when before_state->>'compensation_type'='fixed' then before_state->>'amount' else '0' end as before_amount,case when after_state->>'monthly_salary_amount' is not null then after_state->>'monthly_salary_amount' when after_state->>'compensation_type'='fixed' then after_state->>'amount' else '0' end as after_amount,
  coalesce(before_state->>'monthly_salary_currency',before_state->>'currency') as before_currency,coalesce(after_state->>'monthly_salary_currency',after_state->>'currency') as currency,
  after_state->>'compensation_type' as compensation_type,case when after_state->>'monthly_salary_amount' is not null then 'monthly' else 'compensation' end as salary_basis,(effective_from is not null) as history_known
- from agency_salary_history where organization_id=$1 and collaborator_id=$2 order by id desc`,[org,person])).rows;
+ from agency_salary_history h where organization_id=$1 and collaborator_id=$2 order by h.id desc`,[org,person])).rows;
  const revision=rows[0]?.id||'0';
  // The existing operation audit knows when a change was observed, but carries
  // no salary-effective date. Present it as such instead of inventing vigency.
@@ -56,7 +56,7 @@ export async function planHistory(c,org,client){
  changed_by_user_id as actor_user_id,previous_amount::text as before_amount,net_amount::text as after_amount,
  previous_currency as before_currency,currency,previous_plan_id::text as before_plan_id,plan_id::text as after_plan_id,
  previous_plan_name as before_plan_name,snapshot_plan_name as after_plan_name,(plan_name is not null) as history_known,cadence
- from sequenced order by id desc`,[org,client])).rows;
+ from sequenced order by sequenced.id desc`,[org,client])).rows;
  await attributeActors(c,org,[{rows,userId:'actor_user_id'}]);
  return {records:projectHistory(rows),revision:rows[0]?.id||'0'};
 }
@@ -93,7 +93,7 @@ export async function economicHistory({req,res,url,db,session,body,send}){
   await c.query('select assert_agency_finance_period_open($1,$2::date)',[user.organization_id,effective]);
   await c.query("select set_config('app.current_user',$1,true),set_config('app.salary_effective_from',$2,true),set_config('app.salary_reason',$3,true),set_config('app.salary_request_key',$4,true)",[String(user.id),effective,reason,keyRequest]);
   if(minor(existing.monthly_salary_amount??(existing.compensation_type==='fixed'?existing.compensation_amount:0))===minor(amount)&&(existing.monthly_salary_currency??existing.currency)===currency)fail('El salario informado ya está vigente');
-  await c.query('update agency_collaborators set monthly_salary_amount=$3,monthly_salary_currency=$4,updated_at=clock_timestamp() where organization_id=$1 and id=$2',[user.organization_id,key,amount,currency]);
+  await c.query('update agency_collaborators set monthly_salary_amount=$3,monthly_salary_currency=$4,compensation_amount=case when compensation_type=\'fixed\' then $3::numeric else compensation_amount end,currency=case when compensation_type=\'fixed\' then $4 else currency end,updated_at=clock_timestamp() where organization_id=$1 and id=$2',[user.organization_id,key,amount,currency]);
   const result=await read(c,user.organization_id,key);await c.query('commit');send(res,201,result);
  }catch(error){if(c)await c.query('rollback');const e=financeError(error)||error;send(res,e.status||500,{error:e.status?e.message:'No se pudo consultar el historial económico'});}finally{c?.release();}return true;
 }
