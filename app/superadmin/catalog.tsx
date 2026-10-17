@@ -1,10 +1,13 @@
 "use client";
+import {PendingFields} from '../ui/form-state';
+import {SaveActions} from '../save-actions';
+import {usePlatformFlight} from './confirm';
 import {InputControl} from '../ui/input-control';
 import {TextareaBase} from '../ui/input';
 // Catálogo comercial (cupones) del panel global.
 // Rediseño #80: panel del sistema, formulario de alta y lista densa v2.
 import {OptionalMark,optionalLabel} from '../field-label';
-import {useRef} from "react";
+import {useRef,useState} from "react";
 import {PauseCircle, PlayCircle} from "lucide-react";
 import {ListActions, ListGrid, ListRow, EmptyBlock, EmptyCta, MoneyText, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {dueTone, listDateFull, listDateShort} from "../list-format";
@@ -46,7 +49,11 @@ const MIN_WIDTH_READONLY = denseTableMinWidth(9 + 8 + 5.5 + 7 + 5 + 5.5, 6);
 
 const FIELD = "grid gap-1.5 text-[11px] font-semibold text-mute";
 
-export function PlatformCatalog({busy, state, page, onMore, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
+export function PlatformCatalog({busy:externalBusy, state, page, onMore, writable, coupon, setCoupon, toggleCoupon, createCoupon}: PlatformCatalogProps){
+  const flight=usePlatformFlight();
+  const [formError,setFormError]=useState('');
+  function run(action:()=>Promise<void>){return flight.run(async()=>{setFormError('');try{await action();}catch(cause){setFormError(cause instanceof Error?cause.message:'No pudimos completar la operación.');}});}
+  const busy=externalBusy||flight.pending;
   // El vacío de cupones lleva al formulario de creación que vive arriba.
   const codeRef=useRef<HTMLInputElement|null>(null);
   const {ref: listRef, fits: listFits} = useDenseTableFit<HTMLDivElement>(writable ? MIN_WIDTH : MIN_WIDTH_READONLY);
@@ -68,7 +75,8 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
         <small className="text-[12px] leading-[1.35] text-mute">Crear un cupón no inicia cobros ni activa un proveedor de pagos</small>
       </div>
       {writable && (
-      <form className="platform-admin-coupon" onSubmit={createCoupon}>
+      <form className="platform-admin-coupon" aria-busy={busy} onSubmit={event=>{event.preventDefault();void run(()=>createCoupon(event));}}>
+        <PendingFields pending={busy}>
         <label className={FIELD}>
           Código
           <InputControl
@@ -89,7 +97,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
             maxLength={40}
           />
         </label>
-          <SelectCustom label="Tipo" choices={[{value:'percent',label:'Porcentaje'},{value:'fixed',label:'Monto fijo'},{value:'days',label:'Días gratis'}]} value={coupon.discount_type} onChange={value=>setCoupon({...coupon,discount_type:value as 'percent'|'fixed'|'days'})}/>
+          <SelectCustom disabled={busy} label="Tipo" choices={[{value:'percent',label:'Porcentaje'},{value:'fixed',label:'Monto fijo'},{value:'days',label:'Días gratis'}]} value={coupon.discount_type} onChange={value=>setCoupon({...coupon,discount_type:value as 'percent'|'fixed'|'days'})}/>
         <label className={FIELD}>
           {coupon.discount_type === "days" ? "Días gratis" : "Valor"}
           <InputControl
@@ -106,20 +114,22 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
           />
         </label>
         {coupon.discount_type === "fixed" ? (
-            <SelectCustom label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
+            <SelectCustom disabled={busy} label="Moneda" choices={[{value:'USD',label:'USD'},{value:'PYG',label:'PYG'}]} value={coupon.currency} onChange={value=>setCoupon({...coupon,currency:value})}/>
         ) : null}
         <label className={FIELD}>
           Vence<OptionalMark/>
           <InputControl type="date" value={coupon.expires_at} min={todayAsuncion()} onChange={(event) => setCoupon({...coupon, expires_at: event.target.value})}/>
         </label>
-        <SelectCustom label={optionalLabel("Empresa")} choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
+        <SelectCustom disabled={busy} label={optionalLabel("Empresa")} choices={[{value:'',label:'Todas las empresas'}, ...state.agencies.map(agency=>({value:String(agency.id),label:agency.name||`Agencia #${agency.id}`}))]} value={coupon.organization_id} onChange={value=>setCoupon({...coupon,organization_id:value})}/>
         <label className={`${FIELD} platform-admin-coupon-note`}>
           Nota interna<OptionalMark/>
           <TextareaBase value={coupon.note} rows={2} maxLength={2000} onChange={(event) => setCoupon({...coupon, note: event.target.value})} placeholder="Ej.: gracia acordada por WhatsApp"/>
         </label>
-        <button className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
+        {formError?<p className="error form-error-summary" role="alert">{formError}</p>:null}
+        <SaveActions pending={busy} cancelLabel={false}><button type="submit" className="primary min-h-11 md:min-h-10 whitespace-nowrap" disabled={busy}>
           Crear cupón
-        </button>
+        </button></SaveActions>
+        </PendingFields>
       </form>
       )}
       <div ref={listRef} className="mt-4 min-w-0">
@@ -140,7 +150,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                     type="button"
                     className={"text-button " + (item.active ? "warn" : "positive")}
                     disabled={busy}
-                    onClick={() => void toggleCoupon(item)}
+                    onClick={() => void run(()=>toggleCoupon(item))}
                   >
                     {item.active ? <PauseCircle size={14} aria-hidden="true" /> : <PlayCircle size={14} aria-hidden="true" />}
                     {item.active ? "Pausar" : "Reactivar"}
@@ -169,7 +179,7 @@ export function PlatformCatalog({busy, state, page, onMore, writable, coupon, se
                     type="button"
                     className={"text-button " + (item.active ? "warn" : "positive")}
                     disabled={busy}
-                    onClick={() => void toggleCoupon(item)}
+                    onClick={() => void run(()=>toggleCoupon(item))}
                   >
                     {item.active ? <PauseCircle size={14} aria-hidden="true" /> : <PlayCircle size={14} aria-hidden="true" />}
                     {item.active ? "Pausar" : "Reactivar"}

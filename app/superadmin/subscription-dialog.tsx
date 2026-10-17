@@ -1,5 +1,8 @@
 "use client";
 import {TextareaBase} from '../ui/input';
+import {PendingFields} from '../ui/form-state';
+import {SaveActions} from '../save-actions';
+import {PlatformFormState,usePlatformFlight} from './confirm';
 import {InputControl} from '../ui/input-control';
 // Diálogo de suscripción manual (estado, gracia en un clic y opciones avanzadas).
 // #189: arriba el estado actual y las gracias rápidas (+7 días, +1 mes, +3 meses);
@@ -54,11 +57,21 @@ function stateLabel(subscription: Subscription | null) {
   return {tone: "mute" as const, label: "Sin cambio manual"};
 }
 
-export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAgency, subscription, setSubscription, subscriptionLoaded, setSubscriptionLoaded, subscriptionError, setSubscriptionError, subscriptionRequest, subscriptionState, setSubscriptionState, subscriptionReason, setSubscriptionReason, subscriptionExpiryValue, setSubscriptionExpiryValue, extendDays, setExtendDays, extendReason, setExtendReason, manageSubscription, saveSubscription, saveExtension, grantGrace, applyCoupon}: SubscriptionDialogProps){
+export function SubscriptionDialog({busy:externalBusy, subscriptionAgency, setSubscriptionAgency, subscription, setSubscription, subscriptionLoaded, setSubscriptionLoaded, subscriptionError, setSubscriptionError, subscriptionRequest, subscriptionState, setSubscriptionState, subscriptionReason, setSubscriptionReason, subscriptionExpiryValue, setSubscriptionExpiryValue, extendDays, setExtendDays, extendReason, setExtendReason, manageSubscription, saveSubscription, saveExtension, grantGrace, applyCoupon}: SubscriptionDialogProps){
   const [grace, setGrace] = useState<(typeof GRACE_OPTIONS)[number] | null>(null);
   const [graceReason, setGraceReason] = useState(GRACE_REASON);
   const [graceError, setGraceError] = useState("");
-  const [graceBusy, setGraceBusy] = useState(false);
+  const flight=usePlatformFlight(),graceFlight=usePlatformFlight();
+  const busy=externalBusy||flight.pending||graceFlight.pending;
+  const graceBusy=externalBusy||graceFlight.pending;
+  const [saveError,setSaveError]=useState('');
+  const snapshot=JSON.stringify([subscriptionState,subscriptionReason,subscriptionExpiryValue,extendDays,extendReason]);
+  const baseline=useRef<string|null>(null);
+  if(subscriptionLoaded&&baseline.current===null)baseline.current=snapshot;
+  const dirty=baseline.current!==null&&baseline.current!==snapshot;
+  function submit(event:FormEvent,action:(event:FormEvent)=>Promise<void>){
+   event.preventDefault();void flight.run(async()=>{setSaveError('');try{await action(event);}catch(cause){setSaveError(cause instanceof Error?cause.message:'No pudimos guardar los cambios.');}});
+  }
   const graceKey = useRef("");
   const current = stateLabel(subscription);
   const expiry = subscription?.internal_expires_at || agencyExpiry(subscriptionAgency);
@@ -72,12 +85,16 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
     if (!grace) return;
     const reason = graceReason.trim();
     if (reason.length < 3) { setGraceError("Indicá un motivo de al menos 3 caracteres."); return; }
-    setGraceBusy(true);
     setGraceError("");
-    const failure = await grantGrace(grace.days, reason, graceKey.current);
-    setGraceBusy(false);
-    if (failure) setGraceError(failure);
-    else setGrace(null);
+    try {
+      const failure = await grantGrace(grace.days, reason, graceKey.current);
+      if (failure) setGraceError(failure);
+      else {
+        if(dirty){setSubscriptionState(subscriptionState);setSubscriptionReason(subscriptionReason);setSubscriptionExpiryValue(subscriptionExpiryValue);setExtendDays(extendDays);setExtendReason(extendReason);}
+        else baseline.current=null;
+        setGrace(null);
+      }
+    } catch(cause){setGraceError(cause instanceof Error?cause.message:'No pudimos dar la gracia.');}
   }
   return (
             <Dialog
@@ -93,6 +110,9 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 }
               }}
             >
+          <PlatformFormState pending={busy} dirty={dirty}/>
+          <PendingFields pending={busy}>
+          {saveError?<p className="error form-error-summary" role="alert">{saveError}</p>:null}
           {subscriptionError ? (
             <div>
               <p className="error" role="alert">{subscriptionError}</p>
@@ -149,7 +169,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
             <form
               className="grid gap-3"
               aria-busy={busy}
-              onSubmit={saveSubscription}
+              onSubmit={event=>submit(event,saveSubscription)}
             >
               <p className="form-note">
                 Este control es un override manual y auditado de acceso. No
@@ -185,7 +205,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   </label>
                 </>
               ) : null}
-              <div className="inline-actions justify-end">
+              <SaveActions pending={busy} dirty={dirty} cancelLabel={false}>
                 <button
                   type="submit"
                   className="secondary"
@@ -197,13 +217,13 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 >
                   {busy ? "Guardando…" : "Guardar estado manual"}
                 </button>
-              </div>
+              </SaveActions>
             </form>
           )}
             <form
               className="grid gap-3"
               aria-busy={busy}
-              onSubmit={saveExtension}
+              onSubmit={event=>submit(event,saveExtension)}
             >
               <p className="form-note">
                 Pago manual con otro medio: suma días de acceso y lo deja
@@ -223,7 +243,7 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                   placeholder="Ej.: Transferencia bancaria"
                 />
               </label>
-              <div className="inline-actions justify-end">
+              <SaveActions pending={busy} dirty={dirty} cancelLabel={false}>
                 <button
                   type="submit"
                   className="secondary"
@@ -231,11 +251,12 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
                 >
                   {busy ? "Guardando…" : "Marcar pago manual"}
                 </button>
-              </div>
+              </SaveActions>
             </form>
           </details>
             </>
           )}
+          </PendingFields>
           {grace ? (
             <ConfirmDialog
               title={`Dar ${grace.label} de gracia`}
@@ -244,12 +265,15 @@ export function SubscriptionDialog({busy, subscriptionAgency, setSubscriptionAge
               busy={graceBusy}
               error={graceError}
               onCancel={() => { if (!graceBusy) setGrace(null); }}
-              onConfirm={() => void confirmGrace()}
+              onConfirm={() => void graceFlight.run(confirmGrace)}
             >
+              <PlatformFormState pending={graceBusy} dirty={graceReason!==GRACE_REASON}/>
+              <PendingFields pending={graceBusy}>
               <label className="grid gap-1.5 text-[11px] font-semibold text-mute">
                 Motivo
                 <InputControl value={graceReason} disabled={graceBusy} minLength={3} maxLength={120} onChange={(event) => setGraceReason(event.target.value)}/>
               </label>
+              </PendingFields>
             </ConfirmDialog>
           ) : null}
             </Dialog>
