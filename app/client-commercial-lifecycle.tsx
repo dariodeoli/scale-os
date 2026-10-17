@@ -1,4 +1,9 @@
 'use client';
+import {DataTable} from './ui/collection';
+import {EmptyBlock as EmptyState} from './ui-v2';
+import {FormField} from './ui/field';
+import {Notice as Aviso} from './ui/notice';
+
 import {OptionsSelect as Select} from './ui/options-select';
 import {InputControl as Input} from './ui/input-control';
 import {AmountInput as MoneyInput} from './ui/amount';
@@ -7,7 +12,7 @@ import {TextareaBase as Textarea} from './ui/input';
 // compartida (`DataTable`: tabla en escritorio, tarjetas en móvil) y enmienda
 // con campos por tipo. La lógica vive en ./client-commercial-lifecycle-data.
 import {OptionalMark} from './field-label';
-import {Button,DataTable,EmptyState,FormField,Aviso} from 'owncoding-ui';
+import {Button} from 'owncoding-ui';
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {listDateFull} from './list-format';
 import {todayAsuncion} from './client-format';

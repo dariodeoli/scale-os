@@ -1,4 +1,7 @@
 'use client';
+import {FieldLabel as Label} from './ui/field';
+import {SegmentedField} from './ui/navigation';
+
 import {OptionsSelect as Select} from './ui/options-select';
 // Primitivas únicas v2 (campaña #41, DESIGN-SYSTEM.md §Sistema v2).
 //
@@ -7,7 +10,7 @@ import {OptionsSelect as Select} from './ui/options-select';
 // estado (`StateChip` sobre `Badge`) y un solo bloque de carga (`LoadingBlock`
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
-import {Badge,BarraProgreso,EmptyState,ErrorState,Label,ListGridToggle,MenuDesplegable,SegmentedField,Skeleton,Stat} from 'owncoding-ui';
+import {Badge,BarraProgreso,EmptyState,ErrorState,ListGridToggle,MenuDesplegable,Skeleton,Stat} from 'owncoding-ui';
 import {TabScroller} from './tab-scroller';
 import {ConfirmDialog} from './dialog';
 import {X} from 'lucide-react';

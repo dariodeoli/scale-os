@@ -1,8 +1,10 @@
 "use client";
+import {Note as Nota} from './ui/notice';
+
 import {useEffect,useState} from 'react';
 import {api} from './operations';
 import {EmployeeTasks,type EmployeeTasksProps} from './employee-tasks';
-import {Button,Nota} from 'owncoding-ui';
+import {Button} from 'owncoding-ui';
 import {EmptyBlock,ErrorBlock,FilterToolbar,ListGrid,ListRow,LoadingBlock,type Column} from './ui-v2';
 import {SelectCustom} from './profile-controls';
 import {ActorIdentity} from './actor-identity';

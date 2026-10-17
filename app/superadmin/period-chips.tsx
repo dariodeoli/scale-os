@@ -1,8 +1,10 @@
 "use client";
+import {SegmentedField} from '../ui/navigation';
+
 // Chips de período compartidos (guía §3): Hoy · 7 d · 30 d · 90 d · Mes actual ·
 // Mes anterior. Un solo control para Resumen y Uso; el rango se muestra en días
 // de Asunción junto con el período anterior de igual duración.
-import {SegmentedField} from "owncoding-ui";
+
 import {dayLabel} from "./usage-charts";
 import {PLATFORM_PERIODS, periodRange, type PlatformPeriodId} from "./period";
 

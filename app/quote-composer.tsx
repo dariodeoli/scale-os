@@ -1,4 +1,7 @@
 "use client";
+import {FormField} from './ui/field';
+import {Notice as Aviso} from './ui/notice';
+
 import {OptionsSelect as Select} from './ui/options-select';
 import {InputControl as Input} from './ui/input-control';
 import {AmountInput as MoneyInput} from './ui/amount';
@@ -17,7 +20,7 @@ import {TextareaBase as Textarea} from './ui/input';
 import {OptionalMark} from './field-label';
 import {validCurrency} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
-import {Button,FormField,Switch,Aviso} from 'owncoding-ui';
+import {Button,Switch} from 'owncoding-ui';
 import {useSingleFlightSubmit} from './use-single-flight-submit';
 import {CurrencyField,MoneyText} from './ui-v2';
 import {SaveActions} from './save-actions';

@@ -1,8 +1,10 @@
 "use client";
+import {Notice as Aviso} from './ui/notice';
+
 // «Asignar plan» del lote de clientes (#184 C5): elige un plan de servicio y lo
 // asigna a cada cliente seleccionado (un PATCH por cliente; sin endpoint de lote).
 import {useEffect,useState} from 'react';
-import {Aviso} from 'owncoding-ui';
+
 import {api} from './operations';
 import {Dialog,FormActions} from './dialog';
 import {SelectCustom} from './profile-controls';

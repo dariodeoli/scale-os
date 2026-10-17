@@ -1,10 +1,12 @@
 "use client";
+import {Note as Nota} from '../ui/notice';
+
 // Accesos entre agencias del panel global.
 // Rediseño #80: panel del sistema con lista densa v2 y tarjetas cuando la
 // plantilla no entra; las acciones mutantes quedan detrás de `writable`.
 import {useMemo, useState} from "react";
 import {Eye, ShieldCheck, Trash2} from "lucide-react";
-import {Nota} from 'owncoding-ui';
+
 import {SearchField} from '../search-field';
 import {EmptyBlock, FilterToolbar, ListActions, ListGrid, ListRow, StateChip, denseTableMinWidth, useDenseTableFit, type Column} from "../ui-v2";
 import {formatPlatformMetric, type ConfirmRequest, type Person, type State} from "./model";

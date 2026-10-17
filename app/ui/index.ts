@@ -4,7 +4,9 @@
 export {InputBase, TextareaBase} from './input';
 export type {InputBaseProps, TextareaBaseProps, FieldStateProps} from './input';
 export {InputControl} from './input-control';
-export {Field} from './field';
+export {Field, FieldLabel, FormField} from './field';
+export {Notice, Note} from './notice';
+export {SegmentedField, Subtabs, TabScroller} from './navigation';
 export type {FieldProps, FieldControlProps} from './field';
 export {TextField} from '../text-field';
 export type {TextFieldProps} from '../text-field';

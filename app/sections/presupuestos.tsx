@@ -1,7 +1,10 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {SegmentedField} from '../ui/navigation';
+
 import {InputControl} from '../ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,SegmentedField} from 'owncoding-ui';
+
 import {SearchField} from '../search-field';
 import {fechaListaCorta} from 'owncoding-ui';
 import {hasDueWarning} from '../list-format';

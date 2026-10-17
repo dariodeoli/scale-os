@@ -1,4 +1,6 @@
 "use client";
+import {Notice as Aviso} from './ui/notice';
+
 import {PendingFields} from './ui/form-state';
 import {useDialogPending} from './dialog';
 import {InputControl} from './ui/input-control';
@@ -8,7 +10,7 @@ import {useState,useRef} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
-import {Aviso} from 'owncoding-ui';
+
 import {ProfilePhoto} from './profile-photo';
 import {FotoPerfil,type FotoPerfilTamano} from './foto-perfil';
 import {api} from './operations';

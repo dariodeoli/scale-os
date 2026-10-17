@@ -1,4 +1,9 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FieldLabel as Label} from './ui/field';
+
 import {InputControl as Input,InputControl} from './ui/input-control';
 /**
  * Estudio (dominio OPS) — contenido v2 (campaña #41, spec #44).
@@ -8,7 +13,7 @@ import {InputControl as Input,InputControl} from './ui/input-control';
  * mismas acciones, permisos y validaciones de solapamiento que antes.
  */
 import {useEffect,useMemo,useState} from 'react';
-import {Aviso,Button,Card,EmptyState,ErrorState,IconAction,Label,Nota,fechaLista} from 'owncoding-ui';
+import {Button,IconAction,fechaLista} from 'owncoding-ui';
 import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SelectCustom} from './profile-controls';

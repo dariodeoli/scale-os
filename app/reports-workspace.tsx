@@ -1,4 +1,11 @@
 'use client';
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {DataTable} from './ui/collection';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField} from './ui/field';
+import {SegmentedField} from './ui/navigation';
+
 import {InputControl as Input} from './ui/input-control';
 import {useEffect,useState,type ChangeEvent} from 'react';
 import {Plus} from 'lucide-react';
@@ -30,7 +37,7 @@ import {
   type ReportsData,
 } from './reports-data';
 import {useReportsWindow} from './use-reports';
-import {Aviso,BarraProgreso,Button,Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,Nota,SegmentedField,cn} from 'owncoding-ui';
+import {BarraProgreso,Button,FilaDato,cn} from 'owncoding-ui';
 import {notify} from './feedback';
 import {Kpi,KpiStrip,EmptyBlock,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,type Column} from './ui-v2';
 

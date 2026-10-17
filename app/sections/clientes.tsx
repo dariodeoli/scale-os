@@ -1,8 +1,10 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+
 import {InputControl} from '../ui/input-control';
 import {useEffect, useState, type Dispatch, type ReactNode, type SetStateAction} from 'react';
 import {CircleDollarSign, Eye, Plus, X} from 'lucide-react';
-import {Aviso, IconAction, fechaListaCorta} from 'owncoding-ui';
+import {IconAction,fechaListaCorta} from 'owncoding-ui';
 import {BATCH_LIMITS, roleCan, canSeeClientContact} from '../capabilities';
 import {PiiTexto, maskEmail} from '../list-format';
 import {clientState} from '../client-status';

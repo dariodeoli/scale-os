@@ -2,7 +2,7 @@ import React, {createRef} from 'react';
 import assert from 'node:assert/strict';
 import {act, create} from 'react-test-renderer';
 import {InputBase, TextareaBase} from '../app/ui/input';
-import {Field} from '../app/ui/field';
+import {Field,FormField} from '../app/ui/field';
 import {TextField} from '../app/text-field';
 import {EmailField} from '../app/email-field';
 import {PasswordField} from '../app/password-field';
@@ -110,3 +110,14 @@ assert.equal(changed, 'blocked');
 assert.equal(phone.root.findByType('input').props.disabled, true);
 assert.equal(phone.root.findByType(OptionsSelect).props.disabled, true);
 console.log('PASS: native field refs/events, accessible messages, semantic adapters, pending and API phone boundaries');
+
+// The compatibility field keeps existing descriptions and the actual native event.
+const legacy=create(<FormField label="Referencia" htmlFor="reference" error="Revisá el dato" data-scope="invoice"><InputBase aria-describedby="outside" onChange={value=>{nativeEvent=value;}}/></FormField>);
+const legacyInput=legacy.root.findByType('input');
+assert.equal(legacyInput.props.id,'reference');
+assert.equal(legacyInput.props['aria-describedby'],'outside reference-descripcion');
+assert.equal(legacyInput.props['aria-invalid'],true);
+assert.equal(legacy.root.findByType('label').props.htmlFor,'reference');
+assert.equal(legacy.root.findByProps({role:'alert'}).props.id,'reference-descripcion');
+assert.equal(legacy.root.findByProps({'data-scope':'invoice','data-ui-field':''}).props['data-scope'],'invoice');
+legacyInput.props.onChange(event);assert.equal(nativeEvent,event);

@@ -1,9 +1,12 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {SegmentedField} from '../ui/navigation';
+
 import type {ChangeEvent, Dispatch, SetStateAction} from 'react';
 import {FinanceCollections} from '../finance-collections';
 import {Plus} from 'lucide-react';
 import {EmptyBlock, ErrorBlock, FilterToolbar, ListPage, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
-import {Aviso,SegmentedField} from 'owncoding-ui';
+
 import {SearchField} from '../search-field';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';

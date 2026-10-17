@@ -1,7 +1,9 @@
 "use client";
+import {SegmentedField} from './ui/navigation';
+
 import {InputControl} from './ui/input-control';
 import {useEffect,useMemo,useState} from 'react';
-import {SegmentedField} from 'owncoding-ui';
+
 import {SearchField} from './search-field';
 import {Plus} from 'lucide-react';
 import {api} from './operations';

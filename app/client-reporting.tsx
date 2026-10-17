@@ -1,4 +1,8 @@
 'use client';
+import {EmptyBlock as EmptyState} from './ui-v2';
+import {FormField} from './ui/field';
+import {Note as Nota,Notice as Aviso} from './ui/notice';
+
 import {OptionsSelect as Select} from './ui/options-select';
 import {InputControl as Input} from './ui/input-control';
 import {AmountInput as MoneyInput} from './ui/amount';
@@ -6,7 +10,7 @@ import {AmountInput as MoneyInput} from './ui/amount';
 // comerciales con objetos de la librería, estados de carga/vacío/error y
 // campos por tipo. La lógica vive en ./client-reporting-data (hook + puros).
 import {OptionalMark} from './field-label';
-import {Button,EmptyState,FilaDato,FormField,Nota,Aviso} from 'owncoding-ui';
+import {Button,FilaDato} from 'owncoding-ui';
 import {CurrencyField,LoadingBlock,MoneyText} from './ui-v2';
 import {soloDigitos} from 'owncoding-ui';
 import {listDateFull} from './list-format';

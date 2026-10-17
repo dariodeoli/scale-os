@@ -1,4 +1,7 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {Subtabs} from '../ui/navigation';
+
 import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction} from 'react';
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {ActorAvatar, safePhoto} from '../actor-identity';
@@ -9,7 +12,7 @@ import {moneyKpi} from '../client-format';
 import {dueTone, listDateFull, listDateShort} from '../list-format';
 import {count, currentForecastMonth} from '../forecast-data';
 import {useForecast} from '../use-forecast';
-import {Aviso,FilaDato,Subtabs} from 'owncoding-ui';
+import {FilaDato} from 'owncoding-ui';
 import {SearchField} from '../search-field';
 import {EmptyBlock, ErrorBlock, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 import {FilterToolbar, ListPage} from '../ui-v2';

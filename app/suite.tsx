@@ -1,4 +1,6 @@
 "use client";
+import {Notice as Aviso} from './ui/notice';
+
 import {urgencyField} from './urgency';
 import {currencyChoices} from "./currencies";
 import {useCompanyCurrency} from './currency-provider';
@@ -18,7 +20,7 @@ import {api,Dialog,Editor,Field,COMPANY_LOGO_EVENT} from './operations';
 import {ProfilePhoto} from './profile-photo';
 import {ConfirmDialog} from './dialog';
 import {roleCan} from './capabilities';
-import {Aviso} from 'owncoding-ui';
+
 import {notify} from './feedback';
 import {todayAsuncion} from './client-format';
 import {PHONE_HELP} from './field-rules';

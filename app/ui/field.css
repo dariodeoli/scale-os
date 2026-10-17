@@ -1,0 +1,5 @@
+.ui-field{display:grid;gap:var(--ui-space-2);min-width:0}
+.ui-field-label{font-size:12px;font-weight:600;line-height:1.4;color:var(--text-subtle)}
+.ui-field-help,.ui-field-error{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.ui-field-help{color:var(--text-subtle)}
+.ui-field-error{color:var(--danger)}

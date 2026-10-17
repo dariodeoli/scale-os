@@ -1,10 +1,12 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+
 // Estados del panel global (#102, rediseño #155 fase 2): filas compactas —el
 // detalle vive en el texto muted o en el tooltip—, borde tokenizado para alto
 // contraste, acción de recuperación en el error y skeleton con la forma real
 // del panel mientras carga.
 import {CircleAlert, RefreshCw, TriangleAlert} from "lucide-react";
-import {Aviso, Skeleton} from 'owncoding-ui';
+import {Skeleton} from 'owncoding-ui';
 import {formatPlatformMetric, type BootstrapStatus, type CollectionPage, type State} from "./model";
 
 const ROW = "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl border border-ink-600 bg-ink-800 px-4 py-3";

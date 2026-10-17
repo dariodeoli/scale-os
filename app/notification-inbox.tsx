@@ -1,4 +1,6 @@
 'use client';
+import {SegmentedField} from './ui/navigation';
+
 // Bandeja oficial de avisos (owncoding-ui §16, Refs #83): el objeto
 // `CampanaAvisos` dibuja la campana, el contador, el panel, el vacío con acción
 // y cada aviso (contrato `{id, titulo, detalle, tono, fecha, href, leido}`); la
@@ -8,7 +10,7 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {Check,CheckCheck,CircleCheck,ExternalLink,RefreshCw,RotateCcw,Settings2} from 'lucide-react';
 import {useRouter} from 'next/navigation';
-import {CampanaAvisos,SegmentedField} from 'owncoding-ui';
+import {CampanaAvisos} from 'owncoding-ui';
 import {api} from './operations';
 import {Dialog} from './dialog';
 import {listDateFull} from './list-format';

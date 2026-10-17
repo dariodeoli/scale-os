@@ -1,4 +1,9 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FieldLabel as Label} from './ui/field';
+
 import {InputControl as Input,InputControl} from './ui/input-control';
 import {AmountInput as MoneyInput} from './ui/amount';
 import {TextareaBase} from './ui/input';
@@ -16,7 +21,7 @@ import {TextareaBase} from './ui/input';
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {Aviso,BarraProgreso,Button,Card,CeldaMoneda,EmptyState,ErrorState,FilaDato,IconAction,Label,MenuDesplegable,Nota,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
+import {BarraProgreso,Button,CeldaMoneda,FilaDato,IconAction,MenuDesplegable,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui';
 import {SearchField} from './search-field';
 import {ConfirmDialog} from './dialog';
 import {SaveActions} from './save-actions';

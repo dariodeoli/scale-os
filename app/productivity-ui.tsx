@@ -1,4 +1,7 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {Subtabs} from './ui/navigation';
+
 import {InputControl} from './ui/input-control';
 import {urgencyField,UrgencyBadge} from './urgency';
 import {roleCan,canSeeClientContact,BATCH_LIMITS} from './capabilities';
@@ -7,7 +10,7 @@ import {ArrowUpRight,CalendarRange,Copy,LayoutTemplate,Pencil,X} from 'lucide-re
 import {api,Editor,money,type Field} from './operations';
 import {Dialog} from './dialog';
 import {SelectCustom} from './profile-controls';
-import {Aviso, FilaDato, Nota, Subtabs, completeSave, fechaLista, fechaListaCorta} from 'owncoding-ui';
+import {FilaDato,completeSave,fechaLista,fechaListaCorta} from 'owncoding-ui';
 import {budgetState} from './budget-status';
 import {hasDueWarning,PiiTexto} from './list-format';
 import {hoursSummary,hoursText} from './hours-format';

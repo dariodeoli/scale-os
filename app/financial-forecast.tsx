@@ -1,4 +1,11 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {DataTable} from './ui/collection';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField,FieldLabel as Label} from './ui/field';
+import {SegmentedField} from './ui/navigation';
+
 import {InputControl as Input} from './ui/input-control';
 import {FormEvent,useEffect,useMemo,useState,type ReactNode} from 'react';
 import {formatWholeMoney,formatSignedMoney} from './amount-format';
@@ -28,7 +35,7 @@ import {
   type MoneyCurrency,
 } from './forecast-data';
 import {useForecast,usePlannedExpenses,useRealExpenses} from './use-forecast';
-import {Aviso,BarraProgreso,Button,Card,DataTable,EmptyState,ErrorState,FilaDato,FormField,IconAction,Label,Nota,SegmentedField,cn} from 'owncoding-ui';
+import {BarraProgreso,Button,FilaDato,IconAction,cn} from 'owncoding-ui';
 import {ConfirmDialog} from './dialog';
 import {useCompanyCurrency} from './currency-provider';
 import {CurrencyField,FilterToolbar,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,type Column} from './ui-v2';

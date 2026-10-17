@@ -1,4 +1,9 @@
 "use client";
+import {Notice as Aviso,Note as Nota} from './ui/notice';
+import {CardSurface as Card} from './ui/surface';
+import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';
+import {FormField} from './ui/field';
+
 import {InputControl as Input,InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {ActorIdentity} from './actor-identity';
@@ -20,7 +25,7 @@ import {listDateShort} from './list-format';
 import {movementValue,matchingMovements,reconciliationPending,transferPreview,type StatementLine} from './treasury-data';
 import {useReconciliation} from './use-reconciliation';
 import {todayAsuncion} from './client-format';
-import {Aviso,Button,Card,EmptyState,ErrorState,FormField,IconAction,Nota,cn,AvisoPrivacidad} from 'owncoding-ui';
+import {Button,IconAction,cn,AvisoPrivacidad} from 'owncoding-ui';
 import {LoadingBlock,MoneyText,StateChip} from './ui-v2';
 import {Copy,Eye,Link2,Link2Off,Undo2,Unlink} from 'lucide-react';
 import {PRIVACY_POLICY_URL,PRIVACY_RIGHTS_URL,PRIVACY_PORTAL_FINALITY} from './privacy-links';

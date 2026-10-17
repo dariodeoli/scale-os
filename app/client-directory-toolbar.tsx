@@ -1,4 +1,6 @@
 "use client";
+import {FieldLabel as Label} from './ui/field';
+
 import {OptionsSelect as Select} from './ui/options-select';
 // Rediseño v2 (campaña #41 / spec #43 §1.2) reconciliado con la adaptación de
 // DSN para la referencia de Clientes (#42): mismos props y objetos de la
@@ -9,7 +11,7 @@ import {OptionsSelect as Select} from './ui/options-select';
 // nunca un bloque propio—, los filtros en línea y la acción primaria al final.
 // En mobile se apila sólo lo que no entra, con targets de 44 px.
 import { Plus } from "lucide-react";
-import {Button,Label} from 'owncoding-ui';
+import {Button} from 'owncoding-ui';
 import {SearchField} from './search-field';
 import {ViewSwitch, type CollectionView} from './ui-v2';
 import {directorySummaryText} from './client-directory-data';

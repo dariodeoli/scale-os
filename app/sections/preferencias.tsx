@@ -1,5 +1,7 @@
 "use client";
-import {Aviso} from 'owncoding-ui';
+import {Notice as Aviso} from '../ui/notice';
+
+
 import {Settings,SlidersHorizontal} from 'lucide-react';
 import {startupChoices} from '../workspace-preferences';
 import type {StartupPreference,WorkspacePreferences} from '../workspace-preferences';

@@ -1,5 +1,7 @@
 "use client";
-import {Aviso} from 'owncoding-ui';
+import {Notice as Aviso} from './ui/notice';
+
+
 import {useEffect,useRef,useState} from 'react';
 import {Editor,api} from './operations';
 import {PersonPhotoField} from './person-photo';

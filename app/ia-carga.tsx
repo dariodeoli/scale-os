@@ -1,8 +1,11 @@
 "use client";
+import {Notice as Aviso} from './ui/notice';
+import {FormField} from './ui/field';
+
 import {InputControl as Input} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {Aviso,AvisoPrivacidad,Checkbox,FormField} from 'owncoding-ui';
+import {AvisoPrivacidad,Checkbox} from 'owncoding-ui';
 import {Plus} from 'lucide-react';
 import {Dialog,FormActions} from './dialog';
 import {AmountInput,SelectCustom} from './profile-controls';

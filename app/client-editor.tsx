@@ -1,10 +1,12 @@
 "use client";
+import {Notice as Aviso} from './ui/notice';
+
 // Editor único de clientes (#184 C1/C3): «Nuevo cliente», ⋯ «Editar cliente»,
 // «Editar» de la ficha y «Cargar plan» abren este mismo componente. Secciones
 // Identidad · Contacto · Fiscal · Plan y pago · Enlaces (plegables; en móvil,
 // pasos). Alta y edición comparten campos y validadores (client-editor-data).
 import {useEffect,useRef,useState} from 'react';
-import {Aviso,AvisoPrivacidad} from 'owncoding-ui';
+import {AvisoPrivacidad} from 'owncoding-ui';
 import {api,Dialog,Editor,ApiFieldError} from './operations';
 import {ClientMatches,useClientMatches,type ClientMatch} from './client-matches';
 import {roleCan} from './capabilities';

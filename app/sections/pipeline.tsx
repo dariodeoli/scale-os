@@ -1,4 +1,7 @@
 "use client";
+import {Notice as Aviso} from '../ui/notice';
+import {FieldLabel as Label} from '../ui/field';
+
 import {OptionsSelect as Select} from '../ui/options-select';
 import {InputControl as Input,InputControl} from '../ui/input-control';
 import {OptionalMark} from '../field-label';
@@ -6,7 +9,7 @@ import dynamic from 'next/dynamic';
 import {useEffect,useRef,useState} from 'react';
 import {DndContext,pointerWithin,rectIntersection,useDraggable,useDroppable,useSensor,useSensors,PointerSensor,KeyboardSensor,type CollisionDetection,type DragEndEvent} from '@dnd-kit/core';
 import {ArrowUpRight,GripVertical,Move,Phone,Plus,Settings2,Trash2,TrendingUp,ChevronLeft,ChevronRight,UserCheck} from 'lucide-react';
-import {Aviso,AvisoPrivacidad,Button,Label} from 'owncoding-ui';
+import {AvisoPrivacidad,Button} from 'owncoding-ui';
 import {SearchField} from '../search-field';
 import {api,Dialog,Editor,type Field} from '../operations';
 import {ARCHIVE_KIND_CAPABILITIES,BATCH_LIMITS,limitSelection,roleCan} from '../capabilities';
