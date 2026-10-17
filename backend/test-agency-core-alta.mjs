@@ -10,7 +10,7 @@ import {visibleRecord} from './record-lifecycle.js';
 import {suite} from './agency-suite.js';
 import {compressionPlan} from './response-compression.js';
 import {currencies} from './currencies.js';
-import {amount,date as validDate,email as normalizedEmail,fail,items as validItems,option,phone as normalizedPhone,text} from './suite-validation.js';
+import {amount,date as validDate,email as normalizedEmail,fail,items as validItems,option,phone as normalizedPhone,text,clientLegalProfile} from './suite-validation.js';
 import {clientColor,clientLogo} from './client-identity.js';
 import {assertUniqueClientRuc} from './ruc-lookup.js';
 
@@ -36,11 +36,11 @@ const helpers=between(server,'const send =','const cookie =')+between(server,'co
 const pg=new PGlite();
 try{
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
- for(const name of ['20260908_treasury_ledger.sql','20260908_google_oauth.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_productivity.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_client_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260919_pipeline_stages.sql','20260914_client_commercial_lifecycle.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
+ for(const name of ['20260908_treasury_ledger.sql','20260908_google_oauth.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_productivity.sql','20260910_profile_identity.sql','20260910_demo_sessions.sql','20260910_invite_links.sql','20260910_client_links.sql','20260910_currencies.sql','20260910_company_currency.sql','20260910_global_identity.sql','20260916_identity_photo_removal.sql','20260919_pipeline_stages.sql','20260914_client_commercial_lifecycle.sql','20261017_client_legal_profile.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
  const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
- const {post,session}=new Function('db','budgetSections','crypto','visibleRecord','ensurePersonalIdentity','demoOrganization','currencies','roleCan','amount','validDate','fail','validItems','option','text','normalizedEmail','normalizedPhone','clientLogo','clientColor','assertUniqueClientRuc','compressionPlan',`${helpers}
+ const {post,session}=new Function('db','budgetSections','crypto','visibleRecord','ensurePersonalIdentity','demoOrganization','currencies','roleCan','amount','validDate','fail','validItems','option','text','normalizedEmail','normalizedPhone','clientLogo','clientColor','assertUniqueClientRuc','compressionPlan','clientLegalProfile',`${helpers}
   return {session,post:async function(req,res){const url=new URL(req.url,'https://test.invalid');${routes}
-   throw new Error('Unexpected route in isolated POST test');}};`)(db,budgetSections,crypto,visibleRecord,ensurePersonalIdentity,()=>{throw new Error('Demo setup is outside this test');},currencies,roleCan,amount,validDate,fail,validItems,option,text,normalizedEmail,normalizedPhone,clientLogo,clientColor,assertUniqueClientRuc,compressionPlan);
+   throw new Error('Unexpected route in isolated POST test');}};`)(db,budgetSections,crypto,visibleRecord,ensurePersonalIdentity,()=>{throw new Error('Demo setup is outside this test');},currencies,roleCan,amount,validDate,fail,validItems,option,text,normalizedEmail,normalizedPhone,clientLogo,clientColor,assertUniqueClientRuc,compressionPlan,clientLegalProfile);
  const userId=(await query("insert into users(email,password_hash) values('alta-validacion@example.invalid','unused') returning id")).rows[0].id;
  const otherUserId=(await query("insert into users(email,password_hash) values('alta-otro@example.invalid','unused') returning id")).rows[0].id;
  const org=(await query("insert into organizations(slug,name) values('alta-validacion','Alta validación') returning id")).rows[0].id;
@@ -64,6 +64,17 @@ try{
   let result={status:0};
   await post(request(path,'GET',{},current),{writeHead(status){result.status=status;},end(value){Object.assign(result,JSON.parse(value));}});
   return result;
+ }
+ // #220: alta legal reutilizable, sin inferir documentos ni representantes.
+ await pg.exec(await fs.readFile(new URL('./migrations/20261017_client_legal_profile.sql',import.meta.url),'utf8'));
+ const profile={address:' Domicilio contractual de prueba ',city:'Ciudad de prueba',department:'Departamento de prueba',document_type:'passport',document_number:'DOC-TEST',legal_representative_name:'Representante de prueba',legal_representative_document:'REP-TEST',legal_representative_role:'Apoderado',party_type:'company'};
+ const legalCreated=await alta('/api/agency/clients',{name:'Cliente legal de prueba',...profile});
+ assert.equal(legalCreated.status,201,JSON.stringify(legalCreated));
+ for(const [key,value] of Object.entries(profile))assert.equal(legalCreated.client[key],value.trim(),`alta conserva ${key}`);
+ const emptyLegal=await alta('/api/agency/clients',{name:'Cliente sin ficha legal'});
+ assert.equal(emptyLegal.client.document_type,'');assert.equal(emptyLegal.client.party_type,'');
+ for(const invalid of [{document_type:'inventado'},{party_type:'individual'},{address:'x'.repeat(401)},{city:'x'.repeat(121)},{document_number:123}]){
+  assert.equal((await alta('/api/agency/clients',{name:'Alta inválida',...invalid})).status,400);
  }
  const clientPaths={name:'Cliente paridad',email:'paridad@example.invalid',phone:'+595 981123456',tax_id:'80012345-6',legal_name:'Razón social de prueba',notes:'Nota de alta'};
  const altaCliente=await alta('/api/agency/clients',clientPaths);

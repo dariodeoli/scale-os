@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import {currencies} from './currencies.js';
-import {amount,date as validDate,email as validEmail,fail,items as validItems,option,text} from './suite-validation.js';
+import {amount,date as validDate,email as validEmail,fail,items as validItems,option,text,clientLegalProfile} from './suite-validation.js';
 import {normalizeUrgency} from './urgency.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {mediaPeople,mediaPhoto} from './agency-media.js';
@@ -80,8 +80,9 @@ export function projectDirectorySql(){
 
 // Campos que expone la lista de clientes; `?fields=` proyecta sobre esta lista
 // (#67) para que el shell no traiga la ficha completa en cada página.
-const clientListFields=['id','name','email','phone','active','notes','legal_name','tax_id','logo_url','color_key','lifecycle_status','customer_kind','service_plan_id','relationship_started_on','reporting_version','social_links','ruc_legal_name','ruc_tax_state','ruc_source','ruc_refreshed_at','created_at','updated_at','has_recurring_price'];
+const clientListFields=['address','city','department','document_type','document_number','legal_representative_name','legal_representative_document','legal_representative_role','party_type','id','name','email','phone','active','notes','legal_name','tax_id','logo_url','color_key','lifecycle_status','customer_kind','service_plan_id','relationship_started_on','reporting_version','social_links','ruc_legal_name','ruc_tax_state','ruc_source','ruc_refreshed_at','created_at','updated_at','has_recurring_price'];
 const clientColumnSql={
+ address:'c.address',city:'c.city',department:'c.department',document_type:'c.document_type',document_number:'c.document_number',legal_representative_name:'c.legal_representative_name',legal_representative_document:'c.legal_representative_document',legal_representative_role:'c.legal_representative_role',party_type:'c.party_type',
  id:'c.id',name:'c.name',email:'c.email',phone:'c.phone',active:'c.active',notes:'c.notes',
  legal_name:'c.legal_name',tax_id:'c.tax_id',logo_url:'c.logo_url',color_key:'c.color_key',
  lifecycle_status:'c.lifecycle_status',customer_kind:'c.customer_kind',service_plan_id:'c.service_plan_id',
@@ -240,13 +241,13 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       // 160 y notas 2000 (antes el alta guardaba cualquier largo y la edición
       // después rechazaba el registro).
       const incoming=await body(req);
-      let name,contact,taxId,legalName,notes;
+      let name,contact,taxId,legalName,notes,legal;
       try{
         name=text(incoming.name??'',120);if(name.length<2)fail('Ingresá el nombre');
         contact={email:normalizedEmail(incoming.email),phone:normalizedPhone(incoming.phone)};
         taxId=text(incoming.tax_id??'',60);
         legalName=text(incoming.legal_name??'',160);
-        notes=text(incoming.notes??'');
+        notes=text(incoming.notes??'');legal=clientLegalProfile(incoming);
       }catch(error){return send(res,error.status||400,{error:error.message||'Cliente inválido'});}
       const logo=await clientLogo(incoming.logo_url),color=clientColor(incoming.color_key);
       const client=await db.connect();
@@ -255,6 +256,11 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
        await assertUniqueClientRuc(client,user.organization_id,taxId);
        await client.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket.remoteAddress||'']);
        const r=await client.query('insert into agency_clients(name,email,phone,notes,organization_id,logo_url,color_key,tax_id,legal_name) values($1,$2,$3,$4,$5,$6,$7,$8,$9) returning *',[name,contact.email,contact.phone,notes||null,user.organization_id,logo,color,taxId||null,legalName||null]);
+       if(Object.keys(legal).length){
+        const entries=Object.entries(legal);
+        const updated=await client.query(`update agency_clients set ${entries.map(([key],index)=>`${key}=$${index+1}`).join(',')} where id=$${entries.length+1} and organization_id=$${entries.length+2} returning *`,[...entries.map(([,value])=>value),r.rows[0].id,user.organization_id]);
+        r.rows[0]=updated.rows[0];
+       }
        // PDP (#112): la agencia declara la base legal al cargar datos de terceros.
        if(Object.hasOwn(incoming,'lawful_basis')){
         if(!CONSENT_BASES.includes(incoming.lawful_basis)){await client.query('rollback');return send(res,400,{error:'Base legal inválida'});}

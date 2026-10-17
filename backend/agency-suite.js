@@ -3,7 +3,7 @@ import {zoneTodaySql} from './business-time.js';
 import {patchUrgency} from './urgency.js';
 import {companyCurrency} from './forecast.js';
 import crypto from 'node:crypto';
-import {fail,text,id,optId,option,amount,date,email,phone,link,items,owned} from './suite-validation.js';
+import {fail,text,id,optId,option,amount,date,email,phone,link,items,owned,clientLegalProfile} from './suite-validation.js';
 import {budgetDocument,renderBudgetPdf} from './budget-document.js';
 import {ensureClientApproval} from './content-review.js';
 import {budgetSections} from './budget-sections.js';
@@ -157,6 +157,10 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
      if(state==='cancelled')await c.query("update agency_projects set status='cancelled',updated_at=now() where organization_id=$2 and client_id=$1 and status in ('active','paused')",[key,org]);
     }
     if(kind==='clients'){const name=text(b.name,120);if(name.length<2)fail('Ingresá el nombre');const taxId=text(b.tax_id||'',60);await c.query('select id from organizations where id=$1 for update',[org]);await assertUniqueClientRuc(c,org,taxId,key);const logo=b.logo_url===old.logo_url?old.logo_url:await clientLogo(b.logo_url),color=clientColor(b.color_key??'violet');result={record:(await c.query('update agency_clients set name=$1,email=$2,phone=$3,notes=$4,legal_name=$5,tax_id=$6,active=$7,logo_url=$8,color_key=$9,social_links=$11,updated_at=now() where id=$10 returning *',[name,email(b.email),Object.hasOwn(incoming,'phone')?phone(b.phone):(b.phone??null),text(b.notes||''),text(b.legal_name||'',160),taxId,b.active!==false,logo,color,key,JSON.stringify(clientLinks(b.social_links))])).rows[0]};}
+    if(kind==='clients'){
+     const entries=Object.entries(clientLegalProfile(incoming));
+     if(entries.length)result.record=(await c.query(`update agency_clients set ${entries.map(([field],index)=>`${field}=$${index+1}`).join(',')},updated_at=now() where id=$${entries.length+1} and organization_id=$${entries.length+2} returning *`,[...entries.map(([,value])=>value),key,org])).rows[0];
+    }
     if(kind==='projects'){const name=text(b.name,160),levels=Number(b.approval_levels);if(name.length<2||![1,2,3].includes(levels))fail('Proyecto inválido');const {links,primary}=patchDriveLinks(old,incoming);result={record:(await c.query('update agency_projects set name=$1,drive_url=$2,drive_links=$3,status=$4,start_date=$5,due_date=$6,approval_levels=$7,active=$9,updated_at=now() where id=$8 returning *',[name,primary,JSON.stringify(links||[]),option(b.status,['active','paused','completed','cancelled']),date(b.start_date),date(b.due_date),levels,key,b.active!==false])).rows[0]};}
     if(kind==='work-orders'){
      const state=option(b.status,['blocked','to_record','recorded','editing','review','approved','published']);let step=old.approval_step;

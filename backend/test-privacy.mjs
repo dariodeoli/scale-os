@@ -80,6 +80,8 @@ r=await privacy('/api/privacy/consents',{method:'POST',payload:{subject_kind:'cl
 assert.equal(r.status,201,'tras revocar se puede volver a otorgar');
 assert.equal((await query('select count(*)::int as n from personal_data_consents where organization_id=$1 and subject_kind=$2 and subject_id=$3',[orgA,'client',String(clientId)])).rows[0].n,2);
 
+await query("update agency_clients set address='Domicilio de prueba',document_type='ci',document_number='DOC-TEST',legal_representative_name='Representante de prueba',legal_representative_document='REP-TEST' where id=$1",[clientId]);
+
 // --- Solicitudes ARSOP + portabilidad ----------------------------------------
 r=await privacy('/api/privacy/requests',{method:'POST',payload:{subject_kind:'client',subject_id:String(clientId),request_type:'access',details:'Quiero una copia.'}});
 assert.equal(r.status,201);const accessRequest=r.request;
@@ -94,6 +96,7 @@ r=await privacy(`/api/privacy/requests/${accessRequest.id}`,{method:'PATCH',payl
 assert.equal(r.request.status,'in_review');
 r=await privacy(`/api/privacy/requests/${accessRequest.id}/export`);
 assert.equal(r.status,200);assert.equal(r.export.subject.kind,'client');assert.ok(r.export.sections.some(section=>section.id==='ficha'));
+assert.equal(r.export.sections.find(section=>section.id==='ficha').rows[0].document_number,'DOC-TEST');
 assert.equal((await query("select count(*)::int as n from personal_data_access_log where organization_id=$1 and action='export' and context='request'",[orgA])).rows[0].n,1,'el export queda en la bitácora');
 r=await privacy(`/api/privacy/requests/${accessRequest.id}/export?format=csv`);
 assert.equal(r.status,200);assert.match(String(r.body.slice(0,1)),/\uFEFF/, 'el CSV lleva BOM para Excel');
@@ -109,6 +112,8 @@ r=await privacy('/api/privacy/requests',{method:'POST',payload:{subject_kind:'cl
 const suppressClient=r.request;
 r=await privacy(`/api/privacy/requests/${suppressClient.id}`,{method:'PATCH',payload:{action:'resolve',resolution:'Se bloquean los datos de contacto; la factura se conserva.',resolution_action:'blocked'}});
 assert.equal(r.status,200);assert.equal(r.request.resolution_action,'blocked');assert.deepEqual(r.applied,{action:'blocked',details:{entity:'agency_clients',fiscal_records_kept:true}});
+const legalBlocked=(await query('select address,document_number,legal_representative_name,legal_representative_document from agency_clients where id=$1',[clientId])).rows[0];
+assert.deepEqual(legalBlocked,{address:'',document_number:'',legal_representative_name:'',legal_representative_document:''});
 const blocked=(await query('select name,email,phone,notes,personal_data_blocked_at from agency_clients where id=$1',[clientId])).rows[0];
 assert.equal(blocked.email,null);assert.equal(blocked.phone,null);assert.equal(blocked.notes,null);assert.ok(blocked.personal_data_blocked_at);assert.equal(blocked.name,'Cliente Uno','la razón social se conserva por la factura');
 assert.equal((await query("select count(*)::int as n from personal_data_consents where organization_id=$1 and subject_kind='client' and subject_id=$2 and revoked_at is null",[orgA,String(clientId)])).rows[0].n,0,'la supresión revoca los consentimientos vigentes');

@@ -26,6 +26,15 @@ export type DirectoryClientRecord = {
   id: string | number;
   name: string;
   legal_name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  department?: string | null;
+  document_type?: '' | 'ci' | 'ruc' | 'passport' | 'other' | null;
+  document_number?: string | null;
+  party_type?: '' | 'person' | 'company' | null;
+  legal_representative_name?: string | null;
+  legal_representative_document?: string | null;
+  legal_representative_role?: string | null;
   email: string | null;
   phone: string | null;
   tax_id?: string | null;
