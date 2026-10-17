@@ -1,5 +1,7 @@
 # QA integrada local: estado previo a correcciones visuales
 
+**Estado histórico:** los resultados del candidato final están en [FINAL.md](FINAL.md).
+
 17/10/2026. Chromium real contra Next production `127.0.0.1:3013`, **build `0afdbd08`**, API sintética local `4115`, PostgreSQL propio `55450`. Versión visible 1.0.191. No es una verificación de producción ni un deploy.
 
 ## Resultados acreditados

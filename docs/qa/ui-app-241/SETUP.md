@@ -1,6 +1,6 @@
 # Entorno aislado para QA de la app integrada #241
 
-Estado al 17/10/2026: backend aislado listo y recorrido de la app integrada ejecutado. Frontend production local del integrador, compilado desde `0afdbd08`, con API loopback. Hay correcciones visuales pendientes de un nuevo build y comprobación focal; esto no acredita un deploy.
+Estado al 17/10/2026: backend aislado listo y recorrido de la app integrada ejecutado. Frontend production local del integrador, compilado desde `50091b70` (v1.0.192), con API loopback. Ver comprobación final local en `FINAL.md`; esto no acredita un deploy.
 
 | Recurso propio | Valor |
 | --- | --- |
@@ -11,9 +11,9 @@ Estado al 17/10/2026: backend aislado listo y recorrido de la app integrada ejec
 | Datos persistentes | `/workspace/.qa-tools/ui-final241/database/data` |
 | Launcher / sesión del ejecutor | PID `263055`, sesión `91855` |
 | API Node / PostgreSQL | PID `263076` / PID `263069` |
-| Frontend del integrador | Next production `3013`, sesión root `53704`, fuente compilada `0afdbd08` |
+| Frontend del integrador | Next production `3013`, sesión root `87858`, fuente compilada `50091b70` |
 
-Los PID corresponden a este arranque; comprobar identidad antes de detener procesos. No tocar Next 3008, API 4109 ni PG 55449. El listener 3013 es propiedad del integrador: Next production iniciado a las 09:22 UTC, log `/tmp/scale241-next-final.log`. No detenerlo desde QA. Build y start usan `SCALE_API_ORIGIN=http://127.0.0.1:4115`; el integrador verificó los rewrites `/core-api`, `/p` y `/review` a loopback.
+Los PID corresponden a este arranque; comprobar identidad antes de detener procesos. No tocar Next 3008, API 4109 ni PG 55449. El listener 3013 es propiedad del integrador: Next production del build final, log `/tmp/scale192-next-final.log`. No detenerlo desde QA. Build y start usan `SCALE_API_ORIGIN=http://127.0.0.1:4115`; el integrador verificó los rewrites `/core-api`, `/p` y `/review` a loopback.
 
 ## Verificación ejecutada
 
@@ -58,6 +58,6 @@ El launcher apaga su API/proxy/PG y conserva los datos. No ejecutar comandos glo
 
 Ver [README.md](README.md): 96 escenarios de páginas y 36 comprobaciones del header sobre el build indicado. Los runners y JSON no contienen tokens. Las capturas permanecen en `/tmp/scale241-app-final`; no se fuerza su inclusión en git.
 
-El logout real se ejecutó únicamente contra el dueño local sintético. Por eso `ordinary-session` quedó invalidada: antes de repetir el runner de header se debe hacer login local con la identidad privada y sustituir ese archivo, sin crear demos nuevas ni imprimir credenciales. Las sesiones demo existentes permanecen disponibles.
+El logout inicial se ejecutó únicamente contra el dueño local sintético. Después se renovó esa sesión con login local200 y auth200, sin crear demos ni correo; el header final se ejecutó con `QA_LOGOUT=0`, conservando la sesión. Las sesiones demo existentes permanecen disponibles.
 
-El integrador está preparando fixes de Mora, Balance y contenido comercial. Esperar su señal de rebuild; repetir sólo las superficies afectadas. No inferir que los cambios del árbol fuente ya están servidos por Next. No enviar reportes, correo ni usar OAuth/proveedores.
+El integrador sirvió el rebuild que incluye Mora, Balance, contenido comercial y Button/InputBase globales; por ese alcance se repitió la matriz completa y focals. No inferir que futuros cambios del árbol fuente ya están servidos por Next. No enviar reportes, correo ni usar OAuth/proveedores.
