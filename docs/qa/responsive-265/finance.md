@@ -38,6 +38,18 @@ ausencia de overflow de documento y logos. Las capturas y métricas quedan en
 Es una verificación SSR de presentación en Chromium: no acredita guardados,
 OAuth, dispositivos físicos ni operaciones financieras en producción.
 
+## Validación focal final
+
+- Chromium: 42/42 escenarios PASS, incluyendo el mismo valor alto que fallaba.
+- Regresión de forecast: 5/5 entradas PASS (`--only forecast`).
+- Regresión financiera: 5/5 entradas PASS (`--only finance`).
+- `tests/fin-v2-contract.test.ts`: PASS; la hoja antigua de Previsión sigue retirada.
+- `release:check`, `footer:check`, sintaxis del harness y `git diff --check`: PASS.
+- La corrida completa inicial pasó 83 entradas y falló en la 84 por el contrato
+  que prohibía recrear la hoja CSS retirada. Se corrigió usando utilities, sin
+  cambiar ni relajar el test. La cadena completa y el build de la combinación
+  final corresponden al integrador, no se acreditan aquí como ejecutados.
+
 ## Estado de entrega
 
 Las pruebas finales y el seguimiento de integración/publicación se acreditan en
