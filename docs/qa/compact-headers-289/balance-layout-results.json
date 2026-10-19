@@ -1,0 +1,486 @@
+{
+  "scope": "Actual BalanceSection with PageTitle/PageChrome, real CSS, synthetic read-only transport; 192px sidebar host, no authenticated shell or production/hardware claims.",
+  "source": "1d9bd44d0e4daf5ce9daa88f9331de3be7becaaa",
+  "records": [
+    {
+      "width": 320,
+      "documentWidth": 320,
+      "titleCount": 1,
+      "header": {
+        "x": 16,
+        "y": 16,
+        "right": 304,
+        "bottom": 155.5,
+        "width": 288,
+        "height": 139.5
+      },
+      "title": {
+        "x": 16,
+        "y": 16,
+        "right": 96.53125,
+        "bottom": 43.5,
+        "width": 80.53125,
+        "height": 27.5
+      },
+      "tabs": {
+        "x": 16,
+        "y": 103.5,
+        "right": 304,
+        "bottom": 155.5,
+        "width": 288,
+        "height": 52
+      },
+      "toolbar": {
+        "x": 16,
+        "y": 167.5,
+        "right": 304,
+        "bottom": 269.5,
+        "width": 288,
+        "height": 102
+      },
+      "picker": {
+        "x": 16,
+        "y": 167.5,
+        "right": 304,
+        "bottom": 217.5,
+        "width": 288,
+        "height": 50
+      },
+      "content": {
+        "x": 16,
+        "y": 281.5,
+        "right": 304,
+        "bottom": 1047.53125,
+        "width": 288,
+        "height": 766.03125
+      },
+      "monthButtons": [
+        {
+          "label": "Mes anterior",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": null,
+          "height": 44,
+          "width": 138
+        },
+        {
+          "label": "Mes siguiente",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": "Elegir mes",
+          "height": 44,
+          "width": 44
+        }
+      ],
+      "visibleClientRows": 2,
+      "totals": "Contratado · USDUSD 8.000,00Recibido en mes · USDUSD 150,00",
+      "smallTargets": [],
+      "monthChanged": true,
+      "inactiveReviewPreservedTotals": true
+    },
+    {
+      "width": 390,
+      "documentWidth": 390,
+      "titleCount": 1,
+      "header": {
+        "x": 16,
+        "y": 16,
+        "right": 374,
+        "bottom": 155.5,
+        "width": 358,
+        "height": 139.5
+      },
+      "title": {
+        "x": 16,
+        "y": 16,
+        "right": 96.53125,
+        "bottom": 43.5,
+        "width": 80.53125,
+        "height": 27.5
+      },
+      "tabs": {
+        "x": 16,
+        "y": 103.5,
+        "right": 374,
+        "bottom": 155.5,
+        "width": 358,
+        "height": 52
+      },
+      "toolbar": {
+        "x": 16,
+        "y": 167.5,
+        "right": 374,
+        "bottom": 269.5,
+        "width": 358,
+        "height": 102
+      },
+      "picker": {
+        "x": 16,
+        "y": 167.5,
+        "right": 358,
+        "bottom": 217.5,
+        "width": 342,
+        "height": 50
+      },
+      "content": {
+        "x": 16,
+        "y": 281.5,
+        "right": 374,
+        "bottom": 978.6875,
+        "width": 358,
+        "height": 697.1875
+      },
+      "monthButtons": [
+        {
+          "label": "Mes anterior",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": null,
+          "height": 44,
+          "width": 192
+        },
+        {
+          "label": "Mes siguiente",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": "Elegir mes",
+          "height": 44,
+          "width": 44
+        }
+      ],
+      "visibleClientRows": 2,
+      "totals": "Contratado · USDUSD 8.000,00Recibido en mes · USDUSD 150,00",
+      "smallTargets": [],
+      "monthChanged": true,
+      "inactiveReviewPreservedTotals": true
+    },
+    {
+      "width": 768,
+      "documentWidth": 768,
+      "titleCount": 1,
+      "header": {
+        "x": 216,
+        "y": 16,
+        "right": 744,
+        "bottom": 141.5,
+        "width": 528,
+        "height": 125.5
+      },
+      "title": {
+        "x": 216,
+        "y": 16,
+        "right": 296.53125,
+        "bottom": 43.5,
+        "width": 80.53125,
+        "height": 27.5
+      },
+      "tabs": {
+        "x": 216,
+        "y": 99.5,
+        "right": 744,
+        "bottom": 141.5,
+        "width": 528,
+        "height": 42
+      },
+      "toolbar": {
+        "x": 216,
+        "y": 153.5,
+        "right": 744,
+        "bottom": 203.5,
+        "width": 528,
+        "height": 50
+      },
+      "picker": {
+        "x": 216,
+        "y": 153.5,
+        "right": 558,
+        "bottom": 203.5,
+        "width": 342,
+        "height": 50
+      },
+      "content": {
+        "x": 216,
+        "y": 215.5,
+        "right": 744,
+        "bottom": 808.75,
+        "width": 528,
+        "height": 593.25
+      },
+      "monthButtons": [
+        {
+          "label": "Mes anterior",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": null,
+          "height": 44,
+          "width": 192
+        },
+        {
+          "label": "Mes siguiente",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": "Elegir mes",
+          "height": 44,
+          "width": 44
+        }
+      ],
+      "visibleClientRows": 2,
+      "totals": "Contratado · USDUSD 8.000,00Recibido en mes · USDUSD 150,00",
+      "smallTargets": [],
+      "monthChanged": true,
+      "inactiveReviewPreservedTotals": true
+    },
+    {
+      "width": 1024,
+      "documentWidth": 1024,
+      "titleCount": 1,
+      "header": {
+        "x": 216,
+        "y": 16,
+        "right": 1000,
+        "bottom": 106,
+        "width": 784,
+        "height": 90
+      },
+      "title": {
+        "x": 216,
+        "y": 22.25,
+        "right": 296.53125,
+        "bottom": 49.75,
+        "width": 80.53125,
+        "height": 27.5
+      },
+      "tabs": {
+        "x": 216,
+        "y": 64,
+        "right": 1000,
+        "bottom": 106,
+        "width": 784,
+        "height": 42
+      },
+      "toolbar": {
+        "x": 216,
+        "y": 118,
+        "right": 1000,
+        "bottom": 168,
+        "width": 784,
+        "height": 50
+      },
+      "picker": {
+        "x": 216,
+        "y": 118,
+        "right": 558,
+        "bottom": 168,
+        "width": 342,
+        "height": 50
+      },
+      "content": {
+        "x": 216,
+        "y": 180,
+        "right": 1000,
+        "bottom": 516.828125,
+        "width": 784,
+        "height": 336.828125
+      },
+      "monthButtons": [
+        {
+          "label": "Mes anterior",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": null,
+          "height": 44,
+          "width": 192
+        },
+        {
+          "label": "Mes siguiente",
+          "height": 44,
+          "width": 44
+        },
+        {
+          "label": "Elegir mes",
+          "height": 44,
+          "width": 44
+        }
+      ],
+      "visibleClientRows": 2,
+      "totals": "Contratado · USDUSD 8.000,00Recibido en mes · USDUSD 150,00",
+      "smallTargets": [],
+      "monthChanged": true,
+      "inactiveReviewPreservedTotals": true
+    },
+    {
+      "width": 1440,
+      "documentWidth": 1440,
+      "titleCount": 1,
+      "header": {
+        "x": 224,
+        "y": 16,
+        "right": 1408,
+        "bottom": 58,
+        "width": 1184,
+        "height": 42
+      },
+      "title": {
+        "x": 224,
+        "y": 23.25,
+        "right": 304.53125,
+        "bottom": 50.75,
+        "width": 80.53125,
+        "height": 27.5
+      },
+      "tabs": {
+        "x": 316.53125,
+        "y": 16,
+        "right": 1137.8125,
+        "bottom": 58,
+        "width": 821.28125,
+        "height": 42
+      },
+      "toolbar": {
+        "x": 224,
+        "y": 70,
+        "right": 1408,
+        "bottom": 112,
+        "width": 1184,
+        "height": 42
+      },
+      "picker": {
+        "x": 224,
+        "y": 70,
+        "right": 550,
+        "bottom": 112,
+        "width": 326,
+        "height": 42
+      },
+      "content": {
+        "x": 224,
+        "y": 124,
+        "right": 1408,
+        "bottom": 415.625,
+        "width": 1184,
+        "height": 291.625
+      },
+      "monthButtons": [
+        {
+          "label": "Mes anterior",
+          "height": 40,
+          "width": 40
+        },
+        {
+          "label": null,
+          "height": 40,
+          "width": 192
+        },
+        {
+          "label": "Mes siguiente",
+          "height": 40,
+          "width": 40
+        },
+        {
+          "label": "Elegir mes",
+          "height": 36,
+          "width": 36
+        }
+      ],
+      "visibleClientRows": 2,
+      "totals": "Contratado · USDUSD 8.000,00Recibido en mes · USDUSD 150,00",
+      "monthChanged": true,
+      "inactiveReviewPreservedTotals": true
+    },
+    {
+      "width": 1920,
+      "documentWidth": 1920,
+      "titleCount": 1,
+      "header": {
+        "x": 224,
+        "y": 16,
+        "right": 1888,
+        "bottom": 58,
+        "width": 1664,
+        "height": 42
+      },
+      "title": {
+        "x": 224,
+        "y": 23.25,
+        "right": 304.53125,
+        "bottom": 50.75,
+        "width": 80.53125,
+        "height": 27.5
+      },
+      "tabs": {
+        "x": 316.53125,
+        "y": 16,
+        "right": 1617.8125,
+        "bottom": 58,
+        "width": 1301.28125,
+        "height": 42
+      },
+      "toolbar": {
+        "x": 224,
+        "y": 70,
+        "right": 1888,
+        "bottom": 112,
+        "width": 1664,
+        "height": 42
+      },
+      "picker": {
+        "x": 224,
+        "y": 70,
+        "right": 550,
+        "bottom": 112,
+        "width": 326,
+        "height": 42
+      },
+      "content": {
+        "x": 224,
+        "y": 124,
+        "right": 1888,
+        "bottom": 415.625,
+        "width": 1664,
+        "height": 291.625
+      },
+      "monthButtons": [
+        {
+          "label": "Mes anterior",
+          "height": 40,
+          "width": 40
+        },
+        {
+          "label": null,
+          "height": 40,
+          "width": 192
+        },
+        {
+          "label": "Mes siguiente",
+          "height": 40,
+          "width": 40
+        },
+        {
+          "label": "Elegir mes",
+          "height": 36,
+          "width": 36
+        }
+      ],
+      "visibleClientRows": 2,
+      "totals": "Contratado · USDUSD 8.000,00Recibido en mes · USDUSD 150,00",
+      "monthChanged": true,
+      "inactiveReviewPreservedTotals": true
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

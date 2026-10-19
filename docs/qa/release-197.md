@@ -28,8 +28,16 @@ coherente con Previsión, cobros/deudas intactos, permisos conservados.
 
 ## Validación integral y publicación
 
+Revisión independiente: 605 acciones canónicas, 55 widgets nativos exactos, un
+renderer y cero pendientes. Matriz de Balance real con transporte sintético:
+6/6 anchos PASS, incluyendo tablet con puntero táctil; cobros/deudas preservados
+y cambios de mes comprobados. [Resultados](compact-headers-289/balance-layout-results.json)
+y capturas de fixtures [móvil](compact-headers-289/balance-fixture-320.png) /
+[escritorio](compact-headers-289/balance-fixture-1440.png). Los 19 grupos generales
+de navegador también aprobaron.
+
 Pendientes al preparar este documento: regresión frontend completa, build con
-artefacto, backend completo, navegador general, revisión de acciones, CI y deploy.
+artefacto, backend completo, CI y deploy.
 Los resultados finales deben registrarse con sus SHA y respuestas servidas.
 
 ## Reversión y límites
