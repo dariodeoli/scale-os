@@ -42,7 +42,11 @@ privadas de GitHub. Los hallazgos residuales mantienen abierto #277.
 
 ## Validación focal
 
+- Raíz `npm ci --no-audit` propio: PASS,234 paquetes, exit0. Descarga
+  inicial de SWCmusl15.5.27 demoró7min; no se omitieron dependencias ni scripts.
 - Backend `npm ci --no-audit` propio: PASS, lock congelado.
+- Binario sharp de raíz:0.35.5, vips8.18.7, rsvg2.63.2; transformación de
+  imagen sintética a WebP PASS.
 - `cd backend && node test-media.mjs`: PASS; decodificación/resize, limpieza,
   límites, rechazo de documentos/SVG/oversize.
 - `cd backend && node test-agency-media.mjs`: PASS; imágenes internas/ETag304,
