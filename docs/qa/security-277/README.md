@@ -17,6 +17,9 @@ sin instalar sobre dependencias compartidas. Ambos conservan OwnCoding
 
 - Antes: raíz19 hallazgos agregados (14 high,5 moderate); backend1 high.
 - Después de estos tres parches: raíz11 (5 high,6 moderate); backend0.
+- Raíz con `npm audit --omit=dev --json`:4 moderate,0 high (cadena
+  gray-matter/js-yaml/argparse/sprintf-js). Omitir dev aquí sirve para distinguir
+  alcance; el informe completo y los riesgos del toolchain siguen registrados.
 - Los conteos incluyen consumidores indirectos del mismo aviso; no son19 ni11
   vulnerabilidades independientes. La clasificación agregada cambia al resolver
   las ramas más graves; por eso puede subir el contador moderate al bajar high.
