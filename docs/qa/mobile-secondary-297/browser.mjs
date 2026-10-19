@@ -49,6 +49,7 @@ const snapshot=()=>page.evaluate(()=>{
 async function flush(){report.finishedAt=new Date().toISOString();report.coverage.actual=report.records.length;report.passed=report.records.length===report.coverage.expected&&report.records.every(r=>r.passed)&&!report.errors.length&&!report.httpErrors.length;await writeFile(out+'/results.json',JSON.stringify(report,null,2)+'\n');}
 try{
  const who=await page.goto(base+'/core-api/api/auth/me',{waitUntil:'domcontentloaded'});assert.equal(who.status(),200,'Fixture session must be valid before audit');
+ if(production){const manifest=await page.evaluate(async id=>{const r=await fetch('/_next/static/'+encodeURIComponent(id)+'/_buildManifest.js',{cache:'no-store'});return{status:r.status,isBuildManifest:(await r.text()).includes('__BUILD_MANIFEST')};},process.env.QA_BUILD_ID);assert.equal(manifest.status,200,'Compiled build manifest must match QA_BUILD_ID');assert(manifest.isBuildManifest,'Expected actual Next build manifest');report.buildManifest=manifest;}
  const identity=JSON.parse(await page.$eval('body',e=>e.innerText));assert(identity.user?.id&&identity.user?.organization_id,'Isolated fixture identity required');report.identity={role:identity.user.role,isDemo:Boolean(identity.user.demo_owner_user_id)};
  for(const [endpoint,key] of [['clients','clients'],['collaborators','collaborators']]){
   const fixture=await page.evaluate(async endpoint=>{const r=await fetch('/core-api/api/agency/'+endpoint);return{status:r.status,data:await r.json()};},endpoint);
