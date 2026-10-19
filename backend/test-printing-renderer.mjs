@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {PRINT_TEMPLATE_80,PRINT_KINDS,normalizePrintTemplate,normalizePrintDocument,renderPrintDocument,renderPrintPreview,printMmToPx,printCode39Bits} from './printing-renderer.js';
+const template=normalizePrintTemplate();
+assert.equal(template.widthMm,80);
+assert(Math.abs(printMmToPx(80)-302.3622047244)<0.00001);
+for(const bad of [{widthMm:58},{heightMm:50},{orientation:'landscape'},{version:2},{marginsMm:{left:-1}},{marginsMm:{right:NaN}},{fontSize:15},{fontSize:8.5},{autoCut:1},{url:'https://other.test'}]) assert.throws(()=>normalizePrintTemplate(bad));
+assert(Object.isFrozen(template));assert(Object.isFrozen(template.marginsMm));
+assert.equal(PRINT_TEMPLATE_80.autoCut,false);
+for(const kind of PRINT_KINDS){
+ const document=normalizePrintDocument(kind,{reference:'PRUEBA-1',companyName:'Scale & <script>alert(1)</script>',customerName:'Muñoz Álvarez',lines:[{label:'Servicio',value:'PYG 1.000'}],...(kind==='inventory-label'?{inventoryCode:'SC-000001'}:{})});
+ const rendered=renderPrintDocument({template,document});
+ assert.equal(renderPrintPreview({template,document}),rendered.html);
+ const bytes=Buffer.from(rendered.payloadBase64,'base64');
+ assert.equal(bytes.length,rendered.payloadBytes);
+ assert.deepEqual([...bytes.slice(0,2)],[27,64]);
+ assert(bytes.includes(Buffer.from('Munoz Alvarez')));
+ assert(!rendered.html.includes('<script>'));
+ assert(rendered.html.includes('&lt;script&gt;'));
+ assert(rendered.html.includes('Documento no fiscal - No valido como factura'));
+ assert(!JSON.stringify(rendered.snapshot).includes('Munoz'));
+ for(const copies of [1,2,5]) assert.deepEqual(Buffer.from(renderPrintDocument({template,document,copies}).payloadBase64,'base64'),Buffer.concat(Array(copies).fill(bytes)));
+ for(const copies of [0,6,1.1,'2']) assert.throws(()=>renderPrintDocument({template,document,copies}));
+ assert(!bytes.includes(Buffer.from([29,86,66,0])));
+ const cut=Buffer.from(renderPrintDocument({template:{autoCut:true},document}).payloadBase64,'base64');
+ assert.deepEqual([...cut.slice(-7)],[10,10,10,29,86,66,0]);
+}
+for(const bad of [{reference:''},{reference:'x\x1b@'},{reference:'x',notes:'\nunsafe'},{reference:'x',companyName:'\x00'},{reference:'x',issuedAt:'2026-02-30'},{reference:'x',issuedAt:'today'},{reference:'x',lines:Array(31).fill({label:'a'})},{reference:'x',lines:[{label:'a',value:5}]},{reference:'x',qr:'https://scaleparaguay.com'},{reference:'x',confirmationSuffix:'unsafe token'}]) assert.throws(()=>normalizePrintDocument('test',bad));
+assert.throws(()=>normalizePrintDocument('unknown',{reference:'x'}));
+assert.throws(()=>normalizePrintDocument('receipt',{reference:'x',inventoryCode:'SC-000001'}));
+assert.throws(()=>normalizePrintDocument('inventory-label',{reference:'x'}));
+const document=normalizePrintDocument('receipt',{reference:'REC-1',confirmationSuffix:'AB12-CD34',notes:'éñüß😀',issuedAt:'2026-10-19'});
+const render=renderPrintDocument({template,document});
+assert(render.html.includes('AB12-CD34'));
+assert(!JSON.stringify(render.snapshot).includes('AB12-CD34'));
+assert(Buffer.from(render.payloadBase64,'base64').includes(Buffer.from('enu??')));
+// Existing inventory barcode is preserved: no generated identifiers or QR routes.
+const original=readFileSync(new URL('../app/inventory-label.tsx',import.meta.url),'utf8');
+const constants=original.slice(original.indexOf('const code39Characters'),original.indexOf('export function inventoryCode'));
+const fn=original.slice(original.indexOf('export function code39Bits'),original.indexOf('function escapeHtml')).replace('export ','').replace('value:string','value').replace('character:string','character');
+const old=vm.runInNewContext(`${constants}\n${fn};code39Bits`);
+for(const code of ['SC-000001','SC-999999','ABC-123','0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%'.slice(0,24)]) assert.equal(printCode39Bits(code),old(code));
+assert.throws(()=>printCode39Bits('SC-000001*'));
+assert.throws(()=>renderPrintDocument({template,document:normalizePrintDocument('inventory-label',{reference:'x',inventoryCode:'ABCDEFGHIJKLMNOPQRSTUVWX'})}));
+const raster=renderPrintDocument({template,document:normalizePrintDocument('inventory-label',{reference:'x',inventoryCode:'SC-000001'})});
+const rasterBytes=Buffer.from(raster.payloadBase64,'base64');
+assert(rasterBytes.indexOf(Buffer.from([29,118,48,0]))>0);
+assert(raster.html.includes('<svg'));
+// Long names wrap at the same printable cell boundaries in both renderers.
+const wrapped=renderPrintDocument({template,document:normalizePrintDocument('test',{reference:'x',notes:'A'.repeat(120)})});
+const columns=Number(wrapped.html.match(/data-columns="(\d+)"/)[1]);
+assert.equal(columns,47);
+assert(wrapped.html.includes('A'.repeat(columns)));
+const wide=renderPrintDocument({template:{fontSize:14},document:normalizePrintDocument('test',{reference:'x'})});
+assert(wide.html.includes('data-columns="23"'));
+console.log('printing-renderer: PASS (80 mm bounds, escaping, control rejection, ASCII policy, identical composition, copies, cut, Code39 parity/raster)');
