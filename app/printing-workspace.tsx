@@ -2,7 +2,7 @@
 
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {request} from './workspace-request';
-import {PRINT_TEMPLATE_80,normalizePrintDocument,renderPrintPreview,type PrintKind,type PrintTemplateInput,type PrintTemplate} from '../backend/printing-renderer.js';
+import {PRINT_TEMPLATE_80,printMmToPx,normalizePrintDocument,renderPrintPreview,type PrintKind,type PrintTemplateInput,type PrintTemplate} from '../backend/printing-renderer.js';
 import {Editor,Dialog,type Field,type EditorHandle} from './operations';
 import {Button} from './ui/button';
 import {ConfirmDialog} from './dialog';
@@ -25,6 +25,11 @@ const stateTone=(state:string)=>state==='confirmado'?'ok':state==='fallido'?'bad
 const stateLabel=(state:string)=>({pendiente:'Pendiente',aceptado:'Aceptado · falta papel',confirmado:'Papel confirmado',incierto:'Incierto · sin reintento',fallido:'Fallido',cancelado:'Cancelado'}[state]||state);
 const failure=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la operación.';
 export function bridgeOnline(bridge:Bridge,now=Date.now()){const last=Date.parse(bridge.last_seen_at||'');return !bridge.revoked_at&&Number.isFinite(last)&&now-last>=0&&now-last<45000;}
+function ThermalPreview({html}:{html:string}){
+ const frame=useRef<HTMLIFrameElement>(null),[scale,setScale]=useState(1);
+ useEffect(()=>{const node=frame.current;if(!node||typeof ResizeObserver==='undefined')return;const update=()=>setScale(Math.min(1,Math.max(.1,(node.clientWidth-.5)/printMmToPx(80))));const observer=new ResizeObserver(update);observer.observe(node);update();return()=>observer.disconnect();},[]);
+ return <iframe ref={frame} title="Vista previa térmica de 80 mm" sandbox="" srcDoc={html.replace('</head>',`<style>@media screen{html{zoom:${scale}}}</style></head>`)}/>;
+}
 export function PrintingWorkspace({demo=false,scopeKey='current'}:{demo?:boolean;scopeKey?:string}){
  return <PrintingScope key={`${scopeKey}:${demo}`} demo={demo}/>;
 }
@@ -67,7 +72,7 @@ function PrintingScope({demo}:{demo:boolean}){
  let preview='';
  if(form?.type==='template'||form?.type==='job'){
   const values=previewDraft||defaults();
-  try{const definition:PrintTemplateInput=form.type==='template'?{...defaultDefinition,marginsMm:{top:Number(values.top),right:Number(values.right),bottom:Number(values.bottom),left:Number(values.left)},fontSize:Number(values.fontSize) as 10|14,autoCut:values.auto_cut==='true'}:(form.job?.template_snapshot||data?.templates.find(t=>t.id===values.template_id)?.definition||defaultDefinition);const kind=(form.type==='template'?values.kind:data?.templates.find(t=>t.id===values.template_id)?.kind)||'test';preview=renderPrintPreview({template:definition,document:normalizePrintDocument(kind as PrintKind,{reference:values.reference||'VISTA PREVIA',title:values.title||'PRUEBA SIN VALOR',companyName:values.companyName||'',customerName:values.customerName||'',notes:values.notes||'',inventoryCode:values.inventoryCode||'',companyRuc:values.companyRuc||'',issuedAt:values.issuedAt||'',total:values.total||'',lines:values.lines?values.lines.split(/\r?\n/).filter(Boolean).map(label=>({label})):[]})});}catch{preview='';}
+  try{const definition:PrintTemplateInput=form.type==='template'?{...defaultDefinition,marginsMm:{top:Number(values.top),right:Number(values.right),bottom:Number(values.bottom),left:Number(values.left)},fontSize:Number(values.fontSize) as 10|14,autoCut:values.auto_cut==='true'}:(form.job?.template_snapshot||data?.templates.find(t=>t.id===values.template_id)?.definition||defaultDefinition);const kind=(form.type==='template'?values.kind:form.job?.kind||data?.templates.find(t=>t.id===values.template_id)?.kind)||'test';preview=renderPrintPreview({template:definition,document:normalizePrintDocument(kind as PrintKind,{reference:values.reference||'VISTA PREVIA',confirmationSuffix:'XXXXXXXX',title:values.title||'PRUEBA SIN VALOR',companyName:values.companyName||'',customerName:values.customerName||'',notes:values.notes||'',inventoryCode:values.inventoryCode||'',companyRuc:values.companyRuc||'',issuedAt:values.issuedAt||'',total:values.total||'',lines:values.lines?values.lines.split(/\r?\n/).filter(Boolean).map(label=>({label})):[]})});}catch{preview='';}
  }
  return <div className="printing-workspace" aria-busy={busy}>
   <div className="printing-toolbar">{demo&&<p role="status" className="form-note">Demo: vista previa; no se conecta a una impresora real. Los ajustes de esta vista no se guardan.</p>}<p className="form-note">Térmica de 80 mm · configuración por empresa · prueba física pendiente.</p><Button variant="secondary" disabled={busy} onClick={()=>void refresh()}>Actualizar</Button></div>
@@ -90,7 +95,7 @@ function PrintingScope({demo}:{demo:boolean}){
    {form.type==='job'&&<p className="form-note">{form.job?'Revisá y volvé a completar el contenido. Se generará una nueva copia, aunque el trabajo anterior haya salido en papel.':'Revisá los datos y el destino antes de enviar a la cola.'} Documento no fiscal · No válido como factura.</p>}
    {form.type==='template'&&<Button type="button" variant="secondary" disabled={busy} onClick={()=>editorRef.current?.patchValues({top:'2',right:'4',bottom:'2',left:'4',fontSize:'10',auto_cut:'false'})}>Restaurar diseño de fábrica</Button>}
    <Editor formHandle={editorRef} fields={fields()} defaults={defaults()} save={save} onValuesChange={setPreviewDraft} closeOnSave label={demo?'Cerrar vista previa':form.type==='job'?(form.job?'Confirmar y reimprimir igual':'Confirmar y encolar'):form.type==='bridge'?'Generar código de un solo uso':form.type==='confirm'?'Verificar código del papel':'Guardar'}/>
-   {(form.type==='template'||form.type==='job')&&<div className="printing-preview"><p className="form-note">Vista previa · 80 mm · misma composición que el agente. Aún requiere prueba física.</p>{preview?<iframe title="Vista previa térmica de 80 mm" sandbox="" srcDoc={preview.replace('</head>','<style>@media screen and (max-width:303px){html{zoom:.85}}</style></head>')}/>:<p role="status">Completá los datos válidos para ver la plantilla.</p>}</div>}
+   {(form.type==='template'||form.type==='job')&&<div className="printing-preview"><p className="form-note">Vista previa · 80 mm · misma composición que el agente. El código XXXXXXXX se genera al encolar; requiere prueba física.</p>{preview?<ThermalPreview html={preview}/>:<p role="status">Completá los datos válidos para ver la plantilla.</p>}</div>}
   </Dialog>}
   {pairing&&<Dialog title="Código de emparejamiento" close={()=>setPairing(null)}><p>Instalá el agente desde el repositorio: <code>bash print-agent/install.sh --from-repo</code>. Luego ejecutá <code>node ~/.scale-print/app/cli.mjs pair</code> e ingresá el código por la entrada estándar.</p><p>Ingresá este código en el agente local de Scale. Se muestra una sola vez; no lo compartas.</p><p className="printing-pairing-code"><code>{pairing.pairing_code}</code></p><p>Vence: {listDateTime(pairing.expires_at)}.</p><p className="form-note">Cerrar elimina el código de esta pantalla. Si vence, revocá el puente y generá otro.</p><Button onClick={()=>setPairing(null)}>Ya lo guardé en el agente</Button></Dialog>}
   {revoking&&<ConfirmDialog title="Revocar puente" description={`La computadora ${revoking.name} dejará de recibir trabajos de esta empresa.`} variant="danger" busy={busy} onCancel={()=>setRevoking(null)} onConfirm={async()=>{try{await mutate(`/bridges/${revoking.id}/revoke`,{});setRevoking(null);await refresh();}catch(e){setError(failure(e));}}}/>}
