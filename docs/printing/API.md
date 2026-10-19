@@ -23,7 +23,7 @@ Todas las rutas siguientes parten de `/api/agency/printing`:
 
 | Método y ruta | Cuerpo / respuesta |
 | --- | --- |
-| GET `/` | `{can_manage,can_print,printers,bridges,templates,jobs,audit}` |
+| GET `/` | `{can_manage,can_print,can_print_budget_qr,printers,bridges,templates,jobs,audit}` |
 | POST `/printers` | `{name,model?,branch_id?,connection,destination,width_mm:80,copies?:1,auto_cut?:true,enabled?:true}` → `{printer}` |
 | PATCH `/printers/:id` | Cambios de esos campos → `{printer}` |
 | POST `/bridges` | `{name,branch_id?}` → `{bridge,pairing_code,expires_at}` |
@@ -44,7 +44,7 @@ aportada por un trabajo.
 `kind`: `test`, `receipt`, `quote`, `inventory-label`.
 `definition`: configuración normalizada del renderer compartido
 (`widthMm:80`, orientación vertical, márgenes y tamaño de fuente admitidos).
-`data`: `{title?,companyName?,companyRuc?,customerName?,issuedAt?,lines?:[{label,value?}],total?,notes?,inventoryCode?}`.
+`data`: `{title?,companyName?,companyRuc?,customerName?,issuedAt?,lines?:[{label,value?}],total?,notes?,inventoryCode?,qrUrl?}`.
 La referencia proviene del campo `reference` del trabajo. El servidor añade un
 sufijo criptográfico de ocho caracteres; el navegador no puede establecerlo.
 Los datos son manuales; no se atribuyen a cobros/clientes existentes ni se crean
@@ -131,3 +131,25 @@ Evidencia focal: 66 aserciones PGlite y 72 PostgreSQL PASS; purge de demo cubre
 116→117 conserva cada fila previa y el reinicio no reaplica DDL. Export PDP
 incluye metadatos propios sin bytes/hash/token; la supresión revoca los puentes
 y minimiza documentos del usuario. Prueba física pendiente.
+
+## QR de presupuesto existente
+
+`data.qrUrl` es opcional y sólo admite
+`https://api.scaleparaguay.com/p/<token>` con token ASCII `[A-Za-z0-9_-]{16,128}`,
+sin query, fragmento ni otro origen. Exige la capacidad vigente `budgets.manage`
+(la misma que permite consultar el presupuesto privado; no existe una capacidad
+`budgets.view` en esta matriz). `can_print_budget_qr` refleja ambos permisos.
+
+El lookup comparte el guard de la ruta pública `/p/:token`: token existente y
+`share_enabled=true`. Para imprimir exige además misma organización, estado
+`sent`/`accepted`, vigencia según Asunción, presupuesto y cliente visibles y
+cliente activo. Se vuelve a comprobar antes de entregar bytes al puente: una
+revocación, archivo, vencimiento o retiro de permisos cancela el pendiente y
+elimina su documento. Un reintento idempotente tampoco evita esta comprobación.
+
+No se genera, comparte, publica ni rota ningún token; no se hace una petición
+HTTP al enlace. El renderer usa corrección H, módulo 7 y zona silenciosa de
+cuatro módulos. URL/token no aparecen en respuesta segura, snapshot de plantilla
+ni auditoría. Los errores preservan los trabajos anteriores y el presupuesto.
+
+Evidencia adicional QR: 92 aserciones PGlite y 98 PostgreSQL PASS; suite comercial/pública existente PASS. Incluye token propio, ajeno, revocado, vencido, archivado, permisos, formato de URL, revocación posterior al encolado y ausencia de creación de trabajos ante rechazo. UUID inválido devuelve 400 y sufijos extra de rutas PATCH devuelven 404 sin modificar datos.
