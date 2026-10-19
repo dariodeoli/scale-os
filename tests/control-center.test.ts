@@ -30,7 +30,13 @@ const permissionsMatrix=readFileSync(new URL('../app/permissions-matrix.tsx',imp
 assert(permissionsMatrix.includes("String(row?.id??'')")&&permissionsMatrix.includes("String(row?.label??'')"),'la matriz de permisos arma el texto con guarda');
 for(const [old,path] of Object.entries(legacyRoutes)){assert.equal(sectionPath(sectionLabel(path)),path);assert(!path.startsWith('/'+old+'/'),'no redirect loops');}
 assert.equal(parentSection('Mora'),'Finanzas');assert.equal(parentSection('Planes'),'Presupuestos');assert.equal(parentSection('Comisiones'),'Equipo');assert.equal(parentSection('Papelera'),'Configuración');
-assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,13);
+assert.equal(new Set(sections.map(([label])=>parentSection(label))).size,14);
+assert.equal(sectionPath('Impresión 80 mm'),'/impresion');
+assert.equal(sectionLabel('/impresion'),'Impresión 80 mm');
+assert.equal(moduleNavGroup('Impresión 80 mm'),'Recursos');
+assert(visibleModule('Impresión 80 mm','production'));
+assert(!visibleModule('Impresión 80 mm','production',{'printing.print':false}));
+assert(!visibleModule('Impresión 80 mm','viewer',{'printing.print':true,'printing.manage':true}));
 assert.equal(sectionPath('Contratos'),'/contratos');
 assert(visibleModule('Contratos','admin'));
 assert(!visibleModule('Contratos','sales'));
@@ -62,7 +68,7 @@ for(const [label] of sections)if(['Mora','Previsión','Balance','Métricas','Pla
 for(const apartado of ['Mora','Previsión','Balance','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'])assert(!navModules.includes(apartado),`${apartado} es apartado de su módulo, nunca ítem del menú`);
 assert.equal(parentSection('Balance'),'Finanzas');assert.equal(sectionPath('Balance'),'/pagos/balance');assert.deepEqual(childSections('Finanzas'),['Finanzas','Mora','Previsión','Balance']);assert.equal(moduleNavGroup(parentSection('Mora')),'Finanzas');assert.equal(moduleNavGroup(parentSection('Métricas')),'Flujo');assert.equal(moduleNavGroup('Estudio'),'Recursos','Estudio vive en Recursos (agenda de espacios y equipos)');assert.equal(moduleNavGroup(parentSection('Papelera')),'Configuración');assert.equal(moduleNavGroup(parentSection('Invitaciones')),'Recursos');
 const recursos=navGroups.find(([group])=>group==='Recursos');
-assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Equipo','Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
+assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Impresión 80 mm,Equipo','Recursos conserva Inventario/Estudio primero, agrega impresión para operadores y luego Equipo (Refs #281)');
 // Contrato del encabezado navegable (#72): el clic de un grupo va a su primer módulo.
 const firstModule=(group:string)=>navGroups.find(([label])=>label===group)?.[1][0];
 assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producción (primer módulo del grupo)');assert.deepEqual(navGroups.find(([group])=>group==='Flujo')?.[1],['Producción','Pipeline','Clientes','Presupuestos','Contratos','Proyectos'],'Flujo mantiene producción y pipeline primero y agrega contratos al circuito comercial');
@@ -73,4 +79,4 @@ assert(ui.indexOf('<ControlCenter')<ui.indexOf('id="produccion"'),'el panel de p
 assert(!ui.includes('metrics operational-metrics'),'sin métricas operativas duplicadas en Resumen (#100)');
 const css=readFileSync(new URL('../app/control-center.css',import.meta.url),'utf8');assert(!/#[0-9a-f]{3,8}\b/i.test(css),'new stylesheet uses color tokens');
 for(const block of css.split('}')){const [selector,body]=block.split('{');if(/(?:^|[\s,.])(?:\.ops-card|\.financial-stat|\.metric)\s*$/.test(selector))assert(!body?.includes('min-height'),'no fixed minimum card height');}
-console.log('PASS: grouped alerts, calendar dates, search normalization, 12 menu groups, legacy redirects, all 8 role boundaries, dashboard hierarchy and brand tokens');
+console.log('PASS: grouped alerts, calendar dates, search normalization, 5 navigation groups and 14 modules, legacy redirects, all 8 role boundaries, dashboard hierarchy and brand tokens');
