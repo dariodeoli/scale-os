@@ -44,8 +44,15 @@ ya construye desde este repositorio y el repo original (`dariodeoli/scale-core-a
   `SCALE_API_DEPLOY_WEBHOOK` y `SCALE_WEB_DEPLOY_WEBHOOK` (ambos o ninguno);
   `SCALE_DEPLOY_WEBHOOK_METHOD` (default `GET`). Si quedan vacíos se usa el webhook
   GitHub → Coolify ya configurado.
-- `npm run release:smoke` valida `app.scaleparaguay.com/status`, `/registro` y
-  `api.scaleparaguay.com/health` contra la versión esperada (`SCALE_EXPECTED_VERSION`).
+- `npm run release:smoke` valida `/status`, `/registro` y `/health` contra la versión
+  esperada (`SCALE_EXPECTED_VERSION`), con base `ready`. Además exige que el proxy
+  web responda 401 JSON para `/core-api/api/auth/me` sin sesión y 200 JSON válido
+  para `/core-api/api/auth/providers` y `/core-api/api/public/maintenance`.
+  Así una web disponible con el acceso caído no aprueba el smoke (Refs #253).
+  No prueba OAuth ni una sesión autenticada. Los orígenes HTTPS siguen siendo
+  configurables con `SCALE_APP_ORIGIN` y `SCALE_API_ORIGIN`; el límite global es
+  `SCALE_SMOKE_TIMEOUT_MS` (240000 ms por defecto). Reintentar sólo estas sondas
+  de lectura no vuelve a desplegar.
 
 ## Verificación de una publicación
 
