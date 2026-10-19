@@ -15,7 +15,8 @@ en lugar de dejar una promesa rechazada sin mensaje.
 La campaña amplía la cobertura anterior #265 con portal autenticado y superadmin,
 nueve rutas secundarias, siete flujos internos y focales de Configuración y
 Preferencias. Incluye touch, teclado/foco, scroll de controles, alturas bajas y
-orientación horizontal. Cada reporte identifica si usa componentes aislados,+rutas Next completas con API interceptada o API/PostgreSQL locales sintéticos.
+orientación horizontal. Cada reporte identifica si usa componentes aislados,
+rutas Next completas con API interceptada o API/PostgreSQL locales sintéticos.
 
 Los resultados finales, SHA, BUILD_ID, CI y publicación se registran al completar
 los gates de integración; este documento de preparación no los da por aprobados.
