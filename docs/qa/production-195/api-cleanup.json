@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-19T02:06:13.896754+00:00",
+  "scope": "Only own responsive265 API launcher; no other services touched",
+  "verifiedLauncher": {
+    "pid": 82145,
+    "uid": 1000,
+    "args": "node scripts/dev-local.mjs"
+  },
+  "verifiedApi": {
+    "pid": 82166,
+    "uid": 1000,
+    "args": "node --import ./scripts/dev-local-mail.mjs server.js"
+  },
+  "signal": "SIGTERM",
+  "closedPorts": {
+    "4125": true,
+    "4126": true,
+    "55460": true
+  },
+  "launcherExited": true,
+  "apiExited": true,
+  "preserved": {
+    "databaseDirectory": true,
+    "postgresVersionFile": true,
+    "privateIdentityFile": true,
+    "privateDemoSessionFile": true
+  },
+  "secretsReadOrPrinted": false,
+  "apiProcessState": "Z",
+  "apiNoLongerRunning": true,
+  "apiReaped": false
+}

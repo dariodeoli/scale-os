@@ -6,7 +6,11 @@ Preparación local:266entradas frontend/48fragmentos, build/tipos64páginas,61sc
 
 Auditoría responsive: [informe](../responsive-265/production.md), [resumen](../responsive-265/production-summary.json), cuatro combinaciones de Host/Origin y focal3anchos con respuestas reales.240estados de layout completos,720estados de scroll y15diálogos de teclado, sin hallazgos geométricos, imágenes rotas, errores de ejecución o foco. El resultado RAW global false se conserva:15GET403 del contador corresponden a la allowlist de dominio del entorno local. No se cambió esa protección; el contador público en producción responde200, evidencia `public-counter-before.json` con versión servida194 previa al rollout.
 
-Estado en este registro: CI de main39188094803 y publicación automática195 pendientes de verificación. La integración dispara un único deploy de web/API. No se solicitará otro mientras el proveedor procesa este SHA. El estado público observado todavía194 no se presenta como publicación195.
+Estado final: **web y API1.0.195 verificadas el18/10/2026 a las23:18:50 (America/Asuncion)**. CI de main39188094803 aprobado en frontend/backend, sin reintentos. Un único merge inició el rollout automático; no se hicieron solicitudes manuales adicionales. API195 se observó primero y la web después; la secuencia completa está en `deployment-observation.json`.
+
+`public-proof.json`: status/registro con versión visible195, health200 con database ready195, auth/me sin sesión401, providers/mantenimiento200, landing SHA256idéntico a main `a5712880d3958c0512d24b6ffa70a6c3b6f7af68d67e03234dde063b3cf00046`, scripts iniciales disponibles/sin artefactos bancarios y dentro del presupuesto1,75MB. JS inicial servido1.346.464bytes raw/410.766gzip calculado; el cálculo gzip no es una medición de transferencia.
+
+`public-counter-after.json` vuelve a acreditar contador público200 con API195. Su lectura0sesiones es válida y no se presenta como tráfico positivo. `api-first.json` conserva la prueba parcial previa al final del rollout. Los archivos de cleanup verifican los puertos locales3025/4125/4126/55460 cerrados y las bases de prueba conservadas.
 
 No se expone SHA del contenedor del proveedor. Se distinguen mergeSHA, árbol/build local y versión realmente servida. Esta rama conserva evidencia posterior al merge sin un segundo push/deploy de main con la misma versión.
 
