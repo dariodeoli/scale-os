@@ -135,3 +135,12 @@ test('claim snapshot is authoritative over a stale config destination', async t 
   const fetcher = async url => Response.json(url.endsWith('/config') ? { bridge: { id: 'bridge' }, printers: [printer] } : url.endsWith('/claim') ? { job, printer: snapshot } : { ok: true });
   await a.poll({ apiOrigin: 'https://example.com', bridgeId: 'bridge', bridgeToken: 'private' }, fetcher); assert.equal(actual.host, '192.168.1.99');
 });
+test('browser diagnostic preflight is narrow and actual request still needs bearer', async t => {
+  const a = await agent(t); const config = { bridgeId: 'bridge', port: 0, localToken: 'x'.repeat(64), allowedOrigins: ['https://app.scaleparaguay.com'] };
+  const server = localServer(a, config); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); config.port = server.address().port; t.after(() => new Promise(resolve => server.close(resolve)));
+  const url = `http://127.0.0.1:${config.port}`; const headers = { Origin: 'https://app.scaleparaguay.com', 'Access-Control-Request-Method': 'GET', 'Access-Control-Request-Headers': 'authorization' };
+  const allowed = await fetch(`${url}/diagnostico`, { method: 'OPTIONS', headers }); assert.equal(allowed.status, 204); assert.equal(allowed.headers.get('Access-Control-Allow-Origin'), headers.Origin);
+  assert.equal((await fetch(`${url}/diagnostico`, { headers: { Origin: headers.Origin } })).status, 403);
+  assert.equal((await fetch(`${url}/print`, { method: 'OPTIONS', headers: { ...headers, 'Access-Control-Request-Method': 'POST' } })).status, 403);
+  assert.equal((await fetch(`${url}/health`, { method: 'OPTIONS', headers: { ...headers, Origin: 'https://evil.example' } })).status, 403);
+});

@@ -134,6 +134,11 @@ export function localServer(agent, config) {
   return http.createServer(async (req, res) => {
     if (!agent.ready) { res.writeHead(503); return res.end('{"error":"starting"}'); }
     const origin = req.headers.origin;
+    if (req.method === 'OPTIONS') {
+      const headers = String(req.headers['access-control-request-headers'] || '').toLowerCase().split(',').map(h => h.trim()).filter(Boolean);
+      if (req.headers.host !== `127.0.0.1:${config.port}` || !origin || !config.allowedOrigins.includes(origin) || req.headers['access-control-request-method'] !== 'GET' || !/^\/(?:health|diagnostico|jobs\/[\w-]+)$/.test(req.url) || headers.some(h => !['authorization', 'content-type'].includes(h))) { res.writeHead(403); return res.end(); }
+      res.writeHead(204, { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', Vary: 'Origin', 'Cache-Control': 'no-store' }); return res.end();
+    }
     if (req.headers.host !== `127.0.0.1:${config.port}` || (origin && !config.allowedOrigins.includes(origin)) || !sameToken(req.headers.authorization, `Bearer ${config.localToken}`)) { res.writeHead(403); return res.end('{"error":"forbidden"}'); }
     res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store');
     if (origin) { res.setHeader('Access-Control-Allow-Origin', origin); res.setHeader('Vary', 'Origin'); }
