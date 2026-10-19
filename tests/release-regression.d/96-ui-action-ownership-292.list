@@ -1,0 +1,2 @@
+# Refs #292: real CSS contexts must not override canonical Button styles.
+node build-tools/check-ui-action-ownership.mjs

@@ -176,12 +176,12 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "changed": false,
-      "sha256": "f402825342a5326ad7e2040bdd178b43ffe89321bf80c204e3161caff71182bf"
+      "sha256": "71538a08362716bf206a24e6acdbb9662fbd07fbc7381c522733b810a68c4d17"
     },
     {
       "file": "app/cliente/entregas/page.tsx",
       "changed": false,
-      "sha256": "d5f42c34fcc0f58af78d7c22292c1cbb56dde604ce651afc680254cda6c823fd"
+      "sha256": "990899813456b251244cd3acdd108a219de37b430a9950de8c6391e69f74d216"
     },
     {
       "file": "app/cliente/ingresar/page.tsx",
@@ -1565,9 +1565,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
-      "column": 1625,
-      "offset": 4678,
+      "line": 34,
+      "column": 1641,
+      "offset": 5071,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1576,9 +1576,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
-      "column": 1739,
-      "offset": 4792,
+      "line": 34,
+      "column": 1768,
+      "offset": 5198,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1587,9 +1587,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
-      "column": 2095,
-      "offset": 5148,
+      "line": 34,
+      "column": 2153,
+      "offset": 5583,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1598,9 +1598,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
-      "column": 2537,
-      "offset": 5590,
+      "line": 34,
+      "column": 2608,
+      "offset": 6038,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1609,9 +1609,9 @@
     },
     {
       "file": "app/cliente/entregas/page.tsx",
-      "line": 15,
+      "line": 18,
       "column": 287,
-      "offset": 1521,
+      "offset": 1910,
       "kind": "canonical-button",
       "owner": "ClientDeliveries",
       "status": "canonical",

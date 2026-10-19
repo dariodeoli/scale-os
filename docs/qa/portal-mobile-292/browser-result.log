@@ -1,0 +1,1 @@
+PASS authenticated portal: 42 real-component viewport/theme/views; list/detail populated, empty/error, activity retry, comment save/retry, decision payloads, local-only transport. Physical mobile/Safari and actual OAuth/download delivery not represented.

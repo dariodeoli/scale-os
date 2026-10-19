@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Compact Balance #289: exact reviewed native widget JSX/owners preserved; three new and two changed canonical actions explicitly reviewed, file hashes and positions refreshed.",
+  "scope": "Portal mobile #292: exact reviewed native widget JSX/owners preserved; three new and two changed canonical actions explicitly reviewed, file hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",

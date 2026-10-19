@@ -112,6 +112,22 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "ecc381be",
+      "created_by": "agent",
+      "created_at": "2026-10-19T10:16:22.080244391Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "e7c5c311",
+      "created_by": "agent",
+      "created_at": "2026-10-19T10:30:07.977149558Z",
+      "sessions": 1,
+      "memories": 6,
+      "prompts": 0
     }
   ]
 }

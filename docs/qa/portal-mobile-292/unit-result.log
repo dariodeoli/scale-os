@@ -1,0 +1,14 @@
+✔ verified client invitation sends its token to the Google start endpoint (112.832596ms)
+✔ client invitation renders public expiry and exact terminal statuses without authorizing onboarding (33.121418ms)
+✔ delivery details use the audited download endpoint and keep review interactions (23.123797ms)
+✔ delivery activity renders chronological entries with kinds and versions (25.50059ms)
+✔ portal shares an immediate submission lock across comments and review decisions, retaining retry text (101.153611ms)
+✔ logout failure stays in the portal and supports a single successful retry (282.426035ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1459.177251

@@ -1,0 +1,2 @@
+tsx tests/portal-mutations-292.test.tsx
+node tests/portal-responsive-browser-292.test.mjs

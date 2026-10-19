@@ -2,6 +2,19 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.198
+
+- **Portal en móvil**: nombres de clientes, archivos y comentarios extensos se
+  muestran completos sin quedar cortados dentro de las tarjetas. Los controles
+  del encabezado conservan su espacio y se pueden usar con pantalla táctil.
+- **Envíos protegidos**: comentarios y decisiones del portal bloquean envíos
+  simultáneos y protegen el borrador durante el guardado. Si falla el cierre de
+  sesión, aparece un mensaje con foco para
+  poder reintentar.
+- **Verificación ampliada**: revisión de portal, superadmin, rutas secundarias y
+  formularios internos, incluyendo pantallas bajas y orientación horizontal.
+  Las pruebas emuladas se registran por separado de los dispositivos físicos.
+
 ## v1.0.195
 
 - Auditoría responsive: navegación de landing, login, Contratos, tarjetas y pestañas de Inventario, controles demo en tablet e importes grandes de Previsión; foco visible al recorrer pestañas con teclado.

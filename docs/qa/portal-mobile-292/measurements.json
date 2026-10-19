@@ -1,0 +1,635 @@
+{
+  "measurements": [
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 320,
+      "width": 320,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 320,
+      "width": 320,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 768,
+      "width": 768,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 768,
+      "width": 768,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 1440,
+      "width": 1440,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 1440,
+      "width": 1440,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 390,
+      "scrollWidth": 844,
+      "width": 844,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 390,
+      "scrollWidth": 844,
+      "width": 844,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "height": 600,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "height": 600,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.301961 0.0235294 0.356863 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 320,
+      "width": 320,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 320,
+      "width": 320,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 768,
+      "width": 768,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 768,
+      "width": 768,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 1440,
+      "width": 1440,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 1440,
+      "width": 1440,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 390,
+      "scrollWidth": 844,
+      "width": 844,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 390,
+      "scrollWidth": 844,
+      "width": 844,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "height": 600,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "height": 600,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 0.752941 0.419608 0.815686 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 320,
+      "width": 320,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 320,
+      "width": 320,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 390,
+      "width": 390,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 768,
+      "width": 768,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 768,
+      "width": 768,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 844,
+      "scrollWidth": 1440,
+      "width": 1440,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 844,
+      "scrollWidth": 1440,
+      "width": 1440,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 390,
+      "scrollWidth": 844,
+      "width": 844,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 390,
+      "scrollWidth": 844,
+      "width": 844,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "height": 600,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "shadow": "none"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "height": 600,
+      "scrollWidth": 1024,
+      "width": 1024,
+      "overflow": [],
+      "brokenImages": 0,
+      "smallControls": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid",
+        "shadow": "color(srgb 1 0.831372 0 / 0.16) 0px 4px 11px 0px"
+      }
+    }
+  ],
+  "screenshots": 6
+}

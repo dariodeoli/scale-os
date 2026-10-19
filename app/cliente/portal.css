@@ -27,3 +27,17 @@
 .client-portal-shell>.portal-privacy{width:min(960px,100%);margin:0 auto;padding:18px 4px 0;color:var(--text-subtle,var(--text-muted));font-size:11.5px;line-height:1.7;text-align:center}
 .portal-privacy a{color:var(--brand-600);font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .portal-privacy a:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
+
+/* Refs #292: a grid track must shrink to the viewport even when a customer,
+   filename or comment contains an uninterrupted identifier. The card clips
+   decoration, so document overflow alone cannot detect clipped content. */
+.delivery-list,.delivery{grid-template-columns:minmax(0,1fr)}
+.client-portal header>div,.delivery>*{min-width:0}
+.client-portal :is(small,strong),.client-portal a{overflow-wrap:anywhere}
+.client-portal a.button{white-space:normal;overflow-wrap:anywhere}
+.client-portal a:focus-visible,.client-portal button:not(:where([data-ui-button])):focus-visible{outline:3px solid var(--focus-ring);outline-offset:3px}
+.delivery-activity li{overflow-wrap:anywhere}
+.portal-status::before{flex:none}
+/* Keep the return action intact beside long client/project headings. */
+.client-portal header>div{flex:1}
+.client-portal header>:is(button,a.button){flex:none;min-width:44px}
