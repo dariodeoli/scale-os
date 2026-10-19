@@ -21,17 +21,32 @@ export function TabScroller({children,className,label='pestañas'}:{children:Rea
    atEnd:node.scrollLeft+node.clientWidth>=node.scrollWidth-1,
   });
  },[]);
+ // Keyboard focus must move only this track, immediately, even when its CSS
+ // or an earlier arrow click requests smooth scrolling. Never scroll the page.
+ const revealFocus=useCallback(()=>{
+  const node=track.current;
+  if(!node||typeof document==='undefined')return;
+  const focused=document.activeElement;
+  if(!(focused instanceof HTMLElement)||!node.contains(focused))return;
+  const viewport=node.getBoundingClientRect(),item=focused.getBoundingClientRect();
+  const start=viewport.left+node.clientLeft,end=start+node.clientWidth;
+  const inset=item.width+8<=node.clientWidth?4:0;
+  const delta=item.left<start+inset?item.left-start-inset:item.right>end-inset?item.right-end+inset:0;
+  if(delta)node.scrollTo({left:Math.max(0,Math.min(node.scrollWidth-node.clientWidth,node.scrollLeft+delta)),behavior:'instant'});
+ },[]);
  useEffect(()=>{
   const node=track.current;if(!node)return;
-  measure();
+  const refresh=()=>{revealFocus();measure();};
+  refresh();
   node.addEventListener('scroll',measure,{passive:true});
-  const resize=typeof ResizeObserver!=='undefined'?new ResizeObserver(measure):null;
+  const resize=typeof ResizeObserver!=='undefined'?new ResizeObserver(refresh):null;
   resize?.observe(node);
-  const mutation=typeof MutationObserver!=='undefined'?new MutationObserver(measure):null;
+  const mutation=typeof MutationObserver!=='undefined'?new MutationObserver(refresh):null;
   mutation?.observe(node,{childList:true,subtree:true,characterData:true});
-  window.addEventListener('resize',measure);
-  return()=>{node.removeEventListener('scroll',measure);resize?.disconnect();mutation?.disconnect();window.removeEventListener('resize',measure);};
- },[measure]);
+  node.addEventListener('focusin',refresh);
+  window.addEventListener('resize',refresh);
+  return()=>{node.removeEventListener('scroll',measure);resize?.disconnect();mutation?.disconnect();node.removeEventListener('focusin',refresh);window.removeEventListener('resize',refresh);};
+ },[measure,revealFocus]);
  const step=(direction:-1|1)=>{
   const node=track.current;if(!node)return;
   const reduce=typeof window!=='undefined'&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
