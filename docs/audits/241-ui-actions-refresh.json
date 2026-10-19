@@ -191,6 +191,12 @@
       "beforeHash": "be12134d3e8c26f4626c493152a65356b12c3b9be0aaa85987e33192cdfb6b72",
       "afterHash": "972db03e08d41425a437f11ab1513a083f4143d7522cae0b55df617821c84cf0",
       "rationale": "Responsive #265: application source reviewed; native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/blog/[section]/[slug]/page.tsx",
+      "beforeHash": "bb16036d248a008045e36d809019613311926c624a96c414fda10a83a7185ff2",
+      "afterHash": "9b55823f12bbc32431c27af645e566163130cbbf669f29d6adf9348b4bb44ed0",
+      "rationale": "SEO de artículos: imágenes sociales absolutas y BreadcrumbList; comparación exacta demuestra mismos sitios de acciones, sin nuevos widgets ni cambios de callback."
     }
   ],
   "addedCanonical": [
@@ -676,5 +682,23 @@
         "rationale": "Revisión independiente #265: únicamente md:hidden cambia a lg:hidden para usar el mismo diálogo de demo en tablet; conserva onClick, label, aria-haspopup, aria-expanded, tipo y propietario DemoToolbar."
       }
     ]
+  },
+  "release196": {
+    "previousMain": "fca3c8e5e6e11eb90ca4d8e67c47a2e2bfef215d",
+    "changedFiles": [
+      {
+        "file": "app/blog/[section]/[slug]/page.tsx",
+        "beforeHash": "bb16036d248a008045e36d809019613311926c624a96c414fda10a83a7185ff2",
+        "afterHash": "9b55823f12bbc32431c27af645e566163130cbbf669f29d6adf9348b4bb44ed0",
+        "rationale": "SEO de artículos: imágenes sociales absolutas y BreadcrumbList; comparación exacta demuestra mismos sitios de acciones, sin nuevos widgets ni cambios de callback."
+      }
+    ],
+    "counts": {
+      "canonical": 602,
+      "structural": 55,
+      "renderer": 1
+    },
+    "unreviewed": 0,
+    "review": "Todos los sitios JSX de acciones coinciden exactamente con el inventario195; cambia únicamente el hash de la página SEO."
   }
 }
