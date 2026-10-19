@@ -1,7 +1,7 @@
 import legacyRouteMap from './legacy-routes.json';
 export const sections = [
  ['Resumen','resumen'],['Pipeline','pipeline'],['Clientes','clientes'],['Presupuestos','presupuestos'],['Contratos','contratos'],
- ['Proyectos','proyectos'],['Producción','produccion'],['Inventario','inventario'],['Estudio','estudio'],
+ ['Proyectos','proyectos'],['Producción','produccion'],['Inventario','inventario'],['Estudio','estudio'],['Impresión 80 mm','impresion'],
  ['Finanzas','pagos'],['Mora','pagos/mora'],['Informes','informes'],['Equipo','equipo'],
  ['Invitaciones','equipo/invitaciones'],['Comisiones','equipo/comisiones'],['Roles y permisos','equipo/permisos'],
  ['Métricas','pipeline/metricas'],['Planes','presupuestos/planes'],
@@ -24,7 +24,7 @@ export function childSections(label:string){return sectionGroups[parentSection(l
 export const navGroups = [
  ['Resumen',['Resumen']],
  ['Flujo',['Producción','Pipeline','Clientes','Presupuestos','Contratos','Proyectos']],
- ['Recursos',['Inventario','Estudio','Equipo']],
+ ['Recursos',['Inventario','Estudio','Impresión 80 mm','Equipo']],
  ['Finanzas',['Finanzas','Informes']],
  ['Configuración',['Configuración']],
 ] as const;

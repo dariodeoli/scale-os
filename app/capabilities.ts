@@ -56,6 +56,8 @@ export const CAPABILITY_ROLES = {
  'portal.manage': ['owner','admin','management','production','collaborator'],
  'salary.view': ['owner','admin','finance'],
  'privacy.manage': ['owner','admin'],
+ 'printing.print': ['owner','admin','management','production'],
+ 'printing.manage': ['owner','admin'],
 } as const;
 
 export type Capability = keyof typeof CAPABILITY_ROLES;
