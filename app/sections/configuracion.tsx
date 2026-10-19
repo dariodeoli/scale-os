@@ -68,7 +68,7 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
       </SettingsBlock>
 
       <SettingsBlock id="settings-printing" title="Impresoras" description="Configurá tu térmica de 80 mm, emparejá la computadora y verificá cada impresión en papel." full>
-        <PrintingWorkspace key={String(user?.organization_id)} demo={demo}/>
+        <PrintingWorkspace key={`${user?.organization_id}:${user?.id}`} scopeKey={`${user?.organization_id}:${user?.id}`} demo={demo}/>
       </SettingsBlock>
 
       <SettingsBlock id="settings-subscription" title="Suscripción" description="Estado, prueba y pago de Scale OS para esta empresa." full>
