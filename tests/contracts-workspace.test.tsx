@@ -89,3 +89,26 @@ test('manual template creation remains reachable in the secondary administration
  try{await act(async()=>{renderer=create(<ContractsWorkspace organizationId="org-a" userId="u1"/>);await tick();});act(()=>renderer!.root.findByType('details').findAllByType('button').find(node=>node.children.join('')==='Nueva plantilla')!.props.onClick());assert.equal(renderer!.root.findAllByProps({'aria-label':'Nueva plantilla'}).length,1);await act(async()=>{await renderer!.root.findByType(Editor).props.save({name:'Servicios',agreement_type:'Servicios',body:'Hola {{company.legal_name}}',required_fields:'company.legal_name'});});assert.deepEqual(submitted,{name:'Servicios',agreement_type:'Servicios',body:'Hola {{company.legal_name}}',required_fields:['company.legal_name']});assert.equal(renderer!.root.findAllByType('button').find(node=>node.children.join('')==='Nuevo contrato')!.props.disabled,false);assert.equal(renderer!.root.findByType('details').props.open,true,'creating the first template keeps its trigger visible for dialog focus restoration');
  }finally{act(()=>renderer?.unmount());globalThis.fetch=previous;}
 });
+
+test('AI review failures and discarding a suggestion preserve the contract and local edits',async()=>{
+ const {Editor}=require('../app/operations') as typeof import('../app/operations');
+ const previous=globalThis.fetch,record={id:'c1',title:'Contrato guardado',template_id:'t1',revision:1,body:'{{company.legal_name}}',variables:{'company.legal_name':'Empresa privada'},sources:{}};
+ const writes:string[]=[];let failReview=false;let renderer:ReactTestRenderer|undefined;
+ globalThis.fetch=async(input,init)=>{const path=String(input);if(!['GET','HEAD'].includes((init?.method||'GET').toUpperCase()))writes.push(path);if(path.endsWith('/config'))return respond({...config,capabilities:{...config.capabilities,assist:true}});if(path.endsWith('/templates'))return respond({templates:[template],variables:['company.legal_name']});if(path.endsWith('/assist'))return failReview?respond({error:'El proveedor de IA no pudo completar la revisión.'},503):respond({suggestion:'Revisar campos',requires_review:true});if(path.endsWith('/versions'))return respond({versions:[]});if(path.endsWith('/c1'))return respond({contract:record});return respond({contracts:[record]});};
+ try{
+  await act(async()=>{renderer=create(<ContractsWorkspace organizationId="org-a" userId="u1"/>);await tick();});
+  const button=(label:string)=>renderer!.root.findAllByType('button').find(node=>node.children.join('')===label)!;
+  await act(async()=>{button('Abrir contrato').props.onClick();await tick();});
+  const draft=()=>renderer!.root.findByType(Editor).props.defaults;
+  const initial={...draft()};
+  await act(async()=>{button('Revisar campos con IA').props.onClick();await tick();});
+  assert.match(JSON.stringify(renderer!.toJSON()),/Revisar campos/);assert.deepEqual(draft(),initial);
+  act(()=>button('Descartar sugerencia').props.onClick());assert.equal(button('Descartar sugerencia'),undefined);assert.deepEqual(draft(),initial);
+  failReview=true;await act(async()=>{button('Revisar campos con IA').props.onClick();await tick();});
+  assert.match(JSON.stringify(renderer!.toJSON()),/El proveedor de IA no pudo completar/);assert.deepEqual(draft(),initial);
+  await act(async()=>{await renderer!.root.findByType(Editor).props.save({...initial,title:'Borrador local'});});
+  assert.equal(draft().title,'Borrador local');assert.equal(button('Revisar campos con IA').props.disabled,true);
+  assert.equal(button('Emitir versión revisada').props.disabled,true);
+  assert.ok(writes.every(path=>path.endsWith('/assist')),'AI never saves or issues automatically');assert.equal(writes.length,2);
+ }finally{act(()=>renderer?.unmount());globalThis.fetch=previous;}
+});

@@ -5,7 +5,7 @@ import {mkdtempSync,mkdirSync,copyFileSync,writeFileSync,readFileSync,rmSync} fr
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 
-function fixture(t,{artifact=true}={}){
+function fixture(t,{artifact=true,smokeFails=false}={}){
  const root=mkdtempSync(path.join(tmpdir(),'scale-release-prepare-'));
  t.after(()=>rmSync(root,{recursive:true,force:true}));
  for(const dir of ['build-tools','backend','release','bin'])mkdirSync(path.join(root,dir));
@@ -24,7 +24,7 @@ if(command==='npm'&&args.join(' ')==='run build'&&process.env.SCALE_TEST_ARTIFAC
 }
 `;
  for(const command of ['git','npm','node'])writeFileSync(path.join(root,'bin',command),shim,{mode:0o755});
- writeFileSync(path.join(root,'build-tools/release-smoke.mjs'),`import {appendFileSync} from 'node:fs';appendFileSync(process.env.SCALE_TEST_COMMAND_LOG,JSON.stringify({command:'smoke',args:[]})+'\\n');`);
+ writeFileSync(path.join(root,'build-tools/release-smoke.mjs'),`import {appendFileSync} from 'node:fs';export async function runReleaseSmoke(){appendFileSync(process.env.SCALE_TEST_COMMAND_LOG,JSON.stringify({command:'smoke',args:[]})+'\\n');${smokeFails?"throw Error('Smoke fixture unavailable');":''}}`);
  writeFileSync(path.join(root,'block-network.cjs'),"globalThis.fetch=()=>{throw Error('Unexpected network call in release fixture')};");
  function run(args=[],webhooks=false){return spawnSync(process.execPath,['--require',path.join(root,'block-network.cjs'),path.join(root,'build-tools/release-patch.mjs'),...args],{cwd:root,encoding:'utf8',timeout:10000,env:{...process.env,PATH:path.join(root,'bin')+path.delimiter+process.env.PATH,SCALE_TEST_COMMAND_LOG:log,SCALE_TEST_ARTIFACT:artifact?'yes':'no',SCALE_API_DEPLOY_WEBHOOK:webhooks?'https://deploy.invalid/api':'',SCALE_WEB_DEPLOY_WEBHOOK:webhooks?'https://deploy.invalid/web':''}});}
  function calls(){try{return readFileSync(log,'utf8').trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));}catch(error){if(error.code==='ENOENT')return[];throw error;}}
@@ -60,4 +60,12 @@ test('normal release keeps its push and subsequent smoke with mocked commands on
  assert.equal(result.status,0,result.stderr);
  const calls=f.calls(),push=calls.findIndex(c=>c.command==='git'&&c.args.join(' ')==='push origin HEAD:main'),smoke=calls.findIndex(c=>c.command==='smoke');
  assert(push>=0&&smoke>push);
+ assert.equal(calls.filter(c=>c.command==='smoke').length,1,'Import alone must not replace invoking the smoke');
+});
+test('normal release propagates a failed smoke after its one push',t=>{
+ const f=fixture(t,{smokeFails:true}),result=f.run();
+ assert.notEqual(result.status,0);assert.match(result.stderr,/Smoke fixture unavailable/);
+ const calls=f.calls();
+ assert.equal(calls.filter(c=>c.command==='git'&&c.args.join(' ')==='push origin HEAD:main').length,1);
+ assert.equal(calls.filter(c=>c.command==='smoke').length,1);
 });

@@ -96,7 +96,7 @@
     {
       "file": "app/blog/[section]/[slug]/page.tsx",
       "changed": false,
-      "sha256": "bb16036d248a008045e36d809019613311926c624a96c414fda10a83a7185ff2"
+      "sha256": "9b55823f12bbc32431c27af645e566163130cbbf669f29d6adf9348b4bb44ed0"
     },
     {
       "file": "app/blog/[section]/page.tsx",

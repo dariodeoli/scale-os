@@ -1,0 +1,125 @@
+{
+  "issue": 265,
+  "runtimeSource": {
+    "kind": "git-tree",
+    "tree": "a64d05a6cbf366f3fc7350385517e1a629a6da19",
+    "releaseCommit": "16d2278282ec8e4bbb7260966430d6e2030a067c",
+    "buildId": "dtP8bVHY7yhVbiap7bBxe",
+    "version": "1.0.195",
+    "url": "http://127.0.0.1:3025"
+  },
+  "harnessSource": "0adf7612",
+  "coverage": {
+    "expected": 240,
+    "actual": 240,
+    "unique": 240,
+    "missing": 0,
+    "duplicates": 0,
+    "routes": [
+      "/resumen",
+      "/produccion",
+      "/pipeline",
+      "/clientes",
+      "/presupuestos",
+      "/contratos",
+      "/proyectos",
+      "/inventario",
+      "/estudio",
+      "/equipo",
+      "/pagos",
+      "/informes",
+      "/configuracion",
+      "/pagos/balance",
+      "/pagos/mora",
+      "/pagos/prevision"
+    ],
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark",
+      "contrast"
+    ],
+    "naturalScrollStates": 720,
+    "clientDialogKeyboardCases": 15,
+    "coarseTouchCases": 192,
+    "finePointerCases": 48
+  },
+  "layoutCasesPassed": 240,
+  "layoutCasesFailed": 0,
+  "runtimeErrors": 0,
+  "brokenVisibleImages": 0,
+  "documentOverflowFindings": 0,
+  "keyboardFocusFailures": 0,
+  "dialogFailures": 0,
+  "rawMatrixPassed": false,
+  "expectedLocalOrigin403Count": 15,
+  "unexpectedApiErrors": 0,
+  "localOriginDisposition": {
+    "acceptedByReview": true,
+    "classification": "Expected canonical-host allowlist guard under loopback; not product regression",
+    "endpoint": "/core-api/api/public/live-visitors/count",
+    "body": {
+      "error": "Origen no permitido"
+    },
+    "proof": "live-count-origin-proof.json",
+    "focal": "reports-host-focal.json",
+    "runtimeApiChange": false,
+    "raw403Preserved": true
+  },
+  "liveWidgetFocal": {
+    "cases": 3,
+    "passed": 3,
+    "widths": [
+      320,
+      768,
+      1440
+    ],
+    "realUpstream200": 3,
+    "responseMocked": false,
+    "writes": false
+  },
+  "fixtureCounts": {
+    "clients": 20,
+    "inventory": 6,
+    "projects": 20,
+    "collaborators": 9,
+    "contracts": 4,
+    "studio-spaces": 2,
+    "studio-reservations": 3
+  },
+  "touchTargetReview": {
+    "candidateObservations": 4205,
+    "status": "Contextual review candidates below44px retained in raw reports, including inline links and dense controls; this report does not claim every app control is44px."
+  },
+  "rawReports": [
+    "/tmp/scale265-production-small-touch/results.json",
+    "/tmp/scale265-production-tablet-touch/results.json",
+    "/tmp/scale265-production-desktop-touch/results.json"
+  ],
+  "screenshots": [
+    "/tmp/scale265-production-small-touch/screens",
+    "/tmp/scale265-production-tablet-touch/screens",
+    "/tmp/scale265-production-desktop-touch/screens"
+  ],
+  "sample": "/tmp/scale265-production-sample/results.json",
+  "negativeAuthTest": {
+    "path": "/tmp/scale265-negative-auth/results.json",
+    "passed": false,
+    "coverageActual": 0,
+    "expectedExit": 1,
+    "meaning": "Invalid session correctly fails before route audit"
+  },
+  "limitations": [
+    "No production calls or writes",
+    "No physical device or Safari validation",
+    "Public pages, client portal and superadmin require separate runners",
+    "No all-actions business CRUD claim",
+    "Raw transport gate remains false due documented local allowlist403s"
+  ]
+}

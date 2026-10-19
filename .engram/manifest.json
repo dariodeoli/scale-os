@@ -104,6 +104,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "013238ba",
+      "created_by": "agent",
+      "created_at": "2026-10-19T02:20:15.519963234Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }

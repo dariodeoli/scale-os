@@ -6,7 +6,7 @@ import {BUILTIN_CONTRACT_MODELS} from './contract-models.js';
 import {assertRecordAvailable,visibleRecord} from './record-lifecycle.js';
 import {fail,text,id,optId} from './suite-validation.js';
 import {renderBudgetPdf} from './budget-document.js';
-import {iaConfig,iaProviderDeConfig,parsearSalidaIa} from './ia-carga.js';
+import {iaConfig,iaProviderDeConfig,parsearSalidaIa,IaError} from './ia-carga.js';
 import {throttle} from './request-guard.js';
 import {logPersonalDataAccess} from './personal-data.js';
 
@@ -78,6 +78,12 @@ async function fill(c,u,b){
 export function contractAiMetadata(contract){
  const fields=[...new Set([...contract.required_fields,...[...contract.body.matchAll(/\{\{\s*([\w.]+)\s*\}\}/g)].map(m=>m[1])])].filter(key=>CONTRACT_VARIABLES.includes(key));
  return {fields,required_fields:contract.required_fields.filter(key=>CONTRACT_VARIABLES.includes(key)),missing:contractMissing(contract.body,contract.variables,contract.required_fields),presence:Object.fromEntries(fields.map(key=>[key,Boolean(contract.variables[key]?.trim())]))};
+}
+function contractAiSuggestion(out){
+ if(out?.finishReason&&out.finishReason!=='stop')fail('La IA devolvió una revisión incompleta. Volvé a consultar.',502);
+ const parsed=parsearSalidaIa(typeof out==='string'?out:out?.contenido);
+ if(!parsed||typeof parsed!=='object'||Array.isArray(parsed)||Object.keys(parsed).some(key=>key!=='suggestion')||typeof parsed.suggestion!=='string'||!parsed.suggestion.trim()||parsed.suggestion.length>12000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(parsed.suggestion))fail('La IA no devolvió una sugerencia válida. Volvé a consultar.',502);
+ return parsed.suggestion.trim();
 }
 export async function contracts({req,res,url,db,session,body,send,pdfRenderer=renderBudgetPdf,aiProvider=null}){
  const path=url.pathname,profilePath='/api/agency/company-legal-profile';
@@ -151,9 +157,9 @@ export async function contracts({req,res,url,db,session,body,send,pdfRenderer=re
     const config=iaConfig();if(!config&&!aiProvider)fail('La IA no está configurada',503);if(!await throttle(db,'contracts-ai:'+u.organization_id,10))fail('Esperá antes de consultar de nuevo',429);
     // Only whitelisted field names and presence booleans leave the tenant. No body, title, values, identifiers or snapshots enter a prompt.
     const provider=aiProvider||iaProviderDeConfig(config),out=await provider.analizar([{role:'system',content:'Revisá consistencia estructural de campos contractuales según metadatos. Recibís solo nombres de campos y presencia, nunca sus valores. Sugerí un checklist de revisión; no redactes ni inventes nombres, documentos, cláusulas o montos. Devolvé JSON {"suggestion":"observaciones"}. Requiere revisión humana y no garantiza validez legal.'},{role:'user',content:JSON.stringify(contractAiMetadata(old))}],{maxTokens:3000});
-    const parsed=parsearSalidaIa(typeof out==='string'?out:out.contenido),suggestion=clean(parsed.suggestion,12000);await logPersonalDataAccess(c,{organizationId:u.organization_id,actorUserId:u.id,actorKind:'user',actorLabel:null,action:'ai.transfer',context:'contracts',details:{modelo:config?.modelo||'test-provider',contract_id:String(old.id)}});result={suggestion,requires_review:true};await audit(c,u,'contract',old.id,'assist',old.revision);
+    const suggestion=contractAiSuggestion(out);await logPersonalDataAccess(c,{organizationId:u.organization_id,actorUserId:u.id,actorKind:'user',actorLabel:null,action:'ai.transfer',context:'contracts',details:{modelo:config?.modelo||'test-provider',contract_id:String(old.id)}});result={suggestion,requires_review:true};await audit(c,u,'contract',old.id,'assist',old.revision);
    }else fail('Método no permitido',405);
   }
   await c.query('commit');tx=false;send(res,status,result);return true;
- }catch(error){if(tx)await c.query('rollback');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de contratos.',...(error instanceof CompanyLocalityValidationError?{fieldErrors:error.fieldErrors}:{})});return true;}finally{c?.release();}
+ }catch(error){if(tx)await c.query('rollback');const aiError=error instanceof IaError,aiJson=aiError&&error.code==='ia_json';send(res,aiError?(aiJson?502:503):error.status||500,{error:aiError?(aiJson?'La IA no devolvió una sugerencia válida. Volvé a consultar.':'El proveedor de IA no pudo completar la revisión. Probá de nuevo en un momento.'):error.status?error.message:'No se pudo completar la operación de contratos.',...(error instanceof CompanyLocalityValidationError?{fieldErrors:error.fieldErrors}:{})});return true;}finally{c?.release();}
 }

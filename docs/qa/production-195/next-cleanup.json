@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-19T02:05:53.062094+00:00",
+  "pid": 94581,
+  "port": 3025,
+  "ownership": "94580  1000 next-server (v1",
+  "parentCommand": "sh -c next start --hostname 127.0.0.1 --port 3025",
+  "signal": "SIGTERM",
+  "note": "Exact PID, UID, parent command and listening port verified; no unrelated processes signalled."
+}

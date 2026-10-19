@@ -1,0 +1,63 @@
+{
+  "issue265": {
+    "closedAt": "2026-10-19T02:22:06Z",
+    "number": 265,
+    "state": "CLOSED"
+  },
+  "openIssues": [
+    {
+      "number": 263,
+      "title": "[Inventario] Evitar redirecciones circulares y preservar fotos al editar"
+    },
+    {
+      "number": 253,
+      "title": "[Incidente] API p\u00fablica503 no available server y espera al ingresar"
+    },
+    {
+      "number": 246,
+      "title": "[Coordinaci\u00f3n] Cinco revisiones de agente cada 45 minutos"
+    },
+    {
+      "number": 216,
+      "title": "[Activos] Verificar c\u00f3digos e impresi\u00f3n y lectura de etiquetas"
+    },
+    {
+      "number": 215,
+      "title": "[Compra operativa] Papel adhesivo para impresora existente"
+    },
+    {
+      "number": 214,
+      "title": "[Operaciones] Revisar carga de clientes, proyectos y trabajos"
+    },
+    {
+      "number": 213,
+      "title": "[Integraciones] Verificar OwnData, Ocoin, bancos, ciudades y owncoding-ui"
+    },
+    {
+      "number": 212,
+      "title": "[Contratos] Asistencia Groq con revisi\u00f3n humana"
+    },
+    {
+      "number": 202,
+      "title": "[Plan Scale] Tareas, contratos y seguimiento operativo"
+    },
+    {
+      "number": 158,
+      "title": "[PLT+DSN] SEO t\u00e9cnico \u2014 metadatos, sitemap, structured data y rendimiento"
+    }
+  ],
+  "openPullRequests": [],
+  "incorporatedPullRequests": [
+    264,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271
+  ],
+  "integrationPullRequest": 272,
+  "privatePhotosFollowupIssue": 263,
+  "scheduler246Runs": 0,
+  "scheduler246Configured": false
+}

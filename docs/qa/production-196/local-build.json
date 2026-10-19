@@ -1,0 +1,16 @@
+{
+  "version": "1.0.196",
+  "buildCommit": "dbe3dccca276d2f82ba9bd148d250d443e924542",
+  "buildTree": "a42f7d0702f10b405a56bd6e576d76b83c2a070b",
+  "buildId": "rZ9xEPgWKlMRW2H_Vs8Ks",
+  "checkedAt": "2026-10-19T02:57:48.621269+00:00",
+  "frontend": {
+    "entries": 267,
+    "fragments": 49
+  },
+  "backendScripts": 61,
+  "browserGroups": 19,
+  "nextVersion": "15.5.27",
+  "physicalPrinterTest": false,
+  "providerSha": null
+}

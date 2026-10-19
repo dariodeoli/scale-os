@@ -1,0 +1,2 @@
+# Refs #253: public login proxy must remain available after release.
+node tests/release-smoke.test.mjs

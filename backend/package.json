@@ -1,6 +1,6 @@
 {
   "name": "scale-os-api",
-  "version": "1.0.195",
+  "version": "1.0.196",
   "private": true,
   "type": "module",
   "scripts": {
@@ -29,7 +29,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "pg": "^8.13.1",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "puppeteer-core": "^25.10.0",
     "owncoding-ui": "github:dariodeoli/owncoding-ui#v0.68.19"
   },

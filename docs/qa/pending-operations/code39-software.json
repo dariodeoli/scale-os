@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-10-19T02:36:38.440Z",
+  "sourceCommit": "fca3c8e5e6e11eb90ca4d8e67c47a2e2bfef215d",
+  "scope": "Software audit; no physical printer or production inventory",
+  "independentReference": {
+    "url": "https://raw.githubusercontent.com/zxing/zxing/9172a3da2010082a6c134fa5cade5cb133aae60d/core/src/main/java/com/google/zxing/oned/Code39Reader.java",
+    "sha256": "21a6a826d8d1d9a625331c1662dd48f723d18b654e29ee18f473c23ec96339ac",
+    "characterCount": 43
+  },
+  "characterCount": 43,
+  "mismatches": [],
+  "startMatches": true,
+  "stopMatches": true,
+  "preservedCodeExamples": [
+    {
+      "syntheticId": "1",
+      "code": "SC-000001"
+    },
+    {
+      "syntheticId": "42",
+      "code": "SC-000042"
+    },
+    {
+      "syntheticId": "50",
+      "code": "SC-000050"
+    },
+    {
+      "syntheticId": "9223372036854775807",
+      "code": "SC-9223372036854775807"
+    }
+  ],
+  "label": {
+    "pageWidthMm": 80,
+    "pageHeightMm": 50,
+    "barcodeColumnMm": 29,
+    "defaultCodeSvgModules": 196,
+    "narrowModuleAt29Mm": 0.14795918367346939
+  },
+  "physicalPrintTest": false,
+  "physicalScanTest": false,
+  "productionCoverageVerified": false
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://sistema.scaleparaguay.com/",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://sistema.scaleparaguay.com/privacidad",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://sistema.scaleparaguay.com/robots.txt",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://sistema.scaleparaguay.com/sitemap.xml",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://sistema.scaleparaguay.com/brand/share.png",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://sistema.scaleparaguay.com/missing-seo-158",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://sistema.scaleparaguay.com/status",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://app.scaleparaguay.com/robots.txt",
+    "final": "https://app.scaleparaguay.com/robots.txt",
+    "status": 200,
+    "robots": null,
+    "type": "text/plain",
+    "bytes": 26,
+    "body": "User-agent: *\nDisallow: /\n"
+  },
+  {
+    "url": "https://app.scaleparaguay.com/",
+    "final": "https://app.scaleparaguay.com/",
+    "status": 200,
+    "robots": "noindex, nofollow",
+    "type": "text/html; charset=utf-8",
+    "bytes": 19649,
+    "title": "Scale OS",
+    "tags": [
+      {
+        "name": "description",
+        "content": "Operaci\u00f3n privada de clientes, producci\u00f3n, equipo, inventario y finanzas para agencias."
+      },
+      {
+        "name": "robots",
+        "content": "noindex, nofollow, nocache"
+      }
+    ]
+  },
+  {
+    "url": "https://admin.scaleparaguay.com/",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://cliente.scaleparaguay.com/",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://blog.scaleparaguay.com/",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "url": "https://producto.scaleparaguay.com/",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  }
+]

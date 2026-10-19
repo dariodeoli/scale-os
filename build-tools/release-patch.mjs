@@ -41,5 +41,6 @@ if(prepareOnly){
 }else{
  run('git',['push','origin','HEAD:main'],root);
  if(apiWebhook&&webWebhook){await webhook('API',apiWebhook);await webhook('frontend',webWebhook);}else console.log('Deploy solicitado por el webhook GitHub → Coolify configurado en el repositorio (web + API).');
- await import('./release-smoke.mjs');
+ const {runReleaseSmoke}=await import('./release-smoke.mjs');
+ await runReleaseSmoke();
 }

@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-19T02:01:02.985Z",
+  "url": "https://app.scaleparaguay.com/core-api/api/public/live-visitors/count",
+  "status": 200,
+  "body": {
+    "active_sessions": 0,
+    "window_seconds": 90,
+    "refresh_seconds": 30
+  },
+  "service": "Scale public counter through app/core-api",
+  "apiVersion": "1.0.194",
+  "providerSha": null
+}
