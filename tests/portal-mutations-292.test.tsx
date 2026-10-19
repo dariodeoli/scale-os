@@ -22,12 +22,15 @@ test('portal shares an immediate submission lock across comments and review deci
  let first!:Promise<void>;
  act(()=>{first=form.props.onSubmit({preventDefault(){}});void form.props.onSubmit({preventDefault(){}});void buttons().find(button=>button.children.includes('Aprobar entrega'))!.props.onClick();});
  assert.equal(writes.length,1,'one POST even before React re-renders pending');assert.deepEqual(writes[0].body,{body:'Comentario que se conserva'});
+ assert(renderer.root.findAllByType('textarea').every(field=>field.props.disabled===true),'both drafts are locked during a comment POST so a later draft cannot be erased');
  await act(async()=>{writes[0].resolve(new Response(JSON.stringify({error:'Error controlado'}),{status:503}));await first;});
  assert.equal(renderer.root.findAllByType('textarea')[1].props.value,'Comentario que se conserva');
  assert.match(JSON.stringify(renderer.toJSON()),/Error controlado/);
+ assert(renderer.root.findAllByType('textarea').every(field=>field.props.disabled===false),'failed submission unlocks both retained drafts for retry');
  await act(async()=>{renderer.root.findAllByType('textarea')[0].props.onChange({target:{value:'Revisión QA'}});});
  act(()=>{void buttons().find(button=>button.children.includes('Pedir cambios'))!.props.onClick();void buttons().find(button=>button.children.includes('Aprobar entrega'))!.props.onClick();void form.props.onSubmit({preventDefault(){}});});
  assert.equal(writes.length,2);assert.deepEqual(writes[1].body,{decision:'changes_requested',comment:'Revisión QA'});
+ assert(renderer.root.findAllByType('textarea').every(field=>field.props.disabled===true),'review submission locks both drafts until completion');
  await act(async()=>{writes[1].resolve(new Response(JSON.stringify({ok:true})));});
  assert.equal(destination,'/cliente/entregas');renderer.unmount();
 });

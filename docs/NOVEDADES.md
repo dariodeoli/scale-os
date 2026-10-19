@@ -8,7 +8,8 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
   muestran completos sin quedar cortados dentro de las tarjetas. Los controles
   del encabezado conservan su espacio y se pueden usar con pantalla táctil.
 - **Envíos protegidos**: comentarios y decisiones del portal bloquean envíos
-  simultáneos. Si falla el cierre de sesión, aparece un mensaje con foco para
+  simultáneos y protegen el borrador durante el guardado. Si falla el cierre de
+  sesión, aparece un mensaje con foco para
   poder reintentar.
 - **Verificación ampliada**: revisión de portal, superadmin, rutas secundarias y
   formularios internos, incluyendo pantallas bajas y orientación horizontal.

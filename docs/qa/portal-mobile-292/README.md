@@ -70,3 +70,7 @@ Chromium con emulación no acredita Safari/WebKit, un iPhone/Android físico, OA
 - Backend `node test-client-portal.mjs`: PASS; acredita identidades aisladas, descargas autorizadas, decisiones/comentarios, revocación y exposición privada en base sintética local.
 - Next real: el primer intento local sin Host devolvió404 por el middleware deliberado; el runner incorpora un proxy loopback con Host `app.scaleparaguay.com`, sin DNS ni tráfico de producción. El intento posterior acreditó vistas iniciales y detectó el target Volver estrecho; el control negativo queda en `baseline-next-back-target.log`. Las capturas `next-light-*-390.png` son focales de ese intento, no una matriz Next completa. El integrador debe ejecutar el runner sobre su build final.
 - Regresión completa de271 entradas existentes en ejecución al entregar; no sustituye el CI del PR.
+
+## Revisión final de integración
+
+Los borradores de comentario y revisión se deshabilitan durante el POST compartido: escribir una segunda versión mientras se enviaba la primera podía perder ese texto al completar el guardado. El control negativo falló con los campos editables; la regresión exige bloqueo de ambos campos durante comentario/decisión y desbloqueo conservando el texto tras error. El tamaño táctil usa exclusivamente `size="large"` del botón canónico.
