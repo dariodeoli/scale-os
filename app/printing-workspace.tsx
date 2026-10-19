@@ -37,20 +37,28 @@ function PrintingScope({demo}:{demo:boolean}){
  const [data,setData]=useState<Snapshot|null>(null),[error,setError]=useState(''),[form,setForm]=useState<Form|null>(null),[busy,setBusy]=useState(false),[pairing,setPairing]=useState<{pairing_code:string;expires_at:string}|null>(null),[revoking,setRevoking]=useState<Bridge|null>(null),[canceling,setCanceling]=useState<Job|null>(null);
  const [previewDraft,setPreviewDraft]=useState<Readonly<Record<string,string>>|null>(null);
  const editorRef=useRef<EditorHandle>(null);
- const intentKey=useRef('');
+ const intentKey=useRef(''),accessGeneration=useRef(0);
  const mounted=useRef(true),locked=useRef(false),epoch=useRef(0);
- const refresh=useCallback(async()=>{if(demo){setData({can_manage:false,can_print:false,printers:[],bridges:[],templates:[{id:'demo-preview',name:'Vista previa de térmica',kind:'test',version:1,definition:defaultDefinition}],jobs:[],audit:[]});return;}const generation=++epoch.current;try{const snapshot=await request<Snapshot>(base,{cache:'no-store'});if(mounted.current&&generation===epoch.current){setData(snapshot);setError('');}}catch(e){if(mounted.current&&generation===epoch.current)setError(failure(e));}},[demo]);
+ const discardAccess=useCallback((cause:unknown)=>{
+  const status=typeof cause==='object'&&cause!==null&&'status' in cause?cause.status:undefined;
+  if(status!==401&&status!==403)return false;
+  ++epoch.current;++accessGeneration.current;intentKey.current='';
+  if(mounted.current){setData(null);setForm(null);setPairing(null);setRevoking(null);setCanceling(null);setPreviewDraft(null);setError(failure(cause));}
+  return true;
+ },[]);
+ const refresh=useCallback(async()=>{if(demo){setData({can_manage:false,can_print:false,printers:[],bridges:[],templates:[{id:'demo-preview',name:'Vista previa de térmica',kind:'test',version:1,definition:defaultDefinition}],jobs:[],audit:[]});return;}const generation=++epoch.current;try{const snapshot=await request<Snapshot>(base,{cache:'no-store'});if(mounted.current&&generation===epoch.current){setData(snapshot);setError('');}}catch(e){if(mounted.current){if(discardAccess(e))return;if(generation===epoch.current)setError(failure(e));}}},[demo,discardAccess]);
  useEffect(()=>{mounted.current=true;void refresh();const timer=setInterval(()=>void refresh(),15000);return()=>{mounted.current=false;++epoch.current;clearInterval(timer);};},[refresh]);
  async function mutate(path:string,body:unknown,method='POST'){
   if(locked.current)throw new Error('Esperá a que termine la operación actual.');
-  locked.current=true;setBusy(true);setError('');
-  try{return await request<Record<string,unknown>>(base+path,{method,body:JSON.stringify(body)});}finally{locked.current=false;if(mounted.current)setBusy(false);}
+  locked.current=true;setBusy(true);setError('');const generation=accessGeneration.current;
+  try{const result=await request<Record<string,unknown>>(base+path,{method,body:JSON.stringify(body)});if(generation!==accessGeneration.current)throw new Error('Tu acceso cambió. Volvé a abrir Impresoras.');return result;}catch(e){if(mounted.current)discardAccess(e);throw e;}finally{locked.current=false;if(mounted.current)setBusy(false);}
  }
  async function save(values:Record<string,string>){
   if(!form||!data)return;
   if(demo){setForm(null);return;}
+  const generation=accessGeneration.current;
   if(form.type==='printer')await mutate(`/printers${form.printer?'/'+form.printer.id:''}`,{name:values.name,model:values.model,branch_id:values.branch_id||'main',connection:values.connection,destination:values.destination,width_mm:80,copies:Number(values.copies),auto_cut:values.auto_cut==='true',enabled:values.enabled==='true'},form.printer?'PATCH':'POST');
-  if(form.type==='bridge'){const result=await mutate('/bridges',{name:values.name,branch_id:values.branch_id||'main'});if(mounted.current)setPairing(result as {pairing_code:string;expires_at:string});}
+  if(form.type==='bridge'){const result=await mutate('/bridges',{name:values.name,branch_id:values.branch_id||'main'});if(mounted.current&&generation===accessGeneration.current)setPairing(result as {pairing_code:string;expires_at:string});}
   if(form.type==='template')await mutate(`/templates${form.template&&!form.copy?'/'+form.template.id:''}`,{name:values.name,kind:values.kind,expected_version:form.copy?undefined:form.template?.version,definition:{...defaultDefinition,marginsMm:{top:Number(values.top),right:Number(values.right),bottom:Number(values.bottom),left:Number(values.left)},fontSize:Number(values.fontSize) as 10|14,autoCut:values.auto_cut==='true'}},form.template&&!form.copy?'PATCH':'POST');
   if(form.type==='confirm')await mutate(`/jobs/${form.job!.id}/confirm`,{suffix:values.suffix});
   if(form.type==='job'){
@@ -61,7 +69,7 @@ function PrintingScope({demo}:{demo:boolean}){
    if(form.job)await mutate(`/jobs/${form.job.id}/reprint`,{confirm:true,idempotency_key:key,data:document});
    else await mutate('/jobs',{printer_id:values.printer_id,template_id:values.template_id,reference:values.reference,copies:Number(values.copies),data:document,idempotency_key:key});
   }
-  if(mounted.current){setForm(null);await refresh();}
+  if(mounted.current&&generation===accessGeneration.current){setForm(null);await refresh();}
  }
  function fields():Field[]{
   if(form?.type==='printer')return [{key:'name',label:'Nombre',maxLength:120,span:4},{key:'model',label:'Modelo',optional:true,maxLength:120,span:4,help:'Si no lo conocés, dejalo sin completar.'},{key:'branch_id',label:'Ámbito del puente',maxLength:40,span:4},{key:'connection',label:'Conexión',choices:[{value:'lan',label:'LAN TCP'},{value:'cups',label:'Cola CUPS (USB o red)'}],span:4},{key:'destination',label:'Destino del agente',maxLength:180,span:6,help:'LAN: lan:192.168.1.10:9100. USB: usá una cola CUPS instalada, cups:NOMBRE.'},{key:'copies',label:'Copias',type:'number',integer:true,min:'1',max:'5',span:2},{key:'auto_cut',label:'Solicitar corte',type:'checkbox',optional:true,span:6},{key:'enabled',label:'Habilitada',type:'checkbox',optional:true,span:6}];

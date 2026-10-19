@@ -5,10 +5,10 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 require.extensions['.css']=(module:NodeModule)=>{module.exports={};};
 Object.assign(globalThis,{React});
 const calls:{path:string;body:Record<string,unknown>|undefined;init:RequestInit|undefined}[]=[];
-let manage=true,print=true,failJob=false,qrPermission=false;let deferRead=false,deferPair=false;let resolveRead:((v:unknown)=>void)|undefined,resolvePair:((v:unknown)=>void)|undefined;
+let manage=true,print=true,failJob=false,qrPermission=false;let deferRead=false,deferPair=false;let nextReadError:Error|undefined,nextMutationError:Error|undefined;let resolveRead:((v:unknown)=>void)|undefined,resolvePair:((v:unknown)=>void)|undefined;
 const snapshot=()=>({can_manage:manage,can_print:print,can_print_budget_qr:qrPermission,printers:[{id:'p1',name:'Térmica',width_mm:80,enabled:true,connection:'lan',destination:'lan:192.168.1.10:9100',copies:1,auto_cut:false}],bridges:[],templates:[{id:'t1',name:'Prueba80',kind:'test',version:1,definition:{version:1,widthMm:80,heightMm:'auto',orientation:'portrait',marginsMm:{top:2,left:4,right:4,bottom:2},fontSize:10,autoCut:false}}],jobs:[{id:'j1',kind:'test',reference:'INV-42',state:'incierto',printer_id:'p1',template_id:'t1',template_version:1,copies:1,created_at:'2026-10-19T00:00:00Z'}],audit:[]});
 const requestId=require.resolve('../app/workspace-request');
-require.cache[requestId]={id:requestId,filename:requestId,loaded:true,exports:{request:async(path:string,init?:RequestInit)=>{const body=init?.body?JSON.parse(String(init.body)):undefined;calls.push({path,body,init});if(!init?.method){if(deferRead){deferRead=false;return new Promise(resolve=>{resolveRead=resolve;});}return snapshot();}if(path.endsWith('/bridges')&&deferPair){deferPair=false;return new Promise(resolve=>{resolvePair=resolve;});}if(path.endsWith('/bridges'))return {bridge:{id:'b1'},pairing_code:'ONCE-123',expires_at:'2026-10-20T00:00:00Z'};if(failJob&&path.endsWith('/reprint'))throw Error('Servidor no responde');return {ok:true};}}} as NodeModule;
+require.cache[requestId]={id:requestId,filename:requestId,loaded:true,exports:{request:async(path:string,init?:RequestInit)=>{const body=init?.body?JSON.parse(String(init.body)):undefined;calls.push({path,body,init});if(!init?.method){if(nextReadError){const error=nextReadError;nextReadError=undefined;throw error;}if(deferRead){deferRead=false;return new Promise(resolve=>{resolveRead=resolve;});}return snapshot();}if(nextMutationError){const error=nextMutationError;nextMutationError=undefined;throw error;}if(path.endsWith('/bridges')&&deferPair){deferPair=false;return new Promise(resolve=>{resolvePair=resolve;});}if(path.endsWith('/bridges'))return {bridge:{id:'b1'},pairing_code:'ONCE-123',expires_at:'2026-10-20T00:00:00Z'};if(failJob&&path.endsWith('/reprint'))throw Error('Servidor no responde');return {ok:true};}}} as NodeModule;
 const operationsId=require.resolve('../app/operations');
 function EditorMock(_props:Record<string,unknown>){return <div data-editor=""/>;}
 function DialogMock({title,children,close}:{title:string;children:React.ReactNode;close:()=>void}){return <section data-dialog={title}><button onClick={close}>Cerrar diálogo</button>{children}</section>;}
@@ -66,4 +66,22 @@ test('budget QR is opt-in, validates canonical URLs and is absent without capabi
  const qrUrl='https://api.scaleparaguay.com/p/abcdefghijklmnop';assert.equal(field.validate!(qrUrl),null);const values={...editor(r!).defaults,reference:'TEST-QR',qrUrl};
  await act(async()=>editor(r!).onValuesChange(values));assert.match(r!.root.findByType('iframe').props.srcDoc,/data-qr-ecc="H"/);
  await act(async()=>editor(r!).save(values));const sent=calls.findLast(call=>call.path.endsWith('/jobs'))!;assert.equal((sent.body!.data as {qrUrl:string}).qrUrl,qrUrl);assert.equal('confirmationSuffix' in (sent.body!.data as object),false);await act(async()=>r!.unmount());qrPermission=false;
+});
+
+test('401/403 refresh discards visible pairing secrets and ignores older successful reads',async()=>{
+ for(const status of [401,403]){
+  manage=true;print=true;let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace/>);});await act(async()=>button(r!,'Emparejar computadora').props.onClick());await act(async()=>editor(r!).save({name:'Computer',branch_id:'main'}));assert.match(JSON.stringify(r!.toJSON()),/ONCE-123/);
+  deferRead=true;await act(async()=>button(r!,'Actualizar').props.onClick());const oldRead=resolveRead!;nextReadError=Object.assign(new Error('Acceso revocado'),{status});await act(async()=>button(r!,'Actualizar').props.onClick());
+  assert.doesNotMatch(JSON.stringify(r!.toJSON()),/ONCE-123|INV-42/);assert.equal(button(r!,'Agregar impresora'),undefined);assert.match(JSON.stringify(r!.toJSON()),/Acceso revocado/);
+  await act(async()=>oldRead(snapshot()));assert.equal(button(r!,'Agregar impresora'),undefined);assert.doesNotMatch(JSON.stringify(r!.toJSON()),/ONCE-123|INV-42/);await act(async()=>r!.unmount());
+ }
+});
+test('mutation 403 clears sensitive UI while 500 preserves the editable draft',async()=>{
+ let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace/>);});await act(async()=>button(r!,'Preparar impresión').props.onClick());const values={...editor(r!).defaults,reference:'DRAFT-PRESERVED',notes:'Revisar contenido'};await act(async()=>editor(r!).onValuesChange(values));
+ nextMutationError=Object.assign(new Error('Probá de nuevo'),{status:500});await act(async()=>{await assert.rejects(editor(r!).save(values),/Probá/);});assert.ok(editor(r!));assert.match(r!.root.findByType('iframe').props.srcDoc,/DRAFT-PRESERVED/);
+ nextMutationError=Object.assign(new Error('Sin permiso'),{status:403});await act(async()=>{await assert.rejects(editor(r!).save(values),/Sin permiso/);});assert.equal(r!.root.findAllByType(EditorMock).length,0);assert.equal(button(r!,'Preparar impresión'),undefined);assert.doesNotMatch(JSON.stringify(r!.toJSON()),/DRAFT-PRESERVED|INV-42/);await act(async()=>r!.unmount());
+});
+test('a late pairing response cannot resurrect a secret after permission revocation',async()=>{
+ let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace/>);});await act(async()=>button(r!,'Emparejar computadora').props.onClick());deferPair=true;let pending:Promise<void>;await act(async()=>{pending=editor(r!).save({name:'Computer',branch_id:'main'});});nextReadError=Object.assign(new Error('Acceso revocado'),{status:403});await act(async()=>button(r!,'Actualizar').props.onClick());
+ await act(async()=>{resolvePair!({pairing_code:'LATE-SECRET',expires_at:'2026-10-20T00:00:00Z'});await assert.rejects(pending!,/acceso cambió/);});assert.doesNotMatch(JSON.stringify(r!.toJSON()),/LATE-SECRET/);assert.equal(button(r!,'Agregar impresora'),undefined);await act(async()=>r!.unmount());
 });
