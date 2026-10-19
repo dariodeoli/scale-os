@@ -64,14 +64,14 @@ y autorizados. No inventa empresa, cliente, importe ni fecha actual.
 Se rechazan caracteres de control (incluidos ESC y NUL), campos
 desconocidos, versiones futuras, otros anchos, orientación horizontal, alturas
 fijas y QR. Solo en `notes`, saltos LF y CRLF de un textarea se normalizan a
-espacios; los otros controles y saltos en otros campos se rechazan. Márgenes entre 0 y 10 mm, enteros de fuente entre 8 y 14, corte
+espacios; los otros controles y saltos en otros campos se rechazan. Márgenes entre 0 y 10 mm, presets de fuente 10 (normal) o 14 (doble), corte
 booleano. Los cambios se guardan en la versión de plantilla del API; el `version`
 del documento aquí es el formato del renderer (1), no el contador de edición.
 
 ## Papel, fuente, corte y códigos
 
 El perfil inicial supone ESC/POS a **203 dpi**, fuente A de 12 × 24 puntos y
-avance de 30 puntos. Fuentes 8–12 usan escala 1; 13–14 escala 2. Los valores son
+avance de 30 puntos. La fuente 10 usa escala 1; la fuente 14 usa escala 2. Los valores son
 presets de legibilidad, no una promesa de puntos tipográficos arbitrarios. La
 vista previa usa las mismas medidas de celda y filas; la forma exacta de cada
 glifo depende de la fuente del navegador y del firmware. `printMmToPx` usa 96 dpi

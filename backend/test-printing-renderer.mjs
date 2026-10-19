@@ -5,7 +5,7 @@ import {PRINT_TEMPLATE_80,PRINT_KINDS,normalizePrintTemplate,normalizePrintDocum
 const template=normalizePrintTemplate();
 assert.equal(template.widthMm,80);
 assert(Math.abs(printMmToPx(80)-302.3622047244)<0.00001);
-for(const bad of [{widthMm:58},{heightMm:50},{orientation:'landscape'},{version:2},{marginsMm:{left:-1}},{marginsMm:{right:NaN}},{fontSize:15},{fontSize:8.5},{autoCut:1},{url:'https://other.test'}]) assert.throws(()=>normalizePrintTemplate(bad));
+for(const bad of [{widthMm:58},{heightMm:50},{orientation:'landscape'},{version:2},{marginsMm:{left:-1}},{marginsMm:{right:NaN}},{fontSize:15},{fontSize:8.5},{fontSize:8},{fontSize:11},{fontSize:12},{fontSize:13},{autoCut:1},{url:'https://other.test'}]) assert.throws(()=>normalizePrintTemplate(bad));
 assert(Object.isFrozen(template));assert(Object.isFrozen(template.marginsMm));
 assert.equal(PRINT_TEMPLATE_80.autoCut,false);
 for(const kind of PRINT_KINDS){
