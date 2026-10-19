@@ -1,0 +1,35 @@
+{
+  "candidate_sha": "3487e079887e12e7b03b1a69477bde8ed49edc5c",
+  "release_prepare_sha": "ad322fa6253620ad5c2567d30ff317f37495a669",
+  "version": "1.0.197",
+  "build_id": "vMSF0T8Me3QSBG8Iav5PR",
+  "frontend": {
+    "entries": 271,
+    "fragments": 52,
+    "status": "PASS"
+  },
+  "backend": {
+    "release_scripts": 61,
+    "status": "PASS"
+  },
+  "browser_general_groups": 19,
+  "browser_general_status": "PASS",
+  "browser_geometry_fixtures": 42,
+  "balance_actual_component_widths": [
+    320,
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "month_browser_checks": 22,
+  "action_inventory": {
+    "canonical": 605,
+    "native_exact": 55,
+    "renderer": 1,
+    "unreviewed": 0
+  },
+  "landing_source_sha256": "379b38c2628d9577cd40b9848df2c16d546923128b0cdd40d52a6933eff09603",
+  "limits": "Local synthetic transport and UI fixtures; no authenticated production feature session, physical hardware or OAuth test."
+}

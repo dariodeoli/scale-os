@@ -40,7 +40,9 @@ Preparación local completa: 271 entradas frontend en 52 fragmentos PASS;
 build Next de 64 páginas y tipos PASS; 61 scripts backend PASS. Artefacto
 `.next/BUILD_ID`: `vMSF0T8Me3QSBG8Iav5PR`. Assets login/status/registro dentro
 del presupuesto. CI detecta el navegador instalado del runner para ejecutar las
-nuevas regresiones visuales. Pendientes: CI candidato, merge, CI main y deploy.
+nuevas regresiones visuales. Publicado y verificado: CI candidato y main aprobados; main `e04961c4`.
+Web/API 1.0.197, base lista, smoke seis probes y CSS exacto PASS.
+Evidencia final: [production-197](production-197/README.md).
 Los resultados finales deben registrarse con sus SHA y respuestas servidas.
 
 ## Reversión y límites

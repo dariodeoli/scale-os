@@ -1,0 +1,312 @@
+{
+  "expected_version": "1.0.197",
+  "stable": true,
+  "observations": [
+    {
+      "observed_at": "2026-10-19T04:13:04.085371+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.196",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:13:26.014974+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.196",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:13:47.455443+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.196",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:14:08.889095+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.196",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:14:29.833139+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.196",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:14:50.870888+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:15:12.310609+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.196",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:15:33.440659+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:15:54.795867+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:16:15.645074+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:16:36.695096+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:16:58.521494+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:17:19.487302+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:17:40.676099+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": false
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:18:01.635109+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": true
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:18:23.062911+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": false
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": true
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:18:44.563002+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": true
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": true
+      }
+    },
+    {
+      "observed_at": "2026-10-19T04:19:05.386270+00:00",
+      "api": {
+        "http_status": 200,
+        "version": "1.0.197",
+        "ok": true,
+        "database": "ready"
+      },
+      "web": {
+        "http_status": 200,
+        "expected_version_visible": true
+      },
+      "registro": {
+        "http_status": 200,
+        "expected_version_visible": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "candidate_sha": "3487e079887e12e7b03b1a69477bde8ed49edc5c",
+  "main_sha": "e04961c4c37383a0828f4b2809cc728637b43f8a",
+  "candidate_tree": "fdb5211a10fe6ee503301fe5eec957614ea6072d",
+  "main_tree": "fdb5211a10fe6ee503301fe5eec957614ea6072d",
+  "same_tree": true,
+  "candidate_is_ancestor_of_main": true,
+  "provider_container_sha": null
+}

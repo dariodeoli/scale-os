@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/_next/static/css/4a842bfd6d7c8e80.css",
+    "sha256": "ed83a53f81249e84323d570011e33b1782b40e4dea35e3d081a3cb46d59c9c48",
+    "month_picker": true,
+    "page_navigation": false
+  },
+  {
+    "path": "/_next/static/css/97013c1ac9e88749.css",
+    "sha256": "bf9bf94a37acbc2e507639161674eee2e65d638278e9e03bbfe949e8bca59c49",
+    "month_picker": false,
+    "page_navigation": true
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "observed_at_utc": "2026-10-19T04:19:30.392657+00:00",
+  "observed_at_asuncion": "2026-10-19T01:19:30.392657-03:00",
+  "expected_version": "1.0.197",
+  "endpoints": {
+    "api": {
+      "http_status": 200,
+      "health": {
+        "ok": true,
+        "database": "ready",
+        "release": {
+          "version": "1.0.197",
+          "application": "Scale OS"
+        }
+      }
+    },
+    "web": {
+      "http_status": 200,
+      "version_visible": true
+    },
+    "registro": {
+      "http_status": 200,
+      "version_visible": true
+    }
+  },
+  "ui_assets": [
+    {
+      "path": "/_next/static/css/4a842bfd6d7c8e80.css",
+      "sha256": "ed83a53f81249e84323d570011e33b1782b40e4dea35e3d081a3cb46d59c9c48",
+      "month_picker": true,
+      "page_navigation": false,
+      "served_sha256": "ed83a53f81249e84323d570011e33b1782b40e4dea35e3d081a3cb46d59c9c48",
+      "http_status": 200,
+      "matches_local": true
+    },
+    {
+      "path": "/_next/static/css/97013c1ac9e88749.css",
+      "sha256": "bf9bf94a37acbc2e507639161674eee2e65d638278e9e03bbfe949e8bca59c49",
+      "month_picker": false,
+      "page_navigation": true,
+      "served_sha256": "bf9bf94a37acbc2e507639161674eee2e65d638278e9e03bbfe949e8bca59c49",
+      "http_status": 200,
+      "matches_local": true
+    }
+  ],
+  "provider_container_sha": null,
+  "limits": "Public readiness and artifact checks; authenticated production feature session not performed.",
+  "landing": {
+    "http_status": 200,
+    "sha256": "379b38c2628d9577cd40b9848df2c16d546923128b0cdd40d52a6933eff09603",
+    "matches_local": true
+  }
+}

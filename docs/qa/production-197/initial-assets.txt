@@ -1,0 +1,3 @@
+PASS initial login: 1230444 raw / 371088 gzip bytes, 21 scripts, no financial artwork
+PASS initial status: 650307 raw / 197196 gzip bytes, 14 scripts, no financial artwork
+PASS initial registro: 920429 raw / 281509 gzip bytes, 17 scripts, no financial artwork
