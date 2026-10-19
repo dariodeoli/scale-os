@@ -1,4 +1,5 @@
 /** Pure, browser-safe composition for Scale's 80 mm thermal documents. */
+import QRCode from 'qrcode/lib/core/qrcode.js';
 export const PRINT_KINDS = Object.freeze(['test', 'receipt', 'quote', 'inventory-label']);
 export const PRINT_TEMPLATE_80 = Object.freeze({version:1,widthMm:80,heightMm:'auto',orientation:'portrait',marginsMm:Object.freeze({top:2,right:4,bottom:2,left:4}),fontSize:10,autoCut:false});
 export const PRINT_MAX_PAYLOAD_BYTES = 65536;
@@ -21,6 +22,12 @@ function text(value, max, field, required=false) {
 }
 /** Convert mm to CSS pixels without relying on a browser's device pixel ratio. */
 export function printMmToPx(mm) { return number(mm,0,1000,'mm') * 96 / 25.4; }
+/** Shape only; the API must separately authorize the existing budget token. */
+export function normalizePrintQrUrl(value) {
+ const normalized=text(value,200,'QR');
+ if(normalized && !/^https:\/\/api\.scaleparaguay\.com\/p\/[A-Za-z0-9_-]{16,128}$/.test(normalized)) throw new Error('QR: solo enlace publico existente de presupuesto Scale');
+ return normalized;
+}
 export function normalizePrintTemplate(input={}) {
  allowed(input,['version','widthMm','heightMm','orientation','marginsMm','fontSize','autoCut'],'plantilla');
  const template={...PRINT_TEMPLATE_80,...input};
@@ -35,13 +42,14 @@ export function normalizePrintTemplate(input={}) {
 }
 export function normalizePrintDocument(kind,input) {
  if(!PRINT_KINDS.includes(kind)) throw new Error('Tipo de documento no admitido');
- allowed(input,['kind','reference','title','companyName','companyRuc','customerName','issuedAt','lines','total','notes','inventoryCode','confirmationSuffix'],'documento');
+ allowed(input,['kind','reference','title','companyName','companyRuc','customerName','issuedAt','lines','total','notes','inventoryCode','confirmationSuffix','qrUrl'],'documento');
  if(input.kind!==undefined && input.kind!==kind) throw new Error('Tipo de documento inconsistente');
  const document={kind,reference:text(input.reference,80,'referencia',true),title:text(input.title,120,'titulo'),companyName:text(input.companyName,120,'empresa'),companyRuc:text(input.companyRuc,40,'RUC'),customerName:text(input.customerName,120,'cliente'),issuedAt:text(input.issuedAt,25,'fecha'),total:text(input.total,80,'total'),notes:text(typeof input.notes==='string'?input.notes.replace(/\r\n|\n/g,' '):input.notes,600,'notas'),inventoryCode:text(input.inventoryCode,24,'codigo'),confirmationSuffix:text(input.confirmationSuffix,16,'confirmacion')};
  if(document.issuedAt && (!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z)?$/.test(document.issuedAt) || Number.isNaN(Date.parse(document.issuedAt)) || new Date(document.issuedAt).toISOString().slice(0,10)!==document.issuedAt.slice(0,10))) throw new Error('Fecha ISO invalida');
  if(document.confirmationSuffix && !/^[A-Za-z0-9-]{4,16}$/.test(document.confirmationSuffix)) throw new Error('Confirmacion invalida');
  if(document.inventoryCode && (!/^[0-9A-Z\-. $/+%]+$/.test(document.inventoryCode) || kind!=='inventory-label')) throw new Error('Codigo Code39 de inventario invalido');
  if(kind==='inventory-label' && !document.inventoryCode) throw new Error('Codigo existente de inventario requerido');
+ document.qrUrl=normalizePrintQrUrl(input.qrUrl);
  if(input.lines!==undefined && (!Array.isArray(input.lines) || input.lines.length>30)) throw new Error('Maximo 30 lineas');
  document.lines=Object.freeze((input.lines||[]).map(line=> {allowed(line,['label','value'],'linea');return Object.freeze({label:text(line.label,120,'concepto',true),value:text(line.value,80,'valor')});}));
  return Object.freeze(document);
@@ -91,7 +99,14 @@ function compose(template,document) {
   barcode={bits,moduleDots,quietDots,widthDots:barcodeWidthDots,heightDots:96,value:document.inventoryCode};
   add(document.inventoryCode);
  }
- return {lines,columns,scale,cellDots,lineDots,widthDots,barcode};
+ let qr=null;
+ if(document.qrUrl) {
+  const matrix=QRCode.create(document.qrUrl,{errorCorrectionLevel:'H'}).modules;
+  const moduleDots=7, quietModules=4, qrWidthDots=(matrix.size+quietModules*2)*moduleDots;
+  if(qrWidthDots>widthDots) throw new Error('QR no cabe con modulo de 7 puntos y zona segura; ampliar ancho imprimible');
+  qr={size:matrix.size,data:matrix.data,moduleDots,quietModules,widthDots:qrWidthDots};
+ }
+ return {lines,columns,scale,cellDots,lineDots,widthDots,barcode,qr};
 }
 const escapeHtml=value=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function preview(template,layout) {
@@ -102,8 +117,14 @@ function preview(template,layout) {
   const bars=Array.from(b.bits,(bit,index)=>bit==='1'?`<rect x="${b.quietDots+index*b.moduleDots}" y="0" width="${b.moduleDots}" height="${b.heightDots}"/>`:'').join('');
   barcode=`<svg role="img" aria-label="Codigo de barras ${escapeHtml(b.value)}" viewBox="0 0 ${b.widthDots} ${b.heightDots}" width="${mm(b.widthDots)}mm" height="${mm(b.heightDots)}mm" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
  }
+ let qr='';
+ if(layout.qr) {
+  const q=layout.qr,bars=[];
+  for(let row=0;row<q.size;row++) for(let column=0;column<q.size;column++) if(q.data[row*q.size+column]) bars.push(`<rect x="${(column+q.quietModules)*q.moduleDots}" y="${(row+q.quietModules)*q.moduleDots}" width="${q.moduleDots}" height="${q.moduleDots}"/>`);
+  qr=`<svg data-qr-ecc="H" data-qr-module-dots="7" data-qr-quiet-modules="4" role="img" aria-label="QR del presupuesto publico" viewBox="0 0 ${q.widthDots} ${q.widthDots}" width="${mm(q.widthDots)}mm" height="${mm(q.widthDots)}mm" xmlns="http://www.w3.org/2000/svg">${bars.join('')}</svg>`;
+ }
  const rows=layout.lines.map(line=>`<div class="line${line.bold?' bold':''}">${escapeHtml(line.text)||' '}</div>`).join('');
- return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vista previa termica 80 mm</title><style>@page{size:80mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#000}main{width:80mm;padding:${template.marginsMm.top}mm ${template.marginsMm.right}mm ${template.marginsMm.bottom}mm ${template.marginsMm.left}mm}.line{font-family:monospace;font-size:${mm(20*layout.scale)}mm;line-height:${mm(layout.lineDots)}mm;letter-spacing:0;white-space:pre;overflow-wrap:normal;min-height:${mm(layout.lineDots)}mm;width:${mm(layout.columns*layout.cellDots)}mm}.bold{font-weight:700}svg{display:block;max-width:100%;fill:#000}.guides{border:0}</style></head><body><main data-width-mm="80" data-columns="${layout.columns}" data-template-version="${template.version}">${rows}${barcode}</main></body></html>`;
+ return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vista previa termica 80 mm</title><style>@page{size:80mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#000}main{width:80mm;padding:${template.marginsMm.top}mm ${template.marginsMm.right}mm ${template.marginsMm.bottom}mm ${template.marginsMm.left}mm}.line{font-family:monospace;font-size:${mm(20*layout.scale)}mm;line-height:${mm(layout.lineDots)}mm;letter-spacing:0;white-space:pre;overflow-wrap:normal;min-height:${mm(layout.lineDots)}mm;width:${mm(layout.columns*layout.cellDots)}mm}.bold{font-weight:700}svg{display:block;max-width:100%;fill:#000}.guides{border:0}</style></head><body><main data-width-mm="80" data-columns="${layout.columns}" data-template-version="${template.version}">${rows}${barcode}${qr}</main></body></html>`;
 }
 function encodeEscPos(template,layout) {
  const bytes=[0x1b,0x40,0x1b,0x4d,0,0x1b,0x74,0,0x1d,0x21,layout.scale===2?0x11:0];
@@ -119,6 +140,19 @@ function encodeEscPos(template,layout) {
   const b=layout.barcode, rowBytes=Math.ceil(b.widthDots/8);
   push(0x1d,0x76,0x30,0,rowBytes&255,rowBytes>>8,b.heightDots&255,b.heightDots>>8);
   for(let y=0;y<b.heightDots;y++) for(let byte=0;byte<rowBytes;byte++) {let value=0;for(let bit=0;bit<8;bit++){const x=byte*8+bit-b.quietDots; if(x>=0 && x<b.bits.length*b.moduleDots && b.bits[Math.floor(x/b.moduleDots)]==='1') value|=1<<(7-bit);}push(value);}
+  push(10);
+ }
+ if(layout.qr) {
+  const q=layout.qr, rowBytes=Math.ceil(q.widthDots/8), quietDots=q.quietModules*q.moduleDots;
+  push(0x1d,0x76,0x30,0,rowBytes&255,rowBytes>>8,q.widthDots&255,q.widthDots>>8);
+  for(let y=0;y<q.widthDots;y++) for(let byte=0;byte<rowBytes;byte++) {
+   let value=0;
+   for(let bit=0;bit<8;bit++) {
+    const column=Math.floor((byte*8+bit-quietDots)/q.moduleDots), row=Math.floor((y-quietDots)/q.moduleDots);
+    if(row>=0 && row<q.size && column>=0 && column<q.size && q.data[row*q.size+column]) value|=1<<(7-bit);
+   }
+   push(value);
+  }
   push(10);
  }
  feed(template.marginsMm.bottom);

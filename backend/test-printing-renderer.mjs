@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-import {PRINT_TEMPLATE_80,PRINT_KINDS,normalizePrintTemplate,normalizePrintDocument,renderPrintDocument,renderPrintPreview,printMmToPx,printCode39Bits} from './printing-renderer.js';
+import QRCode from 'qrcode/lib/core/qrcode.js';
+import {PRINT_TEMPLATE_80,PRINT_KINDS,normalizePrintTemplate,normalizePrintDocument,renderPrintDocument,renderPrintPreview,printMmToPx,printCode39Bits,normalizePrintQrUrl} from './printing-renderer.js';
 const template=normalizePrintTemplate();
 assert.equal(template.widthMm,80);
 assert(Math.abs(printMmToPx(80)-302.3622047244)<0.00001);
@@ -55,4 +56,35 @@ assert.equal(columns,47);
 assert(wrapped.html.includes('A'.repeat(columns)));
 const wide=renderPrintDocument({template:{fontSize:14},document:normalizePrintDocument('test',{reference:'x'})});
 assert(wide.html.includes('data-columns="23"'));
-console.log('printing-renderer: PASS (80 mm bounds, escaping, control rejection, ASCII policy, identical composition, copies, cut, Code39 parity/raster)');
+const qrUrl='https://api.scaleparaguay.com/p/EXISTING_BUDGET_TEST_1234';
+assert.equal(normalizePrintQrUrl(qrUrl),qrUrl);
+assert.equal(normalizePrintQrUrl(), '');
+for(const bad of ['http://api.scaleparaguay.com/p/EXISTING_BUDGET_TEST_1234','https://api.scaleparaguay.com:443/p/EXISTING_BUDGET_TEST_1234','https://user:pass@api.scaleparaguay.com/p/EXISTING_BUDGET_TEST_1234','https://evil.test/p/EXISTING_BUDGET_TEST_1234',`${qrUrl}?x=1`,`${qrUrl}#x`,`${qrUrl}/`,'https://api.scaleparaguay.com/p/short','https://api.scaleparaguay.com/p/'+ 'a'.repeat(129),'https://api.scaleparaguay.com/p/%2e%2e/EXISTING_BUDGET_TEST_1234']) assert.throws(()=>normalizePrintQrUrl(bad));
+const qrDocument=normalizePrintDocument('quote',{reference:'PRES-1',qrUrl});
+const qrResult=renderPrintDocument({template,document:qrDocument});
+assert.equal(qrResult.html,renderPrintPreview({template,document:qrDocument}));
+assert(!JSON.stringify(qrResult.snapshot).includes('EXISTING_BUDGET'));
+assert(!qrResult.html.includes(qrUrl)); // Pattern only: no token in labels or markup.
+assert(qrResult.html.includes('data-qr-ecc="H"'));
+const qr=QRCode.create(qrUrl,{errorCorrectionLevel:'H'}), qrSize=(qr.modules.size+8)*7, rowBytes=Math.ceil(qrSize/8);
+const qrPayload=Buffer.from(qrResult.payloadBase64,'base64');
+const rasterOffset=qrPayload.indexOf(Buffer.from([29,118,48,0]));
+assert(rasterOffset>0);
+assert.equal(qrPayload.readUInt16LE(rasterOffset+4),rowBytes);
+assert.equal(qrPayload.readUInt16LE(rasterOffset+6),qrSize);
+assert(qrSize <= Math.floor(72*203/25.4));
+const qrSvg=qrResult.html.match(/<svg data-qr-ecc="H"[^>]*>(.*?)<\/svg>/)[1];
+assert.equal((qrSvg.match(/<rect /g)||[]).length,qr.modules.data.filter(Boolean).length);
+// Every emitted raster pixel, including the complete four-module quiet zone,
+// must equal the same ECC-H matrix represented by the preview's SVG rectangles.
+for(let y=0;y<qrSize;y++) for(let x=0;x<rowBytes*8;x++) {
+ const row=Math.floor(y/7)-4,column=Math.floor(x/7)-4;
+ const expected=row>=0 && column>=0 && row<qr.modules.size && column<qr.modules.size ? Boolean(qr.modules.get(row,column)) : false;
+ const actual=Boolean(qrPayload[rasterOffset+8+y*rowBytes+Math.floor(x/8)] & (1<<(7-x%8)));
+ assert.equal(actual,expected,`QR pixel ${x},${y}`);
+ if(x%7===0 && y%7===0 && expected) assert(qrSvg.includes(`<rect x="${x}" y="${y}" width="7" height="7"/>`));
+}
+const longestQr=normalizePrintDocument('quote',{reference:'x',qrUrl:'https://api.scaleparaguay.com/p/'+'a'.repeat(128)});
+assert.throws(()=>renderPrintDocument({template:{marginsMm:{left:10,right:10}},document:longestQr}),/QR no cabe/);
+assert.throws(()=>renderPrintDocument({template,document:longestQr,copies:5}),/64 KiB/);
+console.log('printing-renderer: PASS (80 mm bounds, escaping, controls, ASCII, composition, copies, cut, Code39 parity/raster, allowlisted QR ECC-H matrix/SVG/raster/quietzone parity)');
