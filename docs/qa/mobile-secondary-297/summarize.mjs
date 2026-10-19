@@ -1,0 +1,8 @@
+// Summarize without tokens, field contents or full DOM text. Refs #297.
+import assert from 'node:assert/strict';import {readFile,writeFile} from 'node:fs/promises';
+const [input,output,actions]=process.argv.slice(2);assert(input&&output,'Usage: node summarize.mjs matrix.json summary.json [actions.json]');
+const matrix=JSON.parse(await readFile(input,'utf8')),keys=matrix.records.map(r=>[r.path,r.width,r.theme].join('|'));
+assert.equal(new Set(keys).size,keys.length,'Duplicate scenarios');
+const summary={source:matrix.source,buildId:matrix.buildId,mode:matrix.mode,passed:matrix.passed,coverage:matrix.coverage,uniqueScenarios:new Set(keys).size,fixtureCounts:matrix.fixtureCounts,widths:matrix.widths,themes:matrix.themes,routes:matrix.routes,states:matrix.records.reduce((n,r)=>n+r.states.length,0),runtimeErrors:matrix.errors,httpErrors:matrix.httpErrors,externalRequests:matrix.external,blockedWrites:matrix.blockedWrites,records:matrix.records.map(r=>({path:r.path,width:r.width,height:r.height,theme:r.theme,identity:r.identity,passed:r.passed,error:r.error,findings:r.findings,contentState:r.contentState,smallTouchCandidates:r.touchTargetReview?.length||0}))};
+if(actions){const a=JSON.parse(await readFile(actions,'utf8'));summary.actions={source:a.source,buildId:a.buildId,mode:a.mode,passed:a.passed,states:a.states,checks:a.checks,network:a.network,injectedFailures:a.injectedFailures,runtime:a.runtime,error:a.error,cleanupError:a.cleanupError};}
+await writeFile(output,JSON.stringify(summary,null,2)+'\n');console.log(JSON.stringify({passed:summary.passed,coverage:summary.coverage,actions:summary.actions?.passed}));
