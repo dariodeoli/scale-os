@@ -236,7 +236,7 @@ assert.equal((await privacy('/api/privacy/access-log',{as:viewer})).status,403);
 // --- Retención declarada: reporte y ejecución ---------------------------------
 const oldLead=await insert("insert into agency_leads(organization_id,name,email,updated_at) values($1,'Lead Viejo','viejo@example.invalid',now()-interval '3 years')",[orgA]);
 const oldNotification=await insert("insert into agency_notifications(organization_id,user_id,kind,title,body,dedupe_key,read_at,resolved_at,created_at) values($1,$2,'comment','Aviso viejo','Cuerpo con dato','pdp-old',now(),now(),now()-interval '2 years')",[orgA,ownerId]);
-assert.equal(privacyRetentionPolicies().length,7);
+assert.equal(privacyRetentionPolicies().length,10);
 let retention=await runPrivacyRetention(db,{mode:'report'});
 assert.equal(retention.mode,'report');assert.ok(retention.candidates>=2);assert.equal(retention.affected,0);
 assert.equal((await query('select name from agency_leads where id=$1',[oldLead])).rows[0].name,'Lead Viejo','el reporte no toca los datos');
@@ -246,7 +246,7 @@ assert.equal((await query('select name from agency_leads where id=$1',[oldLead])
 assert.equal((await query('select count(*)::int as n from agency_notifications where id=$1',[oldNotification])).rows[0].n,0);
 assert.equal((await query('select count(*)::int as n from personal_data_retention_runs')).rows[0].n,2);
 r=await privacy('/api/privacy/retention');
-assert.equal(r.status,200);assert.equal(r.policies.length,7);assert.equal(r.runs.length,2);
+assert.equal(r.status,200);assert.equal(r.policies.length,10);assert.equal(r.runs.length,2);
 
 await pg.close();
 console.log('PASS: PDP — aviso versionado, consentimientos idempotentes por finalidad, captura en registro/invitación/landing/CRM/portal, ARSOP con SLA, export JSON/CSV, supresión con conservación fiscal, bitácora y retención report/execute');

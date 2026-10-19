@@ -1,3 +1,4 @@
+import {printing} from './printing.js';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -285,7 +286,8 @@ async function init() {
      "20261018_economic_history.sql",
      "20261018_commercial_same_month_revisions.sql",
      "20261018_workspace_preferences.sql",
-     "20261018_client_contacts.sql"
+     "20261018_client_contacts.sql",
+     "20261019_thermal_printing.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -399,6 +401,7 @@ const server = http.createServer(async (req,res) => {
     }
     // La matriz de permisos es una lectura/escritura privada más: va después del
     // corte por suscripción, como el resto de /api/agency/*.
+    if(await printing({req,res,url,db,session,body,send}))return;
     if(await rolePermissions({req,res,url,db,session,body,send}))return;
     if(await agencyAnnouncements({req,res,url,db,session,send}))return;
     if(url.pathname==='/api/invitations/status'&&req.method==='GET'){

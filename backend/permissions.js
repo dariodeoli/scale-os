@@ -5,6 +5,8 @@ const all=[...roles];
 // Los roles del checklist viven en un solo lugar: ver y editar comparten audiencia.
 const checklistRoles=['owner','admin','management','production','editor','collaborator'];
 export const CAPABILITIES=[
+ {id:'printing.manage',label:'Configurar impresoras',description:'Configurar impresoras, plantillas y puentes térmicos.',roles:['owner','admin']},
+ {id:'printing.print',label:'Imprimir documentos',description:'Encolar y confirmar documentos térmicos no fiscales.',roles:['owner','admin','management','production']},
  {id:'members.manage',label:'Equipo y accesos',description:'Personas, cargos, accesos, invitaciones y remuneraciones.',roles:['owner','admin','management']},
  {id:'settings.manage',label:'Configuración de la empresa',description:'Datos de la empresa, moneda y cotización.',roles:['owner','admin']},
  {id:'activity.view',label:'Actividad del equipo',description:'Ver actividad y auditoría de la empresa.',roles:['owner','admin']},

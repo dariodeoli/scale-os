@@ -1,3 +1,4 @@
+import {sharedBudget} from './budget-public-access.js';
 import {lockMemberManager} from './member-access.js';
 import {currencies} from './currencies.js';
 import {zoneTodaySql} from './business-time.js';
@@ -88,7 +89,7 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
   c=await db.connect();
   if(publicMatch){
    await c.query('begin');transaction=true;
-   const b=(await c.query('select id,organization_id from agency_budgets where public_token=$1 and share_enabled=true for update',[publicMatch[1]])).rows[0];if(!b)fail('Este enlace no está disponible',404);
+   const b=await sharedBudget(c,publicMatch[1]);if(!b)fail('Este enlace no está disponible',404);
    const d=await document(c,b.id,b.organization_id);
    if(publicMatch[2]==='respond'&&req.method==='POST'){
     let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>4000)fail('Formulario demasiado largo');}

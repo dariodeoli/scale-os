@@ -14,6 +14,9 @@ const day=86400000;
 /** Plazos por defecto conservadores; cada uno se ajusta por variable de entorno. */
 export function privacyRetentionPolicies(env=process.env){
  return [
+  {id:'printing_payloads',label:'Documentos temporales de impresión',entity:'agency_print_jobs',action:'minimize',retentionDays:1,basis:'Ejecución del servicio',notes:'Bytes y datos temporales; cancelar pendientes no enviados, conservar estado incierto si existió lease.'},
+  {id:'printing_confirmations',label:'Confirmaciones de impresión vencidas',entity:'agency_print_jobs',action:'minimize',retentionDays:7,basis:'Seguridad del servicio',notes:'Eliminar el hash de confirmación vencido; nunca se conserva el sufijo completo.'},
+  {id:'printing_audit',label:'Auditoría de impresión',entity:'agency_print_audit',action:'purge',retentionDays:1825,basis:'Interés legítimo y auditoría',notes:'Sólo actor, entidad, acción y fecha; sin documentos, tokens ni sufijos.'},
   {id:'leads_inactive',label:'Oportunidades sin actividad',entity:'agency_leads',action:'anonymize',retentionDays:integer(env.PRIVACY_RETENTION_LEADS_DAYS,730,30,3650,'LEADS_DAYS'),basis:'Consentimiento o interés legítimo comercial',notes:'Anonimiza nombre, correo, teléfono y notas; la fila queda para métricas.'},
   {id:'notifications',label:'Notificaciones leídas o resueltas',entity:'agency_notifications',action:'purge',retentionDays:integer(env.PRIVACY_RETENTION_NOTIFICATIONS_DAYS,365,30,3650,'NOTIFICATIONS_DAYS'),basis:'Ejecución del servicio',notes:'El cuerpo puede contener datos personales; se conserva lo no leído.'},
   {id:'access_requests',label:'Solicitudes de acceso decididas',entity:'agency_access_requests',action:'purge',retentionDays:integer(env.PRIVACY_RETENTION_ACCESS_REQUESTS_DAYS,365,30,3650,'ACCESS_REQUESTS_DAYS'),basis:'Ejecución del servicio',notes:'Incluye nombre y correo del postulante.'},
@@ -34,6 +37,18 @@ export function privacyRetentionSettings(env=process.env){
 }
 
 const statements={
+ printing_payloads:{
+  candidates:`select count(*)::int as n from agency_print_jobs where created_at<now()-($1::int*interval '1 day') and (payload_base64 is not null or document_snapshot is not null)`,
+  run:`with picked as (select id from agency_print_jobs where created_at<now()-($1::int*interval '1 day') and (payload_base64 is not null or document_snapshot is not null) order by created_at limit $2 for update skip locked) update agency_print_jobs j set payload_base64=null,document_snapshot=null,state=case when state='pendiente' and lease_id is null then 'cancelado' when state='pendiente' then 'incierto' else state end,error_code=case when state='pendiente' then 'retention_expired' else error_code end,updated_at=now() from picked where j.id=picked.id`,
+ },
+ printing_confirmations:{
+  candidates:`select count(*)::int as n from agency_print_jobs where confirmation_expires_at<now()-greatest(0,$1::int-7)*interval '1 day' and confirmation_hash is not null`,
+  run:`update agency_print_jobs set confirmation_hash=null where id in (select id from agency_print_jobs where confirmation_expires_at<now()-greatest(0,$1::int-7)*interval '1 day' and confirmation_hash is not null order by confirmation_expires_at limit $2 for update skip locked)`,
+ },
+ printing_audit:{
+  candidates:`select count(*)::int as n from agency_print_audit where created_at<now()-($1::int*interval '1 day')`,
+  run:`delete from agency_print_audit where id in (select id from agency_print_audit where created_at<now()-($1::int*interval '1 day') order by created_at limit $2 for update skip locked)`,
+ },
  leads_inactive:{
   candidates:`select count(*)::int as n from agency_leads where personal_data_blocked_at is null and client_id is null and updated_at<now()-($1::int*interval '1 day')`,
   run:`with picked as (select id from agency_leads where personal_data_blocked_at is null and client_id is null and updated_at<now()-($1::int*interval '1 day') order by updated_at limit $2 for update skip locked)

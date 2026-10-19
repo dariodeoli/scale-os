@@ -1,0 +1,162 @@
+{
+  "checkedAt": "2026-10-19T03:13:48.879Z",
+  "version": "1.0.196",
+  "mainSha": "6f9be7de0931ca5d44784b76d910873fb5590bf5",
+  "providerSha": null,
+  "responses": {
+    "status": {
+      "url": "https://app.scaleparaguay.com/status",
+      "status": 200,
+      "visibleVersion": true
+    },
+    "registro": {
+      "url": "https://app.scaleparaguay.com/registro",
+      "status": 200,
+      "visibleVersion": true
+    },
+    "health": {
+      "url": "https://api.scaleparaguay.com/health",
+      "status": 200,
+      "health": {
+        "ok": true,
+        "database": "ready",
+        "release": {
+          "version": "1.0.196",
+          "application": "Scale OS"
+        }
+      }
+    },
+    "me": {
+      "url": "https://app.scaleparaguay.com/core-api/api/auth/me",
+      "status": 401
+    },
+    "providers": {
+      "url": "https://app.scaleparaguay.com/core-api/api/auth/providers",
+      "status": 200
+    },
+    "maintenance": {
+      "url": "https://app.scaleparaguay.com/core-api/api/public/maintenance",
+      "status": 200
+    },
+    "landing": {
+      "url": "https://app.scaleparaguay.com/scale-os.html",
+      "status": 200,
+      "remoteSha256": "c7923a3b15b3b059ed3afa05486a3840c891b1a606d221e6338f81a10650f5fb",
+      "mainSha256": "c7923a3b15b3b059ed3afa05486a3840c891b1a606d221e6338f81a10650f5fb"
+    }
+  },
+  "initialScripts": [
+    {
+      "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+      "rawBytes": 173025,
+      "gzipBytesCalculated": 54364
+    },
+    {
+      "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+      "rawBytes": 174444,
+      "gzipBytesCalculated": 46332
+    },
+    {
+      "path": "/_next/static/chunks/main-app-234525b5e3ddebfb.js",
+      "rawBytes": 525,
+      "gzipBytesCalculated": 230
+    },
+    {
+      "path": "/_next/static/chunks/265-83e164873527d010.js",
+      "rawBytes": 198223,
+      "gzipBytesCalculated": 56267
+    },
+    {
+      "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+      "rawBytes": 8564,
+      "gzipBytesCalculated": 3406
+    },
+    {
+      "path": "/_next/static/chunks/app/error-12b907352e93676e.js",
+      "rawBytes": 6683,
+      "gzipBytesCalculated": 3005
+    },
+    {
+      "path": "/_next/static/chunks/app/not-found-68ad468fedd88f1d.js",
+      "rawBytes": 356,
+      "gzipBytesCalculated": 262
+    },
+    {
+      "path": "/_next/static/chunks/app/layout-641e5a4501b4acdb.js",
+      "rawBytes": 6183,
+      "gzipBytesCalculated": 2637
+    },
+    {
+      "path": "/_next/static/chunks/app/global-error-2d681649714c260f.js",
+      "rawBytes": 4196,
+      "gzipBytesCalculated": 1881
+    },
+    {
+      "path": "/_next/static/chunks/5437-11edd37ad0cb4cc9.js",
+      "rawBytes": 131565,
+      "gzipBytesCalculated": 39822
+    },
+    {
+      "path": "/_next/static/chunks/5864-3ccc10846e72c64c.js",
+      "rawBytes": 55913,
+      "gzipBytesCalculated": 12849
+    },
+    {
+      "path": "/_next/static/chunks/1596-9d68f065f020e036.js",
+      "rawBytes": 53469,
+      "gzipBytesCalculated": 17401
+    },
+    {
+      "path": "/_next/static/chunks/5411-df74a8712412a9b5.js",
+      "rawBytes": 10513,
+      "gzipBytesCalculated": 4021
+    },
+    {
+      "path": "/_next/static/chunks/4382-641abe078a43a8ce.js",
+      "rawBytes": 43481,
+      "gzipBytesCalculated": 13463
+    },
+    {
+      "path": "/_next/static/chunks/1283-6e29108e0b12b2c0.js",
+      "rawBytes": 7157,
+      "gzipBytesCalculated": 3029
+    },
+    {
+      "path": "/_next/static/chunks/4665-d35bdfeadb7484e4.js",
+      "rawBytes": 8884,
+      "gzipBytesCalculated": 3631
+    },
+    {
+      "path": "/_next/static/chunks/6230-8596cbaaecba04e9.js",
+      "rawBytes": 9749,
+      "gzipBytesCalculated": 3894
+    },
+    {
+      "path": "/_next/static/chunks/1012-b674fd97c1a62125.js",
+      "rawBytes": 107594,
+      "gzipBytesCalculated": 32807
+    },
+    {
+      "path": "/_next/static/chunks/7418-cd9da681db8624f5.js",
+      "rawBytes": 11103,
+      "gzipBytesCalculated": 4455
+    },
+    {
+      "path": "/_next/static/chunks/app/(workspace)/layout-277cc202cd915243.js",
+      "rawBytes": 214532,
+      "gzipBytesCalculated": 63277
+    },
+    {
+      "path": "/_next/static/chunks/polyfills-42372ed130431b0a.js",
+      "rawBytes": 112594,
+      "gzipBytesCalculated": 39627
+    },
+    {
+      "path": "/_next/static/chunks/webpack-4690b4e4fbc941b9.js",
+      "rawBytes": 7957,
+      "gzipBytesCalculated": 4234
+    }
+  ],
+  "initialRawBytes": 1346710,
+  "initialGzipBytesCalculated": 410894
+}

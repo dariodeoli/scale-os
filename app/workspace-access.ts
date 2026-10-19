@@ -1,4 +1,4 @@
-import {canSeeTrash, roleCan, type Capability} from './capabilities';
+import {canSeeTrash, effectiveCapability, roleCan, type Capability} from './capabilities';
 
 /**
  * Módulo del NAV → capacidad del API. Los defaults viven en `capabilities.ts`
@@ -35,6 +35,11 @@ export const visibleModule = (label: string, role: string, overrides?:Record<str
   // La papelera se muestra si el rol puede archivar al menos un tipo; el API
   // filtra qué tipos devuelve.
   if (label === 'Papelera') return canSeeTrash(role);
+  // Printing operators need their own route, independent of company settings.
+  // The API also hard-denies viewer, including explicit role overrides.
+  if(label==='Impresión 80 mm')return role!=='viewer'&&(
+    effectiveCapability(role,'printing.print',overrides)||effectiveCapability(role,'printing.manage',overrides)
+  );
   const capability = MODULE_CAPABILITIES[label];
   if(role!=='owner'&&capability&&overrides&&Object.hasOwn(overrides,capability))return overrides[capability];
   return capability ? roleCan(role, capability) : true;

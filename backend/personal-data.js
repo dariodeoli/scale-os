@@ -148,6 +148,10 @@ export async function buildPersonalDataExport(c,{organizationId,subjectKind,subj
   section('sesiones','Sesiones registradas',sessions);
   const activity=(await c.query('select table_name as entidad,action as accion,created_at from agency_operation_audit where organization_id=$1 and actor=$2::text order by id desc limit 200',[organizationId,String(subjectId)])).rows;
   section('actividad','Actividad registrada a tu nombre',activity);
+  const printing=(await c.query('select id,reference,kind,state,copies,created_at,updated_at,transport,error_code from agency_print_jobs where organization_id=$1 and requested_by=$2 order by created_at desc limit 200',[organizationId,subjectId])).rows;
+  if(printing.length)section('impresion','Impresiones solicitadas por vos',printing);
+  const printAudit=(await c.query('select entity_id,action,created_at from agency_print_audit where organization_id=$1 and actor_user_id=$2 order by id desc limit 200',[organizationId,subjectId])).rows;
+  if(printAudit.length)section('auditoria_impresion','Actividad de impresión',printAudit);
  }else if(subjectKind==='client'){
   const client=(await c.query(`select to_jsonb(c)->>'address' as address,to_jsonb(c)->>'city' as city,to_jsonb(c)->>'department' as department,to_jsonb(c)->>'document_type' as document_type,to_jsonb(c)->>'document_number' as document_number,to_jsonb(c)->>'legal_representative_name' as legal_representative_name,to_jsonb(c)->>'legal_representative_document' as legal_representative_document,to_jsonb(c)->>'legal_representative_role' as legal_representative_role,to_jsonb(c)->>'party_type' as party_type,name,legal_name,email,phone,tax_id,notes,active,created_at,updated_at,personal_data_blocked_at,to_jsonb(c)->>'lifecycle_status' as lifecycle_status from agency_clients c where c.organization_id=$1 and c.id=$2`,[organizationId,subjectId])).rows[0]||{};
   section('ficha','Ficha del cliente',[client]);
@@ -214,6 +218,9 @@ export async function applySuppression(c,{organizationId,subjectKind,subjectId,a
   if(!member)fail('Titular no encontrado en esta empresa',404);
   await c.query('update organization_members set active=false,removed_at=coalesce(removed_at,now()),purged_at=coalesce(purged_at,now()),personal_data_blocked_at=now() where organization_id=$1 and user_id=$2',[org,key]);
   await c.query('delete from sessions where organization_id=$1 and user_id=$2',[org,key]);
+  await c.query("update agency_print_bridges set revoked_at=coalesce(revoked_at,now()),token_hash=null,pairing_hash=null,name='Puente revocado' where organization_id=$1 and created_by=$2",[org,key]);
+  await c.query("update agency_print_jobs set reference='Documento suprimido',payload_base64=null,document_snapshot=null,confirmation_hash=null,state=case when state='pendiente' and lease_id is null then 'cancelado' when state='pendiente' then 'incierto' else state end,updated_at=now() where organization_id=$1 and (requested_by=$2 or bridge_id in (select id from agency_print_bridges where organization_id=$1 and created_by=$2))",[org,key]);
+
   await c.query("update agency_user_profiles set full_name='Persona suprimida',photo_url=null,updated_at=now() where organization_id=$1 and user_id=$2",[org,key]);
   await c.query("update agency_collaborators set full_name='Persona suprimida',email=null,photo_url=null,notes='',active=false,updated_at=now() where organization_id=$1 and user_id=$2",[org,key]);
   return {action:'anonymized',details:{entity:'organization_members',salary_amounts_kept:true}};

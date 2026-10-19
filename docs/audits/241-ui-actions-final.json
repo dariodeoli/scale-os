@@ -3,7 +3,7 @@
   "mode": "audit",
   "fallbackVariant": null,
   "counts": {
-    "canonical": 602,
+    "canonical": 616,
     "structural": 55,
     "renderer": 1
   },
@@ -524,6 +524,11 @@
       "sha256": "2da377da29e0a406f1c2546e4a421042651b953a097040fd990de433a864b681"
     },
     {
+      "file": "app/printing-workspace.tsx",
+      "changed": false,
+      "sha256": "7f37b595e79077fba604bc54f96ab27fe2ff1c867ebb926bc650e826b4e2478f"
+    },
+    {
       "file": "app/privacidad/page.tsx",
       "changed": false,
       "sha256": "aaf29ccf5b1134466c2397d1a29debdbe8a848499edab3b899c7f5eea159c83b"
@@ -601,7 +606,7 @@
     {
       "file": "app/scale-workspace.tsx",
       "changed": false,
-      "sha256": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0"
+      "sha256": "6bfe37403e9ab532817232f38c0761e595b87335728cc92eceffb5ed5b2d8dc9"
     },
     {
       "file": "app/search-field.tsx",
@@ -626,7 +631,7 @@
     {
       "file": "app/sections/configuracion.tsx",
       "changed": false,
-      "sha256": "64705d48f8228425f16e1d2ee19e03619d84e05f82730dd610021764a797a33c"
+      "sha256": "3d20f2e6ac87e70dbe452f8779831725376b1a234d191bf35bb1df94ccd1da0a"
     },
     {
       "file": "app/sections/equipo.tsx",
@@ -4663,6 +4668,160 @@
       "type": "button"
     },
     {
+      "file": "app/printing-workspace.tsx",
+      "line": 90,
+      "column": 284,
+      "offset": 14995,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 94,
+      "column": 91,
+      "offset": 15317,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 95,
+      "column": 760,
+      "offset": 16207,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 97,
+      "column": 101,
+      "offset": 16495,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 98,
+      "column": 562,
+      "offset": 17343,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 100,
+      "column": 99,
+      "offset": 17567,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 100,
+      "column": 633,
+      "offset": 18101,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 100,
+      "column": 831,
+      "offset": 18299,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 101,
+      "column": 108,
+      "offset": 18721,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 102,
+      "column": 672,
+      "offset": 19755,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 102,
+      "column": 857,
+      "offset": 19940,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 102,
+      "column": 1020,
+      "offset": 20103,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 108,
+      "column": 29,
+      "offset": 21521,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 112,
+      "column": 627,
+      "offset": 23090,
+      "kind": "canonical-button",
+      "owner": "PrintingScope",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "omitted"
+    },
+    {
       "file": "app/privacy-panel.tsx",
       "line": 176,
       "column": 5,
@@ -5461,9 +5620,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 727,
+      "line": 729,
       "column": 26,
-      "offset": 48410,
+      "offset": 48606,
       "kind": "canonical-button",
       "owner": "projectEntry",
       "status": "canonical",
@@ -5472,9 +5631,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 758,
+      "line": 760,
       "column": 28,
-      "offset": 51582,
+      "offset": 51778,
       "kind": "canonical-button",
       "owner": "projectRowEntry",
       "status": "canonical",
@@ -5483,9 +5642,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 929,
+      "line": 931,
       "column": 13,
-      "offset": 60479,
+      "offset": 60675,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5494,9 +5653,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 942,
+      "line": 944,
       "column": 380,
-      "offset": 62643,
+      "offset": 62839,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5505,9 +5664,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 989,
+      "line": 991,
       "column": 15,
-      "offset": 66611,
+      "offset": 66807,
       "kind": "native",
       "owner": "sidebarContent",
       "status": "structural",
@@ -5518,9 +5677,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1019,
+      "line": 1021,
       "column": 51,
-      "offset": 69094,
+      "offset": 69290,
       "kind": "native",
       "owner": "sidebarContent",
       "status": "structural",
@@ -5531,9 +5690,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1039,
+      "line": 1041,
       "column": 11,
-      "offset": 71729,
+      "offset": 71925,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5542,9 +5701,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1040,
+      "line": 1042,
       "column": 90,
-      "offset": 72014,
+      "offset": 72210,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5553,9 +5712,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1073,
+      "line": 1075,
       "column": 15,
-      "offset": 76821,
+      "offset": 77017,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",
@@ -5564,9 +5723,9 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1102,
+      "line": 1104,
       "column": 17,
-      "offset": 78637,
+      "offset": 78833,
       "kind": "canonical-button",
       "owner": "Home",
       "status": "canonical",

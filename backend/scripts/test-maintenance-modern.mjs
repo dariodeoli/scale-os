@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-export const modernTables=['agency_client_contacts','agency_company_legal_profiles','agency_contract_templates','agency_contracts','agency_contract_versions','agency_contract_audit','agency_internal_tasks','agency_internal_task_assignees','agency_internal_task_comments','agency_payment_links','agency_account_openings','agency_opening_receivables','agency_payment_applications','agency_payment_application_reversals','agency_payment_date_corrections','agency_finance_periods','agency_finance_period_events','agency_salary_history'];
+import {randomUUID} from 'node:crypto';
+export const modernTables=['agency_print_printers','agency_print_templates','agency_print_bridges','agency_print_jobs','agency_print_idempotency','agency_print_audit','agency_client_contacts','agency_company_legal_profiles','agency_contract_templates','agency_contracts','agency_contract_versions','agency_contract_audit','agency_internal_tasks','agency_internal_task_assignees','agency_internal_task_comments','agency_payment_links','agency_account_openings','agency_opening_receivables','agency_payment_applications','agency_payment_application_reversals','agency_payment_date_corrections','agency_finance_periods','agency_finance_period_events','agency_salary_history'];
 // Test-only synthetic data: exercise FK ordering, immutable documents and closed periods.
 export async function modernState(query,org,owner){
  const one=async(sql,args)=>(await query(sql,args)).rows[0];
@@ -31,6 +32,13 @@ export async function modernState(query,org,owner){
  await query("insert into agency_payment_date_corrections(organization_id,original_payment_id,replacement_payment_id,previous_date,corrected_date,reason,request_key,created_by) values($1,$2,$3,current_date-1,current_date,'Corrección ficticia','date-fixture',$4)",[org,original,replacement,owner]);
  const expense=await insert("insert into agency_expenses(organization_id,account_id,category,amount,currency,created_by_user_id) values($1,$2,'Prueba',10,'PYG',$3)",[org,account,owner]);
  await query("insert into agency_expense_reversals(organization_id,expense_id,reason,created_by_user_id) values($1,$2,'Reversión ficticia',$3)",[org,expense,owner]);
+ const printer=randomUUID(), printTemplate=randomUUID(), bridge=randomUUID(), job=randomUUID();
+ await query("insert into agency_print_printers(id,organization_id,name,connection,destination) values($1,$2,'Térmica ficticia','cups','cups:FIXTURE')",[printer,org]);
+ await query("insert into agency_print_templates(id,organization_id,name,kind,definition) values($1,$2,'Prueba ficticia','test','{}')",[printTemplate,org]);
+ await query("insert into agency_print_bridges(id,organization_id,name,created_by,token_hash) values($1,$2,'Puente ficticio',$3,'fixture-'||($1::uuid)::text)",[bridge,org,owner]);
+ await query("insert into agency_print_jobs(id,organization_id,branch_id,printer_id,template_id,template_version,kind,reference,copies,requested_by,idempotency_key,fingerprint,template_snapshot,document_snapshot,printer_snapshot,payload_base64,payload_bytes,bridge_id) values($1,$2,'main',$3,$4,1,'test','Ficticio',1,$5,'fixture-key','fixture-hash','{}','{}','{}','SGk=',2,$6)",[job,org,printer,printTemplate,owner,bridge]);
+ await query("insert into agency_print_idempotency(organization_id,key,request_hash,job_id) values($1,'fixture-key','fixture-request',$2)",[org,job]);
+ await query("insert into agency_print_audit(organization_id,actor_user_id,bridge_id,entity_id,action) values($1,$2,$3,$4,'fixture')",[org,owner,bridge,job]);
  // Close LAST; the cleanup must handle populated closed periods, not empty guards.
  await query("insert into agency_finance_periods(organization_id,month,status,reason,closed_at,updated_by,snapshot) values($1,date_trunc('month',current_date)::date,'closed','Cierre ficticio',now(),$2,'{}')",[org,owner]);
  await query("insert into agency_finance_period_events(organization_id,month,action,reason,actor_user_id,revision,snapshot) values($1,date_trunc('month',current_date)::date,'close','Cierre ficticio',$2,1,'{}')",[org,owner]);
