@@ -1,0 +1,15 @@
+import { promises as fs } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const output = path.resolve(process.argv[2] || path.join(root, 'artifacts', 'print-agent'));
+await fs.mkdir(output, { recursive: true });
+const artifact = path.join(output, 'scale-print-agent.tar.gz');
+const allowed = ['agent.mjs', 'cli.mjs', 'install.mjs', 'install.sh', 'package.json', 'README.md'].map(f => `print-agent/${f}`);
+const result = spawnSync('tar', ['-czf', artifact, '-C', root, ...allowed], { stdio: 'inherit' });
+if (result.status !== 0) throw new Error('package_failed');
+const sha256 = createHash('sha256').update(await fs.readFile(artifact)).digest('hex');
+await fs.writeFile(`${artifact}.sha256`, `${sha256}  scale-print-agent.tar.gz\n`);
+console.log(JSON.stringify({ artifact, sha256 }));
