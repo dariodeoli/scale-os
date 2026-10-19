@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Release195 / #265: exact reviewed widget JSX and owners preserved; only source hashes and positions refreshed.",
+  "scope": "Printing #278/#281: exact reviewed widget JSX and owners preserved; canonical actions explicitly reviewed, source hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -483,10 +483,10 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "sourceHash": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0",
+      "sourceHash": "6bfe37403e9ab532817232f38c0761e595b87335728cc92eceffb5ed5b2d8dc9",
       "sites": [
         {
-          "line": 989,
+          "line": 991,
           "column": 15,
           "siteHash": "a3eba3004887f205a6490a0f6eb1b4def6a9ad56e2bb99efca2306e8d64a2e85",
           "owner": "sidebarContent",
@@ -497,7 +497,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 1019,
+          "line": 1021,
           "column": 51,
           "siteHash": "804a69a8c0c0079396667a0e38bcc8760daed4a3c84e6fcee6b87af11551c4b4",
           "owner": "sidebarContent",

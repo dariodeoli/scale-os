@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Printing #278/#281: refresh source hashes and positions without new structural exemptions.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -75,8 +75,8 @@
     {
       "file": "app/scale-workspace.tsx",
       "beforeHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
-      "afterHash": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "6bfe37403e9ab532817232f38c0761e595b87335728cc92eceffb5ed5b2d8dc9",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Printing #278/#281: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/sections/clientes.tsx",
@@ -197,6 +197,18 @@
       "beforeHash": "bb16036d248a008045e36d809019613311926c624a96c414fda10a83a7185ff2",
       "afterHash": "9b55823f12bbc32431c27af645e566163130cbbf669f29d6adf9348b4bb44ed0",
       "rationale": "SEO de artículos: imágenes sociales absolutas y BreadcrumbList; comparación exacta demuestra mismos sitios de acciones, sin nuevos widgets ni cambios de callback."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "beforeHash": null,
+      "afterHash": "188e964cbfc884e9fcb9ea0eac6fa4943fd35465c32ab424594fb9ef94a8a58d",
+      "rationale": "Printing #278/#281: settings, operator route and printing UI source reviewed; native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/sections/configuracion.tsx",
+      "beforeHash": "64705d48f8228425f16e1d2ee19e03619d84e05f82730dd610021764a797a33c",
+      "afterHash": "3d20f2e6ac87e70dbe452f8779831725376b1a234d191bf35bb1df94ccd1da0a",
+      "rationale": "Printing #278/#281: settings, operator route and printing UI source reviewed; native widget JSX and canonical ownership preserved."
     }
   ],
   "addedCanonical": [
@@ -330,7 +342,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1073,
+      "line": 1075,
       "column": 15,
       "owner": "Home",
       "siteHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",
@@ -402,7 +414,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1040,
+      "line": 1042,
       "column": 90,
       "owner": "Home",
       "siteHash": "ca0244f39ae065b35c26bf021d070fdbd6b4ca222e648146a2936187af3b87a0",
@@ -447,6 +459,118 @@
       "owner": "StudioPanel",
       "siteHash": "3e115b909d8c2820579e70cc008c68af13eba2749773bab38f46e1462b9a54f9",
       "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 82,
+      "column": 284,
+      "owner": "PrintingScope",
+      "siteHash": "ec8cce5f409f1b8a40d0d776f7c00c538b17a29ad4137465099b6eb27ba15c61",
+      "rationale": "Refs #278: Actualizar consulta sólo el snapshot del ámbito actual; disabled busy; demo usa datos locales y no llama API. Sin formulario ni impresión implícita."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 86,
+      "column": 91,
+      "owner": "PrintingScope",
+      "siteHash": "484a869b1d9165f5c13e8b43deb47e6723768bee099fc2ea40e671e4a0edfe97",
+      "rationale": "Refs #278: Agregar impresora visible sólo can_manage; reinicia intentKey y previewDraft y abre Editor printer; guard dirty/pending compartido con Dialog y validación API."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 87,
+      "column": 760,
+      "owner": "PrintingScope",
+      "siteHash": "b3a79cfd699590274a7a3715a951609d894e13c2a7c671d50815424e54529066",
+      "rationale": "Refs #278: Editar impresora visible sólo can_manage; abre Editor con el registro de la fila del ámbito actual, limpia borrador previo y no modifica hasta guardar."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 89,
+      "column": 101,
+      "owner": "PrintingScope",
+      "siteHash": "e0ae95c39e615bc1e8803abc83ca64cddc1ac46aeefd261d82616e7739d01d4a",
+      "rationale": "Refs #278: Emparejar computadora sólo can_manage; abre Editor bridge con guard dirty/pending; la mutación produce código de un solo uso en estado del scope, sin persistir secretos en navegador."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 90,
+      "column": 562,
+      "owner": "PrintingScope",
+      "siteHash": "57204f57b131c88d46f5d45b32cce59e6ca4e2cfa53fc9196821227b8fcf4492",
+      "rationale": "Refs #278: Revocar sólo can_manage y puente no revocado; callback abre ConfirmDialog de peligro antes de POST protegido; no revoca con un clic directo."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 92,
+      "column": 99,
+      "owner": "PrintingScope",
+      "siteHash": "cd45a0578e54c703ce04c37470fd6a21c0e1768ae692e25a735b7c5ec120641d",
+      "rationale": "Refs #278: Nueva plantilla sólo can_manage; abre Editor template y conserva guard dirty/pending; versión y confirmación de guardado corresponden al servidor."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 92,
+      "column": 633,
+      "owner": "PrintingScope",
+      "siteHash": "329929095243c783092b6cf4e2bd2186f8cf3bd2f371c456e17893ce00b328fe",
+      "rationale": "Refs #278: Editar plantilla requiere can_manage, salvo demo local de exploración; callback abre Editor con plantilla actual y dirty guard; demo no hace POST ni afirma impresión física."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 92,
+      "column": 831,
+      "owner": "PrintingScope",
+      "siteHash": "2aae9e7cf466bf9f0ef42ffab56eb8dc95039d60407efeb08c20f49fd779deb5",
+      "rationale": "Refs #278: Guardar copia sólo can_manage; prepara Editor con copy true y nombre acotado, sin sobrescribir el ID de plantilla original; cambios quedan bajo guard dirty/pending."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 93,
+      "column": 108,
+      "owner": "PrintingScope",
+      "siteHash": "81c5efd097c31ce6200698ca33b5f098132f023954e24bbc77288e603c62546f",
+      "rationale": "Refs #278: Preparar impresión sólo can_print, deshabilitado sin impresora habilitada o plantillas; abre Editor sin enviar trabajo hasta confirmación explícita; copias enteras1–5 y referencia en payload."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 94,
+      "column": 672,
+      "owner": "PrintingScope",
+      "siteHash": "96b14770513f9b8d1da82da755eceadc178a4d806a69497772ab0f44996560d9",
+      "rationale": "Refs #278: Confirmar papel sólo can_print y estado aceptado/incierto; abre Editor para código realmente impreso y POST confirm validado; aceptado no se muestra como impresión completada."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 94,
+      "column": 857,
+      "owner": "PrintingScope",
+      "siteHash": "79ee83243bdb877f816351b037249dd5ed1dca4132ac1cc266bdc8c44843c30c",
+      "rationale": "Refs #278: Cancelar sólo can_print y trabajo pendiente; abre ConfirmDialog y el servidor rechaza trabajo ya reclamado. No borra el historial ni reintenta transporte."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 94,
+      "column": 1020,
+      "owner": "PrintingScope",
+      "siteHash": "24df2a96f37c12b69f13ab98ce2d917211a78dda6ae977baf6dc39972a57613c",
+      "rationale": "Refs #278: Reimprimir sólo can_print en estados aceptado/confirmado/incierto/fallido; abre Editor y exige volver a completar contenido y confirm true; informa posible duplicado y conserva idempotency_key al fallar."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 100,
+      "column": 29,
+      "owner": "PrintingScope",
+      "siteHash": "a0190ffa0a0185b12c6a51e32c272b3a319abebd3ed879bdeed06fb2f642e622",
+      "rationale": "Refs #278: Restaurar diseño es type button, disabled busy; patchValues del Editor marca dirty y valida únicamente márgenes/fontSize/auto_cut. No guarda plantilla ni dispara impresión."
+    },
+    {
+      "file": "app/printing-workspace.tsx",
+      "line": 104,
+      "column": 627,
+      "owner": "PrintingScope",
+      "siteHash": "60766639533816d854fe3d7922633ec7d62e3ddaf87c8a08f3bac286efcc9899",
+      "rationale": "Refs #278: Ya lo guardé en el agente descarta únicamente pairing en memoria; sin I/O y sin persistencia local; scopeKey/user remonta componente y elimina código de otro ámbito."
     }
   ],
   "retiredStructural": [
@@ -700,5 +824,160 @@
     },
     "unreviewed": 0,
     "review": "Todos los sitios JSX de acciones coinciden exactamente con el inventario195; cambia únicamente el hash de la página SEO."
+  },
+  "printing278": {
+    "baseline": "6f9be7de0931ca5d44784b76d910873fb5590bf5",
+    "productSource": "aa02bc8bc054f4a63b012eb619904f6f73be3ac1",
+    "baselineCanonicalMetadataCorrections": [],
+    "canonicalActions": 616,
+    "newCanonicalActions": 14,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "ec8cce5f409f1b8a40d0d776f7c00c538b17a29ad4137465099b6eb27ba15c61",
+        "rationale": "Refs #278: Actualizar consulta sólo el snapshot del ámbito actual; disabled busy; demo usa datos locales y no llama API. Sin formulario ni impresión implícita."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "484a869b1d9165f5c13e8b43deb47e6723768bee099fc2ea40e671e4a0edfe97",
+        "rationale": "Refs #278: Agregar impresora visible sólo can_manage; reinicia intentKey y previewDraft y abre Editor printer; guard dirty/pending compartido con Dialog y validación API."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "b3a79cfd699590274a7a3715a951609d894e13c2a7c671d50815424e54529066",
+        "rationale": "Refs #278: Editar impresora visible sólo can_manage; abre Editor con el registro de la fila del ámbito actual, limpia borrador previo y no modifica hasta guardar."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "e0ae95c39e615bc1e8803abc83ca64cddc1ac46aeefd261d82616e7739d01d4a",
+        "rationale": "Refs #278: Emparejar computadora sólo can_manage; abre Editor bridge con guard dirty/pending; la mutación produce código de un solo uso en estado del scope, sin persistir secretos en navegador."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "57204f57b131c88d46f5d45b32cce59e6ca4e2cfa53fc9196821227b8fcf4492",
+        "rationale": "Refs #278: Revocar sólo can_manage y puente no revocado; callback abre ConfirmDialog de peligro antes de POST protegido; no revoca con un clic directo."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "cd45a0578e54c703ce04c37470fd6a21c0e1768ae692e25a735b7c5ec120641d",
+        "rationale": "Refs #278: Nueva plantilla sólo can_manage; abre Editor template y conserva guard dirty/pending; versión y confirmación de guardado corresponden al servidor."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "329929095243c783092b6cf4e2bd2186f8cf3bd2f371c456e17893ce00b328fe",
+        "rationale": "Refs #278: Editar plantilla requiere can_manage, salvo demo local de exploración; callback abre Editor con plantilla actual y dirty guard; demo no hace POST ni afirma impresión física."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "2aae9e7cf466bf9f0ef42ffab56eb8dc95039d60407efeb08c20f49fd779deb5",
+        "rationale": "Refs #278: Guardar copia sólo can_manage; prepara Editor con copy true y nombre acotado, sin sobrescribir el ID de plantilla original; cambios quedan bajo guard dirty/pending."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "81c5efd097c31ce6200698ca33b5f098132f023954e24bbc77288e603c62546f",
+        "rationale": "Refs #278: Preparar impresión sólo can_print, deshabilitado sin impresora habilitada o plantillas; abre Editor sin enviar trabajo hasta confirmación explícita; copias enteras1–5 y referencia en payload."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "96b14770513f9b8d1da82da755eceadc178a4d806a69497772ab0f44996560d9",
+        "rationale": "Refs #278: Confirmar papel sólo can_print y estado aceptado/incierto; abre Editor para código realmente impreso y POST confirm validado; aceptado no se muestra como impresión completada."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "79ee83243bdb877f816351b037249dd5ed1dca4132ac1cc266bdc8c44843c30c",
+        "rationale": "Refs #278: Cancelar sólo can_print y trabajo pendiente; abre ConfirmDialog y el servidor rechaza trabajo ya reclamado. No borra el historial ni reintenta transporte."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "24df2a96f37c12b69f13ab98ce2d917211a78dda6ae977baf6dc39972a57613c",
+        "rationale": "Refs #278: Reimprimir sólo can_print en estados aceptado/confirmado/incierto/fallido; abre Editor y exige volver a completar contenido y confirm true; informa posible duplicado y conserva idempotency_key al fallar."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "a0190ffa0a0185b12c6a51e32c272b3a319abebd3ed879bdeed06fb2f642e622",
+        "rationale": "Refs #278: Restaurar diseño es type button, disabled busy; patchValues del Editor marca dirty y valida únicamente márgenes/fontSize/auto_cut. No guarda plantilla ni dispara impresión."
+      },
+      {
+        "file": "app/printing-workspace.tsx",
+        "owner": "PrintingScope",
+        "beforeHash": null,
+        "afterHash": "60766639533816d854fe3d7922633ec7d62e3ddaf87c8a08f3bac286efcc9899",
+        "rationale": "Refs #278: Ya lo guardé en el agente descarta únicamente pairing en memoria; sin I/O y sin persistencia local; scopeKey/user remonta componente y elimina código de otro ámbito."
+      }
+    ],
+    "reviewedNativeWidgets": {
+      "count": 55,
+      "hashAndOwnerExact": true,
+      "sortedFileOwnerSiteHashSha256": "00c5b4640823d29d56ac97250baf89e2172f9665e2e6a1153c0eabad8a1f0ed0",
+      "newExemptions": 0,
+      "retiredExemptions": 0
+    },
+    "sourceReview": {
+      "paths": [
+        "app/printing-workspace.tsx",
+        "app/printing-workspace.css",
+        "app/scale-workspace.tsx",
+        "app/sections/configuracion.tsx",
+        "app/navigation.ts",
+        "app/capabilities.ts",
+        "app/workspace-access.ts"
+      ],
+      "findings": "No blocking action architecture finding in the reviewed frontend source. Existing native widgets and canonical action JSX preserve exact hashes/owners; all fourteen new actions use the local Button facade.",
+      "scopePrivacy": "PrintingWorkspace remounts on scopeKey/demo; deferred reads and pairing responses check mounted/epoch before exposing scope data. Pairing code is memory-only and cleared on dismiss. Thermal preview uses sandbox iframe and renderer escapes HTML text; QR field is capability-gated and backend token authorization is separate.",
+      "formsCopies": "Editor supplies shared dirty/pending guard; restoring defaults uses patchValues with shouldDirty/shouldValidate. Copies remain explicit integer1–5, width80mm; reprint starts a new explicitly confirmed intent with manual content, warning about duplicate paper and retained idempotency on failed submission.",
+      "roles": "Read-only review preserves effectiveCapability route visibility, explicit viewer denial, can_manage/can_print snapshot UI gates and separate existing backend enforcement. No role mirror altered by this audit.",
+      "limitations": [
+        "Source and metadata review only; no full build or hardware test executed by this audit agent.",
+        "QR authorization remains a backend responsibility; a locally rendered preview is not proof of an authorized token or physical print.",
+        "Browser and production validation are owned by the integrator."
+      ]
+    },
+    "checks": [
+      {
+        "command": "node --test tests/migrate-ui-actions.test.mjs",
+        "result": "PASS 21/21"
+      },
+      {
+        "command": "node tests/ui-architecture.test.mjs",
+        "result": "PASS 9/9"
+      },
+      {
+        "command": "node build-tools/check-ui-architecture.mjs",
+        "result": "PASS 321 modules"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ]
   }
 }
