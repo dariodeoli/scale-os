@@ -16,6 +16,10 @@ QA_OUT=/tmp/scale265-production \
 node docs/qa/responsive-265/browser.mjs
 ```
 
+Los escenarios hasta1024px emulan puntero táctil (`hasTouch`, con `isMobile` en teléfonos);1440 usa puntero de escritorio. Cada estado registra y verifica `(pointer:coarse)`; no se afirma una prueba física o de gestos por cambiar el viewport.
+
+La fuente puede identificarse como `tree:<SHA>` cuando corresponde al árbolGit inmutable efectivamente compilado; registrar por separado el commit cuyo árbol coincide y el commit del runner.
+
 Por defecto:16rutas×5anchos320/390/768/1024/1440×3temas=240escenarios; cada uno visita scroll superior/medio/inferior. No cubre páginas públicas, superadmin ni portal: esos requieren sus runners/identidades específicos y no se declaran aprobados por esta matriz.
 
 Para muestra antes de la matriz: `QA_WIDTHS=320,768,1440 QA_THEMES=light QA_ROUTES=/clientes,/inventario,/pagos/balance`. Un diagnóstico sobre dev requiere `QA_MODE=baseline` y `QA_COMPILED_SOURCE=dev:<SHA>`; se etiqueta explícitamente y no acredita el build ni la publicación. Si el árbol cambia por HMR, anotar baseline mezclada. Capturas bajo `/tmp`, resultados JSON compactos sin tokens se pueden versionar.

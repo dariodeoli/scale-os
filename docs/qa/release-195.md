@@ -1,6 +1,6 @@
 # Scale 1.0.195 — fotos de inventario
 
-Preparación desde main194 `f2d52f5ecd42d4aa629a80bb353ab1e39cc44dd0`. Issues #263 y #265. Aún sin bump195, gates globales, merge ni publicación.
+Preparación desde main194 `f2d52f5ecd42d4aa629a80bb353ab1e39cc44dd0`. Issues #263 y #265. Registro previo a publicación: versión195 preparada; aún sin merge ni publicación. El estado final se acredita en el PR272 y en su evidencia de publicación.
 
 La consola del usuario muestra ERR_TOO_MANY_REDIRECTS en las fotos de los equipos50,43 y42. Los mensajes directo-adunit/config/content.js y el error de mensajería asíncrona parecen pertenecer a extensiones; no se encontró chrome.runtime/onMessage ni esas cadenas en las fuentes de Scale.
 
@@ -14,7 +14,7 @@ Las referencias circulares antiguas se resolverán únicamente si el último eve
 
 ## Pruebas y publicación
 
-Aprobados fotos: HTTP real+236 casos PGlite; PostgreSQL17 HTTP+7 carreras+exclusión; revisión independiente apta de 2fb4b2b2. Pendientes: suites del repositorio, build y versión sincronizada, PR/CI, merge y un único deploy195. No agrega migraciones. La auditoría responsive sí modifica presentación y navegación, según el alcance siguiente.
+Aprobados fotos: HTTP real+236 casos PGlite; PostgreSQL17 HTTP+7 carreras+exclusión; revisión independiente apta de 2fb4b2b2. Preparación aprobada:266entradas frontend/48fragmentos, buildNext64páginas/tipos,61scripts backend,19grupos browser, versión/footer e initial-assets. Revisión independiente apta. Pendientes: matriz final, CI, merge y un único deploy195. No agrega migraciones. La auditoría responsive sí modifica presentación y navegación, según el alcance siguiente.
 
 La evidencia de publicación194 y sus seguimientos, guardada después de aquel deploy, se incluye ahora en esta siguiente entrega para evitar publicar dos veces la misma194.
 
@@ -28,4 +28,8 @@ Focales de agentes: 20 navegaciones landing, registro5anchos×2temas,27estados a
 
 Acciones241: revisión independiente conserva55widgets exactos,602acciones canónicas y1renderer,0sinrevisar. Se reposicionan hashes y se documentan cuatro desajustes previos de metadatos canónicos;21pruebas del auditor PASS, sin relajar guardas.
 
-El build final,19grupos browser y matriz240 (16rutas×5anchos×3temas con scroll/fotos/foco y diálogoCliente) siguen pendientes. Evidencia de Chromium emulado: no acredita Safari físico, correos/OAuth ni todas las operaciones comerciales privadas. Portal privado/superadmin no se declaran cubiertos por la matriz demo.
+Build final `dtP8bVHY7yhVbiap7bBxe` aprobado y19grupos browser completos PASS (incluye78checks TabScroller,20anclas,18escenarios/1056comparaciones de estilos sin fallos). La primera corrida encontró CSS temporal ausente; el runner ahora compila CSS actual en directorio aislado y la repetición completa pasó. La matriz240 (16rutas×5anchos×3temas con scroll/fotos/foco y diálogoCliente) está en curso con puntero táctil emulado hasta1024 y desktop1440; muestra previa9/9PASS inspeccionada visualmente. Se exige cobertura y resultado final para autorizar merge, junto con CI. Evidencia de Chromium emulado: no acredita Safari físico, correos/OAuth ni todas las operaciones comerciales privadas. Portal privado/superadmin no se declaran cubiertos por la matriz demo.
+
+La fuente exacta compilada es el árbolGit `a64d05a6cbf366f3fc7350385517e1a629a6da19`, idéntico al árbol del commit de versión `16d2278282ec8e4bbb7260966430d6e2030a067c`. El runner posterior de emulación táctil y esta documentación cambian sólo QA, no el runtime compilado. Ver `responsive-265/build-source.json`.
+
+Controles del marco en modo táctil verificados además a768/820/1023/1024: todos los botones ≥44×44 y overflow0; el diálogo demo abre con selector y cierra con Escape. Presupuesto inicial local: login1.229.714bytes raw/370.088gzip calculado,21scripts, sin artefactos bancarios iniciales. No son cifras de transferencia de producción.

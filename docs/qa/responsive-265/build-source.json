@@ -1,0 +1,11 @@
+{
+  "sourceKind": "git-tree",
+  "tree": "a64d05a6cbf366f3fc7350385517e1a629a6da19",
+  "buildId": "dtP8bVHY7yhVbiap7bBxe",
+  "version": "1.0.195",
+  "baseCommit": "6b05e3d49531f799a278f731a9b9911fa6a3122b",
+  "note": "\u00c1rbol completo verificado id\u00e9ntico al commit de versi\u00f3n tras prepare exit0. Cambios posteriores s\u00f3lo QA/documentaci\u00f3n se comprueban por diff antes de integrar.",
+  "releaseCommit": "16d2278282ec8e4bbb7260966430d6e2030a067c",
+  "releaseTree": "a64d05a6cbf366f3fc7350385517e1a629a6da19",
+  "treeMatchesRelease": true
+}
