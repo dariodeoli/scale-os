@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-19T03:09:10.775Z",
+  "api": {
+    "status": 200,
+    "version": "1.0.196",
+    "ok": true,
+    "database": "ready"
+  },
+  "web": {
+    "status": 200,
+    "expectedVersion": false
+  },
+  "registro": {
+    "status": 200,
+    "expectedVersion": false
+  }
+}
