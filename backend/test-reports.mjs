@@ -190,16 +190,18 @@ const cycleRead=await call(termsPath,'GET',{},user);
 assert.equal(cycleRead.status,200);
 assert.equal(cycleRead.terms?.planName,'Plan ciclo','the lifecycle snapshot row is served instead of null');
 assert.deepEqual({planId:cycleRead.terms.planId,planName:cycleRead.terms.planName,recurringAmount:cycleRead.terms.recurringAmount,commissionMode:cycleRead.terms.commissionMode,startsOn:cycleRead.terms.startsOn,cadence:cycleRead.terms.cadence},{planId:'',planName:'Plan ciclo',recurringAmount:90000,commissionMode:'none',startsOn:'2026-01-01',cadence:'monthly'},'the lifecycle snapshot row is served with its plan snapshot and net recurring amount');
-// El mismo período no se reescribe: la enmienda necesita una fecha posterior.
-const cycleRefused=await call(termsPath,'PATCH',{planId:String(termsPlan.id),recurringAmount:'130000',currency:'PYG',startsOn:'2025-12-31',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null},user);
-assert.equal(cycleRefused.status,409,'an amendment cannot precede the earliest current agreement');
-assert.match(cycleRefused.error,/vigencia/,'the refusal explains the invalid effective date');
-const untouched=(await query('select plan_id,recurring_amount,monthly_price::text as monthly_price,plan_name,version from agency_client_commercial_terms where organization_id=$1 and client_id=$2',[org,termsClient.id])).rows;
-assert.deepEqual(untouched,[{plan_id:null,recurring_amount:null,monthly_price:'100000.00',plan_name:'Plan ciclo',version:1}],'the refused edit never touched the cycle row');
+// Refs #303: un acuerdo anterior se agrega cerrado, sin reescribir el vigente.
+const cycleHistorical=await call(termsPath,'PATCH',{planId:String(termsPlan.id),recurringAmount:'130000',currency:'PYG',startsOn:'2025-12-31',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null},user);
+assert.equal(cycleHistorical.status,200,JSON.stringify(cycleHistorical));
+assert.equal(cycleHistorical.terms.planName,'Plan ciclo','a historical insert does not replace current terms');
+const historicalRow=await one('select starts_on::text as starts_on,ends_on::text as ends_on,effective_until::text as effective_until from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and plan_id=$3',[org,termsClient.id,termsPlan.id]);
+assert.deepEqual(historicalRow,{starts_on:'2025-12-31',ends_on:'2025-12-31',effective_until:'2025-12-31'});
+const untouched=(await query('select plan_id,recurring_amount,monthly_price::text as monthly_price,plan_name,version from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and plan_id is null',[org,termsClient.id])).rows;
+assert.deepEqual(untouched,[{plan_id:null,recurring_amount:null,monthly_price:'100000.00',plan_name:'Plan ciclo',version:1}],'the historical insert never touched the cycle row');
 // Con una fecha posterior, la ficha cierra el término del ciclo (version+1) y anexa el nuevo.
 const cycleEdit=await call(termsPath,'PATCH',{planId:String(termsPlan.id),recurringAmount:'120000',currency:'PYG',startsOn:'2026-07-01',endsOn:null,invoiceRequired:true,commissionRecipientId:null,commissionMode:'none',commissionValue:null},user);
 assert.equal(cycleEdit.status,200);assert.equal(cycleEdit.terms.recurringAmount,120000);assert.equal(cycleEdit.terms.planName,'Plan ficha');
-const cycleRows=(await query('select id,effective_until::text as effective_until,ends_on::text as ends_on,version,plan_name,monthly_price::text as monthly_price from agency_client_commercial_terms where organization_id=$1 and client_id=$2 order by id',[org,termsClient.id])).rows;
+const cycleRows=(await query(`select id,effective_until::text as effective_until,ends_on::text as ends_on,version,plan_name,monthly_price::text as monthly_price from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and coalesce(effective_from,starts_on)>='2026-01-01' order by id`,[org,termsClient.id])).rows;
 assert.equal(cycleRows.length,2,'a ficha edit of a cycle term appends instead of rewriting it');
 assert.deepEqual({until:cycleRows[0].effective_until,ends:cycleRows[0].ends_on,version:cycleRows[0].version,plan:cycleRows[0].plan_name,price:cycleRows[0].monthly_price},{until:'2026-06-30',ends:'2026-06-30',version:2,plan:'Plan ciclo',price:'100000.00'},'the closed cycle row keeps its snapshot and bumps its version');
 assert.equal(cycleRows[1].effective_until,null,'the appended term stays open');

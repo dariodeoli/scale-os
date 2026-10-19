@@ -53,6 +53,30 @@ export async function economicHistoryCases(db){
   r=await call('/finance/balance-details?month='+month);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.personnel.records[0].base_amount,base);assert.equal(Number(r.clients.records[0].contracted_amount),Number(contracted));
   const forecast=await call('/forecast?month='+month);assert.equal(forecast.status,200,JSON.stringify(forecast));assert.equal(forecast.personnel.records[0].base_amount,Number(base));assert.equal(forecast.contracted_recurring.records[0].amount,Number(contracted));
  }
+ // Refs #303: loading a missing earlier agreement preserves every later snapshot.
+ const backdatedClient=(await one("insert into agency_clients(organization_id,name) values($1,'Cliente anterior') returning id",[org])).id;
+ const backdatedPath='/clients/'+backdatedClient+'/commercial-terms';
+ const initial=terms(2300,'2026-10-13','0');r=await call(backdatedPath,'PATCH',initial);assert.equal(r.status,200,JSON.stringify(r));
+ const laterBefore=(await q('select * from agency_client_commercial_terms where organization_id=$1 and client_id=$2',[org,backdatedClient])).rows;
+ const october=terms(1100,'2026-10-01',r.revision);r=await call(backdatedPath,'PATCH',october);assert.equal(r.status,200,JSON.stringify(r));
+ const historical=terms(900,'2026-09-01',r.revision);r=await call(backdatedPath,'PATCH',historical);assert.equal(r.status,200,JSON.stringify(r));
+ assert.equal(Number(r.terms.recurringAmount),2300,'the current agreement stays current');
+ const backdatedRows=(await q('select *,starts_on::text as from_date,ends_on::text as until_date,effective_until::text as closed_date from agency_client_commercial_terms where organization_id=$1 and client_id=$2 order by starts_on',[org,backdatedClient])).rows;
+ assert.equal(backdatedRows.length,3);assert.equal(backdatedRows[1].from_date,'2026-10-01');assert.equal(backdatedRows[1].until_date,'2026-10-12');assert.equal(backdatedRows[0].from_date,'2026-09-01');assert.equal(backdatedRows[0].until_date,'2026-09-30');assert.equal(backdatedRows[0].closed_date,'2026-09-30');assert.ok(backdatedRows[0].closed_at);
+ const laterAfter=(await q('select * from agency_client_commercial_terms where id=$1',[laterBefore[0].id])).rows;assert.deepEqual(laterAfter,laterBefore,'later economics, dates and version are unchanged');
+ assert.equal((await call(backdatedPath,'PATCH',historical)).alreadyRecorded,true,'historical retry does not duplicate the agreement');
+ assert.equal((await call(backdatedPath,'PATCH',{...historical,recurringAmount:'901'})).status,409,'request key cannot change economics');
+ let backdatedRevision=(await call(backdatedPath)).revision;
+ assert.equal((await call(backdatedPath,'PATCH',terms(950,'2026-09-15',backdatedRevision))).status,409,'an existing historical period cannot be overwritten');
+ assert.equal((await call(backdatedPath,'PATCH',terms(800,'2026-08-01','0'))).status,409,'stale backdated write cannot append');
+ const earlier=terms(700,'2026-08-01',backdatedRevision);r=await call(backdatedPath,'PATCH',earlier);assert.equal(r.status,200,JSON.stringify(r));
+ const historicAmount=async(on)=>(await one('select recurring_amount::text as amount from agency_commercial_terms_on($1,$2::date) where client_id=$3',[org,on,backdatedClient])).amount;
+ assert.equal(Number(await historicAmount('2026-08-31')),700);assert.equal(Number(await historicAmount('2026-09-30')),900);assert.equal(Number(await historicAmount('2026-10-13')),2300);
+ const closedLater=await call(backdatedPath,'PATCH',{...terms(600,'2026-07-01',r.revision),endsOn:'2026-07-20'});assert.equal(closedLater.status,200,JSON.stringify(closedLater));
+ const shorter=(await one('select ends_on::text as ends_on,effective_until::text as effective_until from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and starts_on=$3',[org,backdatedClient,'2026-07-01']));assert.equal(shorter.ends_on,'2026-07-20');assert.equal(shorter.effective_until,'2026-07-20');
+ for(const [month,expected] of [['2026-08',700],['2026-09',900],['2026-10',2300]]){const balance=await call('/finance/balance-details?month='+month);const rows=balance.clients.records.filter(x=>x.client_id===String(backdatedClient));assert.equal(rows.length,1,'one contracted amount per client/month');assert.equal(Number(rows[0].contracted_amount),expected);}
+ // Remove this isolated active fixture from totals without removing its immutable history.
+ await q('update agency_clients set active=false where organization_id=$1 and id=$2',[org,backdatedClient]);
  // Both editors must agree for a fixed salary. Each write is one event,
  // and current-month changes leave the two preceding agreements untouched.
  const observedNow=(await one("select to_char(clock_timestamp() at time zone 'America/Asuncion','YYYY-MM') as month")).month;
@@ -151,6 +175,7 @@ export async function economicHistoryCases(db){
  const newestSalary=await call(salary),maxSalary=await one('select max(id)::text as revision from agency_salary_history where organization_id=$1 and collaborator_id=$2',[org,person]);assert.equal(newestSalary.revision,maxSalary.revision);assert.equal(newestSalary.records[0].id,maxSalary.revision);
  const auditAfter=await one('select (select count(*) from agency_invoices where organization_id=$1) as invoices,(select sum(balance) from bank_accounts where organization_id=$1) as cash,(select count(*) from agency_payouts where organization_id=$1) as payouts',[org]);assert.deepEqual(auditBefore,auditAfter);
  r=await call('/finance/periods/2026-09/close','POST',{reason:'Cierre para probar vigencia protegida',expectedRevision:0});assert.equal(r.status,200,JSON.stringify(r));
+ const backdatedAfterClose=await call(backdatedPath);assert.equal((await call(backdatedPath,'PATCH',terms(500,'2026-06-01',backdatedAfterClose.revision))).status,409,'historical loading cannot change a closed financial period');
  const blocked=await change('900','2026-09-01');assert.equal((await call(salary,'POST',blocked)).status,409);
  h=await call(history);assert.equal((await call(commercial,'PATCH',terms(1800,'2026-09-15',h.revision))).status,409);
  // Profile removal anonymizes identity and retains immutable accounting history.
