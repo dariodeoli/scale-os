@@ -114,6 +114,17 @@ export class PrintAgent {
     await flush();
     const remoteConfig = await api('/api/print/bridge/config');
     if (remoteConfig.bridge?.id !== config.bridgeId) throw new Error('bridge_mismatch');
+    if (!Array.isArray(remoteConfig.printers) || remoteConfig.printers.some(p => !p || typeof p !== 'object' || p.id === undefined)) throw new Error('invalid_remote_config');
+    // A persisted lease is not authorization to use stale printer configuration after restart.
+    // Compare routing fields only: presentation edits such as renaming do not invalidate a job.
+    for (const job of this.jobs.filter(j => j.remote && j.state === 'pendiente')) {
+      const current = remoteConfig.printers.find(p => p.id === job.printer_id);
+      const snapshot = job.printer;
+      if (!current || current.enabled !== true || current.id !== snapshot.id || current.branch_id !== snapshot.branch_id || current.destination !== snapshot.destination || current.connection !== snapshot.connection || (remoteConfig.bridge.branch_id && snapshot.branch_id !== remoteConfig.bridge.branch_id)) {
+        job.state = 'fallido'; job.transport = destination(snapshot.destination, this).transport;
+        job.error_code = 'printer_config_changed'; delete job.payload_base64; await this.save();
+      }
+    }
     await this.drain(); await flush();
     const claimed = await api(`/api/print/bridges/${encodeURIComponent(config.bridgeId)}/claim`, {});
     if (claimed.job) {

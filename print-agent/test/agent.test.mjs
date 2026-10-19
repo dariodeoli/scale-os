@@ -157,3 +157,40 @@ test('restart authenticates remote authority before sending a cached pending lea
   const authorized = async url => Response.json(url.endsWith('/config') ? { bridge: { id: 'bridge' }, printers: [printer] } : url.endsWith('/claim') ? { job: null } : { ok: true });
   await restarted.poll(config, authorized); assert.equal(sends, 1); assert.equal(restarted.jobs[0].state, 'aceptado'); assert.equal(restarted.jobs[0].payload_base64, undefined);
 });
+test('cached pending printer config is revalidated after restart before sending', async t => {
+  const savedPrinter = { ...printer, connection: 'lan', branch_id: 'main' };
+  const scenarios = [
+    ['missing', [], false],
+    ['disabled', [{ ...savedPrinter, enabled: false }], false],
+    ['destination_changed', [{ ...savedPrinter, destination: 'lan:192.168.1.99:9100' }], false],
+    ['connection_changed', [{ ...savedPrinter, connection: 'cups' }], false],
+    ['branch_changed', [{ ...savedPrinter, branch_id: 'other' }], false],
+    ['renamed_only', [{ ...savedPrinter, name: 'Updated display name' }], true],
+  ];
+  for (const [name, configuredPrinters, maySend] of scenarios) await t.test(name, async scenario => {
+    let sends = 0; const reports = [];
+    const first = await agent(scenario, async () => { sends++; return { state: 'aceptado', transport: 'lan' }; });
+    await first.enqueue({ ...input(), lease_id: 'persisted-lease', leased_until: new Date(Date.now() + 120000).toISOString() }, savedPrinter);
+    const restarted = await new PrintAgent({ directory: first.directory, send: first.send }).open();
+    const fetcher = async (url, options) => {
+      if (url.endsWith('/config')) return Response.json({ bridge: { id: 'bridge', branch_id: 'main' }, printers: configuredPrinters });
+      if (url.endsWith('/result')) { reports.push(JSON.parse(options.body)); return Response.json({ job: {} }); }
+      return Response.json(url.endsWith('/claim') ? { job: null } : { ok: true });
+    };
+    await restarted.poll({ apiOrigin: 'https://example.com', bridgeToken: 'private', bridgeId: 'bridge' }, fetcher);
+    assert.equal(sends, maySend ? 1 : 0, `${name}: no stale destination may receive bytes`);
+    assert.equal(reports.length, 1); assert.equal(reports[0].state, maySend ? 'aceptado' : 'fallido'); assert.equal(reports[0].transport, 'lan');
+    if (!maySend) assert.equal(reports[0].error_code, 'printer_config_changed');
+    assert.equal(restarted.jobs[0].payload_base64, undefined); assert.equal(restarted.jobs[0].reported, true);
+  });
+});
+test('cached queue remains pending on config HTTP failure or malformed config', async t => {
+  for (const mode of ['http_failure', 'malformed']) await t.test(mode, async scenario => {
+    let sends = 0; const first = await agent(scenario, async () => { sends++; return { state: 'aceptado', transport: 'lan' }; });
+    await first.enqueue({ ...input(), lease_id: 'persisted-lease', leased_until: new Date(Date.now() + 120000).toISOString() }, printer);
+    const restarted = await new PrintAgent({ directory: first.directory, send: first.send }).open();
+    const fetcher = async url => url.endsWith('/config') ? mode === 'http_failure' ? new Response('{}', { status: 503 }) : Response.json({ bridge: { id: 'bridge' }, printers: null }) : Response.json({ ok: true });
+    await assert.rejects(restarted.poll({ apiOrigin: 'https://example.com', bridgeToken: 'private', bridgeId: 'bridge' }, fetcher));
+    assert.equal(sends, 0); assert.equal(restarted.jobs[0].state, 'pendiente'); assert.equal(restarted.jobs[0].payload_base64, input().payload_base64);
+  });
+});
