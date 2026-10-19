@@ -35,9 +35,12 @@ sufijo de confirmación ni contenido del documento. La API guarda por separado
 los datos privados necesarios para el trabajo. El HTML y los bytes sí contienen
 el sufijo de confirmación: no exponerlos en listados, auditoría ni logs.
 
-`payloadBase64` incluye todas las copias solicitadas (1 a 5). El puente debe
-enviarlo **una sola vez**; no multiplicar otra vez por `copies`. Ninguna función
-envía bytes a una impresora. El límite total generado es 64 KiB.
+`renderPrintDocument` permite generar 1 a 5 copias para composición/pruebas y el
+payload retornado ya contiene esas copias. En el contrato del sistema, **la API
+lo llama siempre con `copies: 1`**, guarda un solo payload y el trabajo lleva
+`job.copies` por separado. El agente expande ese payload una sola vez antes de
+un único envío, verificando el límite total de 64 KiB. Nunca multiplicar un
+payload que ya contiene copias. Ninguna función envía bytes a una impresora.
 
 ## Datos y límites
 
@@ -58,9 +61,10 @@ y autorizados. No inventa empresa, cliente, importe ni fecha actual.
 | inventoryCode | existente, Code39, máximo 24 y sujeto al ancho seguro |
 | confirmationSuffix | alfanumérico/guion, 4–16 caracteres; generado por API |
 
-Se rechazan caracteres de control (incluidos ESC, saltos y NUL), campos
+Se rechazan caracteres de control (incluidos ESC y NUL), campos
 desconocidos, versiones futuras, otros anchos, orientación horizontal, alturas
-fijas y QR. Márgenes entre 0 y 10 mm, enteros de fuente entre 8 y 14, corte
+fijas y QR. Solo en `notes`, saltos LF y CRLF de un textarea se normalizan a
+espacios; los otros controles y saltos en otros campos se rechazan. Márgenes entre 0 y 10 mm, enteros de fuente entre 8 y 14, corte
 booleano. Los cambios se guardan en la versión de plantilla del API; el `version`
 del documento aquí es el formato del renderer (1), no el contador de edición.
 
