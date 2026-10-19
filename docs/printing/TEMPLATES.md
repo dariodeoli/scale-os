@@ -6,7 +6,9 @@ de 58 mm, Brother y 3nStar no son configuración ni funcionalidades de Scale.
 
 ## Contrato compartido
 
-`backend/printing-renderer.js` es ESM puro, sin Node, red, DOM ni dependencias.
+`backend/printing-renderer.js` es ESM puro, sin Node, red ni DOM. Reutiliza únicamente
+`qrcode@1.5.4` (core), dependencia ya existente del frontend y fijada también
+en el backend para generar una matriz sin renderizadores de archivos.
 `printing-renderer.d.ts` permite importarlo desde el frontend estricto. La API
 normaliza nuevamente cada entrada; la vista previa no autoriza trabajos.
 
@@ -60,10 +62,11 @@ y autorizados. No inventa empresa, cliente, importe ni fecha actual.
 | notes | 600 caracteres |
 | inventoryCode | existente, Code39, máximo 24 y sujeto al ancho seguro |
 | confirmationSuffix | alfanumérico/guion, 4–16 caracteres; generado por API |
+| qrUrl | opcional: enlace público existente de un presupuesto Scale autorizado por API |
 
 Se rechazan caracteres de control (incluidos ESC y NUL), campos
 desconocidos, versiones futuras, otros anchos, orientación horizontal, alturas
-fijas y QR. Solo en `notes`, saltos LF y CRLF de un textarea se normalizan a
+fijas y QR con destinos no admitidos. Solo en `notes`, saltos LF y CRLF de un textarea se normalizan a
 espacios; los otros controles y saltos en otros campos se rechazan. Márgenes entre 0 y 10 mm, presets de fuente 10 (normal) o 14 (doble), corte
 booleano. Los cambios se guardan en la versión de plantilla del API; el `version`
 del documento aquí es el formato del renderer (1), no el contador de edición.
@@ -95,10 +98,27 @@ código que no cabe; no se reduce hasta volverlo ilegible. La etiqueta original
 80 × 50 mm del inventario sigue disponible y no se modifica. El ticket es
 continuo y **no supone papel adhesivo, gap ni etiquetas precortadas**.
 
-No se imprime QR en esta primera versión: no existe una ruta pública aprobada
-para estos documentos. No se inventan rutas `/pedidos`, tokens de acceso ni
-payloads de otra aplicación. Los enlaces privados con credenciales o tokens no
-deben convertirse automáticamente en QR.
+El QR es opcional y solo admite la ruta **existente** de presupuestos públicos:
+`https://api.scaleparaguay.com/p/<token>`, token de 16–128 caracteres
+alfanuméricos, guion o guion bajo. Se rechazan otros esquemas, hosts, puertos,
+credenciales, queries, fragmentos y rutas. `normalizePrintQrUrl` es la fuente
+única de validación de formato tanto para UI como para API; **no acredita acceso**.
+La API comprueba además permiso, empresa, presupuesto/cliente visible, estado
+compartible y vigencia del token existente antes de encolar. No crea ni renueva
+accesos automáticamente y no inventa documentos públicos.
+
+El renderer usa `QRCode.create(url, { errorCorrectionLevel: 'H' })`: una misma
+matriz genera SVG y raster ESC/POS, con **7 puntos por módulo y 4 módulos libres
+por lado**. Si no cabe en el ancho útil se rechaza, sin reducirla ni recortarla.
+No se imprime la URL como texto ni se incluye en títulos/etiquetas del SVG;
+el patrón permite abrir el presupuesto intencionalmente compartido. El token
+sigue siendo acceso al documento: no registrar URL, documento, HTML o payload
+en logs, listados o auditoría. La vista previa debe permanecer privada.
+
+No hay imágenes remotas ni QR genéricos; no se usan rutas `/pedidos`, payloads
+de otra aplicación, tokens de sesión, secretos de puente ni credenciales.
+El QR requiere verificación con un teléfono y papel real antes de acreditarse
+como físicamente legible.
 
 ## Verificación
 
@@ -110,7 +130,9 @@ node backend/test-printing-renderer.mjs
 La suite verifica dimensiones, límites, copia múltiple sin multiplicación
 posterior, corte explícito, escape HTML, rechazo de controles, política ASCII,
 composición idéntica de vista previa y payload, snapshot sin sufijo, paridad del
-Code39 histórico, raster y rechazo de códigos demasiado anchos.
+Code39 histórico, raster y rechazo de códigos demasiado anchos. También
+comprueba destinos QR rechazados, corrección H, cada píxel del raster contra la
+matriz y el SVG, zona libre completa, ancho y límite total de payload.
 
 Pendiente físico: identificar modelo, transporte y ancho útil; imprimir/leer
 Code39 con lector real, revisar márgenes, caracteres, avances y corte; confirmar
