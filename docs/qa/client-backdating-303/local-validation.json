@@ -1,0 +1,43 @@
+{
+  "issue": 303,
+  "codeCommit": "e5bff2ad",
+  "review": "Independent read-only review; coherent conditions/revision SQL snapshot confirmed; no blockers reported",
+  "checks": {
+    "negative": {
+      "result": "expected failure before fix; exact409 confirmed",
+      "sha256": "0bc8797d123dc9fe08ee5def98eb96be91a29910c37947468daea463399431ea",
+      "logPath": "/tmp/scale303-negative.log",
+      "summary": "PASS migration twice, existing legacy baseline keeps unknown effective date"
+    },
+    "economic": {
+      "result": "PASS",
+      "sha256": "88aebe327ff3c25ddfb75f6372ed99e3a7b94b69305a06a0070c7842f2ff19d2",
+      "logPath": "/tmp/scale303-economic-final.log",
+      "summary": "PASS economic history: two dated salary/plan changes preserve prior months; exact client receipts vs invoice applications vs unallocated cash; no ledger changes; salary redaction, tenant, revisions, retries, closed-period guards"
+    },
+    "reports": {
+      "result": "PASS",
+      "sha256": "564c713fb7ab905fe93ba826c23d816280474b37542c0d311f33a8a4787bf166",
+      "logPath": "/tmp/scale303-reports.log",
+      "summary": "PASS reports: 82 real handler calls; migration repeatability, observation coverage, local/leap boundaries, snapshots, lifecycle/archive, roles/tenant/version, numeric currencies, dated reversals, lifecycle terms served end to end, append-only ficha amendments, preserved billing cadence and commission masking/PATCH preservation"
+    },
+    "lifecycle": {
+      "result": "PASS",
+      "sha256": "70fddbc853adca454c30b03bbc4c7a9ef99dfcbe5e44298e5d61f952c0146b8e",
+      "logPath": "/tmp/scale303-lifecycle.log",
+      "summary": "PASS: commercial terms are tenant-scoped and immutable, amendments are optimistic and close the prior term, the retired legacy commercial surface is fixed by test, Control Center separates contracted billing from forecast permissions, and the client ficha contract (camelCase history, role gates, archived read-only, reporting projection) is served end to end, and a ficha terms edit amends the cycle as an append-only versioned term."
+    }
+  },
+  "release": {
+    "version": "1.0.199",
+    "preparedCommit": "e1e8748d71011e61e980bcfe8af8514c30f5949e",
+    "buildId": "LG5Cg3zm906btvX2p8Y-t",
+    "gateExitCode": 0,
+    "frontendEntries": 275,
+    "fragments": 55,
+    "generatedPages": 64,
+    "backendScripts": 61,
+    "logSha256": "f972b1a4de8fa8c3d6f582cbe3163d61bf4be10cca7f947031b3413af8a0c97b",
+    "logPath": "/tmp/scale303-release199.log"
+  }
+}

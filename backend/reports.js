@@ -123,21 +123,21 @@ async function commercialTerms(db,org,id,canManageCommissions=true) {
   // served with the same contract: the plan name from the snapshot, no catalog id,
   // and the recurring amount net of discounts (the same projection the forecast and
   // the control center use).
-  const terms=(await db.query(`select t.id::text as "financialRevision",t.client_id::text as "clientId",coalesce(t.plan_id::text,'') as "planId",coalesce(t.plan_name,p.name,'') as "planName",
+  // Conditions and max revision share one SQL snapshot, including historical inserts.
+  const {terms,revision}=(await db.query(`select (select row_to_json(term) from (select t.client_id::text as "clientId",coalesce(t.plan_id::text,'') as "planId",coalesce(t.plan_name,p.name,'') as "planName",
   coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)::text as "recurringAmount",t.currency,
   t.starts_on::text as "startsOn",t.ends_on::text as "endsOn",t.cadence,t.interval_months as "intervalMonths",t.invoice_required as "invoiceRequired",t.commission_recipient_id::text as "commissionRecipientId",c.full_name as "commissionRecipientName",
   coalesce(t.commission_mode,'none') as "commissionMode",t.commission_value::text as "commissionValue",t.updated_at as "updatedAt"
   from agency_client_commercial_terms t left join agency_plans p on p.organization_id=t.organization_id and p.id=t.plan_id
   left join agency_collaborators c on c.organization_id=t.organization_id and c.id=t.commission_recipient_id
-  where t.organization_id=$1 and t.client_id=$2 and t.effective_until is null order by t.id desc limit 1`,[org,id])).rows[0]||null;
+  where t.organization_id=$1 and t.client_id=$2 and t.effective_until is null order by t.id desc limit 1) term) as terms,
+  (select coalesce(max(id),0)::text from agency_client_commercial_terms where organization_id=$1 and client_id=$2) as revision`,[org,id])).rows[0];
  const plans=(await db.query(`select p.id::text,p.name,p.currency from agency_plans p where p.organization_id=$1 and p.active
   and not exists(select 1 from agency_archived_records a where a.organization_id=p.organization_id and a.kind='plans' and a.record_id=p.id) order by p.name,p.id`,[org])).rows;
  const collaborators=canManageCommissions?(await db.query(`select c.id::text,c.full_name from agency_collaborators c where c.organization_id=$1 and c.active and ${'not exists(select 1 from agency_archived_records a where a.organization_id=c.organization_id and a.kind=\'collaborators\' and a.record_id=c.id)'} order by c.full_name,c.id`,[org])).rows:[];
  // La comisión (destinatario, modo y valor) es dato personal de un tercero:
  // sin `commissions.manage` el contrato se sirve enmascarado y sin el catálogo de
  // destinatarios. El PATCH preserva la comisión vigente (ver más abajo).
- const revision=terms?.financialRevision||'0';
- if(terms)delete terms.financialRevision;
  const projected=terms&&projectMoney(terms,['recurringAmount','commissionValue']);
  const visible=projected&&(canManageCommissions?projected:{...projected,commissionRecipientId:null,commissionRecipientName:null,commissionMode:'none',commissionValue:null});
  return {clientId:client.id,archived:client.archived,terms:visible,plans,collaborators,revision};
@@ -206,7 +206,7 @@ async function validateExpense(input) {
  }
  return {cadence,effectiveMonth,category:input.category.trim(),amount:wholeAmount(input.amount,'El importe'),currency:input.currency,note:input.note?.trim()||null,kind};
 }
-const insertCommercialTerm=(connection,organization,clientId,value)=>connection.query(`insert into agency_client_commercial_terms(organization_id,client_id,plan_id,recurring_amount,currency,starts_on,ends_on,invoice_required,commission_recipient_id,commission_mode,commission_value,cadence,interval_months,plan_name,plan_version,effective_from,monthly_price,change_reason,changed_by_user_id,request_key) values($1,$2,$3,$4::bigint,$5,$6::date,$7::date,$8,$9,$10,$11,$12,$13,(select name from agency_plans where organization_id=$1 and id=$3),(select md5(row_to_json(p)::text) from agency_plans p where organization_id=$1 and id=$3),$6::date,case when $12='monthly' then $4::numeric else null end,nullif(current_setting('app.commercial_reason',true),''),nullif(current_setting('app.current_user',true),'')::bigint,nullif(current_setting('app.commercial_request_key',true),''))`,[organization,clientId,value.planId,value.recurringAmount,value.currency,value.startsOn,value.endsOn,value.invoiceRequired,value.recipientId,value.commissionMode,value.commissionValue,value.cadence,value.intervalMonths]);
+const insertCommercialTerm=(connection,organization,clientId,value)=>connection.query(`insert into agency_client_commercial_terms(organization_id,client_id,plan_id,recurring_amount,currency,starts_on,ends_on,invoice_required,commission_recipient_id,commission_mode,commission_value,cadence,interval_months,plan_name,plan_version,effective_from,monthly_price,change_reason,changed_by_user_id,request_key,effective_until,closed_at) values($1,$2,$3,$4::bigint,$5,$6::date,$7::date,$8,$9,$10,$11,$12,$13,(select name from agency_plans where organization_id=$1 and id=$3),(select md5(row_to_json(p)::text) from agency_plans p where organization_id=$1 and id=$3),$6::date,case when $12='monthly' then $4::numeric else null end,nullif(current_setting('app.commercial_reason',true),''),nullif(current_setting('app.current_user',true),'')::bigint,nullif(current_setting('app.commercial_request_key',true),''),$14::date,case when $14::date is not null then clock_timestamp() else null end)`,[organization,clientId,value.planId,value.recurringAmount,value.currency,value.startsOn,value.endsOn,value.invoiceRequired,value.recipientId,value.commissionMode,value.commissionValue,value.cadence,value.intervalMonths,value.effectiveUntil??null]);
 export async function reports({req,res,url,db,session,body,send}) {
  const aggregate=url.pathname==='/api/agency/reports',match=url.pathname.match(/^\/api\/agency\/clients\/([1-9]\d*)\/reporting$/),termsMatch=url.pathname.match(/^\/api\/agency\/clients\/([1-9]\d*)\/commercial-terms$/),expenseMatch=url.pathname.match(/^\/api\/agency\/planned-expenses(?:\/([1-9]\d*))?$/);
  if(!aggregate&&!match&&!termsMatch&&!expenseMatch)return false;
@@ -253,8 +253,8 @@ export async function reports({req,res,url,db,session,body,send}) {
    const termsInput=await body(req);
    if(termsInput.requestId!==undefined){
     if(typeof termsInput.requestId!=='string'||! /^[a-f0-9-]{36}$/i.test(termsInput.requestId))fail('Identificador de operación inválido');
-    const retry=(await c.query('select plan_id::text,recurring_amount::text,currency,starts_on::text,ends_on::text,invoice_required,cadence,interval_months,change_reason,commission_recipient_id::text,commission_mode,commission_value::text from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and request_key=$3',[user.organization_id,id,termsInput.requestId])).rows[0];
-    if(retry){if(String(termsInput.planId)!==retry.plan_id||String(termsInput.recurringAmount)!==retry.recurring_amount||termsInput.currency!==retry.currency||(termsInput.effectiveFrom??termsInput.startsOn)!==retry.starts_on||(termsInput.endsOn||null)!==retry.ends_on||termsInput.invoiceRequired!==retry.invoice_required||(termsInput.cadence??'monthly')!==retry.cadence||Number(termsInput.intervalMonths??1)!==retry.interval_months||(termsInput.reason??'Cambio desde ficha; motivo no registrado')!==retry.change_reason)fail('El identificador ya pertenece a otro cambio de plan',409);const result=await commercialTerms(c,user.organization_id,id,roleCan(user,'commissions.manage'));await c.query('commit');c.release();c=null;send(res,200,{...result,alreadyRecorded:true});return true;}
+    const retry=(await c.query('select plan_id::text,recurring_amount::text,currency,starts_on::text,ends_on::text,effective_until::text,invoice_required,cadence,interval_months,change_reason,commission_recipient_id::text,commission_mode,commission_value::text from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and request_key=$3',[user.organization_id,id,termsInput.requestId])).rows[0];
+    if(retry){const requestedEnd=termsInput.endsOn||null;const retryEnd=retry.effective_until&&(!requestedEnd||requestedEnd>retry.effective_until)?retry.effective_until:requestedEnd;if(String(termsInput.planId)!==retry.plan_id||String(termsInput.recurringAmount)!==retry.recurring_amount||termsInput.currency!==retry.currency||(termsInput.effectiveFrom??termsInput.startsOn)!==retry.starts_on||retryEnd!==retry.ends_on||termsInput.invoiceRequired!==retry.invoice_required||(termsInput.cadence??'monthly')!==retry.cadence||Number(termsInput.intervalMonths??1)!==retry.interval_months||(termsInput.reason??'Cambio desde ficha; motivo no registrado')!==retry.change_reason)fail('El identificador ya pertenece a otro cambio de plan',409);const result=await commercialTerms(c,user.organization_id,id,roleCan(user,'commissions.manage'));await c.query('commit');c.release();c=null;send(res,200,{...result,alreadyRecorded:true});return true;}
    }
    if(termsInput.expectedRevision!==undefined){const revision=(await c.query('select coalesce(max(id),0)::text as revision from agency_client_commercial_terms where organization_id=$1 and client_id=$2',[user.organization_id,id])).rows[0].revision;if(String(termsInput.expectedRevision)!==revision)fail('El plan cambió. Recargá antes de guardar.',409);}
    const value=await validateTerms(c,user.organization_id,termsInput,open);
@@ -272,15 +272,25 @@ export async function reports({req,res,url,db,session,body,send}) {
    if(reason.length<5||reason.length>1000)fail('Indicá el motivo del cambio de plan');
    await c.query('select assert_agency_finance_period_open($1,$2::date)',[user.organization_id,effective]);
    await c.query("select set_config('app.commercial_reason',$1,true),set_config('app.commercial_request_key',$2,true)",[reason,termsInput.requestId||'']);
-   if(open){
+   // A missing agreement before the first recorded date is historical data,
+   // not a revision of the current price. Insert it already bounded/closed;
+   // never rewrite later snapshots or let it replace the open agreement.
+   let historicalUntil=null;
+   if(open&&effective<dateString(open.effective_from||open.starts_on)){
+    const first=(await c.query('select coalesce(effective_from,starts_on)::text as starts_on from agency_client_commercial_terms where organization_id=$1 and client_id=$2 order by coalesce(effective_from,starts_on),id limit 1',[user.organization_id,id])).rows[0];
+    if(effective>=first.starts_on)fail('La vigencia coincide con un período ya registrado. Elegí una fecha anterior al primer acuerdo para cargar historial.',409);
+    const boundary=new Date(`${first.starts_on}T12:00:00Z`);boundary.setUTCDate(boundary.getUTCDate()-1);
+    historicalUntil=boundary.toISOString().slice(0,10);
+    if(value.endsOn&&value.endsOn<historicalUntil)historicalUntil=value.endsOn;
+   }
+   if(open&&!historicalUntil){
     const priorStart=dateString(open.effective_from||open.starts_on);
-    if(priorStart&&effective<priorStart)fail(`La nueva vigencia no puede preceder al ${priorStart}`,409);
     const closedOn=new Date(`${effective}T12:00:00Z`);closedOn.setUTCDate(closedOn.getUTCDate()-1);
     const closed=(await c.query('update agency_client_commercial_terms set effective_until=$3::date,ends_on=$3::date,closed_at=now(),version=version+1,updated_at=clock_timestamp() where organization_id=$1 and client_id=$2 and id=$4 and effective_until is null and version=$5 returning id',[user.organization_id,id,effective===priorStart?priorStart:closedOn.toISOString().slice(0,10),open.id,open.version])).rows[0];
     if(!closed)fail('El término comercial cambió. Recargá antes de guardar.',409);
    }
    if(value.endsOn&&value.endsOn<effective)fail('La fecha de fin no puede preceder la vigencia');
-   await insertCommercialTerm(c,user.organization_id,id,{...value,startsOn:effective});
+   await insertCommercialTerm(c,user.organization_id,id,{...value,startsOn:effective,endsOn:historicalUntil??value.endsOn,effectiveUntil:historicalUntil});
    const result=await commercialTerms(c,user.organization_id,id,canManageCommissions);await c.query('commit');c.release();c=null;send(res,200,result);return true;
   }
   if(req.method==='GET'){send(res,200,await metadata(db,user.organization_id,id));return true;}
