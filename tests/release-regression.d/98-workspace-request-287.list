@@ -1,0 +1,1 @@
+node --import tsx --test tests/workspace-request-287.test.ts
