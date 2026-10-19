@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Release194: conservar JSX/hash exactos de los55 widgets; refrescar sólo posiciones y hashes de archivos tras cambios de producto revisados.",
+  "scope": "Release195 / #265: exact reviewed widget JSX and owners preserved; only source hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -214,7 +214,7 @@
     },
     {
       "file": "app/inventory-workspace.tsx",
-      "sourceHash": "ac95e0c9cad6354de9751fd168cc1ff2a4b9a5c5b0ccedccde13f70dd3e2c866",
+      "sourceHash": "44c8acb038e04779092b37f44072691db7bfb7f310c350d7ed1a6bf5d13a70bc",
       "sites": [
         {
           "line": 315,

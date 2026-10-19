@@ -15,6 +15,8 @@ const cases=[
  ['node','tests/client-contacts-browser-184.test.mjs'],
  ['node','tests/workspace-form-lifecycle-browser-241.test.mjs'],
  ['node','tests/access-forms-browser-241.test.mjs'],
+ ['node','tests/landing-responsive-browser-265.test.mjs'],
+ ['node','tests/tab-scroller-browser-265.test.mjs'],
  ['node','tests/ui-temporal-drafts-browser-241.test.mjs'],
  ['node','tests/ui-numeric-browser-241.test.mjs'],
  ['node','tests/temporal-filter-browser.test.mjs'],

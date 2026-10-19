@@ -1,6 +1,6 @@
 # Scale 1.0.195 — fotos de inventario
 
-Preparación desde main194 `f2d52f5ecd42d4aa629a80bb353ab1e39cc44dd0`. Issue #263. Todavía sin bump195, gates completos, merge ni publicación.
+Preparación desde main194 `f2d52f5ecd42d4aa629a80bb353ab1e39cc44dd0`. Issues #263 y #265. Aún sin bump195, gates globales, merge ni publicación.
 
 La consola del usuario muestra ERR_TOO_MANY_REDIRECTS en las fotos de los equipos50,43 y42. Los mensajes directo-adunit/config/content.js y el error de mensajería asíncrona parecen pertenecer a extensiones; no se encontró chrome.runtime/onMessage ni esas cadenas en las fuentes de Scale.
 
@@ -14,6 +14,18 @@ Las referencias circulares antiguas se resolverán únicamente si el último eve
 
 ## Pruebas y publicación
 
-Pendientes: focales PGlite/HTTP/PostgreSQL real, revisión independiente, suites del repositorio, build y versión sincronizada, PR/CI, merge y un único deploy195. El cambio no agrega migraciones ni modifica los controles visuales.
+Aprobados fotos: HTTP real+236 casos PGlite; PostgreSQL17 HTTP+7 carreras+exclusión; revisión independiente apta de 2fb4b2b2. Pendientes: suites del repositorio, build y versión sincronizada, PR/CI, merge y un único deploy195. No agrega migraciones. La auditoría responsive sí modifica presentación y navegación, según el alcance siguiente.
 
 La evidencia de publicación194 y sus seguimientos, guardada después de aquel deploy, se incluye ahora en esta siguiente entrega para evitar publicar dos veces la misma194.
+
+## Auditoría responsive #265
+
+Seis agentes revisaron fuentes/metodologías, público/acceso, flujo, recursos, finanzas y QA autenticado. Skills externas verificadas en `docs/qa/responsive/SKILLS.md`, sin instalación global ni hooks.
+
+Correcciones: anclas de landing bajo header adaptable; login16px; plantilla contractual larga contenida; identidad de inventario legible y pestaña Reservas; demo compacta hasta1023px y targets del marco44px en puntero táctil; montos grandes de Previsión contenidos por ancho de panel; foco Tab/ShiftTab visible dentro del carril compartido de pestañas. Se conserva la información, datos y permisos.
+
+Focales de agentes: 20 navegaciones landing, registro5anchos×2temas,27estados auxiliares; flujo6componentes×5anchos=30; recursos35escenarios+Tab5; finanzas42; TabScroller78 comprobaciones+2unitarios. El diagnóstico dev autenticado completó80/80,78PASS y2fallos de foco que motivaron las correcciones. Ese diagnóstico es mixto por HMR y NO acredita producción ni SHA inmutable. El runner final exige shell hidratado,7fixtures pobladas, identidaddemo, fuente/build, cobertura completa y falla ante auth401.
+
+Acciones241: revisión independiente conserva55widgets exactos,602acciones canónicas y1renderer,0sinrevisar. Se reposicionan hashes y se documentan cuatro desajustes previos de metadatos canónicos;21pruebas del auditor PASS, sin relajar guardas.
+
+El build final,19grupos browser y matriz240 (16rutas×5anchos×3temas con scroll/fotos/foco y diálogoCliente) siguen pendientes. Evidencia de Chromium emulado: no acredita Safari físico, correos/OAuth ni todas las operaciones comerciales privadas. Portal privado/superadmin no se declaran cubiertos por la matriz demo.

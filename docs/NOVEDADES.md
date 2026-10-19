@@ -4,6 +4,7 @@ Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en 
 
 ## v1.0.195
 
+- Auditoría responsive: navegación de landing, login, Contratos, tarjetas y pestañas de Inventario, controles demo en tablet e importes grandes de Previsión; foco visible al recorrer pestañas con teclado.
 - **Fotos de inventario estables**: editar un equipo conserva su foto actual,
   también cuando se abre desde la dirección pública del API.
 - **Referencias antiguas sin bucles**: las fotos dejan de redirigir hacia sí
