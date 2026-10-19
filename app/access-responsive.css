@@ -1,0 +1,3 @@
+/* Access forms retain the native 16px control text threshold on small screens.
+   Smaller input text can make Safari zoom the whole login surface on focus. */
+.access-page .login-card :is(input:not([type=checkbox]):not([type=radio]),select){font-size:16px}
