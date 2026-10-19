@@ -36,8 +36,11 @@ y capturas de fixtures [móvil](compact-headers-289/balance-fixture-320.png) /
 [escritorio](compact-headers-289/balance-fixture-1440.png). Los 19 grupos generales
 de navegador también aprobaron.
 
-Pendientes al preparar este documento: regresión frontend completa, build con
-artefacto, backend completo, CI y deploy.
+Preparación local completa: 271 entradas frontend en 52 fragmentos PASS;
+build Next de 64 páginas y tipos PASS; 61 scripts backend PASS. Artefacto
+`.next/BUILD_ID`: `vMSF0T8Me3QSBG8Iav5PR`. Assets login/status/registro dentro
+del presupuesto. CI detecta el navegador instalado del runner para ejecutar las
+nuevas regresiones visuales. Pendientes: CI candidato, merge, CI main y deploy.
 Los resultados finales deben registrarse con sus SHA y respuestas servidas.
 
 ## Reversión y límites

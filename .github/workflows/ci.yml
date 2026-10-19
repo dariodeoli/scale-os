@@ -29,6 +29,12 @@ jobs:
       # Browser checks resolve the existing Puppeteer dependency from backend/.
       - name: Install browser harness dependencies
         run: npm --prefix backend ci --ignore-scripts
+      - name: Locate installed browser for layout regression
+        run: |
+          task_browser_path="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$task_browser_path"
+          printf 'PUPPETEER_EXECUTABLE_PATH=%s\n' "$task_browser_path" >> "$GITHUB_ENV"
+          "$task_browser_path" --version
       - name: Release regression
         run: npm run test:release-regression
       - name: Generate Prisma client
