@@ -34,8 +34,8 @@ try {
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
-  const request = async (route, body, token) => {
-    const response = await fetch(`${origin}${route}`, { method: body === undefined ? 'GET' : 'POST', headers: { Host: 'app.scaleparaguay.com', 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  const request = async (route, body, token, method = body === undefined ? 'GET' : 'POST') => {
+    const response = await fetch(`${origin}${route}`, { method, headers: { Host: 'app.scaleparaguay.com', 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     return { status: response.status, ...await response.json() };
   };
   const base = '/api/agency/printing';
@@ -72,7 +72,16 @@ try {
   const local = agent.jobs.find(j => j.id === expired.job.id); assert.equal(local.state, 'incierto'); assert.equal(local.reconciliation_required, true); assert.equal(local.report_http_status, 409);
   assert.equal((await db.query('select state,payload_base64 from agency_print_jobs where id=$1', [expired.job.id])).rows[0].state, 'incierto');
   await agent.poll(config, remoteFetch); assert.equal(sends, 2);
-  console.log('Printing API/agent HTTP + PGlite interoperability PASS: pair once, exact 3 copies, tenant/branch scope, terminal payload wipe, human suffix, expired409 reconciliation without duplicate sends. Hardware transport stubbed; no physical print.');
+  // A real owner edit after a claim, before a restarted agent sends, must block the cached destination.
+  const cached = await request(`${base}/jobs`, { ...data, copies: 1, reference: 'INTEROP-CACHED-DISABLE', idempotency_key: 'interop-cached-disable' }); assert.equal(cached.status, 201);
+  const claimed = await request(`/api/print/bridges/${pair.bridge.id}/claim`, {}, pair.token); assert.equal(claimed.job.id, cached.job.id);
+  await agent.enqueue(claimed.job, claimed.printer);
+  assert.equal((await request(`${base}/printers/${printer.printer.id}`, { enabled: false }, undefined, 'PATCH')).status, 200);
+  const restarted = await new PrintAgent({ directory, send: agent.send }).open();
+  await restarted.poll(config, remoteFetch); assert.equal(sends, 2);
+  const stopped = (await db.query('select state,transport,error_code,payload_base64 from agency_print_jobs where id=$1', [cached.job.id])).rows[0];
+  assert.deepEqual(stopped, { state: 'fallido', transport: 'cups', error_code: 'printer_config_changed', payload_base64: null });
+  console.log('Printing API/agent HTTP + PGlite interoperability PASS: pair once, exact 3 copies, tenant/branch scope, terminal payload wipe, human suffix, expired409 reconciliation without duplicate sends, real owner disable blocks cached restart. Hardware transport stubbed; no physical print.');
 } finally {
   if (server) await new Promise(resolve => server.close(resolve));
   await pg.close(); await fs.rm(directory, { recursive: true, force: true });
