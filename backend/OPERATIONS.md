@@ -9,7 +9,7 @@ y `../VERSIONING.md`.
 | Qué | Dónde |
 | --- | --- |
 | Runtime | `node server.js` (Express + Postgres), puerto `PORT` (3000 por defecto) |
-| Imagen | `backend/Dockerfile` (node:22-alpine, Chromium para PDFs, `npm ci --omit=dev`) |
+| Imagen | `backend/Dockerfile` (node:24-alpine, Chromium para PDFs, `npm ci --omit=dev`) |
 | Despliegue | Coolify, servicio API del repo `dariodeoli/scale-os` con **base `backend/`** |
 | Dominio | `api.scaleparaguay.com` |
 | Salud | `GET /health` → `{ok, database, release:{version, application}}`; 503 mientras la base inicializa |
@@ -66,12 +66,15 @@ y `../VERSIONING.md`.
 
 ## Salud, smoke y release
 
-- Único camino de release: `npm run release:patch` en la raíz (bump + suites + build +
-  commit + push + smoke). El push a `main` dispara el webhook y Coolify despliega ambos
-  servicios de este repositorio.
-- `npm run release:smoke` valida `app.scaleparaguay.com/status`, `/registro` y
-  `api.scaleparaguay.com/health` contra `SCALE_EXPECTED_VERSION`.
-- Verificación de la última publicación (23-09-2026): `/health` responde
+- Con `main` protegido: `npm run release:patch -- --prepare` prepara un único bump,
+  suites, build y commit; publicar PR con CI verde y dejar que el integrador lo integre.
+  El merge dispara Coolify para ambos servicios, sin llamar otro deploy en paralelo.
+- `npm run release:smoke` valida la versión visible de `/status` y `/registro`,
+  y `/health` con `ok:true`, `database:ready` y `SCALE_EXPECTED_VERSION`. También
+  verifica por el proxy web `/core-api/api/auth/me` (401 JSON sin sesión),
+  `/core-api/api/auth/providers` y `/core-api/api/public/maintenance` (200 JSON
+  con sus campos tipados). No inicia sesión ni prueba OAuth, correo o acceso privado.
+- Verificación histórica de la migración (23-09-2026): `/health` responde
   `release.version 1.0.107` con base `ready` y la web 200 en `/status`.
 - Los logs del contenedor son JSON por request (`request_error`, `email_delivery_readiness`);
   no imprimen valores de variables ni credenciales.
@@ -105,11 +108,20 @@ comparar antes/después de un cambio de consultas o índices.
 
 ## Incidentes
 
-1. Revisar `/health` (503 = base inicializando o caída) y los logs del servicio en Coolify.
-2. Si falla salud, autenticación o guardado tras un deploy, revertir **código** a la
+1. Consultar `/health` y los tres endpoints de acceso por el proxy web, guardando
+   fecha, HTTP y tipo de respuesta sin cookies, tokens ni datos personales.
+   Un 503 JSON con `database:initializing` lo emite el API mientras inicializa;
+   un 503 de texto `no available server` indica que el proxy no tiene un backend
+   disponible. Un 403 de política de red del entorno tampoco demuestra una caída
+   del API. Ninguna de estas respuestas por sí sola acredita OOM o falla de base.
+2. Revisar estado y logs del servicio en Coolify: SHA, despliegue activo/cola,
+   reinicios/exit code, readiness, puerto, mounts y eventos de conexión/migración.
+   Conservar la evidencia del intervalo del incidente; una sonda sana posterior
+   acredita recuperación, no su causa. No repetir deploys queued/in_progress.
+3. Si falla salud, autenticación o guardado tras un deploy, revertir **código** a la
    versión anterior; nunca borrar tablas, datos ni migraciones aplicadas.
-3. Una migración defectuosa se corrige con una migración nueva (la anterior no se edita).
-4. El mantenimiento y la limpieza de demos se activan desde el Hub, con pedido explícito;
+4. Una migración defectuosa se corrige con una migración nueva (la anterior no se edita).
+5. El mantenimiento y la limpieza de demos se activan desde el Hub, con pedido explícito;
    el respaldo externo/R2 sigue pendiente y no se activa por inferencia.
 
 ## Pendientes operativos

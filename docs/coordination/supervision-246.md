@@ -11,3 +11,17 @@ Las herramientas de esta sesión no exponen un planificador de agentes. La CLI e
 Se preparó fuera del repositorio una prueba determinista del plan finito: exactamente cinco slots, reinicio sin repetir/sexto, exclusión mutua y detención ante ejecución ambigua o slot perdido. Cuatro pruebas PASS, **sin llamadas a modelos ni revisiones adicionales**. Estos helpers no equivalen a un agente programado.
 
 Para activarlo falta un planificador con capacidad real de iniciar/despertar al agente y supervivencia verificada durante los 225 minutos. Un proceso dormido que sólo escriba un archivo o un recordatorio no satisface el pedido. Hasta disponer de ese mecanismo, #246 permanece abierto y bloqueado.
+
+## Revalidación del entorno — 18/10/2026 23:34 America/Asuncion
+
+La consulta actual del runtime informa observaciones vigentes, conectividad y
+listas vacías de capacidades, secretos, variables e identidades externas. La
+búsqueda de herramientas de planificación, automatización o Coolify no expone
+ninguna. Esto no equivale a acceso a la Mac ni a un servidor persistente.
+
+Continúa **no programado, 0 de 5 revisiones**: no se inició un cron, workflow,
+proceso dormido ni deploy. El trabajo paralelo de agentes durante esta sesión
+sí puede continuar, pero no acredita futuros despertares. Para completar el
+pedido se necesita conectar un planificador que ejecute un agente real y
+conserve el estado finito de cinco ejecuciones; las credenciales deben
+configurarse mediante el entorno, nunca pegarse en el chat o el repositorio.
