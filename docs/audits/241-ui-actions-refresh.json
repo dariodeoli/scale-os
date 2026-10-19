@@ -225,7 +225,7 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "beforeHash": "f402825342a5326ad7e2040bdd178b43ffe89321bf80c204e3161caff71182bf",
-      "afterHash": "f5de843d05cb2c5bd46b9d9b2337cf4dc896418b11f675482f4e4280405245a5",
+      "afterHash": "71538a08362716bf206a24e6acdbb9662fbd07fbc7381c522733b810a68c4d17",
       "rationale": "Portal mobile #292: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
     },
     {
@@ -921,7 +921,7 @@
   },
   "portal292": {
     "baseline": "e04961c4c37383a0828f4b2809cc728637b43f8a",
-    "productSource": "3622c02dd890615e7f33051b24614e67a6409426",
+    "productSource": "58423a747409f25d3e58d0bf8cbe97589cc1b4ff",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 605,
     "newCanonicalActions": 0,
