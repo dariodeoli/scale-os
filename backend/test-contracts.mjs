@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {zoneTodaySql} from './business-time.js';
 import {contracts,contractVariables,contractBody,contractMissing,contractHtml,contractAiMetadata} from './contracts.js';
+import {IaError,iaProviderDeConfig} from './ia-carga.js';
 const pg=new PGlite();await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const file of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260910_ruc_lookup.sql','20260913_ruc_collaboration.sql','20260930_personal_data.sql','20260914_client_commercial_lifecycle.sql','20260914_client_terms_and_planned_expenses.sql','20260915_optional_commission_terms.sql','20260915_billing_cadence_and_coupons.sql','20260915_client_terms_end_date.sql','20261017_contract_documents.sql','20261017_client_legal_profile.sql'])await pg.exec(await fs.readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
 // Every migration must safely apply twice.
@@ -62,6 +63,33 @@ let messages;const aiProvider={analizar:async m=>{messages=m;return {contenido:'
 r=await call(root+'/'+doc.id+'/assist','POST',{},owner,{aiProvider});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.requires_review,true);assert.equal((await call(root+'/'+doc.id)).contract.revision,doc.revision,'AI never mutates draft');assert(!JSON.stringify(messages).includes('Nombre oficial'));assert(!JSON.stringify(messages).includes('123456789'));
 assert(!JSON.stringify(messages).includes('Título revisado'));assert(!JSON.stringify(messages).includes('<script>'));assert(!JSON.stringify(messages).includes('Edited manually'));assert(!JSON.stringify(messages).includes('Empresa Legal'));assert(!JSON.stringify(messages).includes('1000'));
 assert.deepEqual(contractAiMetadata({body:'Secreto nombre {{company.name}}',required_fields:['company.tax_id'],variables:{'company.name':'Nombre privado'}}),{fields:['company.tax_id','company.name'],required_fields:['company.tax_id'],missing:['company.tax_id'],presence:{'company.tax_id':false,'company.name':true}});
+// Provider failures must never report an empty/truncated review as a success or touch the draft/version.
+const beforeAiFailure=(await call(root+'/'+doc.id)).contract,versionsBeforeAi=(await call(root+'/'+doc.id+'/versions')).versions;
+const previousIaKey=process.env.IA_API_KEY;delete process.env.IA_API_KEY;
+try{assert.equal((await call(root+'/'+doc.id+'/assist','POST')).status,503,'missing provider fails without touching the draft');}finally{if(previousIaKey===undefined)delete process.env.IA_API_KEY;else process.env.IA_API_KEY=previousIaKey;}
+const badAiOutputs=[undefined,null,'not JSON','null','[]','{}','{"suggestion":"   "}','{"suggestion":1}','{"suggestion":null}',JSON.stringify({suggestion:'x'.repeat(12001)}),JSON.stringify({suggestion:'bad\u0000text'}),JSON.stringify({suggestion:'Review',unexpected:'untrusted'}),{contenido:'{"suggestion":"Truncated review"}',finishReason:'length'},{contenido:'{"suggestion":"Filtered review"}',finishReason:'content_filter'}];
+for(const output of badAiOutputs){
+ await query('delete from auth_throttles where key=$1',['contracts-ai:'+org]);
+ const failed=await call(root+'/'+doc.id+'/assist','POST',{},owner,{aiProvider:{analizar:async()=>output}});
+ assert.equal(failed.status,502,JSON.stringify({output,failed}));assert(!Object.hasOwn(failed,'suggestion'));
+ assert.deepEqual((await call(root+'/'+doc.id)).contract,beforeAiFailure);
+ assert.deepEqual((await call(root+'/'+doc.id+'/versions')).versions,versionsBeforeAi);
+}
+for(const providerError of [new IaError('PRIVATE provider body',{code:'ia_proveedor'}),new IaError('PRIVATE timeout',{code:'ia_proveedor'}),Error('PRIVATE unexpected')]){
+ await query('delete from auth_throttles where key=$1',['contracts-ai:'+org]);
+ const failed=await call(root+'/'+doc.id+'/assist','POST',{},owner,{aiProvider:{analizar:async()=>{throw providerError;}}});
+ assert.equal(failed.status,providerError instanceof IaError?503:500);assert(!JSON.stringify(failed).includes('PRIVATE'));
+ assert.deepEqual((await call(root+'/'+doc.id)).contract,beforeAiFailure);
+}
+assert.equal((await call(root+'/'+doc.id+'/assist','POST',{},viewer,{aiProvider})).status,403);
+assert.equal((await call(root+'/'+doc.id+'/assist','POST',{},otherOwner,{aiProvider})).status,404);
+// Exercise the actual shared HTTP adapter with a fake transport: no request leaves this process.
+for(const fetcher of [async()=>{throw new DOMException('PRIVATE timeout','TimeoutError');},async()=>new Response('PRIVATE upstream',{status:429}),async()=>new Response('PRIVATE upstream',{status:401}),async()=>new Response('PRIVATE upstream',{status:500})]){
+ await query('delete from auth_throttles where key=$1',['contracts-ai:'+org]);
+ const provider=iaProviderDeConfig({apiKey:'local-fixture-not-a-real-key',modelo:'local-fixture',baseUrl:'https://api.groq.com/openai/v1',reasoningEffort:null},{fetcher});
+ const failed=await call(root+'/'+doc.id+'/assist','POST',{},owner,{aiProvider:provider});assert.equal(failed.status,503);assert(!JSON.stringify(failed).includes('PRIVATE'));
+ assert.deepEqual((await call(root+'/'+doc.id)).contract,beforeAiFailure);assert.deepEqual((await call(root+'/'+doc.id+'/versions')).versions,versionsBeforeAi);
+}
 // Built-in models are read-only catalog entries until explicitly installed.
 const countBefore=Number((await one('select count(*) as n from agency_contract_templates where organization_id=$1',[org])).n);
 const models=(await call(root+'/models')).models;assert.equal(models.length,4);assert.equal((await call(root+'/models','GET',{},sales)).models.length,4);
