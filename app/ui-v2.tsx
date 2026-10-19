@@ -471,8 +471,8 @@ export function PageHeader({eyebrow, title, subtitle, actions, navigation, class
       {heading && <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">{heading}</h1>}
       {subtitle && <p className="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1" title={subtitleText}>{subtitle}</p>}
     </div>
-    {navigation && <div className="ui-page-header-navigation">{navigation}</div>}
     {actions && <div className="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap">{actions}</div>}
+    {navigation && <div className="ui-page-header-navigation">{navigation}</div>}
   </header>;
 }
 
