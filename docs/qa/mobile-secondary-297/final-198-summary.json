@@ -1,0 +1,4417 @@
+{
+  "source": "tree:0dd12f1bb78ae3ba5b28b8f936ab62bcc6884f2b",
+  "buildId": "_CwxQgq5vJLcAt0cJxDax",
+  "mode": "production",
+  "buildManifest": {
+    "status": 200,
+    "isBuildManifest": true
+  },
+  "transportFailures": [],
+  "passed": true,
+  "coverage": {
+    "expected": 135,
+    "actual": 135
+  },
+  "uniqueScenarios": 135,
+  "fixtureCounts": {
+    "clients": 20,
+    "collaborators": 9
+  },
+  "widths": [
+    320,
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "themes": [
+    "light",
+    "dark",
+    "contrast"
+  ],
+  "routes": [
+    "/pipeline/metricas",
+    "/presupuestos/planes",
+    "/equipo/invitaciones",
+    "/equipo/comisiones",
+    "/equipo/permisos",
+    "/equipo/historial",
+    "/equipo/actividad",
+    "/configuracion/preferencias",
+    "/configuracion/papelera"
+  ],
+  "states": 405,
+  "runtimeErrors": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "blockedWrites": [
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/agency/presence/heartbeat",
+      "method": "POST"
+    },
+    {
+      "path": "/core-api/api/public/analytics/collect",
+      "method": "POST"
+    }
+  ],
+  "records": [
+    {
+      "path": "/pipeline/metricas",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 2
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 2
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 2
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 2
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 2
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 1
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 2
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 5
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 14
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 13
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 25
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 12
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 18
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 768,
+      "height": 1024,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 8
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 5
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 14
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 13
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 25
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 12
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 18
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 768,
+      "height": 1024,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 8
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 5
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 14
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 13
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 25
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 12
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 18
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 768,
+      "height": 1024,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 8
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 5
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 14
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 13
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 25
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 12
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 18
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 1024,
+      "height": 768,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 8
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 5
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 14
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 13
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 25
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 12
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 18
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 1024,
+      "height": 768,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 8
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 5
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 14
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 13
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 25
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 12
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 20,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 18
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 6
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 1024,
+      "height": 768,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 8
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 29,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 29,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/pipeline/metricas",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 30,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/presupuestos/planes",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 3,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/invitaciones",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-ordinary-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": [
+          "No hay solicitudes pendientesCuando alguien pida acceso con un enlace de aprobación, aparece acá."
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/comisiones",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 8,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/permisos",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/historial",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 10,
+        "emptyMessages": [
+          "1–10 de 128"
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/equipo/actividad",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 29,
+        "emptyMessages": [
+          "Mostrando 20 de 1062 cambios registrados por el servidor en esta empresa"
+        ]
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/configuracion/preferencias",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 0,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    },
+    {
+      "path": "/configuracion/papelera",
+      "width": 1440,
+      "height": 1000,
+      "theme": "contrast",
+      "identity": "synthetic-demo-owner",
+      "passed": true,
+      "findings": [],
+      "contentState": {
+        "visibleRows": 1,
+        "emptyMessages": []
+      },
+      "smallTouchCandidates": 0
+    }
+  ],
+  "actions": {
+    "source": "tree:0dd12f1bb78ae3ba5b28b8f936ab62bcc6884f2b",
+    "buildId": "_CwxQgq5vJLcAt0cJxDax",
+    "mode": "production",
+    "passed": true,
+    "states": [
+      {
+        "width": 320,
+        "height": 844,
+        "preferences": true,
+        "configuration": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "preferences": true,
+        "configuration": true
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "preferences": true,
+        "configuration": true
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "preferences": true,
+        "configuration": true
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "preferences": true,
+        "configuration": true
+      }
+    ],
+    "checks": [
+      {
+        "name": "served compiled manifest matches BUILD_ID",
+        "passed": true,
+        "details": {
+          "status": 200,
+          "isBuildManifest": true
+        }
+      },
+      {
+        "name": "fixture owner session",
+        "passed": true
+      },
+      {
+        "name": "actual preferences fixture",
+        "passed": true
+      },
+      {
+        "name": "actual legal fixture",
+        "passed": true
+      },
+      {
+        "name": "320x844 preferences no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion/preferencias",
+          "coarse": true
+        }
+      },
+      {
+        "name": "320x844 startup option exists",
+        "passed": true
+      },
+      {
+        "name": "320x844 preferences persisted through real API reload",
+        "passed": true
+      },
+      {
+        "name": "320x844 configuration no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion",
+          "coarse": true
+        }
+      },
+      {
+        "name": "320x844 new company dialog bounds/focus",
+        "passed": true,
+        "details": {
+          "contained": true,
+          "focus": true,
+          "smallTouchCandidates": []
+        }
+      },
+      {
+        "name": "320x844 modal Tab stays inside 0",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 1",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 2",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 3",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 4",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 5",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 6",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal Tab stays inside 7",
+        "passed": true
+      },
+      {
+        "name": "320x844 modal close restores focus",
+        "passed": true
+      },
+      {
+        "name": "typed complete replacement",
+        "passed": true
+      },
+      {
+        "name": "320x844 legal draft retained after simulated503",
+        "passed": true
+      },
+      {
+        "name": "320x844 legal persisted in actual API",
+        "passed": true
+      },
+      {
+        "name": "320x844 legal reload restores persisted value",
+        "passed": true
+      },
+      {
+        "name": "390x844 preferences no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion/preferencias",
+          "coarse": true
+        }
+      },
+      {
+        "name": "390x844 startup option exists",
+        "passed": true
+      },
+      {
+        "name": "390x844 preferences persisted through real API reload",
+        "passed": true
+      },
+      {
+        "name": "390x844 configuration no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion",
+          "coarse": true
+        }
+      },
+      {
+        "name": "390x844 new company dialog bounds/focus",
+        "passed": true,
+        "details": {
+          "contained": true,
+          "focus": true,
+          "smallTouchCandidates": []
+        }
+      },
+      {
+        "name": "390x844 modal Tab stays inside 0",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 1",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 2",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 3",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 4",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 5",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 6",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal Tab stays inside 7",
+        "passed": true
+      },
+      {
+        "name": "390x844 modal close restores focus",
+        "passed": true
+      },
+      {
+        "name": "typed complete replacement",
+        "passed": true
+      },
+      {
+        "name": "390x844 legal persisted in actual API",
+        "passed": true
+      },
+      {
+        "name": "390x844 legal reload restores persisted value",
+        "passed": true
+      },
+      {
+        "name": "768x844 preferences no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion/preferencias",
+          "coarse": true
+        }
+      },
+      {
+        "name": "768x844 startup option exists",
+        "passed": true
+      },
+      {
+        "name": "768x844 preferences persisted through real API reload",
+        "passed": true
+      },
+      {
+        "name": "768x844 configuration no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion",
+          "coarse": true
+        }
+      },
+      {
+        "name": "768x844 new company dialog bounds/focus",
+        "passed": true,
+        "details": {
+          "contained": true,
+          "focus": true,
+          "smallTouchCandidates": [
+            {
+              "label": "name",
+              "width": 327.5,
+              "height": 40
+            },
+            {
+              "label": "slug",
+              "width": 327.5,
+              "height": 40
+            },
+            {
+              "label": "US$10 al mes",
+              "width": 327.5,
+              "height": 40
+            },
+            {
+              "label": "Cancelar",
+              "width": 83.5,
+              "height": 40
+            },
+            {
+              "label": "Crear empresa e iniciar prueba",
+              "width": 212.171875,
+              "height": 40
+            }
+          ]
+        }
+      },
+      {
+        "name": "768x844 modal Tab stays inside 0",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 1",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 2",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 3",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 4",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 5",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 6",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal Tab stays inside 7",
+        "passed": true
+      },
+      {
+        "name": "768x844 modal close restores focus",
+        "passed": true
+      },
+      {
+        "name": "typed complete replacement",
+        "passed": true
+      },
+      {
+        "name": "768x844 legal persisted in actual API",
+        "passed": true
+      },
+      {
+        "name": "768x844 legal reload restores persisted value",
+        "passed": true
+      },
+      {
+        "name": "390x568 preferences no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion/preferencias",
+          "coarse": true
+        }
+      },
+      {
+        "name": "390x568 startup option exists",
+        "passed": true
+      },
+      {
+        "name": "390x568 preferences persisted through real API reload",
+        "passed": true
+      },
+      {
+        "name": "390x568 configuration no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion",
+          "coarse": true
+        }
+      },
+      {
+        "name": "390x568 new company dialog bounds/focus",
+        "passed": true,
+        "details": {
+          "contained": true,
+          "focus": true,
+          "smallTouchCandidates": []
+        }
+      },
+      {
+        "name": "390x568 modal Tab stays inside 0",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 1",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 2",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 3",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 4",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 5",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 6",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal Tab stays inside 7",
+        "passed": true
+      },
+      {
+        "name": "390x568 modal close restores focus",
+        "passed": true
+      },
+      {
+        "name": "typed complete replacement",
+        "passed": true
+      },
+      {
+        "name": "390x568 legal persisted in actual API",
+        "passed": true
+      },
+      {
+        "name": "390x568 legal reload restores persisted value",
+        "passed": true
+      },
+      {
+        "name": "844x390 preferences no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion/preferencias",
+          "coarse": true
+        }
+      },
+      {
+        "name": "844x390 startup option exists",
+        "passed": true
+      },
+      {
+        "name": "844x390 preferences persisted through real API reload",
+        "passed": true
+      },
+      {
+        "name": "844x390 configuration no overflow",
+        "passed": true,
+        "details": {
+          "overflow": 0,
+          "path": "/configuracion",
+          "coarse": true
+        }
+      },
+      {
+        "name": "844x390 new company dialog bounds/focus",
+        "passed": true,
+        "details": {
+          "contained": true,
+          "focus": true,
+          "smallTouchCandidates": [
+            {
+              "label": "name",
+              "width": 365.5,
+              "height": 40
+            },
+            {
+              "label": "slug",
+              "width": 365.5,
+              "height": 40
+            },
+            {
+              "label": "US$10 al mes",
+              "width": 365.5,
+              "height": 40
+            },
+            {
+              "label": "Cancelar",
+              "width": 83.5,
+              "height": 40
+            },
+            {
+              "label": "Crear empresa e iniciar prueba",
+              "width": 212.171875,
+              "height": 40
+            }
+          ]
+        }
+      },
+      {
+        "name": "844x390 modal Tab stays inside 0",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 1",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 2",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 3",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 4",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 5",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 6",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal Tab stays inside 7",
+        "passed": true
+      },
+      {
+        "name": "844x390 modal close restores focus",
+        "passed": true
+      },
+      {
+        "name": "typed complete replacement",
+        "passed": true
+      },
+      {
+        "name": "844x390 legal persisted in actual API",
+        "passed": true
+      },
+      {
+        "name": "844x390 legal reload restores persisted value",
+        "passed": true
+      },
+      {
+        "name": "no runtime errors",
+        "passed": true,
+        "details": []
+      },
+      {
+        "name": "one deliberate recoverable transport failure",
+        "passed": true
+      },
+      {
+        "name": "restore legal fixture",
+        "passed": true
+      },
+      {
+        "name": "restore preference fixture",
+        "passed": true
+      }
+    ],
+    "network": [
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 503
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "method": "PATCH",
+        "status": 200
+      },
+      {
+        "path": "/core-api/api/agency/workspace-preferences",
+        "method": "PATCH",
+        "status": 200
+      }
+    ],
+    "injectedFailures": [
+      {
+        "path": "/core-api/api/agency/company-legal-profile",
+        "status": 503
+      }
+    ],
+    "runtime": []
+  },
+  "runnerSource": "2513d757b9472625071fcf30ac26cf327bc619ba",
+  "candidate": {
+    "commit": "752e3a7c9cdf802af073524906d9d90dacf90f90",
+    "tree": "0c7ab157dc7a34bb0083792d07828022d41fc6e4",
+    "sameFullTreeAsCompiled": false,
+    "differencesFromCompiledTree": [
+      ".engram/chunks/e7c5c311.jsonl.gz",
+      ".engram/manifest.json",
+      "docs/qa/mobile-secondary-297/actions.mjs",
+      "docs/qa/mobile-secondary-297/browser.mjs",
+      "docs/qa/mobile-secondary-297/summarize.mjs"
+    ],
+    "productConfigurationOrLockDifferences": []
+  }
+}
