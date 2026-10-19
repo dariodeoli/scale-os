@@ -8,18 +8,20 @@ import {createServer} from 'node:http';
 import path from 'node:path';
 const require=createRequire(import.meta.url),backendRequire=createRequire(new URL('../backend/package.json',import.meta.url));
 const puppeteer=backendRequire('puppeteer-core'),repo=fileURLToPath(new URL('../',import.meta.url));
-const cssBundle=await build({stdin:{contents:["owncoding-ui/styles.css",'./app/ui-tokens.css','./app/globals.css','./app/qa-fixes.css','./app/mobile-forms.css','./app/ui-system.css','./app/contrast.css','./app/tailwind.css','./app/cliente/portal.css'].map(file=>`@import '${file}';`).join('\n'),resolveDir:repo,loader:'css'},bundle:true,write:false,outdir:'/tmp/scale-access241-css',external:['/fonts/*','/images/*','/brand/*'],logLevel:'silent'});
+const cssBundle=await build({stdin:{contents:["owncoding-ui/styles.css",'./app/ui-tokens.css','./app/globals.css','./app/access-responsive.css','./app/qa-fixes.css','./app/mobile-forms.css','./app/ui-system.css','./app/contrast.css','./app/tailwind.css','./app/cliente/portal.css'].map(file=>`@import '${file}';`).join('\n'),resolveDir:repo,loader:'css'},bundle:true,write:false,outdir:'/tmp/scale-access241-css',external:['/fonts/*','/images/*','/brand/*'],logLevel:'silent'});
 const loadConfig=require('tailwindcss/loadConfig'),postcss=require('postcss'),tailwind=require('tailwindcss');
 const config=loadConfig(path.join(repo,'tailwind.config.mjs'));
-config.content=[{raw:(await Promise.all(['registro/page.tsx','invitacion/page.tsx','recuperar-cuenta/page.tsx','verificar-correo/page.tsx','access-layout.tsx','auth-brand-panel.tsx','workspace-footer.tsx','cliente/ingresar/page.tsx','cliente/invitacion/page.tsx','cliente/recuperar/page.tsx'].map(file=>readFile(path.join(repo,'app',file),'utf8')))).join('\n'),extension:'tsx'}];
+config.content=[{raw:(await Promise.all(['status/page.tsx','privacidad/page.tsx','acceso-pendiente/page.tsx','registro/page.tsx','invitacion/page.tsx','recuperar-cuenta/page.tsx','verificar-correo/page.tsx','access-layout.tsx','auth-brand-panel.tsx','workspace-footer.tsx','cliente/ingresar/page.tsx','cliente/invitacion/page.tsx','cliente/recuperar/page.tsx'].map(file=>readFile(path.join(repo,'app',file),'utf8')))).join('\n'),extension:'tsx'}];
 const css=(await postcss([tailwind(config)]).process(cssBundle.outputFiles.find(file=>file.path.endsWith('.css')).text,{from:path.join(repo,'app/tailwind.css')})).css;
 const bundle=await build({stdin:{contents:`
-import React from'react';import{createRoot}from'react-dom/client';
-import Login from'./app/cliente/ingresar/page';import PortalInvite from'./app/cliente/invitacion/page';import Recovery from'./app/cliente/recuperar/page';import Account from'./app/recuperar-cuenta/page';import Verify from'./app/verificar-correo/page';import Invite from'./app/invitacion/page';import Registration from'./app/registro/page';import PortalLayout from'./app/cliente/layout';
-const root=createRoot(document.getElementById('root'));let key=0;const views={login:Login,portalInvite:PortalInvite,recovery:Recovery,account:Account,verify:Verify,teamInvite:Invite,registration:Registration};
+import React from'react';import{createRoot}from'react-dom/client';import{AccessLayout}from'./app/access-layout';import{EmailField}from'./app/email-field';import{PasswordField}from'./app/password-field';
+import Status from'./app/status/page';import Privacy from'./app/privacidad/page';import Pending from'./app/acceso-pendiente/page';import Login from'./app/cliente/ingresar/page';import PortalInvite from'./app/cliente/invitacion/page';import Recovery from'./app/cliente/recuperar/page';import Account from'./app/recuperar-cuenta/page';import Verify from'./app/verificar-correo/page';import Invite from'./app/invitacion/page';import Registration from'./app/registro/page';import PortalLayout from'./app/cliente/layout';
+function LoginSizing(){return <AccessLayout cardClassName="login-card"><form><EmailField value="" onChange={()=>{}}/><PasswordField value="" onChange={()=>{}} name="password" label="Contraseña"/></form></AccessLayout>;}
+const root=createRoot(document.getElementById('root'));let key=0;const views={status:Status,privacy:Privacy,pending:Pending,loginSizing:LoginSizing,login:Login,portalInvite:PortalInvite,recovery:Recovery,account:Account,verify:Verify,teamInvite:Invite,registration:Registration};
 window.calls=[];window.queue=[];
 window.fetch=async(input,init={})=>{
  const url=String(input),body=init.body?JSON.parse(init.body):null;window.calls.push({url,body});
+ if(url.endsWith('/health'))return new Response('{}',{status:503});if(url.endsWith('/auth/email-status'))return new Response(JSON.stringify({email:{available:false,message:'Correo no disponible en este fixture'}}));
  if(url.endsWith('/auth/me')||url.endsWith('/invitations/status'))return new Response('{}',{status:401});
  if(url.includes('/client-portal/invites/preview?'))return new Response(JSON.stringify({organizationName:'Empresa QA',clientName:'Cliente QA'}));
  if(url.includes('/invitations/preview?'))return new Response(JSON.stringify({organization_name:'Empresa QA',role:'viewer',mode:'single'}));
@@ -76,10 +78,10 @@ try{
  }
  await mount('verify','?token='+'a'.repeat(64));await page.waitForFunction(()=>window.queue.length===1);assert.equal(await page.evaluate(()=>window.calls.filter(call=>call.url.endsWith('/password/verify')).length),1,'StrictMode comparte una sola verificación de token');
  await release(400,{error:'Enlace no disponible'});await page.waitForSelector('form');
- for(const theme of ['light','dark'])for(const width of [1366,390]){
+ for(const theme of ['light','dark'])for(const width of [320,390,768,1024,1440]){
   await page.setViewport({width,height:width===390?844:768});await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);await mount('registration');
-  await page.waitForSelector('form input[type=email]');await fill('input[type=email]','qa@example.invalid');await fill('input[name=password]','ClaveLocal2026!');
-  await submitTwice();await assertPending('registration');await release(200,{requiresAgency:true});await page.waitForSelector('input[name=confirm_password]');
+  await page.waitForSelector('form input[type=email]');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,theme+' '+width+' identidad sin overflow');await fill('input[type=email]','qa@example.invalid');await fill('input[name=password]','ClaveLocal2026!');
+  await submitTwice();await assertPending('registration');await release(200,{requiresAgency:true});await page.waitForSelector('input[name=confirm_password]');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,theme+' '+width+' acceso sin overflow');
   await fill('input[name=confirm_password]','ClaveLocal2026!');await page.$eval('form',form=>form.requestSubmit());await page.waitForSelector('input[autocomplete=organization]');
   await fill('input[autocomplete=organization]','Agencia QA');for(const box of await page.$$('input[type=checkbox]'))await box.click();
   await page.evaluate(()=>{const action=Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Crear mi agencia');action.click();action.click();});
@@ -90,6 +92,8 @@ try{
   await release(503,{error:'Fallo controlado de agencia'});await page.waitForFunction(()=>!document.querySelector('fieldset.ui-form-fields')?.disabled);
   await page.waitForFunction(()=>document.activeElement?.textContent==='Fallo controlado de agencia');assert.equal(await page.$eval('input[autocomplete=organization]',node=>node.value),'Agencia QA');assert((await page.$$eval('input[type=checkbox]',nodes=>nodes.map(node=>node.checked))).every(Boolean));
  }
+ for(const width of [320,390,768,1024,1440]){await page.setViewport({width,height:844});await mount('loginSizing');await page.waitForSelector('.login-card input[type=email]');assert.equal(await page.$eval('.login-card input[type=email]',input=>getComputedStyle(input).fontSize),'16px','login keeps readable native input text at '+width);assert.equal(await page.$eval('.login-card input[name=password]',input=>getComputedStyle(input).fontSize),'16px');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'login layout '+width+' sin overflow');}
+ for(const width of [320,768,1440])for(const mode of ['status','privacy','pending','account','verify','teamInvite','portalInvite','login','recovery']){await page.setViewport({width,height:844});await mount(mode);await page.waitForSelector('main');await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,mode+' '+width+' sin overflow');}
  assert.deepEqual(errors,[]);
- console.log('PASS Chromium real:7 rutas+reset, fieldset display:contents y bloqueo nativo completo, dobles submits, consentimientos/drafts/foco tras error, OAuth deshabilitado, StrictMode verify1POST, registro1366/390 claro/oscuro sin overflow.');
+ console.log('PASS Chromium real:7 rutas+reset, fieldset display:contents y bloqueo nativo completo, dobles submits, consentimientos/drafts/foco tras error, OAuth deshabilitado, StrictMode verify1POST, registro320/390/768/1024/1440 (3 pasos) claro/oscuro sin overflow; login16px en5anchos; 27 estados auxiliares sin overflow.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

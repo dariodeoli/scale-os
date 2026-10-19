@@ -29,7 +29,44 @@ const photoHref=row=>{
  const stamp=crypto.createHash('sha1').update(value).digest('hex').slice(0,8);
  return `/api/agency/inventory/${row.id}/photo?v=${stamp}`;
 };
-const isOwnPhotoHref=(value,row)=>String(value||'').split('?')[0]===`/api/agency/inventory/${row.id}/photo`;
+// Photo endpoint references are identifiers, never replacement image sources.
+// Only the same item and a controlled origin may round-trip the stored image.
+const headerFirst=value=>String(Array.isArray(value)?value[0]:value||'').split(',')[0].trim();
+const httpOrigin=value=>{try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password&&u.pathname==='/'&&!u.search&&!u.hash?u.origin:null;}catch{return null;}};
+const photoOrigin=req=>{
+ const headers=req?.headers||{};
+ const protocol=headerFirst(headers['x-forwarded-proto'])||(req?.socket?.encrypted?'https':'http');
+ const host=headerFirst(headers['x-forwarded-host'])||headerFirst(headers.host);
+ return host&&httpOrigin(`${protocol}://${host}`)||null;
+};
+const photoReference=(value,req)=>{
+ if(typeof value!=='string')return null;
+ const relative=value.startsWith('/')&&!value.startsWith('//');
+ let u;try{u=new URL(value,'https://inventory-reference.invalid');}catch{return null;}
+ const match=u.pathname.match(/^\/(?:core-api\/)?api\/agency\/inventory\/(\d+)\/photo\/?$/);
+ if(!match)return null;
+ const origins=new Set([photoOrigin(req),'https://api.scaleparaguay.com','https://app.scaleparaguay.com',httpOrigin(process.env.APP_URL||''),httpOrigin(process.env.PUBLIC_ORIGIN||'')].filter(Boolean));
+ return relative||(!u.username&&!u.password&&origins.has(u.origin))?{id:match[1]}:null;
+};
+
+async function auditedPhoto(c,org,id,current){
+ // Look at exactly the last photo transition, including clear/insert/delete.
+ // Never search backwards past an unavailable or deliberately removed image.
+ const event=(await c.query(`select action,before_state,after_state,
+   created_at=(select photo_updated_at from agency_inventory where organization_id=$1 and id=($2::text)::bigint) as stamp_matches
+  from agency_operation_audit
+  where organization_id=$1 and table_name='agency_inventory'
+   and (before_state->>'id'=$2 or after_state->>'id'=$2)
+   and before_state->'photo_url' is distinct from after_state->'photo_url'
+  order by id desc limit 1`,[org,String(id)])).rows[0];
+ const before=event?.before_state,after=event?.after_state;
+ if(event?.action!=='UPDATE'||event.stamp_matches!==true||String(before?.id)!==String(id)||String(after?.id)!==String(id)
+  ||String(before?.organization_id)!==String(org)||String(after?.organization_id)!==String(org)
+  ||after.photo_url!==current||typeof before.photo_url!=='string'||!before.photo_url.startsWith('data:'))return null;
+ // Validate the recorded raster with the existing image policy. Keep
+ // the original bytes; validation's normalized image is deliberately unused.
+ try{await profilePhoto(before.photo_url);return before.photo_url;}catch{return null;}
+}
 const storageLocationName=value=>text(value||'',100);
 function identifiers(values,label,max=50){
  if(!Array.isArray(values)||!values.length||values.length>max)fail(`Elegí entre 1 y ${max} ${label}`);
@@ -340,7 +377,7 @@ async function listStorageLocations(c,org){
   where l.organization_id=$1 group by l.id order by l.position,l.name`,[org])).rows;
 }
 
-async function saveItem(c,user,org,key,payload){
+async function saveItem(c,user,org,key,payload,req){
  const old=key?(await equipment(c,org,[key]))[0]:{};
  const sent=field=>Object.hasOwn(payload,field);
  // Un PATCH solo revalida el campo que llega: lo guardado viaja tal cual para no
@@ -376,7 +413,9 @@ async function saveItem(c,user,org,key,payload){
  const resolvedOwner=ownership==='person'?owner:null;
  const location=await storageLocation(c,org,old,payload,key);const shelf=location.shelf,storageRow=sent('storage_row')?text(payload.storage_row,80):old.storage_row??'';
  const incoming=Object.hasOwn(payload,'photo_url')?payload.photo_url:undefined;
- const photo=incoming===undefined?(old.photo_url||null):((old&&isOwnPhotoHref(incoming,old))?old.photo_url:await profilePhoto(incoming));
+ const reference=photoReference(incoming,req);
+ if(reference&&(String(old.id)!==reference.id||!old.photo_url))fail('Elegí una imagen o un enlace externo de imagen válido');
+ const photo=incoming===undefined?(old.photo_url||null):(reference?old.photo_url:await profilePhoto(incoming));
  const locationChanged=String(location.id||'')!==String(old.storage_location_id||'')||shelf!==(old.storage_shelf||'');
  if(key){
   const open=(await c.query("select status from agency_inventory_reservation_items where inventory_id=$1 and organization_id=$2 and status in ('reserved','checked_out')",[key,org])).rows;
@@ -566,7 +605,7 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
     if(key){const record=rows.find(r=>String(r.id)===key);if(!record)fail('Equipo no encontrado',404);result={record,verifications:await verificationHistory(c,org,key),trace:await traceHistory(c,org,key),maintenance:await maintenanceHistory(c,org,key)};}
     else result={records:rows,...(listLimit!==null?{hasMore}:{})};
    }
-   else if(!action&&(req.method==='POST'&&!key||req.method==='PATCH'&&key)){result={record:await saveItem(c,user,org,key,await body(req))};status=key?200:201;}
+   else if(!action&&(req.method==='POST'&&!key||req.method==='PATCH'&&key)){result={record:await saveItem(c,user,org,key,await body(req),req)};status=key?200:201;}
    else if(key&&req.method==='POST'&&action==='verify'){result=await verifyItem(c,user,org,key,await body(req));}
    else if(!key&&req.method==='POST'&&action==='batch'){result=await batchItems(c,user,org,await body(req));}
    else if(key&&req.method==='GET'&&action==='photo'){
@@ -574,7 +613,14 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
     // externos redirigen para no proxear contenido ajeno.
     const item=(await c.query(`select i.photo_url from agency_inventory i where i.organization_id=$1 and i.id=$2 and ${visibleRecord('i','inventory')}`,[org,key])).rows[0];
     if(!item?.photo_url)fail('Este equipo no tiene foto',404);
-    const value=String(item.photo_url);
+    let value=String(item.photo_url);
+    // Read-only recovery is allowed only for an audited self-reference. Other
+    // item references never serve as image sources, even with matching history.
+    const reference=photoReference(value,req);
+    if(reference){
+     value=reference.id===String(key)?await auditedPhoto(c,org,key,value):null;
+     if(!value)fail('La foto guardada no está disponible. Volvé a cargar la imagen original.',422);
+    }
     const data=value.startsWith('data:')?value.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/):null;
     if(value.startsWith('data:')&&!data)fail('La foto de este equipo no es válida',415);
     await c.query('commit');transaction=false;
@@ -613,12 +659,7 @@ export async function inventoryReservations({req,res,url,db,session,body,send}){
   }else fail('Método no permitido',405);
   // La foto viaja como URL del API: absoluta al host público cuando el pedido
   // trae host (producción detrás del proxy) y relativa en tests/harness (#58).
-  const photoBase=(()=>{
-   const headers=req.headers||{};
-   const proto=String(headers['x-forwarded-proto']||'').split(',')[0].trim()||'http';
-   const host=(Array.isArray(headers['x-forwarded-host'])?headers['x-forwarded-host'].join(','):String(headers['x-forwarded-host']||headers.host||'')).split(',')[0].trim();
-   return host&&kind==='inventory'?`${proto}://${host}`:'';
-  })();
+  const photoBase=kind==='inventory'?photoOrigin(req):null;
   if(photoBase){
    const absolutize=record=>{if(record&&typeof record==='object'&&typeof record.photo_url==='string'&&record.photo_url.startsWith('/'))record.photo_url=photoBase+record.photo_url;};
    for(const record of result.records||[])absolutize(record);

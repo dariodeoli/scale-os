@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-17T22:19:43.795054+00:00",
+  "ports": {
+    "3013": "closed",
+    "4115": "closed",
+    "4116": "closed",
+    "55450": "closed",
+    "3008": "open",
+    "4109": "open",
+    "55449": "open"
+  },
+  "qaDataPreserved": true,
+  "otherProcessesPreserved": true
+}

@@ -88,6 +88,22 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "ca3d4b42",
+      "created_by": "agent",
+      "created_at": "2026-10-17T22:31:14.171592622Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "9193440c",
+      "created_by": "agent",
+      "created_at": "2026-10-19T01:46:37.004214822Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }

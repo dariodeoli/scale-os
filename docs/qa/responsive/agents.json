@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "purpose": "Briefs para delegación manual coordinada; este archivo no inicia agentes, no instala skills y no configura hooks.",
+  "issue": 265,
+  "viewports": [
+    {
+      "name": "phone-small",
+      "width": 320,
+      "height": 740
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "phone-landscape",
+      "width": 844,
+      "height": 390
+    },
+    {
+      "name": "tablet",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "name": "tablet-landscape",
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "constraints": [
+    "Un worktree y rama codex por implementador, desde origin/main.",
+    "Crear o enlazar issue antes del código; no duplicar issues.",
+    "Solo integrador modifica main y publica; nunca desplegar desde subagentes.",
+    "Tokens y primitivos compartidos tienen un único dueño; otros agentes informan hallazgos al dueño.",
+    "No modificar permisos, datos financieros ni persistencia para resolver un problema visual.",
+    "Mantener marca, OwnCoding UI y componentes canónicos de Scale.",
+    "Capturas y evidencia no contienen datos personales ni credenciales.",
+    "No ejecutar instaladores externos ni activar hooks como efecto de una auditoría."
+  ],
+  "agents": [
+    {
+      "name": "shell-design",
+      "mode": "implementation-owner",
+      "scope": [
+        "app/ui-system.css",
+        "primitivos compartidos"
+      ],
+      "brief": "Auditar navegación, cabecera, modales, formularios y foco; ser único editor de estilos y primitivos transversales. Coordinar con root antes de editar."
+    },
+    {
+      "name": "commercial",
+      "mode": "implementation",
+      "scope": [
+        "clientes",
+        "pipeline",
+        "presupuestos",
+        "contratos"
+      ],
+      "brief": "Auditar y corregir exclusivamente páginas comerciales; usar primitivos existentes, sin editar CSS global."
+    },
+    {
+      "name": "operations",
+      "mode": "implementation",
+      "scope": [
+        "producción",
+        "proyectos",
+        "estudio",
+        "inventario"
+      ],
+      "brief": "Auditar y corregir exclusivamente operaciones; verificar lista y cuadrícula, acciones y contenido extenso. No alterar datos ni CSS global."
+    },
+    {
+      "name": "finance",
+      "mode": "implementation",
+      "scope": [
+        "balance",
+        "cobranza",
+        "caja",
+        "previsión",
+        "informes"
+      ],
+      "brief": "Corregir distribución y accesibilidad conservando columnas, alineación de montos y semántica contratado/pagado; no cambiar cálculos."
+    },
+    {
+      "name": "public-platform",
+      "mode": "implementation",
+      "scope": [
+        "landing",
+        "login",
+        "registro",
+        "equipo",
+        "configuración"
+      ],
+      "brief": "Verificar navegación, acceso, formularios, ayuda y layouts públicos; mantener comportamiento auth. No editar CSS global."
+    },
+    {
+      "name": "responsive-qa",
+      "mode": "read-only",
+      "scope": [
+        "todas las rutas y estados disponibles"
+      ],
+      "brief": "Comparar antes/después por viewport en navegador. Verificar overflow, imágenes, foco, diálogos, clicks y estados. Reportar hallazgos medidos P0-P3, sin editar archivos de aplicación."
+    }
+  ],
+  "finding_fields": [
+    "severity",
+    "route",
+    "state",
+    "viewport",
+    "file_line",
+    "observed",
+    "expected",
+    "measurement",
+    "evidence",
+    "owner",
+    "verification"
+  ],
+  "checks": [
+    "document_overflow",
+    "clipped_content",
+    "broken_images",
+    "overlap",
+    "focus_not_obscured",
+    "dialog_scroll_escape",
+    "touch_target_and_spacing",
+    "horizontal_table_scroll_contained",
+    "keyboard_navigation",
+    "reduced_motion",
+    "light_dark_hover",
+    "critical_action_reachable"
+  ],
+  "evidence_rules": [
+    "Distinguir captura visual de medición DOM y prueba funcional.",
+    "Indicar motor y emulación; Chromium no acredita Safari ni dispositivo físico.",
+    "Una captura no demuestra gesto táctil, teclado virtual ni rendimiento físico.",
+    "Un hallazgo de detector externo requiere verificación manual.",
+    "No afirmar que un SKILL está instalado cuando solo fue leído."
+  ]
+}

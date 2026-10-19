@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -57,8 +57,8 @@
     {
       "file": "app/inventory-workspace.tsx",
       "beforeHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
-      "afterHash": "ac95e0c9cad6354de9751fd168cc1ff2a4b9a5c5b0ccedccde13f70dd3e2c866",
-      "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto."
+      "afterHash": "44c8acb038e04779092b37f44072691db7bfb7f310c350d7ed1a6bf5d13a70bc",
+      "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto. Release195/#265: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/project-card.tsx",
@@ -167,6 +167,30 @@
       "beforeHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
       "afterHash": "97027a243b3837505f144cee33ecae2d836a4cf58207732572ca13f4e2b3034e",
       "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+    },
+    {
+      "file": "app/access-layout.tsx",
+      "beforeHash": "4425decfba3c01984385847876c524b127dc94daa2cef9b65478a09efc95c005",
+      "afterHash": "9094cb6e1dba2ecfcfb3c0d0ff0e14526e624e6fe41d9346752471daf4593189",
+      "rationale": "Responsive #265: application source reviewed; native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/demo-toolbar.tsx",
+      "beforeHash": "12e18a599febde0a2a003499b56d89ff6c5c85c30ca8a8fb84e6cb5e72461d3f",
+      "afterHash": "d1e5e8f6ed81b320ae8408567cacae60a0a97b192876d8978ebb0674f7ecc4c7",
+      "rationale": "Responsive #265: application source reviewed; native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/financial-forecast.tsx",
+      "beforeHash": "0b64ed78bccaf5c793e21b61c8bad622964966456f9e267420c18cf07247b29e",
+      "afterHash": "724fbd6e1a2a9221f21aabfec5c0d7ab040af73f41e8d56e4de1a7c9fd661c6b",
+      "rationale": "Responsive #265: application source reviewed; native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/tab-scroller.tsx",
+      "beforeHash": "be12134d3e8c26f4626c493152a65356b12c3b9be0aaa85987e33192cdfb6b72",
+      "afterHash": "972db03e08d41425a437f11ab1513a083f4143d7522cae0b55df617821c84cf0",
+      "rationale": "Responsive #265: application source reviewed; native widget JSX and canonical ownership preserved."
     }
   ],
   "addedCanonical": [
@@ -247,24 +271,24 @@
       "line": 55,
       "column": 60,
       "owner": "Demo",
-      "siteHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
-      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+      "siteHash": "a303d60a8d579257e58f4344c9de1c059a3624ec71b851dafc00fa2ce1e10994",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API. Release195: historical canonical metadata hash corrected from the verified published baseline JSX; original archived hash retained in release195 evidence."
     },
     {
       "file": "app/biblioteca-ui/catalog.tsx",
       "line": 55,
       "column": 169,
       "owner": "Demo",
-      "siteHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
-      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+      "siteHash": "09b40623570dcda8aa9e1aeacbedf8fcd9f77095dcf3a3dc0dac15a0d9904e47",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API. Release195: historical canonical metadata hash corrected from the verified published baseline JSX; original archived hash retained in release195 evidence."
     },
     {
       "file": "app/biblioteca-ui/catalog.tsx",
       "line": 55,
       "column": 292,
       "owner": "Demo",
-      "siteHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
-      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API."
+      "siteHash": "4e0aa3250dcad3cad439aa42cdb2bc28d463af3c55ec5bd28bd7ea5235ef3b98",
+      "rationale": "Ejemplo sintético del catálogo local; Button/IconButton se importan por exports nombrados de ../ui. Estado/callback sólo local, sin nuevo renderer ni API. Release195: historical canonical metadata hash corrected from the verified published baseline JSX; original archived hash retained in release195 evidence."
     },
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -303,8 +327,8 @@
       "line": 1073,
       "column": 15,
       "owner": "Home",
-      "siteHash": "9a0623ea61712830671e01c45c9e20addd0b4e1689df1f766711539926ba9658",
-      "rationale": "Cerrar sesión trasladado del sidebar al header por #245: IconButton local, size compact, type button y callback logout original."
+      "siteHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",
+      "rationale": "Cerrar sesión trasladado del sidebar al header por #245: IconButton local, size compact, type button y callback logout original. Release195: historical canonical metadata hash corrected from the verified published baseline JSX; original archived hash retained in release195 evidence."
     },
     {
       "file": "app/client-contacts.tsx",
@@ -593,5 +617,64 @@
       "file": "app/finance-balance.tsx",
       "reason": "BancoLogo expects a height CSS class; h-6 restores the previously zero-sized bank artwork. No action or retained widget changes."
     }
+  },
+  "release195": {
+    "baseline": "f2d52f5ecd42d4aa629a80bb353ab1e39cc44dd0",
+    "baselineCanonicalMetadataCorrections": [
+      {
+        "file": "app/biblioteca-ui/catalog.tsx",
+        "line": 55,
+        "column": 60,
+        "owner": "Demo",
+        "approved": true,
+        "archivedHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
+        "actualBaselineHash": "a303d60a8d579257e58f4344c9de1c059a3624ec71b851dafc00fa2ce1e10994",
+        "rationale": "Revisión independiente #265: se enlaza el hash al JSX exacto del baseline publicado f2d52f5e y su owner, previamente acreditado por final.files.sha256; no cambio de fuente ni excepción nativa. Se conserva el hash histórico en evidencia."
+      },
+      {
+        "file": "app/biblioteca-ui/catalog.tsx",
+        "line": 55,
+        "column": 169,
+        "owner": "Demo",
+        "approved": true,
+        "archivedHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
+        "actualBaselineHash": "09b40623570dcda8aa9e1aeacbedf8fcd9f77095dcf3a3dc0dac15a0d9904e47",
+        "rationale": "Revisión independiente #265: se enlaza el hash al JSX exacto del baseline publicado f2d52f5e y su owner, previamente acreditado por final.files.sha256; no cambio de fuente ni excepción nativa. Se conserva el hash histórico en evidencia."
+      },
+      {
+        "file": "app/biblioteca-ui/catalog.tsx",
+        "line": 55,
+        "column": 292,
+        "owner": "Demo",
+        "approved": true,
+        "archivedHash": "7785a450e21388f9b3974a1944b7b6c1310532f28a60dbbd96fa1f94a29b4c94",
+        "actualBaselineHash": "4e0aa3250dcad3cad439aa42cdb2bc28d463af3c55ec5bd28bd7ea5235ef3b98",
+        "rationale": "Revisión independiente #265: se enlaza el hash al JSX exacto del baseline publicado f2d52f5e y su owner, previamente acreditado por final.files.sha256; no cambio de fuente ni excepción nativa. Se conserva el hash histórico en evidencia."
+      },
+      {
+        "file": "app/scale-workspace.tsx",
+        "line": 1073,
+        "column": 15,
+        "owner": "Home",
+        "approved": true,
+        "archivedHash": "9a0623ea61712830671e01c45c9e20addd0b4e1689df1f766711539926ba9658",
+        "actualBaselineHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",
+        "rationale": "Revisión independiente #265: se enlaza el hash al JSX exacto del baseline publicado f2d52f5e y su owner, previamente acreditado por final.files.sha256; no cambio de fuente ni excepción nativa. Se conserva el hash histórico en evidencia."
+      }
+    ],
+    "canonicalActions": 602,
+    "newCanonicalActions": 0,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [
+      {
+        "file": "app/demo-toolbar.tsx",
+        "owner": "DemoToolbar",
+        "beforeHash": "ac685a87e3a2a9cfc1f66b8030c18b3fef8ac8f8bb07d4918bef9bd2209e9d79",
+        "afterHash": "76e3695d2a9859eac6f754f59b43fa04f3928f3ce453306168301312fc80b4eb",
+        "rationale": "Revisión independiente #265: únicamente md:hidden cambia a lg:hidden para usar el mismo diálogo de demo en tablet; conserva onClick, label, aria-haspopup, aria-expanded, tipo y propietario DemoToolbar."
+      }
+    ]
   }
 }

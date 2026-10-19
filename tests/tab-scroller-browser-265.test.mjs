@@ -1,0 +1,21 @@
+// Chromium keyboard regression: real TabScroller, production styles, disposable local server.
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
+import {createServer} from 'node:http';
+import {build} from 'esbuild';
+const repo=process.cwd(),require=createRequire(repo+'/backend/package.json'),puppeteer=require('puppeteer-core');
+const bundle=await build({stdin:{contents:`import React from 'react';import{createRoot}from'react-dom/client';import{TabScroller}from'./app/tab-scroller';createRoot(document.getElementById('root')).render(<main className="control-shell"><button id="before">Antes</button><TabScroller label="apartados"><nav className="section-tabs" aria-label="Finanzas">{['Contratado','Balance','Previsión financiera','Cobranza y mora','Caja y movimientos','Informes'].map((name,i)=><button key={name} id={'tab-'+i}>{name}</button>)}</nav></TabScroller><button id="after">Después</button></main>);`,resolveDir:repo,loader:'tsx'},bundle:true,write:false,jsx:'automatic',format:'iife',platform:'browser',loader:{'.css':'empty'},define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'});
+const css=readFileSync(repo+'/app/ui-system.css','utf8');
+const server=createServer((req,res)=>{res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;font:14px sans-serif}main{padding:16px;min-width:0}button{height:44px;flex:none;padding:0 12px;border:1px solid #ccc;background:white;color:#222}.section-tabs{display:flex;gap:8px}.tab-scroller{width:100%}.tab-scroller-track{scroll-behavior:smooth}'+css+'</style></head><body><div id="root"></div><script>'+bundle.outputFiles[0].text+'</script></body></html>')});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const browser=await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});let checks=0;
+try{const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const visible=async(label)=>{const m=await page.evaluate(()=>{const node=document.querySelector('.tab-scroller-track'),active=document.activeElement,t=node.getBoundingClientRect(),a=active.getBoundingClientRect();return {id:active.id,left:a.left,right:a.right,trackLeft:t.left,trackRight:t.right,width:innerWidth,documentWidth:document.documentElement.scrollWidth,pageX:scrollX,scrollTop:scrollY}});assert.ok(m.left>=m.trackLeft-1&&m.right<=m.trackRight+1,label+' '+JSON.stringify(m));assert.equal(m.pageX,0);assert.equal(m.scrollTop,0);assert.equal(m.documentWidth,m.width);checks++;};
+ for(const reduced of [false,true])for(const width of [320,390,768]){await page.setViewport({width,height:900});await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]);await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForSelector('.tab-scroller-track');await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await page.focus('#before');
+ for(let i=0;i<6;i++){await page.keyboard.press('Tab');if(await page.evaluate(()=>document.activeElement.classList.contains('tab-scroller-button')))await page.keyboard.press('Tab');await visible('Tab '+i+' width '+width+' reduced '+reduced);}
+ for(let i=4;i>=0;i--){await page.keyboard.down('Shift');await page.keyboard.press('Tab');await page.keyboard.up('Shift');await visible('ShiftTab '+i+' width '+width+' reduced '+reduced);}
+ // Resizing keeps the currently focused tab visible without changing focus.
+ await page.focus('#tab-3');await visible('middle before resize');await page.setViewport({width:320,height:900});await page.waitForFunction(()=>document.querySelector('.tab-scroller-track').clientWidth>0);await new Promise(r=>setTimeout(r,40));await visible('resize width '+width);
+ }
+ assert.deepEqual(errors,[]);console.log('PASS TabScroller keyboard: '+checks+' checks; 320/390/768, Tab/ShiftTab, resize, reduced motion; page stays horizontally fixed.');
+}finally{await browser.close();await new Promise(r=>server.close(r));}
