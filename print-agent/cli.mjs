@@ -45,9 +45,9 @@ try {
     // A crash releases it automatically; a second process fails before touching persisted jobs.
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(config.port, '127.0.0.1', resolve); });
     try { await agent.open(); } catch (error) { server.close(); throw error; }
-    console.log('Scale Print: loopback activo. Transporte aceptado no confirma papel.');
     let stopping = false; const stop = new AbortController();
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { stopping = true; stop.abort(); agent.ready = false; });
+    console.log('Scale Print: loopback activo. Transporte aceptado no confirma papel.');
     // Single-flight polling: no concurrent claims, no automatic replay of uncertain work.
     while (!stopping) {
       try { if (config.mode === 'development' && !config.bridgeId) await agent.drain(); else await agent.poll(config); } catch { console.error('Sin sincronización; se conserva la cola. Revisá configuración, autorización y conexión.'); }
