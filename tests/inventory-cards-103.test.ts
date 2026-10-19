@@ -36,11 +36,11 @@ assert.match(inventory,/Number\(item\.value\)>0\?<CeldaMoneda.*:'Sin valor'/s,'e
 assert.doesNotMatch(inventory,/etiqueta="Serie \/ IMEI"/,'la tarjeta no repite una fila por serie');
 assert.doesNotMatch(inventory,/etiqueta="Valor" etiquetaComo="dt"/,'la tarjeta no repite una fila por valor');
 
-// ── Cabecera de la tarjeta: checkbox, foto 56, nombre flexible y estado a la derecha.
+// ── Cabecera de tarjeta: foto 56, nombre flexible y estado bajo identidad (#265).
 assert.match(inventory,/size="card"/,'la tarjeta usa la foto grande');
 assert.match(equipmentPhoto,/size==='card'\?'h-14 w-14'/,'la foto de la tarjeta mide 56 px');
-assert.match(inventory,/<h3 className="truncate text-sm font-semibold text-fore" title=\{item\.name\}>/,'el nombre es flexible y truncable');
-assert.match(inventory,/<StateChip tone=\{statusTone\(item\.status\)\}[^>]*>\{equipmentStatusLabel\(item\.status\)\}<\/StateChip>\s*<\/div>/,'el estado cierra la cabecera');
+assert.match(inventory,/<h3 className="(?:m-0 )?truncate text-sm font-semibold text-fore" title=\{item\.name\}>/,'el nombre es flexible y truncable');
+assert.match(inventory,/<StateChip tone=\{statusTone\(item\.status\)\}[^>]*>\{equipmentStatusLabel\(item\.status\)\}<\/StateChip><\/span>\s*<\/div>/,'el estado queda dentro de la cabecera');
 
 // ── KPIs acotados: «Sin valor» + contador secundario + enlace chico.
 assert.match(inventory,/:<span className="text-base font-semibold text-mute">Sin valor<\/span>/,'sin datos el KPI dice «Sin valor»');

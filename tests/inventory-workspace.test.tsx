@@ -195,7 +195,7 @@ async function run(){
  act(()=>renderer.unmount());assert.equal(intervals.size,0,'polling stopped on unmount');
  // Assigned returners see Return but cannot edit/cancel another person's booking.
  context.user_id='11';reservations=[{...record,status:'checked_out',custodian_user_id:'11',custodian_name:'Sonido'}];
- await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Calendario y reservas').props.onClick());
+ await act(async()=>{renderer=create(<InventoryWorkspace role="production"/>);});act(()=>button('Reservas').props.onClick());
  const beforeMonthDraft=reads;for(const raw of ['', '2026-', '2026-13', '1899-12', '9999-01']){act(()=>renderer.root.findAllByProps({id:'inventory-calendar-month'})[0].props.onChange({target:{value:raw}}));assert.equal(renderer.root.findAllByProps({id:'inventory-calendar-month'})[0].props.value,raw);assert.equal(reads,beforeMonthDraft,'invalid calendar month never queries');assert.doesNotMatch(JSON.stringify(renderer.toJSON()),/Invalid Date|NaN/);}
  assert(renderer.root.findAllByProps({'aria-label':'Registrar devolución: Rodaje de prueba'}).length,'the returner sees the return action');assert(!renderer.root.findAllByProps({'aria-label':'Editar reserva: Rodaje de prueba'}).length);assert(!renderer.root.findAllByProps({'aria-label':'Cancelar reserva: Rodaje de prueba'}).length);act(()=>renderer.unmount());
  // Bulk selection: one-line actions and the batch endpoint.

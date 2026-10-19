@@ -165,8 +165,8 @@ function InventoryItemActions(context:InventoryItemActionContext&{dense?:boolean
 }
 
 /**
- * Tarjeta de equipo (#103): cabecera alineada (checkbox, foto 56, nombre
- * flexible, estado a la derecha), metadatos en dos líneas y pie con
+ * Tarjeta de equipo (#103, #265): foto, identidad y selección por columnas;
+ * estado bajo la identidad para no comprimir el nombre en mobile. Pie con
  * verificación + acciones. La altura la define el contenido (sin min-height).
  */
 function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,onDetail,onVerify,onVerifyDetail,onEdit,onArchive}:{
@@ -175,14 +175,14 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
 }){
  const facts=depreciationFacts(item);
  return <article data-grid-card="equipment" className={`flex min-w-0 flex-col gap-2 rounded-xl border p-4 transition-colors ${selected?'border-fono/50 bg-fono/10':'border-ink-600 bg-ink-800 hover:border-ink-500'}`}>
-  <div className="flex min-w-0 items-start gap-2.5">
-   {selectable?<label className="flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
-   <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="card"/>
-   <div className="min-w-0 flex-1">
-    <h3 className="truncate text-sm font-semibold text-fore" title={item.name}>{item.name}</h3>
+  <div className="grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-1.5">
+   {selectable?<label className="col-start-3 row-span-2 row-start-1 flex h-11 w-11 shrink-0 items-center justify-center md:h-6 md:w-6" title="Seleccionar para operar en lote"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}
+   <span className="col-start-1 row-span-2 row-start-1"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="card"/></span>
+   <div className="col-start-2 row-start-1 min-w-0">
+    <h3 className="m-0 truncate text-sm font-semibold text-fore" title={item.name}>{item.name}</h3>
     <InventoryItemMeta item={item} layout="card"/>
    </div>
-   <StateChip tone={statusTone(item.status)} title={equipmentStatusLabel(item.status)} className="min-w-0 max-w-full truncate">{equipmentStatusLabel(item.status)}</StateChip>
+   <span className="col-start-2 row-start-2 min-w-0"><StateChip tone={statusTone(item.status)} title={equipmentStatusLabel(item.status)} className="min-w-0 max-w-full truncate">{equipmentStatusLabel(item.status)}</StateChip></span>
   </div>
   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] leading-4 text-mute">
    <span className="whitespace-nowrap" title={item.serial_number?`Serie / IMEI: ${item.serial_number}`:'Sin serie registrada'}>{item.serial_number?<><span className="sr-only">Serie </span><SerialTexto serial={item.serial_number} className="serial-text" enmascarar/></>:'Sin serie'}</span>
@@ -415,7 +415,7 @@ function InventoryPanel(){
       compactos debajo y la explicación solo a tooltip/expandible. */}
   <div className="grid min-w-0 gap-3" data-inventory-toolbar>
    <div className="flex min-w-0 flex-wrap items-end gap-3 xl:flex-nowrap">
-    <ViewTabs ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Calendario y reservas','calendar']]}/>
+    <ViewTabs ariaLabel="Vistas de inventario" value={view} onChange={(value:string)=>setView(value as 'equipment'|'reservations')} options={[['equipment','Equipos','box'],['reservations','Reservas','calendar']]}/>
     {view!=='reservations'?<>
      <SearchField className="min-w-[8rem] flex-1 lg:max-w-72" label="Buscar equipo o ubicación" hideLabel value={search} onChange={(nextSearchValue)=>setSearch(nextSearchValue)} placeholder="Memoria, DJI Mic, estante…"/>
      <div className="[&>div]:lg:!flex [&>div]:lg:items-center [&>div]:lg:gap-2 [&_.ops-label]:lg:mb-0 [&_.ops-label]:lg:whitespace-nowrap max-lg:[&>div]:!flex max-lg:[&>div]:items-center max-lg:[&>div]:gap-2 max-lg:[&_.ops-label]:mb-0"><SelectCustom label="Categoría" choices={[{value:'',label:'Todas'},...categories.map(c=>({value:String(c.id),label:`${c.name}${c.active?'':' · archivada'}`}))]} value={categoryFilter} onChange={setCategoryFilter}/></div>
