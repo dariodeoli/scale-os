@@ -1,0 +1,289 @@
+{
+  "scope": "Actual components; synthetic local HTTP; not production or full authenticated shell",
+  "viewports": [
+    320,
+    390,
+    768,
+    1024,
+    1440
+  ],
+  "reports": [
+    {
+      "area": "inventory",
+      "width": 320,
+      "scrollWidth": 320,
+      "titleWidth": 134,
+      "offenders": [],
+      "keyboard": {
+        "label": "Reservas",
+        "visible": true
+      }
+    },
+    {
+      "area": "inventory",
+      "width": 390,
+      "scrollWidth": 390,
+      "titleWidth": 204,
+      "offenders": [],
+      "keyboard": {
+        "label": "Reservas",
+        "visible": true
+      }
+    },
+    {
+      "area": "inventory",
+      "width": 768,
+      "scrollWidth": 768,
+      "titleWidth": 124,
+      "offenders": [],
+      "keyboard": {
+        "label": "Reservas",
+        "visible": true
+      }
+    },
+    {
+      "area": "inventory",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "titleWidth": 252,
+      "offenders": [],
+      "keyboard": {
+        "label": "Reservas",
+        "visible": true
+      }
+    },
+    {
+      "area": "inventory",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "titleWidth": 258,
+      "offenders": [],
+      "keyboard": {
+        "label": "Reservas",
+        "visible": true
+      }
+    },
+    {
+      "area": "team",
+      "width": 320,
+      "scrollWidth": 320,
+      "offenders": []
+    },
+    {
+      "area": "team",
+      "width": 390,
+      "scrollWidth": 390,
+      "offenders": []
+    },
+    {
+      "area": "team",
+      "width": 768,
+      "scrollWidth": 768,
+      "offenders": []
+    },
+    {
+      "area": "team",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "offenders": []
+    },
+    {
+      "area": "team",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "offenders": []
+    },
+    {
+      "area": "studio",
+      "width": 320,
+      "scrollWidth": 320,
+      "offenders": []
+    },
+    {
+      "area": "studio",
+      "width": 390,
+      "scrollWidth": 390,
+      "offenders": []
+    },
+    {
+      "area": "studio",
+      "width": 768,
+      "scrollWidth": 768,
+      "offenders": []
+    },
+    {
+      "area": "studio",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "offenders": []
+    },
+    {
+      "area": "studio",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "offenders": []
+    },
+    {
+      "area": "settings",
+      "width": 320,
+      "scrollWidth": 320,
+      "offenders": []
+    },
+    {
+      "area": "settings",
+      "width": 390,
+      "scrollWidth": 390,
+      "offenders": []
+    },
+    {
+      "area": "settings",
+      "width": 768,
+      "scrollWidth": 768,
+      "offenders": []
+    },
+    {
+      "area": "settings",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "offenders": []
+    },
+    {
+      "area": "settings",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "offenders": []
+    },
+    {
+      "area": "inventory-dialog",
+      "width": 320,
+      "scrollWidth": 320,
+      "dialogWidth": 320,
+      "offenders": []
+    },
+    {
+      "area": "inventory-dialog",
+      "width": 390,
+      "scrollWidth": 390,
+      "dialogWidth": 390,
+      "offenders": []
+    },
+    {
+      "area": "inventory-dialog",
+      "width": 768,
+      "scrollWidth": 768,
+      "dialogWidth": 728,
+      "offenders": []
+    },
+    {
+      "area": "inventory-dialog",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "dialogWidth": 984,
+      "offenders": []
+    },
+    {
+      "area": "inventory-dialog",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "dialogWidth": 1040,
+      "offenders": []
+    },
+    {
+      "area": "team-dialog",
+      "width": 320,
+      "scrollWidth": 320,
+      "dialogWidth": 320,
+      "offenders": []
+    },
+    {
+      "area": "team-dialog",
+      "width": 390,
+      "scrollWidth": 390,
+      "dialogWidth": 390,
+      "offenders": []
+    },
+    {
+      "area": "team-dialog",
+      "width": 768,
+      "scrollWidth": 768,
+      "dialogWidth": 560,
+      "offenders": []
+    },
+    {
+      "area": "team-dialog",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "dialogWidth": 560,
+      "offenders": []
+    },
+    {
+      "area": "team-dialog",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "dialogWidth": 560,
+      "offenders": []
+    },
+    {
+      "area": "studio-dialog",
+      "width": 320,
+      "scrollWidth": 320,
+      "dialogWidth": 320,
+      "offenders": []
+    },
+    {
+      "area": "studio-dialog",
+      "width": 390,
+      "scrollWidth": 390,
+      "dialogWidth": 390,
+      "offenders": []
+    },
+    {
+      "area": "studio-dialog",
+      "width": 768,
+      "scrollWidth": 768,
+      "dialogWidth": 728,
+      "offenders": []
+    },
+    {
+      "area": "studio-dialog",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "dialogWidth": 984,
+      "offenders": []
+    },
+    {
+      "area": "studio-dialog",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "dialogWidth": 1040,
+      "offenders": []
+    }
+  ],
+  "scriptErrors": [],
+  "requests": {
+    "total": 100,
+    "onlyGet": true
+  },
+  "screenshots": [
+    {
+      "file": "inventory-320.png",
+      "sha256": "5e182ac38d23f7eb441a838c4ae6545d0db5bb53f854472cdc01682d699d8cf0"
+    },
+    {
+      "file": "inventory-dialog-320.png",
+      "sha256": "41dae134aad867e9395e00bf15b7e0c2690d02e627a7181c3d5588e0dc32be2a"
+    },
+    {
+      "file": "team-320.png",
+      "sha256": "4b3d1668aa9a1cfb167cab19f0d34c56db89e65cce61fd79eaae2b3bcaae71f6"
+    },
+    {
+      "file": "studio-320.png",
+      "sha256": "7cf038496151c07ab6af144de905cb97e64e4544c5b864272ba47c402d4a571d"
+    },
+    {
+      "file": "settings-320.png",
+      "sha256": "c17c2b6e02f7f3bcbe5342159c1f9a8574b285c993d399be2ad14bdae43509b9"
+    }
+  ]
+}
