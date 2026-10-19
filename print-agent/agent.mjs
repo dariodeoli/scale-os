@@ -117,7 +117,9 @@ export class PrintAgent {
     await this.drain(); await flush();
     const claimed = await api(`/api/print/bridges/${encodeURIComponent(config.bridgeId)}/claim`, {});
     if (claimed.job) {
-      const printer = remoteConfig.printers.find(p => p.id === claimed.job.printer_id);
+      const printer = claimed.printer;
+      if (!remoteConfig.printers.some(p => p.id === claimed.job.printer_id && p.enabled) || printer?.id !== claimed.job.printer_id || (remoteConfig.bridge.branch_id && printer.branch_id !== remoteConfig.bridge.branch_id)) throw new Error('claim_printer_mismatch');
+      // The atomic claim snapshot is the destination authority; config fetched before it may be stale.
       await this.enqueue(claimed.job, printer); await this.drain(); await flush();
     }
   }
