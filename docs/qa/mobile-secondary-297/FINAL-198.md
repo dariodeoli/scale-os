@@ -57,7 +57,7 @@ Los focales320×844,390×844,768×844,390×568 y844×390 ejercitaron:
 
 Hubo **50 respuestas200 reales** de los dos endpoints observados y **un503
 sintético declarado**. No se afirma que el backend originó ese503. No se
-hicieron escrituras administrativas, invitaciones externas ni eliminaciones.
+crearon empresas, no se enviaron invitaciones externas ni se ejecutaron eliminaciones.
 
 ## Revisión visual y límites
 
