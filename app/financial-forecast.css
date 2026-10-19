@@ -1,0 +1,10 @@
+/* #265: financial rows adapt to the panel, including half-width desktop cards. */
+.forecast-balance-card{container-type:inline-size;min-width:0}
+.forecast-balance-row{display:grid;grid-template-columns:4.75rem minmax(0,1fr) max-content;align-items:center;gap:8px;min-width:0}
+.forecast-balance-row>strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+@container(max-width:360px){
+ .forecast-balance-row{grid-template-columns:minmax(0,1fr)}
+ .forecast-balance-row>:first-child{grid-row:1}
+ .forecast-balance-row>strong{grid-row:2;justify-self:end}
+ .forecast-balance-row>:nth-child(2){grid-row:3}
+}
