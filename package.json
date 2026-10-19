@@ -7,7 +7,9 @@
     "@prisma/config": {
       "deepmerge-ts": "8.0.0",
       "effect": "3.20.0"
-    }
+    },
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2"
   },
   "scripts": {
     "release:sync": "node build-tools/sync-release-version.mjs",
@@ -38,7 +40,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "0.468.0",
     "marked": "^18.0.14",
-    "next": "15.5.24",
+    "next": "15.5.27",
     "owncoding-ui": "github:dariodeoli/owncoding-ui#v0.68.19",
     "qrcode": "^1.5.4",
     "react": "18.3.1",
