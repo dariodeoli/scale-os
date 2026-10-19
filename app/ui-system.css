@@ -614,5 +614,6 @@ html[data-theme="dark"] :is(.control-shell,.unified-dialog,.photo-dialog) :is(in
 /* #265: los controles del marco también deben ser tocables en tablet,
    donde el riel de escritorio sigue visible. No cambia las filas de datos. */
 @media (pointer:coarse){
+ .control-shell .workspace-topbar{--ui-control-height:44px}
  .control-shell .workspace-topbar :is(button,a){min-width:44px;min-height:44px}
 }
