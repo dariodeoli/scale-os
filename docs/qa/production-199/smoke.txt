@@ -1,0 +1,10 @@
+> scale-os@1.0.199 release:smoke
+> node build-tools/release-smoke.mjs
+
+PASS: Scale OS público (200)
+PASS: Registro público (200)
+PASS: API de Scale OS (200)
+PASS: Sesión anónima por proxy web (401)
+PASS: Proveedores de acceso por proxy web (200)
+PASS: Mantenimiento por proxy web (200)
+Smoke test público aprobado para Scale OS v1.0.199.

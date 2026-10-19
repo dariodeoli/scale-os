@@ -1,0 +1,66 @@
+{
+  "expectedVersion": "1.0.199",
+  "providerSha": "not exposed",
+  "observations": [
+    {
+      "observedAt": "2026-10-19T13:54:37.025224-03:00",
+      "web": {
+        "url": "https://app.scaleparaguay.com/status",
+        "status": 200,
+        "visibleVersion": "1.0.199"
+      },
+      "api": {
+        "url": "https://api.scaleparaguay.com/health",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.199",
+            "application": "Scale OS"
+          }
+        }
+      }
+    },
+    {
+      "observedAt": "2026-10-19T13:54:39.677016-03:00",
+      "web": {
+        "url": "https://app.scaleparaguay.com/status",
+        "status": 200,
+        "visibleVersion": "1.0.199"
+      },
+      "api": {
+        "url": "https://api.scaleparaguay.com/health",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.199",
+            "application": "Scale OS"
+          }
+        }
+      }
+    },
+    {
+      "observedAt": "2026-10-19T13:54:42.725530-03:00",
+      "web": {
+        "url": "https://app.scaleparaguay.com/status",
+        "status": 200,
+        "visibleVersion": "1.0.199"
+      },
+      "api": {
+        "url": "https://api.scaleparaguay.com/health",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.199",
+            "application": "Scale OS"
+          }
+        }
+      }
+    }
+  ]
+}
