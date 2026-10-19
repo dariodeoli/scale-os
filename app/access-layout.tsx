@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import './access-responsive.css';
 import {WorkspaceBrand} from './workspace-brand';
 import {WorkspaceFooter} from './workspace-footer';
 import {AuthBrandPanel} from './auth-brand-panel';
@@ -6,7 +7,7 @@ import {ThemeToggle} from './theme-toggle';
 
 // Marco único de acceso (issue #46): una sola superficie centrada, Tailwind +
 // objetos compartidos. Las pantallas de acceso (registro, invitación, recuperar,
-// verificar, pendiente, demo y estado) lo reutilizan; ninguna hoja de componente.
+// verificar, pendiente, demo y estado) lo reutilizan; con una hoja de ajuste exclusiva del acceso.
 // Desde 1024 px la tarjeta comparte marco con el panel de marca (`.auth-split`,
 // el mismo del login); `wide` (estado del servicio) queda sin panel.
 type AccessLayoutProps={children:ReactNode;eyebrow?:string;cardClassName?:string;pageClassName?:string;showBrand?:boolean;wide?:boolean;busy?:boolean;links?:ReactNode};
