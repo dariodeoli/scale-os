@@ -38,7 +38,7 @@ test('uncertain manual reprint requires explicit document and retains idempotenc
  let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace/>);});await act(async()=>button(r!,'Reimprimir…').props.onClick());
  const values={...editor(r!).defaults,reference:'INV-42',notes:'Contenido revisado'};failJob=true;
  await act(async()=>{await assert.rejects(editor(r!).save(values),/Servidor/);});const first=calls.findLast(c=>c.path.endsWith('/reprint'))!;
- assert.equal(first.body?.confirm,true);assert.deepEqual(first.body?.data,{reference:'INV-42',title:'',companyName:'',customerName:'',notes:'Contenido revisado',inventoryCode:''});assert.ok(editor(r!));
+ assert.equal(first.body?.confirm,true);assert.equal('confirmationSuffix' in (first.body?.data as object),false);assert.match(r!.root.findByType('iframe').props.srcDoc,/Confirmar papel: XXXXXXXX/);assert.deepEqual(first.body?.data,{reference:'INV-42',title:'',companyName:'',customerName:'',notes:'Contenido revisado',inventoryCode:''});assert.ok(editor(r!));
  failJob=false;await act(async()=>editor(r!).save(values));const second=calls.findLast(c=>c.path.endsWith('/reprint'))!;assert.equal(first.body?.idempotency_key,second.body?.idempotency_key);await act(async()=>r!.unmount());
 });
 test('heartbeat never treats a revoked or future-dated bridge as online',()=>{
