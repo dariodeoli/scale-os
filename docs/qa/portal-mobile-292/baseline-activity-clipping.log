@@ -1,0 +1,62 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"theme":"light","view":"detail","scrollWidth":320,"width":320,"overflow":[{"tag":"SECTION","class":"client-portal-card","text":"Cliente ExtensoExtensoExtensoExtensoExtensoExtenso"},{"tag":"SECTION","class":"delivery","text":"Actividad de la entregaNueva versión · versión 4 ·"},{"tag":"UL","class":"delivery-activity","text":"Nueva versión · versión 4 · Persona ExtensaExtensa"},{"tag":"LI","class":"","text":"Nueva versión · versión 4 · Persona ExtensaExtensa"}],"brokenImages":0,"smallControls":[]}
++ actual - expected
+
++ [
++   {
++     class: 'client-portal-card',
++     tag: 'SECTION',
++     text: 'Cliente ExtensoExtensoExtensoExtensoExtensoExtenso'
++   },
++   {
++     class: 'delivery',
++     tag: 'SECTION',
++     text: 'Actividad de la entregaNueva versión · versión 4 ·'
++   },
++   {
++     class: 'delivery-activity',
++     tag: 'UL',
++     text: 'Nueva versión · versión 4 · Persona ExtensaExtensa'
++   },
++   {
++     class: '',
++     tag: 'LI',
++     text: 'Nueva versión · versión 4 · Persona ExtensaExtensa'
++   }
++ ]
+- []
+
+    at file:///workspace/.worktrees/portal-mobile-292/tests/portal-responsive-browser-292.test.mjs:44:98 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    {
+      tag: 'SECTION',
+      class: 'client-portal-card',
+      text: 'Cliente ExtensoExtensoExtensoExtensoExtensoExtenso'
+    },
+    {
+      tag: 'SECTION',
+      class: 'delivery',
+      text: 'Actividad de la entregaNueva versión · versión 4 ·'
+    },
+    {
+      tag: 'UL',
+      class: 'delivery-activity',
+      text: 'Nueva versión · versión 4 · Persona ExtensaExtensa'
+    },
+    {
+      tag: 'LI',
+      class: '',
+      text: 'Nueva versión · versión 4 · Persona ExtensaExtensa'
+    }
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
