@@ -27,8 +27,10 @@ Iniciar previamente la app local. Se usa Chromium/Puppeteer instalado en `backen
 
 - Matriz completa: **201 casos PASS**, sin desbordamiento del documento, imágenes rotas, diálogos/menús fuera del viewport ni errores JavaScript (`results.json`).
 - Focal adicional con tap real: **46 casos PASS** (`touch-focal-results.json`), incluido menú táctil y navegación landscape. El runner actual reúne ambos recorridos en 202 casos por defecto.
-- Capturas: Mantenimiento en 390/1440 px y los tres temas; diálogos de suscripción y cupón en 390 px.
+- Capturas locales (no versionadas por la política `docs/qa/**/*.png`): Mantenimiento en 390/1440 px y los tres temas; diálogos de suscripción y cupón en 390 px.
 - Dependencias exactas del manifiesto 1.0.197: Next 15.5.27 y owncoding-ui 0.68.19.
+- `npm run test:release-regression`: **271 entradas / 52 fragmentos PASS**.
+- `npx tsc --noEmit`, `npm run build`, `release:check` y `footer:check`: **PASS**; artefacto `.next/BUILD_ID` comprobado (`aZmbPEuTROg8TXrSgnzma`).
 - No se encontraron defectos de producto reproducibles que requirieran modificar estilos o componentes.
 
 ## Límites
