@@ -1,0 +1,71 @@
+{
+  "source": "tree:a64d05a6cbf366f3fc7350385517e1a629a6da19",
+  "buildId": "dtP8bVHY7yhVbiap7bBxe",
+  "scope": "Actual local API GET forwarded with allowlisted Host only for public live count; no response mocking, no production calls/writes",
+  "checks": [
+    {
+      "width": 320,
+      "text": "Visitantes en vivo\n\nPersonas actualmente en el landing de Scale OS\n\n0\n—",
+      "value": 0,
+      "overflow": 0,
+      "pointerCoarse": true,
+      "passed": true,
+      "screenshot": "/tmp/scale265-reports-host-focal/320.png"
+    },
+    {
+      "width": 768,
+      "text": "Visitantes en vivo\n\nPersonas actualmente en el landing de Scale OS\n\n0\n—",
+      "value": 0,
+      "overflow": 0,
+      "pointerCoarse": true,
+      "passed": true,
+      "screenshot": "/tmp/scale265-reports-host-focal/768.png"
+    },
+    {
+      "width": 1440,
+      "text": "Visitantes en vivo\n\nPersonas actualmente en el landing de Scale OS\n\n0\n—",
+      "value": 0,
+      "overflow": 0,
+      "pointerCoarse": false,
+      "passed": true,
+      "screenshot": "/tmp/scale265-reports-host-focal/1440.png"
+    }
+  ],
+  "forwarded": [
+    {
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      },
+      "upstream": "http://127.0.0.1:4125/api/public/live-visitors/count",
+      "host": "api.scaleparaguay.com",
+      "originOmitted": true
+    },
+    {
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      },
+      "upstream": "http://127.0.0.1:4125/api/public/live-visitors/count",
+      "host": "api.scaleparaguay.com",
+      "originOmitted": true
+    },
+    {
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      },
+      "upstream": "http://127.0.0.1:4125/api/public/live-visitors/count",
+      "host": "api.scaleparaguay.com",
+      "originOmitted": true
+    }
+  ],
+  "errors": [],
+  "passed": true
+}
