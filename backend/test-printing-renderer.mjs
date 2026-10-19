@@ -26,7 +26,8 @@ for(const kind of PRINT_KINDS){
  const cut=Buffer.from(renderPrintDocument({template:{autoCut:true},document}).payloadBase64,'base64');
  assert.deepEqual([...cut.slice(-7)],[10,10,10,29,86,66,0]);
 }
-for(const bad of [{reference:''},{reference:'x\x1b@'},{reference:'x',notes:'\nunsafe'},{reference:'x',companyName:'\x00'},{reference:'x',issuedAt:'2026-02-30'},{reference:'x',issuedAt:'today'},{reference:'x',lines:Array(31).fill({label:'a'})},{reference:'x',lines:[{label:'a',value:5}]},{reference:'x',qr:'https://scaleparaguay.com'},{reference:'x',confirmationSuffix:'unsafe token'}]) assert.throws(()=>normalizePrintDocument('test',bad));
+for(const bad of [{reference:''},{reference:'x\x1b@'},{reference:'x',notes:'\x1bunsafe'},{reference:'x',companyName:'\x00'},{reference:'x',issuedAt:'2026-02-30'},{reference:'x',issuedAt:'today'},{reference:'x',lines:Array(31).fill({label:'a'})},{reference:'x',lines:[{label:'a',value:5}]},{reference:'x',qr:'https://scaleparaguay.com'},{reference:'x',confirmationSuffix:'unsafe token'}]) assert.throws(()=>normalizePrintDocument('test',bad));
+assert.equal(normalizePrintDocument('test',{reference:'x',notes:'Primero\nSegundo\r\nTercero'}).notes,'Primero Segundo Tercero');
 assert.throws(()=>normalizePrintDocument('unknown',{reference:'x'}));
 assert.throws(()=>normalizePrintDocument('receipt',{reference:'x',inventoryCode:'SC-000001'}));
 assert.throws(()=>normalizePrintDocument('inventory-label',{reference:'x'}));
