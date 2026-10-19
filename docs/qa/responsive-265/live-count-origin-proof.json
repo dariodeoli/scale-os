@@ -1,0 +1,60 @@
+{
+  "scope": "Read-only loopback API requests, no production calls or writes",
+  "source": "backend/live-visitors.js fixed allowlists at lines7-8 and31",
+  "at": "2026-10-19T01:58:49.958Z",
+  "checks": [
+    {
+      "name": "loopback-host",
+      "requestHeaders": {},
+      "expected": 403,
+      "status": 403,
+      "body": {
+        "error": "Origen no permitido"
+      },
+      "passed": true
+    },
+    {
+      "name": "allowed-host",
+      "requestHeaders": {
+        "host": "api.scaleparaguay.com"
+      },
+      "expected": 200,
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      },
+      "passed": true
+    },
+    {
+      "name": "allowed-host-and-origin",
+      "requestHeaders": {
+        "host": "api.scaleparaguay.com",
+        "origin": "https://app.scaleparaguay.com"
+      },
+      "expected": 200,
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      },
+      "passed": true
+    },
+    {
+      "name": "allowed-host-loopback-origin",
+      "requestHeaders": {
+        "host": "api.scaleparaguay.com",
+        "origin": "http://127.0.0.1:3025"
+      },
+      "expected": 403,
+      "status": 403,
+      "body": {
+        "error": "Origen no permitido"
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}
