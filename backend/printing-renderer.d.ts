@@ -1,0 +1,15 @@
+export type PrintKind = 'test' | 'receipt' | 'quote' | 'inventory-label';
+export type PrintMargins = {top:number;right:number;bottom:number;left:number};
+export type PrintTemplate = Readonly<{version:1;widthMm:80;heightMm:'auto';orientation:'portrait';marginsMm:Readonly<PrintMargins>;fontSize:number;autoCut:boolean}>;
+export type PrintTemplateInput = Partial<Omit<PrintTemplate,'marginsMm'>> & {marginsMm?:Partial<PrintMargins>};
+export type PrintDocumentInput = {kind?:PrintKind;reference:string;title?:string;companyName?:string;companyRuc?:string;customerName?:string;issuedAt?:string;lines?:ReadonlyArray<{label:string;value?:string}>;total?:string;notes?:string;inventoryCode?:string;confirmationSuffix?:string};
+export type PrintDocument = Readonly<Omit<Required<PrintDocumentInput>,'kind'|'lines'> & {kind:PrintKind;lines:ReadonlyArray<Readonly<{label:string;value:string}>>}>;
+export const PRINT_KINDS: readonly PrintKind[];
+export const PRINT_TEMPLATE_80: PrintTemplate;
+export const PRINT_MAX_PAYLOAD_BYTES: number;
+export function printMmToPx(mm:number):number;
+export function printCode39Bits(value:string):string;
+export function normalizePrintTemplate(input?:PrintTemplateInput):PrintTemplate;
+export function normalizePrintDocument(kind:PrintKind,input:PrintDocumentInput):PrintDocument;
+export function renderPrintPreview(input:{template:PrintTemplateInput;document:PrintDocument}):string;
+export function renderPrintDocument(input:{template:PrintTemplateInput;document:PrintDocument;copies?:number}):{snapshot:PrintTemplate;html:string;payloadBase64:string;payloadBytes:number};
