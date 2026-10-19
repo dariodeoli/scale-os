@@ -1,6 +1,12 @@
 # Handoff — tareas, contratos y backlog
 
-## Estado
+> Actualización de continuidad (18/10/2026, Asunción): la entrega195 está integrada y publicada, main `fca3c8e5e6e11eb90ca4d8e67c47a2e2bfef215d`, PR272, CI candidato/main aprobados. Evidencia definitiva: [producción195](qa/production-195/README.md). El contenido de187/188 de abajo se conserva como historial, no como estado vigente.
+>
+> El dueño autorizó continuar con varios agentes. La siguiente entrega196 reúne correcciones de respuestas contractuales IA inválidas, SEO de artículos y smoke de acceso; parches de dependencias auditados en#277. Su estado actual y gates se registran en [release196](qa/release-196.md). No se acredita publicación196 hasta verificarla.
+>
+> Continúan externos: IA real(#212), habilitaciónOwnData(#213), fuente operativa(#214), modelo/consumibles(#215), impresión/lectura física(#216), SearchConsole(#158), scheduler durable(#246,0/5), RCA históricaCoolify(#253) y tres fotos privadas(#263). Autorización existente; no confundir falta de capacidad/datos con falta de permiso.
+
+## Estado histórico de187/188
 
 Entrega sobre `dariodeoli/scale-os`, base
 `e55f4058452f9dee46c46090d54648194e9cd1f7` (v1.0.187).
