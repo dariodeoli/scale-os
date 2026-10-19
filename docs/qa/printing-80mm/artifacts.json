@@ -1,0 +1,25 @@
+{
+  "total_count": 1,
+  "artifacts": [
+    {
+      "id": 12161940355,
+      "node_id": "MDg6QXJ0aWZhY3QxMjE2MTk0MDM1NQ==",
+      "name": "scale-print-agent-80mm",
+      "size_in_bytes": 11036,
+      "url": "https://api.github.com/repos/dariodeoli/scale-os/actions/artifacts/12161940355",
+      "archive_download_url": "https://api.github.com/repos/dariodeoli/scale-os/actions/artifacts/12161940355/zip",
+      "expired": false,
+      "digest": "sha256:e75664db1ff46002f45828acdf062b81b94c32391f841efe8b30d87c90467ba2",
+      "created_at": "2026-10-19T03:27:02Z",
+      "updated_at": "2026-10-19T03:27:02Z",
+      "expires_at": "2026-11-02T03:27:01Z",
+      "workflow_run": {
+        "id": 39194682759,
+        "repository_id": 1360710803,
+        "head_repository_id": 1360710803,
+        "head_branch": "codex/printing-80mm-278",
+        "head_sha": "f1597448cbdd9bab4b9f404b3df86101316053b0"
+      }
+    }
+  ]
+}

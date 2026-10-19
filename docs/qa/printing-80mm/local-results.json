@@ -1,0 +1,28 @@
+{
+  "candidate": "f1597448cbdd9bab4b9f404b3df86101316053b0",
+  "frontend_regression": {
+    "entries": 270,
+    "fragments": 51,
+    "status": "PASS"
+  },
+  "next_build": "PASS",
+  "backend_release_scripts": 63,
+  "backend_release_status": "PASS",
+  "postgres17_concurrency_assertions": 102,
+  "postgres17_status": "PASS",
+  "agent_tests": 26,
+  "agent_status": "PASS",
+  "http_pglite_interoperability": "PASS; physical transport stubbed",
+  "printing_browser_widths": [
+    280,
+    320,
+    390,
+    768,
+    1440
+  ],
+  "printing_browser_status": "PASS",
+  "general_browser_gates": 19,
+  "general_browser_status": "PASS",
+  "physical_print": "NOT TESTED",
+  "printing_deploy": "NOT DEPLOYED"
+}
