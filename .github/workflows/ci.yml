@@ -64,6 +64,20 @@ jobs:
     name: "Impresión 80 mm (API, agente y paquete)"
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      printing-postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: printing_fixture
+          POSTGRES_PASSWORD: fixture_only
+          POSTGRES_DB: printing_fixture
+        ports:
+          - 55479:5432
+        options: >-
+          --health-cmd "pg_isready -U printing_fixture -d printing_fixture"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -79,6 +93,10 @@ jobs:
           node backend/test-printing.mjs
           node --test print-agent/test/*.test.mjs
           node print-agent/test-api-integration.mjs
+      - name: PostgreSQL 17 races (dedicated fixture service)
+        env:
+          SCALE_PRINT_TEST_PG_CI_URL: postgresql://printing_fixture:fixture_only@127.0.0.1:55479/printing_fixture
+        run: node backend/test-printing-postgres.mjs
       - name: Package reviewed local agent
         run: node build-tools/pack-print-agent.mjs "$RUNNER_TEMP/scale-print-agent"
       - uses: actions/upload-artifact@v4

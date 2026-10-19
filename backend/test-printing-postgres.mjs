@@ -6,6 +6,15 @@ import pg from 'pg';
 import {printingCases,loadPrintingSchema} from './test-printing.mjs';
 assert.notEqual(process.getuid?.(),0,'Run PostgreSQL as an unprivileged user');
 for(const name of Object.keys(process.env))if(name.startsWith('PG')||name==='DATABASE_URL')delete process.env[name];
+const ciUrl=process.env.SCALE_PRINT_TEST_PG_CI_URL;
+if(ciUrl){
+ // Hosted CI gets a dedicated PostgreSQL17 service, never an arbitrary database.
+ const target=new URL(ciUrl);
+ assert(process.env.CI==='true'&&['postgres:','postgresql:'].includes(target.protocol)&&target.hostname==='127.0.0.1'&&target.port==='55479'&&target.pathname==='/printing_fixture'&&target.username==='printing_fixture'&&target.password==='fixture_only'&&!target.search&&!target.hash,'External printing fixture is restricted to the dedicated local CI service');
+ const pool=new pg.Pool({connectionString:ciUrl,max:8});
+ pool.on('error',error=>{console.error('Printing CI fixture pool error:',error.code||'UNKNOWN');process.exitCode=1;});
+ try{await loadPrintingSchema(pool);await printingCases(pool,{concurrent:true});}finally{await pool.end();}
+}else{
 const bin=process.env.SCALE_TEST_PG_BIN||'/usr/lib/postgresql/17/bin';
 assert(existsSync(path.join(bin,'initdb')),'Set SCALE_TEST_PG_BIN to PostgreSQL 16/17 binaries');
 const temp=mkdtempSync('/tmp/scale-printing-pg-'),data=path.join(temp,'data'),socket=path.join(temp,'socket');mkdirSync(socket,{mode:0o700});
@@ -23,4 +32,6 @@ try{
  closing=true;await pool?.end();if(started)run('pg_ctl',['-D',data,'-m','fast','-w','stop']);
  // Only this process's newly created, stopped cluster is removed.
  rmSync(temp,{recursive:true});console.log('Printing PostgreSQL fixture stopped and removed');
+}
+
 }
