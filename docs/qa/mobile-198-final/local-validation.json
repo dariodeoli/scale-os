@@ -1,0 +1,23 @@
+{
+  "releasePreparationExit": 0,
+  "frontendCommands": 275,
+  "regressionFragments": 55,
+  "backendScripts": 61,
+  "nextBuildPages": 64,
+  "browserGates": 20,
+  "assetBudgets": "PASS login/status/registro; no financial artwork",
+  "logs": {
+    "release": {
+      "path": "/tmp/mobile198-release-prepare.log",
+      "sha256": "a0aee20d9bfea5103da8c4a3dab5905e9e2646c23827c15f36d9910995333cf5"
+    },
+    "browser": {
+      "path": "/tmp/mobile198-browser-gates-final.log",
+      "sha256": "601a4b4a417e7c47452a2c956dd36e709504f4598c2a794e210c682a3a4aa2f1"
+    },
+    "portal": {
+      "path": "/tmp/mobile198-portal-final.log",
+      "sha256": "3730573339a45b9cfe931634388818fe18408ddd269d7423b4c792a1e7f2e004"
+    }
+  }
+}

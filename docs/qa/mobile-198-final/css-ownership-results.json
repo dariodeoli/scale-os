@@ -1,0 +1,81 @@
+{
+  "scenarios": [
+    {
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "width": 390,
+      "theme": "contrast"
+    },
+    {
+      "width": 760,
+      "theme": "light"
+    },
+    {
+      "width": 760,
+      "theme": "dark"
+    },
+    {
+      "width": 760,
+      "theme": "contrast"
+    },
+    {
+      "width": 761,
+      "theme": "light"
+    },
+    {
+      "width": 761,
+      "theme": "dark"
+    },
+    {
+      "width": 761,
+      "theme": "contrast"
+    },
+    {
+      "width": 767,
+      "theme": "light"
+    },
+    {
+      "width": 767,
+      "theme": "dark"
+    },
+    {
+      "width": 767,
+      "theme": "contrast"
+    },
+    {
+      "width": 768,
+      "theme": "light"
+    },
+    {
+      "width": 768,
+      "theme": "dark"
+    },
+    {
+      "width": 768,
+      "theme": "contrast"
+    },
+    {
+      "width": 1366,
+      "theme": "light"
+    },
+    {
+      "width": 1366,
+      "theme": "dark"
+    },
+    {
+      "width": 1366,
+      "theme": "contrast"
+    }
+  ],
+  "comparisons": 1056,
+  "nativeComparisons": 0,
+  "intentionalChanges": [],
+  "failures": [],
+  "scope": "Actual SSR Button/IconButton, real local styles and generated Tailwind, synthetic contextual markup. No authenticated page/API validation."
+}

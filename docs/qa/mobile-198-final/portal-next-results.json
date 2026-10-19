@@ -1,0 +1,1051 @@
+{
+  "base": "http://127.0.0.1:38005",
+  "nextBase": "http://127.0.0.1:3027",
+  "forwardedHost": "app.scaleparaguay.com",
+  "measurements": [
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 320,
+      "height": 844,
+      "scrollWidth": 320,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 320,
+      "height": 844,
+      "scrollWidth": 320,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 768,
+      "height": 844,
+      "scrollWidth": 768,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 768,
+      "height": 844,
+      "scrollWidth": 768,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 1024,
+      "height": 844,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 1024,
+      "height": 844,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 1440,
+      "height": 844,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 1440,
+      "height": 844,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "list",
+      "width": 1024,
+      "height": 600,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "light",
+      "view": "detail",
+      "width": 1024,
+      "height": 600,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 320,
+      "height": 844,
+      "scrollWidth": 320,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 320,
+      "height": 844,
+      "scrollWidth": 320,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 768,
+      "height": 844,
+      "scrollWidth": 768,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 768,
+      "height": 844,
+      "scrollWidth": 768,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 1024,
+      "height": 844,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 1024,
+      "height": 844,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 1440,
+      "height": 844,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 1440,
+      "height": 844,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "list",
+      "width": 1024,
+      "height": 600,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "dark",
+      "view": "detail",
+      "width": 1024,
+      "height": 600,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 320,
+      "height": 844,
+      "scrollWidth": 320,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 320,
+      "height": 844,
+      "scrollWidth": 320,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 768,
+      "height": 844,
+      "scrollWidth": 768,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 768,
+      "height": 844,
+      "scrollWidth": 768,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 1024,
+      "height": 844,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 1024,
+      "height": 844,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 1440,
+      "height": 844,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 1440,
+      "height": 844,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 844,
+      "height": 390,
+      "scrollWidth": 844,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "list",
+      "width": 1024,
+      "height": 600,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "BUTTON",
+        "outline": "solid"
+      }
+    },
+    {
+      "theme": "contrast",
+      "view": "detail",
+      "width": 1024,
+      "height": 600,
+      "scrollWidth": 1024,
+      "brokenImages": 0,
+      "clipped": [],
+      "shortButtons": [],
+      "focus": {
+        "tag": "A",
+        "outline": "solid"
+      }
+    }
+  ],
+  "apiRequests": [
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries/42/activity",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/me",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "path": "/core-api/api/client-portal/deliveries",
+      "method": "GET",
+      "body": null
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Synthetic API responses; no real login/OAuth, storage download or physical mobile/Safari."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "sourceKind": "git-tree",
+  "tree": "0dd12f1bb78ae3ba5b28b8f936ab62bcc6884f2b",
+  "buildId": "_CwxQgq5vJLcAt0cJxDax",
+  "version": "1.0.198",
+  "runnerBase": "http://127.0.0.1:3027",
+  "nextOrigin": "http://127.0.0.1:3028",
+  "apiOrigin": "http://127.0.0.1:4127",
+  "transport": "Local QA proxy routes /core-api to isolated PostgreSQL-backed API and serves the unchanged production Next artifact with canonical app Host; no production calls.",
+  "releaseCommit": "38da9866ac59964c8d0555fcb7d1da2d0f74ebb8",
+  "treeMatchesRelease": true,
+  "candidateCommit": "752e3a7c9cdf802af073524906d9d90dacf90f90",
+  "postBuildChanges": [
+    ".engram/chunks/e7c5c311.jsonl.gz",
+    ".engram/manifest.json",
+    "docs/qa/mobile-secondary-297/actions.mjs",
+    "docs/qa/mobile-secondary-297/browser.mjs",
+    "docs/qa/mobile-secondary-297/summarize.mjs"
+  ],
+  "runtimeSourceUnchanged": true,
+  "candidateTree": "0c7ab157dc7a34bb0083792d07828022d41fc6e4"
+}

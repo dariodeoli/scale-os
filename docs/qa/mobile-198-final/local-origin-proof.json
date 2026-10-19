@@ -1,0 +1,53 @@
+{
+  "syntheticDatabase": true,
+  "productionNetwork": false,
+  "transport": "node:http, Host preserved",
+  "results": [
+    {
+      "name": "loopback-host",
+      "headers": {
+        "Host": "127.0.0.1"
+      },
+      "status": 403,
+      "body": {
+        "error": "Origen no permitido"
+      }
+    },
+    {
+      "name": "canonical-host",
+      "headers": {
+        "Host": "api.scaleparaguay.com"
+      },
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      }
+    },
+    {
+      "name": "canonical-host-and-origin",
+      "headers": {
+        "Host": "api.scaleparaguay.com",
+        "Origin": "https://app.scaleparaguay.com"
+      },
+      "status": 200,
+      "body": {
+        "active_sessions": 0,
+        "window_seconds": 90,
+        "refresh_seconds": 30
+      }
+    },
+    {
+      "name": "canonical-host-loopback-origin",
+      "headers": {
+        "Host": "api.scaleparaguay.com",
+        "Origin": "http://127.0.0.1:3027"
+      },
+      "status": 403,
+      "body": {
+        "error": "Origen no permitido"
+      }
+    }
+  ]
+}
