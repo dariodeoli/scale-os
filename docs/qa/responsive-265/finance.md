@@ -1,7 +1,7 @@
 # Finanzas: auditoría responsive — Refs #265
 
 Alcance: Balance, Previsión financiera, Finanzas/caja, Cobranza y mora e Informes.
-La corrección pertenece exclusivamente a Previsión; no modifica cálculos, permisos,
+La corrección usa utilities Tailwind en Previsión, respetando el contrato v2 sin recrear su hoja CSS retirada; no modifica cálculos, permisos,
 contratos API, datos, tablas de Balance ni CSS global.
 
 ## Hallazgo y corrección
