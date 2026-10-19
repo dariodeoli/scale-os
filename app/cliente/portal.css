@@ -35,9 +35,7 @@
 .client-portal header>div,.delivery>*{min-width:0}
 .client-portal :is(small,strong),.client-portal a{overflow-wrap:anywhere}
 .client-portal a.button{white-space:normal;overflow-wrap:anywhere}
-.client-portal :is(button,a):focus-visible{outline:3px solid var(--focus-ring);outline-offset:3px}
-/* Portal actions remain touchable on tablets too, including shared buttons. */
-.client-portal [data-ui-button]{min-height:44px;min-width:44px}
+.client-portal a:focus-visible,.client-portal button:not(:where([data-ui-button])):focus-visible{outline:3px solid var(--focus-ring);outline-offset:3px}
 .delivery-activity li{overflow-wrap:anywhere}
 .portal-status::before{flex:none}
 /* Keep the return action intact beside long client/project headings. */
