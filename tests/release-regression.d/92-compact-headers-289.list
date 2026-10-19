@@ -1,0 +1,2 @@
+# Real shared chrome geometry, compiled current CSS and canonical primitives.
+node tests/page-chrome-browser-289.test.mjs
