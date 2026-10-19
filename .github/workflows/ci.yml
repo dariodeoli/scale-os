@@ -59,3 +59,31 @@ jobs:
         run: npm ci
       - name: Release suite
         run: npm run test:release
+
+  printing:
+    name: "Impresión 80 mm (API, agente y paquete)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend test dependencies
+        run: npm --prefix backend ci
+      - name: Renderer, API and local agent
+        run: |
+          node backend/test-printing-renderer.mjs
+          node backend/test-printing.mjs
+          node --test print-agent/test/*.test.mjs
+          node print-agent/test-api-integration.mjs
+      - name: Package reviewed local agent
+        run: node build-tools/pack-print-agent.mjs "$RUNNER_TEMP/scale-print-agent"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scale-print-agent-80mm
+          path: ${{ runner.temp }}/scale-print-agent/
+          if-no-files-found: error
+          retention-days: 14
