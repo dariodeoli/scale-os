@@ -3,3 +3,7 @@
 .contracts-workspace summary{display:list-item;align-content:center;cursor:pointer;padding-block:10px}
 
 .contracts-create-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;margin-block:16px}
+
+/* Template names may be full legal names without spaces. Keep their text
+   inside the card instead of widening the entire mobile document (Refs #265). */
+.contract-card>span{min-width:0;overflow-wrap:anywhere}
