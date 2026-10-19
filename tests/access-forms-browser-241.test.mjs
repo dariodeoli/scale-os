@@ -76,10 +76,10 @@ try{
  }
  await mount('verify','?token='+'a'.repeat(64));await page.waitForFunction(()=>window.queue.length===1);assert.equal(await page.evaluate(()=>window.calls.filter(call=>call.url.endsWith('/password/verify')).length),1,'StrictMode comparte una sola verificación de token');
  await release(400,{error:'Enlace no disponible'});await page.waitForSelector('form');
- for(const theme of ['light','dark'])for(const width of [1366,390]){
+ for(const theme of ['light','dark'])for(const width of [320,390,768,1024,1440]){
   await page.setViewport({width,height:width===390?844:768});await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);await mount('registration');
-  await page.waitForSelector('form input[type=email]');await fill('input[type=email]','qa@example.invalid');await fill('input[name=password]','ClaveLocal2026!');
-  await submitTwice();await assertPending('registration');await release(200,{requiresAgency:true});await page.waitForSelector('input[name=confirm_password]');
+  await page.waitForSelector('form input[type=email]');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,theme+' '+width+' identidad sin overflow');await fill('input[type=email]','qa@example.invalid');await fill('input[name=password]','ClaveLocal2026!');
+  await submitTwice();await assertPending('registration');await release(200,{requiresAgency:true});await page.waitForSelector('input[name=confirm_password]');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,theme+' '+width+' acceso sin overflow');
   await fill('input[name=confirm_password]','ClaveLocal2026!');await page.$eval('form',form=>form.requestSubmit());await page.waitForSelector('input[autocomplete=organization]');
   await fill('input[autocomplete=organization]','Agencia QA');for(const box of await page.$$('input[type=checkbox]'))await box.click();
   await page.evaluate(()=>{const action=Array.from(document.querySelectorAll('button')).find(button=>button.textContent==='Crear mi agencia');action.click();action.click();});
@@ -91,5 +91,5 @@ try{
   await page.waitForFunction(()=>document.activeElement?.textContent==='Fallo controlado de agencia');assert.equal(await page.$eval('input[autocomplete=organization]',node=>node.value),'Agencia QA');assert((await page.$$eval('input[type=checkbox]',nodes=>nodes.map(node=>node.checked))).every(Boolean));
  }
  assert.deepEqual(errors,[]);
- console.log('PASS Chromium real:7 rutas+reset, fieldset display:contents y bloqueo nativo completo, dobles submits, consentimientos/drafts/foco tras error, OAuth deshabilitado, StrictMode verify1POST, registro1366/390 claro/oscuro sin overflow.');
+ console.log('PASS Chromium real:7 rutas+reset, fieldset display:contents y bloqueo nativo completo, dobles submits, consentimientos/drafts/foco tras error, OAuth deshabilitado, StrictMode verify1POST, registro320/390/768/1024/1440 (3 pasos) claro/oscuro sin overflow.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
