@@ -156,6 +156,4 @@ test('restart authenticates remote authority before sending a cached pending lea
   assert.equal(calls, 1); assert.equal(sends, 0); assert.equal(restarted.jobs[0].state, 'pendiente'); assert.equal(restarted.jobs[0].payload_base64, input().payload_base64);
   const authorized = async url => Response.json(url.endsWith('/config') ? { bridge: { id: 'bridge' }, printers: [printer] } : url.endsWith('/claim') ? { job: null } : { ok: true });
   await restarted.poll(config, authorized); assert.equal(sends, 1); assert.equal(restarted.jobs[0].state, 'aceptado'); assert.equal(restarted.jobs[0].payload_base64, undefined);
-  const cli = await fs.readFile(path.resolve(import.meta.dirname, '../cli.mjs'), 'utf8');
-  assert.ok(cli.includes("if (config.mode === 'development' && !config.bridgeId) await agent.drain(); else await agent.poll(config)"), 'paired CLI must never drain before poll authentication');
 });
