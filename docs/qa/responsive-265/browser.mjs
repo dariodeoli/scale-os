@@ -36,7 +36,7 @@ const snapshot=()=>page.evaluate(()=>{
  const inViewport=e=>{const b=box(e);return b.right>0&&b.x<innerWidth&&b.bottom>0&&b.y<innerHeight;};
  const effective=e=>e.matches('input[type=checkbox],input[type=radio]')&&e.labels?.length?[...e.labels].reduce((a,b)=>box(a).width*box(a).height>box(b).width*box(b).height?a:b,e):e;
  const label=e=>(e.getAttribute('aria-label')||e.title||e.innerText||e.getAttribute('placeholder')||e.tagName).trim().slice(0,100);
- const main=document.querySelector('.workspace-content')||document.querySelector('main');
+ const main=document.querySelector('.control-shell[data-shell-data="ready"] .workspace-content');
  const controls=[...document.querySelectorAll('button,a[href],input:not([type=hidden]),select,textarea,[role=button],[role=combobox]')].filter(visible).map(e=>({label:label(e),disabled:e.disabled,rect:box(effective(e))}));
  const images=[...document.images].filter(e=>visible(e)&&inViewport(e)).map(e=>({label:e.alt||'image',loaded:e.complete&&e.naturalWidth>0,source:e.currentSrc?.startsWith('data:')?'data':new URL(e.currentSrc||e.src,location.href).pathname,rect:box(e),naturalWidth:e.naturalWidth,naturalHeight:e.naturalHeight,fit:getComputedStyle(e).objectFit}));
  const offenders=[...document.querySelectorAll('body *')].filter(visible).filter(e=>{const b=box(e);if(b.x>=-1&&b.right<=innerWidth+1)return false;for(let p=e.parentElement;p&&p!==document.body;p=p.parentElement){const s=getComputedStyle(p);if(['auto','scroll'].includes(s.overflowX)&&p.scrollWidth>p.clientWidth)return false;if(['hidden','clip'].includes(s.overflowX)){const b=box(p);if(b.x>=-1&&b.right<=innerWidth+1)return false;}}return true;}).slice(0,15).map(e=>({label:label(e),tag:e.tagName,className:String(e.className).slice(0,100),rect:box(e)}));
@@ -59,8 +59,10 @@ try{
    await page.evaluate(theme=>localStorage.setItem('scale-theme',theme),theme);
    const response=await page.goto(base+path,{waitUntil:'networkidle2',timeout:60000});assert(response&&response.status()<400,'Route response must be successful');
    await page.evaluate(async theme=>{if(theme==='light')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));},theme);
+   await page.waitForSelector('.control-shell[data-shell-data="ready"] .workspace-content',{timeout:45000});
+   await page.waitForFunction(()=>![...document.querySelectorAll('.workspace-content [aria-busy="true"]')].some(e=>e.checkVisibility()),{timeout:45000});
    const intro=await page.evaluateHandle(()=>[...document.querySelectorAll('button')].find(e=>e.checkVisibility()&&/Explorar.*demo/i.test(e.textContent)));if(intro.asElement())await intro.asElement().click();await intro.dispose();
-   await page.waitForFunction(()=>Boolean(document.querySelector('.workspace-content,main')));
+   await page.waitForFunction(()=>{const root=document.querySelector('.control-shell[data-shell-data="ready"] .workspace-content');return Boolean(root)&&!root.querySelector('[aria-busy="true"]');},{timeout:45000});
    for(const progress of[0,.5,1]){
     await page.evaluate(p=>window.scrollTo(0,p*(document.documentElement.scrollHeight-innerHeight)),progress);await new Promise(r=>setTimeout(r,180));
     await page.waitForFunction(()=>[...document.images].filter(e=>{const b=e.getBoundingClientRect();return e.checkVisibility()&&b.bottom>0&&b.y<innerHeight&&b.right>0&&b.x<innerWidth;}).every(e=>e.complete),{timeout:5000}).catch(()=>{});
@@ -73,7 +75,7 @@ try{
    const small=row.states[0].controls.filter(c=>!c.disabled&&(c.rect.width<43.5||c.rect.height<43.5));row.touchTargetReview=width<=1024?small:[]; // Evidence for manual44px review; inline link exceptions/spacing need context, so not an automatic defect.
    await page.evaluate(()=>window.scrollTo(0,0));
    // A real Tab step must land on a visible control; sticky occlusion is assessed after keyboard focus.
-   const focusable=await page.evaluateHandle(()=>[...(document.querySelector('.workspace-content')||document.querySelector('main')).querySelectorAll('button,a[href],input:not([type=hidden]),select,textarea')].find(e=>e.checkVisibility()&&!e.disabled&&e.tabIndex>=0));
+   const focusable=await page.evaluateHandle(()=>[...(document.querySelector('.control-shell[data-shell-data="ready"] .workspace-content')).querySelectorAll('button,a[href],input:not([type=hidden]),select,textarea')].find(e=>e.checkVisibility()&&!e.disabled&&e.tabIndex>=0));
    if(focusable.asElement()){
     await focusable.asElement().focus();await page.keyboard.press('Tab');
     row.keyboard=await page.evaluate(()=>{const e=document.activeElement,b=e.getBoundingClientRect(),top=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return{label:e.getAttribute('aria-label')||e.textContent?.slice(0,80),inViewport:b.width>0&&b.height>0&&b.x>=0&&b.right<=innerWidth&&b.y>=0&&b.bottom<=innerHeight,occluded:top&&!e.contains(top)&&!top.contains(e),body:e===document.body};});
