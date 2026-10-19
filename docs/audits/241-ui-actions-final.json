@@ -176,12 +176,12 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "changed": false,
-      "sha256": "3558b525f4599f961028a54243d010312afb3f6181f92e0af785f26ea389e004"
+      "sha256": "f5de843d05cb2c5bd46b9d9b2337cf4dc896418b11f675482f4e4280405245a5"
     },
     {
       "file": "app/cliente/entregas/page.tsx",
       "changed": false,
-      "sha256": "44153c9242070adff3d5daac7683efa4f95178ac943b4717145bd1a6723c89ac"
+      "sha256": "990899813456b251244cd3acdd108a219de37b430a9950de8c6391e69f74d216"
     },
     {
       "file": "app/cliente/ingresar/page.tsx",
@@ -1577,8 +1577,8 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "line": 34,
-      "column": 1739,
-      "offset": 5169,
+      "column": 1752,
+      "offset": 5182,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1588,8 +1588,8 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "line": 34,
-      "column": 2095,
-      "offset": 5525,
+      "column": 2121,
+      "offset": 5551,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1599,8 +1599,8 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "line": 34,
-      "column": 2537,
-      "offset": 5967,
+      "column": 2576,
+      "offset": 6006,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",

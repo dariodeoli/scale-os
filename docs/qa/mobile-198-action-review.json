@@ -1,5 +1,53 @@
 [
   {
+    "file": "app/cliente/entregas/[id]/page.tsx",
+    "owner": "ClientDelivery",
+    "beforeLine": 23,
+    "beforeColumn": 1625,
+    "beforeHash": "067d3b8048e9e41e2915d1d2c886b982356142bdd40a31c17316cd7f77923caf",
+    "afterLine": 34,
+    "afterColumn": 1625,
+    "afterHash": "48b6e8b755c710dd42af4a10b69a8ff207fe525a0a97d774ee9f97538d5fd438",
+    "approved": true,
+    "rationale": "Reviewed portal action keeps its existing endpoint, native type, variant, permission and callback semantics; canonical size=large supplies the touch target instead of a contextual CSS override. Logout additionally uses the reviewed immediate submission lock, progress text and recoverable focused alert."
+  },
+  {
+    "file": "app/cliente/entregas/[id]/page.tsx",
+    "owner": "ClientDelivery",
+    "beforeLine": 23,
+    "beforeColumn": 1739,
+    "beforeHash": "e56854210d708a119d36f66572ef2256d79ad14454c3bad0a5730b05ed3859af",
+    "afterLine": 34,
+    "afterColumn": 1752,
+    "afterHash": "e3d5229311fd670fcfbda84daca76e9aefa445020cda36a960ba92e411f22619",
+    "approved": true,
+    "rationale": "Reviewed portal action keeps its existing endpoint, native type, variant, permission and callback semantics; canonical size=large supplies the touch target instead of a contextual CSS override. Logout additionally uses the reviewed immediate submission lock, progress text and recoverable focused alert."
+  },
+  {
+    "file": "app/cliente/entregas/[id]/page.tsx",
+    "owner": "ClientDelivery",
+    "beforeLine": 23,
+    "beforeColumn": 2095,
+    "beforeHash": "d1bfc59c9c7cc398d9bdaa0ce424bf0203ab0573ba797a3691af08edb7ec5c93",
+    "afterLine": 34,
+    "afterColumn": 2121,
+    "afterHash": "b61082d6b668e21f853e8ce1126472277cb4ff151f151e1e17d8af86353e721f",
+    "approved": true,
+    "rationale": "Reviewed portal action keeps its existing endpoint, native type, variant, permission and callback semantics; canonical size=large supplies the touch target instead of a contextual CSS override. Logout additionally uses the reviewed immediate submission lock, progress text and recoverable focused alert."
+  },
+  {
+    "file": "app/cliente/entregas/[id]/page.tsx",
+    "owner": "ClientDelivery",
+    "beforeLine": 23,
+    "beforeColumn": 2537,
+    "beforeHash": "5a972461ea3b455daa9748312f636885f136343c27eaee43b7ee30edc75cbd74",
+    "afterLine": 34,
+    "afterColumn": 2576,
+    "afterHash": "73abebe1a38ced9b1a570ee9d9549a7360ccbc62e7ffe3e405c2828911b0b319",
+    "approved": true,
+    "rationale": "Reviewed portal action keeps its existing endpoint, native type, variant, permission and callback semantics; canonical size=large supplies the touch target instead of a contextual CSS override. Logout additionally uses the reviewed immediate submission lock, progress text and recoverable focused alert."
+  },
+  {
     "file": "app/cliente/entregas/page.tsx",
     "owner": "ClientDeliveries",
     "beforeLine": 15,
@@ -7,8 +55,8 @@
     "beforeHash": "ad3cea95b721189680ae14cf43acf90b3d29060437933e5c11ea47878fc6b882",
     "afterLine": 18,
     "afterColumn": 287,
-    "afterHash": "e0064ce46f8c221b4a097393c87db93541a28fe4639eaa0db703c9c5afb24387",
+    "afterHash": "709c5ddaf3fb16e5d3039dc42b58f44b48f2d84438d7d587f4dfac49ca7af5bb",
     "approved": true,
-    "rationale": "Reviewed unchanged canonical secondary logout action: existing portal endpoint and redirect are preserved; immediate single-flight lock disables repeated sends, pending text describes progress, and failed logout focuses a recoverable alert. No permission or native-widget exemption is introduced."
+    "rationale": "Reviewed portal action keeps its existing endpoint, native type, variant, permission and callback semantics; canonical size=large supplies the touch target instead of a contextual CSS override. Logout additionally uses the reviewed immediate submission lock, progress text and recoverable focused alert."
   }
 ]
