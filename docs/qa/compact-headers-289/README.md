@@ -34,3 +34,29 @@ con cuatro filtros; se recuperan 60 px. Para capturas opcionales, usar
 Estos son fixtures locales del patrón compartido, no navegación autenticada
 contra producción ni prueba de datos/API de cada módulo. La integración y el
 release completo corresponden al agente integrador.
+
+
+## Balance combinado: regresión independiente
+
+`node tests/balance-layout-browser-289.test.mjs` monta `BalanceSection` real
+con `PageTitleContext`, `PageChromeContext` y `TabScroller`, compila Tailwind y
+carga las hojas reales del checkout. El transporte sintético rechaza escrituras;
+no usa sesiones ni datos privados. Simula un riel de192px.
+
+Se verificaron320/390/768/1024/1440/1920px, con puntero táctil hasta1024px:
+sin overflow, un título, tablas pobladas, selector mensual contenido y controles
+de al menos44px en móvil/tablet. ContratadoUSD8000 excluye al cliente inactivo;
+recibidoUSD150 conserva susUSD50. Alternar inactivos no modifica esos totales;
+cambiar de mes recarga datos y vuelve a la vista activa.
+
+El caso combinado detectó el selector central de40px a768/1024 con puntero
+táctil: la regla compartida de campos vencía al ajuste local por especificidad.
+La corrección usa `--ui-control-height:44px` en el ámbito del selector mensual.
+La regresión estricta pasó6/6 sobre la fuente final22ba2345. El encabezado de
+escritorio mide42px y el contenido comienza a124px en este fixture sin topbar.
+No se acredita navegación autenticada, operaciones reales, Safari o equipo físico.
+
+El runner guarda JSON y capturas en un directorio temporal propio;
+`SCALE_QA_OUT` permite conservarlos en una ruta elegida. El resultado anterior
+está en `/tmp/scale289-combined-balance/results.json`. El integrador ejecuta la
+versión registrada mediante el fragmento92-balance-layout-289.list.

@@ -1,0 +1,2 @@
+# Actual Balance + shared page chrome and production CSS; read-only synthetic data.
+node tests/balance-layout-browser-289.test.mjs
