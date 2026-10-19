@@ -120,6 +120,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "e70bcdc9",
+      "created_by": "agent",
+      "created_at": "2026-10-19T03:32:39.203332348Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
