@@ -5,8 +5,8 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 require.extensions['.css']=(module:NodeModule)=>{module.exports={};};
 Object.assign(globalThis,{React});
 const calls:{path:string;body:Record<string,unknown>|undefined;init:RequestInit|undefined}[]=[];
-let manage=true,print=true,failJob=false;let deferRead=false,deferPair=false;let resolveRead:((v:unknown)=>void)|undefined,resolvePair:((v:unknown)=>void)|undefined;
-const snapshot=()=>({can_manage:manage,can_print:print,printers:[{id:'p1',name:'Térmica',width_mm:80,enabled:true,connection:'lan',destination:'lan:192.168.1.10:9100',copies:1,auto_cut:false}],bridges:[],templates:[{id:'t1',name:'Prueba80',kind:'test',version:1,definition:{version:1,widthMm:80,heightMm:'auto',orientation:'portrait',marginsMm:{top:2,left:4,right:4,bottom:2},fontSize:10,autoCut:false}}],jobs:[{id:'j1',kind:'test',reference:'INV-42',state:'incierto',printer_id:'p1',template_id:'t1',template_version:1,copies:1,created_at:'2026-10-19T00:00:00Z'}],audit:[]});
+let manage=true,print=true,failJob=false,qrPermission=false;let deferRead=false,deferPair=false;let resolveRead:((v:unknown)=>void)|undefined,resolvePair:((v:unknown)=>void)|undefined;
+const snapshot=()=>({can_manage:manage,can_print:print,can_print_budget_qr:qrPermission,printers:[{id:'p1',name:'Térmica',width_mm:80,enabled:true,connection:'lan',destination:'lan:192.168.1.10:9100',copies:1,auto_cut:false}],bridges:[],templates:[{id:'t1',name:'Prueba80',kind:'test',version:1,definition:{version:1,widthMm:80,heightMm:'auto',orientation:'portrait',marginsMm:{top:2,left:4,right:4,bottom:2},fontSize:10,autoCut:false}}],jobs:[{id:'j1',kind:'test',reference:'INV-42',state:'incierto',printer_id:'p1',template_id:'t1',template_version:1,copies:1,created_at:'2026-10-19T00:00:00Z'}],audit:[]});
 const requestId=require.resolve('../app/workspace-request');
 require.cache[requestId]={id:requestId,filename:requestId,loaded:true,exports:{request:async(path:string,init?:RequestInit)=>{const body=init?.body?JSON.parse(String(init.body)):undefined;calls.push({path,body,init});if(!init?.method){if(deferRead){deferRead=false;return new Promise(resolve=>{resolveRead=resolve;});}return snapshot();}if(path.endsWith('/bridges')&&deferPair){deferPair=false;return new Promise(resolve=>{resolvePair=resolve;});}if(path.endsWith('/bridges'))return {bridge:{id:'b1'},pairing_code:'ONCE-123',expires_at:'2026-10-20T00:00:00Z'};if(failJob&&path.endsWith('/reprint'))throw Error('Servidor no responde');return {ok:true};}}} as NodeModule;
 const operationsId=require.resolve('../app/operations');
@@ -15,7 +15,7 @@ function DialogMock({title,children,close}:{title:string;children:React.ReactNod
 require.cache[operationsId]={id:operationsId,filename:operationsId,loaded:true,exports:{Editor:EditorMock,Dialog:DialogMock}} as NodeModule;
 const {PrintingWorkspace,bridgeOnline}=require('../app/printing-workspace') as typeof import('../app/printing-workspace');
 function button(r:ReactTestRenderer,text:string){return r.root.findAllByType('button').find(node=>node.children.join('')===text)!;}
-function editor(r:ReactTestRenderer){return r.root.findByType(EditorMock).props as {save:(v:Record<string,string>)=>Promise<void>;defaults:Record<string,string>;fields:{key:string;choices?:{value:string}[]}[]};}
+function editor(r:ReactTestRenderer){return r.root.findByType(EditorMock).props as {save:(v:Record<string,string>)=>Promise<void>;defaults:Record<string,string>;onValuesChange:(v:Record<string,string>)=>void;fields:{key:string;validate?:(v:string)=>string|null;choices?:{value:string}[]}[]};}
 test('permissions and honest uncertain state do not trigger printing automatically',async()=>{
  calls.length=0;manage=false;print=false;let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace/>);});
  assert.equal(button(r!,'Agregar impresora'),undefined);assert.equal(button(r!,'Preparar impresión'),undefined);assert.equal(button(r!,'Reimprimir…'),undefined);
@@ -56,4 +56,14 @@ test('scope changes discard deferred old reads, drafts and one-time pairing resp
  await act(async()=>r!.update(<PrintingWorkspace scopeKey="orgC:user3"/>));assert.equal(r!.root.findAllByType(EditorMock).length,0);
  await act(async()=>{resolvePair!({pairing_code:'OLD-SECRET',expires_at:'2026-10-20T00:00:00Z'});await pending!;});assert.doesNotMatch(JSON.stringify(r!.toJSON()),/OLD-SECRET/);
  await act(async()=>r!.unmount());
+});
+
+test('budget QR is opt-in, validates canonical URLs and is absent without capability',async()=>{
+ manage=true;print=true;qrPermission=false;let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace/>);});await act(async()=>button(r!,'Preparar impresión').props.onClick());assert.equal(editor(r!).fields.some(field=>field.key==='qrUrl'),false);await act(async()=>r!.unmount());
+ qrPermission=true;await act(async()=>{r=create(<PrintingWorkspace/>);});await act(async()=>button(r!,'Preparar impresión').props.onClick());const field=editor(r!).fields.find(field=>field.key==='qrUrl')!;assert.ok(field);
+ for(const invalid of ['https://example.com/p/abcdefghijklmnop','http://api.scaleparaguay.com/p/abcdefghijklmnop','https://api.scaleparaguay.com/p/short','https://api.scaleparaguay.com/p/abcdefghijklmnop?track=1','https://api.scaleparaguay.com/p/abcdefghijklmnop#x'])assert.ok(field.validate!(invalid));
+ const before=calls.length;await assert.rejects(editor(r!).save({...editor(r!).defaults,reference:'TEST-QR',qrUrl:'https://example.com/p/abcdefghijklmnop'}));assert.equal(calls.length,before);
+ const qrUrl='https://api.scaleparaguay.com/p/abcdefghijklmnop';assert.equal(field.validate!(qrUrl),null);const values={...editor(r!).defaults,reference:'TEST-QR',qrUrl};
+ await act(async()=>editor(r!).onValuesChange(values));assert.match(r!.root.findByType('iframe').props.srcDoc,/data-qr-ecc="H"/);
+ await act(async()=>editor(r!).save(values));const sent=calls.findLast(call=>call.path.endsWith('/jobs'))!;assert.equal((sent.body!.data as {qrUrl:string}).qrUrl,qrUrl);assert.equal('confirmationSuffix' in (sent.body!.data as object),false);await act(async()=>r!.unmount());qrPermission=false;
 });
