@@ -88,5 +88,7 @@ Los límites detallados de las siete acciones permanecen en
 PR #288. Sin migraciones ni cambios de permisos: una reversión debe preservar
 comentarios, decisiones y demás registros.
 
-CI, merge y publicación se acreditan por separado. Esta primera versión del
-informe documenta el artefacto local y no declara todavía un deploy verificado.
+CI del candidato y de main aprobados. PR #302 integrado como `89e6750e`; web y
+API publican1.0.198, base ready y seis controles smoke PASS. La
+[evidencia de producción](../production-198/README.md) conserva lecturas, fechas
+y límites de identidad del proveedor. #296 permanece abierto.

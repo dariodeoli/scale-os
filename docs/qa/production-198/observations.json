@@ -1,0 +1,135 @@
+{
+  "expectedVersion": "1.0.198",
+  "mainSha": "89e6750ee56fb1f5db412e181573bd6b2b2f243a",
+  "observations": [
+    {
+      "observedAt": "2026-10-19T08:05:36.449241-03:00",
+      "web": {
+        "url": "https://app.scaleparaguay.com/status",
+        "status": 200,
+        "sha256": "4004eeb98a0ec5d66397f2fe38ed5d628b6a55bb85852963ecb5f6adfa840728",
+        "visibleVersion": "1.0.198"
+      },
+      "api": {
+        "url": "https://api.scaleparaguay.com/health",
+        "status": 200,
+        "sha256": "c73c9e8f5d62729e8addc37e4b4e858541a97e7b1b08f5e24c762e910f179736",
+        "body": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.198",
+            "application": "Scale OS"
+          }
+        }
+      }
+    },
+    {
+      "observedAt": "2026-10-19T08:05:39.086313-03:00",
+      "web": {
+        "url": "https://app.scaleparaguay.com/status",
+        "status": 200,
+        "sha256": "4004eeb98a0ec5d66397f2fe38ed5d628b6a55bb85852963ecb5f6adfa840728",
+        "visibleVersion": "1.0.198"
+      },
+      "api": {
+        "url": "https://api.scaleparaguay.com/health",
+        "status": 200,
+        "sha256": "c73c9e8f5d62729e8addc37e4b4e858541a97e7b1b08f5e24c762e910f179736",
+        "body": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.198",
+            "application": "Scale OS"
+          }
+        }
+      }
+    },
+    {
+      "observedAt": "2026-10-19T08:05:41.706722-03:00",
+      "web": {
+        "url": "https://app.scaleparaguay.com/status",
+        "status": 200,
+        "sha256": "4004eeb98a0ec5d66397f2fe38ed5d628b6a55bb85852963ecb5f6adfa840728",
+        "visibleVersion": "1.0.198"
+      },
+      "api": {
+        "url": "https://api.scaleparaguay.com/health",
+        "status": 200,
+        "sha256": "c73c9e8f5d62729e8addc37e4b4e858541a97e7b1b08f5e24c762e910f179736",
+        "body": {
+          "ok": true,
+          "database": "ready",
+          "release": {
+            "version": "1.0.198",
+            "application": "Scale OS"
+          }
+        }
+      }
+    }
+  ],
+  "assetComparisonLimit": "Anonymous portal shell only; no authenticated portal content or actions were verified in production. Seven referenced shared CSS files match local bytes; two generated filenames differ. Public endpoints do not expose provider SHA or deployed BUILD_ID.",
+  "anonymousPortalProbe": {
+    "requestedUrl": "https://app.scaleparaguay.com/cliente/entregas",
+    "effectiveUrl": "https://app.scaleparaguay.com/cliente/entregas",
+    "status": 200,
+    "authenticatedPortalVerified": false
+  },
+  "anonymousResponseCssAssets": [
+    {
+      "path": "/_next/static/css/1d701f3438a78417.css",
+      "publicSha256": "4bba774f473f9f18c95b13331b7a08a68032bb61b0b3f0ed461387fd8983d9df",
+      "localExists": false,
+      "matchesLocal": false
+    },
+    {
+      "path": "/_next/static/css/5202796c9020e2d7.css",
+      "publicSha256": "9fc40f951a828e9f2b9022995f81ce7cc4ee3bef5e612c6644a77dff61f77973",
+      "localExists": true,
+      "matchesLocal": true
+    },
+    {
+      "path": "/_next/static/css/74cf45dc9267759c.css",
+      "publicSha256": "1edc1853083f501ffa2700ce7839448f4d4970aba76f691ac42b26a1bf2a721a",
+      "localExists": true,
+      "matchesLocal": true
+    },
+    {
+      "path": "/_next/static/css/97013c1ac9e88749.css",
+      "publicSha256": "bf9bf94a37acbc2e507639161674eee2e65d638278e9e03bbfe949e8bca59c49",
+      "localExists": false,
+      "matchesLocal": false
+    },
+    {
+      "path": "/_next/static/css/a06dd1f4cb844a84.css",
+      "publicSha256": "432727451ea6e41ff12c775e52533b40af33a182909835429283a1d97f3e1c33",
+      "localExists": true,
+      "matchesLocal": true
+    },
+    {
+      "path": "/_next/static/css/bc88f910e4470098.css",
+      "publicSha256": "a5e82749635527ee63818d3f6c0a2a9dd736d846bed234f85ac6c2dc0ca74cbb",
+      "localExists": true,
+      "matchesLocal": true
+    },
+    {
+      "path": "/_next/static/css/d231097b53a41f22.css",
+      "publicSha256": "a3d3d87c1460937d31bdc6e601579301766d75b6898b9af719ea5946c5f9d31e",
+      "localExists": true,
+      "matchesLocal": true
+    },
+    {
+      "path": "/_next/static/css/e002928b93a71d0c.css",
+      "publicSha256": "3c5fd2aa09fce4e1852a53dad023364dfde9c3c7b917af6b748b019813916f40",
+      "localExists": true,
+      "matchesLocal": true
+    },
+    {
+      "path": "/_next/static/css/f5d5279031163f30.css",
+      "publicSha256": "cf3640fdbc0dc8dae021ed1b402db1c05f75403be2e737800bd84af51e0866a6",
+      "localExists": true,
+      "matchesLocal": true
+    }
+  ]
+}
