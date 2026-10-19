@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -221,6 +221,18 @@
       "beforeHash": "4a41b2afaa10e7df0f53b65ac8db22ff59968c613a1790e990c2973c3e394108",
       "afterHash": "204011c7bc70cd9ca83e7bcd077fed3bcf79eb5545a6d836d82c952c6f9331df",
       "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/cliente/entregas/[id]/page.tsx",
+      "beforeHash": "f402825342a5326ad7e2040bdd178b43ffe89321bf80c204e3161caff71182bf",
+      "afterHash": "3558b525f4599f961028a54243d010312afb3f6181f92e0af785f26ea389e004",
+      "rationale": "Portal mobile #292: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/cliente/entregas/page.tsx",
+      "beforeHash": "d5f42c34fcc0f58af78d7c22292c1cbb56dde604ce651afc680254cda6c823fd",
+      "afterHash": "44153c9242070adff3d5daac7683efa4f95178ac943b4717145bd1a6723c89ac",
+      "rationale": "Portal mobile #292: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
     }
   ],
   "addedCanonical": [
@@ -904,6 +916,25 @@
       {
         "command": "git diff --check",
         "result": "PASS"
+      }
+    ]
+  },
+  "portal292": {
+    "baseline": "e04961c4c37383a0828f4b2809cc728637b43f8a",
+    "productSource": "760e222ce8483d475abb66d1fcfe06eb20c0fcff",
+    "baselineCanonicalMetadataCorrections": [],
+    "canonicalActions": 605,
+    "newCanonicalActions": 0,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [
+      {
+        "file": "app/cliente/entregas/page.tsx",
+        "owner": "ClientDeliveries",
+        "beforeHash": "ad3cea95b721189680ae14cf43acf90b3d29060437933e5c11ea47878fc6b882",
+        "afterHash": "e0064ce46f8c221b4a097393c87db93541a28fe4639eaa0db703c9c5afb24387",
+        "rationale": "Reviewed unchanged canonical secondary logout action: existing portal endpoint and redirect are preserved; immediate single-flight lock disables repeated sends, pending text describes progress, and failed logout focuses a recoverable alert. No permission or native-widget exemption is introduced."
       }
     ]
   }

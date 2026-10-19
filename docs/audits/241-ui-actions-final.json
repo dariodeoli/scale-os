@@ -176,12 +176,12 @@
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
       "changed": false,
-      "sha256": "f402825342a5326ad7e2040bdd178b43ffe89321bf80c204e3161caff71182bf"
+      "sha256": "3558b525f4599f961028a54243d010312afb3f6181f92e0af785f26ea389e004"
     },
     {
       "file": "app/cliente/entregas/page.tsx",
       "changed": false,
-      "sha256": "d5f42c34fcc0f58af78d7c22292c1cbb56dde604ce651afc680254cda6c823fd"
+      "sha256": "44153c9242070adff3d5daac7683efa4f95178ac943b4717145bd1a6723c89ac"
     },
     {
       "file": "app/cliente/ingresar/page.tsx",
@@ -1565,9 +1565,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
+      "line": 34,
       "column": 1625,
-      "offset": 4678,
+      "offset": 5055,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1576,9 +1576,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
+      "line": 34,
       "column": 1739,
-      "offset": 4792,
+      "offset": 5169,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1587,9 +1587,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
+      "line": 34,
       "column": 2095,
-      "offset": 5148,
+      "offset": 5525,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1598,9 +1598,9 @@
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
-      "line": 23,
+      "line": 34,
       "column": 2537,
-      "offset": 5590,
+      "offset": 5967,
       "kind": "canonical-button",
       "owner": "ClientDelivery",
       "status": "canonical",
@@ -1609,9 +1609,9 @@
     },
     {
       "file": "app/cliente/entregas/page.tsx",
-      "line": 15,
+      "line": 18,
       "column": 287,
-      "offset": 1521,
+      "offset": 1910,
       "kind": "canonical-button",
       "owner": "ClientDeliveries",
       "status": "canonical",

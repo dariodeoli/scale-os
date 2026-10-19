@@ -1,0 +1,14 @@
+[
+  {
+    "file": "app/cliente/entregas/page.tsx",
+    "owner": "ClientDeliveries",
+    "beforeLine": 15,
+    "beforeColumn": 287,
+    "beforeHash": "ad3cea95b721189680ae14cf43acf90b3d29060437933e5c11ea47878fc6b882",
+    "afterLine": 18,
+    "afterColumn": 287,
+    "afterHash": "e0064ce46f8c221b4a097393c87db93541a28fe4639eaa0db703c9c5afb24387",
+    "approved": true,
+    "rationale": "Reviewed unchanged canonical secondary logout action: existing portal endpoint and redirect are preserved; immediate single-flight lock disables repeated sends, pending text describes progress, and failed logout focuses a recoverable alert. No permission or native-widget exemption is introduced."
+  }
+]
