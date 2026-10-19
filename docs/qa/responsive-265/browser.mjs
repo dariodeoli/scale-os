@@ -42,7 +42,7 @@ const snapshot=()=>page.evaluate(()=>{
  const offenders=[...document.querySelectorAll('body *')].filter(visible).filter(e=>{const b=box(e);if(b.x>=-1&&b.right<=innerWidth+1)return false;for(let p=e.parentElement;p&&p!==document.body;p=p.parentElement){const s=getComputedStyle(p);if(['auto','scroll'].includes(s.overflowX)&&p.scrollWidth>p.clientWidth)return false;if(['hidden','clip'].includes(s.overflowX)){const b=box(p);if(b.x>=-1&&b.right<=innerWidth+1)return false;}}return true;}).slice(0,15).map(e=>({label:label(e),tag:e.tagName,className:String(e.className).slice(0,100),rect:box(e)}));
  const dialogs=[...document.querySelectorAll('[role=dialog]')].filter(visible).map(e=>({label:label(e),rect:box(e),scrollable:e.scrollHeight>e.clientHeight}));
  const occluded=[...document.querySelectorAll('main button,main a[href],.workspace-content button')].filter(visible).filter(e=>{const b=box(e);if(b.x<0||b.y<0||b.right>innerWidth||b.bottom>innerHeight)return false;const top=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return top&&!e.contains(top)&&!top.contains(e);}).map(e=>({label:label(e),rect:box(e)}));
- return{path:location.pathname,mainPresent:Boolean(main),text:main?.innerText.slice(0,500)||'',overflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),controls,images,offenders,dialogs,occluded,scrollY,scrollHeight:document.documentElement.scrollHeight,innerHeight};
+ return{path:location.pathname,mainPresent:Boolean(main),text:main?.innerText.slice(0,500)||'',overflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),controls,images,offenders,dialogs,occluded,scrollY,scrollHeight:document.documentElement.scrollHeight,innerHeight,pointerCoarse:matchMedia('(pointer:coarse)').matches,maxTouchPoints:navigator.maxTouchPoints};
 });
 async function flush(){report.finishedAt=new Date().toISOString();report.coverage.actual=report.records.length;report.passed=report.records.length===report.coverage.expected&&report.records.every(r=>r.passed)&&!report.errors.length&&!report.httpErrors.length;await writeFile(out+'/results.json',JSON.stringify(report,null,2)+'\n');}
 try{
@@ -53,9 +53,9 @@ try{
   assert.equal(fixture.status,200,`Fixture ${endpoint} must load`);assert(Array.isArray(fixture.data[key])&&fixture.data[key].length>0,`Missing populated ${endpoint} fixture`);report.fixtureCounts[endpoint]=fixture.data[key].length;
  }
  for(const width of widths)for(const theme of themes)for(const path of routes){
-  const row={width,height:width===768?1024:width===1024?768:width===1440?1000:844,theme,path,states:[],findings:[]};
+  const row={width,height:width===768?1024:width===1024?768:width===1440?1000:844,theme,path,device:width<=390?'phone':width<=1024?'tablet':'desktop',hasTouch:width<=1024,isMobile:width<=390,states:[],findings:[]};
   try{
-   await page.setViewport({width,height:row.height});
+   await page.setViewport({width,height:row.height,isMobile:row.isMobile,hasTouch:row.hasTouch});
    await page.evaluate(theme=>localStorage.setItem('scale-theme',theme),theme);
    const response=await page.goto(base+path,{waitUntil:'networkidle2',timeout:60000});assert(response&&response.status()<400,'Route response must be successful');
    await page.evaluate(async theme=>{if(theme==='light')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));},theme);
@@ -67,7 +67,7 @@ try{
     await page.evaluate(p=>window.scrollTo(0,p*(document.documentElement.scrollHeight-innerHeight)),progress);await new Promise(r=>setTimeout(r,180));
     await page.waitForFunction(()=>[...document.images].filter(e=>{const b=e.getBoundingClientRect();return e.checkVisibility()&&b.bottom>0&&b.y<innerHeight&&b.right>0&&b.x<innerWidth;}).every(e=>e.complete),{timeout:5000}).catch(()=>{});
     const state={name:'scroll-'+progress,...await snapshot()};row.states.push(state);
-    assert.equal(state.path,path,'Unexpected login/route redirect');assert(state.mainPresent&&state.text.trim().length>15,'Content/fixture missing');
+    assert.equal(state.path,path,'Unexpected login/route redirect');assert.equal(state.pointerCoarse,width<=1024,'Pointer emulation must match device class');assert(state.mainPresent&&state.text.trim().length>15,'Content/fixture missing');
     if(state.overflow>1)row.findings.push({type:'document-overflow',state:state.name,pixels:state.overflow,offenders:state.offenders});
     const broken=state.images.filter(i=>!i.loaded);if(broken.length)row.findings.push({type:'broken-images',state:state.name,images:broken});
     // Scrolling content behind fixed chrome is normal; retain diagnostics, focus probe below determines persistent occlusion.
