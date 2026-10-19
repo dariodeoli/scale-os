@@ -1,0 +1,160 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"theme":"light","view":"list","scrollWidth":320,"width":320,"overflow":[{"tag":"SECTION","class":"client-portal-card","text":"SCALE OS · PORTAL DEL CLIENTEEntregablesHola, Resp"},{"tag":"DIV","class":"delivery-list","text":"EntregaSinSeparadoresSinSeparadoresSinSeparadoresS"},{"tag":"ARTICLE","class":"delivery","text":"EntregaSinSeparadoresSinSeparadoresSinSeparadoresS"},{"tag":"DIV","class":"","text":"EntregaSinSeparadoresSinSeparadoresSinSeparadoresS"},{"tag":"H2","class":"","text":"EntregaSinSeparadoresSinSeparadoresSinSeparadoresS"},{"tag":"SMALL","class":"","text":"Cliente ExtensoExtensoExtensoExtensoExtensoExtenso"},{"tag":"P","class":"","text":"Descripción de una entrega sintética con un nombre"},{"tag":"A","class":"button","text":"Ver entrega"},{"tag":"ARTICLE","class":"delivery","text":"Entrega aprobadaCliente ExtensoExtensoExtensoExten"},{"tag":"DIV","class":"","text":"Entrega aprobadaCliente ExtensoExtensoExtensoExten"},{"tag":"H2","class":"","text":"Entrega aprobada"},{"tag":"SMALL","class":"","text":"Cliente ExtensoExtensoExtensoExtensoExtensoExtenso"},{"tag":"P","class":"portal-status","text":"Aprobaste esta entrega"},{"tag":"P","class":"","text":"Descripción de una entrega sintética con un nombre"},{"tag":"A","class":"button","text":"Ver entrega"}],"brokenImages":0,"smallControls":[]}
++ actual - expected
+
++ [
++   {
++     class: 'client-portal-card',
++     tag: 'SECTION',
++     text: 'SCALE OS · PORTAL DEL CLIENTEEntregablesHola, Resp'
++   },
++   {
++     class: 'delivery-list',
++     tag: 'DIV',
++     text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
++   },
++   {
++     class: 'delivery',
++     tag: 'ARTICLE',
++     text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
++   },
++   {
++     class: '',
++     tag: 'DIV',
++     text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
++   },
++   {
++     class: '',
++     tag: 'H2',
++     text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
++   },
++   {
++     class: '',
++     tag: 'SMALL',
++     text: 'Cliente ExtensoExtensoExtensoExtensoExtensoExtenso'
++   },
++   {
++     class: '',
++     tag: 'P',
++     text: 'Descripción de una entrega sintética con un nombre'
++   },
++   {
++     class: 'button',
++     tag: 'A',
++     text: 'Ver entrega'
++   },
++   {
++     class: 'delivery',
++     tag: 'ARTICLE',
++     text: 'Entrega aprobadaCliente ExtensoExtensoExtensoExten'
++   },
++   {
++     class: '',
++     tag: 'DIV',
++     text: 'Entrega aprobadaCliente ExtensoExtensoExtensoExten'
++   },
++   {
++     class: '',
++     tag: 'H2',
++     text: 'Entrega aprobada'
++   },
++   {
++     class: '',
++     tag: 'SMALL',
++     text: 'Cliente ExtensoExtensoExtensoExtensoExtensoExtenso'
++   },
++   {
++     class: 'portal-status',
++     tag: 'P',
++     text: 'Aprobaste esta entrega'
++   },
++   {
++     class: '',
++     tag: 'P',
++     text: 'Descripción de una entrega sintética con un nombre'
++   },
++   {
++     class: 'button',
++     tag: 'A',
++     text: 'Ver entrega'
++   }
++ ]
+- []
+
+    at file:///workspace/.worktrees/portal-mobile-292/tests/portal-responsive-browser-292.test.mjs:44:98 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    {
+      tag: 'SECTION',
+      class: 'client-portal-card',
+      text: 'SCALE OS · PORTAL DEL CLIENTEEntregablesHola, Resp'
+    },
+    {
+      tag: 'DIV',
+      class: 'delivery-list',
+      text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
+    },
+    {
+      tag: 'ARTICLE',
+      class: 'delivery',
+      text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
+    },
+    {
+      tag: 'DIV',
+      class: '',
+      text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
+    },
+    {
+      tag: 'H2',
+      class: '',
+      text: 'EntregaSinSeparadoresSinSeparadoresSinSeparadoresS'
+    },
+    {
+      tag: 'SMALL',
+      class: '',
+      text: 'Cliente ExtensoExtensoExtensoExtensoExtensoExtenso'
+    },
+    {
+      tag: 'P',
+      class: '',
+      text: 'Descripción de una entrega sintética con un nombre'
+    },
+    { tag: 'A', class: 'button', text: 'Ver entrega' },
+    {
+      tag: 'ARTICLE',
+      class: 'delivery',
+      text: 'Entrega aprobadaCliente ExtensoExtensoExtensoExten'
+    },
+    {
+      tag: 'DIV',
+      class: '',
+      text: 'Entrega aprobadaCliente ExtensoExtensoExtensoExten'
+    },
+    { tag: 'H2', class: '', text: 'Entrega aprobada' },
+    {
+      tag: 'SMALL',
+      class: '',
+      text: 'Cliente ExtensoExtensoExtensoExtensoExtensoExtenso'
+    },
+    {
+      tag: 'P',
+      class: 'portal-status',
+      text: 'Aprobaste esta entrega'
+    },
+    {
+      tag: 'P',
+      class: '',
+      text: 'Descripción de una entrega sintética con un nombre'
+    },
+    { tag: 'A', class: 'button', text: 'Ver entrega' }
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

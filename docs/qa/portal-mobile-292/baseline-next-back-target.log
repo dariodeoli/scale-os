@@ -1,0 +1,22 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: light/detail/768: targets >=44px
++ actual - expected
+
++ [
++   'Volver'
++ ]
+- []
+
+    at file:///workspace/.worktrees/portal-mobile-292/build-tools/qa-portal-next-292.mjs:35:196 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ 'Volver' ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

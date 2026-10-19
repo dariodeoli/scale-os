@@ -1,0 +1,8 @@
+{
+  "baseCommit": "e04961c4c37383a0828f4b2809cc728637b43f8a",
+  "buildId": "Nf_0VGoYi5ol-gAOOqzem",
+  "next": "15.5.27",
+  "owncodingUi": "0.68.19",
+  "sharp": "0.35.5",
+  "limitation": "Build succeeded before the final CSS fix preventing the return action from shrinking; repeat Next runner on the integrated final build."
+}
