@@ -46,7 +46,7 @@ test('remote result retries survive restart without printing a second time; leas
   const fetcher = async (url, options) => {
     if (url.endsWith('/heartbeat')) return Response.json({ ok: true });
     if (url.endsWith('/config')) return Response.json({ bridge: { id: 'bridge' }, printers: [printer] });
-    if (url.endsWith('/claim')) { const result = claimed ? { job: null } : { job }; claimed = true; return Response.json(result); }
+    if (url.endsWith('/claim')) { const result = claimed ? { job: null } : { job, printer }; claimed = true; return Response.json(result); }
     if (url.endsWith('/result')) { if (failResult) return new Response('', { status: 503 }); assert.equal(JSON.parse(options.body).state, 'aceptado'); return Response.json({ job: {} }); }
     throw new Error('unexpected');
   };
@@ -127,4 +127,11 @@ test('CLI exclusive loopback bind precedes queue opening and releases on gracefu
   const second = start(); const secondCode = await exit(second); assert.equal(secondCode, 1);
   const firstExit = exit(first); first.kill('SIGTERM'); assert.equal(await firstExit, 0);
   const third = start(); t.after(() => { if (third.exitCode === null) third.kill('SIGKILL'); }); await ready(third); const thirdExit = exit(third); third.kill('SIGTERM'); assert.equal(await thirdExit, 0);
+});
+test('claim snapshot is authoritative over a stale config destination', async t => {
+  let actual; const a = await agent(t, async target => { actual = target; return { state: 'aceptado', transport: 'lan' }; });
+  const snapshot = { ...printer, destination: 'lan:192.168.1.99:9100' };
+  const job = { ...input(), lease_id: 'lease', leased_until: new Date(Date.now() + 120000).toISOString() };
+  const fetcher = async url => Response.json(url.endsWith('/config') ? { bridge: { id: 'bridge' }, printers: [printer] } : url.endsWith('/claim') ? { job, printer: snapshot } : { ok: true });
+  await a.poll({ apiOrigin: 'https://example.com', bridgeId: 'bridge', bridgeToken: 'private' }, fetcher); assert.equal(actual.host, '192.168.1.99');
 });
