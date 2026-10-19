@@ -12,7 +12,7 @@ Preparación sobre main195 `fca3c8e5e6e11eb90ca4d8e67c47a2e2bfef215d`. Pedido de
 
 ## Pruebas y riesgos
 
-Focales de cada agente en sus informes; revisión independiente de contratos apta. Los resultados combinados de regresión, build, backend, navegador, assets, CI y publicación se añadirán cuando terminen. No hay nuevas migraciones ni cambios de datos operativos. Conservar tablas, documentos emitidos, fotos e historial al revertir código; no borrar migraciones.
+Focales de cada agente en sus informes; revisión independiente de contratos apta. Gates locales aprobados:267entradas frontend/49fragmentos, buildNext15.5.27 con64páginas/tipos y BUILD_ID `rZ9xEPgWKlMRW2H_Vs8Ks`,61scripts backend,19grupos browser, assets iniciales, versiones/footer. CI y publicación aún pendientes. No hay nuevas migraciones ni cambios de datos operativos. Conservar tablas, documentos emitidos, fotos e historial al revertir código; no borrar migraciones.
 
 ## Dependencias externas
 
@@ -31,3 +31,7 @@ No se cierra un issue con pruebas simuladas cuando exige proveedor o hardware re
 | #263 | Verificar autenticado las fotos de activos50,43,42; no se afirma recuperación de originales. |
 
 La auditoría de layout240 de195 conserva su excepción403local y resultado original; no se reetiqueta como PASS global ni se atribuye cobertura física/Safari/OAuth real.
+
+## Fuente compilada
+
+Commit de release `dbe3dccca276d2f82ba9bd148d250d443e924542`, árbol `a42f7d0702f10b405a56bd6e576d76b83c2a070b`. El registro posterior sólo añade evidencia documental. Preparación ejecutada una vez, sin push/webhook/smoke; la publicación se realizará por PR/merge protegido.
