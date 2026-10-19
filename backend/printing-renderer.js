@@ -29,8 +29,7 @@ export function normalizePrintTemplate(input={}) {
  if(input.marginsMm!==undefined) { allowed(input.marginsMm,['top','right','bottom','left'],'margenes'); Object.assign(margins,input.marginsMm); }
  for(const side of Object.keys(margins)) margins[side]=number(margins[side],0,10,`margen ${side}`);
  if(80-margins.left-margins.right<56) throw new Error('Area imprimible insuficiente');
- template.fontSize=number(template.fontSize,8,14,'fuente');
- if(!Number.isInteger(template.fontSize)) throw new Error('Fuente debe ser entera');
+ if(![10,14].includes(template.fontSize)) throw new Error('Fuente admitida: normal (10) o doble (14)');
  if(typeof template.autoCut!=='boolean') throw new Error('Corte debe ser booleano');
  return Object.freeze({...template,marginsMm:Object.freeze(margins)});
 }
@@ -67,7 +66,7 @@ export function printCode39Bits(value) {
 function compose(template,document) {
  // ESC/POS font A: 12 x 24 dots. Integer magnification is deterministic and
  // represented by the same cell dimensions in the HTML preview.
- const scale=template.fontSize>=13?2:1;
+ const scale=template.fontSize===14?2:1;
  const cellDots=12*scale, lineDots=30*scale;
  const widthDots=Math.floor((80-template.marginsMm.left-template.marginsMm.right)*DPI/25.4);
  const columns=Math.floor(widthDots/cellDots);

@@ -1,6 +1,6 @@
 export type PrintKind = 'test' | 'receipt' | 'quote' | 'inventory-label';
 export type PrintMargins = {top:number;right:number;bottom:number;left:number};
-export type PrintTemplate = Readonly<{version:1;widthMm:80;heightMm:'auto';orientation:'portrait';marginsMm:Readonly<PrintMargins>;fontSize:number;autoCut:boolean}>;
+export type PrintTemplate = Readonly<{version:1;widthMm:80;heightMm:'auto';orientation:'portrait';marginsMm:Readonly<PrintMargins>;fontSize:10|14;autoCut:boolean}>;
 export type PrintTemplateInput = Partial<Omit<PrintTemplate,'marginsMm'>> & {marginsMm?:Partial<PrintMargins>};
 export type PrintDocumentInput = {kind?:PrintKind;reference:string;title?:string;companyName?:string;companyRuc?:string;customerName?:string;issuedAt?:string;lines?:ReadonlyArray<{label:string;value?:string}>;total?:string;notes?:string;inventoryCode?:string;confirmationSuffix?:string};
 export type PrintDocument = Readonly<Omit<Required<PrintDocumentInput>,'kind'|'lines'> & {kind:PrintKind;lines:ReadonlyArray<Readonly<{label:string;value:string}>>}>;
