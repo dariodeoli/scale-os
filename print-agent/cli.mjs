@@ -50,7 +50,7 @@ try {
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { stopping = true; stop.abort(); agent.ready = false; });
     // Single-flight polling: no concurrent claims, no automatic replay of uncertain work.
     while (!stopping) {
-      try { await agent.drain(); await agent.poll(config); } catch { console.error('Sin sincronización; se conserva la cola. Revisá configuración, autorización y conexión.'); }
+      try { if (config.mode === 'development' && !config.bridgeId) await agent.drain(); else await agent.poll(config); } catch { console.error('Sin sincronización; se conserva la cola. Revisá configuración, autorización y conexión.'); }
       if (!stopping) await delay(15000, undefined, { signal: stop.signal }).catch(() => {});
     }
     await new Promise(resolve => server.close(resolve));

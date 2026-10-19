@@ -144,3 +144,18 @@ test('browser diagnostic preflight is narrow and actual request still needs bear
   assert.equal((await fetch(`${url}/print`, { method: 'OPTIONS', headers: { ...headers, 'Access-Control-Request-Method': 'POST' } })).status, 403);
   assert.equal((await fetch(`${url}/health`, { method: 'OPTIONS', headers: { ...headers, Origin: 'https://evil.example' } })).status, 403);
 });
+test('restart authenticates remote authority before sending a cached pending lease', async t => {
+  let sends = 0;
+  const first = await agent(t, async () => { sends++; return { state: 'aceptado', transport: 'lan' }; });
+  await first.enqueue({ ...input(), lease_id: 'persisted-lease', leased_until: new Date(Date.now() + 120000).toISOString() }, printer);
+  const restarted = await new PrintAgent({ directory: first.directory, send: first.send }).open();
+  const config = { apiOrigin: 'https://example.com', bridgeToken: 'revoked-token', bridgeId: 'bridge' };
+  let calls = 0;
+  const revoked = async url => { calls++; assert.ok(url.endsWith('/heartbeat')); return new Response('{}', { status: 401 }); };
+  await assert.rejects(restarted.poll(config, revoked), /remote_http_401/);
+  assert.equal(calls, 1); assert.equal(sends, 0); assert.equal(restarted.jobs[0].state, 'pendiente'); assert.equal(restarted.jobs[0].payload_base64, input().payload_base64);
+  const authorized = async url => Response.json(url.endsWith('/config') ? { bridge: { id: 'bridge' }, printers: [printer] } : url.endsWith('/claim') ? { job: null } : { ok: true });
+  await restarted.poll(config, authorized); assert.equal(sends, 1); assert.equal(restarted.jobs[0].state, 'aceptado'); assert.equal(restarted.jobs[0].payload_base64, undefined);
+  const cli = await fs.readFile(path.resolve(import.meta.dirname, '../cli.mjs'), 'utf8');
+  assert.ok(cli.includes("if (config.mode === 'development' && !config.bridgeId) await agent.drain(); else await agent.poll(config)"), 'paired CLI must never drain before poll authentication');
+});
