@@ -1,0 +1,1 @@
+node --import tsx --test tests/printing-workspace-281.test.tsx
