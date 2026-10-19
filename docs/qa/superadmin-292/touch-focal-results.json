@@ -1,0 +1,817 @@
+{
+  "base": "http://127.0.0.1:4123",
+  "widths": [
+    390
+  ],
+  "sourceSha": "e04961c4c37383a0828f4b2809cc728637b43f8a",
+  "artifactSha": null,
+  "buildId": null,
+  "engine": "Chromium Chrome/154.0.8037.57",
+  "results": [
+    {
+      "label": "390/light/Resumen",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "DIV",
+          "cls": "flex gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8",
+          "width": 418.78125
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        }
+      ],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Consultas",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Agencias",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Accesos",
+      "overflow": false,
+      "wide": [],
+      "images": 3,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Cupones",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Auditoría",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Uso",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "DIV",
+          "cls": "flex gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8",
+          "width": 418.78125
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        }
+      ],
+      "images": 5,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Errores",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Reportes",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Tráfico y demos",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "text-mute",
+          "width": 184.484375
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 flex-1 truncate",
+          "width": 184.484375
+        }
+      ],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Comunicados",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/light/Mantenimiento",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Resumen",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "DIV",
+          "cls": "flex gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8",
+          "width": 418.78125
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        }
+      ],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Consultas",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Agencias",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Accesos",
+      "overflow": false,
+      "wide": [],
+      "images": 3,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Cupones",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Auditoría",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Uso",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "DIV",
+          "cls": "flex gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8",
+          "width": 418.78125
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        }
+      ],
+      "images": 5,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Errores",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Reportes",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Tráfico y demos",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "text-mute",
+          "width": 184.484375
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 flex-1 truncate",
+          "width": 184.484375
+        }
+      ],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Comunicados",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/dark/Mantenimiento",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Resumen",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "DIV",
+          "cls": "flex gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8",
+          "width": 418.78125
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        }
+      ],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Consultas",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Agencias",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Accesos",
+      "overflow": false,
+      "wide": [],
+      "images": 3,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Cupones",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Auditoría",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Uso",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "DIV",
+          "cls": "flex gap-1 rounded-xl border border-ink-600 bg-ink-800 p-1 w-max flex-nowrap [&>button]:min-h-11 [&>button]:whitespace-nowrap md:[&>button]:min-h-8",
+          "width": 418.78125
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        }
+      ],
+      "images": 5,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Errores",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Reportes",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Tráfico y demos",
+      "overflow": false,
+      "wide": [
+        {
+          "tag": "BUTTON",
+          "cls": "inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition text-mute hover:bg-fore/5 hover:text-fore",
+          "width": 103.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 truncate",
+          "width": 79.21875
+        },
+        {
+          "tag": "SPAN",
+          "cls": "text-mute",
+          "width": 184.484375
+        },
+        {
+          "tag": "SPAN",
+          "cls": "min-w-0 flex-1 truncate",
+          "width": 184.484375
+        }
+      ],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Comunicados",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/contrast/Mantenimiento",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/viewer/coupons",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "390/admin/subscription-dialog",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menus": [],
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 390,
+          "top": 498,
+          "bottom": 844
+        }
+      ]
+    },
+    {
+      "label": "390/touch/agency-menu",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menus": [
+        {
+          "left": 77.140625,
+          "right": 269.140625,
+          "top": 674,
+          "bottom": 772
+        }
+      ],
+      "dialogs": []
+    },
+    {
+      "label": "390/admin/agency-menu",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menus": [
+        {
+          "left": 77.140625,
+          "right": 269.140625,
+          "top": 674,
+          "bottom": 772
+        }
+      ],
+      "dialogs": []
+    },
+    {
+      "label": "390/admin/apply-coupon-dialog",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menus": [],
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 390,
+          "top": 385.9375,
+          "bottom": 844
+        }
+      ]
+    },
+    {
+      "label": "390/admin/coupon-form",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "844x390/touch/Agencias",
+      "overflow": false,
+      "wide": [],
+      "images": 4,
+      "brokenImages": [],
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "844x390/touch/Accesos",
+      "overflow": false,
+      "wide": [],
+      "images": 3,
+      "brokenImages": [],
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "844x390/touch/Comunicados",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "menus": [],
+      "dialogs": []
+    },
+    {
+      "label": "844x390/touch/Mantenimiento",
+      "overflow": false,
+      "wide": [],
+      "images": 2,
+      "brokenImages": [],
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "menus": [],
+      "dialogs": []
+    }
+  ],
+  "requests": [
+    "GET /api/auth/me",
+    "GET /api/platform/agencies",
+    "GET /api/platform/agencies/27/subscription",
+    "GET /api/platform/announcements",
+    "GET /api/platform/audit",
+    "GET /api/platform/bootstrap-status",
+    "GET /api/platform/coupons",
+    "GET /api/platform/errors",
+    "GET /api/platform/inquiries",
+    "GET /api/platform/maintenance",
+    "GET /api/platform/metrics",
+    "GET /api/platform/overview",
+    "GET /api/platform/reports",
+    "GET /api/platform/traffic",
+    "GET /api/platform/usage",
+    "GET /api/platform/users"
+  ],
+  "errors": [],
+  "failures": []
+}
