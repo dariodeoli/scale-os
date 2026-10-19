@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import {marked} from 'marked';
 import {BLOG_SECTIONS,getPost,isBlogSection,listPosts,postCanonical} from '../../../blog-data';
+import {BLOG_ORIGINS} from '../../../seo';
 
 // Post del blog (#156/#157): estático, con canonical del host propio y
 // Article JSON-LD. Los borradores no se generan y devuelven 404. El cuerpo se
@@ -19,13 +20,14 @@ export async function generateMetadata(props:{params:Promise<{section:string;slu
  const post=getPost(section,slug);
  if(!post)return {};
  const canonical=postCanonical(post);
+ const image=post.cover?{url:new URL(post.cover,BLOG_ORIGINS[section]).href,alt:post.coverAlt}:null;
  return {
   title:post.seoTitle||post.title,
   description:post.description,
   alternates:{canonical},
   robots:{index:true,follow:true},
-  openGraph:{type:'article',url:canonical,title:post.seoTitle||post.title,description:post.description,siteName:section==='empresa'?'Blog de Scale Paraguay':'Blog de Scale OS',locale:'es_PY',publishedTime:post.date,authors:[post.author],...post.cover?{images:[post.cover]}:{}},
-  twitter:{card:'summary_large_image',title:post.seoTitle||post.title,description:post.description,...post.cover?{images:[post.cover]}:{}},
+  openGraph:{type:'article',url:canonical,title:post.seoTitle||post.title,description:post.description,siteName:section==='empresa'?'Blog de Scale Paraguay':'Blog de Scale OS',locale:'es_PY',publishedTime:post.date,authors:[post.author],...image?{images:[image]}:{}},
+  twitter:{card:'summary_large_image',title:post.seoTitle||post.title,description:post.description,...image?{images:[image]}:{}},
  };
 }
 
@@ -46,10 +48,18 @@ export default async function BlogPostPage(props:{params:Promise<{section:string
   headline:post.title,description:post.description,datePublished:post.date,dateModified:post.date,
   author:{'@type':'Organization',name:post.author},
   publisher:{'@type':'Organization',name:'Scale Strategy Group',url:'https://scaleparaguay.com/'},
-  mainEntityOfPage:canonical,inLanguage:'es-PY',...(post.cover?{image:[post.cover]}:{}),
+  mainEntityOfPage:canonical,inLanguage:'es-PY',...(post.cover?{image:[new URL(post.cover,BLOG_ORIGINS[section]).href]}:{}),
+ };
+ const breadcrumb={
+  '@context':'https://schema.org','@type':'BreadcrumbList',
+  itemListElement:[
+   {'@type':'ListItem',position:1,name:section==='empresa'?'Blog de Scale Paraguay':'Blog de Scale OS',item:`${BLOG_ORIGINS[section]}/`},
+   {'@type':'ListItem',position:2,name:post.title,item:canonical},
+  ],
  };
  return <article className="blog-post">
   <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}}/>
+  <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(breadcrumb)}}/>
   <header className="blog-post-header">
    <p className="blog-kicker"><Link href="/">{section==='empresa'?'Scale Paraguay':'Scale OS · Producto'}</Link></p>
    <h1>{post.title}</h1>

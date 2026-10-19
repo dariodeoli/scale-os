@@ -94,6 +94,29 @@ test('blog: static params and public metadata exclude scheduled posts',async()=>
  }
 });
 
+test('blog: social images and structured breadcrumbs use the public blog origin',async()=>{
+ const previous=(globalThis as any).React;
+ Object.assign(globalThis,{React});
+ try{
+  for(const section of BLOG_SECTIONS){
+   const post=listPosts(section).find(post=>post.cover.startsWith('/'))!;
+   assert.ok(post,'published fixture with local cover');
+   const props={params:Promise.resolve({section,slug:post.slug})};
+   const metadata=await postMetadata(props);
+   const expectedImage={url:`${BLOG_ORIGINS[section]}${post.cover}`,alt:post.coverAlt};
+   assert.deepEqual(metadata.openGraph?.images,[expectedImage],'OG must not inherit the app origin');
+   assert.deepEqual(metadata.twitter?.images,[expectedImage],'Twitter uses the same public image and alt');
+   const html=renderToStaticMarkup(await BlogPostPage(props));
+   const blocks=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(match=>JSON.parse(match[1]));
+   const article=blocks.find(value=>value['@type']==='Article');
+   const breadcrumb=blocks.find(value=>value['@type']==='BreadcrumbList');
+   assert.deepEqual(article.image,[expectedImage.url],'JSON-LD uses an absolute image');
+   assert.deepEqual(breadcrumb.itemListElement.map((item:any)=>[item.position,item.item]),[[1,`${BLOG_ORIGINS[section]}/`],[2,postCanonical(post)]]);
+   assert.equal(breadcrumb.itemListElement[1].name,post.title);
+  }
+ }finally{(globalThis as any).React=previous;}
+});
+
 test('blog: rendered indexes exclude drafts and scheduled content',async()=>{
  const previous=(globalThis as any).React;
  Object.assign(globalThis,{React});
