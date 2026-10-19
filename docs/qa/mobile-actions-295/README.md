@@ -9,7 +9,8 @@ CSS del checkout. Los registros y las respuestas HTTP son sintéticos y viven
 
 35 combinaciones: siete flujos en 320×844, 390×844, 768×844, 390×568 y 844×390.
 Las dos últimas cubren altura baja y orientación horizontal. Chromium emula
-viewport móvil y touch; no equivale a un dispositivo físico ni a Safari.
+viewport móvil y touch; no equivale a un dispositivo físico ni a Safari. La
+altura baja es un viewport fijo: no acredita el teclado virtual del sistema.
 
 Cada interacción usa `page.tap()`. Antes de tocar se desplaza el control a la
 vista y se comprueba que su centro sea alcanzable dentro del viewport. Los
@@ -38,10 +39,10 @@ visibles inspeccionados en el formulario.
 node build-tools/qa-mobile-actions-295.mjs
 ```
 
-Requiere dependencias de frontend/backend y Chromium. `SCALE_QA_CHROME` permite
+Requiere dependencias de frontend/backend y Chromium. `PUPPETEER_EXECUTABLE_PATH` o `SCALE_QA_CHROME` permiten
 seleccionar su binario; `OUT` cambia la ruta del JSON. Por defecto se escribe
 `/tmp/scale-mobile-actions-295.json`. El runner se agrega también al gate
-`npm run test:ui:browser`, que falla si el navegador no está disponible.
+`npm run test:ui:browser` y a la cadena de regresión que ejecuta CI. Ambos fallan si el navegador no está disponible.
 
 ## Límites precisos
 

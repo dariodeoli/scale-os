@@ -1,0 +1,2 @@
+# Real mobile touch form/component flows; synthetic transport, no production.
+node build-tools/qa-mobile-actions-295.mjs

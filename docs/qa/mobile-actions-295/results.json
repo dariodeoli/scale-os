@@ -15,7 +15,7 @@
       "width": 320,
       "height": 844,
       "checks": 4,
-      "visibleFormControls": 13,
+      "visibleFormControls": 20,
       "status": "PASS"
     },
     {
@@ -39,7 +39,7 @@
       "width": 320,
       "height": 844,
       "checks": 1,
-      "visibleFormControls": 6,
+      "visibleFormControls": 7,
       "status": "PASS"
     },
     {
@@ -55,7 +55,7 @@
       "width": 320,
       "height": 844,
       "checks": 2,
-      "visibleFormControls": 1,
+      "visibleFormControls": 4,
       "status": "PASS"
     },
     {
@@ -71,7 +71,7 @@
       "width": 390,
       "height": 844,
       "checks": 4,
-      "visibleFormControls": 13,
+      "visibleFormControls": 20,
       "status": "PASS"
     },
     {
@@ -95,7 +95,7 @@
       "width": 390,
       "height": 844,
       "checks": 1,
-      "visibleFormControls": 6,
+      "visibleFormControls": 7,
       "status": "PASS"
     },
     {
@@ -111,7 +111,7 @@
       "width": 390,
       "height": 844,
       "checks": 2,
-      "visibleFormControls": 1,
+      "visibleFormControls": 4,
       "status": "PASS"
     },
     {
@@ -119,7 +119,7 @@
       "width": 768,
       "height": 844,
       "checks": 2,
-      "visibleFormControls": 14,
+      "visibleFormControls": 17,
       "status": "PASS"
     },
     {
@@ -127,7 +127,7 @@
       "width": 768,
       "height": 844,
       "checks": 4,
-      "visibleFormControls": 13,
+      "visibleFormControls": 20,
       "status": "PASS"
     },
     {
@@ -151,7 +151,7 @@
       "width": 768,
       "height": 844,
       "checks": 1,
-      "visibleFormControls": 6,
+      "visibleFormControls": 7,
       "status": "PASS"
     },
     {
@@ -167,7 +167,7 @@
       "width": 768,
       "height": 844,
       "checks": 2,
-      "visibleFormControls": 1,
+      "visibleFormControls": 4,
       "status": "PASS"
     },
     {
@@ -183,7 +183,7 @@
       "width": 390,
       "height": 568,
       "checks": 4,
-      "visibleFormControls": 13,
+      "visibleFormControls": 20,
       "status": "PASS"
     },
     {
@@ -207,7 +207,7 @@
       "width": 390,
       "height": 568,
       "checks": 1,
-      "visibleFormControls": 6,
+      "visibleFormControls": 7,
       "status": "PASS"
     },
     {
@@ -223,7 +223,7 @@
       "width": 390,
       "height": 568,
       "checks": 2,
-      "visibleFormControls": 1,
+      "visibleFormControls": 4,
       "status": "PASS"
     },
     {
@@ -231,7 +231,7 @@
       "width": 844,
       "height": 390,
       "checks": 2,
-      "visibleFormControls": 14,
+      "visibleFormControls": 17,
       "status": "PASS"
     },
     {
@@ -239,7 +239,7 @@
       "width": 844,
       "height": 390,
       "checks": 4,
-      "visibleFormControls": 13,
+      "visibleFormControls": 20,
       "status": "PASS"
     },
     {
@@ -263,7 +263,7 @@
       "width": 844,
       "height": 390,
       "checks": 1,
-      "visibleFormControls": 6,
+      "visibleFormControls": 7,
       "status": "PASS"
     },
     {
@@ -279,7 +279,7 @@
       "width": 844,
       "height": 390,
       "checks": 2,
-      "visibleFormControls": 1,
+      "visibleFormControls": 4,
       "status": "PASS"
     }
   ],
