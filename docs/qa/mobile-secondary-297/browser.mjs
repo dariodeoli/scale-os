@@ -16,7 +16,7 @@ const allRoutes=['/pipeline/metricas','/presupuestos/planes','/equipo/invitacion
 const routes=process.env.QA_ROUTES?process.env.QA_ROUTES.split(','):allRoutes;
 assert(routes.every(r=>allRoutes.includes(r)),'Unknown route');
 const out=resolve(process.env.QA_OUT||'/tmp/scale-mobile-secondary297');await mkdir(out+'/screens',{recursive:true});
-const report={source:process.env.QA_COMPILED_SOURCE,buildId:process.env.QA_BUILD_ID||null,mode:production?'production':'dev-baseline',base,startedAt:new Date().toISOString(),widths,themes,routes,records:[],errors:[],httpErrors:[],external:[],blockedWrites:[],fixtureCounts:{},coverage:{expected:widths.length*themes.length*routes.length}};
+const report={source:process.env.QA_COMPILED_SOURCE,buildId:process.env.QA_BUILD_ID||null,mode:production?'production':'dev-baseline',base,startedAt:new Date().toISOString(),widths,themes,routes,records:[],errors:[],httpErrors:[],transportFailures:[],external:[],blockedWrites:[],fixtureCounts:{},coverage:{expected:widths.length*themes.length*routes.length}};
 const browser=await require('puppeteer-core').launch({headless:true,executablePath:process.env.CHROME_PATH||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
 const context=await browser.createBrowserContext();
 await context.setCookie({name:'scale_session',value:(await readFile(process.env.QA_SESSION_FILE||'/workspace/.qa-tools/mobile292/demoA-session','utf8')).trim(),url:base,httpOnly:true});
@@ -24,6 +24,7 @@ const demoToken=(await readFile(process.env.QA_SESSION_FILE||'/workspace/.qa-too
 const ownerToken=(await readFile(process.env.QA_OWNER_SESSION_FILE||'/workspace/.qa-tools/mobile292/ordinary-session','utf8')).trim();
 const page=await context.newPage();page.setDefaultTimeout(90000);
 page.on('pageerror',e=>report.errors.push({route:new URL(page.url()).pathname,error:e.message}));
+page.on('requestfailed',r=>{const url=new URL(r.url());if(r.method()==='GET'&&url.pathname.startsWith('/core-api/api/'))report.transportFailures.push({path:url.pathname,error:r.failure()?.errorText});});
 page.on('response',r=>{const url=new URL(r.url());if(r.request().method()==='GET'&&url.pathname.startsWith('/core-api/api/')&&r.status()>=400)report.httpErrors.push({path:url.pathname,status:r.status()});});
 await page.setRequestInterception(true);page.on('request',r=>{
  const u=new URL(r.url());
@@ -46,7 +47,7 @@ const snapshot=()=>page.evaluate(()=>{
  const occluded=[...document.querySelectorAll('main button,main a[href],.workspace-content button')].filter(visible).filter(e=>{const b=box(e);if(b.x<0||b.y<0||b.right>innerWidth||b.bottom>innerHeight)return false;const top=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return top&&!e.contains(top)&&!top.contains(e);}).map(e=>({label:label(e),rect:box(e)}));
  return{path:location.pathname,mainPresent:Boolean(main),text:main?.innerText.slice(0,500)||'',overflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),controls,images,offenders,dialogs,occluded,scrollY,scrollHeight:document.documentElement.scrollHeight,innerHeight,pointerCoarse:matchMedia('(pointer:coarse)').matches,maxTouchPoints:navigator.maxTouchPoints};
 });
-async function flush(){report.finishedAt=new Date().toISOString();report.coverage.actual=report.records.length;report.passed=report.records.length===report.coverage.expected&&report.records.every(r=>r.passed)&&!report.errors.length&&!report.httpErrors.length;await writeFile(out+'/results.json',JSON.stringify(report,null,2)+'\n');}
+async function flush(){report.finishedAt=new Date().toISOString();report.coverage.actual=report.records.length;report.passed=report.records.length===report.coverage.expected&&report.records.every(r=>r.passed)&&!report.errors.length&&!report.httpErrors.length&&!report.transportFailures.length;await writeFile(out+'/results.json',JSON.stringify(report,null,2)+'\n');}
 try{
  const who=await page.goto(base+'/core-api/api/auth/me',{waitUntil:'domcontentloaded'});assert.equal(who.status(),200,'Fixture session must be valid before audit');
  if(production){const manifest=await page.evaluate(async id=>{const r=await fetch('/_next/static/'+encodeURIComponent(id)+'/_buildManifest.js',{cache:'no-store'});return{status:r.status,isBuildManifest:(await r.text()).includes('__BUILD_MANIFEST')};},process.env.QA_BUILD_ID);assert.equal(manifest.status,200,'Compiled build manifest must match QA_BUILD_ID');assert(manifest.isBuildManifest,'Expected actual Next build manifest');report.buildManifest=manifest;}
