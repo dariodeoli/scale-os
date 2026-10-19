@@ -5,10 +5,10 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 require.extensions['.css']=(module:NodeModule)=>{module.exports={};};
 Object.assign(globalThis,{React});
 const calls:{path:string;body:Record<string,unknown>|undefined;init:RequestInit|undefined}[]=[];
-let manage=true,print=true,failJob=false;
+let manage=true,print=true,failJob=false;let deferRead=false,deferPair=false;let resolveRead:((v:unknown)=>void)|undefined,resolvePair:((v:unknown)=>void)|undefined;
 const snapshot=()=>({can_manage:manage,can_print:print,printers:[{id:'p1',name:'Térmica',width_mm:80,enabled:true,connection:'lan',destination:'lan:192.168.1.10:9100',copies:1,auto_cut:false}],bridges:[],templates:[{id:'t1',name:'Prueba80',kind:'test',version:1,definition:{version:1,widthMm:80,heightMm:'auto',orientation:'portrait',marginsMm:{top:2,left:4,right:4,bottom:2},fontSize:10,autoCut:false}}],jobs:[{id:'j1',reference:'INV-42',state:'incierto',printer_id:'p1',template_id:'t1',template_version:1,copies:1,created_at:'2026-10-19T00:00:00Z'}],audit:[]});
 const requestId=require.resolve('../app/workspace-request');
-require.cache[requestId]={id:requestId,filename:requestId,loaded:true,exports:{request:async(path:string,init?:RequestInit)=>{const body=init?.body?JSON.parse(String(init.body)):undefined;calls.push({path,body,init});if(!init?.method)return snapshot();if(path.endsWith('/bridges'))return {bridge:{id:'b1'},pairing_code:'ONCE-123',expires_at:'2026-10-20T00:00:00Z'};if(failJob&&path.endsWith('/reprint'))throw Error('Servidor no responde');return {ok:true};}}} as NodeModule;
+require.cache[requestId]={id:requestId,filename:requestId,loaded:true,exports:{request:async(path:string,init?:RequestInit)=>{const body=init?.body?JSON.parse(String(init.body)):undefined;calls.push({path,body,init});if(!init?.method){if(deferRead){deferRead=false;return new Promise(resolve=>{resolveRead=resolve;});}return snapshot();}if(path.endsWith('/bridges')&&deferPair){deferPair=false;return new Promise(resolve=>{resolvePair=resolve;});}if(path.endsWith('/bridges'))return {bridge:{id:'b1'},pairing_code:'ONCE-123',expires_at:'2026-10-20T00:00:00Z'};if(failJob&&path.endsWith('/reprint'))throw Error('Servidor no responde');return {ok:true};}}} as NodeModule;
 const operationsId=require.resolve('../app/operations');
 function EditorMock(_props:Record<string,unknown>){return <div data-editor=""/>;}
 function DialogMock({title,children,close}:{title:string;children:React.ReactNode;close:()=>void}){return <section data-dialog={title}><button onClick={close}>Cerrar diálogo</button>{children}</section>;}
@@ -46,4 +46,14 @@ test('heartbeat never treats a revoked or future-dated bridge as online',()=>{
 });
 test('demo explores the shared template locally without API calls or physical claims',async()=>{
  calls.length=0;let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace demo/>);});assert.equal(calls.length,0);assert.match(JSON.stringify(r!.toJSON()),/Demo: vista previa/);assert.equal(button(r!,'Preparar impresión'),undefined);await act(async()=>button(r!,'Explorar plantilla').props.onClick());assert.ok(r!.root.findAllByType('iframe').length);await act(async()=>editor(r!).save(editor(r!).defaults));assert.equal(calls.length,0);assert.equal(r!.root.findAllByType(EditorMock).length,0);await act(async()=>r!.unmount());
+});
+
+test('scope changes discard deferred old reads, drafts and one-time pairing responses',async()=>{
+ manage=true;print=true;deferRead=true;let r:ReactTestRenderer;await act(async()=>{r=create(<PrintingWorkspace scopeKey="orgA:user1"/>);});
+ await act(async()=>r!.update(<PrintingWorkspace scopeKey="orgB:user2"/>));assert.match(JSON.stringify(r!.toJSON()),/Térmica/);
+ await act(async()=>resolveRead!({...snapshot(),printers:[{...snapshot().printers[0],name:'OLD PRIVATE TENANT'}]}));assert.doesNotMatch(JSON.stringify(r!.toJSON()),/OLD PRIVATE TENANT/);
+ await act(async()=>button(r!,'Emparejar computadora').props.onClick());deferPair=true;let pending:Promise<void>;await act(async()=>{pending=editor(r!).save({name:'Old computer',branch_id:'main'});});
+ await act(async()=>r!.update(<PrintingWorkspace scopeKey="orgC:user3"/>));assert.equal(r!.root.findAllByType(EditorMock).length,0);
+ await act(async()=>{resolvePair!({pairing_code:'OLD-SECRET',expires_at:'2026-10-20T00:00:00Z'});await pending!;});assert.doesNotMatch(JSON.stringify(r!.toJSON()),/OLD-SECRET/);
+ await act(async()=>r!.unmount());
 });
