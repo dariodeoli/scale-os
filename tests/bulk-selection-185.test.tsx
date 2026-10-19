@@ -94,6 +94,9 @@ test('ListPage: encabezado con acción primaria, apartados del shell y slots en 
  const copy=text(renderer.root);
  assert.ok(copy.indexOf('Presupuestos')<copy.indexOf('Nuevo presupuesto'),'título y acción en el encabezado');
  assert.equal(renderer.root.findAllByType('h1').length,1,'un solo h1 con el título del shell');
+ const header=renderer.root.findByType('header');
+ assert.equal(header.props['data-page-navigation'],true,'el encabezado adopta los apartados del shell');
+ assert.equal(header.findAllByType('nav').length,1,'la navegación vive dentro de la misma cabecera, sin una segunda fila de chrome');
  const order=['tabs','toolbar','kpis','bulk','contenido'].map(label=>copy.indexOf(label));
  assert.deepEqual(order,[...order].sort((a,b)=>a-b),'apartados, toolbar, KPI, lote y contenido en ese orden');
  act(()=>renderer.unmount());

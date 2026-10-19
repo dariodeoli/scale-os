@@ -14,7 +14,7 @@ export type SelectOptionState={selected:boolean;disabled:boolean};
 type CommonSelectProps={
  label:string;options:readonly SelectOption[];variant?:SelectKind;presentation?:'popover'|'inline';
  disabled?:boolean;loading?:boolean;error?:string;invalid?:boolean;describedBy?:string;id?:string;required?:boolean;onBlur?:()=>void;title?:string;
- placeholder?:string;searchable?:boolean;searchLabel?:string;searchPlaceholder?:string;
+ placeholder?:string;searchable?:boolean;searchLabel?:string;searchPlaceholder?:string;onSearchChange?:(query:string)=>void;
  emptyLabel?:string;noResultsLabel?:string;loadingLabel?:string;missingLabel?:string;showMissingSelection?:boolean;
  hideLabel?:boolean;className?:string;optionClassName?:string;optionsClassName?:string;
  renderOption?:(option:SelectOption,state:SelectOptionState)=>ReactNode;
@@ -47,6 +47,10 @@ export function Selector(props:SelectorProps){
  useEffect(()=>{if(!props.onBlur||typeof document==='undefined')return;const focus=(event:FocusEvent)=>{if(focusWithin.current&&!root.current?.contains(event.target as Node)&&!menu.current?.contains(event.target as Node))checkBlur();};document.addEventListener('focusin',focus);return()=>document.removeEventListener('focusin',focus);},[Boolean(props.onBlur)]);
  const root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),menu=useRef<HTMLDivElement>(null),search=useRef<HTMLInputElement>(null);
  const [open,setOpen]=useState(false),[query,setQuery]=useState('');
+ const queryRef=useRef(''),searchChanged=useRef(props.onSearchChange);searchChanged.current=props.onSearchChange;
+ // Notify only real user query transitions (including close/reset), never mount
+ // or option/callback identity changes; dynamic sources may safely update options.
+ function updateQuery(next:string){if(next===queryRef.current)return;queryRef.current=next;setQuery(next);searchChanged.current?.(next);}
  const [floating,setFloating]=useState<{target:Element;style:ReturnType<typeof selectPosition>}|null>(null);
  const locked=disabled||loading,inline=presentation==='inline';
  const values=props.multiple?[...props.value]:[props.value];
@@ -61,7 +65,7 @@ export function Selector(props:SelectorProps){
   if(props.multiple){props.onChange(values.includes(option.value)?values.filter(value=>value!==option.value):[...values,option.value]);}
   else{props.onChange(option.value);if(!inline)close(true);}
  }
- useEffect(()=>{if(!open&&!inline)setQuery('');},[open,inline]);
+ useEffect(()=>{if(!open&&!inline)updateQuery('');},[open,inline]);
  useEffect(()=>{if(locked)setOpen(false);},[locked]);
  useLayoutEffect(()=>{
   if(!open||inline){setFloating(null);return;}
@@ -85,7 +89,7 @@ export function Selector(props:SelectorProps){
   nodes[next]?.focus();
  }
  const content=<>
-  {searchable&&<SearchField ref={search} label={searchLabel} hideLabel placeholder={searchPlaceholder} value={query} disabled={locked} onChange={setQuery} onKeyDown={event=>{if(['Home','End'].includes(event.key))event.stopPropagation();if(event.key==='Enter'){event.preventDefault();const first=filtered.find(option=>!option.disabled&&(!query||!option.pinned))||filtered.find(option=>!option.disabled);if(first)choose(first);}}}/>}
+  {searchable&&<SearchField ref={search} label={searchLabel} hideLabel placeholder={searchPlaceholder} value={query} disabled={locked} onChange={updateQuery} onKeyDown={event=>{if(['Home','End'].includes(event.key))event.stopPropagation();if(event.key==='Enter'){event.preventDefault();const first=filtered.find(option=>!option.disabled&&(!query||!option.pinned))||filtered.find(option=>!option.disabled);if(first)choose(first);}}}/>}
   {loading?<p role="status">{loadingLabel}</p>:<div className={inline?`ui-select-inline-options ${optionsClassName}`:optionsClassName||undefined} role={inline?'group':'listbox'} id={listId} aria-labelledby={`${id}-label`} aria-multiselectable={!inline&&props.multiple?true:undefined}>
    {filtered.map((option,index)=>{
     const state={selected:values.includes(option.value),disabled:locked||Boolean(option.disabled)};
@@ -102,7 +106,7 @@ export function Selector(props:SelectorProps){
   if(event.key==='Escape'&&open){event.preventDefault();event.stopPropagation();close(true);return;}
   if(event.key==='Tab'&&open){close(true);return;}
   if((open||inline)&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){event.preventDefault();navigate(event.key);}
-  else if(open&&searchable&&event.key.length===1&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.target!==search.current&&event.key!==' '){event.preventDefault();setQuery(current=>current+event.key);search.current?.focus();}
+  else if(open&&searchable&&event.key.length===1&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.target!==search.current&&event.key!==' '){event.preventDefault();updateQuery(queryRef.current+event.key);search.current?.focus();}
  }}>
   <span className={hideLabel?'sr-only':'ops-label'} id={`${id}-label`}>{label}</span>
   {inline?<div ref={menu} aria-describedby={help}>{content}</div>:<>

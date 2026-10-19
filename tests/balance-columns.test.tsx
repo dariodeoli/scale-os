@@ -15,7 +15,7 @@ const {clearDataCache}=require('../app/data-cache') as typeof import('../app/dat
 const {currentForecastMonth}=require('../app/forecast-data') as typeof import('../app/forecast-data');
 const month=currentForecastMonth(),tick=()=>new Promise(resolve=>setImmediate(resolve));
 const response=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
-const detail:BalanceDetails={month,clients:{records:[{client_id:'1',client_name:'Cliente sin factura',client_logo_url:'https://example.com/client.png',plan_id:'4',plan_name:'Plan Growth',currency:'USD',contracted_amount:'1000',invoice_required:false,received_in_month:'250',applied_to_month_invoices:'0',unallocated_received_in_month:'50',registered_outstanding:'1300'},{client_id:'2',client_name:'Cliente con factura',client_logo_url:null,plan_id:null,plan_name:null,currency:'USD',contracted_amount:'0',invoice_required:true,received_in_month:'0',applied_to_month_invoices:'0',unallocated_received_in_month:'0',registered_outstanding:'0'}]},personnel:{records:[{collaborator_id:'3',name:'Persona USD',photo_url:'https://example.com/person.png',currency:'USD',base_amount:'100.25',override_amount:'-10',expected_amount:'90.25',paid_in_month:'25.10',outstanding_amount:'65.15',history_known:false,salary_source:'fixed',salary_editable:true,salary_revision:'1'}]},totals:[{currency:'USD',contracted_amount:'1000',received_in_month:'250',registered_outstanding:'1300',expected_receipts:'500'}]};
+const detail:BalanceDetails={month,clients:{records:[{client_id:'1',client_name:'Cliente sin factura',client_active:true,client_logo_url:'https://example.com/client.png',plan_id:'4',plan_name:'Plan Growth',currency:'USD',contracted_amount:'1000',invoice_required:false,received_in_month:'250',applied_to_month_invoices:'0',unallocated_received_in_month:'50',registered_outstanding:'1300'},{client_id:'2',client_name:'Cliente con factura',client_active:true,client_logo_url:null,plan_id:null,plan_name:null,currency:'USD',contracted_amount:'0',invoice_required:true,received_in_month:'0',applied_to_month_invoices:'0',unallocated_received_in_month:'0',registered_outstanding:'0'}]},personnel:{records:[{collaborator_id:'3',name:'Persona USD',photo_url:'https://example.com/person.png',currency:'USD',base_amount:'100.25',override_amount:'-10',expected_amount:'90.25',paid_in_month:'25.10',outstanding_amount:'65.15',history_known:false,salary_source:'fixed',salary_editable:true,salary_revision:'1'}]},totals:[{currency:'USD',contracted_amount:'1000',received_in_month:'250',registered_outstanding:'1300',expected_receipts:'500'}]};
 const baseline={id:'1',created_at:'2026-10-17T12:00:00Z',effective_from:null,actor_name:null,actor_photo_url:null,reason:'Valor importado',before_amount:null,after_amount:'100.25',before_currency:null,currency:'USD',source:'legacy-baseline',history_known:false};
 test('Balance shows one aligned client/person table, truthful monthly cash and invoice requirements',async()=>{
  clearDataCache();const before=globalThis.fetch;
@@ -90,4 +90,32 @@ test('both salary capture dialogs render the canonical payroll purpose and priva
  const before=globalThis.fetch;globalThis.fetch=async input=>response(String(input).includes('/salary-overrides')?{override:null}:{revision:'1',records:[baseline]});
  try{for(const label of ['Editar salario: Persona USD','Ajuste del mes: Persona USD']){clearDataCache();let view!:ReactTestRenderer;try{await act(async()=>{view=create(<FinancePersonnelSection members={detail.personnel.records} month={month} canSalary onReload={()=>{}}/>);});await act(async()=>{view.root.findAllByType('button').find(button=>button.props['aria-label']===label)!.props.onClick();await tick();});assert.match(JSON.stringify(view.toJSON()),/Finalidad: Previsión y pago de remuneraciones/);const links=view.root.findAllByType('a').filter(link=>link.props.href==='/privacidad#payroll');assert.equal(links.length,1,label+' has its own canonical notice');assert.equal(links[0].children.join(''),'Aviso de Privacidad');}finally{act(()=>view?.unmount());}}}
  finally{globalThis.fetch=before;clearDataCache();}
+});
+
+test('inactive clients default hidden; explicit review preserves logos, original agreements and all cash totals',async()=>{
+ let view!:ReactTestRenderer;
+ const active={...detail.clients.records[0],contracted_amount:'100',received_in_month:'25'};
+ const inactive={...detail.clients.records[0],client_id:'inactive',client_name:'Cliente inactivo',client_active:false,contracted_amount:'900',received_in_month:'75',registered_outstanding:'800'};
+ const content=()=>JSON.stringify(view.toJSON());
+ try{
+  await act(async()=>{view=create(<FinanceClientsSection clients={[active,inactive]} month={month} role="sales" canManageTerms={false} canHistory={false} onReload={()=>{}}/>);});
+  assert.doesNotMatch(content(),/Cliente inactivo/);assert.match(content(),/cliente\(s\) inactivo\(s\)/);assert.match(content(),/Sus cobros y deudas se conservan/);
+  const text=(node:any):string=>typeof node==='string'?node:(node.children||[]).map(text).join('');
+  const amounts=()=>view.root.findByProps({'aria-label':'Totales de clientes por moneda'}).findAllByType('dd').map(text);
+  assert.equal(amounts().length,2);assert.match(amounts()[0],/100/);assert.doesNotMatch(amounts()[0],/1\.000/);assert.match(amounts()[1],/100/,'received includes hidden inactive receipt');
+  const toggle=view.root.findAllByType('button').find(node=>node.props['aria-pressed']===false)!;
+  await act(async()=>toggle.props.onClick());
+  assert.match(content(),/Cliente inactivo/);assert.match(content(),/Estado actual: inactivo/);assert.match(content(),/900/,'original agreed value remains reviewable');
+  assert.equal(view.root.findAll(node=>node.type==='img'&&node.props.src===inactive.client_logo_url).length,2);
+  assert.equal(view.root.findAll(node=>node.type==='button'&&/^Editar plan|Historial del plan/.test(node.props['aria-label']||'')).length,0,'review does not expand permissions');
+  assert.match(amounts()[0],/100/,'review toggle does not add inactive projections to active contracted');
+  await act(async()=>view.update(<FinanceClientsSection clients={[active,inactive]} month="2026-08" role="sales" canManageTerms={false} canHistory={false} onReload={()=>{}}/>));
+  assert.doesNotMatch(content(),/Cliente inactivo/,'period change resets optional review');
+ }finally{act(()=>view?.unmount());}
+});
+test('missing activity on an old API stays visible with attention instead of silently deleting financial rows',async()=>{
+ let view!:ReactTestRenderer;
+ try{await act(async()=>{view=create(<FinanceClientsSection clients={[{...detail.clients.records[0],client_active:null}]} month={month} role="owner" canManageTerms={false} canHistory={false} onReload={()=>{}}/>);});
+ assert.match(JSON.stringify(view.toJSON()),/Cliente sin factura/);assert.match(JSON.stringify(view.toJSON()),/Por confirmar/);assert.match(JSON.stringify(view.toJSON()),/pendiente de confirmar/);
+ }finally{act(()=>view?.unmount());}
 });

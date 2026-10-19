@@ -448,6 +448,8 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  * Altura natural (#222): título, contexto y acciones comparten fila cuando
  * caben y envuelven según el espacio disponible. El subtítulo auxiliar tiene
  * su texto completo en el tooltip. En móvil se preservan los targets de 44 px.
+ * `navigation` reutiliza los apartados del shell: en contenedores amplios
+ * comparte fila con título y acciones; en móvil se envuelve sin perder tabs.
  * `workspace-page-header` (shell) comparte el mismo contrato desde
  * `ui-system.css`.
  *
@@ -457,19 +459,20 @@ const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left',
  */
 export const PageTitleContext = createContext<string>('');
 
-export function PageHeader({eyebrow, title, subtitle, actions, className}: {eyebrow?: string; title?: string; subtitle?: ReactNode; actions?: ReactNode; className?: string}) {
+export function PageHeader({eyebrow, title, subtitle, actions, navigation, className}: {eyebrow?: string; title?: string; subtitle?: ReactNode; actions?: ReactNode; navigation?: ReactNode; className?: string}) {
   const pageTitle = useContext(PageTitleContext);
   const subtitleText = typeof subtitle === 'string' ? subtitle : undefined;
   const repetido = Boolean(title && pageTitle) && title!.trim().toLowerCase() === pageTitle.trim().toLowerCase();
   const heading = repetido ? undefined : title;
-  if (!eyebrow && !heading && !subtitle && !actions) return null;
-  return <header className={`ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
+  if (!eyebrow && !heading && !subtitle && !actions && !navigation) return null;
+  return <header data-page-navigation={navigation ? true : undefined} className={`ui-page-header mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-3 md:mb-0 ${className ?? ''}`}>
     <div className="ui-page-header-main min-w-0 flex-1 xl:flex xl:min-w-0 xl:items-baseline xl:gap-3">
       {eyebrow && <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.14em] text-mute xl:mb-0 xl:shrink-0">{eyebrow}</p>}
       {heading && <h1 className="text-[22px] font-bold leading-tight tracking-tight text-fore md:text-2xl xl:shrink-0">{heading}</h1>}
       {subtitle && <p className="ui-page-header-subtitle mt-1.5 text-[13px] leading-[1.5] text-mute xl:mt-0 xl:min-w-0 xl:line-clamp-1" title={subtitleText}>{subtitle}</p>}
     </div>
     {actions && <div className="header-actions flex min-w-0 flex-wrap items-center gap-2 max-md:w-full max-md:justify-start xl:flex-nowrap">{actions}</div>}
+    {navigation && <div className="ui-page-header-navigation">{navigation}</div>}
   </header>;
 }
 
@@ -516,7 +519,7 @@ export const PageChromeContext = createContext<ReactNode>(null);
 /**
  * Plantilla de página de lista (#185 F1): encabezado (`PageHeader`, con el
  * título del shell por defecto) + acción primaria siempre visible a la derecha
- * + apartados + `toolbar` (filtros) + `kpis` + `bulk` (barra de lote) +
+ * con apartados integrados + `toolbar` (filtros) + `kpis` + `bulk` (barra de lote) +
  * contenido. Cada slot es opcional; los textos y datos los aporta la pantalla.
  */
 export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis, bulk, children, className, rootRef, ...props}: {rootRef?: Ref<HTMLElement>; title?: string; eyebrow?: string; subtitle?: ReactNode; primaryAction?: ReactNode; toolbar?: ReactNode; kpis?: ReactNode; bulk?: ReactNode; children?: ReactNode; className?: string} & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
@@ -525,9 +528,8 @@ export function ListPage({title, eyebrow, subtitle, primaryAction, toolbar, kpis
   return <section ref={rootRef} data-list-page className={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ${className ?? ''}`} {...props}>
     <div className="ui-list-page-chrome grid min-w-0 gap-3">
       <PageTitleContext.Provider value="">
-        <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} className="!mb-0"/>
+        <PageHeader eyebrow={eyebrow} title={title ?? pageTitle} subtitle={subtitle} actions={primaryAction} navigation={tabs} className="!mb-0"/>
       </PageTitleContext.Provider>
-      {tabs}
     </div>
     {toolbar}
     {kpis}

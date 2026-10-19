@@ -39,3 +39,12 @@
 .finance-client-table{--finance-client-actions-width:4.25rem}
 .finance-personnel-table{--finance-personnel-actions-width:6.5rem}
 @media(max-width:760px),(pointer:coarse){.finance-personnel-table{--finance-personnel-actions-width:9rem}.finance-client-table{--finance-client-actions-width:6rem}.finance-client-table>div{min-width:max(30.75rem,calc(20.75rem + 2 * var(--finance-amount-width)))}.finance-personnel-table>div{min-width:max(31rem,calc(20rem + 2 * var(--finance-amount-width)))}}
+
+/* #289: client status review stays inside the existing comparison panel. */
+.finance-client-review{display:grid;gap:6px;min-width:0}
+.finance-client-inactive-notice{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--text-muted)}
+.finance-client-inactive-notice>span{display:inline-flex;align-items:center;gap:4px;flex:1;min-width:min(100%,12rem)}
+.finance-client-inactive-notice>button{flex-shrink:0}
+.finance-client-identity{display:flex;align-items:center;gap:4px}
+.finance-client-identity>.person-container{min-width:0}
+.finance-client-inactive-status{flex-shrink:0;font-size:10px;color:var(--text-muted)}

@@ -1,0 +1,7 @@
+.scale-month-picker{display:flex;align-items:center;gap:4px;min-width:0;max-width:100%}
+.scale-month-picker>[data-ui-selector]{width:12rem;min-width:0}
+.scale-month-picker>[data-ui-selector]>.ops-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.scale-month-picker-calendar{display:flex;align-items:center;flex-shrink:0}
+.scale-month-picker-calendar>span{display:flex;align-items:center}
+.scale-month-picker [data-ui-icon-button]{min-width:36px;min-height:36px;flex-shrink:0}
+@media(max-width:767px),(pointer:coarse){.scale-month-picker{--ui-control-height:44px}.scale-month-picker [data-ui-icon-button]{min-width:44px;min-height:44px}.scale-month-picker>[data-ui-selector]{width:min(12rem,calc(100vw - 11rem))}}

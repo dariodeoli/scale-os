@@ -1,0 +1,3 @@
+# Month selection: real browser interaction and committed finance query/closure scope.
+tsx tests/balance-month-289.test.tsx
+node tests/month-picker-289-browser.test.mjs

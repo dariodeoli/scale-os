@@ -41,7 +41,7 @@
 /* ── Encabezado de página (#89) — ritmo natural (#222) ────────────────────
    Título, contexto y acciones comparten espacio cuando caben. Ninguna fila
    reserva un alto: los controles y el texto deciden; en móvil pueden envolver. */
-.control-shell :is(.workspace-page-header,.ui-page-header){display:flex;flex-wrap:wrap;align-items:center;gap:8px var(--ui-space-4);min-height:0;max-width:100%;margin:0 0 var(--ui-space-3);align-self:start}
+.control-shell :is(.workspace-page-header,.ui-page-header){display:flex;flex-wrap:wrap;align-items:center;gap:8px var(--ui-space-4);min-width:0;min-height:0;width:100%;max-width:100%;margin:0 0 var(--ui-space-3);align-self:start}
 .control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-heading,.ui-page-header-main){display:flex;flex:1 1 18rem;flex-wrap:wrap;align-items:center;gap:4px var(--ui-space-3);min-width:0}
 .control-shell :is(.workspace-page-header,.ui-page-header) h1{margin:0;max-width:100%;font-size:22px;line-height:1.25;overflow-wrap:anywhere}
 .control-shell :is(.workspace-page-header,.ui-page-header) :is(.page-subtitle,.ui-page-header-subtitle){margin:0;min-width:0;font-size:13px;line-height:1.5}
@@ -53,8 +53,30 @@
 .control-shell [data-list-page]{gap:var(--ui-space-3)}
 .control-shell .ui-list-page-chrome{gap:var(--ui-space-2)}
 .control-shell .ui-list-page-chrome>.ui-page-header{margin:0}
+/* #289: title, section navigation and actions form one responsive chrome.
+   The tab wrapper previously contributed mb-3 on top of both grid gaps.
+   Use the workspace container width: the sidebar must not trigger desktop
+   density before there is room for the controls. Overflow stays in TabScroller. */
+.control-shell .ui-list-page-chrome{align-content:start}
+.control-shell .ui-page-header-navigation{flex:1 1 100%;min-width:0;max-width:100%;order:3}
+.control-shell .ui-page-header-navigation>.tab-scroller{margin:0}
+.control-shell .ui-page-header-navigation .section-tabs{margin:0}
+@container(min-width:960px){
+ .control-shell .ui-page-header[data-page-navigation]{display:grid;grid-template-columns:minmax(0,auto) minmax(12rem,1fr) auto;column-gap:var(--ui-space-3);row-gap:var(--ui-space-2);width:100%}
+ .control-shell .ui-page-header[data-page-navigation] .ui-page-header-main{grid-column:1;flex-wrap:wrap}
+ .control-shell .ui-page-header[data-page-navigation] .ui-page-header-navigation{grid-column:2;grid-row:1;order:initial}
+ .control-shell .ui-page-header[data-page-navigation] .header-actions{grid-column:3;grid-row:1}
+ .control-shell .ui-page-header[data-page-navigation] .ui-page-header-subtitle{flex-basis:100%;white-space:normal}
+}
+
 .control-shell .ui-filter-toolbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px var(--ui-space-3);min-width:0;max-width:100%;margin:0}
 .control-shell .ui-filter-toolbar>*{min-width:0;max-width:100%}
+@media(min-width:768px){
+ /* Search and categorical filters reserve useful field widths, not entire rows.
+    Explicit compound filters (segmented states/date ranges) keep their layout. */
+ .control-shell .ui-filter-toolbar>.search-field{flex:0 1 16rem;width:16rem}
+ .control-shell .ui-filter-toolbar>.ops-select{flex:0 1 12rem;width:12rem}
+}
 .control-shell .ui-filter-summary{display:flex;align-items:center;min-height:var(--ui-control-height);margin:0 0 0 auto;white-space:nowrap}
 @media(min-width:1024px){
  .control-shell .ui-page-header-main{flex-wrap:nowrap}

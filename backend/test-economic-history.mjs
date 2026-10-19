@@ -90,6 +90,25 @@ export async function economicHistoryCases(db){
  assert.equal(Number(row.received_in_month),250);assert.equal(Number(row.applied_to_month_invoices),0);assert.equal(Number(row.unallocated_received_in_month),50);assert.equal(Number(row.registered_outstanding),1300);assert.equal(Number(details.totals[0].received_in_month),275);
  r=await receive(100);assert.equal(r.status,201);assert.equal((await call('/payments/'+r.payment.id+'/applications','POST',{invoiceId:current,amount:100,requestId:randomUUID()})).status,201);
  details=await call('/finance/balance-details?month=2026-09');row=details.clients.records[0];assert.equal(Number(row.received_in_month),350);assert.equal(Number(row.applied_to_month_invoices),100);assert.equal(Number(row.registered_outstanding),1200);
+ // Current inactivity filters only contracted projection, never receipts, debts,
+ // past agreements or the immutable cash ledger (including unassigned money).
+ const activeSnapshot=await call('/finance/balance-details?month=2026-09');
+ const originalContract=activeSnapshot.clients.records.find(x=>x.client_id===String(customer)).contracted_amount;
+ const originalHistoric=(await call('/finance/balance-details?month=2026-07')).clients.records.find(x=>x.client_id===String(customer)).contracted_amount;
+ const ledgerBefore=await one('select (select count(*) from agency_payments where organization_id=$1) as payments,(select count(*) from agency_cash_movements where organization_id=$1) as movements,(select sum(balance) from bank_accounts where organization_id=$1) as cash',[org]);
+ await q('update agency_clients set active=false where organization_id=$1 and id=$2',[org,customer]);
+ const inactiveSnapshot=await call('/finance/balance-details?month=2026-09');
+ const inactiveRow=inactiveSnapshot.clients.records.find(x=>x.client_id===String(customer));
+ assert.equal(inactiveRow.client_active,false);assert.equal(inactiveRow.contracted_amount,originalContract);
+ assert.equal(inactiveRow.received_in_month,activeSnapshot.clients.records.find(x=>x.client_id===String(customer)).received_in_month);assert.equal(inactiveRow.registered_outstanding,activeSnapshot.clients.records.find(x=>x.client_id===String(customer)).registered_outstanding);
+ const beforeTotal=activeSnapshot.totals.find(x=>x.currency==='USD'),afterTotal=inactiveSnapshot.totals.find(x=>x.currency==='USD');
+ assert.equal(Number(afterTotal.contracted_amount),Number(beforeTotal.contracted_amount)-Number(originalContract));
+ for(const field of ['received_in_month','registered_outstanding','expected_receipts'])assert.equal(afterTotal[field],beforeTotal[field],field+' survives client inactivity');
+ const historicInactive=await call('/finance/balance-details?month=2026-07');
+ assert.equal(historicInactive.clients.records.find(x=>x.client_id===String(customer)).contracted_amount,originalHistoric,'past agreement remains available for review; no invented deactivation date');
+ assert.deepEqual(await one('select (select count(*) from agency_payments where organization_id=$1) as payments,(select count(*) from agency_cash_movements where organization_id=$1) as movements,(select sum(balance) from bank_accounts where organization_id=$1) as cash',[org]),ledgerBefore);
+ await q('update agency_clients set active=true where organization_id=$1 and id=$2',[org,customer]);
+ assert.equal((await call('/finance/balance-details?month=2026-09')).clients.records.find(x=>x.client_id===String(customer)).client_active,true);
  const restricted={...actor,role:'sales',capabilities:{'finance.view':true,'salary.view':false}};
  assert.equal((await call(salary,'GET',{},restricted)).status,403);assert.equal((await call(salary,'POST',september,restricted)).status,403);
  details=await call('/finance/balance-details?month=2026-09','GET',{},restricted);for(const field of ['base_amount','override_amount','expected_amount','paid_in_month','outstanding_amount'])assert.equal(details.personnel.records.find(x=>x.collaborator_id===String(person))[field],null);
