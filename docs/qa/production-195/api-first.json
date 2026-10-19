@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-19T02:16:46.928Z",
+  "url": "https://api.scaleparaguay.com/health",
+  "status": 200,
+  "health": {
+    "ok": true,
+    "database": "ready",
+    "release": {
+      "version": "1.0.195",
+      "application": "Scale OS"
+    }
+  },
+  "providerSha": null,
+  "note": "API195 verified; web rollout still pending at this point."
+}
