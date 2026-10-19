@@ -29,3 +29,5 @@ El modelo, destino, ancho útil, corte y código ESC/POS compatible se verifican
 Pruebas: `node --test print-agent/test/*.test.mjs` (transportes simulados/loopback y temporales; ninguna impresora real).
 
 Interoperabilidad con backend y dependencias instaladas: `node print-agent/test-api-integration.mjs`. Levanta HTTP exclusivamente loopback, PGlite temporal y el handler real; sustituye únicamente transporte físico. Comprueba emparejamiento de un uso, aislamiento empresa/sucursal, tres copias exactas, eliminación de payload, sufijo humano y conciliación 409 sin reenvío. `SCALE_PRINT_TEST_BACKEND` permite señalar una rama backend hermana antes de integrar. La prueba elimina sólo su servidor/base/directorio temporal.
+
+Al reiniciar en modo emparejado, no se procesa la cola conservada antes de autenticar heartbeat y consultar configuración vigente. Una revocación 401 bloquea envíos pendientes y conserva la cola para conciliación. Esta comprobación previa reduce el riesgo de usar configuración almacenada; no promete una revocación atómica instantánea entre la API y el dispositivo físico.
