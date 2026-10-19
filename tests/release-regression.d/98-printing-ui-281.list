@@ -1,1 +1,2 @@
 node --import tsx --test tests/printing-workspace-281.test.tsx
+node --import tsx --test tests/printing-operator-access-281.test.ts
