@@ -1,0 +1,287 @@
+{
+  "transport": "synthetic local; no API/DB/production",
+  "browser": "Chrome/154.0.8037.57",
+  "results": [
+    {
+      "flow": "client",
+      "width": 320,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 5,
+      "status": "PASS"
+    },
+    {
+      "flow": "inventory",
+      "width": 320,
+      "height": 844,
+      "checks": 4,
+      "visibleFormControls": 13,
+      "status": "PASS"
+    },
+    {
+      "flow": "account",
+      "width": 320,
+      "height": 844,
+      "checks": 1,
+      "visibleFormControls": 4,
+      "status": "PASS"
+    },
+    {
+      "flow": "payment",
+      "width": 320,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 3,
+      "status": "PASS"
+    },
+    {
+      "flow": "team",
+      "width": 320,
+      "height": 844,
+      "checks": 1,
+      "visibleFormControls": 6,
+      "status": "PASS"
+    },
+    {
+      "flow": "tasks",
+      "width": 320,
+      "height": 844,
+      "checks": 3,
+      "visibleFormControls": 2,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 320,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 1,
+      "status": "PASS"
+    },
+    {
+      "flow": "client",
+      "width": 390,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 5,
+      "status": "PASS"
+    },
+    {
+      "flow": "inventory",
+      "width": 390,
+      "height": 844,
+      "checks": 4,
+      "visibleFormControls": 13,
+      "status": "PASS"
+    },
+    {
+      "flow": "account",
+      "width": 390,
+      "height": 844,
+      "checks": 1,
+      "visibleFormControls": 4,
+      "status": "PASS"
+    },
+    {
+      "flow": "payment",
+      "width": 390,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 3,
+      "status": "PASS"
+    },
+    {
+      "flow": "team",
+      "width": 390,
+      "height": 844,
+      "checks": 1,
+      "visibleFormControls": 6,
+      "status": "PASS"
+    },
+    {
+      "flow": "tasks",
+      "width": 390,
+      "height": 844,
+      "checks": 3,
+      "visibleFormControls": 2,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 390,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 1,
+      "status": "PASS"
+    },
+    {
+      "flow": "client",
+      "width": 768,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 14,
+      "status": "PASS"
+    },
+    {
+      "flow": "inventory",
+      "width": 768,
+      "height": 844,
+      "checks": 4,
+      "visibleFormControls": 13,
+      "status": "PASS"
+    },
+    {
+      "flow": "account",
+      "width": 768,
+      "height": 844,
+      "checks": 1,
+      "visibleFormControls": 4,
+      "status": "PASS"
+    },
+    {
+      "flow": "payment",
+      "width": 768,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 3,
+      "status": "PASS"
+    },
+    {
+      "flow": "team",
+      "width": 768,
+      "height": 844,
+      "checks": 1,
+      "visibleFormControls": 6,
+      "status": "PASS"
+    },
+    {
+      "flow": "tasks",
+      "width": 768,
+      "height": 844,
+      "checks": 3,
+      "visibleFormControls": 2,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 768,
+      "height": 844,
+      "checks": 2,
+      "visibleFormControls": 1,
+      "status": "PASS"
+    },
+    {
+      "flow": "client",
+      "width": 390,
+      "height": 568,
+      "checks": 2,
+      "visibleFormControls": 5,
+      "status": "PASS"
+    },
+    {
+      "flow": "inventory",
+      "width": 390,
+      "height": 568,
+      "checks": 4,
+      "visibleFormControls": 13,
+      "status": "PASS"
+    },
+    {
+      "flow": "account",
+      "width": 390,
+      "height": 568,
+      "checks": 1,
+      "visibleFormControls": 4,
+      "status": "PASS"
+    },
+    {
+      "flow": "payment",
+      "width": 390,
+      "height": 568,
+      "checks": 2,
+      "visibleFormControls": 3,
+      "status": "PASS"
+    },
+    {
+      "flow": "team",
+      "width": 390,
+      "height": 568,
+      "checks": 1,
+      "visibleFormControls": 6,
+      "status": "PASS"
+    },
+    {
+      "flow": "tasks",
+      "width": 390,
+      "height": 568,
+      "checks": 3,
+      "visibleFormControls": 2,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 390,
+      "height": 568,
+      "checks": 2,
+      "visibleFormControls": 1,
+      "status": "PASS"
+    },
+    {
+      "flow": "client",
+      "width": 844,
+      "height": 390,
+      "checks": 2,
+      "visibleFormControls": 14,
+      "status": "PASS"
+    },
+    {
+      "flow": "inventory",
+      "width": 844,
+      "height": 390,
+      "checks": 4,
+      "visibleFormControls": 13,
+      "status": "PASS"
+    },
+    {
+      "flow": "account",
+      "width": 844,
+      "height": 390,
+      "checks": 1,
+      "visibleFormControls": 4,
+      "status": "PASS"
+    },
+    {
+      "flow": "payment",
+      "width": 844,
+      "height": 390,
+      "checks": 2,
+      "visibleFormControls": 3,
+      "status": "PASS"
+    },
+    {
+      "flow": "team",
+      "width": 844,
+      "height": 390,
+      "checks": 1,
+      "visibleFormControls": 6,
+      "status": "PASS"
+    },
+    {
+      "flow": "tasks",
+      "width": 844,
+      "height": 390,
+      "checks": 3,
+      "visibleFormControls": 2,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 844,
+      "height": 390,
+      "checks": 2,
+      "visibleFormControls": 1,
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}
