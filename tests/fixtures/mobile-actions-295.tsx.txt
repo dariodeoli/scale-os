@@ -1,0 +1,38 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {Dialog} from './app/dialog';
+import {ClientEditor} from './app/client-editor';
+import {InventoryItemForm} from './app/inventory-workspace';
+import {EmployeeTasks} from './app/employee-tasks';
+import {ContractsWorkspace} from './app/contracts-workspace';
+import {TeamPersonSheet} from './app/team-person-sheet';
+import {AccountForm,PaymentForm} from './app/workspace-forms';
+const mode=new URLSearchParams(location.search).get('flow');
+window.writes=[];window.completed=0;window.failNext=false;
+const task={id:'1',version:1,title:'Tarea móvil QA',status:'pending',priority:'normal',assigned_user_ids:[],checklist:[{id:'c1',text:'Revisar material',completed:false}],materials:[],comments:[],can_edit:true,can_complete:true};
+let contract=null;
+const respond=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
+window.fetch=async(input,init={})=>{
+ const path=new URL(String(input),location.href).pathname,method=init.method||'GET',body=init.body?JSON.parse(init.body):{};
+ if(method!=='GET'){
+  window.writes.push({path,method,body});
+  if(window.failNext){window.failNext=false;return respond({error:'Fallo temporal sintético'},503);}
+  if(path.includes('internal-tasks')){if(path.endsWith('/comments'))task.comments.push({id:'m1',body:body.body,created_at:'2026-10-19T10:00:00Z'});else Object.assign(task,body);task.version++;return respond({record:{...task}});}
+  if(path.endsWith('/contracts')){contract={id:'1',...body,body:'Servicio QA',variables:{},sources:{},revision:1,required_fields:[]};return respond({contract},201);}
+  if(path.endsWith('/clients'))return respond({client:{id:'1',...body}},201);
+  if(path.endsWith('/collaborators'))return respond({collaborator:{id:'1',...body}},201);
+  return respond({account:{id:'1',...body},item:{id:'1',...body},ok:true},201);
+ }
+ if(path.endsWith('internal-tasks/context'))return respond({people:[],projects:[],clients:[],can_assign:true,can_edit:true});
+ if(path.endsWith('internal-tasks/1'))return respond({record:{...task}});
+ if(path.endsWith('internal-tasks'))return respond({records:[{...task}],counts:{today:1},page:{has_more:false},can_edit:true,can_assign:true});
+ if(path.endsWith('/contracts/config'))return respond({capabilities:{view:true,create:true,edit:true,templates_manage:true,issue:true,bank_data_view:false,assist:false},clients:[{id:'1',name:'Cliente QA'}],collaborators:[],bank_accounts:[]});
+ if(path.endsWith('/contracts/templates'))return respond({templates:[{id:'t1',name:'Modelo QA',body:'Servicio QA',required_fields:[],revision:1}],variables:[]});
+ if(path.endsWith('/versions'))return respond({versions:[]});
+ if(path.endsWith('/contracts'))return respond({contracts:[]});
+ return respond({currency:'PYG',company:{currency:'PYG'},contacts:[],records:[]});
+};
+const request=async(path,init)=>{const response=await fetch(path,init);if(!response.ok)throw Error('Fallo temporal sintético');return response.json();};
+const done=()=>{window.completed++;};
+let node=mode==='tasks'?<EmployeeTasks organizationId="1" userId="1"/>:mode==='contracts'?<ContractsWorkspace organizationId="1" userId="1"/>:mode==='team'?<TeamPersonSheet role="owner" currentEmail="qa@example.invalid" person={null} member={null} ambiguous={false} seedEmail="" tab="perfil" defaultCurrency="PYG" load={async()=>{done();}} onCreated={done} close={()=>{}}/>:<Dialog title={'QA '+mode} close={()=>{}}>{mode==='client'?<ClientEditor mode="create" onCreated={done}/>:mode==='inventory'?<InventoryItemForm item={null} categories={[{id:'1',name:'Cámaras',active:true}]} members={[{id:'1',name:'Persona QA'}]} storageTemplates={[]} canManageStorage={false} createStorageTemplate={async()=>{throw Error('Not exercised')}} done={done}/>:mode==='account'?<AccountForm custodians={[]} request={request} done={done}/>:<PaymentForm accounts={[{id:'1',name:'Caja QA',currency:'PYG',active:true}]} invoices={[{id:'1',number:'QA1',client_name:'Cliente QA',client_id:'1',status:'issued',currency:'PYG',total:'1000',paid_amount:'0',due_on:'2026-10-19'}]} custodians={[]} request={request} done={done}/>}</Dialog>;
+createRoot(document.getElementById('root')).render(<main className="control-shell">{node}</main>);
