@@ -15,3 +15,9 @@ Estado final: **web y API1.0.195 verificadas el18/10/2026 a las23:18:50 (America
 No se expone SHA del contenedor del proveedor. Se distinguen mergeSHA, árbol/build local y versión realmente servida. Esta rama conserva evidencia posterior al merge sin un segundo push/deploy de main con la misma versión.
 
 Límites: emulación Chromium no prueba Safari/iOS físico, OAuth/correo real, dispositivos de impresión ni todas las operaciones privadas de portal/superadmin. La recuperación de fotos heredadas depende de auditoría retenida; no se accedió a los originales reales50/43/42.
+
+## Cierre y seguimiento
+
+Issue265 cerrado tras acreditar aceptación y publicación; PRs264/266–271 cerrados como incorporados en272, conservando ramas. Issue263 sigue abierto para verificar las tres fotos privadas; su implementación ya está integrada y publicada. La segunda lectura pública `public-followup.json` confirmó web/API195 y base lista el18/10/2026 a las23:22:39 (America/Asuncion).
+
+`followup-state.json` conserva los issues externos pendientes y0ejecuciones del supervisor246, que no quedó programado. El padre202 permanece abierto por esos seguimientos; no se afirma que esté cerrado todo el plan operativo externo.

@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-19T02:22:39.494Z",
+  "web": {
+    "status": 200,
+    "version": "1.0.195"
+  },
+  "api": {
+    "status": 200,
+    "ok": true,
+    "database": "ready",
+    "release": {
+      "version": "1.0.195",
+      "application": "Scale OS"
+    }
+  }
+}
