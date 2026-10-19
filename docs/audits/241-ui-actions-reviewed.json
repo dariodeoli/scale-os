@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Printing #278/#281: exact reviewed widget JSX and owners preserved; canonical actions explicitly reviewed, source hashes and positions refreshed.",
+  "scope": "Printing #287: all616 canonical actions and55 reviewed native widgets preserve exact JSX/owners; only source hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",

@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Printing #278/#281: refresh source hashes and positions without new structural exemptions.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Printing #278/#281: refresh source hashes and positions without new structural exemptions. Printing #287: refresh source hashes and positions without new structural exemptions or action JSX changes.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -201,8 +201,8 @@
     {
       "file": "app/printing-workspace.tsx",
       "beforeHash": null,
-      "afterHash": "188e964cbfc884e9fcb9ea0eac6fa4943fd35465c32ab424594fb9ef94a8a58d",
-      "rationale": "Printing #278/#281: settings, operator route and printing UI source reviewed; native widget JSX and canonical ownership preserved."
+      "afterHash": "7f37b595e79077fba604bc54f96ab27fe2ff1c867ebb926bc650e826b4e2478f",
+      "rationale": "Printing #278/#281: settings, operator route and printing UI source reviewed; native widget JSX and canonical ownership preserved. Printing #287: revoked-access generations and response handling changed outside action JSX; exact native widgets and canonical callbacks preserved."
     },
     {
       "file": "app/sections/configuracion.tsx",
@@ -462,7 +462,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 82,
+      "line": 90,
       "column": 284,
       "owner": "PrintingScope",
       "siteHash": "ec8cce5f409f1b8a40d0d776f7c00c538b17a29ad4137465099b6eb27ba15c61",
@@ -470,7 +470,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 86,
+      "line": 94,
       "column": 91,
       "owner": "PrintingScope",
       "siteHash": "484a869b1d9165f5c13e8b43deb47e6723768bee099fc2ea40e671e4a0edfe97",
@@ -478,7 +478,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 87,
+      "line": 95,
       "column": 760,
       "owner": "PrintingScope",
       "siteHash": "b3a79cfd699590274a7a3715a951609d894e13c2a7c671d50815424e54529066",
@@ -486,7 +486,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 89,
+      "line": 97,
       "column": 101,
       "owner": "PrintingScope",
       "siteHash": "e0ae95c39e615bc1e8803abc83ca64cddc1ac46aeefd261d82616e7739d01d4a",
@@ -494,7 +494,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 90,
+      "line": 98,
       "column": 562,
       "owner": "PrintingScope",
       "siteHash": "57204f57b131c88d46f5d45b32cce59e6ca4e2cfa53fc9196821227b8fcf4492",
@@ -502,7 +502,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 92,
+      "line": 100,
       "column": 99,
       "owner": "PrintingScope",
       "siteHash": "cd45a0578e54c703ce04c37470fd6a21c0e1768ae692e25a735b7c5ec120641d",
@@ -510,7 +510,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 92,
+      "line": 100,
       "column": 633,
       "owner": "PrintingScope",
       "siteHash": "329929095243c783092b6cf4e2bd2186f8cf3bd2f371c456e17893ce00b328fe",
@@ -518,7 +518,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 92,
+      "line": 100,
       "column": 831,
       "owner": "PrintingScope",
       "siteHash": "2aae9e7cf466bf9f0ef42ffab56eb8dc95039d60407efeb08c20f49fd779deb5",
@@ -526,7 +526,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 93,
+      "line": 101,
       "column": 108,
       "owner": "PrintingScope",
       "siteHash": "81c5efd097c31ce6200698ca33b5f098132f023954e24bbc77288e603c62546f",
@@ -534,7 +534,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 94,
+      "line": 102,
       "column": 672,
       "owner": "PrintingScope",
       "siteHash": "96b14770513f9b8d1da82da755eceadc178a4d806a69497772ab0f44996560d9",
@@ -542,7 +542,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 94,
+      "line": 102,
       "column": 857,
       "owner": "PrintingScope",
       "siteHash": "79ee83243bdb877f816351b037249dd5ed1dca4132ac1cc266bdc8c44843c30c",
@@ -550,7 +550,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 94,
+      "line": 102,
       "column": 1020,
       "owner": "PrintingScope",
       "siteHash": "24df2a96f37c12b69f13ab98ce2d917211a78dda6ae977baf6dc39972a57613c",
@@ -558,7 +558,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 100,
+      "line": 108,
       "column": 29,
       "owner": "PrintingScope",
       "siteHash": "a0190ffa0a0185b12c6a51e32c272b3a319abebd3ed879bdeed06fb2f642e622",
@@ -566,7 +566,7 @@
     },
     {
       "file": "app/printing-workspace.tsx",
-      "line": 104,
+      "line": 112,
       "column": 627,
       "owner": "PrintingScope",
       "siteHash": "60766639533816d854fe3d7922633ec7d62e3ddaf87c8a08f3bac286efcc9899",
@@ -973,6 +973,45 @@
       {
         "command": "node build-tools/check-ui-architecture.mjs",
         "result": "PASS 321 modules"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ]
+  },
+  "printing287": {
+    "baseline": "b4aabdde55ca6547694dfb9302f5060a11f87d71",
+    "productSource": "a35543b204f15606497b540aab29b3589c01849a",
+    "baselineCanonicalMetadataCorrections": [],
+    "canonicalActions": 616,
+    "newCanonicalActions": 0,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [],
+    "allCanonicalJsxAndOwnersUnchanged": true,
+    "sourceReview": {
+      "files": [
+        "app/workspace-request.ts",
+        "app/printing-workspace.tsx"
+      ],
+      "result": "APTO: response body consumed once, HTTP status retained on parse/body errors; 401/403 discard data, pairing, forms and preview, advance accessGeneration/epoch and prevent deferred responses from restoring secrets. All616 canonical action JSX/owners and55 reviewed native widget JSX/owners remain exact. No new canonical review or exemption needed.",
+      "transportSha256": "b669c6ef134d620d38737fee8e834da5e0d2f7505ce6dc5414b68fa871d3fdce",
+      "limitations": "Source and audit metadata review only; no physical device, full build or production validation by this agent."
+    },
+    "checks": [
+      {
+        "command": "node --test tests/migrate-ui-actions.test.mjs",
+        "result": "PASS21/21"
+      },
+      {
+        "command": "node tests/ui-architecture.test.mjs",
+        "result": "PASS9/9"
+      },
+      {
+        "command": "node build-tools/check-ui-architecture.mjs",
+        "result": "PASS321 modules"
       },
       {
         "command": "git diff --check",
