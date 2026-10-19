@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Release195 / #265: exact reviewed widget JSX and owners preserved; only source hashes and positions refreshed.",
+  "scope": "Compact Balance #289: exact reviewed native widget JSX/owners preserved; three new and two changed canonical actions explicitly reviewed, file hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -646,7 +646,7 @@
     },
     {
       "file": "app/ui-v2.tsx",
-      "sourceHash": "66de422a0bbc46db810c08b9b273f21f169673bd93874c80f78ba950ea4818f9",
+      "sourceHash": "290b61fb658596413c4b29a26d3875bedf91a15c512334afc5243efffdf662ec",
       "sites": [
         {
           "line": 341,
@@ -663,14 +663,14 @@
     },
     {
       "file": "app/ui/select.tsx",
-      "sourceHash": "4a41b2afaa10e7df0f53b65ac8db22ff59968c613a1790e990c2973c3e394108",
+      "sourceHash": "204011c7bc70cd9ca83e7bcd077fed3bcf79eb5545a6d836d82c952c6f9331df",
       "sites": [
         {
           "action": "retain",
           "canonical": "app/ui/select.tsx::Selector (trigger / optionNode)",
           "rationale": "Opción canónica single/multi: role option/aria-selected o inline aria-pressed, disabled, choose y contenido provienen del mismo engine. Mantener anatomía de opción, no convertir en acción CTA.",
           "canonicalOwner": "DSN: Selector comparte presenter/engine; dominio conserva opciones y callback",
-          "line": 95,
+          "line": 99,
           "column": 14,
           "siteHash": "62d8a4b5ca2ef8815f8ddba40fd3a35fc846edd6a2d52c1b7381c1087e740188",
           "owner": "optionNode",
@@ -681,7 +681,7 @@
           "canonical": "app/ui/select.tsx::Selector (trigger / optionNode)",
           "rationale": "Trigger canónico de selector: ref, aria-controls/listbox, expanded, keyboard ArrowUp/Down y foco pertenecen al engine compartido. Mantener anatomía y geometría, sin padding de acción.",
           "canonicalOwner": "DSN: Selector comparte presenter/engine; dominio conserva opciones y callback",
-          "line": 109,
+          "line": 113,
           "column": 4,
           "siteHash": "5f832d2f0dbf47014859ed7d50990892c700f54348c024974f1df9782e886d7e",
           "owner": "Selector",

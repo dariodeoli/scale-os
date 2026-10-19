@@ -3,7 +3,7 @@
   "mode": "audit",
   "fallbackVariant": null,
   "counts": {
-    "canonical": 602,
+    "canonical": 605,
     "structural": 55,
     "renderer": 1
   },
@@ -316,12 +316,12 @@
     {
       "file": "app/finance-balance.tsx",
       "changed": false,
-      "sha256": "6913581565c264406593368b048596d8691f267cb1786071e8b889b1c4e7ea0f"
+      "sha256": "b74fb6a43477a9c8a48ad397255c79915211b5f36160a1e1203a368c1bfe0a2b"
     },
     {
       "file": "app/finance-clients.tsx",
       "changed": false,
-      "sha256": "2a324f56764eb710b57a84ac3ae47d311164b1befdc054aa69fe44a5440bac15"
+      "sha256": "6853b3f56f5f9decac5e9b5960a35799d0408cb132a550a39e292c6b3a1004cc"
     },
     {
       "file": "app/finance-collections.tsx",
@@ -432,6 +432,11 @@
       "file": "app/mobile-navigation.tsx",
       "changed": false,
       "sha256": "ef3202caa09c750338ed0229b917a5233eec78196d0882b0554554443277a31a"
+    },
+    {
+      "file": "app/month-picker.tsx",
+      "changed": false,
+      "sha256": "da0caa1a8268cb917f9a6939ed0105f08733deffdbfeb166bd4f27ad88305082"
     },
     {
       "file": "app/my-data.tsx",
@@ -546,7 +551,7 @@
     {
       "file": "app/profile-controls.tsx",
       "changed": false,
-      "sha256": "9476279c0f05dca5988328e1e71b979af5183fd0136f3460b758415ce917e0f5"
+      "sha256": "5098285ac8dbcde77667d1bcf7821635ef022e1adbdf8eeb71153f9498d216c7"
     },
     {
       "file": "app/profile-photo.tsx",
@@ -906,7 +911,7 @@
     {
       "file": "app/ui-v2.tsx",
       "changed": false,
-      "sha256": "66de422a0bbc46db810c08b9b273f21f169673bd93874c80f78ba950ea4818f9"
+      "sha256": "290b61fb658596413c4b29a26d3875bedf91a15c512334afc5243efffdf662ec"
     },
     {
       "file": "app/ui/amount.tsx",
@@ -981,7 +986,7 @@
     {
       "file": "app/ui/select.tsx",
       "changed": false,
-      "sha256": "4a41b2afaa10e7df0f53b65ac8db22ff59968c613a1790e990c2973c3e394108"
+      "sha256": "204011c7bc70cd9ca83e7bcd077fed3bcf79eb5545a6d836d82c952c6f9331df"
     },
     {
       "file": "app/ui/smart-field.tsx",
@@ -2653,8 +2658,8 @@
     {
       "file": "app/finance-balance.tsx",
       "line": 52,
-      "column": 108,
-      "offset": 5763,
+      "column": 298,
+      "offset": 5936,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2664,8 +2669,8 @@
     {
       "file": "app/finance-balance.tsx",
       "line": 52,
-      "column": 234,
-      "offset": 5889,
+      "column": 582,
+      "offset": 6220,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2674,9 +2679,9 @@
     },
     {
       "file": "app/finance-balance.tsx",
-      "line": 53,
-      "column": 400,
-      "offset": 6454,
+      "line": 52,
+      "column": 708,
+      "offset": 6346,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2687,7 +2692,7 @@
       "file": "app/finance-balance.tsx",
       "line": 62,
       "column": 157,
-      "offset": 9993,
+      "offset": 9943,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2697,8 +2702,8 @@
     {
       "file": "app/finance-balance.tsx",
       "line": 64,
-      "column": 975,
-      "offset": 11229,
+      "column": 982,
+      "offset": 11186,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2709,7 +2714,7 @@
       "file": "app/finance-balance.tsx",
       "line": 66,
       "column": 753,
-      "offset": 12207,
+      "offset": 12164,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2720,7 +2725,7 @@
       "file": "app/finance-balance.tsx",
       "line": 66,
       "column": 1609,
-      "offset": 13063,
+      "offset": 13020,
       "kind": "canonical-button",
       "owner": "BalancePanel",
       "status": "canonical",
@@ -2729,9 +2734,9 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 21,
+      "line": 23,
       "column": 366,
-      "offset": 2115,
+      "offset": 2435,
       "kind": "canonical-button",
       "owner": "FinanceClientsSection",
       "status": "canonical",
@@ -2740,9 +2745,20 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 30,
+      "line": 27,
+      "column": 258,
+      "offset": 3638,
+      "kind": "canonical-button",
+      "owner": "FinanceClientsSection",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "line": 34,
       "column": 60,
-      "offset": 4580,
+      "offset": 5963,
       "kind": "canonical-button",
       "owner": "FinanceClientsSection",
       "status": "canonical",
@@ -2751,9 +2767,9 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 30,
+      "line": 34,
       "column": 197,
-      "offset": 4717,
+      "offset": 6100,
       "kind": "canonical-button",
       "owner": "FinanceClientsSection",
       "status": "canonical",
@@ -4136,6 +4152,28 @@
       "type": "button",
       "reviewed": true,
       "canonical": "app/desktop-sidebar.tsx + mobile-navigation.tsx + superadmin/sidebar.tsx → NavigationAction"
+    },
+    {
+      "file": "app/month-picker.tsx",
+      "line": 24,
+      "column": 3,
+      "offset": 2056,
+      "kind": "canonical-button",
+      "owner": "MonthPicker",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
+    },
+    {
+      "file": "app/month-picker.tsx",
+      "line": 26,
+      "column": 3,
+      "offset": 2363,
+      "kind": "canonical-button",
+      "owner": "MonthPicker",
+      "status": "canonical",
+      "reason": "existing local action facade",
+      "type": "button"
     },
     {
       "file": "app/my-data.tsx",
@@ -7861,9 +7899,9 @@
     },
     {
       "file": "app/ui-v2.tsx",
-      "line": 490,
+      "line": 493,
       "column": 27,
-      "offset": 30367,
+      "offset": 30706,
       "kind": "canonical-button",
       "owner": "BulkBar",
       "status": "canonical",
@@ -7872,9 +7910,9 @@
     },
     {
       "file": "app/ui-v2.tsx",
-      "line": 492,
+      "line": 495,
       "column": 19,
-      "offset": 30567,
+      "offset": 30906,
       "kind": "canonical-button",
       "owner": "BulkBar",
       "status": "canonical",
@@ -7905,9 +7943,9 @@
     },
     {
       "file": "app/ui/select.tsx",
-      "line": 95,
+      "line": 99,
       "column": 14,
-      "offset": 8687,
+      "offset": 9147,
       "kind": "native",
       "owner": "optionNode",
       "status": "structural",
@@ -7918,9 +7956,9 @@
     },
     {
       "file": "app/ui/select.tsx",
-      "line": 109,
+      "line": 113,
       "column": 4,
-      "offset": 10485,
+      "offset": 10948,
       "kind": "native",
       "owner": "Selector",
       "status": "structural",

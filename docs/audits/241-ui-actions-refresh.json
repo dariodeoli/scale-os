@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -33,14 +33,14 @@
     {
       "file": "app/finance-balance.tsx",
       "beforeHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
-      "afterHash": "6913581565c264406593368b048596d8691f267cb1786071e8b889b1c4e7ea0f",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "b74fb6a43477a9c8a48ad397255c79915211b5f36160a1e1203a368c1bfe0a2b",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/finance-clients.tsx",
       "beforeHash": "68534a18c91d071e17263c805775a6edb53339c611560d6da529678f8f39551b",
-      "afterHash": "2a324f56764eb710b57a84ac3ae47d311164b1befdc054aa69fe44a5440bac15",
-      "rationale": "Totales y columnas/íconos con labels del plan/factura; mismas acciones Button/IconAction y gates de términos/historial. Revisión99e7: Clase finance-panel-note para contener notas del Balance; mismos Button/IconAction, gates y callbacks."
+      "afterHash": "6853b3f56f5f9decac5e9b5960a35799d0408cb132a550a39e292c6b3a1004cc",
+      "rationale": "Totales y columnas/íconos con labels del plan/factura; mismas acciones Button/IconAction y gates de términos/historial. Revisión99e7: Clase finance-panel-note para contener notas del Balance; mismos Button/IconAction, gates y callbacks. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/finance-collections.tsx",
@@ -197,6 +197,30 @@
       "beforeHash": "bb16036d248a008045e36d809019613311926c624a96c414fda10a83a7185ff2",
       "afterHash": "9b55823f12bbc32431c27af645e566163130cbbf669f29d6adf9348b4bb44ed0",
       "rationale": "SEO de artículos: imágenes sociales absolutas y BreadcrumbList; comparación exacta demuestra mismos sitios de acciones, sin nuevos widgets ni cambios de callback."
+    },
+    {
+      "file": "app/month-picker.tsx",
+      "beforeHash": null,
+      "afterHash": "da0caa1a8268cb917f9a6939ed0105f08733deffdbfeb166bd4f27ad88305082",
+      "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/profile-controls.tsx",
+      "beforeHash": "9476279c0f05dca5988328e1e71b979af5183fd0136f3460b758415ce917e0f5",
+      "afterHash": "5098285ac8dbcde77667d1bcf7821635ef022e1adbdf8eeb71153f9498d216c7",
+      "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/ui-v2.tsx",
+      "beforeHash": "66de422a0bbc46db810c08b9b273f21f169673bd93874c80f78ba950ea4818f9",
+      "afterHash": "290b61fb658596413c4b29a26d3875bedf91a15c512334afc5243efffdf662ec",
+      "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/ui/select.tsx",
+      "beforeHash": "4a41b2afaa10e7df0f53b65ac8db22ff59968c613a1790e990c2973c3e394108",
+      "afterHash": "204011c7bc70cd9ca83e7bcd077fed3bcf79eb5545a6d836d82c952c6f9331df",
+      "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved."
     }
   ],
   "addedCanonical": [
@@ -447,6 +471,30 @@
       "owner": "StudioPanel",
       "siteHash": "3e115b909d8c2820579e70cc008c68af13eba2749773bab38f46e1462b9a54f9",
       "rationale": "Acción canónica adicional revisada para194: agendaHoy, resumen/lista, contactos o recuperación de preferencias; conserva permisos, callbacks y foco del componente compartido."
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "line": 27,
+      "column": 258,
+      "owner": "FinanceClientsSection",
+      "siteHash": "e1e292e8fcb10e6437ce98746fe4581ea737bfed55392ec54d591bf56f9ad26c",
+      "rationale": "Refs #289: Revisar/Ocultar inactivos usa Button canónico type button y aria-pressed; sólo alterna filas de presentación, conserva cobros/deudas/totales exactos y reinicia al cambiar mes, sin mutar cliente ni permisos."
+    },
+    {
+      "file": "app/month-picker.tsx",
+      "line": 24,
+      "column": 3,
+      "owner": "MonthPicker",
+      "siteHash": "b8f9a083bea0d789e11df1b02b8addc3e802dd987c61248dcf6945fb36bf46dd",
+      "rationale": "Refs #289: Flecha mensual usa IconButton canónico type button, label accesible, límite1900-01/9998-12 y adjacentMonth validado; disabled al extremo, emite solo mes válido y no escribe datos ni modifica cierre."
+    },
+    {
+      "file": "app/month-picker.tsx",
+      "line": 26,
+      "column": 3,
+      "owner": "MonthPicker",
+      "siteHash": "922172a0ef788c0d97321796c808466529ef1b0e7578a96c2e5f7b236e69c5b6",
+      "rationale": "Refs #289: Flecha mensual usa IconButton canónico type button, label accesible, límite1900-01/9998-12 y adjacentMonth validado; disabled al extremo, emite solo mes válido y no escribe datos ni modifica cierre."
     }
   ],
   "retiredStructural": [
@@ -700,5 +748,163 @@
     },
     "unreviewed": 0,
     "review": "Todos los sitios JSX de acciones coinciden exactamente con el inventario195; cambia únicamente el hash de la página SEO."
+  },
+  "compact289": {
+    "baseline": "6f9be7de0931ca5d44784b76d910873fb5590bf5",
+    "productSource": "22ba2345bdb3332ed7f171ecccb94dbb271f0ce3",
+    "baselineCanonicalMetadataCorrections": [],
+    "canonicalActions": 605,
+    "newCanonicalActions": 3,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [
+      {
+        "file": "app/finance-balance.tsx",
+        "owner": "BalancePanel",
+        "beforeHash": "582ce53662ba9de610f164aecb7b434e961813c51868202d377f01c00be298ba",
+        "afterHash": "1881253dd038b2b3f709f25975f4ac9fd57d8be97811304fe1119f5057c09b47",
+        "rationale": "Refs #289: Registrar gasto conserva canExpenses, onClick y variant; cambia bloqueo a currentTreasury del mes seleccionado y closed correspondiente para no operar con el snapshot del mes anterior."
+      },
+      {
+        "file": "app/finance-balance.tsx",
+        "owner": "BalancePanel",
+        "beforeHash": "7ea199c2ca1ed926a9ba8bbfa76a41359c37471fb48f843ee374f9658709d459",
+        "afterHash": "939c1ce6185e645ad39dcbf93c8be1ae2f3f0604f67fb8d0b957b8186c82dd01",
+        "rationale": "Refs #289: Cerrar/reabrir conserva gate owner y Editor auditado; onClick captura month, closed y revision del snapshot actual para evitar que una confirmación antigua cierre otro período tras cambiar de mes."
+      },
+      {
+        "file": "app/finance-clients.tsx",
+        "owner": "FinanceClientsSection",
+        "beforeHash": null,
+        "afterHash": "e1e292e8fcb10e6437ce98746fe4581ea737bfed55392ec54d591bf56f9ad26c",
+        "rationale": "Refs #289: Revisar/Ocultar inactivos usa Button canónico type button y aria-pressed; sólo alterna filas de presentación, conserva cobros/deudas/totales exactos y reinicia al cambiar mes, sin mutar cliente ni permisos."
+      },
+      {
+        "file": "app/month-picker.tsx",
+        "owner": "MonthPicker",
+        "beforeHash": null,
+        "afterHash": "b8f9a083bea0d789e11df1b02b8addc3e802dd987c61248dcf6945fb36bf46dd",
+        "rationale": "Refs #289: Flecha mensual usa IconButton canónico type button, label accesible, límite1900-01/9998-12 y adjacentMonth validado; disabled al extremo, emite solo mes válido y no escribe datos ni modifica cierre."
+      },
+      {
+        "file": "app/month-picker.tsx",
+        "owner": "MonthPicker",
+        "beforeHash": null,
+        "afterHash": "922172a0ef788c0d97321796c808466529ef1b0e7578a96c2e5f7b236e69c5b6",
+        "rationale": "Refs #289: Flecha mensual usa IconButton canónico type button, label accesible, límite1900-01/9998-12 y adjacentMonth validado; disabled al extremo, emite solo mes válido y no escribe datos ni modifica cierre."
+      }
+    ],
+    "reviewedNativeWidgets": {
+      "count": 55,
+      "hashAndOwnerExact": true,
+      "sortedFileOwnerSiteHashSha256": "00c5b4640823d29d56ac97250baf89e2172f9665e2e6a1153c0eabad8a1f0ed0",
+      "newExemptions": 0,
+      "retiredExemptions": 0
+    },
+    "sourceReview": {
+      "result": "APTO: no blocking finding after coarse-pointer month-control token fix. Existing canonical controls preserved except two explicitly reviewed month snapshot guards; three new actions explicitly reviewed.",
+      "semantics": "Contracted totals include currently active clients; monthly received/debt and inactive agreement records remain preserved. Unknown legacy status stays visible with an explicit notice. Month changes accept only supported complete values, hide stale treasury data, reset inactive review and bind close/reopen confirmation to original month/revision.",
+      "sharedUi": "PageHeader navigation and actions preserve mobile DOM/visual keyboard order. Selector search callback is additive and does not emit at mount. MonthPicker uses shared select/calendar/IconButton primitives; coarse controls use the shared height token, preserving44px at768/1024 without global fake target rules.",
+      "limitations": "Source review and local synthetic read-only component QA only. No authenticated shell, production mutations, physical devices or Safari claimed."
+    },
+    "strictBalanceQa": {
+      "passed": true,
+      "artifact": "/tmp/scale289-combined-balance/results.json",
+      "runner": "/tmp/scale289-balance-combined.mjs",
+      "scope": "Actual BalanceSection with PageTitle/PageChrome, real CSS, synthetic read-only transport; 192px sidebar host, no authenticated shell or production/hardware claims.",
+      "applicationSourceMatches": "22ba2345bdb3332ed7f171ecccb94dbb271f0ce3",
+      "widths": [
+        320,
+        390,
+        768,
+        1024,
+        1440,
+        1920
+      ],
+      "metrics": [
+        {
+          "width": 320,
+          "headerHeight": 139.5,
+          "toolbarHeight": 102,
+          "contentTop": 281.5,
+          "smallMonthTargets": [],
+          "monthChanged": true,
+          "inactiveReviewPreservedTotals": true
+        },
+        {
+          "width": 390,
+          "headerHeight": 139.5,
+          "toolbarHeight": 102,
+          "contentTop": 281.5,
+          "smallMonthTargets": [],
+          "monthChanged": true,
+          "inactiveReviewPreservedTotals": true
+        },
+        {
+          "width": 768,
+          "headerHeight": 125.5,
+          "toolbarHeight": 50,
+          "contentTop": 215.5,
+          "smallMonthTargets": [],
+          "monthChanged": true,
+          "inactiveReviewPreservedTotals": true
+        },
+        {
+          "width": 1024,
+          "headerHeight": 90,
+          "toolbarHeight": 50,
+          "contentTop": 180,
+          "smallMonthTargets": [],
+          "monthChanged": true,
+          "inactiveReviewPreservedTotals": true
+        },
+        {
+          "width": 1440,
+          "headerHeight": 42,
+          "toolbarHeight": 42,
+          "contentTop": 124,
+          "smallMonthTargets": [],
+          "monthChanged": true,
+          "inactiveReviewPreservedTotals": true
+        },
+        {
+          "width": 1920,
+          "headerHeight": 42,
+          "toolbarHeight": 42,
+          "contentTop": 124,
+          "smallMonthTargets": [],
+          "monthChanged": true,
+          "inactiveReviewPreservedTotals": true
+        }
+      ],
+      "screenshotPaths": [
+        "/tmp/scale289-combined-balance/1440.png",
+        "/tmp/scale289-combined-balance/320.png"
+      ],
+      "checks": "One title, contained document, populated client/personnel tables, exact contracted8000 vs received150 including inactive50, review toggle preserves totals, valid next-month reload resets review, coarse targets>=44px."
+    },
+    "checks": [
+      {
+        "command": "node --test tests/migrate-ui-actions.test.mjs",
+        "result": "PASS21/21"
+      },
+      {
+        "command": "node tests/ui-architecture.test.mjs",
+        "result": "PASS9/9"
+      },
+      {
+        "command": "node build-tools/check-ui-architecture.mjs",
+        "result": "PASS321 modules"
+      },
+      {
+        "command": "node /tmp/scale289-balance-combined.mjs",
+        "result": "PASS6/6 widths; strict targets, zero runtime errors; synthetic read-only transport"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ]
   }
 }
