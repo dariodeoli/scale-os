@@ -98,6 +98,7 @@ const ClientesSection=dynamic(()=>import('./sections/clientes').then(m=>m.Client
 const MoraSection=dynamic(()=>import('./sections/mora').then(m=>m.MoraSection),{loading:()=> <SectionLoading label="Cargando sección…"/>});
 const ProyectosSection=dynamic(()=>import('./sections/proyectos').then(m=>m.ProyectosSection),{loading:()=> <SectionLoading label="Cargando sección…"/>});
 const ResumenSection=dynamic(()=>import('./sections/resumen').then(m=>m.ResumenSection),{loading:()=> <SectionLoading label="Cargando sección…"/>});
+const PrintingWorkspace=dynamic(()=>import('./printing-workspace').then(m=>m.PrintingWorkspace),{loading:()=> <SectionLoading label="Cargando impresión…"/>});
 const ContractsWorkspace=dynamic(()=>import('./contracts-workspace').then(m=>m.ContractsWorkspace),{loading:()=> <SectionLoading label="Cargando contratos…"/>});
 const InvoiceForm=dynamic(()=>import('./workspace-forms').then(m=>m.InvoiceForm),{loading:()=> <SectionLoading label="Cargando formulario…"/>});
 const OrderForm=dynamic(()=>import('./workspace-forms').then(m=>m.OrderForm),{loading:()=> <SectionLoading label="Cargando formulario…"/>});
@@ -139,6 +140,7 @@ import {
   LogOut,
   Pencil,
   Plus,
+  Printer,
   RotateCcw,
   Search,
   Settings,
@@ -162,7 +164,7 @@ import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button"
 // en Recursos (agenda de espacios/equipos). Las rutas y los apartados de cada
 // módulo no cambian.
 const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
-const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
+const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,'Impresión 80 mm':Printer,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
 function localMonth(){return currentAsuncionMonth();}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
   return user?`${user.id}:${user.organization_id}:${user.role}`:'';
@@ -1118,6 +1120,7 @@ export default function Home() {
         {active==='Planes'&&<PlanesSection user={user}/>}
         {active==='Inventario'&&<InventarioSection user={user}/>}
         {active==='Estudio'&&<EstudioSection user={user}/>}
+        {active==='Impresión 80 mm'&&user&&<PrintingWorkspace key={`${user.organization_id}:${user.id}:${!!user.demo_owner_user_id}`} scopeKey={`${user.organization_id}:${user.id}:${!!user.demo_owner_user_id}`} demo={!!user.demo_owner_user_id}/>}
         {active==='Actividad'&&<ActividadSection user={user}/>}
         {active==='Configuración'&&<ConfiguracionSection user={user} subscriptionError={subscriptionError} refreshSubscription={refreshSubscription} exitDemoSimulation={exitDemoSimulation} deletionSignedOut={deletionSignedOut}/>}
         {active==='Contratos'&&user&&<PageTitleContext.Provider value=""><ContractsWorkspace key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/></PageTitleContext.Provider>}
