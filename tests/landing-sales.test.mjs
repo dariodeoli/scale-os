@@ -42,7 +42,7 @@ test('signup CTAs lead only to registration; demo stays separate and isolated',(
  assert(text.includes('copia aislada con datos ficticios, sin registro'));
  assert(text.includes('no inicia la prueba'));
  assert(text.includes('registrarte con Google no habilita el acceso a una agencia ajena'));
- assert(links.every(link=>link.href?.startsWith('#')||link.href?.startsWith('https://')));
+ assert(links.every(link=>link.href?.startsWith('#')||link.href?.startsWith('https://')||['/documentacion','/documentacion/mcp','/documentacion/api'].includes(link.href)), 'only explicit public documentation routes may use relative URLs');
 });
 
 test('product screenshots and module copy make no fabricated adoption or live-data claims',()=>{
@@ -245,4 +245,24 @@ test('mocked failures retain input and WhatsApp still records the aggregate even
  assert.equal(page.status.textContent,'<b>Error de prueba</b>');
  assert.equal(page.status.innerHTML,undefined,'errors are assigned as text, never HTML');
  page.clicks[0]();assert.deepEqual(page.calls.at(-1).body,{name:'whatsapp_click'});
+});
+
+
+test('landing #325: current workflows, simulated product visual and scoped MCP documentation',()=>{
+ const visible=html.replace(/<!--[\s\S]*?-->/g,'').replace(/<style>[\s\S]*?<\/style>/g,'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'');
+ const section=id=>visible.slice(visible.indexOf(`<section id="${id}"`),visible.indexOf('</section>',visible.indexOf(`<section id="${id}"`)));
+ const hero=section('hero'),mcp=section('mcp'),docs=section('documentacion');
+ assert(hero.includes('DATOS SIMULADOS')&&hero.includes('Los datos de esta vista son simulados'));
+ assert(hero.includes('role="table" aria-label="Balance con datos simulados"'));
+ for(const label of ['Contratado','Cobrado','Salarios y gastos'])assert(hero.includes(label),label);
+ assert(!hero.includes('PRODUCTO REAL'),'product data is explicitly illustrative');
+ for(const capability of ['servicios extras por cliente y mes','historial de cambios','Vista previa A4','PDF de la versión emitida','propietario, ubicación','salarios base y pagados','Gastos recurrentes y puntuales','Cronología de salarios','Elegí las columnas'])assert(text.includes(capability),capability);
+ for(const capability of ['OAuth','permisos vigentes','lectura o escritura','confirmación explícita','revocar la conexión','cliente MCP compatible'])assert(mcp.includes(capability),capability);
+ assert(mcp.includes('href="/documentacion/mcp"'));
+ for(const path of ['/documentacion','/documentacion/mcp','/documentacion/api'])assert(docs.includes(`href="${path}"`),path);
+ assert(html.match(/<nav aria-label="Navegación principal">[\s\S]*?<\/nav>/)[0].includes('href="/documentacion"'));
+ assert(!/Claude|ChatGPT|CIMD|firma digital certificada|API REST pública|cualquier endpoint/.test(visible),'no unverified external integrations or unrestricted API claims');
+ const css=html.match(/<style>([\s\S]*?)<\/style>/)[1];
+ assert(css.includes('.button{border-radius:7px;box-shadow:none}'));
+ assert.equal((html.match(/<script>/g)||[]).length,3,'no new runtime for marketing visuals or documentation');
 });
