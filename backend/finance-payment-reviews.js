@@ -1,3 +1,4 @@
+import {attributeActors} from './actor-identity.js';
 import {roleCan} from './permissions.js';
 import {fail,id,text} from './suite-validation.js';
 import {forecastMonth} from './forecast.js';
@@ -15,7 +16,7 @@ export async function paymentReviews(c,org,month,clientId=null,limit=50,offset=0
   row.logo_url=mediaPhoto('client',row.client_id,row.logo_url);
   const params=[org,row.client_id,month+'-01'];
   const [payments,debts,income,terms]=[
-   await c.query(`select p.id::text,p.amount::text,a.currency,p.received_on::text,p.account_id::text,p.invoice_id::text,p.reference,r.id::text as reversal_id,r.reversed_on::text from agency_payments p join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id left join agency_invoices i on i.organization_id=p.organization_id and i.id=p.invoice_id left join agency_payment_links l on l.organization_id=p.organization_id and l.payment_id=p.id left join agency_payment_reversals r on r.organization_id=p.organization_id and r.payment_id=p.id where p.organization_id=$1 and coalesce(i.client_id,l.client_id)=$2 and p.received_on>=$3::date and p.received_on<($3::date+interval '1 month') order by p.received_on,p.id`,params),
+   await c.query(`select p.id::text,p.amount::text,a.currency,p.received_on::text,p.account_id::text,p.invoice_id::text,p.reference,r.id::text as reversal_id,r.reversed_on::text from agency_payments p join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id left join agency_invoices i on i.organization_id=p.organization_id and i.id=p.invoice_id left join agency_payment_links l on l.organization_id=p.organization_id and l.payment_id=p.id left join agency_payment_reversals r on r.organization_id=p.organization_id and r.payment_id=p.id where p.organization_id=$1 and coalesce(i.client_id,l.client_id)=$2 and (l.period=$3::date or (l.period is null and p.received_on>=$3::date and p.received_on<($3::date+interval '1 month'))) order by p.received_on,p.id`,params),
    await c.query('select id::text,amount::text,currency,period::text,due_on::text,expected_on::text,outstanding_amount::text from agency_opening_receivable_balances where organization_id=$1 and client_id=$2 order by due_on,id',params.slice(0,2)),
    await c.query('select id::text,kind,label,amount::text,currency,month::text from agency_client_monthly_income where organization_id=$1 and client_id=$2 and month=$3::date and deleted_at is null order by kind,id',params),
    await c.query('select client_id::text,plan_id::text,plan_name,currency,recurring_amount::text,starts_on::text,ends_on::text from agency_commercial_terms_for_month($1,$3::date) where client_id=$2',params),
@@ -23,6 +24,7 @@ export async function paymentReviews(c,org,month,clientId=null,limit=50,offset=0
   row.evidence={payments:payments.rows,opening_receivables:debts.rows,monthly_income:income.rows,commercial_terms:terms.rows};
   row.missing={relationship_started_on:!row.relationship_started_on,agreement:terms.rows.length===0&&income.rows.length===0,payment_evidence:payments.rows.filter(p=>!p.reversal_id).length===0};
  }
+ await attributeActors(c,org,[{rows:clients,userId:'reviewed_by'}]);
  return clients;
 }
 export async function financePaymentReviews({req,res,url,db,session,body,send}){
@@ -30,7 +32,7 @@ export async function financePaymentReviews({req,res,url,db,session,body,send}){
  try{
   const user=await session(req);if(!user)fail('No autenticado',401);if(!roleCan(user,req.method==='GET'?'billing.view':'payments.manage'))fail('Tu rol no permite revisar cobros',403);
   if(req.method==='GET'){
-   const month=forecastMonth(url.searchParams.get('month')),limit=Number(url.searchParams.get('limit')||50),offset=Number(url.searchParams.get('offset')||0);if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0||offset>10000)fail('Paginación inválida');const clients=await paymentReviews(db,user.organization_id,month,match[1]||null,limit,offset);if(match[1]&&!clients.length)fail('Cliente no disponible',404);send(res,200,{month,clients:clients.slice(0,limit),hasMore:clients.length>limit,limit,offset,definition:'Revisión documental independiente del saldo. Revisado no acredita cobro ni elimina deuda; pagos reales conservan fecha, cuenta y trazabilidad.'});return true;
+   const month=forecastMonth(url.searchParams.get('month')),limit=Number(url.searchParams.get('limit')||50),offset=Number(url.searchParams.get('offset')||0);if(!Number.isSafeInteger(limit)||limit<1||limit>100||!Number.isSafeInteger(offset)||offset<0||offset>10000)fail('Paginación inválida');const clients=await paymentReviews(db,user.organization_id,month,match[1]||null,limit,offset);if(match[1]&&!clients.length)fail('Cliente no disponible',404);send(res,200,{month,clients:clients.slice(0,limit),hasMore:clients.length>limit,limit,offset,definition:'Revisión documental independiente del saldo. Revisado no acredita cobro ni elimina deuda. Evidencia por período asociado explícito, o fecha real si no hay período; fecha, cuenta e historial se conservan.'});return true;
   }
   if(req.method!=='PATCH'||!match[1])fail('Método no permitido',405);
   const b=await body(req);if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(b).some(k=>!['month','status','note','expectedRevision','requestId'].includes(k)))fail('Campos de revisión inválidos');
