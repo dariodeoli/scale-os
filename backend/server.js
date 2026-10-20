@@ -374,7 +374,7 @@ function cors(req, res) {
   res.setHeader('Vary', 'Origin');
   return true;
 }
-const mcpIntegration=createMcpIntegration({db,session});
+const mcpIntegration=createMcpIntegration({db,session,services:{sendInvitation,sendAccessGranted,appUrl}});
 const server = http.createServer(async (req,res) => {
   security(res);
   const startedAt = Date.now();
