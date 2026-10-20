@@ -1,0 +1,2 @@
+# Public server-rendered documentation: routes, links, metadata and authorization limits.
+node --import tsx --test app/documentacion/__tests__/content.test.tsx
