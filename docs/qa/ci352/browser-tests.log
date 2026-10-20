@@ -1,0 +1,15 @@
+✔ #147: la vista previa del cliente declara que no realiza acciones y no luce CTA primario (46.20801ms)
+✔ #147: Mis datos sin API marca los derechos como próximamente y deriva al canal real (0.376294ms)
+✔ #147 Chromium: actual preview fragment renders disabled neutral actions in both themes (1139.525891ms)
+✔ Chromium admin: fieldset keeps coupon flex rules and details actions never escape a collapsed form (1080.651663ms)
+✔ Chromium: native submit, keyboard, external form, ref and loading guard (679.732045ms)
+✔ Chromium: final local CSS keeps compact targets, 48px login CTA and visible keyboard focus in both themes (578.315546ms)
+✔ Chromium: real inventory/project action fragments stay readable; rich and long content still fit (4631.361014ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9180.971139

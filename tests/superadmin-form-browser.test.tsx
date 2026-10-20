@@ -3,10 +3,10 @@ import test from 'node:test';
 import {existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {build} from 'esbuild';
-const chrome=process.env.SCALE_QA_CHROME||'/usr/bin/chromium';
+const chrome=process.env.SCALE_QA_CHROME||process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium';
 const backendRequire=createRequire(new URL('../backend/package.json',import.meta.url));
 
-test('Chromium admin: fieldset keeps coupon flex rules and details actions never escape a collapsed form',{skip:!existsSync(chrome)},async()=>{
+test('Chromium admin: fieldset keeps coupon flex rules and details actions never escape a collapsed form',{skip:!process.env.CI&&!existsSync(chrome)},async()=>{
  const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
   import React from 'react';import {createRoot} from 'react-dom/client';
   import {PlatformCatalog} from './app/superadmin/catalog';import {SubscriptionDialog} from './app/superadmin/subscription-dialog';

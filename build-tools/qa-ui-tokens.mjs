@@ -27,7 +27,7 @@ const server=createServer(async(req,res)=>{
  if(req.url?.startsWith('/fonts/')&&!req.url.includes('..')){try{res.end(await readFile(resolve(root,'public',req.url.slice(1))));return;}catch{}}
  res.statusCode=404;res.end();
 });await new Promise(done=>server.listen(0,'127.0.0.1',done));
-const browser=await puppeteer.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],env:{...process.env,XDG_CONFIG_HOME:resolve(output,'config'),XDG_CACHE_HOME:resolve(output,'cache')}});
+const browser=await puppeteer.launch({executablePath:process.env.CHROME_PATH||process.env.PUPPETEER_EXECUTABLE_PATH||process.env.SCALE_QA_CHROME||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],env:{...process.env,XDG_CONFIG_HOME:resolve(output,'config'),XDG_CACHE_HOME:resolve(output,'cache')}});
 const page=await browser.newPage();await page.setRequestInterception(true);page.on('request',request=>{if(new URL(request.url()).hostname==='127.0.0.1')void request.continue();else void request.abort();});await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);const checks=[];
 try{
  for(const width of [1440,390])for(const theme of ['light','dark','contrast']){

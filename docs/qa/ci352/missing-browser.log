@@ -1,0 +1,23 @@
+✔ #147: la vista previa del cliente declara que no realiza acciones y no luce CTA primario (40.630736ms)
+✔ #147: Mis datos sin API marca los derechos como próximamente y deriva al canal real (0.29184ms)
+✖ #147 Chromium: actual preview fragment renders disabled neutral actions in both themes (294.030197ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 793.303184
+
+✖ failing tests:
+
+test at tests/dsn-147-estados.test.tsx:45:1
+✖ #147 Chromium: actual preview fragment renders disabled neutral actions in both themes (294.030197ms)
+  Error: Browser was not found at the configured executablePath (/tmp/scale352-nonexistent-browser)
+      at ChromeLauncher.launch (/workspace/scale-os/backend/node_modules/puppeteer-core/lib/puppeteer/node/BrowserLauncher.js:105:19)
+      at async ChromeLauncher.launch (/workspace/scale-os/backend/node_modules/puppeteer-core/lib/puppeteer/node/ChromeLauncher.js:39:16)
+      at async PuppeteerNode.launch (/workspace/scale-os/backend/node_modules/puppeteer-core/lib/puppeteer/node/PuppeteerNode.js:124:16)
+      at async TestContext.<anonymous> (/workspace/scale-os/tests/dsn-147-estados.test.tsx:58:16)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

@@ -1,0 +1,38 @@
+{
+  "issue": 352,
+  "release": "1.0.205",
+  "source_sha256": {
+    "tests/dsn-147-estados.test.tsx": "10274832a599b07f4212e4fa72d90c4f592b680a5150bc83eff90f0b89be55ac",
+    "tests/ui-button-browser.test.tsx": "aec96cebdf2fe456a43d5c1b0c8ecb0b6e9e4d81c24796a7d57268efe30ebdbd",
+    "tests/superadmin-form-browser.test.tsx": "7d75c27ed4c92670ed82109d8ed8343dc79d4de555d6d419e57705749c59002b",
+    "build-tools/qa-ui-tokens.mjs": "a69bf9731d086f6e2c2a10426a6c85aa8dcca70f4affeb050c53068c8e01bc62",
+    "build-tools/qa-ui-action-styles.mjs": "c36cd0f5381f574465df4779c858432fcc545cd6b095d8b9658bc82a9d6288ff"
+  },
+  "selected_browser": {
+    "kind": "Real Chromium through alternate executable path containing spaces",
+    "environment": "PUPPETEER_EXECUTABLE_PATH set; SCALE_QA_CHROME and CHROME_PATH unset",
+    "tests": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "missing_browser": {
+    "environment": "CI=true; explicit nonexistent selected path",
+    "exit_code": 1,
+    "expected_failure": true,
+    "reason": "Browser was not found at configured executablePath, no successful skip"
+  },
+  "helper_acceptance": {
+    "tokens_scenarios": 6,
+    "action_scenarios": 18,
+    "action_comparisons": 1056,
+    "failures": 0,
+    "fresh_tailwind_compiled": true
+  },
+  "typescript_exit_code": 0,
+  "assertions_removed": false,
+  "product_files_changed": false,
+  "production_writes": false,
+  "historical_control": "Explicit synthetic old edit-button markup, separate from current source-derived inventory footer; all before/after/restore assertions retained.",
+  "ci": "Pending final candidate, previous backend passed and previous frontend failed beforebrowser assertions."
+}

@@ -9,10 +9,10 @@ import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
-const chrome=process.env.SCALE_QA_CHROME||'/usr/bin/chromium';
+const chrome=process.env.SCALE_QA_CHROME||process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium';
 const backendRequire=createRequire(new URL('../backend/package.json',import.meta.url));
 
-test('Chromium: native submit, keyboard, external form, ref and loading guard', {skip:!existsSync(chrome)},async()=>{
+test('Chromium: native submit, keyboard, external form, ref and loading guard', {skip:!process.env.CI&&!existsSync(chrome)},async()=>{
  const puppeteer=backendRequire('puppeteer-core');
  const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
   import React from 'react';import {createRoot} from 'react-dom/client';
@@ -49,7 +49,7 @@ test('Chromium: native submit, keyboard, external form, ref and loading guard', 
 });
 
 
-test('Chromium: final local CSS keeps compact targets, 48px login CTA and visible keyboard focus in both themes', {skip:!existsSync(chrome)},async()=>{
+test('Chromium: final local CSS keeps compact targets, 48px login CTA and visible keyboard focus in both themes', {skip:!process.env.CI&&!existsSync(chrome)},async()=>{
  const login=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
  assert.match(login,/<ScaleButton type="submit" className="primary login-button" variant="primary" size="large">/,'the actual login consumer explicitly chooses the large size');
  const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
@@ -84,7 +84,7 @@ test('Chromium: final local CSS keeps compact targets, 48px login CTA and visibl
 });
 
 
-test('Chromium: real inventory/project action fragments stay readable; rich and long content still fit', {skip:!existsSync(chrome)},async()=>{
+test('Chromium: real inventory/project action fragments stay readable; rich and long content still fit', {skip:!process.env.CI&&!existsSync(chrome)},async()=>{
  const read=(name:string)=>readFileSync(new URL(`../app/${name}`,import.meta.url),'utf8');
  const parse=(name:string)=>ts.createSourceFile(name,read(name),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  const inventory=parse('inventory-workspace.tsx'),project=parse('project-card.tsx'),operations=parse('operations.tsx'),shell=parse('scale-workspace.tsx'),suite=parse('suite.tsx');
@@ -117,6 +117,8 @@ test('Chromium: real inventory/project action fragments stay readable; rich and 
     <article id="inventory" style={{minWidth:0,maxWidth:220}}><h2>Inventario</h2><InventoryFixture/></article>
     <article id="project" style={{minWidth:0,maxWidth:220}}><h2>Proyectos</h2><ProjectFixture/></article>
    </section>
+   {/* Explicit historical markup: current inventory keeps Editar in its menu. */}
+   <section id="legacy-inventory-control" style={{display:'flex',maxWidth:220}}><Button type="button" variant="ghost" aria-label="Editar equipo: control anterior"><Pencil size={14}/>Editar</Button></section>
    <section id="compressed" style={{display:'flex',width:160,maxWidth:'100%',overflowX:'auto',gap:4}}><Button type="button" variant="ghost"><Pencil size={14}/>Editar</Button><IconButton type="button" label="Ver" icon={<Plus size={14}/>}/><IconButton type="button" label="Acciones" icon={<Plus size={14}/>}/></section>
    <section style={{width:340,maxWidth:'100%',display:'grid',gap:12}}>
     <Button id="long" type="button">{'NombreSinEspacios'.repeat(24)}</Button>
@@ -138,7 +140,7 @@ test('Chromium: real inventory/project action fragments stay readable; rich and 
    type Box={width:number;height:number;overflow:number};
    type ReadabilityMetrics={short:(Box&{text?:string;label:string|null;wordLines:number[];shrink:string})[];long:Box;rich:Box&{directChildren:string[]};company:Box&{nameOverflow:number;textOverflow:string};consumerShrink:string;pageOverflow:number};
    const measure=():Promise<ReadabilityMetrics>=>page.evaluate(()=>{
-    const short=Array.from(document.querySelectorAll<HTMLButtonElement>('#inventory [data-ui-button],#project [data-ui-button],#compressed [data-ui-button]'));
+    const short=Array.from(document.querySelectorAll<HTMLButtonElement>('#inventory [data-ui-button],#project [data-ui-button],#compressed [data-ui-button],#legacy-inventory-control [data-ui-button]'));
     const words=(button:HTMLElement)=>{const walker=document.createTreeWalker(button,NodeFilter.SHOW_TEXT),rows:number[]=[];let node:Node|null;while(node=walker.nextNode()){const text=node.textContent||'';for(const match of text.matchAll(/\S+/g)){const range=document.createRange();range.setStart(node,match.index!);range.setEnd(node,match.index!+match[0].length);rows.push(new Set(Array.from(range.getClientRects()).map(rect=>Math.round(rect.y))).size);}}return rows;};
     const box=(node:HTMLElement)=>({width:node.getBoundingClientRect().width,height:node.getBoundingClientRect().height,overflow:node.scrollWidth-node.clientWidth});
     const company=document.querySelector<HTMLElement>('#company .workspace')!,companyName=document.querySelector<HTMLElement>('#company .company-name')!;
@@ -147,7 +149,7 @@ test('Chromium: real inventory/project action fragments stay readable; rich and 
    const after=await measure();assert.equal(await page.$eval('#company .workspace',(node:any)=>node.title===node.querySelector('.company-name')?.textContent),true,'the full company name remains available in title and text');assert(after.short.length>=8);assert(after.short.some(button=>button.text==='Editar'));assert(after.short.some(button=>button.text==='Comentarios'));assert(after.short.some(button=>button.text==='Archivar'));
    for(const button of after.short){assert(button.wordLines.every(lines=>lines===1),`${theme}/${width}: ${button.text||button.label} splits a word`);assert(button.height<=(width===390?48:44),'short actions keep natural single-line height');assert(button.height>=(width===390?44:28));}
    assert.equal(after.long.overflow,0);assert(after.long.height>44);assert.equal(after.rich.overflow,0);assert.deepEqual(after.rich.directChildren,['svg','DIV']);assert.equal(after.consumerShrink,'1','a consumer can deliberately opt into flex shrink via its composition class');assert.equal(after.company.textOverflow,'ellipsis');assert(after.company.width<=240,'company trigger stays inside its existing header column');assert(after.company.nameOverflow>0,'the complete company name is visually truncated rather than expanding the header');assert(after.pageOverflow<=1);
-   const beforeStyle=await page.addStyleTag({content:'[data-ui-button]{flex-shrink:1}.control-shell .topbar-company .workspace{max-width:none}#inventory [aria-label^="Editar equipo:"]{width:44px;height:44px}'});const before=await measure();assert(before.company.width>after.company.width,'fixture reproduces the pre-existing unbounded native company trigger');assert(before.short.some(button=>button.label?.startsWith('Editar equipo:')&&button.wordLines.some(lines=>lines>1)),'fixture reproduces the previous inventory square selector on its text action');assert(before.short.some(button=>button.text==='Editar'&&button.height>after.short.find(candidate=>candidate.text==='Editar')!.height),'fixture reproduces the original action compression without the fix');await beforeStyle.evaluate((node:any)=>node.remove());assert.deepEqual(await measure(),after,'the capture restores final source styles after the before comparison');
+   const beforeStyle=await page.addStyleTag({content:'[data-ui-button]{flex-shrink:1}.control-shell .topbar-company .workspace{max-width:none}#legacy-inventory-control [aria-label^="Editar equipo:"]{width:44px;height:44px}'});const before=await measure();assert(before.company.width>after.company.width,'fixture reproduces the pre-existing unbounded native company trigger');assert(before.short.some(button=>button.label?.startsWith('Editar equipo:')&&button.wordLines.some(lines=>lines>1)),'explicit historical control reproduces the previous inventory square selector on its text action');assert(before.short.some(button=>button.text==='Editar'&&button.height>after.short.find(candidate=>candidate.text==='Editar')!.height),'fixture reproduces the original action compression without the fix');await beforeStyle.evaluate((node:any)=>node.remove());assert.deepEqual(await measure(),after,'the capture restores final source styles after the before comparison');
    output.push({width,theme,before,after});if(artifacts)await page.screenshot({path:path.join(artifacts,`button-readability-${theme}-${width}.png`),fullPage:true});
   }
   assert.deepEqual(errors,[]);if(artifacts)writeFileSync(path.join(artifacts,'button-readability-metrics.json'),JSON.stringify(output,null,2)+'\n');
