@@ -331,7 +331,7 @@ export function AccountForm({custodians,request,done,initialCurrency,account}:{c
   <label data-span="6">Alias · Opcional<InputControl {...form.register('alias')} maxLength={120} placeholder="Operativa, ahorro, caja…"/></label>
   <div data-span="12" data-form-field="custodianUserId"><EntityPicker disabled={submission.pending} legend="Quién custodia este dinero" options={custodiansOptions} value={values.custodianUserId} onChange={value=>form.setValue('custodianUserId',value,{shouldDirty:true})} placeholder="Buscar persona…" searchLabel="Buscar persona" allowEmpty emptyLabel="Sin asignar"/></div>
   {error?<p className="error ops-wide" role="alert">{error}</p>:null}<p className="field-help ops-wide">Los datos del titular se declaran manualmente o se revisan después de consultar el RUC; no verificamos titularidad bancaria.</p>
-  <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton className="primary" disabled={submission.pending} variant="primary">{submission.pending?'Guardando…':account?'Guardar cuenta':'Crear cuenta'}</ScaleButton></SaveActions><FormValidationErrors errors={form.formState.errors}/>
+  <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton type="submit" className="primary" disabled={submission.pending} variant="primary">{submission.pending?'Guardando…':account?'Guardar cuenta':'Crear cuenta'}</ScaleButton></SaveActions><FormValidationErrors errors={form.formState.errors}/>
  </PendingFields></form>;
 }
 const invoiceSchema = z.object({

@@ -145,6 +145,11 @@ export type AccountTransfer = {
 };
 export type MetricEvent = { name: string; event_date: string; count: number };
 export type ClientPaymentStatus = {
+  verification_status?:'pending_review'|'reviewed';
+  verification_month?:string;
+  verification_revision?:number;
+  payment_evidence_count?:number;
+  client_logo_url?:string|null;
   client_id: string;
   client_name: string;
   currency: Currency | null;

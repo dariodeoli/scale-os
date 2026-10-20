@@ -134,7 +134,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
 
 export function ClientDetail({id,role,close,refresh,createProject,openOrder,openProjects}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>;createProject:(id:string)=>void;openOrder:(id:string)=>void;openProjects?:(id:string)=>void}){
  const [data,setData]=useState<{client:Row;projects:Row[];orders:Row[];invoices?:Row[];payments?:Row[];budgets?:Row[];leads?:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Producción');
- const [payStatus,setPayStatus]=useState<{payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
+ const [payStatus,setPayStatus]=useState<{verification_status?:'pending_review'|'reviewed';verification_month?:string;payment_evidence_count?:number;payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
  const [summary,setSummary]=useState<ClientSummary|null>(null),[editing,setEditing]=useState(false);
  async function reload(){setData(await api(`/api/agency/productivity/clients/${id}`));await refresh();}
  useEffect(()=>{void api<typeof data>(`/api/agency/productivity/clients/${id}`).then(setData).catch(e=>setError(errorText(e)));},[id]);
