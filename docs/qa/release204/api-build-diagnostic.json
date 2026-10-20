@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-10-20T20:25:31.904118+00:00",
+  "issue": 253,
+  "source_main": "feafd529f0484e9816dabfc12ce49f5f6a1241ff",
+  "tracked_application_files_changed": false,
+  "build": {
+    "passed": true,
+    "image_id": "sha256:7681a016479648064e1954d3b6d611a6cb38e25a357125e7c30c9b96f0622c64",
+    "base": "node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f",
+    "context": "backend/",
+    "modification": "Ephemeral diagnostic Dockerfile adds BuildKit CA secret mounts to apk and npm network steps; package verification remains enabled. No tracked Dockerfile modification.",
+    "npm_ci_production": true,
+    "apk_packages": true
+  },
+  "runtime": {
+    "verified": false,
+    "reason": "Docker run failed: no space left on device in managed diagnostic environment; this does not establish the Coolify failure cause."
+  },
+  "audit": {
+    "reachable_backend_files": 120,
+    "missing_relative_imports": 0,
+    "missing_production_dependencies": 0,
+    "confirmed_code_defect": false
+  },
+  "production": {
+    "web_version": "1.0.204",
+    "api": {
+      "ok": true,
+      "database": "ready",
+      "release": {
+        "version": "1.0.202",
+        "application": "Scale OS"
+      }
+    },
+    "served_sha": null,
+    "writes_performed": false
+  },
+  "operations_access": {
+    "coolify_connector": false,
+    "configured_coolify_credentials": false,
+    "direct_deploy_webhooks": false,
+    "ssh_configuration": false
+  },
+  "deployment_triggered": false,
+  "issue_closed": false
+}

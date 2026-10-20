@@ -1,0 +1,343 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from scale253-production-ca.Dockerfile
+#1 transferring dockerfile: 650B done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 2.3s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 resolve docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e done
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0B / 14.28MB 0.1s
+#3 sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e 9.08kB / 9.08kB done
+#3 sha256:7b32114e84ca21aeb2d6f871a0b62b3a0762193f75d9afd048ee4cbe889f3148 1.13kB / 1.13kB done
+#3 sha256:528c92d70d7e39dbb3dd1c6681f6750c565c7e45b70527cda47c1a61495c1b6a 1.41kB / 1.41kB done
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 3.15MB / 14.28MB 1.0s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 6.29MB / 14.28MB 1.2s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 7.34MB / 14.28MB 1.3s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 10.49MB / 14.28MB 1.5s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 12.58MB / 14.28MB 1.7s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 14.28MB / 14.28MB 1.8s done
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0.1s
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0.1s done
+#3 DONE 1.9s
+
+#4 [internal] load metadata for docker.io/library/node:24-alpine
+#4 DONE 2.3s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 84B done
+#5 DONE 0.0s
+
+#6 [stage-0 1/6] FROM docker.io/library/node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f
+#6 resolve docker.io/library/node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f 0.0s done
+#6 sha256:b842533ff06352670de854fcbd6939f01dd0f1a0fe4fd40d8e60a943626ee58b 6.68kB / 6.68kB done
+#6 sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f 3.87kB / 3.87kB done
+#6 sha256:429bdfbc204b4eabc6438e6d34e4e9d8dd2ca1df8289bcd78cdd3c5db387b7a5 1.72kB / 1.72kB done
+#6 DONE 0.1s
+
+#7 [internal] load build context
+#7 transferring context: 4.18MB 0.1s done
+#7 DONE 0.2s
+
+#8 [stage-0 2/6] WORKDIR /app
+#8 DONE 1.2s
+
+#9 [stage-0 3/6] RUN --mount=type=secret,id=system_ca,required=true SSL_CERT_FILE=/run/secrets/system_ca apk add --no-cache git chromium nss freetype harfbuzz ca-certificates ttf-freefont postgresql18-client aws-cli curl
+#9 2.137 (  1/246) Installing libexpat (2.9.0-r0)
+#9 2.547 (  2/246) Installing libbz2 (1.0.8-r6)
+#9 2.935 (  3/246) Installing libffi (3.5.2-r1)
+#9 3.143 (  4/246) Installing gdbm (1.26-r0)
+#9 3.333 (  5/246) Installing xz-libs (5.8.4-r0)
+#9 3.495 (  6/246) Installing mpdecimal (4.0.1-r0)
+#9 4.096 (  7/246) Installing ncurses-terminfo-base (6.6_p20260516-r0)
+#9 4.443 (  8/246) Installing libncursesw (6.6_p20260516-r0)
+#9 4.654 (  9/246) Installing libpanelw (6.6_p20260516-r0)
+#9 4.822 ( 10/246) Installing readline (8.3.3-r1)
+#9 5.004 ( 11/246) Installing sqlite-libs (3.53.4-r0)
+#9 5.249 ( 12/246) Installing python3 (3.14.8-r0)
+#9 6.668 ( 13/246) Installing python3-pycache-pyc0 (3.14.8-r0)
+#9 7.593 ( 14/246) Installing pyc (3.14.8-r0)
+#9 7.593 ( 15/246) Installing aws-cli-pyc (2.34.63-r0)
+#9 7.984 ( 16/246) Installing py3-awscrt-pyc (0.34.1-r0)
+#9 8.607 ( 17/246) Installing python3-pyc (3.14.8-r0)
+#9 8.607 ( 18/246) Installing aws-c-common (0.12.6-r1)
+#9 9.174 ( 19/246) Installing aws-c-cal (0.9.14-r0)
+#9 9.538 ( 20/246) Installing aws-c-compression (0.3.2-r0)
+#9 9.737 ( 21/246) Installing s2n-tls (1.7.3-r0)
+#9 9.961 ( 22/246) Installing aws-c-io (0.27.0-r0)
+#9 10.57 ( 23/246) Installing aws-c-http (0.11.0-r0)
+#9 10.79 ( 24/246) Installing aws-c-sdkutils (0.2.4-r1)
+#9 10.94 ( 25/246) Installing aws-c-auth (0.10.3-r0)
+#9 11.36 ( 26/246) Installing aws-checksums (0.2.10-r0)
+#9 11.50 ( 27/246) Installing aws-c-event-stream (0.7.1-r0)
+#9 11.66 ( 28/246) Installing aws-c-mqtt (0.15.2-r0)
+#9 11.89 ( 29/246) Installing aws-c-s3 (0.12.3-r0)
+#9 12.31 ( 30/246) Installing py3-awscrt (0.34.1-r0)
+#9 12.47 ( 31/246) Installing py3-certifi (2026.2.25-r1)
+#9 12.61 ( 32/246) Installing py3-certifi-pyc (2026.2.25-r1)
+#9 12.76 ( 33/246) Installing py3-colorama (0.4.6-r7)
+#9 12.91 ( 34/246) Installing py3-colorama-pyc (0.4.6-r7)
+#9 13.47 ( 35/246) Installing py3-cparser (3.0-r1)
+#9 13.68 ( 36/246) Installing py3-cparser-pyc (3.0-r1)
+#9 13.84 ( 37/246) Installing py3-cffi (2.0.0-r0)
+#9 14.04 ( 38/246) Installing py3-cffi-pyc (2.0.0-r0)
+#9 14.29 ( 39/246) Installing py3-cryptography (47.0.0-r0)
+#9 14.59 ( 40/246) Installing py3-cryptography-pyc (47.0.0-r0)
+#9 14.76 ( 41/246) Installing py3-dateutil (2.9.0-r4)
+#9 14.93 ( 42/246) Installing py3-dateutil-pyc (2.9.0-r4)
+#9 15.10 ( 43/246) Installing py3-distro (1.9.0-r4)
+#9 15.25 ( 44/246) Installing py3-distro-pyc (1.9.0-r4)
+#9 15.40 ( 45/246) Installing py3-docutils (0.21.2-r2)
+#9 15.59 ( 46/246) Installing py3-docutils-pyc (0.21.2-r2)
+#9 15.77 ( 47/246) Installing py3-jmespath (1.0.1-r6)
+#9 15.92 ( 48/246) Installing py3-jmespath-pyc (1.0.1-r6)
+#9 16.06 ( 49/246) Installing py3-wcwidth (0.6.0-r1)
+#9 16.28 ( 50/246) Installing py3-wcwidth-pyc (0.6.0-r1)
+#9 16.43 ( 51/246) Installing py3-prompt_toolkit (3.0.52-r1)
+#9 16.62 ( 52/246) Installing py3-prompt_toolkit-pyc (3.0.52-r1)
+#9 16.89 ( 53/246) Installing py3-ruamel.yaml.clib (0.2.15-r3)
+#9 17.04 ( 54/246) Installing py3-ruamel.yaml (0.19.1-r0)
+#9 17.20 ( 55/246) Installing py3-ruamel.yaml-pyc (0.19.1-r0)
+#9 17.81 ( 56/246) Installing py3-urllib3 (2.7.0-r0)
+#9 17.99 ( 57/246) Installing py3-urllib3-pyc (2.7.0-r0)
+#9 18.16 ( 58/246) Installing py3-zipp (3.23.0-r1)
+#9 18.32 ( 59/246) Installing py3-zipp-pyc (3.23.0-r1)
+#9 18.51 ( 60/246) Installing aws-cli (2.34.63-r0)
+#9 20.17 ( 61/246) Installing ca-certificates (20261020-r0)
+#9 20.33 ( 62/246) Installing chromium-angle (155.0.8059.84-r0)
+#9 20.59 ( 63/246) Installing chromium-common (155.0.8059.84-r0)
+#9 20.76 ( 64/246) Installing brotli-libs (1.2.0-r1)
+#9 20.91 ( 65/246) Installing libpng (1.6.59-r0)
+#9 21.06 ( 66/246) Installing freetype (2.14.3-r0)
+#9 21.23 ( 67/246) Installing fontconfig (2.17.1-r1)
+#9 21.54 ( 68/246) Installing libfontenc (1.1.9-r0)
+#9 21.74 ( 69/246) Installing mkfontscale (1.2.4-r0)
+#9 21.95 ( 70/246) Installing font-opensans (0_git20210927-r1)
+#9 22.24 ( 71/246) Installing libintl (1.0-r0)
+#9 22.40 ( 72/246) Installing libeconf (0.8.3-r0)
+#9 22.54 ( 73/246) Installing libblkid (2.42.3-r1)
+#9 22.70 ( 74/246) Installing libmount (2.42.3-r1)
+#9 22.85 ( 75/246) Installing pcre2 (10.49-r0)
+#9 23.11 ( 76/246) Installing glib (2.88.1-r1)
+#9 23.65 ( 77/246) Installing gobject-introspection (1.86.0-r1)
+#9 23.89 ( 78/246) Installing pkgconf (2.5.1-r0)
+#9 24.10 ( 79/246) Installing libxml2 (2.13.9-r2)
+#9 24.25 ( 80/246) Installing shared-mime-info (2.4-r7)
+#9 24.42 ( 81/246) Installing libxau (1.0.12-r0)
+#9 24.61 ( 82/246) Installing libmd (1.2.0-r0)
+#9 24.76 ( 83/246) Installing libbsd (0.12.2-r0)
+#9 24.97 ( 84/246) Installing libxdmcp (1.1.5-r1)
+#9 25.16 ( 85/246) Installing libxcb (1.17.0-r2)
+#9 25.32 ( 86/246) Installing libx11 (1.8.14-r0)
+#9 25.57 ( 87/246) Installing libxcomposite (0.4.7-r0)
+#9 25.78 ( 88/246) Installing libxfixes (6.0.2-r0)
+#9 25.92 ( 89/246) Installing libxrender (0.9.13-r0)
+#9 26.11 ( 90/246) Installing libxcursor (1.2.3-r0)
+#9 26.26 ( 91/246) Installing libxdamage (1.1.7-r0)
+#9 26.40 ( 92/246) Installing libxext (1.3.7-r0)
+#9 26.59 ( 93/246) Installing libxi (1.8.4-r0)
+#9 26.80 ( 94/246) Installing libxinerama (1.1.6-r0)
+#9 27.00 ( 95/246) Installing libxrandr (1.5.5-r0)
+#9 27.15 ( 96/246) Installing libatk-1.0 (2.60.5-r0)
+#9 27.35 ( 97/246) Installing dbus-libs (1.16.2-r2)
+#9 28.00 ( 98/246) Installing at-spi2-core-libs (2.60.5-r0)
+#9 28.14 ( 99/246) Installing libxtst (1.2.6-r0)
+#9 28.30 (100/246) Installing at-spi2-core (2.60.5-r0)
+#9 28.52 (101/246) Installing libatk-bridge-2.0 (2.60.5-r0)
+#9 28.73 (102/246) Installing pixman (0.46.4-r0)
+#9 28.88 (103/246) Installing cairo (1.18.4-r1)
+#9 29.04 (104/246) Installing cairo-gobject (1.18.4-r1)
+#9 29.18 (105/246) Installing avahi-libs (0.9_rc4-r0)
+#9 29.34 (106/246) Installing gmp (6.3.0-r4)
+#9 29.50 (107/246) Installing nettle (3.10.2-r0)
+#9 29.66 (108/246) Installing libunistring (1.4.2-r0)
+#9 29.98 (109/246) Installing libidn2 (2.3.8-r0)
+#9 30.14 (110/246) Installing libtasn1 (4.21.0-r0)
+#9 30.29 (111/246) Installing p11-kit (0.26.2-r0)
+#9 30.46 (112/246) Installing zstd-libs (1.5.7-r2)
+#9 30.62 (113/246) Installing gnutls (3.8.13-r0)
+#9 30.86 (114/246) Installing cups-libs (2.4.19-r0)
+#9 31.07 (115/246) Installing libepoxy (1.5.10-r1)
+#9 31.22 (116/246) Installing fribidi (1.0.16-r3)
+#9 31.37 (117/246) Installing libcap2 (2.78-r0)
+#9 31.57 (118/246) Installing bubblewrap (0.12.0-r0)
+#9 31.73 (119/246) Installing lcms2 (2.19-r0)
+#9 32.36 (120/246) Installing libseccomp (2.6.1-r0)
+#9 32.52 (121/246) Installing libglycin (2.1.5-r0)
+#9 33.07   Executing libglycin-2.1.5-r0.post-install
+#9 33.08   * glycin loaders got split into their individual subpackages.
+#9 33.08   * By default, only glycin-image-rs & glycin-svg are installed.
+#9 33.08   * Additional loader subpackages are glycin-heif, glycin-jxl & glycin-raw.
+#9 33.08   * 
+#9 33.08   * To install all available loaders, install glycin-loaders-all.
+#9 33.08   * 
+#9 33.08   * Also the glycin-thumbnailer got subpackaged and isn't installed by default.
+#9 33.08 (122/246) Installing glycin-image-rs (2.1.5-r0)
+#9 33.53 (123/246) Installing libdav1d (1.5.3-r0)
+#9 33.97 (124/246) Installing libxft (2.3.9-r0)
+#9 34.12 (125/246) Installing graphite2 (1.3.14-r6)
+#9 34.27 (126/246) Installing harfbuzz (13.2.1-r0)
+#9 34.49 (127/246) Installing pango (1.57.1-r0)
+#9 34.66 (128/246) Installing librsvg (2.62.3-r0)
+#9 34.96 (129/246) Installing glycin-svg (2.1.5-r0)
+#9 35.16 (130/246) Installing gdk-pixbuf (2.44.7-r1)
+#9 35.30 (131/246) Installing wayland-libs-client (1.25.0-r0)
+#9 35.45 (132/246) Installing wayland-libs-cursor (1.25.0-r0)
+#9 35.64 (133/246) Installing wayland-libs-egl (1.25.0-r0)
+#9 35.77 (134/246) Installing xkeyboard-config (2.47-r0)
+#9 35.99 (135/246) Installing libxkbcommon (1.13.1-r0)
+#9 36.21 (136/246) Installing gtk+3.0 (3.24.52-r0)
+#9 36.80 (137/246) Installing icu-data-full (78.1-r0)
+#9 39.08 (138/246) Installing llvm22-libs (22.1.3-r1)
+#9 47.86 (139/246) Installing spirv-tools (1.4.341.0-r0)
+#9 48.30 (140/246) Installing hwdata-pci (0.408-r0)
+#9 48.45 (141/246) Installing libpciaccess (0.19-r0)
+#9 48.60 (142/246) Installing libdrm (2.4.134-r0)
+#9 49.02 (143/246) Installing libelf (0.195-r0)
+#9 49.17 (144/246) Installing libxshmfence (1.3.3-r0)
+#9 49.32 (145/246) Installing mesa (26.1.6-r0)
+#9 50.51 (146/246) Installing mesa-gbm (26.1.6-r0)
+#9 50.65 (147/246) Installing mesa-dri-gallium (26.1.6-r0)
+#9 50.80 (148/246) Installing eudev-libs (3.2.14-r6)
+#9 50.94 (149/246) Installing libmagic (5.47-r2)
+#9 51.11 (150/246) Installing file (5.47-r2)
+#9 51.26 (151/246) Installing xprop (1.2.8-r0)
+#9 51.40 (152/246) Installing libice (1.1.2-r0)
+#9 51.54 (153/246) Installing libuuid (2.42.3-r1)
+#9 51.74 (154/246) Installing libsm (1.2.6-r0)
+#9 51.89 (155/246) Installing libxt (1.3.1-r0)
+#9 52.05 (156/246) Installing libxmu (1.3.1-r0)
+#9 52.24 (157/246) Installing xset (1.2.5-r1)
+#9 52.43 (158/246) Installing xdg-utils (1.2.1-r1)
+#9 52.58 (159/246) Installing libogg (1.3.6-r0)
+#9 52.78 (160/246) Installing libflac (1.4.3-r2)
+#9 52.93 (161/246) Installing alsa-lib (1.2.15.3-r0)
+#9 53.18 (162/246) Installing libSvtAv1Enc (4.1.0-r0)
+#9 53.51 (163/246) Installing aom-libs (3.14.1-r0)
+#9 54.01 (164/246) Installing libva (2.23.0-r0)
+#9 54.17 (165/246) Installing libvdpau (1.5-r4)
+#9 54.32 (166/246) Installing libvpl (2.15.0-r1)
+#9 54.47 (167/246) Installing ffmpeg-libavutil (8.1.2-r0)
+#9 54.64 (168/246) Installing libhwy (1.3.0-r0)
+#9 54.79 (169/246) Installing libjxl (0.11.2-r1)
+#9 55.46 (170/246) Installing lame-libs (3.100-r5)
+#9 55.66 (171/246) Installing opus (1.6.1-r0)
+#9 55.87 (172/246) Installing rav1e-libs (0.8.1-r0)
+#9 56.05 (173/246) Installing libgomp (15.2.0-r5)
+#9 56.21 (174/246) Installing soxr (0.1.3-r7)
+#9 56.36 (175/246) Installing ffmpeg-libswresample (8.1.2-r0)
+#9 56.54 (176/246) Installing libtheora (1.2.0-r1)
+#9 56.69 (177/246) Installing libvorbis (1.3.7-r2)
+#9 56.91 (178/246) Installing libvpx (1.15.2-r1)
+#9 57.26 (179/246) Installing libsharpyuv (1.6.0-r0)
+#9 57.44 (180/246) Installing libwebp (1.6.0-r0)
+#9 57.59 (181/246) Installing libwebpmux (1.6.0-r0)
+#9 57.73 (182/246) Installing x264-libs (0.164.3108-r1)
+#9 57.90 (183/246) Installing numactl (2.0.19-r0)
+#9 58.04 (184/246) Installing x265-libs (4.1-r0)
+#9 58.73 (185/246) Installing xvidcore (1.3.7-r2)
+#9 58.88 (186/246) Installing ffmpeg-libavcodec (8.1.2-r0)
+#9 60.08 (187/246) Installing libudfread (1.2.0-r1)
+#9 60.22 (188/246) Installing libbluray (1.4.0-r0)
+#9 60.43 (189/246) Installing libdvdcss (1.4.3-r0)
+#9 60.59 (190/246) Installing libdvdread (6.1.3-r2)
+#9 60.77 (191/246) Installing libdvdnav (6.1.1-r1)
+#9 60.96 (192/246) Installing mpg123-libs (1.33.5-r0)
+#9 61.12 (193/246) Installing libopenmpt (0.8.9-r0)
+#9 61.30 (194/246) Installing cjson (1.7.19-r1)
+#9 61.44 (195/246) Installing mbedtls3 (3.6.7-r0)
+#9 61.64 (196/246) Installing librist (0.2.15-r0)
+#9 61.84 (197/246) Installing libsrt (1.5.3-r1)
+#9 62.05 (198/246) Installing libssh (0.12.2-r0)
+#9 62.25 (199/246) Installing libsodium (1.0.22-r0)
+#9 62.46 (200/246) Installing libzmq (4.3.5-r2)
+#9 62.62 (201/246) Installing ffmpeg-libavformat (8.1.2-r0)
+#9 62.97 (202/246) Installing crc32c (1.1.2-r3)
+#9 63.16 (203/246) Installing double-conversion (3.4.0-r0)
+#9 63.30 (204/246) Installing harfbuzz-subset (13.2.1-r0)
+#9 63.48 (205/246) Installing libjpeg-turbo (3.1.3-r0)
+#9 63.68 (206/246) Installing minizip (1.3.2-r1)
+#9 63.87 (207/246) Installing nspr (4.38.2-r0)
+#9 64.04 (208/246) Installing nss (3.124-r0)
+#9 64.42 (209/246) Installing openh264 (2.6.0-r0)
+#9 64.57 (210/246) Installing libcamera-ipa (0.7.1-r1)
+#9 64.72 (211/246) Installing mesa-gles (26.1.6-r0)
+#9 64.92 (212/246) Installing mesa-egl (26.1.6-r0)
+#9 65.07 (213/246) Installing libunwind (1.8.3-r0)
+#9 65.22 (214/246) Installing yaml (0.2.5-r2)
+#9 65.38 (215/246) Installing libyuv (0.0.1928-r0)
+#9 65.53 (216/246) Installing libcamera (0.7.1-r1)
+#9 65.77 (217/246) Installing speexdsp (1.2.1-r2)
+#9 65.92 (218/246) Installing libuv (1.52.1-r0)
+#9 66.06 (219/246) Installing roc-toolkit-libs (0.4.0-r1)
+#9 66.33 (220/246) Installing abseil-cpp-raw-logging-internal (20250814.1-r0)
+#9 66.47 (221/246) Installing abseil-cpp-strings-internal (20250814.1-r0)
+#9 66.62 (222/246) Installing abseil-cpp-strings (20250814.1-r0)
+#9 66.81 (223/246) Installing webrtc-audio-processing-2 (2.1-r1)
+#9 67.02 (224/246) Installing pipewire-libs (1.6.8-r4)
+#9 67.70 (225/246) Installing libasyncns (0.8-r5)
+#9 67.85 (226/246) Installing libltdl (2.6.0-r1)
+#9 68.00 (227/246) Installing orc (0.4.41-r0)
+#9 68.21 (228/246) Installing libsndfile (1.2.2-r2)
+#9 68.42 (229/246) Installing tdb-libs (1.4.15-r1)
+#9 68.57 (230/246) Installing libpulse (17.0-r7)
+#9 68.73 (231/246) Installing libwebpdemux (1.6.0-r0)
+#9 68.87 (232/246) Installing libxslt (1.1.43-r3)
+#9 69.02 (233/246) Installing chromium (155.0.8059.84-r0)
+#9 80.77 (234/246) Installing c-ares (1.34.8-r0)
+#9 80.99 (235/246) Installing nghttp2-libs (1.70.0-r0)
+#9 81.20 (236/246) Installing libpsl (0.21.5-r3)
+#9 81.34 (237/246) Installing libcurl (8.22.0-r0)
+#9 81.52 (238/246) Installing curl (8.22.0-r0)
+#9 81.76 (239/246) Installing git (2.54.0-r0)
+#9 82.29 (240/246) Installing git-init-template (2.54.0-r0)
+#9 82.43 (241/246) Installing postgresql-common (1.3-r0)
+#9 82.59   Executing postgresql-common-1.3-r0.pre-install
+#9 82.60 (242/246) Installing lz4-libs (1.10.0-r1)
+#9 82.80 (243/246) Installing libpq (18.6-r0)
+#9 83.01 (244/246) Installing postgresql18-client (18.6-r0)
+#9 83.24 (245/246) Installing encodings (1.1.0-r0)
+#9 83.41 (246/246) Installing font-freefont (20120503-r4)
+#9 83.84 Executing busybox-1.37.0-r31.trigger
+#9 83.85 Executing ca-certificates-20261020-r0.trigger
+#9 83.87 Executing fontconfig-2.17.1-r1.trigger
+#9 83.89 Executing mkfontscale-1.2.4-r0.trigger
+#9 83.92 Executing glib-2.88.1-r1.trigger
+#9 83.93 Executing shared-mime-info-2.4-r7.trigger
+#9 84.18 Executing gdk-pixbuf-2.44.7-r1.trigger
+#9 84.19 Executing gtk+3.0-3.24.52-r0.trigger
+#9 84.20 Executing postgresql-common-1.3-r0.trigger
+#9 84.20 * Setting postgresql18 as the default version
+#9 84.24 * find: /usr/share/man: No such file or directory
+#9 84.49 OK: 975.5 MiB in 265 packages
+#9 DONE 84.5s
+
+#10 [stage-0 4/6] COPY package*.json ./
+#10 DONE 0.7s
+
+#11 [stage-0 5/6] RUN --mount=type=secret,id=system_ca,required=true NODE_EXTRA_CA_CERTS=/run/secrets/system_ca GIT_SSL_CAINFO=/run/secrets/system_ca npm ci --omit=dev --strict-ssl=true
+#11 9.857 
+#11 9.857 added 158 packages, and audited 159 packages in 9s
+#11 9.857 
+#11 9.857 48 packages are looking for funding
+#11 9.857   run `npm fund` for details
+#11 9.858 
+#11 9.858 found 0 vulnerabilities
+#11 9.859 npm notice
+#11 9.859 npm notice New major version of npm available! 11.19.1 -> 12.2.0
+#11 9.859 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+#11 9.859 npm notice To update run: npm install -g npm@12.2.0
+#11 9.859 npm notice
+#11 DONE 9.9s
+
+#12 [stage-0 6/6] COPY . .
+#12 DONE 2.0s
+
+#13 exporting to image
+#13 exporting layers
+#13 exporting layers 2.5s done
+#13 writing image sha256:7681a016479648064e1954d3b6d611a6cb38e25a357125e7c30c9b96f0622c64 done
+#13 naming to docker.io/library/scale-api-release204-diagnostic:local done
+#13 DONE 2.5s
