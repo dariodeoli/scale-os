@@ -1,4 +1,5 @@
 import {MenuDesplegable} from './ui/menu';
+import {useListColumnConfiguration} from './list-column-controls';
 "use client";
 import {Notice as Aviso,Note as Nota} from './ui/notice';
 import {CardSurface as Card} from './ui/surface';
@@ -23,7 +24,7 @@ import {TextareaBase} from './ui/input';
  * sólo se dibuja. Las plantillas de lista se declaran una sola vez por lista y
  * el encabezado comparte la misma grilla que las filas.
  */
-import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
+import {Fragment,useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
 import {BarraProgreso,CeldaMoneda,FilaDato,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui/core';
 import {IconAction} from "./ui/icon-action";
 import {Button} from "./ui/button";
@@ -74,6 +75,10 @@ const dateTime=(value:string)=>fechaLista(value,'',{timeZone:OPS_TIME_ZONE});
 // no se recorta antes de tiempo; el código sigue sin cortarse.
 const EQUIPMENT_COLS='[--eq-cols:2rem_2.25rem_minmax(11rem,1.8fr)_minmax(10rem,1.2fr)_7rem_6.5rem_minmax(7.5rem,1fr)_minmax(9.5rem,1.1fr)_5rem]';
 const EQUIPMENT_GRID='grid grid-cols-[var(--eq-cols)] items-center gap-x-2';
+const EQUIPMENT_HEADERS=[{key:'select',label:'Selección',required:true},{key:'photo',label:'Foto'},{key:'item',label:'Artículo',required:true},{key:'details',label:'Detalles'},{key:'value',label:'Valor'},{key:'status',label:'Estado'},{key:'location',label:'Ubicación'},{key:'verification',label:'Verificación'},{key:'actions',label:'Acciones'}];
+const EQUIPMENT_TRACKS=['2rem','2.25rem','minmax(11rem,1.8fr)','minmax(10rem,1.2fr)','7rem','6.5rem','minmax(7.5rem,1fr)','minmax(9.5rem,1.1fr)','5rem'];
+const equipmentColumnOptions={label:'Equipos',columns:EQUIPMENT_HEADERS,tracks:EQUIPMENT_TRACKS,preferenceKey:'inventario:equipos'};
+
 const RESERVATION_COLS='[--rsv-cols:minmax(9.5rem,1.3fr)_minmax(6.5rem,1fr)_minmax(15.5rem,1.2fr)_minmax(7.5rem,1fr)_minmax(7.5rem,1fr)_minmax(7rem,1fr)_9rem]';
 const RESERVATION_GRID='grid grid-cols-[var(--rsv-cols)] items-center gap-x-2';
 const CELL='min-w-0 text-[13px] leading-5';
@@ -205,16 +210,19 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  onDetail:(item:InventoryItem)=>void;onVerify:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;
 }){
  const code=itemCode(item),location=inventoryLocation(item);
- return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[44px] rounded-xl border px-3 py-1 transition-colors ${selected?'border-fono/50 bg-fono/10':'border-ink-600/60 bg-ink-800/40 hover:bg-ink-700/40'}`} data-status={item.status}>
-  <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>
-  <span className="flex items-center"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="row"/></span>
-  <span className="flex min-w-0 items-center gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code>{['person','external'].includes(item.ownership_kind||'')?<span title={`Propietario: ${item.owner_name||'Persona del equipo'}`}><ActorAvatar name={item.owner_name||'Persona del equipo'} photo={safePhoto(item.owner_photo_url)}/></span>:null}</span>
-  <span className={CELL}><InventoryItemMeta item={item} layout="row"/></span>
-  <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px] font-semibold text-fore"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>
-  <span className="flex justify-start pl-1"><StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip></span>
-  <span className={`${CELL} truncate text-mute`} title={location}>{location}</span>
-  <span className="min-w-0"><VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación</span>}/></span>
+ const layout=useListColumnConfiguration(equipmentColumnOptions);
+ const cells=[
+  <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>,
+  <span className="flex items-center"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="row"/></span>,
+  <span className="flex min-w-0 items-center gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code>{['person','external'].includes(item.ownership_kind||'')?<span title={`Propietario: ${item.owner_name||'Persona del equipo'}`}><ActorAvatar name={item.owner_name||'Persona del equipo'} photo={safePhoto(item.owner_photo_url)}/></span>:null}</span>,
+  <span className={CELL}><InventoryItemMeta item={item} layout="row"/></span>,
+  <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px] font-semibold text-fore"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>,
+  <span className="flex justify-start pl-1"><StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip></span>,
+  <span className={`${CELL} truncate text-mute`} title={location}>{location}</span>,
+  <span className="min-w-0"><VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación</span>}/></span>,
   <InventoryItemActions item={item} canManage={canManage} verifying={verifying} dense onDetail={onDetail} onVerify={onVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
+ ];
+ return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[44px] rounded-xl border px-3 py-1 transition-colors ${selected?'border-fono/50 bg-fono/10':'border-ink-600/60 bg-ink-800/40 hover:bg-ink-700/40'}`} style={layout.style} data-status={item.status}>{layout.indices.map(index=><Fragment key={EQUIPMENT_HEADERS[index].key}>{cells[index]}</Fragment>)}
  </article>;
 }
 
@@ -345,6 +353,7 @@ export function InventoryWorkspace({role}:{role:string}){
  return roleCan(role,'inventory.view')?<InventoryPanel key={role}/>:null;
 }
 function InventoryPanel(){
+ const equipmentColumns=useListColumnConfiguration(equipmentColumnOptions);
  const [month,,monthDraft,setMonthDraft]=useTemporalFilter(()=>opsLocalTime(new Date()).slice(0,7),value=>validateMonth(value)&&value>='1900-01'&&value<='9998-12'?value:null),[view,setView]=useState<'equipment'|'reservations'>('equipment'),[equipmentView,setEquipmentView]=useState<'grid'|'list'|'pipeline'>('grid'),[reserveIds,setReserveIds]=useState<string[]>([]),[search,setSearch]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[attentionFilter,setAttentionFilter]=useState<InventoryAttentionFilter>('');
  const bulk=useBulkSelection({limit:BATCH_LIMITS.inventory,noun:'equipos'});
  const selectedItems=bulk.ids;
@@ -498,14 +507,14 @@ function InventoryPanel(){
    {equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onReorder={context?.can_manage?reorderLocations:undefined} onDetail={setDetail} onAdd={context?.can_manage?()=>setEditItem('new'):undefined} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally} onEdit={setEditItem} onArchive={setArchive} onVerifyDetail={setVerification}/>:null}
    {equipmentView!=='pipeline'?<>
     <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
-    {equipmentView==='list'?<div data-list="equipment" className="silent-scroll min-w-0 overflow-x-auto">
-     <div className={`${EQUIPMENT_COLS} grid min-w-[66.5rem] gap-1.5`}>
-     <div data-list-head="equipment" className={`${EQUIPMENT_GRID} border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} aria-hidden="true">
-      <span/><span>Foto</span><span>Artículo</span><span>Detalles</span><span className="text-right">Valor</span><span>Estado</span><span>Ubicación</span><span>Verificación</span><span className="text-right">Acciones</span>
+    {equipmentView==='list'?<div className="grid min-w-0 gap-2">{equipmentColumns.controls}<div data-list="equipment" className="silent-scroll min-w-0 overflow-x-auto">
+     <div className={`${EQUIPMENT_COLS} grid ${equipmentColumns.customized?'min-w-0':'min-w-[66.5rem]'} gap-1.5`}>
+     <div data-list-head="equipment" className={`${EQUIPMENT_GRID} border border-transparent px-3 text-[10px] font-bold uppercase tracking-wider text-mute`} style={equipmentColumns.style} aria-hidden="true">
+      {equipmentColumns.indices.map(index=><span key={EQUIPMENT_HEADERS[index].key} className={['value','actions'].includes(EQUIPMENT_HEADERS[index].key)?'text-right':''}>{index===0?'':EQUIPMENT_HEADERS[index].label}</span>)}
      </div>
      {visible.map(item=><EquipmentRow key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={bulk.has(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
      </div>
-    </div>:<div data-grid="equipment" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    </div></div>:<div data-grid="equipment" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
      {visible.map(item=><EquipmentCard key={item.id} item={item} selectable={selectionEnabled&&item.status!=='retired'} selected={bulk.has(String(item.id))} onSelect={()=>toggleSelected(String(item.id))} canManage={Boolean(context?.can_manage)} verifying={verifyingId===String(item.id)} onDetail={setDetail} onVerify={quickVerify} onVerifyDetail={setVerification} onEdit={setEditItem} onArchive={setArchive}/>)}
     </div>}
     {!visible.length?<EmptyState icon="box" title={items.length?'No hay equipos que coincidan con la búsqueda.':'Todavía no hay equipos en el inventario.'} description={items.length?'Probá otra búsqueda o categoría.':'Registrá el primer equipo para reservarlo, verificarlo y etiquetarlo.'} action={items.length?<Button type="button" variant="ghost" onClick={()=>{setSearch('');setCategoryFilter('');}}>Limpiar búsqueda</Button>:context?.can_manage?<Button type="button" onClick={()=>setEditItem('new')}>Agregar equipo</Button>:undefined}/>:null}

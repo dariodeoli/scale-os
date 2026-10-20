@@ -108,7 +108,7 @@ export const migrationOrder = [
   '20261017_employee_tasks.sql',
   '20261017_contract_documents.sql',
   '20261017_client_legal_profile.sql',
-  '20261017_inventory_ownership.sql','20261020_inventory_external_owner.sql',
+  '20261017_inventory_ownership.sql',
   '20261017_finance_periods_receipts.sql',
   '20261017_expense_currency_precision.sql',
   '20261017_client_representative_link.sql',
@@ -116,6 +116,7 @@ export const migrationOrder = [
   '20261018_commercial_same_month_revisions.sql',
   '20261018_workspace_preferences.sql',
   '20261018_client_contacts.sql',
+  '20261020_inventory_external_owner.sql',
   '20261020_client_monthly_income.sql',
   '20261020_list_column_preferences.sql',
 ];

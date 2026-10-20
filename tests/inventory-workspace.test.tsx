@@ -376,6 +376,18 @@ async function run(){
   assert(renderer.root.findAll(node=>node.props?.title==='Editar equipo').length,`${view} opens edit instead of traceability`);
   act(()=>renderer.unmount());
  }
+ // Refs #310/#311: the custom equipment table adopts the shared saved layout.
+ const {ListColumnPreferenceProvider}=require('../app/list-column-controls') as typeof import('../app/list-column-controls');
+ const savedColumns={version:1 as const,startup:'summary' as const,production:{clientId:'',mine:false,week:false},columns:{'inventario:equipos':{order:['item','status','value','select','photo','details','location','verification','actions'],hidden:['photo','details','location','verification','actions']}}};
+ await act(async()=>{renderer=create(<ListColumnPreferenceProvider scope="1:10" ready preferences={savedColumns} update={()=>{}} warning="" saving={false} retry={()=>{}}><InventoryWorkspace role="management"/></ListColumnPreferenceProvider>);});
+ act(()=>viewButton('Lista').props.onClick());
+ assert.equal(renderer.root.findAll(node=>node.type==='button'&&node.props['aria-label']==='Editar columnas de Equipos').length,1);
+ const customHeader=renderer.root.findByProps({'data-list-head':'equipment'});assert.deepEqual(customHeader.findAllByType('span').map(text),['Artículo','Estado','Valor','']);
+ const customRows=renderer.root.findAllByProps({'data-list-row':'equipment'});assert(customRows.length);
+ for(const row of customRows){assert.equal(row.children.length,4);assert.equal(row.props.style.gridTemplateColumns,customHeader.props.style.gridTemplateColumns);}
+ assert(text(customRows[0].children[0] as ReactTestInstance).includes(equipment[0].name));assert.match(text(customRows[0].children[1] as ReactTestInstance),/Disponible|En uso|Mantenimiento|Retirado/);
+ assert(!renderer.root.findAllByProps({'aria-label':`Acciones del equipo: ${equipment[0].name}`}).length,'hidden action column is not mounted');
+ act(()=>renderer.unmount());
  console.log('PASS: inventario v2 — borradores de reserva, retornos completos, polling, permisos, lote con topes, vistas y drawer intactos. API/Editor simulados; el layout se mide con el harness visual.');
 }
 void run();
