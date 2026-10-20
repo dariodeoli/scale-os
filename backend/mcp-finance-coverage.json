@@ -1,0 +1,550 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/agency/accounts",
+    "tool": "scale_list_accounts",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/accounts",
+    "tool": "scale_create_account",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/custodians",
+    "tool": "scale_list_account_custodians",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/accounts/:id",
+    "tool": "scale_archive_account",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/accounts/:id/restore",
+    "tool": "scale_restore_account",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/finance/account-openings",
+    "tool": "scale_add_account_opening",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/treasury",
+    "tool": "scale_get_treasury",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/context",
+    "tool": "scale_get_finance_context",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/balance-details",
+    "tool": "scale_get_financial_balance",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/forecast",
+    "tool": "scale_get_financial_forecast",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/reports",
+    "tool": "scale_get_financial_report",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/periods",
+    "tool": "scale_list_finance_periods",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/finance/periods/:month/close",
+    "tool": "scale_close_finance_period",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/finance/periods/:month/reopen",
+    "tool": "scale_reopen_finance_period",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/receipts",
+    "tool": "scale_list_receipts",
+    "status": "existing-tool-schema-expanded",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payments",
+    "tool": "scale_receive_payment",
+    "status": "existing-tool-schema-expanded",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/payments/:id/links",
+    "tool": "scale_update_receipt_links",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/payments/:id/applications",
+    "tool": "scale_list_receipt_applications",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payments/:id/applications",
+    "tool": "scale_apply_receipt",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/payments/:id/applications/:applicationId",
+    "tool": "scale_reverse_receipt_application",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payments/:id/date-correction",
+    "tool": "scale_correct_receipt_date",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payments/:id/reverse",
+    "tool": "scale_reverse_payment",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/opening-receivables",
+    "tool": "scale_list_opening_receivables",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/finance/opening-receivables",
+    "tool": "scale_create_opening_receivable",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/client-payment-status",
+    "tool": "scale_get_client_payment_status",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/expenses",
+    "tool": "scale_list_expenses",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/expenses",
+    "tool": "scale_create_expense",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/expenses/:id",
+    "tool": "scale_reverse_expense",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/planned-expenses",
+    "tool": "scale_list_planned_expenses",
+    "status": "existing-tool-schema-expanded",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/planned-expenses",
+    "tool": "scale_create_planned_expense",
+    "status": "existing-tool-schema-expanded",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/planned-expenses/:id",
+    "tool": "scale_update_planned_expense",
+    "status": "existing-tool-schema-expanded",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/planned-expenses/:id",
+    "tool": "scale_delete_planned_expense",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/transfers",
+    "tool": "scale_list_transfers",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/transfers",
+    "tool": "scale_create_transfer",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/reconciliation",
+    "tool": "scale_list_reconciliation",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/reconciliation",
+    "tool": "scale_import_statement",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/reconciliation/:id/match",
+    "tool": "scale_match_statement_line",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/reconciliation/:id/unmatch",
+    "tool": "scale_unmatch_statement_line",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/reconciliation/:id/auto",
+    "tool": "scale_auto_reconcile_account",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/invoices",
+    "tool": "scale_list_invoices",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/invoices",
+    "tool": "scale_create_invoice",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/budgets/:id/invoice",
+    "tool": "scale_invoice_budget",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/collaborators/:id/salary-history",
+    "tool": "scale_list_salary_history",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/collaborators/:id/salary-history",
+    "tool": "scale_update_salary",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/collaborators/:id/salary-overrides",
+    "tool": "scale_list_salary_override",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/collaborators/:id/salary-overrides",
+    "tool": "scale_update_salary_override",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/collaborators/:id/salary-overrides",
+    "tool": "scale_delete_salary_override",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/payouts",
+    "tool": "scale_list_payouts",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payouts",
+    "tool": null,
+    "status": "excluded-no-canonical-idempotency",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/commissions",
+    "tool": "scale_list_commissions",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/commissions/monthly",
+    "tool": "scale_get_monthly_commissions",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/commissions",
+    "tool": null,
+    "status": "excluded-no-canonical-idempotency",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/commissions/:id",
+    "tool": "scale_update_commission_status",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/referral-discounts",
+    "tool": "scale_list_referral_discounts",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/referral-discounts",
+    "tool": "scale_create_referral_discount",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/referral-discounts/:id",
+    "tool": "scale_reverse_referral_discount",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/exchange-rates",
+    "tool": "scale_list_exchange_rates",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/exchange-rates",
+    "tool": "scale_set_exchange_rate",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/accounts/:id",
+    "tool": null,
+    "status": "missing-canonical-api",
+    "reason": "No account update API for name/institution/account number/holder/custodian. Creation supports these fields; lifecycle archives/restores."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/transfers/:id/reverse",
+    "tool": null,
+    "status": "missing-canonical-api",
+    "reason": "Transfer handler has GET/POST collection only; no reversal route."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payouts/:id/reverse",
+    "tool": null,
+    "status": "missing-canonical-api",
+    "reason": "Payout handler has GET/POST only; no reversal or requestId idempotency."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/finance/opening-receivables/:id",
+    "tool": null,
+    "status": "missing-canonical-api",
+    "reason": "Manual previous debts are append-only; no edit/reverse endpoint."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/invoices/:id",
+    "tool": null,
+    "status": "missing-canonical-api",
+    "reason": "Only invoice GET/POST collection and accepted-budget invoice conversion exist; no edit/status/cancel endpoint."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/collaborators/:id",
+    "tool": null,
+    "status": "excluded-access-side-effects",
+    "reason": "General collaborator PATCH may create users/memberships implicitly. Finance exposes audited salary-history only; compensation modality/profile requires team-domain guard and dedicated coverage."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/accounts",
+    "tool": "scale_create_account",
+    "status": "canonical-limitation",
+    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/invoices",
+    "tool": "scale_create_invoice",
+    "status": "canonical-limitation",
+    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/payouts",
+    "tool": "scale_create_payout",
+    "status": "canonical-limitation",
+    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/commissions",
+    "tool": "scale_create_commission",
+    "status": "canonical-limitation",
+    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/referral-discounts",
+    "tool": "scale_create_referral_discount",
+    "status": "canonical-limitation",
+    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/planned-expenses",
+    "tool": "scale_create_planned_expense",
+    "status": "canonical-limitation",
+    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
+  }
+]
