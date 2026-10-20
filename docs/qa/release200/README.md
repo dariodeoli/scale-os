@@ -11,4 +11,12 @@ Una rama integra formularios, ingresos por mes/extras, contratos, navegación, c
 - PostgreSQL17 real MCP77 comprobaciones + SDK OAuth/MCP PASS; UTF-8 HTTP segmentado6 PASS. Revisión independiente final con hashes idénticos, incluyendo fallos negativos reproducidos y corregidos.
 - Los PRs individuales incluyen sus focos de finanzas, contratos, errores y columnas. Las capturas representan emulación Chromium, no dispositivos físicos.
 
-Regresión completa, build, CI y producción se agregan con resultados concretos al terminar. No se probó conexión con una cuenta real de Claude/ChatGPT ni firma digital certificada. El documento de firma es una propuesta técnica. No se probó impresión física.
+## Gates locales finales
+
+- Cadena frontend:284 entradas cubiertas sin omisiones, reanudada en61/78/216 tras corregir tres expectativas de estructura y un host de portal en fixtures. Rangos PASS:1–60,61–77,78–215,216–284. No se presenta como una ejecución nueva completa; el CI del candidato la ejecutará desde cero.
+- Backend `test:release`:64 scripts PASS; incluye bootstrap120, ingresos44, contratos, permisos, demo y MCP/PGlite63+SDK/UTF8segmentado6. MCP PostgreSQL real77+SDK y cambios comerciales precio/plan/historial PASS aparte.
+- `npm run build`:PASS,66 páginas generadas y BUILD_ID acreditado en build-source.json; tipos, Prisma generate, release/footer y check-initial-assets PASS.
+- HTTP real del build local:login `/`,registro ystatus200 con marca/versión/CSP PASS. Vista srcdoc A4 con todas las cabeceras reales de Next PASS, captura adjunta.
+- La preparación bumpó una sola vez a1.0.200. Tras un gate que encontró un tooltip perdido, se corrigió y completaron manualmente los mismos gates; no se ejecutó otro bump.
+
+CI y producción se agregan con resultados concretos al terminar. No se probó conexión con una cuenta real de Claude/ChatGPT ni firma digital certificada. El documento de firma es una propuesta técnica. No se probó impresión física.

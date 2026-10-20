@@ -6,6 +6,8 @@ import {readFileSync} from 'node:fs';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
 require.extensions['.css']=()=>{};
 Object.assign(globalThis,{React});
+// Only the DOM portal host is doubled; real menu rendering/actions remain under test.
+require('react-dom').createPortal=(children:React.ReactNode)=>children;
 // owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
 Object.assign(globalThis,{requestAnimationFrame:(callback:(time:number)=>void)=>{callback(Date.now());return 0;},cancelAnimationFrame:()=>{}});
 // `MenuDesplegable` engancha listeners de `document` al abrir: el entorno de

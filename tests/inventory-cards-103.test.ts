@@ -19,12 +19,15 @@ assert.match(inventory,/function InventoryItemMeta\(/,'los metadatos se comparte
 assert.match(inventory,/function InventoryItemActions\(/,'las acciones se comparten');
 assert.match(inventory,/function inventoryItemActionList\(/,'las acciones salen de una sola lista');
 assert.match(equipmentPhoto,/role="img" aria-label=\{`Sin foto: \$\{nombre\}`\} title="Sin foto"/,'sin imagen va un placeholder limpio, nunca un ícono roto');
-assert.equal((inventory.match(/>Foto</g)||[]).length,1,'«Foto» solo sobrevive como encabezado de la columna');
+assert.equal((inventory.match(/key:'photo',label:'Foto'/g)||[]).length,1,'Foto tiene una sola definición de encabezado personalizable');
+assert.doesNotMatch(inventory,/>Foto</,'las filas/tarjetas no repiten una etiqueta de foto fuera del catálogo');
+assert.match(inventory,/equipmentColumns\.indices\.map\(index=><span key=\{EQUIPMENT_HEADERS\[index\]\.key\}/,'encabezado respeta el orden de columnas guardado');
+assert.match(inventory,/layout\.indices\.map\(index=><Fragment key=\{EQUIPMENT_HEADERS\[index\]\.key\}>\{cells\[index\]\}/,'las celdas respetan la misma configuración');
 
 // ── Grilla de la lista: plantilla única, columnas reales y acciones en una línea.
 assert.match(inventory,/const EQUIPMENT_COLS='\[--eq-cols:/,'la lista declara su plantilla');
 assert.equal((inventory.match(/\$\{EQUIPMENT_GRID\}/g)||[]).length,2,'encabezado y filas comparten la plantilla');
-assert.match(inventory,/flex flex-nowrap items-center justify-end gap-1 \$\{dense\?`shrink-0 .*silent-scroll min-w-0 max-w-full overflow-x-auto/,'las acciones no envuelven');
+assert.match(inventory,/flex min-w-0 flex-nowrap items-center justify-end gap-1 \$\{context\.dense\?ROW_ICON_TARGETS:ICON_TARGETS\}/,'acciones rápidas y menú no envuelven y conservan targets por densidad');
 assert.match(inventory,/min-h-\[44px\]/,'la fila densa mantiene su alto acotado');
 assert.match(inventory,/<b className="truncate text-\[13px\] font-semibold text-fore" title=\{item\.name\}>/,'el artículo puede truncar con título');
 assert.match(inventory,/<code className="shrink-0 whitespace-nowrap font-mono text-\[11px\] text-mute">\{code\}<\/code>/,'el código nunca se corta');

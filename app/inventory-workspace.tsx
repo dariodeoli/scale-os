@@ -330,7 +330,7 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId,onEdit,
    <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
    <div className="flex shrink-0 items-center gap-1" onPointerDown={event=>event.stopPropagation()} onMouseDown={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
     <InventoryItemActions item={item} canManage={canManage} verifying={verifying} dense onDetail={onDetail} onVerify={onQuickVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
-    {!disabled?<span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`}>⋮⋮</span>:null}
+    {!disabled?<span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`} title={`Mover ${item.name}`}>⋮⋮</span>:null}
    </div>
   </div>
  </article>;

@@ -1,0 +1,27 @@
+{
+  "buildId": "jgBZJSKdmZVfw88gyYoQl",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "brand": true,
+      "csp": true,
+      "releaseInBody": true
+    },
+    {
+      "path": "/registro",
+      "status": 200,
+      "brand": true,
+      "csp": true,
+      "releaseInBody": true
+    },
+    {
+      "path": "/status",
+      "status": 200,
+      "brand": true,
+      "csp": true,
+      "releaseInBody": true
+    }
+  ],
+  "scope": "Actual production build served locally; no authenticated production writes or external provider OAuth"
+}

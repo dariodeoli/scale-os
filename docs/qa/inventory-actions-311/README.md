@@ -17,4 +17,4 @@ Clientes queda como enlace principal entre Resumen y Flujo, sin duplicarlo en el
 - Integración real del paquete:9 casos adicionales sin showPopover PASS; ancla fuera del viewport cierra el menú PASS; Dialog real con errores y ventana hija,10 casos PASS. React15 casos Dialog PASS. Tests de inventario conservan el motor y doblan únicamente el host de portal ausente en react-test-renderer.
 - PostgreSQL17 real: carreras de pagos/transferencias y7 escenarios de reservas HTTP/constraint PASS. No se afirma impresión física. Guardar columnas usa el adaptador compartido #310; prueba de encabezados/celdas y ocultar acciones PASS.
 
-CI y producción de Scale se acreditan al cerrar la integración.
+Regresión local284 entradas y build PASS; CI y producción de Scale se acreditan al cerrar la integración.

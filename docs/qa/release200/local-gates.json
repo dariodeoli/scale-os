@@ -1,0 +1,41 @@
+{
+  "release": "1.0.200",
+  "frontendEntries": 284,
+  "frontendPassedRanges": [
+    [
+      1,
+      60
+    ],
+    [
+      61,
+      77
+    ],
+    [
+      78,
+      215
+    ],
+    [
+      216,
+      284
+    ]
+  ],
+  "frontendFreshWholeRun": false,
+  "backendScripts": 64,
+  "buildId": "jgBZJSKdmZVfw88gyYoQl",
+  "logs": {
+    "scale200-front-regression.log": "41c563510ef9928545946552ea1845ddb17e6ef62bb50edca50112cf7a68e2af",
+    "scale200-front-resume61.log": "e1845106c8f1f99019d74ca3dfdbe7432b4e4e03de20731144a76b9fdfd92994",
+    "scale200-front-resume78.log": "a4893c2f36b812f27db7b520fdd0f4715cb424ea4fce7c48dadacfd3703f5fe7",
+    "scale200-front-resume216.log": "517a9231c2d792e519b4beed5f50842fab3260fc847088f71e0b9bd6a94a7d82",
+    "scale200-backend-release.log": "f18e84ce4ea720e0a3ac911e6c86de2c226b075a3399c80a9ca4c9333c85c9d8",
+    "scale200-build.log": "6834eaefd1dbca4539653cc058cb37479723f83db3ba02e4127d7501e92126b5",
+    "scale200-initial-assets.log": "0600d3e149e9fe7742ff97d575d368291aff7933c87399019746ba910cef2189",
+    "scale200-mcp-final.log": "02fe4a9135e0b14e6a8e20d6274bc8b622e240144646300c3b03b5e37e202615"
+  },
+  "limits": [
+    "Local browser emulation, no physical devices/printer",
+    "No real Claude/ChatGPT account connected",
+    "No certified digital signature",
+    "CI/deploy pending at local gate snapshot"
+  ]
+}

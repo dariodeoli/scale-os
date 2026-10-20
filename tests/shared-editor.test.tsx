@@ -28,7 +28,8 @@ async function main(){
  assert(input.props['aria-describedby'].endsWith('-help'));assert(JSON.stringify(r!.toJSON()).includes('Opcional'));
  await act(async()=>{await submit(r!);});
  assert.equal(writes.length,0);assert.equal(closes,0);assert.equal(input.props['aria-invalid'],true);
- const error=r!.root.findAllByProps({role:'alert'})[0];assert(input.props['aria-describedby'].includes(error.props.id));
+ const error=r!.root.findByProps({id:input.props.id+'-error'});assert.equal(error.props.role,'alert');assert(input.props['aria-describedby'].includes(error.props.id));
+ assert(r!.root.findAllByProps({role:'alert'}).some(node=>String(node.props.className).includes('form-error-summary')),'the separate top summary preserves the inline field error association');
  await act(async()=>{r!.unmount();});
 
  let rejectSave:(e:Error)=>void=()=>{},resolveSave:()=>void=()=>{},calls=0;

@@ -57,7 +57,7 @@
     {
       "file": "app/inventory-workspace.tsx",
       "beforeHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
-      "afterHash": "1be6db54419684e9f0d5b249b4a4d58f2dec42683a8623679065e1e91a3225c6",
+      "afterHash": "94b37c7b29aef66ee1f958c505d4fb8c4a24e5a48468b73d2d42964167291e31",
       "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto. Release195/#265: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
@@ -1284,7 +1284,7 @@
   ],
   "release200": {
     "baseline": "d3ed097efb096d288581028572c04683f1f85288",
-    "integrationHead": "9e55b6c44bc1ba374b97104be62fa1bb478a771c",
+    "integrationHead": "40cf87e5097c704f0268fabc051258e69cb79f05",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 628,
     "newCanonicalActions": 25,
