@@ -23,12 +23,15 @@ assert.equal(beforePrecision.length,110,'the tracked 110-file fixture stays froz
 assert.equal(throughPrecision.length,111,'the precision upgrade remains migration 111');
 const workspaceUpgrade=['20261018_workspace_preferences.sql','20261018_client_contacts.sql'];
 const currentUpgrade=['20261020_inventory_external_owner.sql','20261020_client_monthly_income.sql','20261020_list_column_preferences.sql','20261020_mcp_connections.sql'];
+const latestUpgrade=['20261020_member_permissions.sql','20261020_client_intake.sql','20261021_finance_management.sql'];
 const throughEconomics=[...throughPrecision,...economicUpgrade];
 assert.equal(throughEconomics.length,114,'the economic upgrade remains migration 114');
 const throughWorkspace=[...throughEconomics,...workspaceUpgrade];
 assert.equal(throughWorkspace.length,116,'the preferences/contact upgrade remains migration116');
-assert.deepEqual(migrationOrder.slice(precisionIndex+1),[...economicUpgrade,...workspaceUpgrade,...currentUpgrade],'new migrations follow the preserved 111 and 114-file baselines');
-assert.equal(migrationOrder.length,120,'fresh and legacy fixtures cover every current curated file');
+const throughCurrent=[...throughWorkspace,...currentUpgrade];
+assert.equal(throughCurrent.length,120,'the business connectors upgrade remains the frozen 120-file baseline');
+assert.deepEqual(migrationOrder.slice(precisionIndex+1),[...economicUpgrade,...workspaceUpgrade,...currentUpgrade,...latestUpgrade],'new migrations follow the preserved 111 and 114-file baselines');
+assert.equal(migrationOrder.length,123,'fresh and legacy fixtures cover every current curated file');
 async function copy(files){for(const file of files)await fs.writeFile(path.join(directory,file),await read('migrations/'+file));}
 async function stageOnly(files){
  // applyPendingMigrations scans the directory too: a shorter curated chain
@@ -65,7 +68,7 @@ async function snapshot(){
  result.accounts=(await query('select id,balance::text from bank_accounts order by id')).rows;
  result.audit=(await query('select * from agency_operation_audit order by id')).rows;
  if((await query("select to_regclass('public.agency_salary_history')::text as name")).rows[0].name)result.salaryHistory=(await query('select * from agency_salary_history order by id')).rows;
- for(const table of ['agency_workspace_preferences','agency_client_contacts','agency_client_monthly_income','agency_client_monthly_income_events']){
+ for(const table of ['agency_workspace_preferences','agency_client_contacts','agency_client_monthly_income','agency_client_monthly_income_events','agency_member_permissions','agency_client_intake_links','agency_client_intake_submissions','agency_finance_requests','agency_client_payment_reviews','agency_client_payment_review_events']){
   if((await query('select to_regclass($1)::text as name',['public.'+table])).rows[0].name)result[table]=(await query(`select * from ${table} order by 1,2`)).rows;
  }
  return result;
@@ -198,7 +201,7 @@ try{
  // Upgrade 116->120 separately, without changing any historical snapshot.
  const beforeIncome=await snapshot(),tracker116=(await query('select * from schema_migrations order by filename')).rows;
  await restartConnection();await copy(currentUpgrade);
- assert.deepEqual(await bootstrap(),{curated:currentUpgrade,pending:[]},'116->120 adds monthly income once');
+ assert.deepEqual(await bootstrap(throughCurrent),{curated:currentUpgrade,pending:[]},'116->120 adds monthly income once');
  const afterIncome=await snapshot();for(const [table,rows] of Object.entries(beforeIncome)){
   const actual=table==='agency_inventory'?afterIncome[table].map(({external_owner_name,...row})=>{assert.equal(external_owner_name,null,'external owner is unknown for all existing inventory');return row;}):afterIncome[table];
   assert.deepEqual(actual,rows,`${table}: new features preserve every historical field and row`);
@@ -209,8 +212,25 @@ try{
  assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[migrationOrder])).rows[0].n,120);
  upgraded=afterIncome;const incomeTracker=(await query('select * from schema_migrations order by filename')).rows;
  for(let restart=0;restart<2;restart++){
-  await restartConnection();assert.deepEqual(await bootstrap(),{curated:[],pending:[]},'120-file restart has no replay');assert.deepEqual(await snapshot(),upgraded,'120 restart preserves all data');assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,incomeTracker);
+  await restartConnection();assert.deepEqual(await bootstrap(throughCurrent),{curated:[],pending:[]},'120-file restart has no replay');assert.deepEqual(await snapshot(),upgraded,'120 restart preserves all data');assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,incomeTracker);
  }
+ // Upgrade 120->123 independently; new permissions, reviewed intake and
+ // finance metadata must not replay or alter historical business snapshots.
+ const tracker120=(await query('select * from schema_migrations order by filename')).rows;
+ const beforeManagement=await snapshot();await restartConnection();await copy(latestUpgrade);
+ assert.deepEqual(await bootstrap(),{curated:latestUpgrade,pending:[]},'120->123 executes only the three additive migrations');
+ const afterManagement=await snapshot();for(const[table,rows]of Object.entries(beforeManagement))assert.deepEqual(afterManagement[table],rows,`${table}: 120->123 preserves historical rows`);
+ for(const table of ['agency_member_permissions','agency_client_intake_links','agency_client_intake_submissions','agency_finance_requests','agency_client_payment_reviews','agency_client_payment_review_events'])assert.deepEqual(afterManagement[table],[],`${table}: migration invents no data`);
+ assert.deepEqual((await query('select * from schema_migrations where not(filename=any($1::text[])) order by filename',[latestUpgrade])).rows,tracker120,'120 tracker timestamps remain unchanged');
+ assert.equal((await query('select count(*)::int as n from schema_migrations where filename=any($1::text[])',[migrationOrder])).rows[0].n,123);
+ const accountMetadata=(await query('select alias,holder_tax_id,account_subtype,revision from bank_accounts where id=$1',[old.account])).rows[0];assert.deepEqual(accountMetadata,{alias:null,holder_tax_id:null,account_subtype:null,revision:1},'existing accounts retain explicit empty metadata and first revision');
+ await query("insert into agency_member_permissions(organization_id,user_id,capability,allowed,updated_by_user_id) values($1,$2,'tasks.edit',false,$2)",[old.org,old.uid]);
+ const intake=(await query("insert into agency_client_intake_links(organization_id,client_id,scope,token_hash,created_by,expires_at) values($1,$2,'basic',$3,$4,now()+interval '1 day') returning id",[old.org,economic.client,'a'.repeat(64),old.uid])).rows[0].id;
+ await query("insert into agency_client_intake_submissions(organization_id,link_id,payload,client_id) values($1,$2,'{\"name\":\"Reviewed fixture\"}'::jsonb,$3)",[old.org,intake,economic.client]);
+ await query("insert into agency_finance_requests(organization_id,kind,request_key,payload,response,status,created_by) values($1,'bootstrap','00000000-0000-4000-8000-000000000001','{}','{}',200,$2)",[old.org,old.uid]);
+ await query("insert into agency_client_payment_reviews(organization_id,client_id,month,status,note,reviewed_by) values($1,$2,'2026-10-01','reviewed','Preserved review',$3)",[old.org,economic.client,old.uid]);
+ upgraded=await snapshot();const managementTracker=(await query('select * from schema_migrations order by filename')).rows;
+ for(let restart=0;restart<2;restart++){await restartConnection();assert.deepEqual(await bootstrap(),{curated:[],pending:[]},'123-file restart has no migration replay');assert.deepEqual(await snapshot(),upgraded,'123 restart preserves overrides, reviewed submissions, finance requests and historical snapshots');assert.deepEqual((await query('select * from schema_migrations order by filename')).rows,managementTracker);}
  // A later failure rolls back earlier new DDL AND tracker rows in the same TX.
  const beforeFailure='20271002_bootstrap_before_failure.sql',failure='20271003_bootstrap_failure.sql';
  await fs.writeFile(path.join(directory,beforeFailure),'create table bootstrap_before_failure(id int primary key); insert into bootstrap_before_failure values(2);');
@@ -230,10 +250,10 @@ try{
  await stageOnly(beforePrecision);
  await bootstrap(beforePrecision);await query('drop table schema_migrations');
  await query("insert into agency_clients(organization_id,name) select id,'Legacy client preserved' from organizations where slug='scale'");
- await restartConnection();await copy([precision,...economicUpgrade,...workspaceUpgrade,...currentUpgrade]);
+ await restartConnection();await copy([precision,...economicUpgrade,...workspaceUpgrade,...currentUpgrade,...latestUpgrade]);
  assert.deepEqual(await bootstrap(),{curated:migrationOrder,pending:[]});
  assert.equal((await query("select count(*)::int as n from agency_clients where name='Legacy client preserved'")).rows[0].n,1);
  assert.equal((await query("select numeric_scale from information_schema.columns where table_name='agency_expenses' and column_name='amount'")).rows[0].numeric_scale,2);
  assert.deepEqual(await bootstrap(),{curated:[],pending:[]});
- console.log(`PASS bootstrap: ${migrationOrder.length} curated files fresh/legacy; tracked 110->111 111->114 114->116 and 116->120 upgrades preserve preferences, secondary contacts, ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding`);
+ console.log(`PASS bootstrap: ${migrationOrder.length} curated files fresh/legacy; tracked 110->111 111->114 114->116 116->120 and 120->123 upgrades preserve preferences, secondary contacts, ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding`);
 }finally{await pg.close();await fs.rm(directory,{recursive:true,force:true});if(storage)await fs.rm(storage,{recursive:true,force:true});}
