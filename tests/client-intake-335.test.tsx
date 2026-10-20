@@ -5,6 +5,7 @@ import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-te
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 const dialogId=require.resolve('../app/dialog');require.cache[dialogId]={id:dialogId,filename:dialogId,loaded:true,exports:{FormActions:({children}:{children:React.ReactNode})=><div>{children}</div>,ConfirmDialog:()=>null,Dialog:({children}:{children:React.ReactNode})=><section role="dialog">{children}</section>,useDialogClose:()=>undefined,useDialogPending:()=>{},useOverlay:()=>({requestClose:()=>{}})}} as NodeModule;
 const {PublicClientIntake}=require('../app/public-client-intake') as typeof import('../app/public-client-intake');
+const {rucApplyValues}=require('../app/client-ruc') as typeof import('../app/client-ruc');
 const {clientFields}=require('../app/client-editor-data') as typeof import('../app/client-editor-data');
 const {ClientIntakeDialog}=require('../app/client-intake') as typeof import('../app/client-intake');
 const calls:{url:string;options:RequestInit;payload:Record<string,unknown>|null}[]=[];
@@ -19,6 +20,7 @@ const input=(render:ReactTestRenderer,name:string)=>render.root.findAll(node=>no
 const change=async(render:ReactTestRenderer,name:string,value:string)=>{await act(async()=>{input(render,name)!.props.onChange({target:{name,value},type:'change'});});};
 async function submit(render:ReactTestRenderer){await act(async()=>{await render.root.findByType('form').props.onSubmit({preventDefault(){},stopPropagation(){}});});await settle();}
 test('335 fiscal identity starts with RUC and broad notes; contract reuses existing RUC explicitly',()=>{
+ assert.equal(rucApplyValues({name:'APELLIDO, NOMBRE S.A.',tax_id:'80168807-8',source:'owndata:dnit_official_snapshot',tax_state:'',publication_date:'2026-10-01'}).legal_name,'APELLIDO, NOMBRE S.A.');
  const fields=clientFields({mode:'create'});assert.equal(fields[0].key,'tax_id');assert.equal(fields[1].key,'legal_name');assert.equal(fields.find(field=>field.key==='notes')?.span,12);
  const document=fields.find(field=>field.key==='document_number')!;assert.equal(document.valueFrom?.({document_type:'ruc',tax_id:'80168807-8',document_number:''}),'80168807-8');assert.equal(document.valueFrom?.({document_type:'ruc',tax_id:'80168807-8',document_number:'manual'}),undefined);
 });

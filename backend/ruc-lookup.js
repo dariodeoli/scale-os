@@ -59,7 +59,7 @@ export function validateOwnDataRuc(value){
  return value;
 }
 export function createOwnDataRucProvider({baseUrl,apiKey,fetcher=fetch,timeoutMs=12000,allowedHosts=outboundAllowlist()}={}){
- if(baseUrl!==OWNDATA_RUC_URL||typeof apiKey!=='string'||!apiKey.trim()||/[\r\n]/.test(apiKey)||apiKey.startsWith('pk_'))throw ownDataFailure('OwnData no está configurado con endpoint y clave secreta empresarial autorizados.');
+ if(baseUrl!==OWNDATA_RUC_URL||typeof apiKey!=='string'||!apiKey.trim()||/[\r\n]/.test(apiKey)||apiKey.startsWith('pk_'))throw ownDataFailure('OwnData no está configurado con endpoint y clave secreta de servidor autorizados.');
  return {name:'owndata-ruc-provider',async lookup(input){
   const ruc=validateOwnDataRuc(input);let response;
   try{response=await safeFetch(`${baseUrl}/${encodeURIComponent(ruc)}`,{headers:{Accept:'application/json','X-API-Key':apiKey},signal:AbortSignal.timeout(timeoutMs)},{fetchImpl:fetcher,allowedHosts,label:'OwnData'});}catch{throw ownDataFailure('No se pudo conectar con OwnData. Podés ingresar los datos manualmente.');}
@@ -71,10 +71,10 @@ export function createOwnDataRucProvider({baseUrl,apiKey,fetcher=fetch,timeoutMs
   if(code==='COMMERCIAL_API_DISABLED')throw ownDataFailure('La API empresarial de OwnData no está habilitada. Se requiere autorización del proveedor.');
   if(!response.ok)throw ownDataFailure('OwnData no está disponible. Podés ingresar los datos manualmente.');
   const data=envelope?.data,provenance=envelope?.meta?.provenance;
-  if(!data||typeof data.nameOfficial!=='string'||!data.nameOfficial.trim()||typeof data.stateRaw!=='string'||typeof data.ruc!=='string'||typeof data.dv!=='string'||data.fullRuc!==`${data.ruc}-${data.dv}`||provenance?.source!=='dnit_official_snapshot'||!/^\d{4}-\d{2}-\d{2}$/.test(provenance.publicationDate??''))throw ownDataFailure('OwnData devolvió una ficha o procedencia inválida.');
+  if(!data||typeof data.nameOfficial!=='string'||!data.nameOfficial.trim()||(data.stateRaw!==undefined&&typeof data.stateRaw!=='string')||typeof data.ruc!=='string'||typeof data.dv!=='string'||data.fullRuc!==`${data.ruc}-${data.dv}`||provenance?.source!=='dnit_official_snapshot'||!/^\d{4}-\d{2}-\d{2}$/.test(provenance.publicationDate??''))throw ownDataFailure('OwnData devolvió una ficha o procedencia inválida.');
   try{validateOwnDataRuc(data.fullRuc);}catch{throw ownDataFailure('OwnData devolvió un RUC o dígito verificador inválido.');}
   if(ruc.includes('-')?data.fullRuc!==ruc:data.ruc!==ruc)throw ownDataFailure('El RUC devuelto por OwnData no coincide con la consulta.');
-  return {name:data.nameOfficial,ruc:data.ruc,dv:data.dv,fullRuc:data.fullRuc,state:data.stateRaw,publicationDateText:provenance.publicationDate};
+  return {name:data.nameOfficial,ruc:data.ruc,dv:data.dv,fullRuc:data.fullRuc,state:typeof data.stateRaw==='string'?data.stateRaw:'',publicationDateText:provenance.publicationDate};
  }};
 }
 export function configuredRucProvider(settings,{fetcher=fetch}={}){

@@ -18,8 +18,8 @@ Todas las rutas privadas vuelven a cargar membresía activa, rol y override de
 `clients.manage` dentro de la transacción. Nunca modifican cobros, facturas,
 planes, cuentas ni períodos financieros.
 
-- `GET /api/agency/clients/:id/completeness`: `{clientId,basic:{missing:[]},contract:{missing:[]}}`.
-  Sólo nombres de campos pendientes de la ficha canónica. El representante se
+- `GET /api/agency/clients/:id/completeness`: `{clientId,basic:{missing:[]},contract:{missing:[],reused:[]}}`.
+  Sólo nombres de campos pendientes o reutilizados de la ficha canónica. El contrato reutiliza razón social/nombre y RUC como documento según las mismas reglas del autofill canónico. El representante se
   requiere para completar contratos de personas jurídicas, no personas físicas.
 - `GET /api/agency/client-intake-links[?client_id=...]`: últimos 100 enlaces,
   metadatos sin token ni hash.
@@ -68,7 +68,7 @@ Un enlace dirigido a ficha archivada o bloqueada no admite captura de datos.
 
 ## Estado de OwnData
 
-El módulo existente `backend/ruc-lookup.js` ya implementa OwnData como proveedor
+El módulo `backend/ruc-lookup.js` implementa OwnData como proveedor
 opt-in, autenticación en servidor, validación de dígito/procedencia, límites,
 mensajes diferenciados y alternativa manual. En esta instancia no están
 inyectados los nombres `RUC_LOOKUP_PROVIDER_KIND`, `RUC_LOOKUP_PROVIDER_URL` ni
@@ -77,8 +77,25 @@ inyectados los nombres `RUC_LOOKUP_PROVIDER_KIND`, `RUC_LOOKUP_PROVIDER_URL` ni
 No se realizó solicitud real a OwnData y no se acredita habilitación empresarial
 ni disponibilidad en producción. Para habilitarlo, configurar por el canal
 seguro del servidor `RUC_LOOKUP_PROVIDER_KIND=owndata`, URL exacta
-`https://app.controlaria.online/api/v1/ruc`, la clave empresarial autorizada y el
+`https://app.controlaria.online/api/v1/ruc`, una clave de servidor autorizada para el uso previsto y el
 host en el allowlist de salida. No introducir valores secretos en este documento.
+
+Fuente revisada: `dariodeoli/owndata` SHA
+`d259e9f20ac714c3c009dd5e61f37935ff6a98ba`, contrato 1.4.0 en
+`src/lib/commercial-api-contract.ts` y handler `src/lib/server/commercial-api.ts`.
+La API documenta clave personal por cuenta (100 consultas/día compartidas con
+web y otras claves; uso personal, sin habilitación comercial) y clave comercial
+por organización (control empresarial/autorización de fuente separados).
+Cuenta → Claves personales (`/panel/claves-personales`) permite emitir una clave
+con nombre para cada app y revelarla una vez; siempre consumir desde el servidor
+con `X-API-Key`, nunca pegarla en el chat ni enviarla al navegador de Scale.
+
+Se corrigió una incompatibilidad concreta del adaptador: el handler actual de
+OwnData elimina `stateRaw` de su respuesta; Scale ahora acepta su ausencia y
+muestra estado no informado, sin inventarlo. Conserva `nameOfficial` exactamente,
+y valida RUC-DV/procedencia como antes. La compatibilidad se acreditó con
+transporte sintético de contrato, no con una consulta externa real. `nameMethods`
+y `subjectKind` son opciones adicionales; Scale no infiere tipo de persona.
 
 La corrección de Enter en `LookupField` corresponde al cambio compartido del
 agente de formularios: debe impedir que Enter envíe el formulario, ignorar
