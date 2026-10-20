@@ -12,13 +12,15 @@ import {OptionsSelect as Select} from './ui/options-select';
 // sobre `Skeleton`). Vacío, error y avisos se usan directo de la librería
 // (`EmptyState`, `ErrorState`, `Aviso`, `Nota`): no se copian por pantalla.
 import {Badge,BarraProgreso,EmptyState,ErrorState,ListGridToggle,Skeleton,Stat} from 'owncoding-ui/core';
+import {listGridTracks} from './list-column-preferences';
+import {useListColumnConfiguration} from './list-column-controls';
 import {TabScroller} from './tab-scroller';
 import {ConfirmDialog} from './dialog';
 import {X} from 'lucide-react';
 import {currencyChoices} from './currencies';
 export {useBulkSelection,type BulkSelection,type BulkSelectionOptions} from './bulk-selection';
 import {money} from './money-format';
-import {Children,Fragment,cloneElement,createContext,isValidElement,useContext,useEffect,useRef,useState,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
+import {Children,Fragment,cloneElement,createContext,isValidElement,useCallback,useContext,useEffect,useRef,useState,type ReactElement,type HTMLAttributes,type KeyboardEvent,type ReactNode,type Ref} from 'react';
 import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button";
 
 
@@ -437,7 +439,7 @@ export function ErrorBlock({title, description, onRetry, className}: {title?: st
   </div>;
 }
 
-export type Column = {key: string; label: string; align?: 'start' | 'end' | 'center'};
+export type Column = {key: string; label: string; align?: 'start' | 'end' | 'center'; required?:boolean; description?:string};
 
 const ALIGN: Record<NonNullable<Column['align']>, string> = {start: 'text-left', end: 'text-right', center: 'text-center'};
 
@@ -563,18 +565,26 @@ export function FilterToolbar({children, summary, className}: {children: ReactNo
  * vista, mientras el resto de las columnas se desliza (patrón de tablas
  * densas de la ronda 14). Se usa junto con la `ListActions` de cada fila.
  */
-export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', pinnedActions = false, className}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; pinnedActions?: boolean; className?: string}) {
-  // tabIndex: el scroll horizontal silencioso debe poder recorrerse con teclado (WCAG 2.1.1).
-  return <div role="table" aria-label={label} tabIndex={0} className={`silent-scroll relative min-w-0 overflow-x-auto ${className ?? ''}`}>
-    <div className={minWidthClass}>
-      <div role="row" className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
-        {columns.map((column, index) => (
-          <span key={column.key} role="columnheader" className={`${column.align === 'end' || column.key === 'actions' ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap ${pinnedActions && index === columns.length - 1 ? 'list-actions-head' : ''}`}>{column.label}</span>
+type ListColumnLayout={indices:number[];tracks:string[];count:number};
+const ListColumnLayoutContext=createContext<{layout:ListColumnLayout|null;count:number;report:(id:symbol,incompatible:boolean)=>void}|null>(null);
+export function ListGrid({label, template, columns, children, minWidthClass = 'min-w-[48rem]', pinnedActions = false, className,preferenceKey}: {label: string; template: string; columns: Column[]; children: ReactNode; minWidthClass?: string; pinnedActions?: boolean; className?: string;preferenceKey?:string}) {
+  const [incompatibleRows,setIncompatibleRows]=useState<Set<symbol>>(()=>new Set());
+  const report=useCallback((id:symbol,incompatible:boolean)=>setIncompatibleRows(previous=>{if(previous.has(id)===incompatible)return previous;const next=new Set(previous);if(incompatible)next.add(id);else next.delete(id);return next;}),[]);
+  const tracks=listGridTracks(template,columns.length,className);
+  const configuration=useListColumnConfiguration({label,columns,tracks,preferenceKey,pinnedActions,enabled:!incompatibleRows.size});
+  const eligible=!!tracks&&columns.length>1;
+  const layout=configuration.customized&&tracks?{indices:configuration.indices,tracks:configuration.indices.map(index=>tracks[index]),count:columns.length}:null;
+  const visible=configuration.visibleColumns;
+  return <>{configuration.controls}<div role="table" aria-label={label} tabIndex={0} className={`silent-scroll relative min-w-0 overflow-x-auto ${className ?? ''}`}>
+    <div className={layout?'min-w-full':minWidthClass}>
+      <div role="row" style={layout?{gridTemplateColumns:layout.tracks.join(' ')}:undefined} className={`grid gap-x-2 border-b border-ink-600 px-1 pb-2 text-[10px] font-bold uppercase tracking-[.06em] text-mute ${template}`}>
+        {visible.map((column) => (
+          <span key={column.key} role="columnheader" className={`${column.align === 'end' || column.key === 'actions' ? 'text-right' : ALIGN[column.align ?? 'start']} whitespace-nowrap ${pinnedActions && column.key===columns[columns.length-1]?.key ? 'list-actions-head' : ''}`}>{column.label}</span>
         ))}
       </div>
-      <div role="rowgroup">{children}</div>
+      <ListColumnLayoutContext.Provider value={eligible?{layout,count:columns.length,report}:null}><div role="rowgroup">{children}</div></ListColumnLayoutContext.Provider>
     </div>
-  </div>;
+  </div></>;
 }
 
 const CELL_ROLES = new Set(['cell', 'gridcell', 'rowheader', 'columnheader']);
@@ -602,9 +612,17 @@ function asCells(children: ReactNode): ReactNode {
   });
 }
 
+function flattenListCells(children:ReactNode):ReactNode[]{const cells:ReactNode[]=[];Children.forEach(children,child=>{if(child===null||child===undefined||typeof child==='boolean')return;if(isValidElement(child)&&child.type===Fragment)cells.push(...flattenListCells((child as ReactElement<{children:ReactNode}>).props.children));else cells.push(child);});return cells;}
+
 /** Fila finita v2: misma plantilla que el encabezado; una celda sin dato reserva su lugar. */
 export function ListRow({template, className, children, ...props}: {template: string; className?: string; children: ReactNode} & HTMLAttributes<HTMLDivElement>) {
-  return <div role="row" {...props} className={`list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{asCells(children)}</div>;
+  const context=useContext(ListColumnLayoutContext);
+  const layout=context?.layout;
+  const rowId=useRef(Symbol()).current;
+  const cells=flattenListCells(children);
+  useEffect(()=>{context?.report(rowId,cells.length!==context.count);return()=>context?.report(rowId,false);},[context?.report,context?.count,rowId,cells.length]);
+  const selected=layout&&cells.length===layout.count?layout.indices.map(index=>isValidElement(cells[index])?cloneElement(cells[index] as ReactElement,{key:`column-${index}`}):<span key={`column-${index}`}>{cells[index]}</span>):children;
+  return <div role="row" {...props} style={{...props.style,...(layout?{gridTemplateColumns:layout.tracks.join(' ')}:{})}} className={`list-row grid min-h-12 items-center gap-x-2 border-b border-ink-600/60 px-1 py-0.5 transition-colors last:border-0 hover:bg-ink-700/40 md:min-h-11 md:py-2 ${template} ${className ?? ''}`}>{asCells(selected)}</div>;
 }
 
 /**

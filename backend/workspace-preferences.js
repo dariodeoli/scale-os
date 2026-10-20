@@ -3,7 +3,7 @@ import {roles} from './permissions.js';
 const defaults=()=>({version:1,startup:'summary',production:{clientId:'',mine:false,week:false}});
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function validateWorkspacePreferencePatch(input){
- if(!object(input)||Buffer.byteLength(JSON.stringify(input))>1024||!Object.keys(input).length||Object.keys(input).some(key=>!['version','startup','production'].includes(key)))fail('Preferencias inválidas');
+ if(!object(input)||Buffer.byteLength(JSON.stringify(input))>32768||!Object.keys(input).length||Object.keys(input).some(key=>!['version','startup','production','columns'].includes(key)))fail('Preferencias inválidas');
  if(Object.hasOwn(input,'version')&&input.version!==1)fail('Versión de preferencias inválida');
  if(Object.hasOwn(input,'startup')&&!['summary','production','my-day'].includes(input.startup))fail('Inicio inválido');
  if(Object.hasOwn(input,'production')){
@@ -11,6 +11,13 @@ export function validateWorkspacePreferencePatch(input){
   if(!object(p)||Object.keys(p).some(key=>!['clientId','mine','week'].includes(key)))fail('Filtros inválidos');
   if(Object.hasOwn(p,'clientId')&&(typeof p.clientId!=='string'||p.clientId!==''&&!/^[1-9]\d{0,18}$/.test(p.clientId)||p.clientId!==''&&BigInt(p.clientId)>9223372036854775807n))fail('Cliente inválido');
   for(const key of ['mine','week'])if(Object.hasOwn(p,key)&&typeof p[key]!=='boolean')fail('Filtro inválido');
+ }
+ if(Object.hasOwn(input,'columns')){
+  if(!object(input.columns)||Object.keys(input.columns).length>100)fail('Columnas inválidas');
+  for(const [list,entry] of Object.entries(input.columns)){
+   if(!/^[a-z0-9:/_.-]{1,160}$/.test(list)||['__proto__','constructor','prototype'].includes(list)||!object(entry)||Object.keys(entry).some(key=>!['order','hidden'].includes(key)))fail('Columnas inválidas');
+   for(const field of ['order','hidden'])if(!Array.isArray(entry[field])||entry[field].length>32||new Set(entry[field]).size!==entry[field].length||entry[field].some(key=>typeof key!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,63}$/.test(key)||['__proto__','constructor','prototype'].includes(key)))fail('Columnas inválidas');
+  }
  }
  return input;
 }
@@ -34,7 +41,7 @@ export async function workspacePreferences({req,res,url,db,session,body,send}){
   if(input&&!importOnly)await client.query('insert into agency_workspace_preferences(organization_id,user_id) values($1,$2) on conflict do nothing',[org,user.id]);
   const record=(await client.query('select preferences from agency_workspace_preferences where organization_id=$1 and user_id=$2'+(input?' for update':''),[org,user.id])).rows[0];
   const old=record?.preferences||defaults();
-  let preferences=input?{...old,...input,version:1,production:{...old.production,...input.production}}:old;
+  let preferences=input?{...old,...input,version:1,production:{...old.production,...input.production},...(old.columns||input.columns?{columns:{...old.columns,...input.columns}}:{})}:old;
   if(preferences.production.clientId){
    const exists=(await client.query('select 1 from agency_clients where organization_id=$1 and id=$2',[org,preferences.production.clientId])).rows.length;
    if(!exists&&input?.production?.clientId)fail('El cliente no pertenece a esta empresa');

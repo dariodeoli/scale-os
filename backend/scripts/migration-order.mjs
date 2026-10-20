@@ -117,4 +117,5 @@ export const migrationOrder = [
   '20261018_workspace_preferences.sql',
   '20261018_client_contacts.sql',
   '20261020_client_monthly_income.sql',
+  '20261020_list_column_preferences.sql',
 ];

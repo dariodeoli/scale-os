@@ -67,6 +67,7 @@ const FXTransferForm=dynamic(()=>import('./daily-controls').then(m=>m.FXTransfer
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
 import type {Status} from './production-board';
+import {ListColumnPreferenceProvider} from './list-column-controls';
 import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {clientPortfolioStats,currentAsuncionMonth,dueWithinDays} from './client-format';
@@ -1021,7 +1022,7 @@ export default function Home() {
         </div>
       </>;
   return (
-    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
+    <ListColumnPreferenceProvider scope={preferenceScope} ready={preferencesReady} preferences={preferences} update={updatePreferences} warning={preferenceWarning} saving={preferencesSaving} retry={retryPreferences}><CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>{(collapsed,toggle)=><>
         <div className="sidebar-brand"><WorkspaceBrand/>{toggle}</div>
@@ -1230,6 +1231,6 @@ export default function Home() {
           />
         </Dialog>
       )}
-    </main></CompanyCurrencyProvider>
+    </main></CompanyCurrencyProvider></ListColumnPreferenceProvider>
   );
 }
