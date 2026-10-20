@@ -8,7 +8,8 @@ import {assertRecordAvailable} from './record-lifecycle.js';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const basic=['name','legal_name','tax_id','email','phone','address','city','department'];
-const complete=[...new Set([...basic,...clientLegalFields])];
+export const clientIntakeFields=[...new Set([...basic,...clientLegalFields])];
+const complete=clientIntakeFields;
 const tokenPattern=/^[A-Za-z0-9_-]{43}$/;
 export function intakePayload(input,scope){
  if(!input||typeof input!=='object'||Array.isArray(input))fail('Formulario inválido');
@@ -23,10 +24,14 @@ export function intakePayload(input,scope){
  return result;
 }
 export function clientCompleteness(client){
- const missing=keys=>keys.filter(key=>!String(client[key]??'').trim());
- return {clientId:String(client.id),basic:{missing:missing(['name','email','phone','tax_id','legal_name'])},contract:{missing:missing(['legal_name','tax_id','address','city','department','party_type','document_type','document_number',...(client.party_type==='company'?['legal_representative_name','legal_representative_document','legal_representative_role']:[])])}};
+ const missing=(keys,source=client)=>keys.filter(key=>!String(source[key]??'').trim());
+ // Mirror canonical contract autofill: effective identity is reused, never copied back.
+ const effective={...client,legal_name:client.legal_name||client.ruc_legal_name||client.name,document_number:client.document_number||(!client.document_type||client.document_type==='ruc'?client.tax_id:''),document_type:client.document_type||(!client.document_number&&client.tax_id?'ruc':'')};
+ return {clientId:String(client.id),basic:{missing:missing(['name','email','phone','tax_id','legal_name'])},contract:{reused:['legal_name','document_type','document_number'].filter(key=>!client[key]&&effective[key]),missing:missing(['legal_name','tax_id','address','city','department','party_type','document_type','document_number',...(client.party_type==='company'?['legal_representative_name','legal_representative_document','legal_representative_role']:[])],effective)}};
 }
-async function authorized(c,actor){
+async function authorized(c,actor,write=false){
+ // Take the uniqueness lock before shared membership/organization locks.
+ if(write)await c.query('select id from organizations where id=$1 for update',[actor.organization_id]);
  const member=(await c.query('select m.role from organization_members m join organizations o on o.id=m.organization_id where m.organization_id=$1 and m.user_id=$2 and m.active=true and m.removed_at is null and o.active=true for share of m,o',[actor.organization_id,actor.id])).rows[0];
  if(!member)fail('Sin acceso activo a esta empresa',403);
  const override=(await c.query("select allowed from agency_role_permissions where organization_id=$1 and role=$2 and capability='clients.manage'",[actor.organization_id,member.role])).rows[0];
@@ -53,11 +58,15 @@ export async function clientIntake({req,res,url,db,session,body,send}){
    await requireClientBudget(db,req,'client-intake',30);
    if(!tokenPattern.test(publicMatch[1]))fail('Enlace no disponible',404);
    c=await db.connect();await c.query('begin');tx=true;
-   const link=(await c.query('select l.* from agency_client_intake_links l join organizations o on o.id=l.organization_id where l.token_hash=$1 and o.active=true for update of l',[hash(publicMatch[1])])).rows[0];
+   let link=(await c.query('select l.* from agency_client_intake_links l join organizations o on o.id=l.organization_id where l.token_hash=$1 and o.active=true',[hash(publicMatch[1])])).rows[0];
    if(!link||link.revoked_at||new Date(link.expires_at)<=new Date())fail('Enlace vencido o no disponible. Pedí uno nuevo a la empresa.',404);
    if(link.consumed_at)fail('Este enlace ya recibió una solicitud para revisión.',409);
    // A suppressed/archived client's old link cannot collect fresh data.
    if(link.client_id)await clientRow(c,link.organization_id,link.client_id);
+   // Parent-before-link agrees with canonical privacy suppression lock order.
+   link=(await c.query('select l.* from agency_client_intake_links l join organizations o on o.id=l.organization_id where l.token_hash=$1 and o.active=true for update of l',[hash(publicMatch[1])])).rows[0];
+   if(!link||link.revoked_at||new Date(link.expires_at)<=new Date())fail('Enlace vencido o no disponible. Pedí uno nuevo a la empresa.',404);
+   if(link.consumed_at)fail('Este enlace ya recibió una solicitud para revisión.',409);
    if(req.method==='GET'){
     await c.query('commit');tx=false;send(res,200,{scope:link.scope,expires_at:link.expires_at});return true;
    }
@@ -67,7 +76,7 @@ export async function clientIntake({req,res,url,db,session,body,send}){
    await c.query('commit');tx=false;send(res,201,{received:true,message:'Datos recibidos para revisión. Todavía no se creó ni modificó ninguna ficha.'});return true;
   }
   const actor=await session(req);if(!actor)fail('No autenticado',401);
-  c=await db.connect();await c.query('begin');tx=true;await authorized(c,actor);
+  c=await db.connect();await c.query('begin');tx=true;await authorized(c,actor,req.method!=='GET');
   const org=actor.organization_id;let result,status=200;
   await c.query("select set_config('app.current_user',$1,true)",[String(actor.id)]);
   if(completeness){
@@ -97,8 +106,11 @@ export async function clientIntake({req,res,url,db,session,body,send}){
     const incoming=await body(req);
     if(Object.keys(incoming).some(key=>!['action','client_id','fields','expected_updated_at'].includes(key)))fail('Campo no permitido');
     if(!['create','link','reject'].includes(incoming.action))fail('Decisión inválida');
-    const entry=(await c.query('select s.*,l.client_id as intended_client_id from agency_client_intake_submissions s join agency_client_intake_links l on l.id=s.link_id and l.organization_id=s.organization_id where s.organization_id=$1 and s.id=$2 for update of s',[org,id(submissions[1])])).rows[0];
-    if(!entry)fail('Solicitud no encontrada',404);if(entry.status!=='pending')fail('Esta solicitud ya fue revisada',409);
+    const entry=(await c.query('select s.*,l.client_id as intended_client_id from agency_client_intake_submissions s join agency_client_intake_links l on l.id=s.link_id and l.organization_id=s.organization_id where s.organization_id=$1 and s.id=$2',[org,id(submissions[1])])).rows[0];
+    if(!entry)fail('Solicitud no encontrada',404);
+    if(incoming.action==='link')await clientRow(c,org,id(incoming.client_id));
+    const latest=(await c.query('select status from agency_client_intake_submissions where organization_id=$1 and id=$2 for update',[org,entry.id])).rows[0];
+    if(!latest)fail('Solicitud no encontrada',404);if(latest.status!=='pending')fail('Esta solicitud ya fue revisada',409);
     let clientId=null;
     if(incoming.action!=='reject'){
      const values=typeof entry.payload==='string'?JSON.parse(entry.payload):entry.payload;

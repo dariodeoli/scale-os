@@ -58,6 +58,8 @@ try{
  assert(!JSON.stringify((await query('select payload from agency_client_intake_submissions where organization_id=$1',[org])).rows).includes('Private representative'));
  assert.equal((await call(privacyPath)).status,404);
  const audit=(await query("select after_state from agency_operation_audit where table_name='agency_client_intake'")).rows;assert(!JSON.stringify(audit).includes(payload.name));assert(!JSON.stringify(audit).includes(payload.email));assert(!JSON.stringify(audit).includes(token));
+ assert.deepEqual(clientCompleteness({id:2,name:'Reused identity',tax_id:'80168807-8',party_type:'person',address:'A',city:'B',department:'C'}).contract.missing,[]);
+ assert.deepEqual(clientCompleteness({id:2,name:'Reused identity',tax_id:'80168807-8'}).contract.reused,['legal_name','document_type','document_number']);
  assert.deepEqual(clientCompleteness({id:1,party_type:'person',legal_name:'Person',tax_id:'1',address:'A',city:'B',department:'C',document_type:'ci',document_number:'D'}).contract.missing,[]);
  console.log('PASS intake335: '+calls+' API requests; review-only, scoped/hash/expiry/revoke/replay, selected missing fields/CAS, tenant FK, redaction, live overrides/membership, rate/honeypot and minimal audit');
 }finally{await pg.close();}
