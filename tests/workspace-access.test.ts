@@ -33,16 +33,16 @@ test('el NAV sigue las capacidades del API para cada rol', () => {
 
 test('Comisiones sigue a commissions.manage y no a una lista de roles', () => {
   assert(visibleModule('Comisiones', 'finance'));
-  assert(!visibleModule('Comisiones', 'management'), 'management no administra comisiones en el API');
+  assert(visibleModule('Comisiones', 'management'), 'management keeps operational commissions with salary fields redacted by the API');
   assert(!visibleModule('Comisiones', 'sales'));
   assert(visibleModule('Comisiones', 'owner'));
   for (const role of roles)
     assert.equal(visibleModule('Comisiones', role), roleCan(role, 'commissions.manage'), `Comisiones para ${role}`);
 });
 
-test('Roles y permisos queda en owner/admin como la matriz del API', () => {
+test('Roles y permisos usa permissions.manage y la matriz limita objetivos en el API', () => {
   assert(!visibleModule('Roles y permisos', 'finance'), 'Finanzas no administra la matriz');
-  assert(!visibleModule('Roles y permisos', 'management'));
+  assert(visibleModule('Roles y permisos', 'management'));
   assert(visibleModule('Roles y permisos', 'owner'));
   assert(visibleModule('Roles y permisos', 'admin'));
 });
@@ -60,7 +60,7 @@ test('el panel de equipo gatea el acceso por personas y no consulta comisiones',
   assert.doesNotMatch(operations, /\/api\/agency\/commissions/, 'Equipo no consulta comisiones');
   assert.doesNotMatch(operations, /\/api\/agency\/payouts/, 'los pagos a colaboradores viven en Finanzas');
   assert.match(operations, /const canManageAccess=effectiveCapability\(role,'members\.manage',capabilities\)/);
-  assert.match(read('app/team-access.tsx'), /const manage=effectiveCapability\(role,'members\.manage',capabilities\)/);
+  assert.match(read('app/team-access.tsx'), /const manage=policy\?\.canManageMembers===true/);assert.match(read('app/team-access.tsx'), /member\.access_editable===true/);
   assert.match(read('app/archive-controls.tsx'), /const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/);
 });
 

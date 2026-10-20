@@ -1,4 +1,4 @@
-import {childSections,navGroups,AI_CONNECTIONS_LABEL} from './navigation';
+import {childSections,navGroups,AI_CONNECTIONS_LABEL,AI_CONNECTIONS_PATH,sectionPath} from './navigation';
 import {visibleModule} from './workspace-access';
 
 /** 30 octubre 2026 00:00 America/Asuncion (UTC-03). Only the shortcut expires. */
@@ -9,4 +9,11 @@ export function workspaceNavGroups(role:string,capabilities:Record<string,boolea
  return navGroups.filter(([group])=>group!==AI_CONNECTIONS_LABEL||showAiShortcut)
   .map(([group,modules])=>({group,modules:modules.filter(module=>childSections(module).some(child=>visibleModule(child,role,capabilities)))}))
   .filter(group=>group.modules.length>0);
+}
+
+/** Resolve a permitted leaf; the temporary link keeps its existing preferences anchor. */
+export function workspaceNavigationPath(module:string,role:string,capabilities?:Record<string,boolean>){
+ if(module===AI_CONNECTIONS_LABEL)return AI_CONNECTIONS_PATH;
+ const leaf=childSections(module).find(child=>visibleModule(child,role,capabilities));
+ return sectionPath(leaf||'Resumen');
 }

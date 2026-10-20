@@ -17,15 +17,17 @@ const {TeamPersonSheet}=require('../app/team-person-sheet') as typeof import('..
 const {ActionMenu}=require('../app/ui-v2') as typeof import('../app/ui-v2');
 const {isCurrentTeamMember}=require('../app/team-directory') as typeof import('../app/team-directory');
 const me={id:'1',email:'old-email@example.invalid',full_name:'Mi identidad',role:'owner',active:true,removed_at:null};
-const other={id:'2',email:'current-email@example.invalid',full_name:'Otro dueño sin ficha',role:'owner',active:true,removed_at:null};
+const other={access_editable:true,permissions_editable:false,id:'2',email:'current-email@example.invalid',full_name:'Otro dueño sin ficha',role:'owner',active:true,removed_at:null};
 const text=(node:any):string=>typeof node==='string'?node:node?.children?.map(text).join('')||'';
+let actingRole='owner';
+const policy={canManageRoles:true,canManageMembers:true,canResetRoles:true,visibleRoles:['owner','admin','management','viewer'],permissionRoles:['admin','management','viewer'],editableRoles:['owner','admin','management','viewer'],grantableCapabilities:['members.manage'],canViewSalary:true,canViewBalance:true};
 let deleteStatus=403;const requests:{url:string;method:string}[]=[];
 globalThis.fetch=(async(input:RequestInfo|URL,init:RequestInit={})=>{
  const url=String(input),method=init.method||'GET';requests.push({url,method});
- const payload=method==='DELETE'?(deleteStatus===200?{ok:true}:{error:'Tu acceso cambió. Recargá para revisar.'}):{collaborators:[],members:[me,other],archivedProfiles:[]};
+ const payload=method==='DELETE'?(deleteStatus===200?{ok:true}:{error:'Tu acceso cambió. Recargá para revisar.'}):{collaborators:[],members:[me,{...other,access_editable:actingRole==='owner'}],archivedProfiles:[],policy};
  return new Response(JSON.stringify(payload),{status:method==='DELETE'?deleteStatus:200});
 }) as typeof fetch;
-async function workspace(role='owner'){
+async function workspace(role='owner'){actingRole=role;
  let renderer!:ReactTestRenderer;
  await act(async()=>{renderer=create(<PeopleWorkspace role={role} currentUserId="1" currentEmail="current-email@example.invalid"/>);});
  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});return renderer;
@@ -66,7 +68,7 @@ test('admin no retira dueños; confirmación conserva error real y sólo revoca 
 test('ficha Acceso de otro dueño sin ficha permite retirar; la propia usa ID',async()=>{
  for(const currentUserId of ['1','2']){
   let renderer!:ReactTestRenderer;
-  await act(async()=>{renderer=create(<TeamPersonSheet role="owner" currentUserId={currentUserId} currentEmail="current-email@example.invalid" person={null} member={other} ambiguous={false} seedEmail="" tab="acceso" defaultCurrency="PYG" load={async()=>{}} onCreated={()=>{}} close={()=>{}}/>);});
+  await act(async()=>{renderer=create(<TeamPersonSheet permissionPolicy={policy} role="owner" currentUserId={currentUserId} currentEmail="current-email@example.invalid" person={null} member={other} ambiguous={false} seedEmail="" tab="acceso" defaultCurrency="PYG" load={async()=>{}} onCreated={()=>{}} close={()=>{}}/>);});
   const remove=renderer.root.findAllByType('button').some(button=>String(button.props['aria-label']||'').startsWith('Quitar acceso:'));
   assert.equal(remove,currentUserId==='1');act(()=>renderer.unmount());
  }

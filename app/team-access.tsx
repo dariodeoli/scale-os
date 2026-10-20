@@ -1,7 +1,7 @@
 "use client";
 import {useState} from 'react';
 import {ChipEstado} from 'owncoding-ui/core';
-import {effectiveCapability} from './capabilities';
+import {accessRoleChoices,type TeamPermissionPolicy} from './team-permission-policy';
 import {api,Dialog,Editor} from './operations';
 import {completeSave} from './save-completion';
 import {TeamMember,teamRoleLabels} from './team-directory';
@@ -19,14 +19,15 @@ export const accessState=(member:TeamMember|null):AccessState=>{
  return {estado:'activo',etiqueta:'Acceso habilitado'};
 };
 
-export function TeamAccess({member,email,role,capabilities,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;capabilities?:Record<string,boolean>;refresh:()=>Promise<void>;ambiguous?:boolean}){
+export function TeamAccess({member,email,role,capabilities,policy,refresh,ambiguous=false}:{member:TeamMember|null;email:string|null;role:string;capabilities?:Record<string,boolean>;policy?:TeamPermissionPolicy;refresh:()=>Promise<void>;ambiguous?:boolean}){
  const [invite,setInvite]=useState(false);
- const manage=effectiveCapability(role,'members.manage',capabilities)&&(!ambiguous||Boolean(member));
+ const manage=policy?.canManageMembers===true&&(!ambiguous||Boolean(member))&&(!member||member.access_editable===true);
  const state=accessState(member);
- const canInvite=manage&&Boolean(email)&&(!member||Boolean(member.removed_at));
+ const choices=accessRoleChoices(policy).map(value=>({value,label:teamRoleLabels[value]||value}));
+ const canInvite=manage&&choices.length>0&&Boolean(email)&&(!member||Boolean(member.removed_at));
  return <section className="team-access" aria-label="Acceso al panel">
   <ChipEstado {...state} className="team-access-status"/>
   {canInvite&&<div className="team-access-actions"><ScaleButton type="button" className="secondary" onClick={()=>setInvite(true)} variant="secondary">{member?.removed_at?'Reinvitar':'Invitar al panel'}</ScaleButton></div>}
-  {invite&&<Dialog title={member?.removed_at?'Reinvitar al panel':'Invitar al panel'} close={()=>setInvite(false)}><div className="team-access-dialog"><Editor fields={[{key:'email',label:'Correo del integrante',type:'email'},{key:'role',label:'Permiso de acceso',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))}]} defaults={{email:email||'',role:'viewer'}} label="Enviar invitación" save={async values=>{await api('/api/agency/members',values);await completeSave(()=>setInvite(false),refresh);}}/></div></Dialog>}
+  {invite&&canInvite&&<Dialog title={member?.removed_at?'Reinvitar al panel':'Invitar al panel'} close={()=>setInvite(false)}><div className="team-access-dialog"><Editor fields={[{key:'email',label:'Correo del integrante',type:'email'},{key:'role',label:'Permiso de acceso',choices}]} defaults={{email:email||'',role:choices.some(choice=>choice.value==='viewer')?'viewer':choices[0]?.value||''}} label="Enviar invitación" save={async values=>{if(!canInvite)return;await api('/api/agency/members',values);await completeSave(()=>setInvite(false),refresh);}}/></div></Dialog>}
  </section>;
 }

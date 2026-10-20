@@ -13,6 +13,7 @@ const requests=[
 const id=require.resolve('../app/operations');
 require.cache[id]={id,filename:id,loaded:true,exports:{Editor:()=>null,api:async(path:string,body?:unknown,method='POST')=>{
  if(body!==undefined){writes.push({path,body,method});return {ok:true};}
+ if(path==='/api/agency/members')return {policy:{canManageMembers:true,editableRoles:['viewer','finance','sales'],permissionRoles:['viewer','finance','sales']}};
  if(path==='/api/agency/invite-links')return {links:[]};
  assert.equal(path,'/api/agency/access-requests');return {requests};
 }}} as NodeModule;
@@ -25,7 +26,7 @@ test('invalid requests explain unavailability and have no approval action; valid
  const approvals=(i:number)=>articles[i].findAllByType('button').filter(b=>b.children.join('')==='Aprobar acceso');
  assert.equal(approvals(0).length,1);assert.equal(approvals(0)[0].props.disabled,false);
  assert.equal(approvals(1).length,0);assert.equal(approvals(2).length,0);
- assert.equal(approvals(3)[0].props.disabled,true,'admin cannot approve owner');
+ assert.equal(approvals(3).length,0,'admin never sees an action to approve owner');
  const text=JSON.stringify(r!.toJSON());assert(text.includes('El enlace fue revocado'));assert(text.includes('El enlace venció'));
  await act(async()=>{await approvals(0)[0].props.onClick();});assert.deepEqual(writes,[{path:'/api/agency/access-requests/1',body:{action:'approve'},method:'PATCH'}]);
  assert(articles[1].findAllByType('button').some(b=>String(b.props.children).includes('Rechazar')),'unavailable requests can still be dismissed');
