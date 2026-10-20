@@ -133,9 +133,11 @@ export async function economicHistoryCases(db){
  assert.deepEqual(await one('select (select count(*) from agency_payments where organization_id=$1) as payments,(select count(*) from agency_cash_movements where organization_id=$1) as movements,(select sum(balance) from bank_accounts where organization_id=$1) as cash',[org]),ledgerBefore);
  await q('update agency_clients set active=true where organization_id=$1 and id=$2',[org,customer]);
  assert.equal((await call('/finance/balance-details?month=2026-09')).clients.records.find(x=>x.client_id===String(customer)).client_active,true);
- const restricted={...actor,role:'sales',capabilities:{'finance.view':true,'salary.view':false}};
+ const restricted={...actor,role:'sales',capabilities:{'finance.view':true,'finance.balance.view':true,'salary.view':false}};
  assert.equal((await call(salary,'GET',{},restricted)).status,403);assert.equal((await call(salary,'POST',september,restricted)).status,403);
- details=await call('/finance/balance-details?month=2026-09','GET',{},restricted);for(const field of ['base_amount','override_amount','expected_amount','paid_in_month','outstanding_amount'])assert.equal(details.personnel.records.find(x=>x.collaborator_id===String(person))[field],null);
+ details=await call('/finance/balance-details?month=2026-09','GET',{},restricted);assert.equal(details.status,200);const maskedSalary=details.personnel.records.find(x=>x.collaborator_id===String(person));for(const field of ['base_amount','override_amount','expected_amount','paid_in_month','outstanding_amount','salary_revision'])assert.equal(maskedSalary[field],null,'Balance access does not grant salary values or revision');assert.deepEqual(maskedSalary.payments,[],'salary payment detail remains protected');
+ assert.equal((await call('/finance/balance-details?month=2026-09','GET',{}, {...actor,role:'sales',capabilities:{'finance.view':true}})).status,403,'finance.view alone does not grant Balance access');
+ assert.equal((await call('/finance/balance-details?month=2026-09','GET',{}, {...actor,role:'management',capabilities:{'finance.balance.view':true,'salary.view':true}})).status,403,'management cannot override protected Balance access');
  assert.equal((await call('/clients/'+foreign+'/plan-history')).status,404);
  assert.equal((await call('/finance/balance-details','GET',{},null)).status,401);
  assert.equal((await call('/finance/balance-details','GET',{}, {...actor,role:'viewer'})).status,403);
@@ -196,12 +198,13 @@ export async function economicHistoryCases(db){
 export async function economicHistorySchema(db){
  const exec=db.exec||((sql)=>db.query(sql)),read=file=>readFile(new URL(file,import.meta.url),'utf8');
  await exec(await read('schema.sql'));
- for(const file of migrationOrder)if(!['20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql','20261020_client_monthly_income.sql'].includes(file))await exec(await read('migrations/'+file));
+ for(const file of migrationOrder)if(!['20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql','20261020_client_monthly_income.sql','20261021_finance_management.sql'].includes(file))await exec(await read('migrations/'+file));
  const org=(await db.query("insert into organizations(slug,name) values('history-legacy','Legacy') returning id")).rows[0].id;
  const person=(await db.query("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency,started_on) values($1,'Legacy','fixed',123,'USD','2020-01-01') returning id",[org])).rows[0].id;
  await exec(await read('migrations/20261018_economic_history.sql'));await exec(await read('migrations/20261018_economic_history.sql'));
  await exec(await read('migrations/20261018_commercial_same_month_revisions.sql'));await exec(await read('migrations/20261018_commercial_same_month_revisions.sql'));
  await exec(await read('migrations/20261020_client_monthly_income.sql'));await exec(await read('migrations/20261020_client_monthly_income.sql'));
+ await exec(await read('migrations/20261021_finance_management.sql'));await exec(await read('migrations/20261021_finance_management.sql'));
  const baseline=(await db.query("select effective_from,source,after_state from agency_salary_history where organization_id=$1 and collaborator_id=$2",[org,person])).rows;
  assert.equal(baseline.length,1);assert.equal(baseline[0].effective_from,null);assert.equal(baseline[0].source,'legacy-baseline');assert.equal(baseline[0].after_state.amount,'123.00');
  const legacy=(await db.query("select agency_salary_at($1,$2,'2020-03-31') as salary",[org,person])).rows[0].salary;assert.equal(legacy.history_known,false);assert.equal(legacy.effective_from,null);
