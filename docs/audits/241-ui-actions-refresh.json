@@ -459,7 +459,7 @@
     {
       "file": "app/sections/finanzas.tsx",
       "beforeHash": "8abd2290464bf4b368784bc9304e1eac3a6ceaa4d60d6c2bfd6dd75814ae6312",
-      "afterHash": "9b75c2d524edfd884716270e1f26e76d17d5448c4edea483e68a5788fc631714",
+      "afterHash": "9d4988cfea2eb609dca9ce160073d3b177521186cebbc2f51b3238753cc4b3a4",
       "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
@@ -1819,7 +1819,7 @@
   ],
   "issue330": {
     "baseline": "2bedb6c679215dfd8574eb5b235700d87de8a95e",
-    "integrationHead": "1d53c588e0b48a10ee8f1bb2e60a459a3b30c984",
+    "integrationHead": "1136f78dbee9dc621567ba8acbf516c32d443d2c",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 634,
     "newCanonicalActions": 0,
