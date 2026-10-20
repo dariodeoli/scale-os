@@ -1,0 +1,243 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "width": 320,
+      "step": "client-project-scope-reset-and-negative-validation",
+      "pass": true
+    },
+    {
+      "width": 320,
+      "step": "nested-account-open-and-bank-search",
+      "documentWidth": 320,
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 320
+        },
+        {
+          "left": 0,
+          "right": 320
+        }
+      ],
+      "bank": "Banco Familiar",
+      "name": "Banco Familiar · ···6789",
+      "logo": [
+        {
+          "complete": true,
+          "width": 352
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "step": "nested-account-save-preserves-receipt-draft",
+      "payment": {
+        "clientId": "20",
+        "accountId": "90",
+        "amount": "50000",
+        "receivedOn": "2026-10-20",
+        "reference": "Referencia sintética QA",
+        "projectId": "",
+        "planId": "",
+        "period": "2026-10",
+        "monthlyIncomeEntryId": null,
+        "requestId": "f64bbc36-3b3b-4bcc-a48c-65436dbff23e",
+        "mode": "unassigned"
+      }
+    },
+    {
+      "width": 390,
+      "step": "client-project-scope-reset-and-negative-validation",
+      "pass": true
+    },
+    {
+      "width": 390,
+      "step": "nested-account-open-and-bank-search",
+      "documentWidth": 390,
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 390
+        },
+        {
+          "left": 0,
+          "right": 390
+        }
+      ],
+      "bank": "Banco Familiar",
+      "name": "Banco Familiar · ···6789",
+      "logo": [
+        {
+          "complete": true,
+          "width": 352
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "step": "nested-account-save-preserves-receipt-draft",
+      "payment": {
+        "clientId": "20",
+        "accountId": "90",
+        "amount": "50000",
+        "receivedOn": "2026-10-20",
+        "reference": "Referencia sintética QA",
+        "projectId": "",
+        "planId": "",
+        "period": "2026-10",
+        "monthlyIncomeEntryId": null,
+        "requestId": "472348db-72a4-4df9-a57a-81d3297b792a",
+        "mode": "unassigned"
+      }
+    },
+    {
+      "width": 768,
+      "step": "client-project-scope-reset-and-negative-validation",
+      "pass": true
+    },
+    {
+      "width": 768,
+      "step": "nested-account-open-and-bank-search",
+      "documentWidth": 768,
+      "dialogs": [
+        {
+          "left": 20,
+          "right": 748
+        },
+        {
+          "left": 20,
+          "right": 748
+        }
+      ],
+      "bank": "Banco Familiar",
+      "name": "Banco Familiar · ···6789",
+      "logo": [
+        {
+          "complete": true,
+          "width": 352
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "step": "nested-account-save-preserves-receipt-draft",
+      "payment": {
+        "clientId": "20",
+        "accountId": "90",
+        "amount": "50000",
+        "receivedOn": "2026-10-20",
+        "reference": "Referencia sintética QA",
+        "projectId": "",
+        "planId": "",
+        "period": "2026-10",
+        "monthlyIncomeEntryId": null,
+        "requestId": "73cf7c4a-e855-469f-af1e-1724b8588a13",
+        "mode": "unassigned"
+      }
+    },
+    {
+      "width": 1440,
+      "step": "client-project-scope-reset-and-negative-validation",
+      "pass": true
+    },
+    {
+      "width": 1440,
+      "step": "nested-account-open-and-bank-search",
+      "documentWidth": 1440,
+      "dialogs": [
+        {
+          "left": 310,
+          "right": 1130
+        },
+        {
+          "left": 310,
+          "right": 1130
+        }
+      ],
+      "bank": "Banco Familiar",
+      "name": "Banco Familiar · ···6789",
+      "logo": [
+        {
+          "complete": true,
+          "width": 352
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "step": "nested-account-save-preserves-receipt-draft",
+      "payment": {
+        "clientId": "20",
+        "accountId": "90",
+        "amount": "50000",
+        "receivedOn": "2026-10-20",
+        "reference": "Referencia sintética QA",
+        "projectId": "",
+        "planId": "",
+        "period": "2026-10",
+        "monthlyIncomeEntryId": null,
+        "requestId": "fcd50f62-2a86-4d4a-bf31-cd686d5f2b16",
+        "mode": "unassigned"
+      }
+    }
+  ],
+  "writes": [
+    {
+      "name": "Banco Familiar · ···6789",
+      "accountType": "bank",
+      "currency": "PYG",
+      "institution": "Banco Familiar",
+      "accountNumber": "123456789",
+      "holderName": "Empresa sintética QA",
+      "holderTaxId": "",
+      "alias": "",
+      "accountSubtype": null,
+      "custodianUserId": "",
+      "requestId": "6dbec8f7-cd04-42e1-abf5-66bef01f5f5f"
+    },
+    {
+      "name": "Banco Familiar · ···6789",
+      "accountType": "bank",
+      "currency": "PYG",
+      "institution": "Banco Familiar",
+      "accountNumber": "123456789",
+      "holderName": "Empresa sintética QA",
+      "holderTaxId": "",
+      "alias": "",
+      "accountSubtype": null,
+      "custodianUserId": "",
+      "requestId": "0461d4ae-6b78-48ed-9a22-8ed7bc994e70"
+    },
+    {
+      "name": "Banco Familiar · ···6789",
+      "accountType": "bank",
+      "currency": "PYG",
+      "institution": "Banco Familiar",
+      "accountNumber": "123456789",
+      "holderName": "Empresa sintética QA",
+      "holderTaxId": "",
+      "alias": "",
+      "accountSubtype": null,
+      "custodianUserId": "",
+      "requestId": "85987179-6df8-4cc2-b6a3-7a378df32a2d"
+    },
+    {
+      "name": "Banco Familiar · ···6789",
+      "accountType": "bank",
+      "currency": "PYG",
+      "institution": "Banco Familiar",
+      "accountNumber": "123456789",
+      "holderName": "Empresa sintética QA",
+      "holderTaxId": "",
+      "alias": "",
+      "accountSubtype": null,
+      "custodianUserId": "",
+      "requestId": "54056e10-4de2-4b52-9ae8-070b9c68a1e7"
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "fixture": true,
+  "productionWrites": false
+}
