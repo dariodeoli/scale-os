@@ -1,0 +1,2 @@
+{"event":"suite_error","path":"/api/agency/clients/2","status":404}
+PASS MCP: 63 HTTP checks (PGlite; nested transaction isolation scenarios excluded); official SDK initialize/list/call, real canonical clients/plans/projects, OAuth PKCE/DCR/CSRF/resource/replay/refresh/revoke, live roles/overrides, tenant and immutable cash boundary

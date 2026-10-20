@@ -1,3 +1,4 @@
+import {createMcpIntegration} from './mcp-server.js';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -17,6 +18,7 @@ import {loginOrganization} from './default-organization.js';
 import {passwordAccount,registrationIdentity,existingAccount} from './existing-account.js';
 import { financeControls } from './finance-controls.js';
 import {economicHistory} from './economic-history.js';
+import {clientMonthlyIncome} from './client-monthly-income.js';
 import {financeTreasury} from './finance-treasury.js';
 import { contentReview } from './content-review.js';
 import { recordLifecycle, visibleRecord } from './record-lifecycle.js';
@@ -285,7 +287,9 @@ async function init() {
      "20261018_economic_history.sql",
      "20261018_commercial_same_month_revisions.sql",
      "20261018_workspace_preferences.sql",
-     "20261018_client_contacts.sql"
+     "20261018_client_contacts.sql",
+     "20261020_client_monthly_income.sql",
+     "20261020_mcp_connections.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -368,14 +372,18 @@ function cors(req, res) {
   res.setHeader('Vary', 'Origin');
   return true;
 }
+const mcpIntegration=createMcpIntegration({db,session});
 const server = http.createServer(async (req,res) => {
   security(res);
-  if (!cors(req, res)) return send(res,403,{error:'Origen no permitido'});
-  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   const startedAt = Date.now();
   const requestId = crypto.randomBytes(8).toString('hex');
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
+    // MCP uses OAuth Bearer tokens, never browser cookies. Its public OAuth
+    // endpoints own their credential-free CORS and canonical Host policy.
+    if(await mcpIntegration.handle(req,res,url))return;
+    if (!cors(req, res)) return send(res,403,{error:'Origen no permitido'});
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
     // Check demo effects before any handler can send invitations or call a provider.
     if(await demoEffectGate({req,res,url,session,send}))return;
@@ -430,6 +438,7 @@ const server = http.createServer(async (req,res) => {
     if(await passwordAccess({req,res,url,db,body,send,sendReset,emailAvailable:emailDelivery.status.available}))return;
     if(await accountSecurity({req,res,url,db,session,body,send,parseCookies,cookie,throttle,sendDestructiveEmailCode,emailAvailable:emailDelivery.status.available}))return;
     if(await economicHistory({req,res,url,db,session,body,send}))return;
+    if(await clientMonthlyIncome({req,res,url,db,session,body,send}))return;
     if(await financeTreasury({req,res,url,db,session,body,send}))return;
     if(await financeControls({req,res,url,db,session,body,send}))return;
     if(await organizationSso({req,res,url,db,session,body,send}))return;

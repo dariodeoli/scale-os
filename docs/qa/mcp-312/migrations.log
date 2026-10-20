@@ -1,0 +1,2 @@
+{"event":"productivity_error","path":"/api/agency/productivity/profile","status":403,"message":"Tu perfil está unificado. Cambiá a tu empresa real para editarlo; la demo no modifica tus datos personales."}
+PASS: schema + 118 server-registered migrations with tracked restart, session identity initialization, real reactivation/HR sync, demo isolation, assignee flow, inventory/checklist relations; optional Dadoo excluded
