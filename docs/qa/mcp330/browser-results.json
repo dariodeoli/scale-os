@@ -47,7 +47,7 @@
         },
         {
           "text": "Completá nombre del cliente",
-          "top": 739.78125,
+          "top": 721.78125,
           "visible": true
         }
       ]
@@ -101,12 +101,12 @@
       "alerts": [
         {
           "text": "Revisá esta sección: Identidad fiscal (1)Nombre del cliente: Completá nombre del clienteAutorizo a la empresa que me compartió el enlace a revisar estos datos p",
-          "top": 31.96875,
+          "top": 49.96875,
           "visible": true
         },
         {
           "text": "Confirmá la autorización para enviar.",
-          "top": 317.53125,
+          "top": 335.53125,
           "visible": true
         },
         {
@@ -347,5 +347,5 @@
   "external": [],
   "fixture": true,
   "productionWrites": false,
-  "sourceSha": "09b4d8ee"
+  "sourceSha": "09b4d8ee + intake help correction 55a81f39"
 }
