@@ -5,8 +5,10 @@ import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
-import {sectionLabel,sectionPath,parentSection,childSections,tabLabels,navGroups,moduleNavGroup} from './navigation';
+import {sectionLabel,sectionPath,parentSection,childSections,tabLabels,moduleNavGroup} from './navigation';
 import Link from 'next/link';
+import {workspaceNavGroups} from './workspace-navigation';
+import {useTemporaryAiNavigation} from './use-temporary-ai-navigation';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
@@ -164,7 +166,7 @@ import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button"
 // es el que marca al padre cuando el módulo activo vive adentro. Estudio vive
 // en Recursos (agenda de espacios/equipos). Las rutas y los apartados de cada
 // módulo no cambian.
-const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Clientes:Users,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
+const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Clientes:Users,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2,'Conexiones de IA':Workflow};
 const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
 function localMonth(){return currentAsuncionMonth();}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
@@ -353,7 +355,8 @@ export default function Home() {
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer',user?.capabilities));
-  const visibleNavGroups=navGroups.map(([group,modules])=>({group,modules:modules.filter(module=>allowedChildren(module).length>0)})).filter(group=>group.modules.length>0);
+  const showAiShortcut=useTemporaryAiNavigation();
+  const visibleNavGroups=workspaceNavGroups(user?.role||'viewer',user?.capabilities,showAiShortcut);
   // Acordeón del nav v3: por defecto el grupo del módulo activo y sólo uno
   // expandido a la vez; al navegar se reabre el grupo de la sección nueva.
   const [openNavGroup,setOpenNavGroup]=useState<string|null>(()=>moduleNavGroup(activeParent));
