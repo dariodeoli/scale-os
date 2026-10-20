@@ -158,3 +158,30 @@ test('applying a local text edit previews that draft without saving or issuing i
  try{await act(async()=>{renderer=create(<ContractsWorkspace organizationId="org1" userId="user1"/>);await tick();});await act(async()=>{renderer!.root.findAllByType('button').find(n=>n.children.join('')==='Abrir contrato')!.props.onClick();await tick();});await act(async()=>{await renderer!.root.findByType(Editor).props.save({...renderer!.root.findByType(Editor).props.defaults,title:'Nuevo local',body:'Texto local aplicado'});await tick();});await act(async()=>{await new Promise(resolve=>setTimeout(resolve,160));});assert.equal(previews.at(-1)?.body,'Texto local aplicado');assert.equal(previews.at(-1)?.title,'Nuevo local');assert.equal(previews.at(-1)?.expected_revision,3);assert.match(renderer!.root.findByType('iframe').props.srcDoc,/Texto local aplicado/);assert.deepEqual(writes,[]);assert.equal(renderer!.root.findAllByType('button').find(n=>n.children.join('')==='Emitir versión revisada')!.props.disabled,true);
  }finally{act(()=>renderer?.unmount());globalThis.fetch=previous;}
 });
+
+test('malformed successful config stays a retryable loading error instead of crashing the page',async()=>{
+ const previous=globalThis.fetch;let invalid=true;let renderer:ReactTestRenderer|undefined;
+ globalThis.fetch=async input=>{const path=String(input);if(path.endsWith('/config'))return invalid?respond({error:'Unexpected proxy payload'}):respond(config);if(path.endsWith('/templates'))return respond({templates:[],variables:[]});return respond({contracts:[]});};
+ try{await act(async()=>{renderer=create(<ContractsWorkspace organizationId="org-recovery" userId="u1"/>);await tick();});const failed=JSON.stringify(renderer!.toJSON());assert.match(failed,/No se pudieron cargar los contratos/);assert.match(failed,/datos incompletos/);assert.doesNotMatch(failed,/Todavía no hay contratos/);assert.equal(renderer!.root.findAllByType('button').some(node=>node.children.join('')==='Nuevo contrato'),false);
+  invalid=false;await act(async()=>{renderer!.root.findAllByType('button').find(node=>node.children.includes('Reintentar'))!.props.onClick();await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/Todavía no hay contratos/);assert.equal(renderer!.root.findAllByType('button').some(node=>node.children.join('')==='Nuevo contrato'),true);
+ }finally{act(()=>renderer?.unmount());globalThis.fetch=previous;}
+});
+
+test('a failed contract list or template request never masquerades as an empty portfolio and can retry',async()=>{
+ const previous=globalThis.fetch;
+ try{for(const failedEndpoint of ['/contracts','/templates']){let fail=true;let renderer:ReactTestRenderer|undefined;
+  globalThis.fetch=async input=>{const path=String(input);if(path.endsWith('/config'))return respond(config);if(path.endsWith(failedEndpoint)&&fail)return respond({error:'Lectura interrumpida'},503);if(path.endsWith('/templates'))return respond({templates:[],variables:[]});return respond({contracts:[{id:'c-recovered',title:'Contrato recuperado',template_id:'t1',revision:1}]});};
+  try{await act(async()=>{renderer=create(<ContractsWorkspace organizationId={failedEndpoint} userId="u1"/>);await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/Lectura interrumpida/);assert.doesNotMatch(JSON.stringify(renderer!.toJSON()),/Todavía no hay contratos/);assert.equal(renderer!.root.findAllByType('button').some(node=>node.children.join('')==='Nuevo contrato'),false);
+   fail=false;await act(async()=>{renderer!.root.findAllByType('button').find(node=>node.children.includes('Reintentar'))!.props.onClick();await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/Contrato recuperado/);
+  }finally{act(()=>renderer?.unmount());}
+ }}finally{globalThis.fetch=previous;}
+});
+
+test('contracts reject HTML success and present bounded transport errors while retaining caller cancellation',async()=>{
+ const previous=globalThis.fetch;let init:RequestInit|undefined;
+ try{globalThis.fetch=async(_input,options)=>{init=options;return new Response('<html>upstream unavailable</html>',{status:200});};await assert.rejects(()=>contractRequest('/api/agency/contracts/config'),/respuesta inválida/);assert.ok(init?.signal,'reads have a bounded timeout');
+  globalThis.fetch=async(_input,options)=>{assert.equal(options?.signal,undefined,'writes keep their caller-owned lifetime');return respond({ok:true});};assert.deepEqual(await contractRequest('/api/agency/contracts',{title:'Borrador'}),{ok:true});
+  globalThis.fetch=async()=>{throw new TypeError('Failed to fetch');};await assert.rejects(()=>contractRequest('/api/agency/contracts/config'),/Sin conexión con el servidor/);
+  const controller=new AbortController(),cancelled=new DOMException('Cancelled','AbortError');controller.abort();globalThis.fetch=async(_input,options)=>{assert.equal(options?.signal,controller.signal);throw cancelled;};await assert.rejects(()=>contractRequest('/api/agency/contracts/config',undefined,'GET',controller.signal),error=>error===cancelled);
+ }finally{globalThis.fetch=previous;}
+});

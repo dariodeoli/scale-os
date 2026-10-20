@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions. Scale #305–312: refresh source hashes and positions without new structural exemptions. Scale #325: refresh source hashes and positions without new structural exemptions; public anchors reviewed separately from button taxonomy. Scale #330/#331/#335: refresh source hashes and positions without new structural exemptions; changed permission toggle has exact before/after evidence.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions. Scale #305–312: refresh source hashes and positions without new structural exemptions. Scale #325: refresh source hashes and positions without new structural exemptions; public anchors reviewed separately from button taxonomy. Scale #330/#331/#335: refresh source hashes and positions without new structural exemptions; changed permission toggle has exact before/after evidence. Scale #330/#331/#335: refresh source hashes and positions without new structural exemptions; changed permission toggle has exact before/after evidence.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -33,8 +33,8 @@
     {
       "file": "app/finance-balance.tsx",
       "beforeHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
-      "afterHash": "dd12e729e2480cbcd17837660de61288167e6fe38948eae6405332d3cb2ac986",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
+      "afterHash": "12b1acc9f897b8330bed79acdfadf3262585719b2c5cb5c1abc755110ad6f8e6",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/finance-clients.tsx",
@@ -45,8 +45,8 @@
     {
       "file": "app/finance-collections.tsx",
       "beforeHash": "9893d0c391819f01edf9751683ccdc9ce7a8c97dd2198b4fd9065b5962cb85ef",
-      "afterHash": "2c1949adb6956bb70ce5b2eb75351df40f4e4f5aacdfbd93bba8d6f5998a08d0",
-      "rationale": "Contención min-w-0/minmax en filas de deuda previa; las acciones y reglas de cobros no cambian. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
+      "afterHash": "72c93cb66104a72082558bb8667a16cbcd4aa6f90423cad9630d3b9ccce036f7",
+      "rationale": "Contención min-w-0/minmax en filas de deuda previa; las acciones y reglas de cobros no cambian. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/finance-personnel.tsx",
@@ -123,14 +123,14 @@
     {
       "file": "app/contracts-workspace.tsx",
       "beforeHash": "ae15e4e2d88b97fca5b0a4b00f527787a4700b4efcad9d79e378148509012635",
-      "afterHash": "6870bdb22eb83473c619028087267094a4780b3be06cfd4de7c12fa5b4316654",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
+      "afterHash": "fc627e50de9fe9aaa1e6ebb8cb8cece6a1aa51be662276259bda24f6cb0a4da2",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/employee-tasks.tsx",
       "beforeHash": "4176e22e96b7a17e5c5f0e291661483f6e1e0f29bab79f841397c13b01308056",
-      "afterHash": "86822a46a0d718453052abf8fae8fcda7688fa8de3c8039a95255c2171ce5360",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "13cb09274d758a4d43cabcb594cde23032119b719a10aed3352279af5f9efbec",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/productivity-ui.tsx",
@@ -165,8 +165,8 @@
     {
       "file": "app/workspace-forms.tsx",
       "beforeHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
-      "afterHash": "4972099bf4685e3d71c7671ccd5a9b100d18e749acdabd9d3cf91af97f2deef4",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
+      "afterHash": "747682eb3acad88428ade3b94522f200cfe6927901e35e29e64d57047a64421e",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/access-layout.tsx",
@@ -399,8 +399,8 @@
     {
       "file": "app/client-intake.tsx",
       "beforeHash": null,
-      "afterHash": "d8cb8f38512d544273aaf2bf980411952950900485d9580fcbeb198d052af494",
-      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+      "afterHash": "7f0c4befe23b1f8da060f04169b734b7c1c3f08e692bb32c92e0b50385a80d39",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/client-ruc.tsx",
@@ -417,8 +417,8 @@
     {
       "file": "app/finance-receipt-editor.tsx",
       "beforeHash": "cef9c8525e04eec38928bb9379294b76c3cbb59083484ae00e84024d6561cdf7",
-      "afterHash": "256e5eaa0d47f784271902dee517b419cdb392a74e6a22e9b784cdc58ed71a2d",
-      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+      "afterHash": "dd33809c93a2a7b9ba2e69d80341fbe6ab0a537eef50f16a5a233a7974c420c8",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/invite-links.tsx",
@@ -435,8 +435,8 @@
     {
       "file": "app/payment-review-panel.tsx",
       "beforeHash": null,
-      "afterHash": "aca3009e85432c60c5005c816e88ece3800131c8b2a8518f34a0fe94b448a1ef",
-      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+      "afterHash": "9bb742fc25bc39f466934f23cdc9659a5c1b5a062f6f5a372fbd3b1ac5ec4208",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/permissions-matrix.tsx",
@@ -459,8 +459,8 @@
     {
       "file": "app/sections/finanzas.tsx",
       "beforeHash": "8abd2290464bf4b368784bc9304e1eac3a6ceaa4d60d6c2bfd6dd75814ae6312",
-      "afterHash": "2a8223077a98ec4e421869e5168f77972e0ed3ef8b6712517336357f583c686d",
-      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+      "afterHash": "9d4988cfea2eb609dca9ce160073d3b177521186cebbc2f51b3238753cc4b3a4",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/sections/invitaciones.tsx",
@@ -496,6 +496,24 @@
       "file": "app/ui/smart-field.tsx",
       "beforeHash": "adf52beb16a11f26d477e136c27bca462de0927bc881f6ea0e4b6e563de9af7e",
       "afterHash": "2e38dfe6c52e999e8c14372e4c434348f06758f52e5b4554f05c4ac9869623c7",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+    },
+    {
+      "file": "app/account-institution-logo.tsx",
+      "beforeHash": null,
+      "afterHash": "75e0a954b4ccfcab5593e1de06b656622c1184aebb0c79eec7709570421d6ff8",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+    },
+    {
+      "file": "app/person-container.tsx",
+      "beforeHash": "9d684c7dc614fe3644b1f4c7dee5176e111aa3af65b8f7dab84e9e8dd6b60e4f",
+      "afterHash": "c9eafdc29cd9e5f97efeb50afa66332cda649628f6df8710c02ee902272c1ee1",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+    },
+    {
+      "file": "app/sections/proyectos.tsx",
+      "beforeHash": "9bdefaf49944fe965c6a4f34885ede819d31153059b4c429fed8810ed99af72f",
+      "afterHash": "80ac841d1d00be0d9f0f6b23764f615f07cc71c94d397923cc6c75a80c741664",
       "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
     }
   ],
@@ -686,7 +704,7 @@
     },
     {
       "file": "app/employee-tasks.tsx",
-      "line": 51,
+      "line": 52,
       "column": 136,
       "owner": "TaskDashboard",
       "siteHash": "96fa97e3a0115b8b951942a0704a2526223a62fb4ccd4904d0e043e601728b4f",
@@ -694,7 +712,7 @@
     },
     {
       "file": "app/employee-tasks.tsx",
-      "line": 51,
+      "line": 52,
       "column": 295,
       "owner": "TaskDashboard",
       "siteHash": "56261b79df5b57f5acff465c3c400b8d0ee046aa8d37ba8205bb200693d5a65d",
@@ -838,7 +856,7 @@
     },
     {
       "file": "app/contracts-workspace.tsx",
-      "line": 36,
+      "line": 44,
       "column": 562,
       "owner": "ContractsSession",
       "siteHash": "908defb204bd74feb5c106e3d5e1354e6ac90f9fcec10ce665a84bc9249d73fe",
@@ -846,7 +864,7 @@
     },
     {
       "file": "app/contracts-workspace.tsx",
-      "line": 61,
+      "line": 69,
       "column": 70,
       "owner": "CreateContract",
       "siteHash": "39f5b531a855be148de85df1be6c081bf006f498b85dd8879e4536dda201144a",
@@ -982,7 +1000,7 @@
     },
     {
       "file": "app/client-intake.tsx",
-      "line": 14,
+      "line": 15,
       "column": 11,
       "owner": "ClientIntakeButton",
       "siteHash": "d3b655de398e6a2f8c954cde1ddb0bd1b828bbef9c0c7267546055cd567b94e7",
@@ -990,7 +1008,7 @@
     },
     {
       "file": "app/client-intake.tsx",
-      "line": 29,
+      "line": 30,
       "column": 405,
       "owner": "ClientIntakeDialog",
       "siteHash": "703c1377e6dae3385a0a4bda58919ed7207c756919ffb2e6a554cf49b725d34b",
@@ -998,7 +1016,7 @@
     },
     {
       "file": "app/client-intake.tsx",
-      "line": 31,
+      "line": 32,
       "column": 266,
       "owner": "ClientIntakeDialog",
       "siteHash": "8f5762481bf3930b3f5edf24a82ba4a78a59ce6a121458007279d2274cf7564e",
@@ -1030,7 +1048,7 @@
     },
     {
       "file": "app/sections/finanzas.tsx",
-      "line": 211,
+      "line": 213,
       "column": 30,
       "owner": "FinanzasSection",
       "siteHash": "7bf363490b21d1af9663c771db388f1678a79e8c77fc1bbc3eca397ededc7708",
@@ -1800,134 +1818,16 @@
     }
   ],
   "issue330": {
-    "baseline": "4530281ebb4bbb909f75afc02e9d00ccf9f3b057",
-    "integrationHead": "68a9a230e546a0ff72111ca751a7d67b077d3f3b",
+    "baseline": "2bedb6c679215dfd8574eb5b235700d87de8a95e",
+    "integrationHead": "4a5436e6fb1a676c10567aef246ef3bc3c80e804",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 634,
-    "newCanonicalActions": 8,
+    "newCanonicalActions": 0,
     "retainedStructuralWidgets": 53,
-    "unchangedStructuralJsxHashes": false,
-    "reviewedStructuralChanges": [
-      {
-        "approved": true,
-        "file": "app/permissions-matrix.tsx",
-        "owner": "ModulePermissions",
-        "beforeHash": "1b4153c67ea9afcba0e4c979228e36376049b7c8d68eac88aafc9d8fcdb0bbb4",
-        "beforeLine": 104,
-        "beforeColumn": 76,
-        "beforeJsx": "<button key={roleId} type=\"button\" aria-pressed={checked} disabled={!owner||busy} title={`${row.label} · ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${owner?'':'cursor-default'}`} onClick={()=>{if(owner&&!busy)void toggle(row.id,roleId,!checked);}}>\n        {checked?<Check size={12} aria-hidden=\"true\"/>:<X size={12} aria-hidden=\"true\"/>}\n        {teamRoleLabels[roleId]||roleId}\n       </button>",
-        "afterHash": "37b21629e80c6d9c40e865529c8d8139802ba695cd21fdbc4c5d84e252e697c0",
-        "afterLine": 106,
-        "afterColumn": 207,
-        "afterJsx": "<button key={roleId} type=\"button\" aria-pressed={checked} disabled={!editable||busy} title={`${row.label} · ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${editable?'':'cursor-default'}`} onClick={()=>{if(editable&&!busy)void toggle(row.id,roleId,!checked);}}>\n        {checked?<Check size={12} aria-hidden=\"true\"/>:<X size={12} aria-hidden=\"true\"/>}\n        {teamRoleLabels[roleId]||roleId}\n       </button>",
-        "rationale": "The existing native permission option remains a type=button aria-pressed toggle, using the same roleId/row.id/checked values and busy guard. Its editable predicate now also requires the canonical policy permissionRoles and grantableCapabilities, so manager cannot toggle superior roles or salary permissions. Disabled, cursor and callback use the same predicate; no new widget exemption or save action is introduced."
-      }
-    ],
-    "reviewedStructuralRetirements": [
-      {
-        "approved": true,
-        "file": "app/workspace-forms.tsx",
-        "owner": "AccountForm",
-        "siteHash": "3b6ba0f3aafacff712d6c643e64f94ccdd43c321070aece2168516ea1e7cb914",
-        "beforeLine": 380,
-        "beforeColumn": 13,
-        "beforeJsx": "<button\n              type=\"button\"\n              className={\n                form.watch(\"accountType\") === type.id\n                  ? \"choice active\"\n                  : \"choice\"\n              }\n              onClick={() => form.setValue(\"accountType\", type.id,{shouldDirty:true})}\n              key={type.id}\n            >\n              {type.label}\n            </button>",
-        "destination": "app/workspace-forms.tsx::AccountForm SelectCustom Tipo de cuenta",
-        "destinationJsx": "<SelectCustom label=\"Tipo de cuenta\" value={values.accountType} choices={[{value:'bank',label:'Banco'},{value:'cash',label:'Efectivo'},{value:'digital',label:'Digital'},{value:'investment',label:'Inversión'}]} onChange={value=>form.setValue('accountType',value as AccountValues['accountType'],{shouldDirty:true})}/>",
-        "rationale": "AccountForm removes this local native choice template and uses shared SelectCustom for Tipo de cuenta. Selected value and exact form.setValue field/shouldDirty callback are preserved; the shared presenter owns keyboard, search, labels and disabled fieldset inheritance. No selection capability was removed and no native exemption was added."
-      },
-      {
-        "approved": true,
-        "file": "app/workspace-forms.tsx",
-        "owner": "AccountForm",
-        "siteHash": "0e1d4c81a4c749ac5a827ecf4de4eea27876e00f5bcfcb2e65b07af63f5694d2",
-        "beforeLine": 426,
-        "beforeColumn": 13,
-        "beforeJsx": "<button\n              type=\"button\"\n              className={\n                form.watch(\"currency\") === currency ? \"choice active\" : \"choice\"\n              }\n              onClick={() => form.setValue(\"currency\", currency,{shouldDirty:true})}\n              key={currency}\n            >\n              {currency}\n            </button>",
-        "destination": "app/workspace-forms.tsx::AccountForm SelectCustom Moneda",
-        "destinationJsx": "<SelectCustom label=\"Moneda\" value={values.currency} choices={currencyCodes.map(value=>({value,label:value}))} onChange={value=>form.setValue('currency',value as AccountValues['currency'],{shouldDirty:true})}/>",
-        "rationale": "AccountForm removes this local native choice template and uses shared SelectCustom for Moneda. Selected value and exact form.setValue field/shouldDirty callback are preserved; the shared presenter owns keyboard, search, labels and disabled fieldset inheritance. No selection capability was removed and no native exemption was added."
-      }
-    ],
+    "unchangedStructuralJsxHashes": true,
+    "reviewedStructuralChanges": [],
+    "reviewedStructuralRetirements": [],
     "unreviewed": 0,
-    "reviewedChangedActions": [
-      {
-        "file": "app/invite-links.tsx",
-        "owner": "InviteLinks",
-        "beforeHash": "09abd219c21ac9929c85addfae6faf474b4803e9846e3fca17657c0874d953bc",
-        "afterHash": "6fa9794d307b771ba5fcedd307cb817dc8a02e904a46f034cee764d5ed912968",
-        "rationale": "The canonical access decision keeps the same selected request.id, action payload and PATCH route. The old owner-only disabled condition is replaced by an enclosing mayAssign(request.role) check sourced from policy.canManageMembers and policy.editableRoles; busy still disables the control. Both canonical API and live permission policy reject superior/peer grants."
-      },
-      {
-        "file": "app/invite-links.tsx",
-        "owner": "InviteLinks",
-        "beforeHash": "9868b8be91ea295ea784cc379961a7819ad526197ffad944c754eea9c2d43114",
-        "afterHash": "7381ed2f7be6e27e42da931eb9a4b34f818a7a4e01548b0bab15a0cbd91f8fe3",
-        "rationale": "The canonical access decision keeps the same selected request.id, action payload and PATCH route. The old owner-only disabled condition is replaced by an enclosing mayAssign(request.role) check sourced from policy.canManageMembers and policy.editableRoles; busy still disables the control. Both canonical API and live permission policy reject superior/peer grants."
-      },
-      {
-        "file": "app/workspace-forms.tsx",
-        "owner": "AccountForm",
-        "beforeHash": "0f9b87c67d571213790ded57a8711d145bf8443d532657e631c5390416fec3c5",
-        "afterHash": "dc3a8d37457a4cf14c75b0bee087b85ccf82f37e05c0e0540b9fd3affc734c93",
-        "rationale": "The shared AccountForm submit remains canonical primary and pending-disabled, now explicitly type=submit. Create and edit labels reflect account mode; both flow through useSingleFlightSubmit/form.handleSubmit, canonical POST/PATCH, request UUID and edit expectedRevision. No click writes outside validated submit."
-      },
-      {
-        "file": "app/client-identity.tsx",
-        "owner": "ClientAppearance",
-        "beforeHash": null,
-        "afterHash": "36b3f9d002f38ca655f53770fa75d98ebc827453a4e5cdf7906f6387119724f4",
-        "rationale": "The canonical ghost button toggles only the compact logo/color disclosure with setExpanded and mirrors state in aria-expanded; it has explicit type=button, preserves client edits and performs no API write itself."
-      },
-      {
-        "file": "app/client-intake.tsx",
-        "owner": "ClientIntakeButton",
-        "beforeHash": null,
-        "afterHash": "d3b655de398e6a2f8c954cde1ddb0bd1b828bbef9c0c7267546055cd567b94e7",
-        "rationale": "The canonical secondary type=button opens the existing reviewed intake Dialog for its scoped clientId. Parent renders it only with clients.manage and unrestricted contact; opening alone creates no link or client."
-      },
-      {
-        "file": "app/client-intake.tsx",
-        "owner": "ClientIntakeDialog",
-        "beforeHash": null,
-        "afterHash": "703c1377e6dae3385a0a4bda58919ed7207c756919ffb2e6a554cf49b725d34b",
-        "rationale": "Revocation is available only for unrevoked/unconsumed links, disables while busy, sends canonical DELETE for the selected link.id, refreshes on success and exposes errors above. It revokes an invitation without deleting client data."
-      },
-      {
-        "file": "app/client-intake.tsx",
-        "owner": "ClientIntakeDialog",
-        "beforeHash": null,
-        "afterHash": "8f5762481bf3930b3f5edf24a82ba4a78a59ce6a121458007279d2274cf7564e",
-        "rationale": "The canonical secondary type=button appears only for pending submissions and selects that exact entry for IntakeReview. It does not accept, create or overwrite a record; subsequent explicit reviewed fields and canonical revision guards perform the write."
-      },
-      {
-        "file": "app/payment-review-panel.tsx",
-        "owner": "PaymentReviewPanel",
-        "beforeHash": null,
-        "afterHash": "8de44b982702f66b6bc8807b51f6b4e6101f37a11870f9982492a214f6e831d2",
-        "rationale": "The canonical ghost type=button selects the exact returned client review row and opens its month-specific review Dialog. The dialog states no payment is created; its Editor preserves requestId and expectedRevision for canonical review-only PATCH."
-      },
-      {
-        "file": "app/payment-review-panel.tsx",
-        "owner": "PaymentReviewPanel",
-        "beforeHash": null,
-        "afterHash": "1d47e27b6a14097fcb147359707b50cb2b3ee13d91b71c3c743213cd0b63ba0e",
-        "rationale": "The canonical secondary type=button invokes onReceive with the row.client_id and current month, opening the existing receipt form preselected. It does not infer payer, amount, account or create money before explicit form submission."
-      },
-      {
-        "file": "app/payment-review-panel.tsx",
-        "owner": "PaymentReviewPanel",
-        "beforeHash": null,
-        "afterHash": "63426047f89c8bce804fe45e804a3034fb519d08255127ac9def8416b672bc2d",
-        "rationale": "The canonical secondary type=button appears only when hasMore, disables during loadingMore, and invokes the locked more() reader. The reader binds generation and month, validates response rows, deduplicates and never writes payments."
-      },
-      {
-        "file": "app/sections/finanzas.tsx",
-        "owner": "FinanzasSection",
-        "beforeHash": null,
-        "afterHash": "7bf363490b21d1af9663c771db388f1678a79e8c77fc1bbc3eca397ededc7708",
-        "rationale": "The canonical ghost type=button is inside canAccounts, opens the shared AccountCreateDialog with the exact current account, and performs no immediate write. Its PATCH uses current revision and request UUID; completed edits reload balances."
-      }
-    ]
+    "reviewedChangedActions": []
   }
 }

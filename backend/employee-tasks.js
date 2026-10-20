@@ -2,7 +2,7 @@ import {fail,text,id,optId,date,option,owned,taskTime,taskChecklist,taskMaterial
 import {roleCan} from './permissions.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {historyPage} from './history-page.js';
-import {mediaPeople} from './agency-media.js';
+import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {attributeActors} from './actor-identity.js';
 
 const root='/api/agency/productivity/internal-tasks';
@@ -72,8 +72,8 @@ export async function employeeTasks({req,res,url,db,session,body,send}){
   if(match[1]==='context'&&req.method==='GET'&&!action){
    const people=mediaPeople((await c.query("select i.user_id as id,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url from organization_person_identity i join organization_members m on m.organization_id=i.organization_id and m.user_id=i.user_id where i.organization_id=$1 and m.active=true and m.removed_at is null and ($2::boolean or i.user_id=$3) order by full_name,i.user_id",[org,canAssign,user.id])).rows);
    const projects=(await c.query(`select p.id,p.name,p.client_id from agency_projects p join agency_clients cl on cl.id=p.client_id and cl.organization_id=p.organization_id where p.organization_id=$1 and ${visibleRecord('p','projects')} and ${visibleRecord('cl','clients')} order by p.name,p.id`,[org])).rows;
-   const clients=(await c.query(`select cl.id,cl.name from agency_clients cl where cl.organization_id=$1 and ${visibleRecord('cl','clients')} order by cl.name,cl.id`,[org])).rows;
-   result={people,projects,clients,can_assign:canAssign,can_edit:canEdit};
+   const clients=(await c.query(`select cl.id,cl.name,cl.logo_url from agency_clients cl where cl.organization_id=$1 and ${visibleRecord('cl','clients')} order by cl.name,cl.id`,[org])).rows;
+   result={people,projects,clients:clients.map(client=>({...client,logo_url:mediaPhoto('client',client.id,client.logo_url)})),can_assign:canAssign,can_edit:canEdit};
   }else if(!key&&!match[1]&&req.method==='GET'&&!action){
    const page=historyPage(url.searchParams),params=[org];let where=`t.organization_id=$1 and ${visibleParents}`;
    const person=url.searchParams.get('assignee')||'me',bucket=option(url.searchParams.get('bucket')||'all',Object.keys(bucketSql));

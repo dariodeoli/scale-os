@@ -1,0 +1,82 @@
+{
+  "testedSha": "f5915a15a22934640f79fbb90a4bcb494f557551",
+  "sourceSha256": {
+    "app/contracts-data.ts": "0408ab4d092f495821126a560c3d1979c07d85b90f17ead7c798bbd473c5737c",
+    "app/contracts-workspace.tsx": "fc627e50de9fe9aaa1e6ebb8cb8cece6a1aa51be662276259bda24f6cb0a4da2",
+    "app/finance-collections.tsx": "72c93cb66104a72082558bb8667a16cbcd4aa6f90423cad9630d3b9ccce036f7",
+    "app/finance-collections-data.ts": "9695b4978081d0e2d361847c4c5a3fedbe4840ce63e29d3d9f83b05c6c9a90f3",
+    "app/finance-receipt-editor.tsx": "dd33809c93a2a7b9ba2e69d80341fbe6ab0a537eef50f16a5a233a7974c420c8",
+    "app/account-institution-logo.tsx": "75e0a954b4ccfcab5593e1de06b656622c1184aebb0c79eec7709570421d6ff8",
+    "app/sections/finanzas.tsx": "9d4988cfea2eb609dca9ce160073d3b177521186cebbc2f51b3238753cc4b3a4",
+    "app/month-picker.tsx": "da0caa1a8268cb917f9a6939ed0105f08733deffdbfeb166bd4f27ad88305082",
+    "app/month-picker.css": "9fdf8e93e77e5e01f0e67a11419ea8719ee407b0daf2a6711b05960227b9431f",
+    "app/payment-review-panel.tsx": "9bb742fc25bc39f466934f23cdc9659a5c1b5a062f6f5a372fbd3b1ac5ec4208"
+  },
+  "status": "PASS",
+  "checkedAt": "2026-10-20T16:19:45.632Z",
+  "transport": "Synthetic local HTTP fixture; actual React components/CSS, no authenticated production or physical device verification",
+  "browser": "Chrome/154.0.8037.57",
+  "results": [
+    {
+      "width": 320,
+      "flow": "contracts malformed200/retry",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "flow": "collections malformed200/retry and three distinct persisted identities",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "flow": "receipt owner selected-bank/custodian/receiver photos with Addaccount",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "flow": "saved-account real bank assets decoded and distinct",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "flow": "contracts malformed200/retry",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "flow": "collections malformed200/retry and three distinct persisted identities",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "flow": "receipt owner selected-bank/custodian/receiver photos with Addaccount",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "flow": "saved-account real bank assets decoded and distinct",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "flow": "contracts malformed200/retry",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "flow": "collections malformed200/retry and three distinct persisted identities",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "flow": "receipt owner selected-bank/custodian/receiver photos with Addaccount",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "flow": "saved-account real bank assets decoded and distinct",
+      "status": "PASS"
+    }
+  ],
+  "errors": []
+}

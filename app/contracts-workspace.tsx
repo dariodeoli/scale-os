@@ -5,7 +5,7 @@ import {Dialog,Editor,type Field} from './operations';
 import {PageHeader,FilterToolbar,LoadingBlock,EmptyBlock,ErrorBlock} from './ui-v2';
 import {SearchField} from './search-field';
 import {SelectCustom} from './profile-controls';
-import {contractRequest,contractMessage,contractMissing,renderContractText,manualContractSources,contractVariableLabel,contractVariableSection,contractMultilineVariables,mergeContractAutofill,type ContractModel,type ContractConfig,type ContractRecord,type ContractSource,type ContractTemplate,type ContractVersion} from './contracts-data';
+import {contractConfig,contractList,contractTemplates,contractRequest,contractMessage,contractMissing,renderContractText,manualContractSources,contractVariableLabel,contractVariableSection,contractMultilineVariables,mergeContractAutofill,type ContractModel,type ContractConfig,type ContractRecord,type ContractSource,type ContractTemplate,type ContractVersion} from './contracts-data';
 import './contracts-workspace.css';
 import {ContractPrintPreview,type ContractPreviewRequest} from './contracts-preview';
 import {Button as ScaleButton} from "./ui/button";
@@ -15,18 +15,26 @@ const when=(value?:string)=>value?new Date(value).toLocaleString('es-PY',{timeZo
 export function ContractsWorkspace({organizationId,userId}:{organizationId:string;userId:string}){return <ContractsSession key={`${organizationId}:${userId}`}/>;}
 function ContractsSession(){
  const [config,setConfig]=useState<ContractConfig|null>(null),[templates,setTemplates]=useState<ContractTemplate[]>([]),[variables,setVariables]=useState<string[]>([]),[contracts,setContracts]=useState<ContractRecord[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[query,setQuery]=useState(''),[filter,setFilter]=useState(''),[createOpen,setCreateOpen]=useState(false),[modelOpen,setModelOpen]=useState(false),[models,setModels]=useState<ContractModel[]>([]),[modelKey,setModelKey]=useState(''),[templateEdit,setTemplateEdit]=useState<ContractTemplate|'new'|null>(null),[selected,setSelected]=useState<ContractRecord|null>(null),[busy,setBusy]=useState(false);
- const [managementOpen,setManagementOpen]=useState(false);
+ const [managementOpen,setManagementOpen]=useState(false),[loadError,setLoadError]=useState(''),[loaded,setLoaded]=useState(false);
  const prerequisiteId=useId();
  const alive=useRef(true),loadId=useRef(0);useEffect(()=>{alive.current=true;return()=>{alive.current=false;loadId.current++;};},[]);
- async function load(){const id=++loadId.current;setLoading(true);setError('');try{const cfg=await contractRequest<ContractConfig>(`${base}/config`);if(!alive.current||id!==loadId.current)return;setConfig(cfg);if(!cfg.capabilities.view)return;const [list,tpls]=await Promise.all([contractRequest<{contracts:ContractRecord[]}>(base),contractRequest<{templates:ContractTemplate[];variables:string[]}>(`${base}/templates`)]);if(alive.current&&id===loadId.current){setContracts(list.contracts);setTemplates(tpls.templates);setManagementOpen(!tpls.templates.length);setVariables(tpls.variables);}}catch(cause){if(alive.current&&id===loadId.current)setError(contractMessage(cause));}finally{if(alive.current&&id===loadId.current)setLoading(false);}}
+ async function load(){const id=++loadId.current;setLoading(true);setLoadError('');try{
+  const cfg=contractConfig(await contractRequest<unknown>(`${base}/config`));if(!alive.current||id!==loadId.current)return;
+  if(!cfg.capabilities.view){setConfig(cfg);setLoaded(true);return;}
+  const [listResponse,templateResponse]=await Promise.all([contractRequest<unknown>(base),contractRequest<unknown>(`${base}/templates`)]);
+  const list=contractList(listResponse),tpls=contractTemplates(templateResponse);
+  if(alive.current&&id===loadId.current){setConfig(cfg);setContracts(list);setTemplates(tpls.templates);setManagementOpen(!tpls.templates.length);setVariables(tpls.variables);setLoaded(true);}
+ }catch(cause){if(alive.current&&id===loadId.current)setLoadError(contractMessage(cause));}finally{if(alive.current&&id===loadId.current)setLoading(false);}}
+
  useEffect(()=>{void load();},[]);
  async function open(id:string){setBusy(true);try{const data=await contractRequest<{contract:ContractRecord}>(`${base}/${encodeURIComponent(id)}`);if(alive.current)setSelected(data.contract);}catch(cause){if(alive.current)setError(contractMessage(cause));}finally{if(alive.current)setBusy(false);}}
  if(loading)return <LoadingBlock label="Cargando contratos…"/>;
- if(error&&!config)return <ErrorBlock description={error} onRetry={()=>void load()}/>;
+ if(loadError&&!loaded)return <ErrorBlock title="No se pudieron cargar los contratos" description={loadError} onRetry={()=>void load()}/>;
  if(!config?.capabilities.view)return <EmptyBlock title="Sin acceso a contratos" description="Tu rol no tiene permiso para consultar estos documentos."/>;
  const caps=config.capabilities,visible=contracts.filter(row=>(!filter||row.template_id===filter)&&`${row.title}`.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
  const templateChoices=templates.map(t=>({value:t.id,label:t.name}));
  return <section className="contracts-workspace" aria-label="Contratos legales" data-testid="contracts-workspace"><PageHeader title="Contratos" subtitle="Plantillas reutilizables, datos trazables y versiones con revisión humana." actions={<div className="contracts-actions">{caps.create&&<ScaleButton className="primary" onClick={()=>setCreateOpen(true)} variant="primary">Nuevo contrato</ScaleButton>}</div>}/>
+ {loadError&&<ErrorBlock title="No se pudieron actualizar los contratos" description={loadError} onRetry={()=>void load()}/>}
  {error&&<p role="alert" className="error">{error}</p>}
  {caps.create&&!templates.length&&<p id={prerequisiteId} className="form-note">Podés crear un contrato desde un modelo o preparar una plantilla propia. {caps.templates_manage?'Los modelos también están disponibles en Nuevo contrato.':'Pedí a alguien con permiso para administrar plantillas que prepare una.'}</p>}
  {caps.templates_manage&&<details className="contracts-template-management" open={managementOpen} onToggle={event=>setManagementOpen(event.currentTarget.open)}><summary>Administrar plantillas</summary><p className="form-note">Prepará modelos y plantillas reutilizables. Los contratos se crean desde Nuevo contrato.</p><div className="contracts-actions"><ScaleButton className="secondary" disabled={busy} onClick={()=>{setModelOpen(true);setError('');setBusy(true);void contractRequest<{models:ContractModel[]}>(`${base}/models`).then(data=>{if(alive.current){setModels(data.models);setModelKey(data.models[0]?.key||'');}}).catch(cause=>{if(alive.current)setError(contractMessage(cause));}).finally(()=>{if(alive.current)setBusy(false);});}} variant="secondary">Elegir modelo</ScaleButton><ScaleButton className="secondary" onClick={()=>setTemplateEdit('new')} variant="secondary">Nueva plantilla</ScaleButton>{templates.map(t=><ScaleButton key={t.id} className="secondary" onClick={()=>setTemplateEdit(t)} variant="secondary">Editar {t.name}</ScaleButton>)}</div></details>}

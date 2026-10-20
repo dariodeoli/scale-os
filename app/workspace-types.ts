@@ -98,6 +98,7 @@ export type PaymentRecord = {
   reversed_on?: string | null;
 };
 export type Invoice = {
+  client_logo_url?: string | null;
   id: string;
   number: string;
   client_id: string;

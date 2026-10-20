@@ -6,6 +6,7 @@ import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction}
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {AuditActor} from '../actor-identity';
 import {PersonContainer} from '../person-container';
+import {AccountInstitutionLogo} from '../account-institution-logo';
 import {AccountCreateDialog} from '../account-create-dialog';
 import {financePermission} from '../finance-balance-data';
 import {roleCan} from '../capabilities';
@@ -195,13 +196,14 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               arriba; institución, número, titular, custodia y papelera abajo.
               Mismos datos que la tarjeta alta, sin la columna de rótulos. */}
           {accounts.map(account => <article key={account.id} className="grid min-w-0 gap-1 rounded-xl border border-ink-600 bg-ink-900 px-3 py-2 transition-colors hover:border-ink-500 data-[archived]:opacity-70" data-archived={account.active === false || undefined}>
-            <header className="flex min-w-0 items-center gap-2">
+            <header className="flex min-w-0 flex-wrap items-center gap-2">
+              <AccountInstitutionLogo institution={account.institution}/>
               <b className="min-w-0 flex-1 truncate text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
-              <MoneyText valor={account.balance} currency={account.currency} tono={Number(account.balance) < 0 ? 'bad' : ''} className="text-base leading-tight"/>
+              <MoneyText valor={account.balance} currency={account.currency} tono={Number(account.balance) < 0 ? 'bad' : ''} className="w-full text-right text-base leading-tight sm:w-auto"/>
             </header>
-            <div className="flex min-w-0 items-center gap-2 text-[11px] text-mute">
-              <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-[11px] text-mute">
+              <span className="flex min-w-0 w-full flex-wrap items-baseline gap-x-1.5 sm:w-auto sm:flex-1">
                 {account.institution ? <span className="[overflow-wrap:anywhere]">{account.institution}</span> : null}
                 {account.account_number ? <span className="whitespace-nowrap tabular-nums">{account.institution ? '· ' : ''}N.º {account.account_number}</span> : null}
                 {account.holder_name ? <span className="[overflow-wrap:anywhere]">{account.institution || account.account_number ? '· ' : ''}Titular: {account.holder_name}</span> : null}
