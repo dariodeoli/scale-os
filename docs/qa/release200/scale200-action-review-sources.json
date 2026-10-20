@@ -1,0 +1,40 @@
+{
+  "baseline": "d3ed097efb096d288581028572c04683f1f85288",
+  "reviewedHead": "b4b3e0e6989f926d46d16e3c2c54a66638731354",
+  "completeCurrentModules": [
+    {
+      "file": "app/client-monthly-income.tsx",
+      "sha256": "35ed4a5fbd0d340de902083585c7fcf7b4b30d23dbc2a1a9cd1b81ddb17ac958"
+    },
+    {
+      "file": "app/contracts-preview.tsx",
+      "sha256": "141d1d95b6483b7f7f8335f914a4972a0155ee51f27ca600160d6def988a61f7"
+    },
+    {
+      "file": "app/contracts-workspace.tsx",
+      "sha256": "6870bdb22eb83473c619028087267094a4780b3be06cfd4de7c12fa5b4316654"
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "sha256": "00131d2e04f7cbcf1ece35802c8cba4a7672274cbf9d23e094d97db65f155495"
+    },
+    {
+      "file": "app/inventory-workspace.tsx",
+      "sha256": "1be6db54419684e9f0d5b249b4a4d58f2dec42683a8623679065e1e91a3225c6"
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "sha256": "b3ec7b95fb2a3408388ee4ea6333c060ef3e42915c2eb41ed729ebe268a59b96"
+    },
+    {
+      "file": "app/mcp-connections.tsx",
+      "sha256": "5b503d5c7dc825e58dc3f148ae6e1a1b7baa0b0d396458b8e5a571b1deeb5771"
+    },
+    {
+      "file": "app/mcp-consent.tsx",
+      "sha256": "5dc92d756530a0d880ebf200da1aafb94efd3ddd6d73d1c730eefdc26eedc799"
+    }
+  ],
+  "limits": "Source review of callbacks, permissions and owners; no new browser/device test or real OAuth execution; historical native widgets checked unchanged by exact JSX owner/hash helper, retired sites documented separately.",
+  "mcpConnectionsDeltaReview": "/tmp/scale200-mcp-connections-delta-review.json"
+}

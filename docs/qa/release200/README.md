@@ -1,0 +1,14 @@
+# Integración #305–312 / preparación v1.0.200
+
+Una rama integra formularios, ingresos por mes/extras, contratos, navegación, columnas, inventario y MCP. Los PRs hijos se conservan para revisión; el PR integrador es el candidato a main.
+
+## Validación focal observada
+
+- TypeScript PASS con owncoding-ui v0.68.20 instalado desde el SHA del tag; el shim local declara las firmas exactas de los dos helpers nuevos.
+- Auditoría de acciones:628 canónicas,55 widgets estructurales y1 renderer; cero pendientes.27 decisiones exactas (25 altas/2 cambios),2 sitios duplicados retirados con JSX/hash y destino compartido documentados; historia original preservada. Test de contabilidad21 PASS.
+- Menús:9 viewport/tema,9 sin Popover, scroll y10 casos Dialog real PASS. React Dialog15 PASS, alta/inventario y columnas PASS.
+- Bootstrap120 y registro de migraciones PASS; baselines110/111/114/116 congelados, upgrade116→120 y reinicios conservan datos.
+- PostgreSQL17 real MCP77 comprobaciones + SDK OAuth/MCP PASS; UTF-8 HTTP segmentado6 PASS. Revisión independiente final con hashes idénticos, incluyendo fallos negativos reproducidos y corregidos.
+- Los PRs individuales incluyen sus focos de finanzas, contratos, errores y columnas. Las capturas representan emulación Chromium, no dispositivos físicos.
+
+Regresión completa, build, CI y producción se agregan con resultados concretos al terminar. No se probó conexión con una cuenta real de Claude/ChatGPT ni firma digital certificada. El documento de firma es una propuesta técnica. No se probó impresión física.

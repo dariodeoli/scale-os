@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Portal mobile #292: exact reviewed native widget JSX/owners preserved; three new and two changed canonical actions explicitly reviewed, file hashes and positions refreshed.",
+  "scope": "Scale #305–312: exact reviewed native widget JSX/owners preserved;25 new and2 changed canonical actions reviewed;2 inline actions retired with their shared-menu destination; file hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -214,10 +214,10 @@
     },
     {
       "file": "app/inventory-workspace.tsx",
-      "sourceHash": "44c8acb038e04779092b37f44072691db7bfb7f310c350d7ed1a6bf5d13a70bc",
+      "sourceHash": "1be6db54419684e9f0d5b249b4a4d58f2dec42683a8623679065e1e91a3225c6",
       "sites": [
         {
-          "line": 315,
+          "line": 320,
           "column": 3,
           "siteHash": "de4b32302bd060126f4e531a28d7896099b13633395008bb7210408a40d91132",
           "owner": "PipelineCard",
@@ -228,7 +228,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 431,
+          "line": 436,
           "column": 5,
           "siteHash": "d35423ac520866ae57f8e33965cf7d8a5db0f82d72053027f9c729ad888adb5f",
           "owner": "InventoryPanel",
@@ -239,7 +239,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 432,
+          "line": 437,
           "column": 5,
           "siteHash": "26c5f6db86fe6222167f9ad0b7745d4846c4da1c4ab8ce7dde2d47b129a47115",
           "owner": "InventoryPanel",
@@ -250,7 +250,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 434,
+          "line": 439,
           "column": 5,
           "siteHash": "89c9903bf87a98c6027f819016f8ddc6c5daff25db4e732de388807725d42c58",
           "owner": "InventoryPanel",
@@ -261,7 +261,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 676,
+          "line": 682,
           "column": 225,
           "siteHash": "be3124178dc4ec6efcccd58ff782df7d1838d23e3bce709332c086d453ed6966",
           "owner": "CategoryForm",
@@ -272,7 +272,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 676,
+          "line": 682,
           "column": 579,
           "siteHash": "18e873c043a1a43e53ffbc64117daef8a0d4a2b6cc6adeff69c2393b11130abd",
           "owner": "CategoryForm",
@@ -303,10 +303,10 @@
     },
     {
       "file": "app/operations.tsx",
-      "sourceHash": "339f8ae4162211619870e9cab30bc17bf35934b728bb806fd361337e66e73dcd",
+      "sourceHash": "d7ab3b9f52f8eaa1ea8a30f239ada8224e005098d64e1974729867c7bea51a93",
       "sites": [
         {
-          "line": 520,
+          "line": 529,
           "column": 9,
           "siteHash": "1bcd0b1460c383f1ee46412f4e371e69a85087a9c3ad6902e612ed273db6e223",
           "owner": "CompanySelector",
@@ -317,7 +317,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 534,
+          "line": 543,
           "column": 15,
           "siteHash": "85eb87c03cace0848216c77f29e04cdc37a16c0fb9d1a74ed3c3f26fdd87eda0",
           "owner": "CompanySelector",
@@ -365,7 +365,7 @@
     },
     {
       "file": "app/production-board.tsx",
-      "sourceHash": "c3a5d87a3d62834b30f44b484a5a3fb0d40ba86132985f2bc661b1d0e249f96c",
+      "sourceHash": "8837dcd3f7307a9acd73ea5d45e39f4777c7954f72f7746e5e99d3f8204ffb6c",
       "sites": [
         {
           "line": 88,
@@ -483,10 +483,10 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "sourceHash": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0",
+      "sourceHash": "337e5903ea04868f9f214b362715e89938b61f2be417658cb4b09ab5e0907d18",
       "sites": [
         {
-          "line": 989,
+          "line": 995,
           "column": 15,
           "siteHash": "a3eba3004887f205a6490a0f6eb1b4def6a9ad56e2bb99efca2306e8d64a2e85",
           "owner": "sidebarContent",
@@ -497,7 +497,7 @@
           "canonicalOwner": "DSN: shared presenter; domain owner retains state, permissions and callbacks"
         },
         {
-          "line": 1019,
+          "line": 1025,
           "column": 51,
           "siteHash": "804a69a8c0c0079396667a0e38bcc8760daed4a3c84e6fcee6b87af11551c4b4",
           "owner": "sidebarContent",
@@ -646,10 +646,10 @@
     },
     {
       "file": "app/ui-v2.tsx",
-      "sourceHash": "290b61fb658596413c4b29a26d3875bedf91a15c512334afc5243efffdf662ec",
+      "sourceHash": "7d093c6b8fcc4fc644ae40406c2a0978aa9b6d08657915ee8bec033581b560c8",
       "sites": [
         {
-          "line": 341,
+          "line": 344,
           "column": 11,
           "siteHash": "2c5b35db2fdc4fdc7ae50f0f4efbdc87ba3a78b9117cc63d4818b7b279b18bc0",
           "owner": "CompactCard",

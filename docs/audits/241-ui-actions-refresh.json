@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions. Scale #305–312: refresh source hashes and positions without new structural exemptions.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -27,20 +27,20 @@
     {
       "file": "app/dialog.tsx",
       "beforeHash": "486b236a4383d20b99b7f95a8f5b03196c2ea4210795c9aee0ec2caff8bc6169",
-      "afterHash": "34d232f4bedab30d9836ebb0cc12424e751279ec72fd28c980a9a1005928dbed",
-      "rationale": "FormActions asocia native/canonical/Fragment a su form; ConfirmDialogCancel delega en useDialogClose guardado y mantiene Button canónico. Mismo número de acciones, sin excepción nueva."
+      "afterHash": "3c992a59d8c0ba9a8f0eb176d8c8d37461c1b7da99cbb98d78bddb13f4ec03d7",
+      "rationale": "FormActions asocia native/canonical/Fragment a su form; ConfirmDialogCancel delega en useDialogClose guardado y mantiene Button canónico. Mismo número de acciones, sin excepción nueva. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/finance-balance.tsx",
       "beforeHash": "c1fe95bc74e32b38892902cee7d06e834e20b8ed27dfd64476663dcf95299b2b",
-      "afterHash": "b74fb6a43477a9c8a48ad397255c79915211b5f36160a1e1203a368c1bfe0a2b",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved."
+      "afterHash": "fd1ac32cc8bc0419c8bb16a80854b727d3d78efece9bba5a7bf01ab6f5c9cdad",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/finance-clients.tsx",
       "beforeHash": "68534a18c91d071e17263c805775a6edb53339c611560d6da529678f8f39551b",
-      "afterHash": "6853b3f56f5f9decac5e9b5960a35799d0408cb132a550a39e292c6b3a1004cc",
-      "rationale": "Totales y columnas/íconos con labels del plan/factura; mismas acciones Button/IconAction y gates de términos/historial. Revisión99e7: Clase finance-panel-note para contener notas del Balance; mismos Button/IconAction, gates y callbacks. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved."
+      "afterHash": "00131d2e04f7cbcf1ece35802c8cba4a7672274cbf9d23e094d97db65f155495",
+      "rationale": "Totales y columnas/íconos con labels del plan/factura; mismas acciones Button/IconAction y gates de términos/historial. Revisión99e7: Clase finance-panel-note para contener notas del Balance; mismos Button/IconAction, gates y callbacks. Compact Balance #289: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/finance-collections.tsx",
@@ -57,8 +57,8 @@
     {
       "file": "app/inventory-workspace.tsx",
       "beforeHash": "3fadb7408531137879a794b1f91d9b7d51eb0c6c668c83c944315d2fe22bd00e",
-      "afterHash": "44c8acb038e04779092b37f44072691db7bfb7f310c350d7ed1a6bf5d13a70bc",
-      "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto. Release195/#265: positions/source hash reconciled; exact reviewed native widgets preserved."
+      "afterHash": "1be6db54419684e9f0d5b249b4a4d58f2dec42683a8623679065e1e91a3225c6",
+      "rationale": "ICON_TARGETS/ROW_ICON_TARGETS reservan cuadrados a IconButton y trigger menu; Editar usa ancho natural. Callbacks y JSX de los seis widgets conservados tienen hash exacto. Release195/#265: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/project-card.tsx",
@@ -75,8 +75,8 @@
     {
       "file": "app/scale-workspace.tsx",
       "beforeHash": "c923c90ba6e42d60c93b0166786382cfef04513c8c27469e4c6e73dabb497618",
-      "afterHash": "243cbcd758a99529ad4f70f5cebcc9488fdda1246932f3f399e59b49e9c263c0",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "337e5903ea04868f9f214b362715e89938b61f2be417658cb4b09ab5e0907d18",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/sections/clientes.tsx",
@@ -111,8 +111,8 @@
     {
       "file": "app/client-editor.tsx",
       "beforeHash": "1ceb2684fd509cdeb56f6803907f3a6157c61ab2394a4d9574e46465864fc197",
-      "afterHash": "a0301badf25c81d2b7c149875d4a279ccfb2fdc4b6baecbff88d652c16129315",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "4a3ab16af325939cf6cc4b9d3318172e0b853a9316ef8bdfb3524e535b49fca4",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/company-legal-profile.tsx",
@@ -123,8 +123,8 @@
     {
       "file": "app/contracts-workspace.tsx",
       "beforeHash": "ae15e4e2d88b97fca5b0a4b00f527787a4700b4efcad9d79e378148509012635",
-      "afterHash": "e9e5e5d704ba6b9a995022f16fb8fae1c5d5688989df9d3b58f7f31559960bc9",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "6870bdb22eb83473c619028087267094a4780b3be06cfd4de7c12fa5b4316654",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/employee-tasks.tsx",
@@ -141,8 +141,8 @@
     {
       "file": "app/sections/preferencias.tsx",
       "beforeHash": "cbd7e9478ab270df68c3ad30f51cfa1283d31dd870b9eeea64802fda3005c0df",
-      "afterHash": "89d60a4c1ed841b254233349741c69c4f77ca4daf5f36be31d3bf88a91e622a1",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico."
+      "afterHash": "d12ee4b44d6867cadeb169a10f1d6a5e9f686107106ff5e28a22fe7ab44d10e5",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/sections/produccion.tsx",
@@ -213,8 +213,8 @@
     {
       "file": "app/ui-v2.tsx",
       "beforeHash": "66de422a0bbc46db810c08b9b273f21f169673bd93874c80f78ba950ea4818f9",
-      "afterHash": "290b61fb658596413c4b29a26d3875bedf91a15c512334afc5243efffdf662ec",
-      "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved."
+      "afterHash": "7d093c6b8fcc4fc644ae40406c2a0978aa9b6d08657915ee8bec033581b560c8",
+      "rationale": "Compact Balance #289: month controls, current-month snapshot guards, inactive-client visibility and shared page chrome reviewed; exact native widget JSX and canonical ownership preserved. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved."
     },
     {
       "file": "app/ui/select.tsx",
@@ -233,6 +233,96 @@
       "beforeHash": "d5f42c34fcc0f58af78d7c22292c1cbb56dde604ce651afc680254cda6c823fd",
       "afterHash": "990899813456b251244cd3acdd108a219de37b430a9950de8c6391e69f74d216",
       "rationale": "Portal mobile #292: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/client-commercial-summary.tsx",
+      "beforeHash": "c956eee6eb1a80eddeea6f2560072d83264f1021e5558a8792ebd09b24131367",
+      "afterHash": "8013cb874687e7080205c2695352d7f55bcc611b6a41ff849cf5f63798a5c513",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "beforeHash": null,
+      "afterHash": "35ed4a5fbd0d340de902083585c7fcf7b4b30d23dbc2a1a9cd1b81ddb17ac958",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/client-reporting.tsx",
+      "beforeHash": "474567ddd0aac76265d214cba932def7e24e344f2db0b3391605a7b5947df119",
+      "afterHash": "9a91e04f241fe71a159ca545f559cfdefb3b9b60773e00c33ae8958f13312bb0",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/contracts-preview.tsx",
+      "beforeHash": null,
+      "afterHash": "141d1d95b6483b7f7f8335f914a4972a0155ee51f27ca600160d6def988a61f7",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "beforeHash": null,
+      "afterHash": "b3ec7b95fb2a3408388ee4ea6333c060ef3e42915c2eb41ed729ebe268a59b96",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/mcp-connections.tsx",
+      "beforeHash": null,
+      "afterHash": "5b503d5c7dc825e58dc3f148ae6e1a1b7baa0b0d396458b8e5a571b1deeb5771",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/mcp-consent-route.tsx",
+      "beforeHash": null,
+      "afterHash": "f997735479b49c492d400f245790ab59ea6c682e36ba27b827de143a68fa5569",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/mcp-consent.tsx",
+      "beforeHash": null,
+      "afterHash": "5dc92d756530a0d880ebf200da1aafb94efd3ddd6d73d1c730eefdc26eedc799",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/mcp/autorizar/page.tsx",
+      "beforeHash": null,
+      "afterHash": "84c3f9d47d1cf0d76bbff7a69729409b96889dc1c413386393c30c966cf3363f",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/operations.tsx",
+      "beforeHash": "339f8ae4162211619870e9cab30bc17bf35934b728bb806fd361337e66e73dcd",
+      "afterHash": "d7ab3b9f52f8eaa1ea8a30f239ada8224e005098d64e1974729867c7bea51a93",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/production-board.tsx",
+      "beforeHash": "c3a5d87a3d62834b30f44b484a5a3fb0d40ba86132985f2bc661b1d0e249f96c",
+      "afterHash": "8837dcd3f7307a9acd73ea5d45e39f4777c7954f72f7746e5e99d3f8204ffb6c",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/sections/configuracion.tsx",
+      "beforeHash": "64705d48f8228425f16e1d2ee19e03619d84e05f82730dd610021764a797a33c",
+      "afterHash": "4e4618c9f594d40eee4d6205267ca8b7037a7f87b58062d574165ccc52854597",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/team-person-sheet.tsx",
+      "beforeHash": "e41901d08ae68bc972f8e1ee6579a797ae8d16f6b22b0881fb9d18ef0d828739",
+      "afterHash": "4f28c449acc2c186ffdebfd732a2b16069e68cd760e8f33599a5d915c82ea7e4",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/ui/collection.tsx",
+      "beforeHash": "800f6310cbb1628b9df0fd4ae5b1ac9197816a2e59c657b7ec9e8033373577e0",
+      "afterHash": "bf6e11762e802d3354ebe2194b97f37b332d9980fac1200ddb714c13ae459100",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/ui/menu.tsx",
+      "beforeHash": null,
+      "afterHash": "7e14b1c9cb2162106997758801154b54652cc815127a49e3a82a9535817fd238",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
     }
   ],
   "addedCanonical": [
@@ -366,7 +456,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1073,
+      "line": 1079,
       "column": 15,
       "owner": "Home",
       "siteHash": "1a5827b3be7d547bf372c4cb7ea4bd111cb63fcc14424e81bb7cc3f231a9a928",
@@ -438,7 +528,7 @@
     },
     {
       "file": "app/scale-workspace.tsx",
-      "line": 1040,
+      "line": 1046,
       "column": 90,
       "owner": "Home",
       "siteHash": "ca0244f39ae065b35c26bf021d070fdbd6b4ca222e648146a2936187af3b87a0",
@@ -446,7 +536,7 @@
     },
     {
       "file": "app/sections/preferencias.tsx",
-      "line": 37,
+      "line": 39,
       "column": 61,
       "owner": "PreferenciasSection",
       "siteHash": "153b7329aabc472ded635e3f70ae3475ff6f4b4373e473f068679ffb071c5819",
@@ -486,7 +576,7 @@
     },
     {
       "file": "app/finance-clients.tsx",
-      "line": 27,
+      "line": 28,
       "column": 258,
       "owner": "FinanceClientsSection",
       "siteHash": "e1e292e8fcb10e6437ce98746fe4581ea737bfed55392ec54d591bf56f9ad26c",
@@ -507,6 +597,206 @@
       "owner": "MonthPicker",
       "siteHash": "922172a0ef788c0d97321796c808466529ef1b0e7578a96c2e5f7b236e69c5b6",
       "rationale": "Refs #289: Flecha mensual usa IconButton canónico type button, label accesible, límite1900-01/9998-12 y adjacentMonth validado; disabled al extremo, emite solo mes válido y no escribe datos ni modifica cierre."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 18,
+      "column": 11,
+      "owner": "ClientMonthlyIncomeButton",
+      "siteHash": "95ac4decc7739aba78f427c44aab2434b8c39ba8719ddb0ddaca871034d46000",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Opens shared monthly income dialog only; callers are financial-view gated and mutation capability is independently verified after loading."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 61,
+      "column": 395,
+      "owner": "ClientMonthlyIncomeSession",
+      "siteHash": "71e439135ca5705412e35add95e76263d717a761011fa0b0243fd7fe521e1eaf",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Starts selected base/extra create/edit draft using permission-checked start; editing preserves entry id, source kind and revision."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 61,
+      "column": 486,
+      "owner": "ClientMonthlyIncomeSession",
+      "siteHash": "06afdbdf3311fcf8a7c6c3d0012217cca540ceb06fdc110ddf24cd650d8063d2",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Remove opens a reason-required editor; no immediate deletion. Save DELETE requires reason, revision and operation request id."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 62,
+      "column": 66,
+      "owner": "ClientMonthlyIncomeSession",
+      "siteHash": "95a92ad6728b94370731fd1afa4008e15fb8cbbf4438a4168e5885d5f6508391",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Starts selected base/extra create/edit draft using permission-checked start; editing preserves entry id, source kind and revision."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 62,
+      "column": 168,
+      "owner": "ClientMonthlyIncomeSession",
+      "siteHash": "dbacb8a9ec5cb7a4944f1850400bd3cd5353778296112445e8c0f28a898f7950",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Starts selected base/extra create/edit draft using permission-checked start; editing preserves entry id, source kind and revision."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 63,
+      "column": 920,
+      "owner": "ClientMonthlyIncomeSession",
+      "siteHash": "e43245e389b5d031340665505da07d4a3cf92255c2ab2e51d39f5140993a51a2",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Cancels only local draft, disabled during mutation."
+    },
+    {
+      "file": "app/client-monthly-income.tsx",
+      "line": 63,
+      "column": 1030,
+      "owner": "ClientMonthlyIncomeSession",
+      "siteHash": "9bc5873695e86d63b0e90ec04babbbfd1648d3d07f59eb6b694fd40feedfebe3",
+      "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Explicitly discards local draft then reloads scoped data; disabled during mutation."
+    },
+    {
+      "file": "app/contracts-preview.tsx",
+      "line": 16,
+      "column": 60,
+      "owner": "ContractPrintPreview",
+      "siteHash": "196ecdf3d3746553e029242f2434094db7179e3eb19ee8061c07872a98b78f1e",
+      "rationale": "Retry only reruns debounced/abortable draft preview POST after an error. Full module validates payload shape, keys stale results by signature and renders server HTML inside an empty sandbox iframe; no issuance or version mutation."
+    },
+    {
+      "file": "app/contracts-workspace.tsx",
+      "line": 36,
+      "column": 562,
+      "owner": "ContractsSession",
+      "siteHash": "908defb204bd74feb5c106e3d5e1354e6ac90f9fcec10ce665a84bc9249d73fe",
+      "rationale": "Apply model opens CreateContract with initialModelKey after closing model preview; disabled while busy or model missing. Model dialog requires templates_manage and backend capabilities derive templates_manage and create from the same manage permission. Creation still passes normal draft validation and never issues a version."
+    },
+    {
+      "file": "app/contracts-workspace.tsx",
+      "line": 61,
+      "column": 70,
+      "owner": "CreateContract",
+      "siteHash": "39f5b531a855be148de85df1be6c081bf006f498b85dd8879e4536dda201144a",
+      "rationale": "Retry only reruns models GET with AbortController/error state in CreateContract; templates_manage gates fetch. Full module reviewed: creation remains server-capability checked, independent party selectors and model fields are validated, no automatic issuance."
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "line": 35,
+      "column": 72,
+      "owner": "FinanceClientsSection",
+      "siteHash": "17776726d82a64d0c21078952d1b83308ca336af75adf315345f67546a2cdd04",
+      "rationale": "Opens shared monthly income dialog for selected client/month; action is shown only when canManageTerms or canHistory. Full section reviewed; no direct mutation, dialog rechecks server canManage and closure/archive guards, month changes clear selection and successful save reloads totals."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 46,
+      "owner": "ListColumnControls",
+      "siteHash": "df19f9b34c560b17c6f34d12578ba294b39134d33a6fc80190507ac824caa047",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Begin copies normalized current list preferences into draft; unavailable until scoped provider ready, no server mutation on open."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 263,
+      "owner": "ListColumnControls",
+      "siteHash": "3439048bdd0713568b1f7abee6b3bf68739a13103db02f3a280ff10c1db70ddc",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Retry delegates to own scoped preference synchronization; two distinct retry presentation sites reviewed separately, no business mutation."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 1811,
+      "owner": "ListColumnControls",
+      "siteHash": "3439048bdd0713568b1f7abee6b3bf68739a13103db02f3a280ff10c1db70ddc",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Retry delegates to own scoped preference synchronization; two distinct retry presentation sites reviewed separately, no business mutation."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 1231,
+      "owner": "ListColumnControls",
+      "siteHash": "982008489ffaf44704040a26b4c4042929e985da9a22250b2525308c6c966c5c",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Reorder is local draft only, callback guards boundaries and pinned actions exactly as disabled state; native keyboard button activation retained."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 1449,
+      "owner": "ListColumnControls",
+      "siteHash": "851cacf498f07083d70d0f1e04f37a6367d6be8a63e168501ea010c024214fbf",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Reorder is local draft only, callback guards boundaries and pinned actions exactly as disabled state; native keyboard button activation retained."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 1949,
+      "owner": "ListColumnControls",
+      "siteHash": "c51c8428906d3da5917c6afa5aba6a776e4ab7974d49410665ee468d4f940e63",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Reset changes local draft only; normalized view restores catalog order/visibility, requires explicit save."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 2070,
+      "owner": "ListColumnControls",
+      "siteHash": "f240e98ae21c60eaef3e5453a442792b7bde708b41c12fb36785d246ee24fe4c",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Cancel closes editor without persisting the local draft."
+    },
+    {
+      "file": "app/list-column-controls.tsx",
+      "line": 22,
+      "column": 2158,
+      "owner": "ListColumnControls",
+      "siteHash": "bdba7b07761a6baa6a4208fd55aa7fef7b2edd42ffa931350f8897b053eafe3f",
+      "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Save merges only this list into existing columns preferences; provider persists own-user scoped workspace settings, no business mutation or permission changes."
+    },
+    {
+      "file": "app/mcp-connections.tsx",
+      "line": 52,
+      "column": 24,
+      "owner": "Connections",
+      "siteHash": "900cc0b42a89cbf349378e9441f42b45c1a2bded8483f66cd1845e04ddea6f67",
+      "rationale": "Full Connections module reviewed. Instance keyed by organization/user, response organization validated and stale GET discarded; backend authorizes own connections. Retry refetches connection list only; forbidden response does not expose this retry path, and no authorization grant is made."
+    },
+    {
+      "file": "app/mcp-connections.tsx",
+      "line": 53,
+      "column": 218,
+      "owner": "Connections",
+      "siteHash": "cbd29435ba868a8fe4c2babc8f9a12fc613d0c157b3ce00d7b35335e4ab83d01",
+      "rationale": "Full Connections module reviewed. Instance keyed by organization/user, response organization validated and stale GET discarded; backend authorizes own connections. Copies validated public HTTPS endpoint without query/credentials; clipboard fallback selects public endpoint only, no tokens or grants."
+    },
+    {
+      "file": "app/mcp-connections.tsx",
+      "line": 57,
+      "column": 503,
+      "owner": "Connections",
+      "siteHash": "c63eb1d9c0af0cdfc73b793e6bce0a19e87d7ecc7b8d72b2cdfcb165029bfbe2",
+      "rationale": "Full updated Connections module and delta e9a5f51c..9e55b6c4 reviewed. Canonical opener JSX unchanged: selects an active connection and opens confirmation only under own-account manage capability. Actual confirmation captures selected id, uses immediate single-flight guard and exact matching revoked response. An ambiguous DELETE now forces authoritative organization-validated GET to reconcile revoked state or obtain fresh one-use CSRF before another DELETE; failed refresh changes confirm action to GET-only Actualizar conexión. Refresh 401/403 clears selection/data, wrong organization never permits mutation, alive guard blocks unmounted effects. No implicit authorization or deletion on opener."
+    },
+    {
+      "file": "app/mcp-consent.tsx",
+      "line": 35,
+      "column": 33,
+      "owner": "McpConsent",
+      "siteHash": "6ef22944a85123109eb5fae3d66b643bfb51532c7762699cf4fddbeea7489067",
+      "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Explicit deny POST approve=false; blocked busy/decision/expired; never grants permissions."
+    },
+    {
+      "file": "app/mcp-consent.tsx",
+      "line": 35,
+      "column": 168,
+      "owner": "McpConsent",
+      "siteHash": "ab8d593d45bfc4022e03f56ba894094f075c39859ab5b5d4c5d9bff1a20e661b",
+      "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Explicit authorize POST approve=true only after click; button states exact requested read/write scopes, blocked busy/decision/expired, terminal/auth errors remove decision controls."
+    },
+    {
+      "file": "app/mcp-consent.tsx",
+      "line": 37,
+      "column": 97,
+      "owner": "McpConsent",
+      "siteHash": "de3ac64e018fa157e0b66baec65a4d96b01652acdedb12c53e1e656d9c7feb79",
+      "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Retry GET only for recoverable load errors; terminal/401/403 clears actionable data, no implicit consent."
     }
   ],
   "retiredStructural": [
@@ -963,6 +1253,233 @@
         "beforeHash": "ad3cea95b721189680ae14cf43acf90b3d29060437933e5c11ea47878fc6b882",
         "afterHash": "709c5ddaf3fb16e5d3039dc42b58f44b48f2d84438d7d587f4dfac49ca7af5bb",
         "rationale": "Reviewed portal action keeps its existing endpoint, native type, variant, permission and callback semantics; canonical size=large supplies the touch target instead of a contextual CSS override. Logout additionally uses the reviewed immediate submission lock, progress text and recoverable focused alert."
+      }
+    ]
+  },
+  "retiredCanonical": [
+    {
+      "file": "app/inventory-workspace.tsx",
+      "owner": "InventoryItemActions",
+      "beforeLine": 161,
+      "beforeColumn": 15,
+      "beforeHash": "1341212df8fb2e26eb8b5eca7585a17375d16f6e4692fa7a3a8a373075755a47",
+      "beforeJsx": "<Button type=\"button\" variant=\"ghost\" onClick={inlineEdit.onClick} aria-label={inlineEdit.label}><Pencil size={14}/>Editar</Button>",
+      "approved": true,
+      "rationale": "Reviewed complete current inventory workspace and baseline owner/callers. Retires a duplicate rendering site; operation is preserved through the shared inventory action renderer rather than falsely mapped to a different owner.",
+      "destination": "inventoryItemActionList edit menu entry -> onEdit(item), only when canManage; shared InventoryItemActions for grid/list/locations",
+      "baseline": "d3ed097efb096d288581028572c04683f1f85288"
+    },
+    {
+      "file": "app/inventory-workspace.tsx",
+      "owner": "PipelineCard",
+      "beforeLine": 327,
+      "beforeColumn": 34,
+      "beforeHash": "54239dfc67dc804f4398b9b2a7abc26682b9653efac3f55608f0dd85280c1ec0",
+      "beforeJsx": "<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>",
+      "approved": true,
+      "rationale": "Reviewed complete current inventory workspace and baseline owner/callers. Retires a duplicate rendering site; operation is preserved through the shared inventory action renderer rather than falsely mapped to a different owner.",
+      "destination": "PipelineCard -> InventoryItemActions -> existing quick IconAction, canManage verify or read-only detail; shared full menu now receives real edit/archive/detail callbacks",
+      "baseline": "d3ed097efb096d288581028572c04683f1f85288"
+    }
+  ],
+  "release200": {
+    "baseline": "d3ed097efb096d288581028572c04683f1f85288",
+    "integrationHead": "9e55b6c44bc1ba374b97104be62fa1bb478a771c",
+    "baselineCanonicalMetadataCorrections": [],
+    "canonicalActions": 628,
+    "newCanonicalActions": 25,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": [
+      {
+        "file": "app/contracts-workspace.tsx",
+        "owner": "ContractsSession",
+        "beforeHash": "e4806c28c48125058ea43b28620078222680c227da3f03c0846caf0126afd475",
+        "afterHash": "5c662e800d7fb080fbed5c9e117004baf0989b28158095e19961ae65ed5fd47a",
+        "rationale": "Nuevo contrato remains under server capability create. Opening the editor no longer requires existing templates because built-in models supply a supported creation path; opener only sets local state and draft creation is independently checked by backend."
+      },
+      {
+        "file": "app/contracts-workspace.tsx",
+        "owner": "ContractsSession",
+        "beforeHash": null,
+        "afterHash": "908defb204bd74feb5c106e3d5e1354e6ac90f9fcec10ce665a84bc9249d73fe",
+        "rationale": "Apply model opens CreateContract with initialModelKey after closing model preview; disabled while busy or model missing. Model dialog requires templates_manage and backend capabilities derive templates_manage and create from the same manage permission. Creation still passes normal draft validation and never issues a version."
+      },
+      {
+        "file": "app/contracts-workspace.tsx",
+        "owner": "ContractDetail",
+        "beforeHash": "f7cf094a4a81523079cdb095ab09db6c09c6124093da9e0a3c3ba4ae5b0090b9",
+        "afterHash": "a8de1a23e35724a73a06e7f022df99496e0ab1be878fa3324339906596b96e68",
+        "rationale": "Only PDF action label changes from Exportar to Descargar. Same emitted version endpoint, credentials, no-store, response/error validation, busy single-flight wrapper, alive guard and object URL cleanup; no issuance or scope expansion."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeButton",
+        "beforeHash": null,
+        "afterHash": "95ac4decc7739aba78f427c44aab2434b8c39ba8719ddb0ddaca871034d46000",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Opens shared monthly income dialog only; callers are financial-view gated and mutation capability is independently verified after loading."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeSession",
+        "beforeHash": null,
+        "afterHash": "71e439135ca5705412e35add95e76263d717a761011fa0b0243fd7fe521e1eaf",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Starts selected base/extra create/edit draft using permission-checked start; editing preserves entry id, source kind and revision."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeSession",
+        "beforeHash": null,
+        "afterHash": "06afdbdf3311fcf8a7c6c3d0012217cca540ceb06fdc110ddf24cd650d8063d2",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Remove opens a reason-required editor; no immediate deletion. Save DELETE requires reason, revision and operation request id."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeSession",
+        "beforeHash": null,
+        "afterHash": "95a92ad6728b94370731fd1afa4008e15fb8cbbf4438a4168e5885d5f6508391",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Starts selected base/extra create/edit draft using permission-checked start; editing preserves entry id, source kind and revision."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeSession",
+        "beforeHash": null,
+        "afterHash": "dbacb8a9ec5cb7a4944f1850400bd3cd5353778296112445e8c0f28a898f7950",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Starts selected base/extra create/edit draft using permission-checked start; editing preserves entry id, source kind and revision."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeSession",
+        "beforeHash": null,
+        "afterHash": "e43245e389b5d031340665505da07d4a3cf92255c2ab2e51d39f5140993a51a2",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Cancels only local draft, disabled during mutation."
+      },
+      {
+        "file": "app/client-monthly-income.tsx",
+        "owner": "ClientMonthlyIncomeSession",
+        "beforeHash": null,
+        "afterHash": "9bc5873695e86d63b0e90ec04babbbfd1648d3d07f59eb6b694fd40feedfebe3",
+        "rationale": "Full module and data schema reviewed. Client/month scoped loading and response validation; backend canManage, closed period and archived checks gate editing; start also checks permissions, expected revision and request UUID protect actual save; opening forms never creates cash movement. Explicitly discards local draft then reloads scoped data; disabled during mutation."
+      },
+      {
+        "file": "app/contracts-preview.tsx",
+        "owner": "ContractPrintPreview",
+        "beforeHash": null,
+        "afterHash": "196ecdf3d3746553e029242f2434094db7179e3eb19ee8061c07872a98b78f1e",
+        "rationale": "Retry only reruns debounced/abortable draft preview POST after an error. Full module validates payload shape, keys stale results by signature and renders server HTML inside an empty sandbox iframe; no issuance or version mutation."
+      },
+      {
+        "file": "app/contracts-workspace.tsx",
+        "owner": "CreateContract",
+        "beforeHash": null,
+        "afterHash": "39f5b531a855be148de85df1be6c081bf006f498b85dd8879e4536dda201144a",
+        "rationale": "Retry only reruns models GET with AbortController/error state in CreateContract; templates_manage gates fetch. Full module reviewed: creation remains server-capability checked, independent party selectors and model fields are validated, no automatic issuance."
+      },
+      {
+        "file": "app/finance-clients.tsx",
+        "owner": "FinanceClientsSection",
+        "beforeHash": null,
+        "afterHash": "17776726d82a64d0c21078952d1b83308ca336af75adf315345f67546a2cdd04",
+        "rationale": "Opens shared monthly income dialog for selected client/month; action is shown only when canManageTerms or canHistory. Full section reviewed; no direct mutation, dialog rechecks server canManage and closure/archive guards, month changes clear selection and successful save reloads totals."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "df19f9b34c560b17c6f34d12578ba294b39134d33a6fc80190507ac824caa047",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Begin copies normalized current list preferences into draft; unavailable until scoped provider ready, no server mutation on open."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "3439048bdd0713568b1f7abee6b3bf68739a13103db02f3a280ff10c1db70ddc",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Retry delegates to own scoped preference synchronization; two distinct retry presentation sites reviewed separately, no business mutation."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "3439048bdd0713568b1f7abee6b3bf68739a13103db02f3a280ff10c1db70ddc",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Retry delegates to own scoped preference synchronization; two distinct retry presentation sites reviewed separately, no business mutation."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "982008489ffaf44704040a26b4c4042929e985da9a22250b2525308c6c966c5c",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Reorder is local draft only, callback guards boundaries and pinned actions exactly as disabled state; native keyboard button activation retained."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "851cacf498f07083d70d0f1e04f37a6367d6be8a63e168501ea010c024214fbf",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Reorder is local draft only, callback guards boundaries and pinned actions exactly as disabled state; native keyboard button activation retained."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "c51c8428906d3da5917c6afa5aba6a776e4ab7974d49410665ee468d4f940e63",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Reset changes local draft only; normalized view restores catalog order/visibility, requires explicit save."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "f240e98ae21c60eaef3e5453a442792b7bde708b41c12fb36785d246ee24fe4c",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Cancel closes editor without persisting the local draft."
+      },
+      {
+        "file": "app/list-column-controls.tsx",
+        "owner": "ListColumnControls",
+        "beforeHash": null,
+        "afterHash": "bdba7b07761a6baa6a4208fd55aa7fef7b2edd42ffa931350f8897b053eafe3f",
+        "rationale": "Full controls and pure configuration helpers reviewed. Preferences are scoped to current user/organization/list; scope change closes editor, catalog-only columns and required identity/action-last normalization preserve layout and permissions. Save merges only this list into existing columns preferences; provider persists own-user scoped workspace settings, no business mutation or permission changes."
+      },
+      {
+        "file": "app/mcp-connections.tsx",
+        "owner": "Connections",
+        "beforeHash": null,
+        "afterHash": "900cc0b42a89cbf349378e9441f42b45c1a2bded8483f66cd1845e04ddea6f67",
+        "rationale": "Full Connections module reviewed. Instance keyed by organization/user, response organization validated and stale GET discarded; backend authorizes own connections. Retry refetches connection list only; forbidden response does not expose this retry path, and no authorization grant is made."
+      },
+      {
+        "file": "app/mcp-connections.tsx",
+        "owner": "Connections",
+        "beforeHash": null,
+        "afterHash": "cbd29435ba868a8fe4c2babc8f9a12fc613d0c157b3ce00d7b35335e4ab83d01",
+        "rationale": "Full Connections module reviewed. Instance keyed by organization/user, response organization validated and stale GET discarded; backend authorizes own connections. Copies validated public HTTPS endpoint without query/credentials; clipboard fallback selects public endpoint only, no tokens or grants."
+      },
+      {
+        "file": "app/mcp-connections.tsx",
+        "owner": "Connections",
+        "beforeHash": null,
+        "afterHash": "c63eb1d9c0af0cdfc73b793e6bce0a19e87d7ecc7b8d72b2cdfcb165029bfbe2",
+        "rationale": "Full updated Connections module and delta e9a5f51c..9e55b6c4 reviewed. Canonical opener JSX unchanged: selects an active connection and opens confirmation only under own-account manage capability. Actual confirmation captures selected id, uses immediate single-flight guard and exact matching revoked response. An ambiguous DELETE now forces authoritative organization-validated GET to reconcile revoked state or obtain fresh one-use CSRF before another DELETE; failed refresh changes confirm action to GET-only Actualizar conexión. Refresh 401/403 clears selection/data, wrong organization never permits mutation, alive guard blocks unmounted effects. No implicit authorization or deletion on opener."
+      },
+      {
+        "file": "app/mcp-consent.tsx",
+        "owner": "McpConsent",
+        "beforeHash": null,
+        "afterHash": "6ef22944a85123109eb5fae3d66b643bfb51532c7762699cf4fddbeea7489067",
+        "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Explicit deny POST approve=false; blocked busy/decision/expired; never grants permissions."
+      },
+      {
+        "file": "app/mcp-consent.tsx",
+        "owner": "McpConsent",
+        "beforeHash": null,
+        "afterHash": "ab8d593d45bfc4022e03f56ba894094f075c39859ab5b5d4c5d9bff1a20e661b",
+        "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Explicit authorize POST approve=true only after click; button states exact requested read/write scopes, blocked busy/decision/expired, terminal/auth errors remove decision controls."
+      },
+      {
+        "file": "app/mcp-consent.tsx",
+        "owner": "McpConsent",
+        "beforeHash": null,
+        "afterHash": "de3ac64e018fa157e0b66baec65a4d96b01652acdedb12c53e1e656d9c7feb79",
+        "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Retry GET only for recoverable load errors; terminal/401/403 clears actionable data, no implicit consent."
       }
     ]
   }

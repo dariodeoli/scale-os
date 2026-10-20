@@ -41,7 +41,7 @@
     "lucide-react": "0.468.0",
     "marked": "^18.0.14",
     "next": "15.5.27",
-    "owncoding-ui": "github:dariodeoli/owncoding-ui#v0.68.19",
+    "owncoding-ui": "github:dariodeoli/owncoding-ui#v0.68.20",
     "qrcode": "^1.5.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",

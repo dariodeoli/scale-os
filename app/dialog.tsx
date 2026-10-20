@@ -3,6 +3,7 @@ import {InputBase} from './ui/input';
 import {Children,Fragment,cloneElement,createContext,isValidElement,useCallback,useContext,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import type {ButtonHTMLAttributes,ReactNode,RefObject} from 'react';
 import {createPortal} from 'react-dom';
+import {dialogFocusContains,dialogFocusableElements} from 'owncoding-ui/core';
 import {X} from 'lucide-react';
 import {createLayerStack} from './overlay-stack';
 import './dialog.css';
@@ -20,9 +21,12 @@ const overlayListeners=new Set<()=>void>();
 const notifyOverlayChange=()=>{overlayListeners.forEach(listener=>listener());};
 const focusSelector='button,input:not([type="hidden"]),select,textarea,a[href],summary,[tabindex],[contenteditable="true"]';
 function focusable(panel:HTMLElement|null){
- return Array.from(panel?.querySelectorAll?.<HTMLElement>(focusSelector)||[]).filter(el=>
+ return (panel?dialogFocusableElements(panel,focusSelector):[]).filter(el=>
   el.tabIndex>=0&&!el.matches(':disabled')&&!el.closest('[hidden],[inert]')&&el.getClientRects().length>0&&el.ownerDocument.defaultView?.getComputedStyle(el).visibility!=='hidden'
  ).sort((a,b)=>(a.tabIndex||Infinity)-(b.tabIndex||Infinity));
+}
+function focusContains(panel:HTMLElement|null,target:Node|null){
+ return panel?.ownerDocument?.defaultView?.Node?dialogFocusContains(panel,target):!!panel?.contains?.(target);
 }
 function focusFirst(panel:HTMLElement|null){
  const first=focusable(panel)[0];
@@ -77,7 +81,7 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
    }
   };
-  const containFocus=(event:FocusEvent)=>{if(layers.isTop(id)&&panel.current?.contains&&!panel.current.contains(event.target as Node))focusFirst(panel.current);};
+  const containFocus=(event:FocusEvent)=>{if(layers.isTop(id)&&panel.current?.contains&&!focusContains(panel.current,event.target as Node))focusFirst(panel.current);};
   document.addEventListener('keydown',keyboard);
   document.addEventListener('focusin',containFocus);
   return()=>{
@@ -86,11 +90,11 @@ function useOverlayState(panel:RefObject<HTMLElement>,close:()=>void,{busy=false
    notifyOverlayChange();
    document.removeEventListener('keydown',keyboard);document.removeEventListener('focusin',containFocus);
    // If a covered parent disappears, retain its external trigger for the surviving child.
-   overlays.forEach(item=>{if(element?.contains?.(item.previous))item.previous=entry.previous;});
+   overlays.forEach(item=>{if(focusContains(element,item.previous))item.previous=entry.previous;});
    if(!layers.size)document.body.style.overflow=originalOverflow;
    if(wasTop){
     const top=overlays.at(-1);
-    if(entry.previous?.isConnected&&(!top||top.panel.current?.contains?.(entry.previous)))entry.previous.focus();
+    if(entry.previous?.isConnected&&(!top||focusContains(top.panel.current,entry.previous)))entry.previous.focus();
     else if(top)focusFirst(top.panel.current);
    }
   };

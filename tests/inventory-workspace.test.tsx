@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+// react-test-renderer has no DOM portal host; browser311 separately verifies real portal focus/clipping.
+require('react-dom').createPortal=(children:React.ReactNode)=>children;
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 // owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
@@ -165,7 +167,7 @@ async function run(){
  assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
  assert.match(tree(),/Sin ubicación/,'the unassigned column always exists so items can move back');
  // #146: ocultar la columna vive en el ⋯ del encabezado.
- act(()=>{renderer.root.findAllByProps({'aria-label':'Acciones de la ubicación: Sin ubicación'})[0].parent!.props.onClick();});
+ act(()=>{renderer.root.findAllByProps({'aria-label':'Acciones de la ubicación: Sin ubicación'}).find(node=>node.type==='button'&&node.props['aria-haspopup']==='menu')!.props.onClick();});
  act(()=>{renderer.root.findAll(node=>node.props?.role==='menuitem').find(node=>text(node)==='Ocultar columna Sin ubicación')!.props.onClick();});
  assert.doesNotMatch(tree(),/Sin ubicación/,'the unassigned column can be hidden from the pipeline');
  assert.match(tree(),/sin ubicación no se muestran/,'hiding reports how many unassigned items are out of view');
@@ -239,7 +241,7 @@ async function run(){
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
  assert.match(text(renderer.root),/Ubicaciones de guardado/);assert.match(text(renderer.root),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));
  // #146 (patrón #138): las acciones del lugar viven en el menú ⋯ de la fila.
- const locationMenu=(name:string)=>renderer.root.findAllByProps({'aria-label':`Acciones de la ubicación: ${name}`})[0].parent!;
+ const locationMenu=(name:string)=>renderer.root.findAllByProps({'aria-label':`Acciones de la ubicación: ${name}`}).find(node=>node.type==='button'&&node.props['aria-haspopup']==='menu')!;
  const locationMenuItems=()=>renderer.root.findAll(node=>node.props?.role==='menuitem');
  const locationItem=(label:string)=>locationMenuItems().find(node=>text(node)===label)!;
  const deleteDisabled=(name:string)=>{act(()=>locationMenu(name).props.onClick());const disabled=locationItem('Eliminar ubicación').props.disabled as boolean;act(()=>locationMenu(name).props.onClick());return disabled;};
@@ -318,7 +320,7 @@ async function run(){
  assert.deepEqual(columnTitles().slice(0,3),['Estante A','Estante B','Depósito anterior'],'el pipeline arranca en el orden del API');
  // #146: el orden de la columna vive en el menú ⋯ del encabezado.
  const columnHead=(title:string)=>renderer.root.findAll(node=>node.props?.['data-board-head']!==undefined).find(node=>node.findAllByType('h3').some(head=>text(head)===title))!;
- const columnMenu=(title:string)=>columnHead(title).findAllByProps({'aria-label':`Acciones de la ubicación: ${title}`})[0].parent!;
+ const columnMenu=(title:string)=>columnHead(title).findAllByProps({'aria-label':`Acciones de la ubicación: ${title}`}).find(node=>node.type==='button'&&node.props['aria-haspopup']==='menu')!;
  const columnItem=(label:string)=>renderer.root.findAll(node=>node.props?.role==='menuitem').find(node=>text(node)===label)!;
  const moveAfter=async(title:string)=>{act(()=>columnMenu(title).props.onClick());await act(async()=>{await columnItem('Mover después').props.onClick();});};
  const beforeReorder=writes.length;

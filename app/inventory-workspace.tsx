@@ -1,6 +1,6 @@
+"use client";
 import {MenuDesplegable} from './ui/menu';
 import {useListColumnConfiguration} from './list-column-controls';
-"use client";
 import {Notice as Aviso,Note as Nota} from './ui/notice';
 import {CardSurface as Card} from './ui/surface';
 import {EmptyBlock as EmptyState,ErrorBlock as ErrorState} from './ui-v2';

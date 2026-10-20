@@ -1,0 +1,117 @@
+{
+  "reviewedAt": "2026-10-20T05:35:03.449481+00:00",
+  "scope": "Read-only final delta security/specification review of MCP #312; no repository edits or deployment",
+  "reviewedCommit": "a844f8b2fd3b1a46a279be1902d27ab2c40feb85",
+  "rootHeadAtReport": "e4c1564159af44f012d10f7e20a876ec37901053",
+  "source": {
+    "mcp-oauth.js": {
+      "reviewedSha256": "799c9f32bde01b025b8a0f22c9c848d1a8ba19b9ec5f2820d09292e7794127e6",
+      "rootSha256": "799c9f32bde01b025b8a0f22c9c848d1a8ba19b9ec5f2820d09292e7794127e6",
+      "changedSincePreviousReview": true
+    },
+    "mcp-tools.js": {
+      "reviewedSha256": "8b4aa51d2b51e78d46ab7643dddd4124e4abfa61755ca66537c26974fe209b56",
+      "rootSha256": "8b4aa51d2b51e78d46ab7643dddd4124e4abfa61755ca66537c26974fe209b56",
+      "changedSincePreviousReview": true
+    },
+    "mcp-server.js": {
+      "reviewedSha256": "e9f3fda6fd61ef2cb036fe0d317fad5feb8225f15ddaeb0d22c3e39016acde48",
+      "rootSha256": "e9f3fda6fd61ef2cb036fe0d317fad5feb8225f15ddaeb0d22c3e39016acde48",
+      "changedSincePreviousReview": true
+    }
+  },
+  "sourceIdenticalToRoot": true,
+  "findingsResolved": [
+    {
+      "finding": "Actor query held organization FOR SHARE while canonical client handler requested FOR UPDATE on another connection: request self-blocked",
+      "resolution": "Only user/membership rows are held FOR SHARE; organization UPDATE allowed",
+      "proof": "/tmp/mcp312-review-pg.log PostgreSQL17 real isolated; original55P03 and corrected success"
+    },
+    {
+      "finding": "Nested lease + canonical handler acquisition could fill entire pg pool with waiting parents",
+      "resolution": "Global two calls and one per connection rejected before pool acquisition",
+      "proof": "/tmp/mcp312-review-concurrency.log actual adapter429/no extra lease and successful later call; PGpool waiting count proof"
+    },
+    {
+      "finding": "OAuth duplicated parameters silently selected last value",
+      "resolution": "Duplicate OAuth form and authorization parameters rejected",
+      "proof": "Agent added duplicate assertion in backend/test-mcp.mjs; independently read implementation"
+    },
+    {
+      "finding": "Inventory tools advertised without canonical inventory handler; monthly permissions excluded Finance despite REST authorization",
+      "resolution": "Canonical inventory handler added; monthly read billing.view/write commercial-terms.manage OR expenses.manage",
+      "proof": "Read registry and route list"
+    },
+    {
+      "finding": "Core tool data schemas too opaque for discovery",
+      "resolution": "Client/plan/project/monthly-income data properties/required now typed",
+      "proof": "Read toolShape/mcpDataSchema"
+    },
+    {
+      "finding": "HTTP parser decoded each Buffer separately, silently corrupting UTF-8 split across chunks: José became Jos�� despite HTTP 200",
+      "negativeProof": "/tmp/mcp312-utf8-negative.log",
+      "resolution": "a844f8b2 accumulates byte-counted buffers and decodes once in OAuth and MCP parsers",
+      "independentPositiveProof": "/tmp/mcp312-utf8-final.log",
+      "additionalProof": "Writer test independently rerun: six real HTTP cases preserve accent and emoji through OAuth DCR and MCP tool args; oversized multibyte payloads remain 413"
+    }
+  ],
+  "finalDeltaChecks": {
+    "result": "PASS",
+    "log": "/tmp/mcp312-final-delta.log",
+    "checks": [
+      "Fresh consent cannot substitute for actual recent browser login; 20-minute-old session denied before payment handler",
+      "Actual fresh session.created_at persisted through consent allows payment handler",
+      "Stale consent and stale actual login each independently deny payment",
+      "Injected revocation UPDATE failure rolls back both revocation and nonce consumption",
+      "Injected revocation audit failure rolls back both revocation and nonce consumption",
+      "Retry revocation succeeds after transactional failure",
+      "Pool max=1 rejects before lease acquisition",
+      "Pool max=2 allows one call and rejects concurrent call before lease; permit released",
+      "No cash writes: payment handler sentinel only"
+    ]
+  },
+  "previousProofs": {
+    "oauth": {
+      "log": "/tmp/mcp312-review-oauth.log",
+      "sha256": "cd339f5290766628fe7c1e3be3453bc9b1c6e802ec84bdec74d76f0380564a51",
+      "summary": "PASS independent OAuth code/PKCE/consent CSRF/single-use/role live/membership revocation flow with local PGlite"
+    },
+    "pg": {
+      "log": "/tmp/mcp312-review-pg.log",
+      "sha256": "174cd3688c2171f5e239b72899a73ad438fdc70fd362626be82fda238c19c2bb",
+      "summary": "PASS reproduced original MCP organization SHARE vs canonical client UPDATE blocking with two real PostgreSQL connections\nPASS corrected actor-only SHARE allows organization UPDATE\nPASS reproduced nested pool starvation shape: both leases retained, both child acquisitions waiting; adapter must cap concurrency below pool capacity\nCLEANUP isolated PostgreSQL stopped and removed"
+    },
+    "concurrency": {
+      "log": "/tmp/mcp312-review-concurrency.log",
+      "sha256": "23d2a57727f35461a1fd450f6428f205a11397c8922ff10cc8bbfab196997462",
+      "summary": "PASS actual MCP adapter per-connection concurrency429 before pool acquisition and subsequent permit release"
+    }
+  },
+  "logs": {
+    "/tmp/mcp312-final-delta.log": {
+      "sha256": "245cf476bd4870605f2b4d99ad45b37689d1f90d04bfece4cb4f76bc07613ab4",
+      "text": "PASS fresh consent with 20-minute-old real session cannot run payment handler\nPASS actual fresh session timestamp persisted at consent permits payment handler\nPASS stale consent and stale actual login each independently deny payment\nPASS injected update failure rolls back both revocation and nonce consumption\nPASS injected audit failure rolls back both revocation and nonce consumption\nPASS revocation retry succeeds after transactional failures\nPASS pool max1 rejects before acquiring a lease\nPASS pool max2 capacity1 rejects concurrent call before lease and releases permit\nPASS final delta independent focal: zero cash writes; all local fixtures\n"
+    },
+    "/tmp/mcp312-utf8-negative.log": {
+      "sha256": "65428b239ba2a1a657d5209003eb6d32002ef3f89d0a87a2cfabcf8938ac1048",
+      "text": "{\"status\":200,\"expected\":\"José\",\"received\":\"Jos��\",\"preserved\":false}\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: UTF-8 split across HTTP chunks must preserve the client name\n\n'Jos��' !== 'José'\n\n    at file:///tmp/mcp312-utf8-focal.mjs:5:618\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 'Jos��',\n  expected: 'José',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.19.0\n"
+    },
+    "/tmp/mcp312-utf8-final.log": {
+      "sha256": "04d4783178a4e7d42587ff17f20eb8e97e19e8ee2daa6a7d04014f4dc5941e75",
+      "text": "{\"status\":200,\"expected\":\"José\",\"received\":\"José\",\"preserved\":true}\n"
+    },
+    "/tmp/mcp312-utf8-writer-validation.log": {
+      "sha256": "2d54765e6d0b2c4704a50d084a0bb8b4ce89f5372fca858ff8748b46f522e35c",
+      "text": "PASS MCP UTF-8: 6 real HTTP segmented requests; accent and emoji preserved in OAuth and MCP, byte limits reject oversized bodies\n"
+    }
+  },
+  "unresolvedFindings": [],
+  "limits": [
+    "Final focal fixtures use local PGlite and synthetic actors; subscription hasAccess=true injected",
+    "Payment authorization tests invoke sentinel handler, not actual cash mutation",
+    "Earlier lock/pool reproduction used real isolated PostgreSQL 17; that cluster was stopped and removed",
+    "Official SDK complete end-to-end suite belongs to implementing agent; this reviewer ran only focused delta tests",
+    "No external Claude/ChatGPT connection, production data, or production deployment validated",
+    "Root must integrate the reviewed UTF-8 fix and finish its combined release gates; source equality is captured at report time"
+  ]
+}

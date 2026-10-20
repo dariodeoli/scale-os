@@ -1,0 +1,44 @@
+{
+  "baseline": "e9a5f51c",
+  "reviewedHead": "9e55b6c44bc1ba374b97104be62fa1bb478a771c",
+  "file": "app/mcp-connections.tsx",
+  "sha256": "5b503d5c7dc825e58dc3f148ae6e1a1b7baa0b0d396458b8e5a571b1deeb5771",
+  "canonicalJSXChanged": false,
+  "updatedReviewLocations": [
+    {
+      "hash": "900cc0b42a89cbf349378e9441f42b45c1a2bded8483f66cd1845e04ddea6f67",
+      "old": [
+        24,
+        24
+      ],
+      "new": [
+        52,
+        24
+      ]
+    },
+    {
+      "hash": "cbd29435ba868a8fe4c2babc8f9a12fc613d0c157b3ce00d7b35335e4ab83d01",
+      "old": [
+        25,
+        218
+      ],
+      "new": [
+        53,
+        218
+      ]
+    },
+    {
+      "hash": "c63eb1d9c0af0cdfc73b793e6bce0a19e87d7ecc7b8d72b2cdfcb165029bfbe2",
+      "old": [
+        29,
+        503
+      ],
+      "new": [
+        57,
+        503
+      ]
+    }
+  ],
+  "confirmationDelta": "ConfirmDialog label now selects GET-only refresh after ambiguous DELETE until authoritative scoped GET provides new CSRF; callback single-flight retained. ConfirmDialog is not a pending canonical Button site in existing helper taxonomy.",
+  "limits": "Read-only delta source review; helper not run while root npm ci is active; no checkout/dependency edits."
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "file": "app/inventory-workspace.tsx",
+    "owner": "InventoryItemActions",
+    "beforeLine": 161,
+    "beforeColumn": 15,
+    "beforeHash": "1341212df8fb2e26eb8b5eca7585a17375d16f6e4692fa7a3a8a373075755a47",
+    "beforeJsx": "<Button type=\"button\" variant=\"ghost\" onClick={inlineEdit.onClick} aria-label={inlineEdit.label}><Pencil size={14}/>Editar</Button>",
+    "approved": true,
+    "rationale": "Reviewed complete current inventory workspace and baseline owner/callers. Retires a duplicate rendering site; operation is preserved through the shared inventory action renderer rather than falsely mapped to a different owner.",
+    "destination": "inventoryItemActionList edit menu entry -> onEdit(item), only when canManage; shared InventoryItemActions for grid/list/locations"
+  },
+  {
+    "file": "app/inventory-workspace.tsx",
+    "owner": "PipelineCard",
+    "beforeLine": 327,
+    "beforeColumn": 34,
+    "beforeHash": "54239dfc67dc804f4398b9b2a7abc26682b9653efac3f55608f0dd85280c1ec0",
+    "beforeJsx": "<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>",
+    "approved": true,
+    "rationale": "Reviewed complete current inventory workspace and baseline owner/callers. Retires a duplicate rendering site; operation is preserved through the shared inventory action renderer rather than falsely mapped to a different owner.",
+    "destination": "PipelineCard -> InventoryItemActions -> existing quick IconAction, canManage verify or read-only detail; shared full menu now receives real edit/archive/detail callbacks"
+  }
+]
