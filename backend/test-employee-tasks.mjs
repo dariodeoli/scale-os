@@ -16,6 +16,7 @@ const migration=await fs.readFile('migrations/20261017_employee_tasks.sql','utf8
 assert.equal((await query('select * from agency_internal_task_assignees where task_id=$1',[legacy.id])).rows.length,1,'migration preserves legacy assignee and is repeatable');
 async function client(organization,name){return(await query('insert into agency_clients(organization_id,name) values($1,$2) returning id',[organization,name])).rows[0].id;}
 const clientId=await client(org,'Tasks client'),otherClientId=await client(other,'Other client'),secondClient=await client(org,'Second client');
+await query('update agency_clients set logo_url=$1 where id=$2',['data:image/webp;base64,UEhPVE8=',clientId]);
 const project=(await query("insert into agency_projects(organization_id,client_id,name) values($1,$2,'Tasks project') returning id",[org,clientId])).rows[0].id;
 const base='/api/agency/productivity/internal-tasks';
 async function call(path='',method='GET',payload={},as=owner){let result;assert.equal(await employeeTasks({req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+base+path),db,session:async()=>as,body:async()=>payload,send:(_,status,data)=>result={status,...data}}),true);return result;}
@@ -23,6 +24,9 @@ const create=(payload={},as=owner)=>call('','POST',{title:'Task title',expected_
 assert.equal((await call('','GET',{},null)).status,401);
 assert.equal((await call('/context','GET',{},editor)).people.length,1);
 assert.equal((await call('/context')).people.length,4);
+const identityContext=await call('/context');
+assert.match(identityContext.clients.find(client=>String(client.id)===String(clientId)).logo_url,new RegExp('^/core-api/api/agency/media/client/'+clientId+'\\?v='),'task context carries cacheable client logo');
+assert(!identityContext.clients.some(client=>String(client.id)===String(otherClientId)),'client identities remain tenant scoped');
 assert.equal((await call('?assignee=all','GET',{},editor)).status,403);
 assert.equal((await call('?assignee='+colleague.id,'GET',{},editor)).status,403);
 assert.equal((await call('','GET',{},editor)).records.length,1);

@@ -1,4 +1,5 @@
 "use client";
+import {clientSelectChoices} from './client-identity-data';
 import {InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
 import {useEffect,useRef,useState} from 'react';
@@ -96,7 +97,7 @@ export function ProjectForm({
       {/* Un desplegable con buscador (no un botón por cliente): con cientos de
           clientes la lista de botones empujaba el resto del formulario fuera de vista. */}
       <div className="grid gap-1.5" data-form-field="clientId">
-        <SelectCustom label="Cliente" value={form.watch("clientId")} choices={clients.map(client=>({value:String(client.id),label:client.name}))} disabled={submission.pending} invalid={Boolean(form.formState.errors.clientId)} describedBy={form.formState.errors.clientId?"project-client-error":undefined} onChange={value=>form.setValue("clientId",value,{shouldValidate:true,shouldDirty:true})}/>
+        <SelectCustom label="Cliente" value={form.watch("clientId")} choices={clientSelectChoices(clients)} disabled={submission.pending} invalid={Boolean(form.formState.errors.clientId)} describedBy={form.formState.errors.clientId?"project-client-error":undefined} onChange={value=>form.setValue("clientId",value,{shouldValidate:true,shouldDirty:true})}/>
         {form.formState.errors.clientId && (
           <small className="error" role="alert" id="project-client-error">
             {form.formState.errors.clientId.message}

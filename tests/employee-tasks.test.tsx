@@ -14,12 +14,12 @@ const compiled=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.React,
 let editorProps:any;let writes:any[]=[];let deferred:((value:any)=>void)|null=null;
 const base={id:'1',version:3,title:'Editar video',description:'Detalle',status:'pending',priority:'high',due_date:'2026-10-17',assigned_user_ids:['2'],assignees:[{id:'2',full_name:'Ana'}],checklist:[],materials:[],can_edit:false,can_complete:true};
 let listRecords=[base];
-const context={people:[{id:'2',full_name:'Ana'}],projects:[],clients:[],can_edit:false,can_assign:false};
+const context={people:[{id:'2',full_name:'Ana'}],projects:[],clients:[{id:'44',name:'Cliente con foto',logo_url:'https://images.example.invalid/client44.webp'}],can_edit:false,can_assign:false};
 const reads:string[]=[];
 const request=async(path:string,body?:unknown)=>{reads.push(path);if(body){writes.push(body);return {record:{...base,status:'done'}};}if(path==='/context')return context;if(path==='/1')return {record:base};if(path.includes('project_id=slow'))return await new Promise(resolve=>{deferred=resolve;});return {records:listRecords,counts:{today:listRecords.length},page:{has_more:false},can_assign:false,can_edit:false};};
 const exportsObj:any={};
 const passthrough=({children,...props}:any)=><div {...props}>{children}</div>;
-const customRequire=(name:string)=>name==='react'?React:name==='./ui/button'?require('../app/ui/button'):name==='./use-temporal-filter'?{useTemporalFilter}:name==='./ui/temporal-value'?temporalValue:name==='./ui/input-control'?{InputControl}:name==='./ui/input'?require('../app/ui/input'):name==='./operations'?{Editor:(props:any)=>{editorProps=props;return <div data-editor="true"/>;}}:name==='./dialog'?{Dialog:passthrough}:name==='./profile-controls'?{SelectCustom:({label}:any)=><span>{label}</span>}:name==='./ui-v2'?{EmptyBlock:passthrough,ErrorBlock:passthrough,LoadingBlock:passthrough,StateChip:passthrough,ViewSwitch:({value,onChange}:any)=><button data-view={value} onClick={()=>onChange(value==='grid'?'list':'grid')}>Cambiar vista</button>}:name==='./employee-tasks-model'?{...model,taskRequest:request,tasksChanged:()=>{}}:{};
+const customRequire=(name:string)=>name==='react'?React:name==='./ui/button'?require('../app/ui/button'):name==='./use-temporal-filter'?{useTemporalFilter}:name==='./ui/temporal-value'?temporalValue:name==='./ui/input-control'?{InputControl}:name==='./ui/input'?require('../app/ui/input'):name==='./client-identity-data'?require('../app/client-identity-data'):name==='./operations'?{Editor:(props:any)=>{editorProps=props;return <div data-editor="true"/>;}}:name==='./dialog'?{Dialog:passthrough}:name==='./profile-controls'?{SelectCustom:({label}:any)=><span>{label}</span>}:name==='./ui-v2'?{EmptyBlock:passthrough,ErrorBlock:passthrough,LoadingBlock:passthrough,StateChip:passthrough,ViewSwitch:({value,onChange}:any)=><button data-view={value} onClick={()=>onChange(value==='grid'?'list':'grid')}>Cambiar vista</button>}:name==='./employee-tasks-model'?{...model,taskRequest:request,tasksChanged:()=>{}}:{};
 new Function('require','exports','React',compiled)(customRequire,exportsObj,React);
 const {EmployeeTasks,TaskEditor,TaskDetail}=exportsObj;
 const flush=async()=>{await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});};
@@ -61,6 +61,8 @@ async function run(){
  assert.ok(compactButtons().some(button=>button.children.includes('Marcar completada')),'existing permitted task actions stay available');
  act(()=>renderer.unmount());listRecords=[base];
  let saves=0;await act(async()=>{renderer=create(<TaskEditor record={{...base,can_edit:true}} context={{...context,can_edit:true}} save={async()=>{saves++;throw new model.TaskRequestError('La tarea cambió',409);}} refresh={async()=>({...base,version:4})}/>);});
+ assert.equal(editorProps.fields.find((field:any)=>field.key==='client_id').choices[1].photoUrl,'https://images.example.invalid/client44.webp');
+ assert.equal(editorProps.fields.find((field:any)=>field.key==='client_id').choices[1].kind,'entity');
  const values={title:'Mi borrador',description:'Detalle',priority:'normal',status:'pending',due_date:'',due_time:'',project_id:'',client_id:'',additional:''};
  await act(async()=>{await assert.rejects(editorProps.save(values));});assert.match(JSON.stringify(renderer.toJSON()),/Tu borrador sigue aquí/);
  await act(async()=>{await assert.rejects(editorProps.save(values),/Recargá/);});assert.equal(saves,1,'409 bloquea reintento hasta recarga');
