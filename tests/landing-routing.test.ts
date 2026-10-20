@@ -11,6 +11,7 @@ assert.equal(request('app.scaleparaguay.com','/demo').headers.get('location'),'h
 assert.equal(request('sistema.scaleparaguay.com','/core-api/api/auth/me').status,200);
 assert.equal(request('sistema.scaleparaguay.com','/scale-os.html').status,308);
 assert.equal(request('sistema.scaleparaguay.com','/brand/favicon-32.png').status,200);
+assert.equal(request('sistema.scaleparaguay.com','/fonts/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2').status,200,'public documentation can load the shared font');
 for(const path of ['/documentacion','/documentacion/mcp','/documentacion/api']){
  const publicDocs=request('sistema.scaleparaguay.com',path);
  assert.equal(publicDocs.status,200,`${path} is public on the landing host`);
