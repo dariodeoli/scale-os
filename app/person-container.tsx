@@ -17,7 +17,7 @@ export type PersonContainerProps={
 // de la cápsula (avatar + nombre + secundario) y el mapeo de tamaños.
 const TAMANO={sm:'sm',md:'lg',lg:'2xl'} as const;
 
-export function PersonContainer({name,photoUrl,secondary,verified=false,size='md',variante='persona',className=''}:PersonContainerProps){
+export function PersonContainer({name,photoUrl,secondary,verified=true,size='md',variante='persona',className=''}:PersonContainerProps){
  const label=personDisplayName(name);
  return <span className={`person-container person-container-${size}${className?' '+className:''}`}>
   <FotoPerfil nombre={label} foto={photoUrl} tamano={TAMANO[size]} variante={variante} verificado={verified}/>

@@ -22,7 +22,7 @@ export function ReceiptPaymentDialog({fields,accounts,companyCurrency,requestId,
   if(values.amount!==''&&previous!==account.currency){setCurrencyChange({account,oldCurrency:previous,amount:values.amount});return;}
   editor.current?.patchValues({accountId:String(account.id)});
  };
- const enhancedFields=fields.map(field=>field.key==='accountId'?{...field,after:canCreateAccount?<div className="finance-inline-account"><span className="field-help">{accounts.length?'¿El dinero ingresó a otra cuenta?':'Todavía no hay cuentas de ingreso.'}</span><ScaleButton className="text-button" type="button" onClick={openAccount} variant="ghost">Agregar cuenta</ScaleButton></div>:field.after}:field);
+ const enhancedFields=fields.map(field=>field.key==='accountId'?{...field,after:canCreateAccount?<>{field.after}<div className="finance-inline-account"><span className="field-help">{accounts.length?'¿El dinero ingresó a otra cuenta?':'Todavía no hay cuentas de ingreso.'}</span><ScaleButton className="text-button" type="button" onClick={openAccount} variant="ghost">Agregar cuenta</ScaleButton></div></>:field.after}:field);
  return <>
   <Dialog title="Recibir pago" close={close}>{!accounts.length&&!canCreateAccount?<p className="field-help">Necesitás una cuenta para registrar el cobro. Pedile a una persona con permiso de cuentas que la agregue.</p>:null}<Editor formHandle={editor} onValuesChange={onDraftChange} fields={enhancedFields} defaults={defaults} save={save}/></Dialog>
   {canCreateAccount&&creating?<AccountCreateDialog initialCurrency={creating.currency} close={()=>setCreating(null)} done={accountCreated}/>:null}
