@@ -2,6 +2,10 @@
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
 import Ajv from 'ajv';
+import {Client} from '@modelcontextprotocol/sdk/client/index.js';
+import {Server} from '@modelcontextprotocol/sdk/server/index.js';
+import {InMemoryTransport} from '@modelcontextprotocol/sdk/inMemory.js';
+import {CallToolRequestSchema,ListToolsRequestSchema} from '@modelcontextprotocol/sdk/types.js';
 import {mcpFixtureDatabase} from './scripts/test-mcp-db.mjs';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {operationsDefinitions,mcpOperationsTools,mcpOperationsOverrides,mcpOperationsHandlers,operationsRouteMatrix} from './mcp-operations-tools.js';
@@ -127,9 +131,25 @@ try{
  assert.equal((await call('get_studio_reservation',{id:String(studio.id)},outsider)).status,404);
  assert.equal((await call('cancel_studio_reservation',mutation({expected_version:studio.version},studio.id),viewer)).status,403);
  assert.equal((await call('cancel_studio_reservation',mutation({expected_version:studio.version},studio.id))).status,200);
+ // Real SDK transport exercises these descriptor schemas and real handlers.
+ // OAuth/grant validation belongs to the core's separate SDK integration test;
+ // this deliberately uses a fixed test actor, never a fabricated OAuth pass.
+ let sdkActor=owner;
+ const sdkServer=new Server({name:'operations-fixture',version:'1.0.0'},{capabilities:{tools:{}}});
+ sdkServer.setRequestHandler(ListToolsRequestSchema,async()=>({tools:definitions.map(d=>({name:d.name,description:d.description,inputSchema:d.inputSchema}))}));
+ sdkServer.setRequestHandler(CallToolRequestSchema,async request=>{const result=await call(request.params.name.replace(/^scale_/,''),request.params.arguments,sdkActor);return {content:[{type:'text',text:JSON.stringify(result)}],isError:result.status>=400};});
+ const sdk=new Client({name:'operations-consumer',version:'1.0.0'},{capabilities:{}}),[clientTransport,serverTransport]=InMemoryTransport.createLinkedPair();
+ try{
+  await sdkServer.connect(serverTransport);await sdk.connect(clientTransport);
+  assert.equal((await sdk.listTools()).tools.length,definitions.length);
+  let response=await sdk.callTool({name:'scale_get_work_checklist',arguments:{id:String(order.id)}});assert.equal(response.isError,false);
+  sdkActor=viewer;response=await sdk.callTool({name:'scale_publish_work_order',arguments:mutation({},order.id)});assert.equal(response.isError,true);assert.equal(JSON.parse(response.content[0].text).status,403);
+  sdkActor=outsider;response=await sdk.callTool({name:'scale_get_work_checklist',arguments:{id:String(order.id)}});assert.equal(response.isError,true);assert.equal(JSON.parse(response.content[0].text).status,404);
+  sdkActor=owner;response=await sdk.callTool({name:'scale_update_work_checklist_item',arguments:{...mutation({expected_version:'2',completed:false},order.id),itemId:step.id,confirm:false}});assert.equal(response.isError,true);assert.equal(JSON.parse(response.content[0].text).status,400);
+ }finally{await sdk.close();await sdkServer.close();}
  assert.equal((await call('archive_project',mutation({},project.id))).status,200);assert.equal((await call('get_work_checklist',{id:String(order.id)})).status,409,'archived parents cannot bypass checklist protections');assert.equal((await call('restore_project',mutation({},project.id))).status,200);
  await q('update organization_members set active=false where user_id=$1 and organization_id=$2',[owner.id,org]);assert.equal((await call('verify_inventory',mutation({result:'confirmed'},item.id))).status,403,'handler rechecks live active membership');
  const matrix=operationsRouteMatrix();assert.equal(matrix.filter(entry=>entry.tool).length,operationsDefinitions.length);assert(matrix.every(entry=>entry.tool||entry.reason));
- console.log(`PASS MCP operations: ${definitions.length} typed descriptors, ${assertions} canonical real-handler calls; schema injection, permissions, tenant isolation, revisions, pagination, approvals, contract metadata, inventory checkout/return, studio and recoverable archive.`);
+ console.log(`PASS MCP operations: ${definitions.length} typed descriptors, ${assertions} canonical real-handler calls, real SDK transport negative permission/tenant/confirmation; schema injection, revisions, pagination, approvals, contract metadata, inventory checkout/return, studio and recoverable archive. OAuth is tested separately by MCP core.`);
  if(process.argv.includes('--write-matrix'))await writeFile(new URL('./mcp-operations-coverage.json',import.meta.url),JSON.stringify({issue:330,routes:matrix},null,2)+'\n');
 }finally{await fixture.close();}
