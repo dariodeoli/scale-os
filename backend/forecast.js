@@ -41,7 +41,7 @@ const projectMoney=(record,fields)=>Object.fromEntries(Object.entries(record).ma
 // (currency totals the forecast exists to project) and the identity, and receives
 // the per-person amounts as null — the same contract operations.js applies to the
 // team directory through withoutSalary.
-const projectMembers=(members,canSeeSalary)=>canSeeSalary?members.map(member=>projectMoney(member,['base_amount','override_amount'])):members.map(member=>({...member,base_amount:null,override_amount:null}));
+const projectMembers=(members,canSeeSalary)=>canSeeSalary?members.map(member=>projectMoney(member,['base_amount','override_amount'])):[];
 const projectPersonnel=(rows,canSeeSalary)=>rows.map(row=>({...projectMoney(row,['base_amount','override_amount','expected_end_of_month_expense']),members:projectMembers(row.members||[],canSeeSalary)}));
 const projectPersonnelTotals=rows=>rows.map(row=>projectMoney(row,['base_amount','override_amount','expected_end_of_month_expense']));
 

@@ -73,7 +73,7 @@ export async function economicHistory({req,res,url,db,session,body,send}){
  if(!salary&&!plan&&!balance)return false;let c;
  try{
   const user=await session(req);if(!user)fail('No autenticado',401);
-  if(!roleCan(user,salary?'salary.view':balance?'finance.view':'billing.view'))fail('Tu rol no permite consultar estos datos',403);
+  if(!roleCan(user,salary?'salary.view':balance?'finance.balance.view':'billing.view'))fail('Tu rol no permite consultar estos datos',403);
   c=await db.connect();await c.query(req.method==='GET'?'begin isolation level repeatable read':'begin');
   if(balance){if(req.method!=='GET')fail('Método no permitido',405);const result=await balanceDetails(c,user,forecastMonth(url.searchParams.get('month')));if(roleCan(user,'salary.view'))await logPersonalDataAccess(c,{organizationId:user.organization_id,actorUserId:user.id,action:'salary.view',context:'balance-details',details:{month:result.month}});await c.query('commit');send(res,200,result);return true;}
   const key=id((salary||plan)[1]),table=salary?'agency_collaborators':'agency_clients';

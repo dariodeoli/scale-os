@@ -16,6 +16,14 @@
     "financial": true
   },
   {
+    "method": "PATCH",
+    "path": "/api/agency/accounts/:id",
+    "tool": "scale_update_account",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
     "method": "GET",
     "path": "/api/agency/custodians",
     "tool": "scale_list_account_custodians",
@@ -107,6 +115,22 @@
     "method": "POST",
     "path": "/api/agency/finance/periods/:month/reopen",
     "tool": "scale_reopen_finance_period",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/finance/payment-reviews",
+    "tool": "scale_list_client_payment_reviews",
+    "status": "covered",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/finance/payment-reviews/:id",
+    "tool": "scale_update_client_payment_review",
     "status": "covered",
     "canonicalHandlers": true,
     "financial": true
@@ -386,8 +410,8 @@
   {
     "method": "POST",
     "path": "/api/agency/payouts",
-    "tool": null,
-    "status": "excluded-no-canonical-idempotency",
+    "tool": "scale_create_payout",
+    "status": "covered",
     "canonicalHandlers": true,
     "financial": true
   },
@@ -410,8 +434,8 @@
   {
     "method": "POST",
     "path": "/api/agency/commissions",
-    "tool": null,
-    "status": "excluded-no-canonical-idempotency",
+    "tool": "scale_create_commission",
+    "status": "covered",
     "canonicalHandlers": true,
     "financial": true
   },
@@ -464,13 +488,6 @@
     "financial": true
   },
   {
-    "method": "PATCH",
-    "path": "/api/agency/accounts/:id",
-    "tool": null,
-    "status": "missing-canonical-api",
-    "reason": "No account update API for name/institution/account number/holder/custodian. Creation supports these fields; lifecycle archives/restores."
-  },
-  {
     "method": "POST",
     "path": "/api/agency/transfers/:id/reverse",
     "tool": null,
@@ -482,7 +499,7 @@
     "path": "/api/agency/payouts/:id/reverse",
     "tool": null,
     "status": "missing-canonical-api",
-    "reason": "Payout handler has GET/POST only; no reversal or requestId idempotency."
+    "reason": "Payout creation is idempotent with requestId; no reversal endpoint exists."
   },
   {
     "method": "PATCH",
@@ -507,29 +524,8 @@
   },
   {
     "method": "POST",
-    "path": "/api/agency/accounts",
-    "tool": "scale_create_account",
-    "status": "canonical-limitation",
-    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
-  },
-  {
-    "method": "POST",
     "path": "/api/agency/invoices",
     "tool": "scale_create_invoice",
-    "status": "canonical-limitation",
-    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
-  },
-  {
-    "method": "POST",
-    "path": "/api/agency/payouts",
-    "tool": "scale_create_payout",
-    "status": "canonical-limitation",
-    "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
-  },
-  {
-    "method": "POST",
-    "path": "/api/agency/commissions",
-    "tool": "scale_create_commission",
     "status": "canonical-limitation",
     "reason": "Canonical API has no requestId for this create. Do not automatically retry ambiguous successes; read records before any new user-confirmed attempt."
   },
