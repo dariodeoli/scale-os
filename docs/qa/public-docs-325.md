@@ -34,3 +34,12 @@ assets. The screenshots use light theme; both palettes were checked in browser.
 Limits: Chromium viewport emulation, not physical devices or Safari. Claude and
 ChatGPT UI connections remain unverified externally (#312). Browser geometry
 and protocol documentation do not certify those external integrations.
+
+Production-build verification also passed all24 browser cases, using the same
+source and production CSS. Production ETags initially produced conditional304
+responses; the harness now disables browser cache for these status checks so
+each case verifies a fresh200, retaining every content/keyboard/layout assertion.
+Local HTTP additionally verified the three canonical-host documentation routes,
+font and sitemap (5checks), with version1.0.202 and public indexing. The strict-host
+landing rewrite is verified by routing/static-browser tests and by the final
+public deployment; a localhost Next server rewrites that handler onto localhost.

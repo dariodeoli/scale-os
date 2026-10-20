@@ -10,7 +10,10 @@ const output=process.env.QA_OUT||'/tmp/scale325-public-docs';mkdirSync(output,{r
 const browser=await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 const results=[],errors=[],blocked=[];let paths=[];
 try{
- const page=await browser.newPage();page.setDefaultTimeout(7000);page.on('pageerror',error=>errors.push(error.message));
+ const page=await browser.newPage();
+ // Production pages have ETags. Request fresh documents for each viewport so
+ // the status assertion verifies HTTP200 rather than a conditional304 cache hit.
+ await page.setCacheEnabled(false);page.setDefaultTimeout(7000);page.on('pageerror',error=>errors.push(error.message));
  await page.setRequestInterception(true);page.on('request',request=>{const url=new URL(request.url());if(request.method()==='GET'&&(url.origin===base.origin||url.protocol==='data:'))return request.continue();blocked.push({method:request.method(),origin:url.origin,path:url.pathname});return request.abort();});
  const home=new URL('/documentacion',base);const initial=await page.goto(home.href,{waitUntil:'networkidle0'});assert.equal(initial.status(),200,'documentation is public without login');
  paths=await page.$$eval('a[href]',links=>[...new Set(['/documentacion',...links.map(a=>new URL(a.href,location.href)).filter(url=>url.origin===location.origin&&/^\/documentacion(?:\/|$)/.test(url.pathname)).map(url=>url.pathname)])]);
