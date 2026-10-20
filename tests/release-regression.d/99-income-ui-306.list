@@ -1,0 +1,3 @@
+# Monthly client income: one shared editor and separate planned/cash result.
+node --import tsx --test tests/client-monthly-income-306.test.tsx
+node build-tools/qa-client-income-306.mjs

@@ -1,6 +1,6 @@
 {
   "name": "scale-os-api",
-  "version": "1.0.199",
+  "version": "1.0.200",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
     "test:tasks-postgres": "node test-employee-tasks-postgres.mjs",
     "test:privacy": "node test-privacy.mjs",
     "test:ia-carga": "node test-ia-carga.mjs",
-    "test:release": "node test-suite.mjs && node test-commercial-lifecycle.mjs && node test-agency-core-alta.mjs && node test-permissions.mjs && node test-reports.mjs && node test-finance-privacy.mjs && node test-project-assignees.mjs && node test-response-compression.mjs && node --experimental-vm-modules test-work-order-assignees.mjs && node test-client-portal.mjs && node test-client-matches.mjs && node test-operations.mjs && node test-work-checklists.mjs && node test-studio-reservations.mjs && node test-inventory-value.mjs && node test-inventory-reservations.mjs && node test-inventory-default-categories.mjs && node test-productivity.mjs && node test-daily-controls.mjs && node --experimental-vm-modules test-auth.mjs && node test-forecast.mjs && node test-platform-admin.mjs && node test-platform-usage.mjs && node test-platform-inquiries.mjs && node test-platform-announcements.mjs && node test-platform-maintenance.mjs && node test-maintenance.mjs && node test-suspension-notice.mjs && node test-secure-deletion.mjs && node test-release-migrations.mjs && node test-notification-status.mjs && node test-list-windows.mjs && node test-agency-media.mjs && node test-privacy.mjs && node test-ia-carga.mjs && node test-social-auth.mjs && node test-organization-sso.mjs && node test-email-layout.mjs && node test-public-analytics.mjs && node test-platform-guard.mjs && node test-platform-metrics.mjs && node test-error-tracking.mjs && node test-user-reports.mjs && node test-security-hardening.mjs && node test-ruc.mjs && node test-employee-tasks.mjs && node test-contracts.mjs && node test-contract-models.mjs && node test-member-access.mjs && node test-finance-periods.mjs && node test-demo-session.mjs && node test-demo-reports.mjs && node test-demo-complete.mjs && node test-demo-effects.mjs && node test-expense-currency.mjs && node test-bootstrap-migrations.mjs && node test-existing-account.mjs && node test-economic-history.mjs && node test-client-contacts.mjs && node test-workspace-preferences.mjs && node test-company-locality.mjs",
+    "test:release": "node test-suite.mjs && node test-commercial-lifecycle.mjs && node test-agency-core-alta.mjs && node test-permissions.mjs && node test-reports.mjs && node test-finance-privacy.mjs && node test-project-assignees.mjs && node test-response-compression.mjs && node --experimental-vm-modules test-work-order-assignees.mjs && node test-client-portal.mjs && node test-client-matches.mjs && node test-operations.mjs && node test-work-checklists.mjs && node test-studio-reservations.mjs && node test-inventory-value.mjs && node test-inventory-reservations.mjs && node test-inventory-default-categories.mjs && node test-productivity.mjs && node test-daily-controls.mjs && node --experimental-vm-modules test-auth.mjs && node test-forecast.mjs && node test-platform-admin.mjs && node test-platform-usage.mjs && node test-platform-inquiries.mjs && node test-platform-announcements.mjs && node test-platform-maintenance.mjs && node test-maintenance.mjs && node test-suspension-notice.mjs && node test-secure-deletion.mjs && node test-release-migrations.mjs && node test-notification-status.mjs && node test-list-windows.mjs && node test-agency-media.mjs && node test-privacy.mjs && node test-ia-carga.mjs && node test-social-auth.mjs && node test-organization-sso.mjs && node test-email-layout.mjs && node test-public-analytics.mjs && node test-platform-guard.mjs && node test-platform-metrics.mjs && node test-error-tracking.mjs && node test-user-reports.mjs && node test-security-hardening.mjs && node test-ruc.mjs && node test-employee-tasks.mjs && node test-contracts.mjs && node test-contract-models.mjs && node test-member-access.mjs && node test-finance-periods.mjs && node test-demo-session.mjs && node test-demo-reports.mjs && node test-demo-complete.mjs && node test-demo-effects.mjs && node test-expense-currency.mjs && node test-bootstrap-migrations.mjs && node test-existing-account.mjs && node test-economic-history.mjs && node test-client-monthly-income.mjs && node test-client-contacts.mjs && node test-workspace-preferences.mjs && node test-company-locality.mjs && node test-mcp.mjs && node test-mcp-utf8.mjs",
     "test:platform": "node test-platform-inquiries.mjs && node test-platform-announcements.mjs && node test-platform-maintenance.mjs && node test-account-security.mjs && node --experimental-vm-modules test-email-password-auth.mjs && node --experimental-vm-modules test-default-organization.mjs && node test-invitation-email.mjs && node test-email-delivery.mjs && node test-invitation-flows.mjs && node test-invite-links.mjs && node --experimental-vm-modules test-invitation-full-flow-regression.mjs && node --experimental-vm-modules test-access-recovery.mjs && node test-client-portal.mjs && node test-notifications.mjs && node test-email-notifications.mjs && node test-assignment-notifications.mjs && node test-notification-status.mjs && node test-platform-admin.mjs && node test-maintenance.mjs && node test-global-identity.mjs && node test-actor-attribution.mjs && node test-billing-email.mjs && node test-lifecycle.mjs && node test-comment-mentions.mjs && node test-social-auth.mjs && node test-organization-sso.mjs && node test-email-layout.mjs",
     "test:migrations-runner": "node test-migrations-runner.mjs",
     "bench:agency": "node bench-agency-core.mjs",
@@ -24,14 +24,16 @@
     "test:bootstrap-postgres": "node test-bootstrap-migrations-postgres.mjs",
     "test:client-contacts": "node test-client-contacts.mjs",
     "test:client-contacts:postgres": "node test-client-contacts-postgres.mjs",
-    "test:workspace-preferences": "node test-workspace-preferences.mjs"
+    "test:workspace-preferences": "node test-workspace-preferences.mjs",
+    "test:mcp": "node test-mcp.mjs && node test-mcp-utf8.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
     "bcryptjs": "^2.4.3",
+    "owncoding-ui": "github:dariodeoli/owncoding-ui#v0.68.19",
     "pg": "^8.13.1",
-    "sharp": "^0.35.5",
     "puppeteer-core": "^25.10.0",
-    "owncoding-ui": "github:dariodeoli/owncoding-ui#v0.68.19"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8"

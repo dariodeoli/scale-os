@@ -1,0 +1,2 @@
+# Contraparte y preview imprimible en componentes reales, transporte sintético
+node build-tools/qa-contracts-307.mjs

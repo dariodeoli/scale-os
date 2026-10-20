@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {PGlite} from '@electric-sql/pglite';
+import {migrationOrder} from './scripts/migration-order.mjs';
+import {clientMonthlyIncome} from './client-monthly-income.js';
+import {economicHistory} from './economic-history.js';
+import {financialForecast} from './forecast.js';
+import {financeTreasury} from './finance-treasury.js';
+const pg=new PGlite(),read=f=>readFile(new URL(f,import.meta.url),'utf8');
+await pg.exec(await read('schema.sql'));for(const f of migrationOrder)await pg.exec(await read('migrations/'+f));
+await pg.exec(await read('migrations/20261020_client_monthly_income.sql'));
+const q=(s,a=[])=>pg.query(s,a),one=async(s,a)=>(await q(s,a)).rows[0],db={query:q,connect:async()=>({query:q,release(){}})};
+const org=(await one("insert into organizations(slug,name) values('monthly-income-fixture','Monthly') returning id")).id;
+const other=(await one("insert into organizations(slug,name) values('monthly-income-other','Other') returning id")).id;
+const uid=(await one("insert into users(email,password_hash) values('monthly-income@example.invalid','unused') returning id")).id;
+await q("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner'),($3,$2,'owner')",[org,uid,other]);
+const owner={id:uid,organization_id:org,role:'owner'};
+const client=(await one("insert into agency_clients(organization_id,name) values($1,'Sin plan') returning id",[org])).id;
+const foreign=(await one("insert into agency_clients(organization_id,name) values($1,'Otro') returning id",[other])).id;
+const path='/api/agency/clients/'+client+'/monthly-income';let calls=0;
+async function call(url,method='GET',payload={},user=owner){calls++;let r;const args={req:{method,socket:{remoteAddress:'fixture'}},res:{},url:new URL('https://fixture.invalid'+url),db,session:async()=>user,body:async()=>payload,send:(_,status,data)=>r={status,...data}};for(const handler of [clientMonthlyIncome,economicHistory,financialForecast,financeTreasury])if(await handler(args))return r;throw Error('Unhandled '+url);}
+const initial=await call(path+'?month=2026-10');assert.equal(initial.status,200);assert.equal(initial.revision,'0');assert.deepEqual(initial.entries,[]);assert.deepEqual(initial.totals,[]);
+assert.equal((await call(path,'GET',{},null)).status,401);assert.equal((await call(path,'GET',{}, {...owner,role:'production'})).status,403);assert.equal((await call('/api/agency/clients/'+foreign+'/monthly-income?month=2026-10')).status,404);
+let revision='0';const draft=(kind,amount,month='2026-10',currency='USD')=>({kind,amount:String(amount),month,currency,label:kind==='base'?'Servicio mensual':'Producción adicional',reason:'Acuerdo de servicios mensual',requestId:randomUUID(),expectedRevision:revision});
+const apply=async(url,method,payload)=>{const r=await call(url,method,payload);assert.equal(r.status,method==='POST'?201:200,JSON.stringify(r));revision=r.revision;return r;};
+for(const invalid of [{month:undefined},{amount:'1.25'},{amount:'-1'},{amount:'9007199254740992'},{kind:'other'},{label:''},{reason:'x'}])assert.equal((await call(path,'POST',{...draft('base',100),...invalid})).status,400,JSON.stringify(invalid));
+const baseRequest=draft('base',100);let r=await apply(path,'POST',baseRequest);const base=r.entries.find(x=>x.kind==='base');assert.equal(r.totals[0].totalAmount,100);
+assert.equal((await call(path,'POST',baseRequest)).alreadyRecorded,true);assert.equal((await call(path,'POST',{...baseRequest,amount:'101'})).status,409);assert.equal((await call(path,'POST',draft('base',200))).status,409,'only one base/currency/month');
+assert.equal((await call(path,'POST',{...draft('extra',20),expectedRevision:'0'})).status,409,'stale revision');
+r=await apply(path,'POST',draft('extra',30));const extra=r.entries.find(x=>x.kind==='extra');r=await apply(path,'POST',draft('extra',20));assert.equal(r.entries.length,3);assert.deepEqual(r.totals[0],{currency:'USD',planBaseAmount:0,manualBaseAmount:100,baseAmount:100,extrasAmount:50,totalAmount:150});
+let balance=await call('/api/agency/finance/balance-details?month=2026-10');let row=balance.clients.records.find(x=>x.client_id===String(client)&&x.currency==='USD');assert.equal(Number(row.contracted_amount),150);assert.equal(Number(row.base_amount),100);assert.equal(Number(row.extras_amount),50);assert.equal(Number(balance.totals.find(x=>x.currency==='USD').contracted_amount),150);
+let forecast=await call('/api/agency/forecast?month=2026-10&months=2');assert.equal(forecast.contracted_recurring.records.find(x=>x.currency==='USD').amount,150);assert.equal(forecast.contracted_clients.records.find(x=>x.client_id===String(client)&&x.currency==='USD').contracted_amount,150);
+assert.equal((await one('select count(*)::int n from agency_cash_movements where organization_id=$1',[org])).n,0);assert.equal((await one('select count(*)::int n from agency_invoices where organization_id=$1',[org])).n,0,'agreements are not invoices');
+// Moving an extra affects only the selected months and advances the client-wide revision.
+r=await apply(path+'/'+extra.id,'PATCH',draft('extra',35,'2026-11'));assert.equal(r.month,'2026-11');assert.equal(r.totals[0].totalAmount,35);
+const october=await call(path+'?month=2026-10');assert.equal(october.totals[0].totalAmount,120);assert.equal(october.revision,revision);
+const zeroBase={...draft('base',0),label:'Mes sin servicio base'};r=await apply(path+'/'+base.id,'PATCH',zeroBase);assert.equal(r.totals[0].baseAmount,0);assert.equal(r.totals[0].totalAmount,20);
+const deletion={requestId:randomUUID(),expectedRevision:revision,reason:'Se elimina base manual acordada'};r=await apply(path+'/'+base.id,'DELETE',deletion);assert.equal(r.totals[0].baseAmount,0);assert.equal((await call(path+'/'+base.id,'DELETE',deletion)).alreadyRecorded,true);
+assert.equal((await one('select count(*)::int n from agency_client_monthly_income_events where organization_id=$1',[org])).n,6);assert.ok((await one("select count(*)::int n from agency_operation_audit where organization_id=$1 and table_name='agency_client_monthly_income'",[org])).n>=6);
+// A manual base replaces this month's plan only; deleting it restores that month.
+await q("insert into agency_client_commercial_terms(organization_id,client_id,activation_date,effective_from,starts_on,plan_name,plan_version,monthly_price,recurring_amount,currency,cadence,invoice_required) values($1,$2,'2026-10-01','2026-10-01','2026-10-01','Plan vigente','fixture',200,200,'USD','monthly',false)",[org,client]);
+r=await call(path+'?month=2026-10');assert.equal(r.totals[0].baseAmount,200);assert.equal(r.totals[0].totalAmount,220);revision=r.revision;
+r=await apply(path,'POST',draft('base',90));assert.equal(r.totals[0].totalAmount,110);
+const withPlanBase=r.entries.find(x=>x.kind==='base');r=await apply(path+'/'+withPlanBase.id,'PATCH',draft('base',0));assert.equal(r.totals[0].totalAmount,20,'explicit zero overrides a positive plan');
+r=await apply(path+'/'+withPlanBase.id,'DELETE',{requestId:randomUUID(),expectedRevision:revision,reason:'Restaurar acuerdo general del plan'});assert.equal(r.totals[0].totalAmount,220,'deleting override restores the plan');
+r=await apply(path,'POST',draft('base',90));assert.equal(r.totals[0].totalAmount,110);
+const nov=await call(path+'?month=2026-11');assert.equal(nov.totals[0].baseAmount,200);assert.equal(nov.totals[0].extrasAmount,35);assert.equal(nov.totals[0].totalAmount,235);
+const noExtraMonth=await call(path+'?month=2026-12');assert.equal(noExtraMonth.totals[0].totalAmount,200);
+// Other currencies stay separate, with no exchange-rate conversion or summed money.
+r=await apply(path,'POST',draft('extra',50,'2026-10','PYG'));assert.deepEqual(r.totals.map(x=>[x.currency,x.totalAmount]),[['PYG',50],['USD',110]]);
+const finance={...owner,role:'finance'};assert.equal((await call(path+'?month=2026-10','GET',{},finance)).canManage,true);
+const restricted={...owner,role:'sales',capabilities:{'commercial-terms.manage':false,'expenses.manage':false}};assert.equal((await call(path+'?month=2026-10','GET',{},restricted)).canManage,false);assert.equal((await call(path,'POST',draft('extra',10),restricted)).status,403);
+await q("insert into agency_archived_records(organization_id,kind,record_id) values($1,'clients',$2)",[org,client]);assert.equal((await call(path+'?month=2026-10')).archived,true);assert.equal((await call(path,'POST',draft('extra',10))).status,409);await q("delete from agency_archived_records where organization_id=$1 and kind='clients' and record_id=$2",[org,client]);
+const closed=await call('/api/agency/finance/periods/2026-10/close','POST',{reason:'Cierre de prueba mensual',expectedRevision:0});assert.equal(closed.status,200,JSON.stringify(closed));
+assert.equal((await call(path+'?month=2026-10')).periodClosed,true);assert.equal((await call(path+'?month=2026-09')).canManage,false);assert.equal((await call(path,'POST',draft('extra',10))).status,409);
+// Moving a November extra into a closed October period is denied and rolled back.
+assert.equal((await call(path+'/'+extra.id,'PATCH',draft('extra',40,'2026-10'))).status,409);assert.equal((await call(path+'?month=2026-11')).entries[0].amount,35);
+await assert.rejects(q("update agency_client_monthly_income set amount=999 where organization_id=$1 and month='2026-10-01'",[org]),/cerrado/);
+assert.equal((await one('select count(*)::int n from agency_cash_movements where organization_id=$1',[org])).n,0);
+console.log('PASS client monthly income: '+calls+' handler calls; no-plan/base/extras/month movement, plan override/fallback, zero, currencies, balance/forecast no double-count, audit, idempotence, tenant/roles/archive/revisions and closed-period/direct-write guards; zero cash/invoice writes');
+await pg.close();

@@ -1,8 +1,9 @@
+import {parseListColumnPreferences,type ListColumnPreferences} from './list-column-preferences';
 import {visibleModule} from './workspace-access';
 
 export type StartupPreference = 'summary' | 'production' | 'my-day';
 export type ProductionPreferences = {clientId:string; mine:boolean; week:boolean};
-export type WorkspacePreferences = {version:1; startup:StartupPreference; production:ProductionPreferences};
+export type WorkspacePreferences = {version:1; startup:StartupPreference; production:ProductionPreferences;columns?:ListColumnPreferences};
 export function defaultWorkspacePreferences():WorkspacePreferences {
  return {version:1,startup:'summary',production:{clientId:'',mine:false,week:false}};
 }
@@ -18,6 +19,7 @@ export function parseWorkspacePreferences(raw:string|null):WorkspacePreferences 
   const production=data.production;
   return {version:1,
    startup:['summary','production','my-day'].includes(data.startup)?data.startup:'summary',
+   ...(data.columns&&typeof data.columns==='object'?{columns:parseListColumnPreferences(data.columns)}:{}),
    production:{
     clientId:typeof production?.clientId==='string' && /^[1-9]\d{0,18}$/.test(production.clientId) && BigInt(production.clientId)<=9223372036854775807n?production.clientId:'',
     mine:production?.mine===true,week:production?.week===true,

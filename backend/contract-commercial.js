@@ -16,9 +16,27 @@ const pricedItems=items=>Array.isArray(items)&&items.length>0&&items.every(item=
 
 // Commercial amounts remain decimal strings. PostgreSQL does the arithmetic;
 // no binary floating point or integer rounding enters a legal snapshot.
+async function currentAgreement(c,u,clientId,planId=null){
+ return (await c.query(`select *,case when monthly_price is not null then round(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end,case when currency='PYG' then 0 else 2 end)::text else recurring_amount::text end as contract_amount from agency_commercial_terms_on($1,${zoneTodaySql}) where client_id=$2${planId?' and plan_id=$3':''}`,[u.organization_id,id(clientId),...(planId?[planId]:[])])).rows[0];
+}
+function putAgreement(term,put,fallbackName=''){
+ if(!term)return;
+ const putTerm=(key,value)=>put('agreement.'+key,value,'client-commercial-terms',term.id);
+ putTerm('amount',term.contract_amount);putTerm('currency',term.currency);putTerm('plan_name',term.plan_name||fallbackName);
+ if(parse(term.deliverables)?.length)putTerm('deliverables',listing(term.deliverables));
+ putTerm('starts_on',date(term.starts_on||term.effective_from));if(term.ends_on)putTerm('ends_on',date(term.ends_on));
+ const cadence={monthly:'Cobro mensual',once:'Pago único',interval:`Cobro cada ${term.interval_months} meses`}[term.cadence];
+ if(cadence)putTerm('payment_terms',[cadence,term.discount_terms].filter(Boolean).join('. '));
+}
+
 export async function fillContractCommercial(c,u,b,put){
  if(b.budget_id&&b.plan_id)fail('Elegí un presupuesto o un plan');
- if(!b.budget_id&&!b.plan_id)return;
+ if(!b.budget_id&&!b.plan_id){
+  // Selecting a client is enough to recover the actual agreed price and dates,
+  // including a negotiated snapshot without a catalog plan. Never invent one.
+  if(b.client_id&&roleCan(u,'commercial-terms.manage'))putAgreement(await currentAgreement(c,u,b.client_id),put);
+  return;
+ }
  if(!roleCan(u,'budgets.manage'))fail('Sin permiso para presupuestos y planes',403);
  if(b.collaborator_id)fail('Un presupuesto o plan requiere una contraparte cliente');
  const table=b.budget_id?'agency_budgets':'agency_plans',key=id(b.budget_id||b.plan_id);
@@ -45,15 +63,7 @@ export async function fillContractCommercial(c,u,b,put){
   const amount=(await c.query(`select sum(round((item->>'quantity')::numeric*coalesce(item->>'unitPrice',item->>'unit_price')::numeric,2))::text as amount from jsonb_array_elements($1::jsonb) item`,[JSON.stringify(items)])).rows[0].amount;
   putPlan('amount',amount);
  }
- // The selected client's negotiated terms are more sensitive than catalog
- // prices. Respect their independent permission and match the actual plan ID.
+ // Explicit catalog selection uses only the selected client's matching agreement.
  if(!b.client_id||!roleCan(u,'commercial-terms.manage'))return;
- const term=(await c.query(`select *,case when monthly_price is not null then round(case discount_type when 'percent' then monthly_price*(1-discount_value/100) when 'fixed' then greatest(monthly_price-discount_value,0) else monthly_price end,case when currency='PYG' then 0 else 2 end)::text else recurring_amount::text end as contract_amount from agency_commercial_terms_on($1,${zoneTodaySql}) where client_id=$2 and plan_id=$3`,[u.organization_id,id(b.client_id),row.id])).rows[0];
- if(!term)return;
- const putTerm=(key,value)=>put('agreement.'+key,value,'client-commercial-terms',term.id);
- putTerm('amount',term.contract_amount);putTerm('currency',term.currency);putTerm('plan_name',term.plan_name||row.name);
- if(parse(term.deliverables)?.length)putTerm('deliverables',listing(term.deliverables));
- putTerm('starts_on',date(term.starts_on||term.effective_from));if(term.ends_on)putTerm('ends_on',date(term.ends_on));
- const cadence={monthly:'Cobro mensual',once:'Pago único',interval:`Cobro cada ${term.interval_months} meses`}[term.cadence];
- if(cadence)putTerm('payment_terms',[cadence,term.discount_terms].filter(Boolean).join('. '));
+ putAgreement(await currentAgreement(c,u,b.client_id,row.id),put,row.name);
 }

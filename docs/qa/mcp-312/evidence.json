@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-20",
+  "sdk": "@modelcontextprotocol/sdk@1.32.1",
+  "scope": "Owned local HTTP fixtures and disposable databases only; no external Claude/ChatGPT connection or deploy",
+  "logs": {
+    "mcp-postgres": {
+      "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9",
+      "bytes": 295
+    },
+    "mcp-pglite": {
+      "sha256": "e7ffedd73197f257f0c16d6732688baee4b1f39cd1d53145bc8fe324931a77fe",
+      "bytes": 335
+    },
+    "auth": {
+      "sha256": "d9fa94ac648aba2502faf42c19e2f461799bb9214e0799bbdb18b2f7f441e85d",
+      "bytes": 390
+    },
+    "migrations": {
+      "sha256": "782582674a67fa88e33971338fe9f33e352f4de3654a4ae903d4cb5ad1018504",
+      "bytes": 424
+    },
+    "security": {
+      "sha256": "3b8037f6d14a07395a6aa1fe72fc250830e2bc33ac8349bb7e9af0a91c55bf50",
+      "bytes": 122
+    },
+    "platform": {
+      "sha256": "770a960289a447bd0a79f5a7c519661750390043e0157d187d5eaa4473f66694",
+      "bytes": 115
+    },
+    "utf8": {
+      "sha256": "2d54765e6d0b2c4704a50d084a0bb8b4ce89f5372fca858ff8748b46f522e35c",
+      "bytes": 129
+    },
+    "commercial": {
+      "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9",
+      "bytes": 295
+    },
+    "explicit-plan": {
+      "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9",
+      "bytes": 295
+    }
+  }
+}

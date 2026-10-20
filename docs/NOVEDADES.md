@@ -2,6 +2,15 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.200
+
+- Formularios: los errores aparecen sobre el cuerpo desplazable de la ventana.
+- Clientes: ingreso base y extras por mes, compartidos con Balance; precios manuales sin exigir un plan. Clientes tiene acceso directo desde el menú principal.
+- Contratos: selección de contraparte estable, datos del cliente y empresa, modelos, ejemplos y vista A4 para descargar/imprimir el PDF.
+- Listas: elegir columnas, ordenarlas y guardar la preferencia por usuario y empresa.
+- Inventario: mismo menú de acciones en todas las vistas y propietario externo independiente del custodio; menús visibles aun dentro de tarjetas y ventanas.
+- Conexiones de IA: servidor MCP con OAuth, consentimiento y revocación por usuario, con herramientas limitadas a sus permisos vigentes. La conexión desde cuentas reales de Claude/ChatGPT se valida por separado.
+
 ## v1.0.198
 
 - **Portal en móvil**: nombres de clientes, archivos y comentarios extensos se

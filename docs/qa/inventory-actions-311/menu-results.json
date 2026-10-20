@@ -1,0 +1,168 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "passed": true,
+      "left": 95,
+      "right": 297,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "passed": true,
+      "left": 95,
+      "right": 297,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "contrast",
+      "passed": true,
+      "left": 95,
+      "right": 297,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "passed": true,
+      "left": 123,
+      "right": 325,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "passed": true,
+      "left": 123,
+      "right": 325,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "contrast",
+      "passed": true,
+      "left": 123,
+      "right": 325,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "passed": true,
+      "left": 123,
+      "right": 325,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "passed": true,
+      "left": 123,
+      "right": 325,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "contrast",
+      "passed": true,
+      "left": 123,
+      "right": 325,
+      "top": 75,
+      "bottom": 305,
+      "cardBottom": 86,
+      "hit": true,
+      "labels": [
+        "Ver detalle y trazabilidad",
+        "Imprimir etiqueta",
+        "Verificar con detalle",
+        "Editar equipo",
+        "Archivar equipo"
+      ]
+    }
+  ],
+  "errors": []
+}

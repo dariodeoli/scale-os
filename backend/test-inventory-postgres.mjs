@@ -39,7 +39,8 @@ assert(!/\bdadoo_/i.test(schema),'HEAD schema contains Dadoo; do not silently lo
 // so this focused test exercises an uncommitted inventory change without
 // absorbing unrelated worktree migrations from other tasks.
 const ownershipMigration='20261017_inventory_ownership.sql';
-const sources=[['schema.sql',schema],...migrations.filter(name=>name!==ownershipMigration).map(name=>[`migrations/${name}`,name===storageLocationsMigration?readFileSync(path.join(repo,'migrations',name),'utf8'):committed(`migrations/${name}`)]),[`migrations/${ownershipMigration}`,readFileSync(path.join(repo,'migrations',ownershipMigration),'utf8')]];
+const externalOwnerMigration='20261020_inventory_external_owner.sql';
+const sources=[['schema.sql',schema],...migrations.filter(name=>name!==ownershipMigration&&name!==externalOwnerMigration).map(name=>[`migrations/${name}`,name===storageLocationsMigration?readFileSync(path.join(repo,'migrations',name),'utf8'):committed(`migrations/${name}`)]),[`migrations/${ownershipMigration}`,readFileSync(path.join(repo,'migrations',ownershipMigration),'utf8')],[`migrations/${externalOwnerMigration}`,readFileSync(path.join(repo,'migrations',externalOwnerMigration),'utf8')]];
 
 let temporary=null,pool=null,cleaned=false;
 const port=Number(process.env.SCALE_TEST_PG_PORT||55432),user='scale_inventory_fixture';

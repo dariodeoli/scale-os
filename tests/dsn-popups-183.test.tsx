@@ -100,7 +100,7 @@ test('Editor: sección con error se abre sola y el resumen role=alert lista las 
  await unmount();
 });
 
-test('Editor: compatibilidad, sin collapseSections todo queda abierto y sin section no hay resumen ni pasos',async()=>{
+test('Editor: sin collapseSections todo queda abierto; formularios simples también muestran el resumen de errores',async()=>{
  const root=await mount(<Editor fields={sectionFields} defaults={{a:'',b:'',c:''}} save={async()=>{}} cancelLabel={false}/>);
  assert.deepEqual(sections(root).map(entry=>entry.props.open),[true,true,true],'uso heredado: secciones abiertas');
  assert.equal(root.findAllByProps({role:'group','aria-label':'Pasos del formulario'}).length,0);
@@ -108,7 +108,7 @@ test('Editor: compatibilidad, sin collapseSections todo queda abierto y sin sect
  const plain=await mount(<Editor fields={[{key:'a',label:'Nombre'}]} defaults={{a:''}} save={async()=>{}} cancelLabel={false}/>);
  await submit(plain);
  assert.equal(plain.findAllByType('details').length,0);
- assert.equal(plain.findAllByProps({role:'alert'}).filter(entry=>entry.type==='div').length,0,'sin secciones no hay resumen de secciones');
+ const errors=plain.findAllByProps({role:'alert'}).filter(entry=>entry.type==='div');assert.equal(errors.length,1,'también se resume la validación sin secciones');assert.match(text(errors[0]),/Nombre: Completá nombre/);
  await unmount();
 });
 

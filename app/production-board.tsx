@@ -1,4 +1,5 @@
 "use client";
+import {MenuDesplegable} from './ui/menu';
 /**
  * Tablero de Producción (dominio OPS) — contenido v2 (campaña #41, spec #44).
  *
@@ -10,7 +11,6 @@
  */
 import {useState} from 'react';
 import {useDraggable,useDroppable} from '@dnd-kit/core';
-import {MenuDesplegable} from 'owncoding-ui/core';
 import {StateChip,type ChipTone} from './ui-v2';
 import {ClientIdentity} from './client-identity';
 import {UrgencyBadge} from './urgency';

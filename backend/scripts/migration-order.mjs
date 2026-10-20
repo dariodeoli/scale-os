@@ -116,4 +116,8 @@ export const migrationOrder = [
   '20261018_commercial_same_month_revisions.sql',
   '20261018_workspace_preferences.sql',
   '20261018_client_contacts.sql',
+  '20261020_inventory_external_owner.sql',
+  '20261020_client_monthly_income.sql',
+  '20261020_list_column_preferences.sql',
+  '20261020_mcp_connections.sql',
 ];

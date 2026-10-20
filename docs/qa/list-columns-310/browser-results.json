@@ -1,0 +1,237 @@
+{
+  "scope": "Canonical ListGrid/ListRow/column dialog/preference hook with real CSS, synthetic HTTP store; API isolation/migration covered separately by PGlite.",
+  "records": [
+    {
+      "width": 320,
+      "passed": true,
+      "dialogBounds": {
+        "left": 0,
+        "right": 320,
+        "bottom": 844,
+        "top": 204
+      },
+      "alignment": [
+        {
+          "header": 16,
+          "cell": 16
+        },
+        {
+          "header": 184,
+          "cell": 184
+        }
+      ],
+      "checks": [
+        "reorder",
+        "hide",
+        "header-data alignment",
+        "reload persistence",
+        "user isolation",
+        "list isolation",
+        "restore defaults",
+        "failed save and retry",
+        "scope change closes stale editor"
+      ]
+    },
+    {
+      "width": 390,
+      "passed": true,
+      "dialogBounds": {
+        "left": 0,
+        "right": 390,
+        "bottom": 844,
+        "top": 222
+      },
+      "alignment": [
+        {
+          "header": 16,
+          "cell": 16
+        },
+        {
+          "header": 184,
+          "cell": 184
+        }
+      ],
+      "checks": [
+        "reorder",
+        "hide",
+        "header-data alignment",
+        "reload persistence",
+        "user isolation",
+        "list isolation",
+        "restore defaults",
+        "failed save and retry",
+        "scope change closes stale editor"
+      ]
+    },
+    {
+      "width": 1440,
+      "passed": true,
+      "dialogBounds": {
+        "left": 310,
+        "right": 1130,
+        "bottom": 662,
+        "top": 182
+      },
+      "alignment": [
+        {
+          "header": 16,
+          "cell": 16
+        },
+        {
+          "header": 184,
+          "cell": 184
+        }
+      ],
+      "checks": [
+        "reorder",
+        "hide",
+        "header-data alignment",
+        "reload persistence",
+        "user isolation",
+        "list isolation",
+        "restore defaults",
+        "failed save and retry",
+        "scope change closes stale editor"
+      ]
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "2:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "2:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "2:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "2:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "2:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "1:10",
+      "method": "PATCH"
+    },
+    {
+      "scope": "2:10",
+      "method": "GET"
+    },
+    {
+      "scope": "1:10",
+      "method": "GET"
+    }
+  ]
+}

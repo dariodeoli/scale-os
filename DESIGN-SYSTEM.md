@@ -235,7 +235,7 @@ y esta sección se actualiza.
 | `Kpi`/`KpiStrip`, `StateChip` | Ya descriptos arriba: un solo KPI y un solo chip. |
 | `KpiStrip dense` | Tira baja de las pantallas de lista (Clientes, Proyectos, Inventario): ~60 px por KPI en escritorio (rótulo arriba; valor y hint en la misma línea, hint con `title`) y 2×2 en mobile en vez de cuatro tarjetas apiladas. Opt-in: el resto conserva el contrato #89/#138. |
 | `AssignedPeople compact` | Responsables en la fila fina: avatares apilados + primer nombre (el principal primero) + «+N» en una línea; el detalle completo va en el `title`. Las tarjetas y el detalle conservan los chips con rótulo. |
-| `ActionMenu` + `RecordMenuItem` | Menú ⋯ único de filas y tarjetas: disparador rotulado (44/32 px), confirmación por ítem y teclado (flechas/Home/End; Escape vuelve al disparador). Envuelve `MenuDesplegable`; no hay variante paralela. |
+| `ActionMenu` + `RecordMenuItem` | Menú ⋯ único de filas y tarjetas: disparador rotulado (44/32 px), confirmación por ítem y teclado (flechas/Home/End; Escape vuelve al disparador). Envuelve `app/ui/menu.tsx`, adaptador fino de `MenuDesplegable portal` de owncoding-ui v0.68.20; no hay variante paralela. Los diálogos incorporan los helpers `dialogFocusContains` y `dialogFocusableElements` para admitir sólo portales registrados. |
 | `CompactCard` + `CompactQuickAction` | Tarjeta compacta estándar: título, contexto, vencimiento, responsable y avance; una acción rápida visible y el resto en el ⋯. La descripción vive en el detalle. |
 | `CardSkeleton` / `CardGridSkeleton` / `TableSkeleton` / `DashboardSkeleton` | Esqueletos con la forma real del bloque (tarjeta, tabla, dashboard) para el arranque y las lecturas; nunca dibujan cifras. |
 | `EmptyCompact` | Vacío de una línea, accionable y descartable (`onDismiss`): para filtros, listas cortas y avisos. El bloque centrado sigue siendo `EmptyBlock`. |
@@ -419,8 +419,8 @@ reglas paralelas.
 
 ### Nav v3 (issues #68 y #69)
 
-El menú principal son **5 grupos desplegables** (`navGroups` en `app/navigation.ts`):
-Resumen · Flujo (Pipeline, Clientes, Presupuestos, Proyectos, Producción) ·
+El menú principal combina enlaces directos y grupos desplegables (`navGroups` en `app/navigation.ts`):
+Resumen · Clientes · Flujo (Pipeline, Presupuestos, Proyectos, Producción) ·
 Recursos (Inventario, Equipo, Estudio) · Finanzas (Finanzas, Informes) ·
 Configuración.
 

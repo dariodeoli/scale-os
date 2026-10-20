@@ -133,6 +133,9 @@ declare module 'owncoding-ui' {
   // Menú desplegable de acciones (#103): lista portable de ítems con ícono,
   // peligro y disabled; el disparador lo dibuja la app.
   export const MenuDesplegable: any;
+  // v0.68.20: signatures identical to the shared package, including portal scopes.
+  export function dialogFocusContains(container:HTMLElement|null,target:Node|null):boolean;
+  export function dialogFocusableElements(container:HTMLElement|null,selector?:string):HTMLElement[];
 
   // Tanda v0.54 (Refs #113/#114): protección de datos personales (Ley
   // 7593/2025, §12). El aviso de finalidad, la casilla explícita (nunca

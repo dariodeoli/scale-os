@@ -141,7 +141,7 @@ const depotComputed=`case when i.purchase_value is null then null
 // El catálogo lee todas las columnas menos la imagen embebida: el `photo_url`
 // viaja como URL del API (href) calculado en SQL, así la foto no sale de la base
 // en cada listado (#58). Las externas se respetan tal cual.
-const inventoryColumns=`i.id,i.organization_id,i.ownership_kind,i.owner_user_id,i.name,i.serial_number,i.category,i.custodian_user_id,i.value,i.currency,i.status,i.acquired_on,i.notes,i.created_at,i.category_id,i.storage_shelf,i.storage_row,i.inventory_code,i.last_verified_at,i.last_verified_by_user_id,i.last_verification_result,i.last_verification_differences,i.last_verified_counted_quantity,i.storage_location_id,i.location_changed_at,i.purchase_value,i.purchase_date,i.depreciation_method,i.useful_life_months,i.residual_value`;
+const inventoryColumns=`i.id,i.organization_id,i.ownership_kind,i.owner_user_id,i.external_owner_name,i.name,i.serial_number,i.category,i.custodian_user_id,i.value,i.currency,i.status,i.acquired_on,i.notes,i.created_at,i.category_id,i.storage_shelf,i.storage_row,i.inventory_code,i.last_verified_at,i.last_verified_by_user_id,i.last_verification_result,i.last_verification_differences,i.last_verified_counted_quantity,i.storage_location_id,i.location_changed_at,i.purchase_value,i.purchase_date,i.depreciation_method,i.useful_life_months,i.residual_value`;
 const photoExpression=`case when i.photo_url is null or i.photo_url='' then null when i.photo_url like 'data:%' then '/api/agency/inventory/'||i.id||'/photo?v='||coalesce(round(extract(epoch from i.photo_updated_at)*1000)::bigint,0) else i.photo_url end as photo_url`;
 const inventoryFrom=`from agency_inventory i left join agency_inventory_categories cat on cat.id=i.category_id and cat.organization_id=i.organization_id
   left join agency_inventory_storage_locations loc on loc.id=i.storage_location_id and loc.organization_id=i.organization_id
@@ -158,7 +158,7 @@ const inventoryFrom=`from agency_inventory i left join agency_inventory_categori
   left join lateral (select greatest((extract(year from age(current_date,i.purchase_date))*12+extract(month from age(current_date,i.purchase_date)))::int,0) as months) el on i.purchase_date is not null
   where i.organization_id=$1`;
 const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as category_name,cat.active as category_active,cat.icon as category_icon,loc.name as storage_location_name,loc.active as storage_location_active,
-  coalesce(nullif(oi.full_name,''),oi.email) as owner_name,oi.photo_url as owner_photo_url,
+  case when i.ownership_kind='external' then i.external_owner_name else coalesce(nullif(oi.full_name,''),oi.email) end as owner_name,oi.photo_url as owner_photo_url,
   live.id as active_reservation_id,live.title as production_name,p.name as project_name,
   live.custodian_user_id as current_custodian_user_id,coalesce(nullif(up.full_name,''),u.email) as current_custodian_name,
   live.return_user_id,coalesce(nullif(rp.full_name,''),ru.email) as return_user_name,live.ends_at as expected_return_at,
@@ -171,7 +171,7 @@ const inventorySelect=`select ${inventoryColumns},${photoExpression},cat.name as
 const inventoryListFields=[...inventoryColumns.split(',').map(field=>field.trim().replace(/^i\./,'')),'owner_name','owner_photo_url','photo_url','category_name','category_active','category_icon','storage_location_name','storage_location_active','active_reservation_id','production_name','project_name','current_custodian_user_id','current_custodian_name','return_user_id','return_user_name','expected_return_at','location_type','last_verifier_name','last_verifier_photo_url','current_value','accumulated_depreciation','monthly_depreciation','barcode_payload'];
 const inventoryColumnSql=aliasColumns({
  ...Object.fromEntries(inventoryColumns.split(',').map(field=>field.trim()).map(field=>[field.replace(/^i\./,''),field])),
- owner_name:"coalesce(nullif(oi.full_name,''),oi.email)",owner_photo_url:'oi.photo_url',
+ owner_name:"case when i.ownership_kind='external' then i.external_owner_name else coalesce(nullif(oi.full_name,''),oi.email) end",owner_photo_url:'oi.photo_url',
  photo_url:photoExpression,category_name:'cat.name',category_active:'cat.active',category_icon:'cat.icon',
  storage_location_name:'loc.name',storage_location_active:'loc.active',active_reservation_id:'live.id',
  production_name:'live.title',project_name:'p.name',current_custodian_user_id:'live.custodian_user_id',
@@ -405,12 +405,15 @@ async function saveItem(c,user,org,key,payload,req){
  const custodian=sent('custodian_user_id')?optionalId(payload.custodian_user_id):old.custodian_user_id??null;
  // Solo se valida la pertenencia cuando el PATCH envía un custodio nuevo.
  if(sent('custodian_user_id')&&custodian&&(!key||String(custodian)!==String(old.custodian_user_id)))await activeMembers(c,org,[custodian]);
- const ownership=option(sent('ownership_kind')?payload.ownership_kind:old.ownership_kind||'unspecified',['unspecified','company','person']);
+ const ownership=option(sent('ownership_kind')?payload.ownership_kind:old.ownership_kind||'unspecified',['unspecified','company','person','external']);
  const owner=sent('owner_user_id')?optionalId(payload.owner_user_id):old.owner_user_id??null;
  if(ownership==='person'&&!owner)fail('Elegí la persona propietaria del equipo');
  if(ownership!=='person'&&sent('owner_user_id')&&owner)fail('La propiedad de empresa no admite una persona propietaria');
  if(ownership==='person'&&(!key||ownership!==old.ownership_kind||String(owner)!==String(old.owner_user_id)))await activeMembers(c,org,[owner]);
  const resolvedOwner=ownership==='person'?owner:null;
+ const externalName=ownership==='external'?text(sent('external_owner_name')?payload.external_owner_name:old.external_owner_name||'',160).trim():null;
+ if(ownership==='external'&&externalName.length<2)fail('Indicá el nombre de la persona propietaria externa');
+ if(ownership!=='external'&&sent('external_owner_name')&&payload.external_owner_name)fail('El nombre externo sólo corresponde a propiedad externa');
  const location=await storageLocation(c,org,old,payload,key);const shelf=location.shelf,storageRow=sent('storage_row')?text(payload.storage_row,80):old.storage_row??'';
  const incoming=Object.hasOwn(payload,'photo_url')?payload.photo_url:undefined;
  const reference=photoReference(incoming,req);
@@ -441,10 +444,10 @@ async function saveItem(c,user,org,key,payload,req){
  const values=[name,category.name,sent('serial_number')?serial(payload.serial_number||''):old.serial_number??'',custodian,sent('value')?amount(payload.value):old.value??0,sent('currency')?option(payload.currency,currencies):old.currency??await companyCurrency(c,org),status,sent('acquired_on')?date(payload.acquired_on):old.acquired_on??null,sent('notes')?text(payload.notes||''):old.notes??'',category.id,location.id,shelf,storageRow,code,photo,purchaseValue,purchaseDate,depreciationMethod,usefulLife,residual,org];
  const photoChanged=photo!==(old.photo_url||null);
  const result=key?await c.query(`update agency_inventory set name=$1,category=$2,serial_number=$3,custodian_user_id=$4,value=$5,currency=$6,status=$7,acquired_on=$8,notes=$9,category_id=$10,storage_location_id=$11,storage_shelf=$12,storage_row=$13,inventory_code=$14,photo_url=$15,purchase_value=$16,purchase_date=$17,depreciation_method=$18,useful_life_months=$19,residual_value=$20${locationChanged?',location_changed_at=now()':''}${photoChanged?',photo_updated_at=now()':''} where organization_id=$21 and id=$22 returning *`,[...values,key]):await c.query('insert into agency_inventory(name,category,serial_number,custodian_user_id,value,currency,status,acquired_on,notes,category_id,storage_location_id,storage_shelf,storage_row,inventory_code,photo_url,purchase_value,purchase_date,depreciation_method,useful_life_months,residual_value,organization_id,location_changed_at,photo_updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,now(),case when $15::text is null then null else now() end) returning *',values);
- await c.query('update agency_inventory set ownership_kind=$1,owner_user_id=$2 where organization_id=$3 and id=$4',[ownership,resolvedOwner,org,result.rows[0].id]);
+ await c.query('update agency_inventory set ownership_kind=$1,owner_user_id=$2,external_owner_name=$3 where organization_id=$4 and id=$5',[ownership,resolvedOwner,externalName,org,result.rows[0].id]);
  const saved=(await inventoryRecord(c,org,String(result.rows[0].id)))||inventoryPayload(result.rows[0]);
  await traceInventory(c,org,[String(saved.id)],key?'inventory.updated':'inventory.created',user.id,null,{inventory_code:saved.inventory_code,name:saved.name,status:saved.status});
- if(!key&&ownership!=='unspecified'||key&&(ownership!==old.ownership_kind||String(resolvedOwner||'')!==String(old.owner_user_id||'')))await traceInventory(c,org,[String(saved.id)],'ownership.changed',user.id,null,{before:{kind:old.ownership_kind||'unspecified',owner_user_id:old.owner_user_id||null},after:{kind:ownership,owner_user_id:resolvedOwner}});
+ if(!key&&ownership!=='unspecified'||key&&(ownership!==old.ownership_kind||String(resolvedOwner||'')!==String(old.owner_user_id||'')||externalName!==(old.external_owner_name||null)))await traceInventory(c,org,[String(saved.id)],'ownership.changed',user.id,null,{before:{kind:old.ownership_kind||'unspecified',owner_user_id:old.owner_user_id||null,external_owner_name:old.external_owner_name||null},after:{kind:ownership,owner_user_id:resolvedOwner,external_owner_name:externalName}});
  if(key&&locationChanged)await traceInventory(c,org,[String(saved.id)],'location.changed',user.id,null,{inventory_code:saved.inventory_code,from_shelf:old.storage_shelf||null,to_shelf:shelf,storage_location_id:location.id});
  return saved;
 }
@@ -506,7 +509,7 @@ async function batchItems(c,user,org,payload){
     moved+=1;
    }
   }
-  if(ownership!==undefined)await saveItem(c,user,org,String(item.id),{ownership_kind:ownership.kind,owner_user_id:ownership.owner_user_id??null});
+  if(ownership!==undefined)await saveItem(c,user,org,String(item.id),{ownership_kind:ownership.kind,owner_user_id:ownership.owner_user_id??null,external_owner_name:ownership.external_owner_name??null});
   if(verify){await verifyItem(c,user,org,String(item.id),{result:'confirmed',differences:'',note:''});verified+=1;}
  }
  return {updated:rows.length,moved,verified,ownership_updated:ownership===undefined?0:rows.length};

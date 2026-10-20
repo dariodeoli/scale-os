@@ -36,7 +36,16 @@ jobs:
           printf 'PUPPETEER_EXECUTABLE_PATH=%s\n' "$task_browser_path" >> "$GITHUB_ENV"
           "$task_browser_path" --version
       - name: Release regression
-        run: npm run test:release-regression
+        run: |
+          set -o pipefail
+          set +e
+          npm run test:release-regression 2>&1 | tee "$RUNNER_TEMP/scale-release-regression.log"
+          scale_regression_exit=$?
+          set -e
+          if [ "$scale_regression_exit" -ne 0 ]; then
+            node build-tools/report-ci-regression.mjs "$RUNNER_TEMP/scale-release-regression.log"
+          fi
+          exit "$scale_regression_exit"
       - name: Generate Prisma client
         run: npm run db:generate
       - name: Build

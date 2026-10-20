@@ -1,0 +1,49 @@
+{
+  "transport": "synthetic local; no API/DB/production",
+  "browser": "Chrome/154.0.8037.57",
+  "results": [
+    {
+      "flow": "contracts",
+      "width": 320,
+      "height": 844,
+      "checks": 8,
+      "visibleFormControls": 4,
+      "templateTextareaHeight": 423.03125,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 390,
+      "height": 844,
+      "checks": 8,
+      "visibleFormControls": 4,
+      "templateTextareaHeight": 423.03125,
+      "status": "PASS"
+    },
+    {
+      "flow": "contracts",
+      "width": 1440,
+      "height": 1000,
+      "checks": 8,
+      "visibleFormControls": 4,
+      "templateTextareaHeight": 372.6875,
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "sourceCommit": "83face1d76c1da4030eeb354eec2b913252e005f",
+  "tests": {
+    "react": {
+      "passed": 17,
+      "failed": 0
+    },
+    "typecheck": "PASS",
+    "architecture": "322 modules PASS"
+  },
+  "logHashes": {
+    "browser": "dad03133c70cb73fa535a7a78eab5f52864cbfb5d22598a26d25c8aad8c48d36",
+    "unit": "d89666259e2384f5abd0d11d1f64cbfc070ddacc14b1f615e20c6f122bd1c78d",
+    "types": "76162e465989f3f070a9de8db711fbf358e53b74d09ce1bbdb57c727e4c4a16d",
+    "architecture": "a644684e6660405af85eb4cc29ec015a05aec5853047d8804e4d67c99b7e9e65"
+  }
+}

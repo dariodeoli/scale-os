@@ -1,0 +1,307 @@
+{
+  "issue": 312,
+  "browser": {
+    "passed": true,
+    "results": [
+      {
+        "width": 320,
+        "height": 844,
+        "theme": "light",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "theme": "light",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "theme": "dark",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "theme": "dark",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "theme": "contrast",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "theme": "contrast",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "theme": "light",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "theme": "light",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "theme": "dark",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "theme": "dark",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "theme": "contrast",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "theme": "contrast",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "theme": "light",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "theme": "light",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "theme": "dark",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "theme": "dark",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "theme": "contrast",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "height": 844,
+        "theme": "contrast",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "theme": "light",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "theme": "light",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "theme": "dark",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "theme": "dark",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "theme": "contrast",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 1440,
+        "height": 900,
+        "theme": "contrast",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "theme": "light",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "theme": "light",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "theme": "dark",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "theme": "dark",
+        "mode": "connections",
+        "overflow": false
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "theme": "contrast",
+        "mode": "consent",
+        "overflow": false
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "theme": "contrast",
+        "mode": "connections",
+        "overflow": false
+      }
+    ],
+    "interactions": [
+      "login return",
+      "expired",
+      "role denied",
+      "explicit denial",
+      "revoke cancel",
+      "revoke confirm"
+    ],
+    "runtimeErrors": []
+  },
+  "checks": {
+    "unit": {
+      "result": "PASS",
+      "sha256": "3590b76e7c01244a9aefd538d6c7f8ca82c5b23daab5d2aee11dd7188854cd43",
+      "localLog": "/tmp/mcp312-ui-unit.log"
+    },
+    "browser": {
+      "result": "PASS",
+      "sha256": "4583e6de3c120bb747bfc8edf7aa0ff89f79264e7e108e91b915c00f3a53fa37",
+      "localLog": "/tmp/mcp312-ui-browser.log"
+    },
+    "loginReturn": {
+      "result": "PASS",
+      "sha256": "0b68cb70c0c4a37b51dc03b218e6c21ae0af00b2bbf02f8a953f062b4ad89419",
+      "localLog": "/tmp/mcp312-ui-return.log"
+    },
+    "preferences": {
+      "result": "PASS",
+      "sha256": "577c8621005d7a7d82c54723b020213fe71cb9666db2463ea2d0426f7ffdb6ac",
+      "localLog": "/tmp/mcp312-ui-preferences.log"
+    },
+    "header": {
+      "result": "PASS",
+      "sha256": "031161fa466e7e362f5683d9958572ecec7d98bb82d228f8b880a4a50faf0289",
+      "localLog": "/tmp/mcp312-ui-header.log"
+    },
+    "types": {
+      "result": "PASS",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localLog": "/tmp/mcp312-ui-types.log"
+    },
+    "architecture": {
+      "result": "PASS",
+      "sha256": "ee5780b310e865812b63c62641ea28ae7c51ddd3f4d4d92e0a8de35e0769ddc5",
+      "localLog": "/tmp/mcp312-ui-architecture.log"
+    },
+    "independentAdversarial": {
+      "result": "PASS",
+      "sha256": "e95770bd968b3e55ed0bc3623c6e7b32c2645a2658caafd0327c6107dd79f614",
+      "localLog": "/tmp/mcp312-review-adversarial.log"
+    }
+  },
+  "limitations": [
+    "synthetic OAuth API and identity",
+    "actual component CSS and newly compiled Tailwind",
+    "no real Claude/ChatGPT registration or provider login",
+    "Chromium emulation, not Safari/physical devices",
+    "combined build/CI/deployment owned by integrator"
+  ],
+  "revokeRecovery": {
+    "result": "PASS",
+    "unitTests": 8,
+    "nonceModel": "GET creates a fresh nonce; DELETE consumes before simulated server failure",
+    "cases": [
+      "fresh nonce on user retry",
+      "wrong response ID",
+      "lost response reconciles revokedAt",
+      "refresh failure blocks DELETE across cancel/reopen",
+      "missing row does not prove revocation",
+      "401/403 and organization mismatch clear content",
+      "stale user recovery ignored"
+    ],
+    "checks": {
+      "unit": {
+        "result": "PASS",
+        "sha256": "29f3b119c4b16cadfade6640e33f164a8d4f8d843ea51a79f0259ea0f67156fa",
+        "localLog": "/tmp/mcp312-ui-recovery.log"
+      },
+      "types": {
+        "result": "PASS",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "localLog": "/tmp/mcp312-recovery-types.log"
+      },
+      "browser": {
+        "result": "PASS",
+        "sha256": "4583e6de3c120bb747bfc8edf7aa0ff89f79264e7e108e91b915c00f3a53fa37",
+        "localLog": "/tmp/mcp312-recovery-browser.log"
+      }
+    }
+  }
+}

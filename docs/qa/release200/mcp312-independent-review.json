@@ -1,0 +1,60 @@
+{
+  "reviewedAt": "2026-10-20T05:17:49.394729+00:00",
+  "scope": "read-only independent security/specification review of in-progress MCP312; source sampled after tests, not a frozen CI candidate",
+  "source": {
+    "mcp-oauth.js": "d04764552239e33ffaf418fd29cface520b7ab005a3a2d851cae5fcfa70f3cc0",
+    "mcp-tools.js": "abb23ffd0b0937e889e1ff44febff8bffbea458f14b780c867ad8a8f7c25b173",
+    "mcp-server.js": "9101bcb2beafb46d0d5303bf1b072c4d88c8d5041a82f4c19891566fcdf41578"
+  },
+  "findingsResolved": [
+    {
+      "finding": "Actor query held organization FOR SHARE while canonical client handler requested FOR UPDATE on another connection: request self-blocked",
+      "resolution": "Only user/membership rows are held FOR SHARE; organization UPDATE allowed",
+      "proof": "/tmp/mcp312-review-pg.log PostgreSQL17 real isolated; original55P03 and corrected success"
+    },
+    {
+      "finding": "Nested lease + canonical handler acquisition could fill entire pg pool with waiting parents",
+      "resolution": "Global two calls and one per connection rejected before pool acquisition",
+      "proof": "/tmp/mcp312-review-concurrency.log actual adapter429/no extra lease and successful later call; PGpool waiting count proof"
+    },
+    {
+      "finding": "OAuth duplicated parameters silently selected last value",
+      "resolution": "Duplicate OAuth form and authorization parameters rejected",
+      "proof": "Agent added duplicate assertion in backend/test-mcp.mjs; independently read implementation"
+    },
+    {
+      "finding": "Inventory tools advertised without canonical inventory handler; monthly permissions excluded Finance despite REST authorization",
+      "resolution": "Canonical inventory handler added; monthly read billing.view/write commercial-terms.manage OR expenses.manage",
+      "proof": "Read registry and route list"
+    },
+    {
+      "finding": "Core tool data schemas too opaque for discovery",
+      "resolution": "Client/plan/project/monthly-income data properties/required now typed",
+      "proof": "Read toolShape/mcpDataSchema"
+    }
+  ],
+  "checks": {
+    "oauth": {
+      "log": "/tmp/mcp312-review-oauth.log",
+      "sha256": "cd339f5290766628fe7c1e3be3453bc9b1c6e802ec84bdec74d76f0380564a51",
+      "summary": "PASS independent OAuth code/PKCE/consent CSRF/single-use/role live/membership revocation flow with local PGlite"
+    },
+    "pg": {
+      "log": "/tmp/mcp312-review-pg.log",
+      "sha256": "174cd3688c2171f5e239b72899a73ad438fdc70fd362626be82fda238c19c2bb",
+      "summary": "PASS reproduced original MCP organization SHARE vs canonical client UPDATE blocking with two real PostgreSQL connections\nPASS corrected actor-only SHARE allows organization UPDATE\nPASS reproduced nested pool starvation shape: both leases retained, both child acquisitions waiting; adapter must cap concurrency below pool capacity\nCLEANUP isolated PostgreSQL stopped and removed"
+    },
+    "concurrency": {
+      "log": "/tmp/mcp312-review-concurrency.log",
+      "sha256": "23d2a57727f35461a1fd450f6428f205a11397c8922ff10cc8bbfab196997462",
+      "summary": "PASS actual MCP adapter per-connection concurrency429 before pool acquisition and subsequent permit release"
+    }
+  },
+  "limits": [
+    "No real external Claude/ChatGPT connection tested",
+    "No production data changed",
+    "OAuth independent fixture injects subscription.hasAccess=true; official SDK/default subscription tested by implementing agent",
+    "PG17 isolated cluster stopped and removed",
+    "No new unresolved security blocker identified in reviewed snapshot; final integrated CI still required"
+  ]
+}

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer,type ReactTestInstance} from 'react-test-renderer';
 import type {InventoryItem,InventoryReservation,StorageTemplate} from '../app/inventory-workspace';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
+// react-test-renderer has no DOM portal host; browser311 separately verifies real portal focus/clipping.
+require('react-dom').createPortal=(children:React.ReactNode)=>children;
 const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
 
 // owncoding-ui v0.61 usa rAF para devolver el foco; el doble de Node no lo trae.
@@ -165,7 +167,7 @@ async function run(){
  assert.match(tree(),/Sin equipos/,'empty location columns render with their count at zero');
  assert.match(tree(),/Sin ubicación/,'the unassigned column always exists so items can move back');
  // #146: ocultar la columna vive en el ⋯ del encabezado.
- act(()=>{renderer.root.findAllByProps({'aria-label':'Acciones de la ubicación: Sin ubicación'})[0].parent!.props.onClick();});
+ act(()=>{renderer.root.findAllByProps({'aria-label':'Acciones de la ubicación: Sin ubicación'}).find(node=>node.type==='button'&&node.props['aria-haspopup']==='menu')!.props.onClick();});
  act(()=>{renderer.root.findAll(node=>node.props?.role==='menuitem').find(node=>text(node)==='Ocultar columna Sin ubicación')!.props.onClick();});
  assert.doesNotMatch(tree(),/Sin ubicación/,'the unassigned column can be hidden from the pipeline');
  assert.match(tree(),/sin ubicación no se muestran/,'hiding reports how many unassigned items are out of view');
@@ -239,7 +241,7 @@ async function run(){
  assert.equal(writes.at(-1)!.path,'/api/agency/inventory-categories/3');assert.equal(writes.at(-1)!.method,'PATCH');assert.equal(writes.at(-1)!.body.active,false);assert(button('Accesorios archivados · archivada'));
  assert.match(text(renderer.root),/Ubicaciones de guardado/);assert.match(text(renderer.root),/Estante A/);assert(renderer.root.findAllByType('small').some(node=>text(node)==='1 equipo'));
  // #146 (patrón #138): las acciones del lugar viven en el menú ⋯ de la fila.
- const locationMenu=(name:string)=>renderer.root.findAllByProps({'aria-label':`Acciones de la ubicación: ${name}`})[0].parent!;
+ const locationMenu=(name:string)=>renderer.root.findAllByProps({'aria-label':`Acciones de la ubicación: ${name}`}).find(node=>node.type==='button'&&node.props['aria-haspopup']==='menu')!;
  const locationMenuItems=()=>renderer.root.findAll(node=>node.props?.role==='menuitem');
  const locationItem=(label:string)=>locationMenuItems().find(node=>text(node)===label)!;
  const deleteDisabled=(name:string)=>{act(()=>locationMenu(name).props.onClick());const disabled=locationItem('Eliminar ubicación').props.disabled as boolean;act(()=>locationMenu(name).props.onClick());return disabled;};
@@ -318,7 +320,7 @@ async function run(){
  assert.deepEqual(columnTitles().slice(0,3),['Estante A','Estante B','Depósito anterior'],'el pipeline arranca en el orden del API');
  // #146: el orden de la columna vive en el menú ⋯ del encabezado.
  const columnHead=(title:string)=>renderer.root.findAll(node=>node.props?.['data-board-head']!==undefined).find(node=>node.findAllByType('h3').some(head=>text(head)===title))!;
- const columnMenu=(title:string)=>columnHead(title).findAllByProps({'aria-label':`Acciones de la ubicación: ${title}`})[0].parent!;
+ const columnMenu=(title:string)=>columnHead(title).findAllByProps({'aria-label':`Acciones de la ubicación: ${title}`}).find(node=>node.type==='button'&&node.props['aria-haspopup']==='menu')!;
  const columnItem=(label:string)=>renderer.root.findAll(node=>node.props?.role==='menuitem').find(node=>text(node)===label)!;
  const moveAfter=async(title:string)=>{act(()=>columnMenu(title).props.onClick());await act(async()=>{await columnItem('Mover después').props.onClick();});};
  const beforeReorder=writes.length;
@@ -364,6 +366,30 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryDetail item={equipment[0]} members={context.members} canManage={false}/>);});
  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
  assert.match(text(renderer.root),/Identificación física/);assert.match(text(renderer.root),/Sin valor de compra registrado/);assert.match(text(renderer.root),/Sin mantenimientos registrados/);act(()=>renderer.unmount());
+ // Refs #311: every equipment view opens the same actions and the real editor.
+ for(const view of ['Cuadrícula','Lista','Ubicaciones']){
+  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+  act(()=>viewButton(view).props.onClick());
+  const dropdown=renderer.root.findAll(node=>node.props?.ariaLabel===`Acciones del equipo: ${equipment[0].name}`&&typeof node.type==='function')[0];assert(dropdown,`${view} has an item menu`);
+  act(()=>dropdown.findAllByType('button').find(node=>node.props['aria-haspopup']==='menu')!.props.onClick());
+  const actions=dropdown.findAll(node=>node.props?.role==='menuitem');
+  assert.deepEqual(actions.map(text),['Ver detalle y trazabilidad','Imprimir etiqueta','Verificar con detalle','Editar equipo','Archivar equipo'],`${view} shares all actions`);
+  act(()=>actions.find(node=>text(node)==='Editar equipo')!.props.onClick());
+  assert(renderer.root.findAll(node=>node.props?.title==='Editar equipo').length,`${view} opens edit instead of traceability`);
+  act(()=>renderer.unmount());
+ }
+ // Refs #310/#311: the custom equipment table adopts the shared saved layout.
+ const {ListColumnPreferenceProvider}=require('../app/list-column-controls') as typeof import('../app/list-column-controls');
+ const savedColumns={version:1 as const,startup:'summary' as const,production:{clientId:'',mine:false,week:false},columns:{'inventario:equipos':{order:['item','status','value','select','photo','details','location','verification','actions'],hidden:['photo','details','location','verification','actions']}}};
+ await act(async()=>{renderer=create(<ListColumnPreferenceProvider scope="1:10" ready preferences={savedColumns} update={()=>{}} warning="" saving={false} retry={()=>{}}><InventoryWorkspace role="management"/></ListColumnPreferenceProvider>);});
+ act(()=>viewButton('Lista').props.onClick());
+ assert.equal(renderer.root.findAll(node=>node.type==='button'&&node.props['aria-label']==='Editar columnas de Equipos').length,1);
+ const customHeader=renderer.root.findByProps({'data-list-head':'equipment'});assert.deepEqual(customHeader.findAllByType('span').map(text),['Artículo','Estado','Valor','']);
+ const customRows=renderer.root.findAllByProps({'data-list-row':'equipment'});assert(customRows.length);
+ for(const row of customRows){assert.equal(row.children.length,4);assert.equal(row.props.style.gridTemplateColumns,customHeader.props.style.gridTemplateColumns);}
+ assert(text(customRows[0].children[0] as ReactTestInstance).includes(equipment[0].name));assert.match(text(customRows[0].children[1] as ReactTestInstance),/Disponible|En uso|Mantenimiento|Retirado/);
+ assert(!renderer.root.findAllByProps({'aria-label':`Acciones del equipo: ${equipment[0].name}`}).length,'hidden action column is not mounted');
+ act(()=>renderer.unmount());
  console.log('PASS: inventario v2 — borradores de reserva, retornos completos, polling, permisos, lote con topes, vistas y drawer intactos. API/Editor simulados; el layout se mide con el harness visual.');
 }
 void run();

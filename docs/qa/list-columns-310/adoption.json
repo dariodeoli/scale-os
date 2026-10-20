@@ -1,0 +1,195 @@
+{
+  "scope": "Automatic only inside authenticated workspace preference provider; counts source instantiations, not browser route proofs.",
+  "modules": [
+    {
+      "file": "app/archive-controls.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/biblioteca-ui/catalog.tsx",
+      "ListGrid": 1,
+      "DataTable": 2
+    },
+    {
+      "file": "app/client-commercial-lifecycle.tsx",
+      "ListGrid": 0,
+      "DataTable": 1
+    },
+    {
+      "file": "app/company-settings.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/finance-balance.tsx",
+      "ListGrid": 2,
+      "DataTable": 0
+    },
+    {
+      "file": "app/finance-clients.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/finance-collections.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/finance-personnel.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/financial-forecast.tsx",
+      "ListGrid": 2,
+      "DataTable": 1
+    },
+    {
+      "file": "app/growth-dashboard.tsx",
+      "ListGrid": 0,
+      "DataTable": 1
+    },
+    {
+      "file": "app/invite-links.tsx",
+      "ListGrid": 2,
+      "DataTable": 0
+    },
+    {
+      "file": "app/presence.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/privacy-panel.tsx",
+      "ListGrid": 3,
+      "DataTable": 0
+    },
+    {
+      "file": "app/productivity-ui.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/reports-workspace.tsx",
+      "ListGrid": 1,
+      "DataTable": 1
+    },
+    {
+      "file": "app/sections/clientes.tsx",
+      "ListGrid": 2,
+      "DataTable": 0
+    },
+    {
+      "file": "app/sections/comisiones.tsx",
+      "ListGrid": 4,
+      "DataTable": 0
+    },
+    {
+      "file": "app/sections/finanzas.tsx",
+      "ListGrid": 3,
+      "DataTable": 0
+    },
+    {
+      "file": "app/sections/mora.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/sections/pipeline.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/sections/presupuestos.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/sections/proyectos.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/studio-workspace.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/suite.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/access.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/agencies.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/announcements.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/audit.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/catalog.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/errors.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/inquiries.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/reports.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/traffic.tsx",
+      "ListGrid": 6,
+      "DataTable": 0
+    },
+    {
+      "file": "app/superadmin/usage-charts.tsx",
+      "ListGrid": 0,
+      "DataTable": 2
+    },
+    {
+      "file": "app/superadmin/usage.tsx",
+      "ListGrid": 3,
+      "DataTable": 0
+    },
+    {
+      "file": "app/team-workspace.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    },
+    {
+      "file": "app/weekly-automatic.tsx",
+      "ListGrid": 0,
+      "DataTable": 1
+    },
+    {
+      "file": "app/work-history.tsx",
+      "ListGrid": 1,
+      "DataTable": 0
+    }
+  ]
+}

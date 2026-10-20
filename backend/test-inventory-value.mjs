@@ -9,7 +9,7 @@ import {inventoryReservations} from './inventory-reservations.js';
 const pg=new PGlite();await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const name of ['20260908_treasury_ledger.sql','20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_referral_discounts.sql','20260908_collaborator_profiles.sql','20260908_agency_suite.sql','20260908_daily_controls.sql','20260910_currencies.sql','20260910_company_currency.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8'));
 await identitySchema(pg);
-for(const name of ['20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260913_inventory_advanced_traceability.sql','20260914_inventory_storage_locations.sql','20260929_inventory_location_position.sql','20260915_inventory_location_pipeline.sql','20260915_inventory_photos.sql','20260915_inventory_category_icons.sql','20260924_inventory_photo_stamp.sql','20260919_inventory_value_maintenance.sql','20261017_inventory_ownership.sql']){
+for(const name of ['20260910_inventory_reservations.sql','20260912_inventory_verifications.sql','20260913_inventory_advanced_traceability.sql','20260914_inventory_storage_locations.sql','20260929_inventory_location_position.sql','20260915_inventory_location_pipeline.sql','20260915_inventory_photos.sql','20260915_inventory_category_icons.sql','20260924_inventory_photo_stamp.sql','20260919_inventory_value_maintenance.sql','20261017_inventory_ownership.sql','20261020_inventory_external_owner.sql']){
  const migration=await fs.readFile(new URL(`./migrations/${name}`,import.meta.url),'utf8');
  await pg.exec(migration);await pg.exec(migration);
 }
@@ -133,6 +133,17 @@ assert.equal((await call('inventory/batch','POST',{ids:[owned.id,unknown.id],cha
 assert.equal((await query('select count(*)::int as count from agency_inventory_trace')).rows[0].count,beforeAudit,'a rejected batch writes no partial audit');
 assert.equal((await call('inventory/batch','POST',{ids:[owned.id],change:{ownership:{kind:'company'}}},viewer)).status,403);
 assert.equal((await call(`inventory/${owned.id}`,'PATCH',{ownership_kind:'company'},{...owner,organization_id:other})).status,400);
+// Refs #311: an external owner is not a member and never changes custody.
+const externalCreated=await call('inventory','POST',{name:'Equipo de proveedor',ownership_kind:'external',external_owner_name:'Proveedor audiovisual',custodian_user_id:owner.id},producer);
+assert.equal(externalCreated.status,201,JSON.stringify(externalCreated));const external=externalCreated.record;
+assert.equal(external.owner_user_id,null);assert.equal(external.owner_name,'Proveedor audiovisual');assert.equal(external.external_owner_name,'Proveedor audiovisual');assert.equal(String(external.custodian_user_id),String(owner.id));
+assert.equal((await call('inventory','POST',{name:'Sin nombre externo',ownership_kind:'external'},producer)).status,400);
+assert.equal((await call('inventory','POST',{name:'Cruce de propietario',ownership_kind:'external',external_owner_name:'Persona externa',owner_user_id:owner.id},producer)).status,400);
+const externalPatched=await call(`inventory/${external.id}`,'PATCH',{name:'Nombre corregido'},producer);assert.equal(externalPatched.status,200);assert.equal(externalPatched.record.owner_name,'Proveedor audiovisual','unrelated PATCH preserves external ownership');
+const externalProjection=(await call('inventory?fields=id,ownership_kind,owner_name,external_owner_name,owner_photo_url')).records.find(row=>String(row.id)===String(external.id));assert.equal(externalProjection.owner_name,'Proveedor audiovisual');assert.equal(externalProjection.owner_photo_url,null);
+const externalBatch=await call('inventory/batch','POST',{ids:[external.id],change:{ownership:{kind:'external',external_owner_name:'Nueva persona externa'}}},producer);assert.equal(externalBatch.status,200);
+const externalTrace=(await query("select context from agency_inventory_trace where inventory_id=$1 and event_type='ownership.changed' order by id desc limit 1",[external.id])).rows[0].context;assert.equal(externalTrace.after.external_owner_name,'Nueva persona externa');assert.equal(externalTrace.before.external_owner_name,'Proveedor audiovisual');
+const externallyOwned=(await call(`inventory/${external.id}`,'PATCH',{ownership_kind:'company'},producer)).record;assert.equal(externallyOwned.external_owner_name,null);assert.equal(externallyOwned.owner_user_id,null);assert.equal(String(externallyOwned.custodian_user_id),String(owner.id));
 const historicalCustody=(await call('inventory','POST',{name:'Custodia histórica',custodian_user_id:producer.id},owner)).record;
 await query('update organization_members set active=false where organization_id=$1 and user_id=$2',[org,producer.id]);
 assert.equal((await call(`inventory/${owned.id}`,'PATCH',{name:'Nombre actualizado',ownership_kind:'person',owner_user_id:producer.id},owner)).status,200,'an unchanged historical owner survives membership removal');

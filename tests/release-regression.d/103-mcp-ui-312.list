@@ -1,0 +1,3 @@
+# Refs #312: explicit MCP consent, safe login return, own-account revoke and responsive views.
+tsx tests/mcp-ui-312.test.tsx
+node tests/mcp-ui-browser-312.test.mjs

@@ -1,0 +1,50 @@
+{
+  "checks": {
+    "unit": {
+      "path": "/tmp/columns310-unit-final.log",
+      "sha256": "93070b3251cdf440d877e82f172b9d508aa0fe4bff45a581c483bfb2881ef2af",
+      "summary": [
+        "PASS: primitivas v2 — un chip, un KPI y una carga sobre los objetos compartidos",
+        "ℹ tests 31",
+        "ℹ fail 0"
+      ]
+    },
+    "api": {
+      "path": "/tmp/columns310-api-final.log",
+      "sha256": "03b188c9c9db98ed0c1909526678a83b88f364ce02c251305c7f5660607a1a82",
+      "summary": [
+        "PASS workspace preferences: reentrant schema, strict inputs, own user+tenant, active membership, roles, demo isolation, conditional legacy import, partial merge, deleted clients, safe errors and FK cleanup"
+      ]
+    },
+    "types": {
+      "path": "/tmp/columns310-types-final.log",
+      "sha256": "76162e465989f3f070a9de8db711fbf358e53b74d09ce1bbdb57c727e4c4a16d",
+      "summary": []
+    },
+    "architecture": {
+      "path": "/tmp/columns310-architecture-final.log",
+      "sha256": "241a70a3133ecb6a715d3e1ef0007bb985f03529254f6ecdbe886b057a4147ff",
+      "summary": [
+        "PASS UI architecture: 323 local modules; canonical imports, selective boundaries, pure bases and UI cycles."
+      ]
+    },
+    "migrations": {
+      "path": "/tmp/columns310-migrations.log",
+      "sha256": "b2edc3d9d35d5a67989668b342356566abb5a78ba0dda8da7810bde7270c9ef4",
+      "summary": [
+        "PASS: schema + 117 server-registered migrations with tracked restart, session identity initialization, real reactivation/HR sync, demo isolation, assignee flow, inventory/checklist relations; optional Dadoo excluded"
+      ]
+    }
+  },
+  "testedWorkingTreeFiles": {
+    "app/list-column-preferences.ts": "a603c33d0926dfde027e5bad611504b8e60948e1f41bc66f7ec89dabf6d763b4",
+    "app/list-column-controls.tsx": "b3ec7b95fb2a3408388ee4ea6333c060ef3e42915c2eb41ed729ebe268a59b96",
+    "app/ui-v2.tsx": "704a79a05aff2541d1ce8ea4b1776375366469e526848a4c8c404dd9669390db",
+    "app/ui/collection.tsx": "bf6e11762e802d3354ebe2194b97f37b332d9980fac1200ddb714c13ae459100",
+    "app/workspace-preferences.ts": "5d58b777b32a19d72330eff89db32d95ca0862b20f26c0e37fa9d468f56fabc9",
+    "backend/workspace-preferences.js": "a8672b62478664091c396ad02f1cbfde3e3277353c154ce787a812d92fc7b646",
+    "backend/migrations/20261020_list_column_preferences.sql": "e0510712c9ba0c122232eebc9332db7b215dc3c3d0db87a70c6e7315b5ba51c0"
+  },
+  "browserArtifact": "/tmp/scale-columns-310-7CP5T3",
+  "buildAndRelease": "Not run in child; integrator runs full combined release and CI"
+}

@@ -157,8 +157,20 @@ test('repository migration accounts for every action and only explicitly reviewe
  for(const added of refresh.addedCanonical){assert(final.sites.some(site=>site.status==='canonical'&&site.file===added.file&&site.line===added.line&&site.column===added.column));assert.match(added.siteHash,/^[a-f0-9]{64}$/);assert(added.rationale.length>20);}
  for(const changed of refresh.changedFiles){assert.equal(final.files.find(file=>file.file===changed.file)?.sha256,changed.afterHash);assert(changed.rationale.length>20);}
  assert(retained.every(s=>s.action==='retain'));
- assert.equal(applied.sites.length+refresh.addedCanonical.length-refresh.retiredStructural.length,final.sites.length,'the final inventory accounts for the reviewed catalog/header additions and removed sidebar controls');
- assert.equal(final.counts.canonical,(applied.counts.canonical||0)+(applied.counts.migrate||0)+refresh.addedCanonical.length);
+ const retiredCanonical=refresh.retiredCanonical||[];
+ assert.equal(new Set(retiredCanonical.map(s=>`${s.baseline}:${s.file}:${s.beforeLine}:${s.beforeColumn}:${s.beforeHash}`)).size,retiredCanonical.length,'canonical retirement cannot be counted twice');
+ for(const retired of retiredCanonical){
+  assert.equal(retired.approved,true);assert.match(retired.baseline,/^[a-f0-9]{40}$/);assert.match(retired.beforeHash,/^[a-f0-9]{64}$/);
+  assert(retired.rationale.length>20&&retired.destination.length>10,'removed action retains an explicit reviewed destination');
+  const jsx=retired.beforeJsx;assert(typeof jsx==='string'&&jsx.length>20,'retired JSX is archived for shallow CI checkouts');
+  assert.equal(createHash('sha256').update(jsx).digest('hex'),retired.beforeHash,'retirement preserves exact archived JSX hash');
+  const currentSource=fs.readFileSync(new URL(`../${retired.file}`,import.meta.url),'utf8');
+  const currentAst=ts.createSourceFile(retired.file,currentSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),currentJsx=new Map();
+  function visit(node){if(ts.isJsxOpeningElement(node)||ts.isJsxSelfClosingElement(node))currentJsx.set(node.getStart(currentAst),(ts.isJsxOpeningElement(node)?node.parent:node).getText(currentAst));ts.forEachChild(node,visit);}visit(currentAst);
+  assert(!analyzeActions(currentSource,{file:retired.file}).sites.some(site=>site.owner===retired.owner&&currentJsx.get(site.offset)===jsx),'retired action site must be absent from its former owner; shared destination may preserve the same JSX');
+ }
+ assert.equal(applied.sites.length+refresh.addedCanonical.length-refresh.retiredStructural.length-retiredCanonical.length,final.sites.length,'the final inventory accounts for explicit additions and reviewed removed controls');
+ assert.equal(final.counts.canonical,(applied.counts.canonical||0)+(applied.counts.migrate||0)+refresh.addedCanonical.length-retiredCanonical.length);
  assert.equal(final.counts.structural,retained.length);
  const live=runMigration({root:fileURLToPath(new URL('../',import.meta.url)),manifest});
  assert.equal(live.unreviewed,0,'new manual/native widget sites require explicit review');

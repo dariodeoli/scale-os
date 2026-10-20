@@ -67,6 +67,7 @@ const FXTransferForm=dynamic(()=>import('./daily-controls').then(m=>m.FXTransfer
 import {SelectCustom} from './profile-controls';
 import {filterProductionOrders} from './production-filter';
 import type {Status} from './production-board';
+import {ListColumnPreferenceProvider} from './list-column-controls';
 import {defaultWorkspacePreferences, workspacePreferenceKey} from './workspace-preferences';
 import {useWorkspacePreferences,useStartupPreference,useLocalCalendarDay} from './use-workspace-preferences';
 import {clientPortfolioStats,currentAsuncionMonth,dueWithinDays} from './client-format';
@@ -108,8 +109,10 @@ import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {SubscriptionPanel, SubscriptionNotice} from './subscription-panel';
 import './settings-slice.css';
 
+import {safeMcpReturnPath,takeMcpReturn} from './mcp-return';
 export function postLoginDestination(search:string){
-  return new URLSearchParams(search).get('next')==='/superadmin'?'/superadmin':null;
+  const destination=new URLSearchParams(search).get('next');
+  return destination==='/superadmin'?'/superadmin':safeMcpReturnPath(destination);
 }
 
 import {
@@ -161,7 +164,7 @@ import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button"
 // es el que marca al padre cuando el módulo activo vive adentro. Estudio vive
 // en Recursos (agenda de espacios/equipos). Las rutas y los apartados de cada
 // módulo no cambian.
-const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
+const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Clientes:Users,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
 const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
 function localMonth(){return currentAsuncionMonth();}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
@@ -200,10 +203,12 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const {pending:loginPending,onSubmit:submitLogin}=useSingleFlightSubmit(login);
-  const pathname=usePathname(),router=useRouter();
+  const pathname=usePathname(),router=useRouter(),approvedReturn=useRef(false);
   function returnToApprovedLoginDestination(){
-    const destination=postLoginDestination(window.location.search);
-    if(destination)router.replace(destination);
+    const requested=postLoginDestination(window.location.search);
+    let remembered:string|null=null;try{remembered=takeMcpReturn(window.sessionStorage);}catch{/* Storage may be disabled. */}
+    const destination=requested||remembered;
+    if(destination){approvedReturn.current=true;router.replace(destination);}
   }
   const lastDataPath=useRef(pathname);
   const requestedSection=sectionLabel(pathname);
@@ -290,7 +295,7 @@ export default function Home() {
       void dataFetch(shellDataUrl(resource,config),{credentials:'include'}).catch(()=>{});
     }
   }
-  useStartupPreference({scope:preferenceScope,ready:preferencesReady&&preferencesStartupReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
+  useStartupPreference({scope:preferenceScope,ready:preferencesReady&&preferencesStartupReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess&&!approvedReturn.current,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
   async function refreshSubscription(){
     const d=await request<{user:User}>('/api/auth/me');
     if(user&&String(d.user.organization_id)!==String(user.organization_id)){window.location.reload();return;}
@@ -360,6 +365,7 @@ export default function Home() {
     const url=new URL(window.location.href);url.searchParams.delete('demoWelcome');window.history.replaceState(window.history.state,'',url);
   },[pathname,user?.demo_owner_user_id]);
   useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
+  useEffect(()=>{if(signedIn&&pathname==='/clientes'){const id=new URLSearchParams(window.location.search).get('client');if(id&&/^[1-9]\d{0,18}$/.test(id)&&BigInt(id)<=9223372036854775807n)setDetail({kind:'client',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
   const liveClients=displayedClients.filter(client=>client.active!==false);
@@ -1020,7 +1026,7 @@ export default function Home() {
         </div>
       </>;
   return (
-    <CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
+    <ListColumnPreferenceProvider scope={preferenceScope} ready={preferencesReady} preferences={preferences} update={updatePreferences} warning={preferenceWarning} saving={preferencesSaving} retry={retryPreferences}><CompanyCurrencyProvider organizationId={user?.organization_id||''} defaultCurrency={user?.default_currency}><main data-shell-data={shellDataState} className={`shell control-shell ${active==='Producción'?'production-mode':''} ${active==='Producción'&&productionView==='Tablero'?'production-board-mode':''}`}>
       <PresenceTracker key={`${user?.id}:${user?.organization_id}`}/>
       <DesktopSidebar>{(collapsed,toggle)=><>
         <div className="sidebar-brand"><WorkspaceBrand/>{toggle}</div>
@@ -1229,6 +1235,6 @@ export default function Home() {
           />
         </Dialog>
       )}
-    </main></CompanyCurrencyProvider>
+    </main></CompanyCurrencyProvider></ListColumnPreferenceProvider>
   );
 }

@@ -174,7 +174,8 @@ function PayTab({person,defaultCurrency,load}:{person:Person;defaultCurrency:str
     payment_day:String(person.payment_day||5),
   };
   return <>
-    <p className="form-note">La remuneración solo la ven y editan administración y finanzas.</p>
+    <p className="form-note">La remuneración solo la ven y editan administración y finanzas. Modalidad y tarifa acordada de la persona: por hora, proyecto, servicio o importe fijo. El salario mensual, sus ajustes y los pagos se gestionan en Finanzas.</p>
+    <p className="form-note"><a href="/pagos/balance">Gestionar salario mensual y pagos en Balance</a></p>
     <Editor
       key={String(person.id)}
       columns

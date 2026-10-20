@@ -100,6 +100,38 @@ assert.equal((await call(root+'/templates/from-model','POST',{model_key:'missing
 assert.equal((await call(root+'/templates/from-model','POST',{model_key:models[0].key},{...sales,capabilities:{'contracts.view':true,'contracts.manage':false}})).status,403);
 const installed=(await call(root+'/templates/from-model','POST',{model_key:models[0].key})).template;assert.equal(installed.body,models[0].body);
 assert.equal((await call(root+'/templates/'+installed.id,'PATCH',{expected_revision:1,name:'Mi contrato editable'})).status,200);
+// Refs #307/#308: one document renderer, explicit simulated examples, no accidental issuance.
+const previewCounts=await one('select (select count(*) from agency_contracts) as contracts,(select count(*) from agency_contract_versions) as versions,(select count(*) from agency_contract_templates) as templates');
+for(const model of models){
+ const sample=await call(root+'/preview','POST',{model_key:model.key,sample:true},sales);assert.equal(sample.status,200,JSON.stringify(sample));
+ assert.equal(sample.preview.simulated,true);assert.equal(sample.preview.draft,true);assert.deepEqual(sample.preview.missing,[]);assert(!sample.preview.rendered_text.includes('{{'));assert.match(sample.preview.html,/DATOS SIMULADOS/);assert.match(sample.preview.html,/NO VÁLIDO PARA FIRMA/);assert.match(sample.preview.html,/@page\{size:A4/);assert.match(sample.preview.html,/Firma:/);assert.doesNotMatch(sample.preview.html,/<script/);
+}
+for(const forbidden of [{client_id:client},{bank_account_id:bank},{variables:{'counterparty.name':'Nombre real'}},{body:'Texto real'},{title:'Real'}])assert.equal((await call(root+'/preview','POST',{model_key:models[0].key,sample:true,...forbidden})).status,400,'examples cannot mix real data');
+assert.equal((await call(root+'/preview','POST',{model_key:models[0].key,sample:'true'})).status,400);
+assert.equal((await call(root+'/preview','POST',{model_key:models[0].key,template_id:template.id})).status,400);
+assert.equal((await call(root+'/preview','POST',{model_key:'missing'})).status,404);
+assert.equal((await call(root+'/preview','POST',{template_id:template.id},otherOwner)).status,404);
+assert.equal((await call(root+'/preview','POST',{contract_id:doc.id},otherOwner)).status,404);
+assert.equal((await call(root+'/preview','POST',{template_id:template.id,client_id:otherClient})).status,404);
+assert.equal((await call(root+'/preview','POST',{model_key:models[0].key},viewer)).status,403);
+assert.equal((await call(root+'/preview','POST',{contract_id:bankDoc.id},sales)).status,403);
+assert.equal((await call(root+'/preview','POST',{template_id:bankTemplate.id},sales)).status,403);
+const readOnlyContract={...viewer,capabilities:{'contracts.view':true,'contracts.manage':false}};
+assert.equal((await call(root+'/preview','POST',{contract_id:doc.id},readOnlyContract)).status,200,'view-only access can preview the stored draft');
+assert.equal((await call(root+'/preview','POST',{contract_id:doc.id,variables:{}},readOnlyContract)).status,403,'view-only preview cannot edit fields');
+assert.equal((await call(root+'/preview','POST',{contract_id:doc.id,client_id:client},readOnlyContract)).status,403);
+assert.equal((await call(root+'/preview','POST',{model_key:models[0].key,sample:true},readOnlyContract)).status,403,'read-only cannot fill profile data from new sources');
+assert.equal((await call(root+'/preview','POST',{contract_id:bankDoc.id},readOnlyContract)).status,403,'bank access still guarded in view-only preview');
+const beforePreview=(await call(root+'/'+doc.id)).contract;
+r=await call(root+'/preview','POST',{contract_id:doc.id,expected_revision:doc.revision,title:'Vista local <img src=x>',body:'NUEVA CLÁUSULA\n\nEmpresa {{company.legal_name}}. Extra {{agreement.notes}} <script>bad()</script>',variables:{...doc.variables,'agreement.notes':'Texto local <b>sin HTML</b>'}});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.preview.simulated,false);assert.equal(r.preview.draft,true);assert.match(r.preview.html,/BORRADOR/);assert.match(r.preview.html,/&lt;script&gt;/);assert.match(r.preview.html,/&lt;b&gt;sin HTML&lt;\/b&gt;/);assert.match(r.preview.html,/&lt;img src=x&gt;/);assert.match(r.preview.html,/<h2>NUEVA CLÁUSULA<\/h2>/);assert.doesNotMatch(r.preview.html,/<script>|<img src=/);
+assert.deepEqual((await call(root+'/'+doc.id)).contract,beforePreview,'preview cannot save text, change revision or issue a version');
+assert.equal((await call(root+'/preview','POST',{contract_id:doc.id,client_id:client})).status,400,'existing document sources stay fixed');
+assert.equal((await call(root+'/preview','POST',{contract_id:doc.id,expected_revision:doc.revision+1})).status,409);
+r=await call(root+'/preview','POST',{model_key:models[0].key,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.match(r.preview.rendered_text,/Nombre manual/);assert.ok(r.preview.missing.length>0);assert.match(r.preview.html,/Datos pendientes/);assert.match(r.preview.html,/⟦Pendiente:/);assert(!r.preview.rendered_text.includes('Cliente de ejemplo'),'real preview never invents sample identity');
+assert.deepEqual(await one('select (select count(*) from agency_contracts) as contracts,(select count(*) from agency_contract_versions) as versions,(select count(*) from agency_contract_templates) as templates'),previewCounts);
+await query("update agency_clients set logo_url='data:image/png;base64,iVBORw0KGgo=' where id=$1",[client]);
+const previewPerson=(await one("insert into agency_collaborators(organization_id,full_name,photo_url) values($1,'Representante visual','data:image/png;base64,iVBORw0KGgo=') returning id",[org])).id;
+const visualConfig=await call(root+'/config');assert.match(visualConfig.clients.find(row=>String(row.id)===String(client)).logo_url,/^\/core-api\/api\/agency\/media\/client\//);assert.equal(visualConfig.clients.find(row=>String(row.id)===String(client)).legal_name,'Nombre manual');assert.match(visualConfig.collaborators.find(row=>String(row.id)===String(previewPerson)).photo_url,/^\/core-api\/api\/agency\/media\/collaborator\//);
 // Canonical company/customer profiles populate document parties; no identity is copied from models.
 await query("update agency_clients set address='Calle cliente',city='Luque',department='Central',party_type='person',document_type='ci',document_number='123456',legal_representative_name='Firmante empresa',legal_representative_document='987654',legal_representative_role='Gerente' where id=$1",[client]);
 r=await call(root+'/autofill','POST',{client_id:client});assert.equal(r.variables['counterparty.document'],'123456');assert.equal(r.variables['counterparty.document_type'],'CI');assert.equal(r.variables['counterparty.city'],'Luque');assert.equal(r.variables['counterparty.signer_name'],'Nombre manual');assert.equal(r.variables['counterparty.signer_document'],'123456');
@@ -132,7 +164,9 @@ await query('update agency_plans set items=$1::jsonb where id=$2',[JSON.stringif
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.amount'],'12.64');assert.equal(r.variables['agreement.plan_name'],'Plan piezas');assert.equal(r.variables['agreement.payment_terms'],undefined,'catalog has no assumed cadence');assert.equal(r.sources['agreement.amount'].source,'plan');
 const term=(await one(`insert into agency_client_commercial_terms(organization_id,client_id,activation_date,effective_from,starts_on,ends_on,plan_name,plan_version,plan_id,monthly_price,currency,discount_type,discount_value,deliverables,cadence,interval_months,commission_mode) values($1,$2,'2020-01-01','2020-01-01',${zoneTodaySql},${zoneTodaySql},'Plan negociado','1',$3,99.99,'USD','percent',10,'["Dos piezas pactadas"]','interval',3,'none') returning id`,[org,client,plan])).id;
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client});assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.variables['agreement.amount'],'89.99');assert.equal(r.variables['agreement.payment_terms'],'Cobro cada 3 meses');assert.equal(r.variables['agreement.deliverables'],'Dos piezas pactadas');assert.equal(r.sources['agreement.amount'].source,'client-commercial-terms');assert.equal(String(r.sources['agreement.amount'].record_id),String(term));
+r=await call(root+'/autofill','POST',{client_id:client});assert.equal(r.variables['agreement.amount'],'89.99','selecting only the client fills the actual negotiated agreement');assert.equal(r.variables['agreement.payment_terms'],'Cobro cada 3 meses');assert.equal(r.sources['agreement.amount'].source,'client-commercial-terms');
 const catalogOnly={...sales,capabilities:{...sales.capabilities,'commercial-terms.manage':false}};r=await call(root+'/autofill','POST',{plan_id:plan,client_id:client},catalogOnly);assert.equal(r.variables['agreement.amount'],'12.64','negotiated prices require their independent permission');
+r=await call(root+'/autofill','POST',{client_id:client},catalogOnly);assert.equal(r.variables['agreement.amount'],undefined,'implicit negotiated prices require their independent permission');
 r=await call(root+'/autofill','POST',{plan_id:plan,client_id:unnamed});assert.equal(r.variables['agreement.amount'],'12.64','never reuse another client terms');
 // The negotiated agreement is active on today's Asunción date even when
 // the database session has already crossed a different civil-day boundary.

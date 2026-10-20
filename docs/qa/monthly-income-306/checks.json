@@ -1,0 +1,25 @@
+{
+  "focalTests": 45,
+  "browserCombinations": 9,
+  "uiArchitectureModules": 323,
+  "logs": {
+    "focal": {
+      "exitCode": 0,
+      "sha256": "2cc1df35f972721cd829e5c6fafc20743381c78fd9c7b01f73d4abe863cca4fa",
+      "path": "/tmp/scale306-ui-final-tests.log"
+    },
+    "types": {
+      "exitCode": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": "/tmp/scale306-ui-tsc-final.log"
+    },
+    "browser": {
+      "exitCode": 0,
+      "sha256": "366222f6bacae2d73970e6894e03c1d06d73bd5b6a72936f1fe0db63f38dd04e",
+      "path": "/tmp/scale306-ui-browser-final.log"
+    }
+  },
+  "fullBuild": "integrator pending",
+  "ci": "pending",
+  "deploy": "pending"
+}
