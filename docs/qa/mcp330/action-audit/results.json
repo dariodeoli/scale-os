@@ -42,5 +42,11 @@
       "comparisons": 1056,
       "failures": 0
     }
+  },
+  "fieldOrderRecheck": {
+    "integrationHead": "8c0ace1e",
+    "change": "AccountForm holder RUC lookup precedes bank institution. Exact JSX and callbacks unchanged; source hash refreshed.",
+    "countsUnchanged": true,
+    "newReviewsRequired": false
   }
 }

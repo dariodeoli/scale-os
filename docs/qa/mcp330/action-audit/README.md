@@ -1,6 +1,6 @@
 # Independent action audit — #330, #331, #335
 
-Audited integration `7f4a690f` against published baseline `4530281e`.
+Audited integration `7f4a690f` against published baseline `4530281e`. Field-order-only recheck at `8c0ace1e` moves the intact AccountForm RUC lookup before institution; JSX/callbacks and action counts remain unchanged, and the current source hashes are refreshed.
 Result: **634 canonical actions, 53 reviewed structural widgets, 1 renderer, zero unreviewed sites**.
 
 Reviewed callbacks and surrounding guards directly in source:

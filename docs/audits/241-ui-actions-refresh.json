@@ -165,7 +165,7 @@
     {
       "file": "app/workspace-forms.tsx",
       "beforeHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
-      "afterHash": "d96fd48c33af021285fe19ade503ad3c304f591cac3e394212f812aafb34f2cc",
+      "afterHash": "57ecc4d3a52b89489cae8a81a48fdf0586bcda93aa1029fa4e67e37488c301fd",
       "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
@@ -1801,7 +1801,7 @@
   ],
   "issue330": {
     "baseline": "4530281ebb4bbb909f75afc02e9d00ccf9f3b057",
-    "integrationHead": "7f4a690f3db8374923c8e87ee28d279b84ec0536",
+    "integrationHead": "8c0ace1e51f48ec7d4999c8da0c1a15f855357a3",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 634,
     "newCanonicalActions": 8,
