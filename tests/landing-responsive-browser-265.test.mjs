@@ -20,8 +20,8 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let browser;
 try{
  browser=await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
- const page=await browser.newPage();page.setDefaultTimeout(5000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
- await page.setRequestInterception(true);page.on('request',request=>{const url=new URL(request.url());if(url.hostname==='127.0.0.1')return request.continue();if(url.hostname==='sistema.scaleparaguay.com'&&request.resourceType()==='image')return request.continue({url:`http://127.0.0.1:${server.address().port}${url.pathname}`});return request.abort();});
+ const page=await browser.newPage();page.setDefaultTimeout(5000);const errors=[],contactWrites=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.setRequestInterception(true);page.on('request',request=>{const url=new URL(request.url());if(request.method()==='OPTIONS')return request.respond({status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type'}});if(url.pathname==='/core-api/api/public/contact'){assert.equal(request.method(),'POST');contactWrites.push(JSON.parse(request.postData()));return request.respond({status:200,headers:{'Access-Control-Allow-Origin':'*'},contentType:'application/json',body:JSON.stringify({ok:true})});}if(request.method()!=='GET')return request.respond({status:200,headers:{'Access-Control-Allow-Origin':'*'},contentType:'application/json',body:'{}'});if(url.hostname==='127.0.0.1')return request.continue();if(url.hostname==='sistema.scaleparaguay.com'&&request.resourceType()==='image')return request.continue({url:`http://127.0.0.1:${server.address().port}${url.pathname}`});return request.abort();});
  // Reduced motion removes smooth-scrolling timing, preserving the actual anchor geometry.
  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
  const measurements=[];
@@ -44,8 +44,17 @@ try{
     assert(measurement.anchorTop>=measurement.headerBottom,`${theme}/${width}: ${anchor} stays below sticky header`);
     measurements.push({theme,...measurement});
    }
+   // Check real navigation targets and native keyboard operation at each width.
+   const semantics=await page.evaluate(()=>({h1:document.querySelectorAll('h1').length,emptyLinks:[...document.querySelectorAll('a[href]')].filter(a=>!a.textContent.trim()&&!a.getAttribute('aria-label')).length,trial:[...document.querySelectorAll('[data-cta=trial]')].map(a=>a.href),demo:[...document.querySelectorAll('[data-cta=demo]')].map(a=>a.href),docs:[...document.querySelectorAll('a[href^="/documentacion"]')].map(a=>a.getAttribute('href')),mcp:!!document.querySelector('#mcp h2'),login:[...document.querySelectorAll('.site-header a')].find(a=>a.textContent.trim()==='Ingresar')?.href}));
+   assert.equal(semantics.h1,1);assert.equal(semantics.emptyLinks,0);assert(semantics.trial.length>0&&semantics.trial.every(href=>href==='https://app.scaleparaguay.com/registro'));assert(semantics.demo.length>0&&semantics.demo.every(href=>href==='https://sistema.scaleparaguay.com/demo'));assert.equal(semantics.login,'https://app.scaleparaguay.com/');assert(semantics.mcp);for(const href of ['/documentacion','/documentacion/mcp','/documentacion/api'])assert(semantics.docs.includes(href),`documentation entry ${href}`);
+   await page.$eval('details summary',n=>{n.scrollIntoView({block:'center'});n.focus();});await page.keyboard.press('Enter');assert.equal(await page.$eval('details',n=>n.open),true);await page.keyboard.press('Enter');assert.equal(await page.$eval('details',n=>n.open),false);
   }
  }
+ // Exercise the unchanged production form against an intercepted synthetic response.
+ assert.equal(contactWrites.length,0);
+ await page.$eval('#contact-form',form=>{for(const [key,value] of Object.entries({name:'Ejemplo QA',company:'Empresa ficticia',email:'qa@example.test',message:'Consulta de prueba local'}))form.elements.namedItem(key).value=value;form.elements.namedItem('consent').checked=true;form.scrollIntoView({block:'center'});});
+ await page.click('#contact-form button[type=submit]');await page.waitForFunction(()=>document.getElementById('contact-status').textContent.includes('Consulta recibida'));
+ assert.equal(contactWrites.length,1);assert.equal(contactWrites[0].email,'qa@example.test');assert.equal(contactWrites[0].consent,true);assert.equal(contactWrites[0].website,'');
  assert.deepEqual(errors,[]);
  console.log(JSON.stringify(measurements,null,2));
  console.log('PASS landing: 20 real fragment navigations; 320/390/768/1024/1440, light/dark, live resize, no overflow/broken images.');
