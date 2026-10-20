@@ -566,7 +566,7 @@
     {
       "file": "app/payment-review-panel.tsx",
       "changed": false,
-      "sha256": "aca3009e85432c60c5005c816e88ece3800131c8b2a8518f34a0fe94b448a1ef"
+      "sha256": "9bb742fc25bc39f466934f23cdc9659a5c1b5a062f6f5a372fbd3b1ac5ec4208"
     },
     {
       "file": "app/permissions-matrix.tsx",
@@ -4890,7 +4890,7 @@
       "file": "app/payment-review-panel.tsx",
       "line": 27,
       "column": 732,
-      "offset": 4804,
+      "offset": 4812,
       "kind": "canonical-button",
       "owner": "PaymentReviewPanel",
       "status": "canonical",
@@ -4901,7 +4901,7 @@
       "file": "app/payment-review-panel.tsx",
       "line": 27,
       "column": 821,
-      "offset": 4893,
+      "offset": 4901,
       "kind": "canonical-button",
       "owner": "PaymentReviewPanel",
       "status": "canonical",
@@ -4912,7 +4912,7 @@
       "file": "app/payment-review-panel.tsx",
       "line": 28,
       "column": 11,
-      "offset": 5108,
+      "offset": 5116,
       "kind": "canonical-button",
       "owner": "PaymentReviewPanel",
       "status": "canonical",

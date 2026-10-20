@@ -435,8 +435,8 @@
     {
       "file": "app/payment-review-panel.tsx",
       "beforeHash": null,
-      "afterHash": "aca3009e85432c60c5005c816e88ece3800131c8b2a8518f34a0fe94b448a1ef",
-      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+      "afterHash": "9bb742fc25bc39f466934f23cdc9659a5c1b5a062f6f5a372fbd3b1ac5ec4208",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
       "file": "app/permissions-matrix.tsx",
@@ -1819,7 +1819,7 @@
   ],
   "issue330": {
     "baseline": "2bedb6c679215dfd8574eb5b235700d87de8a95e",
-    "integrationHead": "1136f78dbee9dc621567ba8acbf516c32d443d2c",
+    "integrationHead": "4a5436e6fb1a676c10567aef246ef3bc3c80e804",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 634,
     "newCanonicalActions": 0,
