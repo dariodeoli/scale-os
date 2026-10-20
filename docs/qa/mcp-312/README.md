@@ -33,3 +33,5 @@ No se realizaron aquí OAuth real en Claude/ChatGPT, despliegue, firma digital n
 ## Resultado observado 2026-10-20
 
 PostgreSQL real: PASS, 77 comprobaciones HTTP explícitas más flujos internos del SDK. PGlite: PASS, 63 comprobaciones explícitas más SDK (aislamiento anidado excluido). Release migrations: PASS, 118 migraciones. Auth VM, security hardening y platform guard: PASS. Logs sanitizados de fixtures sintéticos y hashes se adjuntan en esta carpeta. Revocación se probó con fallos inyectados en UPDATE y auditoría: rollback conserva tanto grant como nonce y permite reintentar.
+
+Focal UTF-8: `node backend/test-mcp-utf8.mjs` PASS, seis requests HTTP segmentados reales. Se cortaron bytes internos de é y 🎬 tanto en registro OAuth como argumentos MCP; se conservan completos. Bodies multibyte superiores a los límites retornan 413. Los parsers acumulan buffers y cuentan bytes antes de decodificar una sola vez. El focal usa un handler sintético para aislar integridad de transporte, no simula cambios contables.

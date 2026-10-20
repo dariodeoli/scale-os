@@ -1,0 +1,1 @@
+PASS MCP UTF-8: 6 real HTTP segmented requests; accent and emoji preserved in OAuth and MCP, byte limits reject oversized bodies
