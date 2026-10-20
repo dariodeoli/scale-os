@@ -386,6 +386,10 @@ export async function personalData({req,res,url,db,session,body,send}){
      if(req.method!=='GET')fail('Método no permitido',405);
      const request=await requestOut(c,org,id);
      if(request.subject_kind==='other'||!request.subject_id)fail('Esta solicitud no tiene un titular con datos exportables',409);
+     // A managed user export contains the employee's financial HR record.
+     // Privacy administration never substitutes for the salary capability;
+     // self portability remains available to the data subject.
+     if(request.subject_kind==='user'&&String(request.subject_id)!==String(user.id)&&!roleCan(user,'salary.view'))fail('La exportación de otro usuario requiere permiso para ver salarios',403);
      const data=await buildPersonalDataExport(c,{organizationId:org,subjectKind:request.subject_kind,subjectId:request.subject_id,organizationName:user.organization_name});
      await audit('export',{subjectKind:request.subject_kind,subjectId:request.subject_id,context:'request',details:{request_id:Number(id),format:url.searchParams.get('format')||'json'}});
      await c.query('commit');transaction=false;
