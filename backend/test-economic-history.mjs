@@ -196,11 +196,12 @@ export async function economicHistoryCases(db){
 export async function economicHistorySchema(db){
  const exec=db.exec||((sql)=>db.query(sql)),read=file=>readFile(new URL(file,import.meta.url),'utf8');
  await exec(await read('schema.sql'));
- for(const file of migrationOrder)if(!['20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql'].includes(file))await exec(await read('migrations/'+file));
+ for(const file of migrationOrder)if(!['20261018_economic_history.sql','20261018_commercial_same_month_revisions.sql','20261020_client_monthly_income.sql'].includes(file))await exec(await read('migrations/'+file));
  const org=(await db.query("insert into organizations(slug,name) values('history-legacy','Legacy') returning id")).rows[0].id;
  const person=(await db.query("insert into agency_collaborators(organization_id,full_name,compensation_type,compensation_amount,currency,started_on) values($1,'Legacy','fixed',123,'USD','2020-01-01') returning id",[org])).rows[0].id;
  await exec(await read('migrations/20261018_economic_history.sql'));await exec(await read('migrations/20261018_economic_history.sql'));
  await exec(await read('migrations/20261018_commercial_same_month_revisions.sql'));await exec(await read('migrations/20261018_commercial_same_month_revisions.sql'));
+ await exec(await read('migrations/20261020_client_monthly_income.sql'));await exec(await read('migrations/20261020_client_monthly_income.sql'));
  const baseline=(await db.query("select effective_from,source,after_state from agency_salary_history where organization_id=$1 and collaborator_id=$2",[org,person])).rows;
  assert.equal(baseline.length,1);assert.equal(baseline[0].effective_from,null);assert.equal(baseline[0].source,'legacy-baseline');assert.equal(baseline[0].after_state.amount,'123.00');
  const legacy=(await db.query("select agency_salary_at($1,$2,'2020-03-31') as salary",[org,person])).rows[0].salary;assert.equal(legacy.history_known,false);assert.equal(legacy.effective_from,null);

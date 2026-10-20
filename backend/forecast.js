@@ -98,10 +98,10 @@ const forecastSnapshot=async(db,organizationId,label)=>{
    json_agg(json_build_object('collaborator_id',collaborator_id,'user_id',user_id,'name',name,'photo_url',photo_url,'currency',currency,'compensation_type',compensation_type,'base_amount',base_amount,'override_amount',override_amount) order by name,collaborator_id) as members
   from included group by currency order by currency`,[organizationId,`${label}-01`]);
  const [contractedRecurring,collectedActual,commissionForecast,plannedExpenses]=await Promise.all([
-  db.query(`select t.currency,count(*)::int as client_count,coalesce(sum(coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint)),0)::text as amount
-   from agency_commercial_terms_for_month($1,$2::date) t join agency_clients c on c.organization_id=t.organization_id and c.id=t.client_id
-   where t.organization_id=$1 and t.cadence='monthly' and t.starts_on<($2::date+interval '1 month')::date and (t.ends_on is null or t.ends_on>=$2::date) and c.active=true and ${visibleRecord('c','clients')}
-   group by t.currency order by t.currency`,[organizationId,`${label}-01`]),
+  db.query(`select n.currency,count(*)::int as client_count,coalesce(sum(n.contracted_amount),0)::text as amount
+   from agency_client_income_for_month($1,$2::date) n join agency_clients c on c.organization_id=$1 and c.id=n.client_id
+   where c.active=true and ${visibleRecord('c','clients')}
+   group by n.currency order by n.currency`,[organizationId,`${label}-01`]),
   db.query(`with movements as (
     select a.currency,p.amount,p.received_on as booked_on from agency_payments p join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id where p.organization_id=$1
     union all
@@ -176,6 +176,7 @@ export async function financialForecast({req,res,url,db,session,send}) {
   const openingBalance=projectedSeries(await db.query('select currency,coalesce(sum(balance),0)::text as amount from bank_accounts where organization_id=$1 and active=true group by currency order by currency',[user.organization_id]));
   const contractedClients=(await db.query(`
    with bounds as (select $2::date as start_on,($2::date+interval '1 month')::date as end_on),
+   income as (select * from agency_client_income_for_month($1,$2::date)),
    terms as (
     select t.client_id,t.currency,t.invoice_required,t.ends_on::text as ends_on,coalesce(nullif(t.plan_name,''),pl.name) as plan_name,
      coalesce(t.recurring_amount,round(case when t.discount_type='percent' then t.monthly_price*(1-t.discount_value/100) when t.discount_type='fixed' then greatest(t.monthly_price-t.discount_value,0) else t.monthly_price end)::bigint) as contracted_amount
@@ -194,14 +195,19 @@ export async function financialForecast({req,res,url,db,session,send}) {
     from agency_clients c left join invoiced iv on iv.client_id=c.id
     where c.organization_id=$1 and c.active=true and ${visibleRecord('c','clients')}
      and not exists(select 1 from terms x where x.client_id=c.id)
+     and (iv.currency is not null or not exists(select 1 from income n where n.client_id=c.id))
    ), all_terms as (
     select * from terms union all select * from unplanned
-   )
-   select t.client_id::text as client_id,c.name as client_name,t.currency,t.contracted_amount,coalesce(i.invoiced_amount,0) as invoiced_amount,t.invoice_required,t.ends_on,t.plan_name,
-    (t.invoice_required and coalesce(i.invoiced_amount,0)=0) as missing_invoice
-   from all_terms t join agency_clients c on c.id=t.client_id and c.organization_id=$1
-   left join invoiced i on i.client_id=t.client_id and i.currency=t.currency
-   order by c.name,t.currency`,[user.organization_id,`${month}-01`,await companyCurrency(db,user.organization_id)])).rows.map(row=>projectMoney(row,['contracted_amount','invoiced_amount']));
+   ), keys as (select client_id,currency from all_terms union select client_id,currency from income)
+
+   select k.client_id::text as client_id,c.name as client_name,k.currency,coalesce(n.contracted_amount,0) as contracted_amount,coalesce(i.invoiced_amount,0) as invoiced_amount,coalesce(t.invoice_required,false) as invoice_required,t.ends_on,t.plan_name,
+    (coalesce(t.invoice_required,false) and coalesce(i.invoiced_amount,0)=0) as missing_invoice
+   from keys k join agency_clients c on c.id=k.client_id and c.organization_id=$1
+   left join all_terms t on t.client_id=k.client_id and t.currency=k.currency
+   left join income n on n.client_id=k.client_id and n.currency=k.currency
+   left join invoiced i on i.client_id=k.client_id and i.currency=k.currency
+   where c.active and ${visibleRecord('c','clients')}
+   order by c.name,k.currency`,[user.organization_id,`${month}-01`,await companyCurrency(db,user.organization_id)])).rows.map(row=>projectMoney(row,['contracted_amount','invoiced_amount']));
   const openingReceivables=await openingReceivableForecast(db,user.organization_id,month,months);
   const projection=projectionFor(snapshots,openingBalance,openingReceivables);
   send(res,200,{month,months,time_zone:forecastTimezone,records:projectedRecords,
@@ -218,7 +224,7 @@ export async function financialForecast({req,res,url,db,session,send}) {
     issued:'Totales con impuestos de facturas emitidas en el mes, incluidas las cobradas; excluye borradores y canceladas.',
     accepted_uninvoiced:'Presupuestos aceptados sin ninguna factura vinculada, estimados en el mes de aceptación. No tienen fecha de facturación confirmada.',
     exclusions:'Sin oportunidades comerciales, conversiones de moneda ni cobros previstos. Un presupuesto con factura vinculada, incluso borrador o cancelada, no se vuelve a sumar. Los aceptados sin fecha se informan aparte.',
-    contracted_recurring:'Solo acuerdos mensuales fijos de clientes activos al cierre del mes: empezaron antes de fin de mes y no tienen fecha de fin, o su fin cae dentro del mes. Contratos por única vez o cada varios meses no se proyectan como ingreso mensual. Es ingreso contractual y no representa una factura ni un cobro.',
+    contracted_recurring:'Base de acuerdos mensuales o importe manual por mes/moneda, más extras del mes. Los extras no se repiten en meses siguientes. Solo acuerdos mensuales fijos de clientes activos al cierre del mes: empezaron antes de fin de mes y no tienen fecha de fin, o su fin cae dentro del mes. Contratos por única vez o cada varios meses no se proyectan como ingreso mensual. Es ingreso contractual y no representa una factura ni un cobro.',
     invoiced:'Facturas emitidas en el mes. Se informa por separado del ingreso contractual y de los cobros.',
     collected_actual:'Cobros efectivamente registrados por fecha de cobro, menos reversiones registradas en el mes. No se suma al ingreso contractual.',
     personnel:'Incluye colaboradores activos dentro de las fechas laborales de cada mes. El salario base corresponde a la modalidad fijo mensual con importe acordado; los ajustes del mes son extras o descuentos por persona para ese mes. No incluye pagos, comisiones ni compensaciones de otras modalidades.',
