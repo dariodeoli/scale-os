@@ -45,3 +45,13 @@ test('legacy invoice receipts remain paginated and expose audited date correctio
  await act(async()=>buttons().find(button=>button.children.includes('Fecha'))!.props.onClick());await act(async()=>{await editor!.save({reason:'Fecha cargada incorrectamente',receivedOn:'2026-09-30'});await tick();});assert.equal(writes[0].path,'/api/agency/payments/legacy-1/date-correction');assert.equal(writes[0].body.receivedOn,'2026-09-30');assert.equal(writes[0].body.reason,'Fecha cargada incorrectamente');assert.match(String(writes[0].body.requestId),/^[a-f0-9-]{36}$/);
  }finally{act(()=>renderer?.unmount());}
 });
+
+test('a partial successful collections payload never commits broken context or enables receiving money',async()=>{
+ const before=globalThis.fetch;
+ try{for(const broken of ['context','receipts','receivables']){clearDataCache();let invalid=true;let renderer:ReactTestRenderer|undefined;
+  globalThis.fetch=async input=>{const path=String(input);if(path.includes('/context'))return response(invalid&&broken==='context'?{clients:[]}:{clients:[],projects:[],plans:[],accounts:[],invoices:[]});if(path.includes('/receipts?'))return response(invalid&&broken==='receipts'?{receipts:null}:{receipts:[],hasMore:false});if(path.includes('/opening-receivables'))return response(invalid&&broken==='receivables'?{receivables:{}}:{receivables:[]});return response({clients:[],hasMore:false});};
+  try{await act(async()=>{renderer=create(<FinanceCollections user={user}/>);await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/datos incompletos de cobranza/);assert.equal(renderer!.root.findAllByType('button').find(node=>node.children.includes('Recibir pago'))!.props.disabled,true);assert.doesNotMatch(JSON.stringify(renderer!.toJSON()),/Sin cobros registrados/);
+   invalid=false;await act(async()=>{renderer!.root.findAllByType('button').find(node=>node.children.includes('Reintentar'))!.props.onClick();await tick();});assert.match(JSON.stringify(renderer!.toJSON()),/Sin cobros registrados/);assert.equal(renderer!.root.findAllByType('button').find(node=>node.children.includes('Recibir pago'))!.props.disabled,false);
+  }finally{act(()=>renderer?.unmount());}
+ }}finally{globalThis.fetch=before;clearDataCache();}
+});
