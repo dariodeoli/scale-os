@@ -15,6 +15,11 @@ import type {Currency} from './currencies';
 export type ClientPaymentStatus = {
   client_id: string;
   client_name: string;
+  client_logo_url?:string|null;
+  verification_status?:'pending_review'|'reviewed';
+  verification_month?:string;
+  verification_revision?:number;
+  payment_evidence_count?:number;
   currency: Currency | null;
   outstanding_amount: string;
   next_due_on: string | null;
