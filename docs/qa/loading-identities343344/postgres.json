@@ -1,0 +1,28 @@
+{
+  "productionWrites": false,
+  "database": "Local temporary PostgreSQL 17 clusters; removed by runner",
+  "checks": [
+    {
+      "command": "npm --prefix backend run test:postgres",
+      "exitCode": 0,
+      "evidence": [
+        "PASS: concurrent payments cannot overpay an invoice and concurrent transfers cannot overdraw an account",
+        "CLEANUP stopped and removed /tmp/scale-treasury-pg-9RIGdZ",
+        "PASS inventory photo HTTP: proxy/core-api round-trips, original bytes/stamp0, manual/follow, audited read-only recovery/clear boundaries, legacy cycles finite, cross-item/tenant/roles, external HTTPS, upload/clear/archive",
+        "PASS historical inactive custody: unchanged identity edits return 200; new inactive/foreign assignments remain 400",
+        "PASS tenant reads/writes/membership isolation; custody, return locations and exact version increments",
+        "PASS direct inventory_no_overlapping_reservations: PIDs 31439, 31438 -> committed, 23P01",
+        "PASS real PostgreSQL: seven handler races plus direct constraint race; real localhost HTTP; no PGlite, UI or production connection",
+        "CLEANUP stopped and removed /tmp/scale-inventory-pg-T6BkkK"
+      ]
+    },
+    {
+      "command": "npm --prefix backend run test:finance-postgres",
+      "exitCode": 0,
+      "evidence": [
+        "PASS real PostgreSQL finance: observed close/write and write/close advisory blocking, exact snapshots/no escaped backdates, duplicate receipt idempotency, observed application row-lock race with one winner and no overpayment or duplicate cash",
+        "CLEANUP finance fixture cluster stopped and removed"
+      ]
+    }
+  ]
+}

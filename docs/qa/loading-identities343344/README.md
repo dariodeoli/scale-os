@@ -11,7 +11,11 @@
 
 ## Evidencia y límites
 
-Los agentes reprodujeron fallos contra la base anterior y ejecutaron pruebas focales. El candidato integrado tendrá regresión, build, backend, PostgreSQL de tesorería y revisión de navegador. Los resultados finales se registran en este directorio.
+Los agentes reprodujeron fallos contra la base anterior y ejecutaron pruebas focales. `results.json` registra 12 escenarios de Chromium (4 flujos por 3 viewports: 320, 768 y 1440), con SHA de referencia y hashes de fuentes exactas antes de compilar. Las capturas muestran selección de cliente, banco, receptor y custodio, y cuentas con saldo largo. El fixture de esta prueba no valida la previsión financiera; las capturas de cuentas están recortadas a la sección validada.
+
+`postgres.json` registra las comprobaciones con PostgreSQL 17 real: tesorería/concurrencia/inventario y períodos financieros, sin conexión a producción. El test de navegador es repetible y está registrado en la regresión como `tests/loading-identities-343-browser.test.mjs`.
+
+La regresión completa, build, backend, estado del CI e integración/publicación se siguen en [PR #349](https://github.com/dariodeoli/scale-os/pull/349). La versión candidata 1.0.204 se preparó con un solo incremento; no se repite el bump al continuar una validación.
 
 La causa exacta del error autenticado de producción no se presume: se solicitó el mensaje y rol al dueño. Las pruebas locales no son pruebas con su sesión. No hubo escrituras financieras de producción.
 
