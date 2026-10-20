@@ -1,0 +1,50 @@
+{
+  "version": "1.0.202",
+  "buildId": "m8SndMwa8q-iPI5-uUKun",
+  "checkedAt": "2026-10-20T07:09:21.923Z",
+  "checks": [
+    {
+      "path": "/documentacion",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "robots": null,
+      "csp": true,
+      "verified": true
+    },
+    {
+      "path": "/documentacion/mcp",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "robots": null,
+      "csp": true,
+      "verified": true
+    },
+    {
+      "path": "/documentacion/api",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "robots": null,
+      "csp": true,
+      "verified": true
+    },
+    {
+      "path": "/fonts/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2",
+      "status": 200,
+      "contentType": "font/woff2",
+      "robots": null,
+      "csp": true,
+      "verified": true
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "contentType": "application/xml",
+      "robots": null,
+      "csp": true,
+      "verified": true
+    }
+  ],
+  "limits": [
+    "Landing canonical host rewrite is verified by middleware tests and static browser; next start configured for localhost rewrites its strict-host handler onto localhost. Public landing checked after deployment."
+  ]
+}

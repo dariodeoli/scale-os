@@ -1,0 +1,61 @@
+{
+  "verifiedAt": "2026-10-20T07:31:26.018Z",
+  "version": "1.0.202",
+  "mainSha": "4530281ebb4bbb909f75afc02e9d00ccf9f3b057",
+  "candidate": "d6938ffebb7c3570fb68d8aa27fae75a74349255",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "canonical": "https://sistema.scaleparaguay.com/",
+      "robots": null,
+      "contentType": "text/html; charset=utf-8",
+      "verified": true
+    },
+    {
+      "path": "/documentacion",
+      "status": 200,
+      "canonical": "https://sistema.scaleparaguay.com/documentacion",
+      "robots": null,
+      "contentType": "text/html; charset=utf-8",
+      "verified": true
+    },
+    {
+      "path": "/documentacion/mcp",
+      "status": 200,
+      "canonical": "https://sistema.scaleparaguay.com/documentacion/mcp",
+      "robots": null,
+      "contentType": "text/html; charset=utf-8",
+      "verified": true
+    },
+    {
+      "path": "/documentacion/api",
+      "status": 200,
+      "canonical": "https://sistema.scaleparaguay.com/documentacion/api",
+      "robots": null,
+      "contentType": "text/html; charset=utf-8",
+      "verified": true
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "canonical": null,
+      "robots": null,
+      "contentType": "application/xml",
+      "verified": true
+    },
+    {
+      "path": "/fonts/s/outfit/v15/QGYvz_MVcBeNP4NJtEtqUYLknw.woff2",
+      "status": 200,
+      "canonical": null,
+      "robots": null,
+      "contentType": "font/woff2",
+      "verified": true
+    }
+  ],
+  "limits": [
+    "Read-only anonymous HTTP; no production writes or OAuth grants",
+    "Version is public; provider container SHA is not exposed",
+    "Real Claude/ChatGPT account verification remains issue312"
+  ]
+}

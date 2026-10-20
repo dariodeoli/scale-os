@@ -1,0 +1,16 @@
+
+> scale-os@1.0.202 release:smoke
+> node build-tools/release-smoke.mjs
+
+PASS: Scale OS público (200)
+PASS: Registro público (200)
+PASS: API de Scale OS (200)
+PASS: Sesión anónima por proxy web (401)
+PASS: Proveedores de acceso por proxy web (200)
+PASS: Mantenimiento por proxy web (200)
+Smoke test público aprobado para Scale OS v1.0.202.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

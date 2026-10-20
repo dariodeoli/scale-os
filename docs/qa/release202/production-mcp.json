@@ -1,0 +1,97 @@
+{
+  "verifiedAt": "2026-10-20T07:44:22.274Z",
+  "release": "1.0.202",
+  "candidate": "d6938ffebb7c3570fb68d8aa27fae75a74349255",
+  "mainSha": "4530281ebb4bbb909f75afc02e9d00ccf9f3b057",
+  "checks": [
+    {
+      "name": "API health",
+      "url": "https://api.scaleparaguay.com/health",
+      "status": 200,
+      "verified": true,
+      "data": {
+        "ok": true,
+        "database": "ready",
+        "release": {
+          "version": "1.0.202",
+          "application": "Scale OS"
+        }
+      }
+    },
+    {
+      "name": "resource metadata",
+      "url": "https://api.scaleparaguay.com/.well-known/oauth-protected-resource/mcp",
+      "status": 200,
+      "verified": true,
+      "data": {
+        "resource": "https://api.scaleparaguay.com/mcp",
+        "authorization_servers": [
+          "https://api.scaleparaguay.com"
+        ],
+        "scopes_supported": [
+          "scale:read",
+          "scale:write"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "resource_name": "Scale OS"
+      }
+    },
+    {
+      "name": "authorization metadata",
+      "url": "https://api.scaleparaguay.com/.well-known/oauth-authorization-server",
+      "status": 200,
+      "verified": true,
+      "data": {
+        "issuer": "https://api.scaleparaguay.com",
+        "authorization_endpoint": "https://api.scaleparaguay.com/oauth/authorize",
+        "token_endpoint": "https://api.scaleparaguay.com/oauth/token",
+        "registration_endpoint": "https://api.scaleparaguay.com/oauth/register",
+        "revocation_endpoint": "https://api.scaleparaguay.com/oauth/revoke",
+        "response_types_supported": [
+          "code"
+        ],
+        "grant_types_supported": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "token_endpoint_auth_methods_supported": [
+          "none"
+        ],
+        "code_challenge_methods_supported": [
+          "S256"
+        ],
+        "scopes_supported": [
+          "scale:read",
+          "scale:write"
+        ]
+      }
+    },
+    {
+      "name": "unauthenticated MCP",
+      "url": "https://api.scaleparaguay.com/mcp",
+      "status": 401,
+      "verified": true,
+      "wwwAuthenticate": "Bearer resource_metadata=\"https://api.scaleparaguay.com/.well-known/oauth-protected-resource/mcp\", error=\"invalid_token\", scope=\"scale:read scale:write\""
+    },
+    {
+      "name": "anonymous connections via app proxy",
+      "url": "https://app.scaleparaguay.com/core-api/api/agency/mcp/connections",
+      "status": 401,
+      "verified": true
+    },
+    {
+      "name": "consent page",
+      "url": "https://app.scaleparaguay.com/mcp/autorizar",
+      "status": 200,
+      "verified": true
+    }
+  ],
+  "limits": [
+    "No authenticated production writes or OAuth grants created",
+    "No actual Claude/ChatGPT account linked",
+    "Public health/footer expose version, not provider build SHA; main SHA and CI are recorded separately",
+    "Canonical REST implicit-plan retry remains issue322; MCP requires explicit plan ID"
+  ]
+}

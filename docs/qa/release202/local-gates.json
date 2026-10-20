@@ -1,0 +1,25 @@
+{
+  "version": "1.0.202",
+  "candidate": "d6938ffebb7c3570fb68d8aa27fae75a74349255",
+  "builtCommit": "0a4ecf3680d11be7d6cfc7d433fe9112fbe2c8e2",
+  "buildId": "m8SndMwa8q-iPI5-uUKun",
+  "sources": {
+    "app": "4d61238a6ec979114ae0d5835e60d3b028104f75",
+    "public": "a0256b9519e09844872779691950baf6a3a66dce",
+    "middleware.ts": "4ef2a4f6b11d5f0f95742fe239c131dbfaa5c66c",
+    "next.config.mjs": "110f5376ead96349bf9f1fe0efd23812e81219a0",
+    "package-lock.json": "94dad76649c87353f9e0b855699e222e9a591001"
+  },
+  "frontendEntries": 286,
+  "staticPages": 69,
+  "backendRelease": "PASS, command completed exit0",
+  "typescript": "PASS",
+  "initialAssets": "PASS",
+  "productionDocsCases": 24,
+  "canonicalHostHttpChecks": 5,
+  "limits": [
+    "Chromium emulation, not physical device/Safari",
+    "External Claude/ChatGPT account connection remains issue312",
+    "Local next-start strict-host landing emulation is separate from final public deployment"
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "passed": true,
+  "paths": [
+    "/documentacion",
+    "/documentacion/mcp",
+    "/documentacion/api"
+  ],
+  "results": [
+    {
+      "theme": "light",
+      "width": 320,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(250, 249, 252)"
+    },
+    {
+      "theme": "dark",
+      "width": 320,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 320,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 320,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "pathname": "/documentacion",
+      "passed": true,
+      "tocLinks": 3,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "pathname": "/documentacion/mcp",
+      "passed": true,
+      "tocLinks": 6,
+      "themeColor": "rgb(23, 18, 28)"
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "pathname": "/documentacion/api",
+      "passed": true,
+      "tocLinks": 4,
+      "themeColor": "rgb(23, 18, 28)"
+    }
+  ],
+  "errors": [],
+  "blocked": [],
+  "limitations": [
+    "Chromium viewport emulation only; no physical device or Safari",
+    "Local Next server and real CSS; no production writes",
+    "Real Claude/ChatGPT connection is not tested (#312)",
+    "Host routing/SEO must be validated separately"
+  ]
+}
