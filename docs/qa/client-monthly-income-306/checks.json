@@ -1,0 +1,36 @@
+{
+  "issue": 306,
+  "environment": "local PGlite synthetic fixtures",
+  "checks": {
+    "monthlyIncome": {
+      "exitCode": 0,
+      "lastPass": "PASS client monthly income: 44 handler calls; no-plan/base/extras/month movement, plan override/fallback, zero, currencies, balance/forecast no double-count, audit, idempotence, tenant/roles/archive/revisions and closed-period/direct-write guards; zero cash/invoice writes",
+      "sha256": "533daf7ad4aa6dd6207828a72de39681132aa087281372d2e7928bbda8a094f0",
+      "localLog": "/tmp/income306-api.log"
+    },
+    "economicHistory": {
+      "exitCode": 0,
+      "lastPass": "PASS economic history: two dated salary/plan changes preserve prior months; exact client receipts vs invoice applications vs unallocated cash; no ledger changes; salary redaction, tenant, revisions, retries, closed-period guards",
+      "sha256": "88aebe327ff3c25ddfb75f6372ed99e3a7b94b69305a06a0070c7842f2ff19d2",
+      "localLog": "/tmp/income306-economic.log"
+    },
+    "forecast": {
+      "exitCode": 0,
+      "lastPass": "PASS: forecast dates, timezone, fixed-salary authorization, signed salary overrides and per-person members, commercial-term role and integer validation, auditable planned-expense recurrence, revenue/payment segregation, leap/year boundaries, exact totals, zero, no pipeline, invoice/budget dedup, cancelled/draft/archive exclusion, role and tenant isolation; multi-month cash projection and estimated result per currency, contracted versus invoiced per client, six default currencies, partial settings, new versus existing records, real expenses with debits, cash movements, idempotent reversals and tenant isolation, prior-month advances and unrelated receipts, explicit scheduling of prior receivables without new revenue, undated/excluded balances and exact source amounts, no external writes",
+      "sha256": "f36ebf535cb141f958a4eae85e91c7118c1d64461548e78e40da8d4259489da6",
+      "localLog": "/tmp/income306-forecast.log"
+    },
+    "migrationRelease": {
+      "exitCode": 0,
+      "lastPass": "PASS: schema + 117 server-registered migrations with tracked restart, session identity initialization, real reactivation/HR sync, demo isolation, assignee flow, inventory/checklist relations; optional Dadoo excluded",
+      "sha256": "b2edc3d9d35d5a67989668b342356566abb5a78ba0dda8da7810bde7270c9ef4",
+      "localLog": "/tmp/income306-migrations.log"
+    }
+  },
+  "unrun": [
+    "full integrated release/CI/deploy: integrator responsibility",
+    "physical devices"
+  ],
+  "cashWrites": 0,
+  "invoiceWrites": 0
+}
