@@ -345,7 +345,7 @@
     {
       "file": "app/documentacion/mcp/page.tsx",
       "beforeHash": null,
-      "afterHash": "ffc2fbd67076bd8406354b36c3bec485777937b9956301735a4257504e7f47a9",
+      "afterHash": "337695a0b25e16faaf7aabcc4087f68b877db8a9a13a3526c8f74eb885567f65",
       "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
     },
     {
@@ -1801,7 +1801,7 @@
   ],
   "issue330": {
     "baseline": "4530281ebb4bbb909f75afc02e9d00ccf9f3b057",
-    "integrationHead": "1e02a62422a9aa8e6868941ba4589c8b18e5343e",
+    "integrationHead": "68a9a230e546a0ff72111ca751a7d67b077d3f3b",
     "baselineCanonicalMetadataCorrections": [],
     "canonicalActions": 634,
     "newCanonicalActions": 8,
