@@ -1,3 +1,4 @@
+import {createMcpIntegration} from './mcp-server.js';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -289,7 +290,8 @@ async function init() {
      "20261018_client_contacts.sql",
      "20261020_inventory_external_owner.sql",
      "20261020_client_monthly_income.sql",
-     "20261020_list_column_preferences.sql"
+     "20261020_list_column_preferences.sql",
+     "20261020_mcp_connections.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -372,14 +374,18 @@ function cors(req, res) {
   res.setHeader('Vary', 'Origin');
   return true;
 }
+const mcpIntegration=createMcpIntegration({db,session});
 const server = http.createServer(async (req,res) => {
   security(res);
-  if (!cors(req, res)) return send(res,403,{error:'Origen no permitido'});
-  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   const startedAt = Date.now();
   const requestId = crypto.randomBytes(8).toString('hex');
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
+    // MCP uses OAuth Bearer tokens, never browser cookies. Its public OAuth
+    // endpoints own their credential-free CORS and canonical Host policy.
+    if(await mcpIntegration.handle(req,res,url))return;
+    if (!cors(req, res)) return send(res,403,{error:'Origen no permitido'});
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
     if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
     // Check demo effects before any handler can send invitations or call a provider.
     if(await demoEffectGate({req,res,url,session,send}))return;
