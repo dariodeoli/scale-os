@@ -46,8 +46,8 @@ export type ClientFieldOptions={
 export function clientFields({mode,plan=null,planRequired=false,restricted=false,rucLookup,rucAfter}:ClientFieldOptions):Field[]{
   const S=CLIENT_SECTIONS;
   const fields:Field[]=[
-    {key:'tax_id',label:'RUC',optional:true,section:S.identity,span:4,maxLength:14,disabled:restricted,validate:taxIdError,help:'Enter o Buscar consulta el RUC. Revisá y aplicá la razón social; también podés completar manualmente.',lookup:rucLookup,after:rucAfter},
-    {key:'legal_name',label:'Razón social / nombre legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted,help:'Se completa al aplicar la consulta y sigue siendo editable. Si falta, los contratos usan el nombre del cliente.'},
+    {key:'tax_id',label:'RUC',optional:true,section:S.identity,span:4,maxLength:14,disabled:restricted,validate:taxIdError,help:restricted?'Dato fiscal protegido según tus permisos.':rucLookup?'Enter o Buscar consulta el RUC. Revisá y aplicá la razón social; también podés completar manualmente.':'Ingresá el RUC si lo conocés. Podés completar la razón social manualmente.',lookup:rucLookup,after:rucAfter},
+    {key:'legal_name',label:'Razón social / nombre legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted,help:restricted?'Dato legal protegido según tus permisos.':rucLookup?'Se completa al aplicar la consulta y sigue siendo editable. Si falta, los contratos usan el nombre del cliente.':'Escribí la razón social o el nombre legal. Si falta, los contratos usan el nombre del cliente.'},
     {key:'name',label:'Nombre del cliente',section:S.identity,span:6,maxLength:120,validate:nameError},
     ...(mode==='edit'?[{key:'lifecycle_status',label:'Estado del servicio',section:S.identity,choices:clientStatuses,help:'Pausar o cancelar el cliente pausa o cancela sus proyectos activos.'} as Field]:[]),
     {key:'legal_representative_name',label:'Responsable legal',optional:true,section:S.legal,span:6,maxLength:160,disabled:restricted||(values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'),valueFrom:values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'?clientLegalName(values):undefined},

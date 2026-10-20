@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {clientFields} from '../app/client-editor-data';
+const fields=(options:Parameters<typeof clientFields>[0])=>new Map(clientFields(options).map(field=>[field.key,field]));
+const manual=fields({mode:'create'});
+assert.equal(manual.get('tax_id')?.lookup,undefined);
+assert(!String(manual.get('tax_id')?.help).includes('Buscar'));
+assert(!String(manual.get('legal_name')?.help).includes('consulta'));
+assert(String(manual.get('tax_id')?.help).includes('manualmente'));
+const lookup={label:'Buscar',run:async()=>({})};
+const internal=fields({mode:'create',rucLookup:lookup});
+assert.equal(internal.get('tax_id')?.lookup,lookup);
+assert(String(internal.get('tax_id')?.help).includes('Enter o Buscar'));
+const restricted=fields({mode:'edit',restricted:true,rucLookup:lookup});
+assert(String(restricted.get('tax_id')?.help).includes('protegido'));
+assert(String(restricted.get('legal_name')?.help).includes('protegido'));
+assert(!String(restricted.get('tax_id')?.help).includes('Buscar'));
+console.log('PASS intake RUC help: manual/no lookup, enabled internal lookup and protected fields describe only available actions.');

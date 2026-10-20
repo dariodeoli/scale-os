@@ -1,0 +1,351 @@
+{
+  "results": [
+    {
+      "step": "permissions-initial",
+      "width": 320,
+      "scrollWidth": 320,
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 320,
+          "width": 320
+        }
+      ],
+      "active": null
+    },
+    {
+      "step": "permission-write",
+      "width": 320,
+      "scrollWidth": 320,
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 320,
+          "width": 320
+        }
+      ],
+      "active": null
+    },
+    {
+      "width": 320,
+      "step": "AI-shortcut-live-expiry",
+      "pass": true
+    },
+    {
+      "width": 320,
+      "step": "public-intake-invalid-feedback",
+      "alerts": [
+        {
+          "text": "Revisá esta sección: Identidad fiscal (1)Nombre del cliente: Completá nombre del clienteAutorizo a la empresa que me compartió el enlace a revisar estos datos p",
+          "top": 0.265625,
+          "visible": true
+        },
+        {
+          "text": "Confirmá la autorización para enviar.",
+          "top": 324.828125,
+          "visible": true
+        },
+        {
+          "text": "Completá nombre del cliente",
+          "top": 739.78125,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "step": "client-intake-basic",
+      "width": 320,
+      "scrollWidth": 320,
+      "dialogs": [],
+      "active": null
+    },
+    {
+      "width": 320,
+      "step": "public-client-local-submit",
+      "pass": true
+    },
+    {
+      "step": "permissions-initial",
+      "width": 390,
+      "scrollWidth": 390,
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 390,
+          "width": 390
+        }
+      ],
+      "active": null
+    },
+    {
+      "step": "permission-write",
+      "width": 390,
+      "scrollWidth": 390,
+      "dialogs": [
+        {
+          "left": 0,
+          "right": 390,
+          "width": 390
+        }
+      ],
+      "active": null
+    },
+    {
+      "width": 390,
+      "step": "AI-shortcut-live-expiry",
+      "pass": true
+    },
+    {
+      "width": 390,
+      "step": "public-intake-invalid-feedback",
+      "alerts": [
+        {
+          "text": "Revisá esta sección: Identidad fiscal (1)Nombre del cliente: Completá nombre del clienteAutorizo a la empresa que me compartió el enlace a revisar estos datos p",
+          "top": 31.96875,
+          "visible": true
+        },
+        {
+          "text": "Confirmá la autorización para enviar.",
+          "top": 317.53125,
+          "visible": true
+        },
+        {
+          "text": "Completá nombre del cliente",
+          "top": 714.484375,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "step": "client-intake-basic",
+      "width": 390,
+      "scrollWidth": 390,
+      "dialogs": [],
+      "active": null
+    },
+    {
+      "width": 390,
+      "step": "public-client-local-submit",
+      "pass": true
+    },
+    {
+      "step": "permissions-initial",
+      "width": 768,
+      "scrollWidth": 768,
+      "dialogs": [
+        {
+          "left": 20,
+          "right": 748,
+          "width": 728
+        }
+      ],
+      "active": null
+    },
+    {
+      "step": "permission-write",
+      "width": 768,
+      "scrollWidth": 768,
+      "dialogs": [
+        {
+          "left": 20,
+          "right": 748,
+          "width": 728
+        }
+      ],
+      "active": null
+    },
+    {
+      "width": 768,
+      "step": "AI-shortcut-live-expiry",
+      "pass": true
+    },
+    {
+      "width": 768,
+      "step": "public-intake-invalid-feedback",
+      "alerts": [
+        {
+          "text": "Revisá esta sección: Identidad fiscal (1)Nombre del cliente: Completá nombre del clienteAutorizo a la empresa que me compartió el enlace a revisar estos datos p",
+          "top": 0.375,
+          "visible": true
+        },
+        {
+          "text": "Confirmá la autorización para enviar.",
+          "top": 203.25,
+          "visible": true
+        },
+        {
+          "text": "Completá nombre del cliente",
+          "top": 530.046875,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "step": "client-intake-basic",
+      "width": 768,
+      "scrollWidth": 768,
+      "dialogs": [],
+      "active": null
+    },
+    {
+      "width": 768,
+      "step": "public-client-local-submit",
+      "pass": true
+    },
+    {
+      "step": "permissions-initial",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "dialogs": [
+        {
+          "left": 310,
+          "right": 1130,
+          "width": 820
+        }
+      ],
+      "active": null
+    },
+    {
+      "step": "permission-write",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "dialogs": [
+        {
+          "left": 310,
+          "right": 1130,
+          "width": 820
+        }
+      ],
+      "active": null
+    },
+    {
+      "width": 1440,
+      "step": "AI-shortcut-live-expiry",
+      "pass": true
+    },
+    {
+      "width": 1440,
+      "step": "public-intake-invalid-feedback",
+      "alerts": [
+        {
+          "text": "Revisá esta sección: Identidad fiscal (1)Nombre del cliente: Completá nombre del clienteAutorizo a la empresa que me compartió el enlace a revisar estos datos p",
+          "top": 0.078125,
+          "visible": true
+        },
+        {
+          "text": "Confirmá la autorización para enviar.",
+          "top": 183.453125,
+          "visible": true
+        },
+        {
+          "text": "Completá nombre del cliente",
+          "top": 510.25,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "step": "client-intake-basic",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "dialogs": [],
+      "active": null
+    },
+    {
+      "width": 1440,
+      "step": "public-client-local-submit",
+      "pass": true
+    }
+  ],
+  "writes": [
+    {
+      "path": "/core-api/api/agency/members/2/permissions",
+      "method": "PATCH",
+      "data": {
+        "capability": "clients.manage",
+        "allowed": false
+      }
+    },
+    {
+      "path": "/core-api/api/public/client-intake/local-fixture-basic",
+      "method": "POST",
+      "data": {
+        "name": "Cliente sintético QA",
+        "email": "",
+        "phone": "",
+        "tax_id": "",
+        "legal_name": "",
+        "consent": true,
+        "website": ""
+      }
+    },
+    {
+      "path": "/core-api/api/agency/members/2/permissions",
+      "method": "PATCH",
+      "data": {
+        "capability": "clients.manage",
+        "allowed": false
+      }
+    },
+    {
+      "path": "/core-api/api/public/client-intake/local-fixture-basic",
+      "method": "POST",
+      "data": {
+        "name": "Cliente sintético QA",
+        "email": "",
+        "phone": "",
+        "tax_id": "",
+        "legal_name": "",
+        "consent": true,
+        "website": ""
+      }
+    },
+    {
+      "path": "/core-api/api/agency/members/2/permissions",
+      "method": "PATCH",
+      "data": {
+        "capability": "clients.manage",
+        "allowed": false
+      }
+    },
+    {
+      "path": "/core-api/api/public/client-intake/local-fixture-basic",
+      "method": "POST",
+      "data": {
+        "name": "Cliente sintético QA",
+        "email": "",
+        "phone": "",
+        "tax_id": "",
+        "legal_name": "",
+        "consent": true,
+        "website": ""
+      }
+    },
+    {
+      "path": "/core-api/api/agency/members/2/permissions",
+      "method": "PATCH",
+      "data": {
+        "capability": "clients.manage",
+        "allowed": false
+      }
+    },
+    {
+      "path": "/core-api/api/public/client-intake/local-fixture-basic",
+      "method": "POST",
+      "data": {
+        "name": "Cliente sintético QA",
+        "email": "",
+        "phone": "",
+        "tax_id": "",
+        "legal_name": "",
+        "consent": true,
+        "website": ""
+      }
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "fixture": true,
+  "productionWrites": false,
+  "sourceSha": "09b4d8ee"
+}
