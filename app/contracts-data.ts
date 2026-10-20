@@ -1,3 +1,4 @@
+import {friendlyTransportError} from './data-cache';
 export type ContractSource={source:string;record_id?:string;verified_at?:string};
 export type ContractModel={key:string;name:string;agreement_type:string;body:string;required_fields:string[]};
 export type ContractTemplate={id:string;name:string;agreement_type:string;body:string;required_fields:string[];revision:number};
@@ -6,9 +7,11 @@ export type ContractVersion={id:string;version:number;created_at:string};
 export type ContractConfig={capabilities:{view:boolean;create:boolean;edit:boolean;templates_manage:boolean;issue:boolean;bank_data_view:boolean;assist:boolean};clients:{id:string;name:string;legal_name?:string|null;logo_url?:string|null}[];collaborators:{id:string;name:string;photo_url?:string|null}[];bank_accounts:{id:string;name:string}[];budgets?:{id:string;name:string;client_id:string}[];plans?:{id:string;name:string}[]};
 export class ContractRequestError extends Error{constructor(message:string,public status:number){super(message);}}
 export async function contractRequest<T>(path:string,body?:unknown,method='POST',signal?:AbortSignal):Promise<T>{
- const response=await fetch(`/core-api${path}`,{method:body===undefined?'GET':method,credentials:'include',cache:'no-store',signal,headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
- const data=await response.json().catch(()=>({error:'El servidor devolvió una respuesta inválida.'}));
- if(!response.ok)throw new ContractRequestError(response.status===409?'El documento cambió en otra sesión. Tu edición se conserva; recargá explícitamente para usar la versión actual.':data.error||'No se pudo completar la operación.',response.status);
+ let response:Response;
+ try{response=await fetch(`/core-api${path}`,{method:body===undefined?'GET':method,credentials:'include',cache:'no-store',signal:signal??(body===undefined?AbortSignal.timeout(15000):undefined),headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});}catch(cause){throw friendlyTransportError(cause);}
+ let data:unknown;
+ try{data=await response.json();}catch{throw new ContractRequestError(response.ok?'El servidor devolvió una respuesta inválida. Reintentá.':response.status>=500?'El servidor no pudo completar la operación. Probá de nuevo en unos segundos.':`No se pudo completar la operación (HTTP ${response.status}).`,response.status);}
+ if(!response.ok)throw new ContractRequestError(response.status===409?'El documento cambió en otra sesión. Tu edición se conserva; recargá explícitamente para usar la versión actual.':isRecord(data)&&typeof data.error==='string'?data.error:'No se pudo completar la operación.',response.status);
  return data as T;
 }
 export const contractMessage=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la operación.';
@@ -30,4 +33,23 @@ export function mergeContractAutofill(draft:ContractRecord,incoming:{variables:R
  const variables={...draft.variables},sources={...draft.sources};
  for(const [key,value] of Object.entries(incoming.variables))if(value.trim()&&(replace||!variables[key]?.trim())){variables[key]=value;sources[key]=incoming.sources[key]||{source:'manual'};}
  return {...draft,variables,sources};
+}
+
+const isRecord=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
+const named=(row:unknown)=>isRecord(row)&&(typeof row.id==='string'||typeof row.id==='number')&&typeof row.name==='string';
+const invalid=()=>new Error('El servidor devolvió datos incompletos de contratos. Reintentá.');
+/** Validate before committing state: an HTML/partial success must stay a retryable error. */
+export function contractConfig(value:unknown):ContractConfig{
+ if(!isRecord(value)||!isRecord(value.capabilities)||typeof value.capabilities.view!=='boolean')throw invalid();
+ if(value.capabilities.view===false)return value as ContractConfig;
+ if(!['create','edit','templates_manage','issue','bank_data_view','assist'].every(key=>typeof (value.capabilities as Record<string,unknown>)[key]==='boolean')||!['clients','collaborators','bank_accounts'].every(key=>Array.isArray(value[key])&&(value[key] as unknown[]).every(named))||!['budgets','plans'].every(key=>value[key]===undefined||Array.isArray(value[key])&&(value[key] as unknown[]).every(named)))throw invalid();
+ return value as ContractConfig;
+}
+export function contractList(value:unknown):ContractRecord[]{
+ if(!isRecord(value)||!Array.isArray(value.contracts)||!value.contracts.every(row=>isRecord(row)&&(typeof row.id==='string'||typeof row.id==='number')&&typeof row.title==='string'))throw invalid();
+ return value.contracts as ContractRecord[];
+}
+export function contractTemplates(value:unknown):{templates:ContractTemplate[];variables:string[]}{
+ if(!isRecord(value)||!Array.isArray(value.templates)||!value.templates.every(row=>named(row)&&isRecord(row)&&typeof row.body==='string'&&Array.isArray(row.required_fields)&&row.required_fields.every(key=>typeof key==='string'))||!Array.isArray(value.variables)||!value.variables.every(key=>typeof key==='string'))throw invalid();
+ return value as {templates:ContractTemplate[];variables:string[]};
 }
