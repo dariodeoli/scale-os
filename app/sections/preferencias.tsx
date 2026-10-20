@@ -1,4 +1,5 @@
 "use client";
+import dynamic from 'next/dynamic';
 import {Notice as Aviso} from '../ui/notice';
 
 
@@ -22,6 +23,7 @@ type PreferenciasSectionProps = {
   updatePreferences: (change: Partial<WorkspacePreferences>) => void;
 };
 
+const McpConnections=dynamic(()=>import('../mcp-connections').then(m=>m.McpConnections),{loading:()=> <LoadingBlock label="Cargando conexiones de IA…" lines={2}/>});
 const CARD='rounded-xl border border-ink-600 bg-ink-800 p-4';
 
 export function PreferenciasSection({user, preferencesReady, preferences, preferenceWarning, retryPreferences, preferencesSaving, updatePreferences}: PreferenciasSectionProps){
@@ -63,5 +65,6 @@ export function PreferenciasSection({user, preferencesReady, preferences, prefer
    {filters.clientId?<p className="m-0 text-[11.5px] text-mute">Hay un cliente guardado en los filtros. Si ya no existe, el tablero te lo indica para que lo restablezcas.</p>:null}
   </div>
   </div>
+  {user?<section id="preferences-ai" aria-labelledby="preferences-ai-title" className={`${CARD} mt-4`}><h2 id="preferences-ai-title" className="m-0 mb-3 text-[17px] font-semibold">Conexiones de IA de mi cuenta</h2><McpConnections key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/></section>:null}
  </ListPage>;
 }

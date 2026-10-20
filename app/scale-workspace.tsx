@@ -108,8 +108,10 @@ import {AvisoPrivacidad} from 'owncoding-ui/core';
 import {SubscriptionPanel, SubscriptionNotice} from './subscription-panel';
 import './settings-slice.css';
 
+import {safeMcpReturnPath,takeMcpReturn} from './mcp-return';
 export function postLoginDestination(search:string){
-  return new URLSearchParams(search).get('next')==='/superadmin'?'/superadmin':null;
+  const destination=new URLSearchParams(search).get('next');
+  return destination==='/superadmin'?'/superadmin':safeMcpReturnPath(destination);
 }
 
 import {
@@ -200,10 +202,12 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const {pending:loginPending,onSubmit:submitLogin}=useSingleFlightSubmit(login);
-  const pathname=usePathname(),router=useRouter();
+  const pathname=usePathname(),router=useRouter(),approvedReturn=useRef(false);
   function returnToApprovedLoginDestination(){
-    const destination=postLoginDestination(window.location.search);
-    if(destination)router.replace(destination);
+    const requested=postLoginDestination(window.location.search);
+    let remembered:string|null=null;try{remembered=takeMcpReturn(window.sessionStorage);}catch{/* Storage may be disabled. */}
+    const destination=requested||remembered;
+    if(destination){approvedReturn.current=true;router.replace(destination);}
   }
   const lastDataPath=useRef(pathname);
   const requestedSection=sectionLabel(pathname);
@@ -290,7 +294,7 @@ export default function Home() {
       void dataFetch(shellDataUrl(resource,config),{credentials:'include'}).catch(()=>{});
     }
   }
-  useStartupPreference({scope:preferenceScope,ready:preferencesReady&&preferencesStartupReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
+  useStartupPreference({scope:preferenceScope,ready:preferencesReady&&preferencesStartupReady&&!loading&&(user?.subscription?.hasAccess===false||startupDataScope===preferenceScope),enabled:operationalAccess&&!approvedReturn.current,pathname,role:user?.role||'',startup:preferences.startup,replace:path=>router.replace(path)});
   async function refreshSubscription(){
     const d=await request<{user:User}>('/api/auth/me');
     if(user&&String(d.user.organization_id)!==String(user.organization_id)){window.location.reload();return;}

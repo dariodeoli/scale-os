@@ -7,6 +7,7 @@ import {NewCompany} from '../workspace-guide';
 import {PrivacyPanel} from '../privacy-panel';
 import type {User} from '../workspace-types';
 const DeletionDangerZone=dynamic(()=>import('../deletion-danger-zone').then(m=>m.DeletionDangerZone),{loading:()=> <SectionLoading label="Cargando la configuración…"/>});
+const McpConnections=dynamic(()=>import('../mcp-connections').then(m=>m.McpConnections),{loading:()=> <SectionLoading label="Cargando conexiones de IA…"/>});
 const CompanyLegalProfile=dynamic(()=>import('../company-legal-profile').then(m=>m.CompanyLegalProfile),{loading:()=> <SectionLoading label="Cargando los datos legales…"/>});
 
 // Configuración por bloques (issue #152): empresa · facturación/cotización ·
@@ -46,6 +47,7 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
         <a href="#settings-company">Empresa</a>
         <a href="#settings-billing">Facturación y cotización</a>
         <a href="#settings-integrations">Integraciones</a>
+        <a href="#settings-ai">Conexiones de IA</a>
         <a href="#settings-subscription">Suscripción</a>
         <a href="#settings-security">Seguridad</a>
         <a className="danger" href="#settings-danger">Zona de peligro</a>
@@ -63,6 +65,10 @@ export function ConfiguracionSection({user, subscriptionError, refreshSubscripti
 
       <SettingsBlock id="settings-integrations" title="Integraciones" description="Estado de los servicios externos que pueden complementar tu flujo." full>
         <IntegrationSettings/>
+      </SettingsBlock>
+
+      <SettingsBlock id="settings-ai" title="Conexiones de IA" description="Autorizá y revocá el acceso de asistentes externos a tu cuenta en esta empresa." full>
+        {user?<McpConnections key={`${user.organization_id}:${user.id}`} organizationId={String(user.organization_id)} userId={String(user.id)}/>:null}
       </SettingsBlock>
 
       <SettingsBlock id="settings-subscription" title="Suscripción" description="Estado, prueba y pago de Scale OS para esta empresa." full>
