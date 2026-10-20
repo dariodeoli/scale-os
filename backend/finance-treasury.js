@@ -1,3 +1,5 @@
+import {attributeActors} from './actor-identity.js';
+import {mediaPhoto,mediaPeople} from './agency-media.js';
 import {financeRetry,financeRemember} from './finance-idempotency.js';
 import {financePaymentReviews} from './finance-payment-reviews.js';
 import {fail,text,id,optId,amount,date,owned} from './suite-validation.js';
@@ -60,20 +62,23 @@ export async function treasurySnapshot(c,org,month){
  (a.balance-coalesce(sum(m.amount) filter(where m.booked_on>=($2::date+interval '1 month')::date),0))::text as closing_balance,
  coalesce(sum(m.amount) filter(where m.booked_on>=$2::date and m.booked_on<($2::date+interval '1 month')::date and m.amount>0),0)::text as inflows,
  coalesce(-sum(m.amount) filter(where m.booked_on>=$2::date and m.booked_on<($2::date+interval '1 month')::date and m.amount<0),0)::text as outflows
- from bank_accounts a left join lateral(select coalesce(nullif(trim(c.full_name),''),u.email) as name,c.photo_url from users u left join agency_collaborators c on c.user_id=u.id and c.organization_id=a.organization_id where u.id=a.custodian_user_id order by c.id limit 1) custodian on true left join agency_cash_movements m on m.organization_id=a.organization_id and m.account_id=a.id
+ from bank_accounts a left join lateral(select coalesce(nullif(trim(i.full_name),''),nullif(trim(c.full_name),''),u.email) as name,case when i.user_id is not null then i.photo_url else c.photo_url end as photo_url from users u left join organization_person_identity i on i.user_id=u.id and i.organization_id=a.organization_id left join agency_collaborators c on c.user_id=u.id and c.organization_id=a.organization_id where u.id=a.custodian_user_id order by c.id limit 1) custodian on true left join agency_cash_movements m on m.organization_id=a.organization_id and m.account_id=a.id
  where a.organization_id=$1 group by a.id,custodian.name,custodian.photo_url order by a.name,a.id`,[org,`${month}-01`])).rows;
  return {month,accounts};
 }
 async function receiptList(c,org,limit,offset=0){
  const rows=(await c.query(`select p.*,receiver.email as received_by_email,coalesce(nullif(trim(person.full_name),''),receiver.email) as received_by_name,person.photo_url as received_by_photo_url,coalesce(nullif(trim(person.full_name),''),receiver.email) as actor_name,person.photo_url as actor_photo_url,p.received_on::text as received_on,i.number as invoice_number,
- coalesce(i.client_id,l.client_id)::text as client_id,cl.name as client_name,l.project_id,l.plan_id,l.monthly_income_entry_id,to_char(l.period,'YYYY-MM') as period,l.revision as links_revision,
- a.name as account_name,a.currency,a.account_type,(select x.replacement_payment_id from agency_payment_date_corrections x where x.original_payment_id=p.id) as corrected_payment_id,r.id as reversal_id,r.reason as reversal_reason,r.reversed_on::text as reversed_on,
+ coalesce(i.client_id,l.client_id)::text as client_id,cl.name as client_name,cl.logo_url as client_logo_url,l.project_id,l.plan_id,l.monthly_income_entry_id,to_char(l.period,'YYYY-MM') as period,l.revision as links_revision,
+ a.name as account_name,a.currency,a.account_type,a.institution as account_institution,a.custodian_user_id,custodian.full_name as custodian_name,custodian.photo_url as custodian_photo_url,(select x.replacement_payment_id from agency_payment_date_corrections x where x.original_payment_id=p.id) as corrected_payment_id,r.id as reversal_id,r.reason as reversal_reason,r.reversed_on::text as reversed_on,
  case when r.id is not null or p.invoice_id is not null then 0 else p.amount-coalesce((select sum(x.amount) from agency_active_payment_applications x where x.payment_id=p.id),0) end::text as available_amount
  from agency_payments p join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id
  left join agency_invoices i on i.id=p.invoice_id and i.organization_id=p.organization_id left join agency_payment_links l on l.payment_id=p.id
  left join agency_clients cl on cl.id=coalesce(i.client_id,l.client_id) and cl.organization_id=p.organization_id left join agency_payment_reversals r on r.payment_id=p.id
  left join users receiver on receiver.id=p.received_by_user_id left join lateral(select c.full_name,c.photo_url from agency_collaborators c where c.user_id=p.received_by_user_id and c.organization_id=p.organization_id order by c.id limit 1) person on true
+ left join organization_person_identity custodian on custodian.organization_id=p.organization_id and custodian.user_id=a.custodian_user_id
  where p.organization_id=$1 order by p.received_on desc,p.id desc limit $2 offset $3`,[org,limit+1,offset])).rows;
+ await attributeActors(c,org,[{rows,userId:'received_by_user_id',fallback:['received_by_name','received_by_email']}]);
+ for(const row of rows){row.received_by_name=row.actor_name;row.received_by_photo_url=row.actor_photo_url;row.client_logo_url=mediaPhoto('client',row.client_id,row.client_logo_url);row.custodian_photo_url=mediaPhoto('person',row.custodian_user_id,row.custodian_photo_url);}
  return {payments:rows.slice(0,limit),receipts:rows.slice(0,limit),hasMore:rows.length>limit};
 }
 export async function financeTreasury({req,res,url,db,session,body,send}){
@@ -94,11 +99,15 @@ export async function financeTreasury({req,res,url,db,session,body,send}){
     clients:`select r.id,r.name,r.logo_url,r.legal_name,r.tax_id,r.active from agency_clients r where r.organization_id=$1 and ${visibleRecord('r','clients')} and (r.name ilike $2 or r.id=$3::bigint) order by r.name limit 501`,
     projects:`select r.id,r.name,r.client_id from agency_projects r join agency_clients cl on cl.organization_id=r.organization_id and cl.id=r.client_id where r.organization_id=$1 and r.active=true and cl.active=true and ${visibleRecord('r','projects')} and ${visibleRecord('cl','clients')} and (($3::bigint is null and r.name ilike $2) or r.client_id=$3::bigint) order by r.name limit 501`,
     plans:`select r.id,r.name from agency_plans r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','plans')} and r.name ilike $2 order by r.name limit 501`,
-    accounts:`select r.id,r.name,r.currency,r.account_type from bank_accounts r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','accounts')} and r.name ilike $2 order by r.name limit 501`,
+    accounts:`select r.id,r.name,r.currency,r.account_type,r.institution,r.custodian_user_id,i.full_name as custodian_name,i.photo_url as custodian_photo_url from bank_accounts r left join organization_person_identity i on i.organization_id=r.organization_id and i.user_id=r.custodian_user_id where r.organization_id=$1 and r.active=true and ${visibleRecord('r','accounts')} and r.name ilike $2 order by r.name limit 501`,
+    receivers:`select i.user_id as id,coalesce(nullif(trim(i.full_name),''),i.email) as full_name,i.photo_url from organization_person_identity i where i.organization_id=$1 and (i.full_name ilike $2 or i.email ilike $2) order by i.full_name limit 501`,
     invoices:`select r.id,r.number,r.client_id,r.currency,r.total::text as total,r.paid_amount::text as paid_amount,r.status from agency_invoices r where r.organization_id=$1 and r.status not in ('draft','cancelled') and r.total>r.paid_amount and r.number ilike $2 order by r.due_on,r.id limit 501`,
    };
    result={capabilities:{payments_manage:true,periods_manage:u.role==='owner',finance_view:roleCan(u,'finance.view')},truncated:{}};
    for(const [key,sql] of Object.entries(definitions)){const rows=(await c.query(sql,['clients','projects'].includes(key)?[org,search,clientKey]:[org,search])).rows;result[key]=rows.slice(0,limit);result.truncated[key]=rows.length>limit;}
+   result.receivers=mediaPeople(result.receivers);
+   for(const row of result.clients)row.logo_url=mediaPhoto('client',row.id,row.logo_url);
+   for(const row of result.accounts)row.custodian_photo_url=mediaPhoto('person',row.custodian_user_id,row.custodian_photo_url);
   }else if(payment){
    if(payment[2]==='date-correction')await lockFinanceMutation(c,org);
    const p=await owned(c,'agency_payments',payment[1],org);

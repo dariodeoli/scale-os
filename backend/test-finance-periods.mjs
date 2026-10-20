@@ -4,6 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {financeTreasury} from './finance-treasury.js';
+import {financeAccounts} from './finance-accounts.js';
 import {financeControls} from './finance-controls.js';
 import {operations} from './operations.js';
 
@@ -15,6 +16,14 @@ const query=(sql,args=[])=>pg.query(sql,args),one=async(sql,args)=>(await query(
 const org=(await one("insert into organizations(slug,name) values('money-fixture','Dinero') returning id")).id,other=(await one("insert into organizations(slug,name) values('money-other','Ajeno') returning id")).id;
 const uid=(await one("insert into users(email,password_hash) values('money@example.invalid','unused') returning id")).id;
 await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[org,uid]);
+const receiver=(await one("insert into users(email,password_hash) values('receiver@example.invalid','unused') returning id")).id;
+await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'finance')",[org,receiver]);
+for(const [personId,name,photo] of [[uid,'Custodia global','custodian'],[receiver,'Receptora global','receiver']]){
+ await query("select set_config('app.current_user',$1,false),set_config('app.current_organization',$2,false)",[String(personId),String(org)]);
+ await query('insert into user_personal_identities(user_id,full_name,photo_url) values($1,$2,$3)',[personId,name,`https://photos.example.invalid/${photo}.png`]);
+}
+
+await query("insert into agency_collaborators(organization_id,user_id,full_name,photo_url) values($1,$2,'Ficha anterior','https://photos.example.invalid/stale.png')",[org,uid]);
 const owner={id:uid,organization_id:org,role:'owner'},admin={...owner,role:'admin'};
 const client=(await one("insert into agency_clients(organization_id,name,active) values($1,'Cliente histórico',false) returning id",[org])).id;
 const otherClient=(await one("insert into agency_clients(organization_id,name) values($1,'Cliente ajeno') returning id",[other])).id;
@@ -22,13 +31,14 @@ const account=(await one("insert into bank_accounts(organization_id,name,account
 const funded=(await one("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Banco','bank','USD',500) returning id",[org])).id;
 const invoice=(await one("insert into agency_invoices(organization_id,client_id,number,currency,total,due_on) values($1,$2,'F-REAL','USD',100,'2026-08-10') returning id",[org,client])).id;
 const collaborator=(await one("insert into agency_collaborators(organization_id,full_name,currency) values($1,'Persona','USD') returning id",[org])).id;
-async function call(path,method='GET',input={},user=owner){let response;const args={req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+path),db,session:async()=>user,body:async()=>input,send:(_,status,data)=>response={status,...data}};for(const handler of [financeTreasury,financeControls,operations])if(await handler(args))return response;throw Error('Unhandled '+path);}
+async function call(path,method='GET',input={},user=owner){let response;const args={req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+path),db,session:async()=>user,body:async()=>input,send:(_,status,data)=>response={status,...data}};for(const handler of [financeAccounts,financeTreasury,financeControls,operations])if(await handler(args))return response;throw Error('Unhandled '+path);}
+await query("update agency_clients set logo_url='https://photos.example.invalid/client.png' where id=$1",[client]);
 const root='/api/agency',balance=async()=>Number((await one('select balance from bank_accounts where id=$1',[account])).balance);
 assert.equal((await call(root+'/finance/treasury', 'GET',{},null)).status,401);
 assert.equal((await call(root+'/finance/context','GET',{}, {...owner,role:'viewer'})).status,403);
 assert.equal((await call(root+'/finance/context')).clients.find(c=>String(c.id)===String(client)).active,false,'historical inactive clients remain available for actual receipts and prior debt');
 assert.equal((await call(root+'/finance/context')).clients.some(c=>String(c.id)===String(otherClient)),false);
-const requestId=randomUUID(),free={mode:'unassigned',accountId:account,amount:100,receivedOn:'2026-08-15',reference:'Cobro real sin factura',requestId};
+const requestId=randomUUID(),free={mode:'unassigned',accountId:account,amount:100,receivedOn:'2026-08-15',reference:'Cobro real sin factura',requestId,receivedByUserId:receiver};
 let r=await call(root+'/payments','POST',free);assert.equal(r.status,201,JSON.stringify(r));let payment=r.payment;assert.equal(payment.invoice_id,null);assert.equal(await balance(),100);
 r=await call(root+'/payments','POST',free);assert.equal(r.status,200,JSON.stringify(r));assert(r.alreadyRecorded);assert.equal(await balance(),100,'idempotent retry never doubles cash');
 assert.equal((await call(root+'/payments','POST',{...free,amount:101})).status,409);
@@ -36,6 +46,21 @@ assert.equal((await call(root+'/payments','POST',{...free,requestId:randomUUID()
 assert.equal((await call(root+'/payments/'+payment.id+'/links','PATCH',{clientId:otherClient,expectedRevision:1})).status,404);
 r=await call(root+'/payments/'+payment.id+'/links','PATCH',{clientId:client,expectedRevision:1});assert.equal(r.status,200,JSON.stringify(r));assert.equal(await balance(),100,'later metadata association does not create cash');
 assert.equal((await call(root+'/payments/'+payment.id+'/links','PATCH',{clientId:client,expectedRevision:1})).status,409);
+const receiptIdentity=(await call(root+'/finance/receipts?limit=1')).receipts[0];
+assert.equal(receiptIdentity.client_logo_url,'https://photos.example.invalid/client.png','paginated receipts carry own client logo without context dependency');
+assert.equal(receiptIdentity.received_by_name,'Receptora global');assert.equal(receiptIdentity.received_by_photo_url,'https://photos.example.invalid/receiver.png');
+assert.equal(receiptIdentity.custodian_name,'Custodia global');assert.equal(receiptIdentity.custodian_photo_url,'https://photos.example.invalid/custodian.png');
+assert.equal(receiptIdentity.actor_verified,true);
+const displayContext=await call(root+'/finance/context');assert.equal(displayContext.receivers.find(p=>String(p.id)===String(receiver)).photo_url,'https://photos.example.invalid/receiver.png');assert.equal(displayContext.accounts.find(a=>String(a.id)===String(account)).custodian_photo_url,'https://photos.example.invalid/custodian.png');
+const createdAccount=await call(root+'/accounts','POST',{name:'Cuenta identidad',accountType:'bank',currency:'USD',institution:'Banco Familiar',custodianUserId:uid,requestId:randomUUID()});
+assert.equal(createdAccount.status,201,JSON.stringify(createdAccount));assert.equal(createdAccount.account.custodian_name,'Custodia global');assert.equal(createdAccount.account.custodian_photo_url,'https://photos.example.invalid/custodian.png');
+const updatedAccount=await call(root+'/accounts/'+createdAccount.account.id,'PATCH',{name:'Cuenta identidad editada',expectedRevision:createdAccount.account.revision,requestId:randomUUID()});assert.equal(updatedAccount.status,200,JSON.stringify(updatedAccount));assert.equal(updatedAccount.account.custodian_photo_url,'https://photos.example.invalid/custodian.png');
+await query("select set_config('app.current_user',$1,false),set_config('app.current_organization',$2,false)",[String(uid),String(org)]);
+await query('update user_personal_identities set photo_url=null where user_id=$1',[uid]);
+assert.equal((await call(root+'/accounts')).accounts.find(a=>String(a.id)===String(createdAccount.account.id)).custodian_photo_url,null,'explicitly removed global photo stays removed in account reads');
+assert.equal((await call(root+'/finance/treasury?month=2026-08')).accounts.find(a=>String(a.id)===String(account)).custodian_photo_url,null,'snapshot honors removal of global identity photo');
+assert.equal((await call(root+'/finance/receipts')).receipts[0].custodian_photo_url,null);
+await query("update user_personal_identities set photo_url='https://photos.example.invalid/custodian.png' where user_id=$1",[uid]);
 const debtRequest=randomUUID(),debtPayload={clientId:client,amount:200,currency:'USD',period:'2026-08',dueOn:'2026-08-01',reason:'Saldo pendiente importado con respaldo',forecastIncluded:true,expectedOn:'2026-09-05',requestId:debtRequest};
 r=await call(root+'/finance/opening-receivables','POST',debtPayload);assert.equal(r.status,201,JSON.stringify(r));const debt=r.receivable;assert.equal(debt.expected_on,'2026-09-05');assert.equal(debt.due_on,'2026-08-01','forecast promise never moves the real overdue date');assert.equal(await balance(),100);assert.equal(Number((await one('select count(*) as n from agency_invoices where organization_id=$1',[org])).n),1,'prior debt creates no fictional invoice');
 assert.equal((await call(root+'/finance/opening-receivables','POST',debtPayload)).status,200);
@@ -62,7 +87,7 @@ r=await call(root+'/expenses/'+expense.id,'DELETE',{reason:'Reintegro documentad
 assert((await call(root+'/expenses?month=2026-08')).expenses.find(e=>String(e.id)===String(expense.id)).reversal_id);
 r=await call(root+'/payments/'+corrected.id+'/reverse','POST',{reason:'Devolución documentada del cobro',reversed_on:'2026-08-17'});assert.equal(r.status,201,JSON.stringify(r));assert.equal(await balance(),0);assert.equal(Number((await one('select paid_amount from agency_invoices where id=$1',[invoice])).paid_amount),0);assert.equal(Number((await one('select outstanding_amount from agency_opening_receivable_balances where id=$1',[debt.id])).outstanding_amount),200);
 assert.equal((await call(root+'/finance/receipts?limit=1&offset=0')).receipts.length,1);assert((await call(root+'/finance/receipts?limit=1')).hasMore);
-r=await call(root+'/finance/treasury?month=2026-08');assert.equal(r.status,200,JSON.stringify(r));assert.equal(Number(r.accounts.find(a=>String(a.id)===String(account)).closing_balance),0);assert(r.accounts.find(a=>String(a.id)===String(account)).custodian_name);assert.equal(r.movements.filter(m=>m.movement_type==='payment').length,2);
+r=await call(root+'/finance/treasury?month=2026-08');assert.equal(r.status,200,JSON.stringify(r));assert.equal(Number(r.accounts.find(a=>String(a.id)===String(account)).closing_balance),0);assert.equal(r.accounts.find(a=>String(a.id)===String(account)).custodian_name,'Custodia global');assert.equal(r.accounts.find(a=>String(a.id)===String(account)).custodian_photo_url,'https://photos.example.invalid/custodian.png');assert.equal(r.movements.filter(m=>m.movement_type==='payment').length,2);
 const periodPath=root+'/finance/periods/2026-08';
 assert.equal((await call(periodPath+'/close','POST',{reason:'Cierre mensual revisado',expectedRevision:0},admin)).status,403);
 r=await call(periodPath+'/close','POST',{reason:'Cierre mensual revisado',expectedRevision:0});assert.equal(r.status,200,JSON.stringify(r));const snapshot=r.period.snapshot;

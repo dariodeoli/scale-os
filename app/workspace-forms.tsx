@@ -487,7 +487,7 @@ export function PaymentForm({
     .filter((invoice) => invoice.status !== "paid")
     .map((invoice) => {
       const pending=Number(invoice.total)-Number(invoice.paid_amount);
-      return {id:invoice.id,name:`${invoice.number} · ${invoice.client_name}`,secondary:`Vence ${listDateShort(invoice.due_on)||'sin fecha'}`,context:`${money(pending,invoice.currency)} pendiente`,searchText:`${invoice.number} ${invoice.client_name}`};
+      return {id:invoice.id,name:`${invoice.number} · ${invoice.client_name}`,photoUrl:invoice.client_logo_url,logo:true,secondary:`Vence ${listDateShort(invoice.due_on)||'sin fecha'}`,context:`${money(pending,invoice.currency)} pendiente`,searchText:`${invoice.number} ${invoice.client_name}`};
     });
   const custodianOptions:EntityOption[]=custodians.map(member=>({id:String(member.id),name:member.full_name?.trim()||member.email,secondary:teamRoleLabels[member.role]||member.role,photoUrl:member.photo_url,person:true,searchText:member.email}));
   async function submit(values: PaymentValues) {

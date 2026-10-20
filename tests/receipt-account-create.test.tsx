@@ -57,3 +57,20 @@ test('Editor patches retain checkbox strings, derived values and unrelated valid
   const copy=handle.current!.getValues();copy.name='Modificación externa';assert.equal(handle.current!.getValues().name,'Cliente actualizado','getValues gives a copy');assert.equal(saved,0);
  }finally{act(()=>view?.unmount());}
 });
+test('receipt selectors and a saved receipt preserve distinct client, receiver and custodian photos',async()=>{
+ clearDataCache();const before=globalThis.fetch,writes:{path:string;body:any}[]=[];let saved=false;
+ const photos={client:'https://photos.example.invalid/client.png',receiver:'https://photos.example.invalid/receiver.png',custodian:'https://photos.example.invalid/custodian.png'};
+ const receiptAccount={...account,id:'101',currency:'PYG',name:'Cuenta con custodia',custodian_user_id:'1',custodian_name:'Custodia real',custodian_photo_url:photos.custodian};
+ globalThis.fetch=async(input,init)=>{const path=String(input);if(init?.method==='POST'){writes.push({path,body:JSON.parse(String(init.body))});saved=true;return response({payment:{id:'301'}});}if(path.includes('/context'))return response({clients:saved?[]:[{id:'201',name:'Cliente con logo',logo_url:photos.client}],projects:[],plans:[],accounts:[receiptAccount],invoices:[],receivers:[{id:'1',full_name:'Custodia real',photo_url:photos.custodian},{id:'2',full_name:'Receptora real',photo_url:photos.receiver}]});if(path.includes('/receipts?'))return response({receipts:saved?[{id:'301',invoice_id:null,client_id:'201',client_name:'Cliente con logo',client_logo_url:photos.client,account_id:'101',account_name:receiptAccount.name,amount:'120',currency:'PYG',received_on:'2026-10-01',reference:'',received_by_name:'Receptora real',received_by_photo_url:photos.receiver,custodian_name:'Custodia real',custodian_photo_url:photos.custodian}]:[],hasMore:false});return response(routes(path));};let view!:ReactTestRenderer;
+ const imageSources=()=>view.root.findAllByType('img').map(img=>img.props.src);
+ try{view=await mount();await act(async()=>{const selects=view.root.findAllByType(SelectCustom);selects.find(select=>select.props.label.startsWith('Cliente'))!.props.onChange('201');selects.find(select=>select.props.label==='Cuenta de ingreso')!.props.onChange('101');selects.find(select=>select.props.label.startsWith('Quién recibió'))!.props.onChange('2');view.root.findByType(AmountInput).props.onChange('120');await tick();});
+  for(const photo of Object.values(photos))assert(imageSources().includes(photo),`selected form identity ${photo} remains visible even with Add account allowed`);
+  await act(async()=>{await receipt(view).findByType('form').props.onSubmit(event());await tick();});assert.equal(writes.length,1);assert.equal(writes[0].body.receivedByUserId,'2');assert.equal(writes[0].body.clientId,'201');assert.equal(writes[0].body.accountId,'101');
+  for(const photo of Object.values(photos))assert(imageSources().includes(photo),`saved identity ${photo} is present after page reload without client context`);
+  assert.match(JSON.stringify(view.toJSON()),/Receptora real/);assert.match(JSON.stringify(view.toJSON()),/Custodia real/);
+ }finally{act(()=>view?.unmount());globalThis.fetch=before;clearDataCache();}
+});
+test('shared person capsules show supplied safe photos by default and honor explicit unverified identity',async()=>{
+ const {PersonContainer}=require('../app/person-container') as typeof import('../app/person-container');let view!:ReactTestRenderer;
+ try{await act(async()=>{view=create(<PersonContainer name="Persona con ficha" photoUrl="https://photos.example.invalid/person.png"/>);});assert.equal(view.root.findByType('img').props.src,'https://photos.example.invalid/person.png');await act(async()=>view.update(<PersonContainer name="Identidad no verificada" photoUrl="https://photos.example.invalid/person.png" verified={false}/>));assert.equal(view.root.findAllByType('img').length,0);await act(async()=>view.update(<PersonContainer name="URL insegura" photoUrl="javascript:alert(1)"/>));assert.equal(view.root.findAllByType('img').length,0);}finally{act(()=>view?.unmount());}
+});
