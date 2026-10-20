@@ -11,7 +11,7 @@ import {clientStatuses} from './client-status';
 import {isWholeTransport,normalizeWholeMoney} from './amount-format';
 import {buildSocialLinks,clientLinksDefaults} from './client-links';
 
-export const CLIENT_SECTIONS={identity:'Identidad',contact:'Contacto',tax:'Fiscal',legal:'Datos para contratos',plan:'Plan y pago',links:'Enlaces'} as const;
+export const CLIENT_SECTIONS={identity:'Identidad fiscal',contact:'Contacto',tax:'Fiscal',legal:'Datos para contratos',plan:'Plan y pago',links:'Enlaces'} as const;
 export type ClientSectionName=typeof CLIENT_SECTIONS[keyof typeof CLIENT_SECTIONS];
 
 export type ClientRecord={id?:string;[key:string]:unknown};
@@ -46,18 +46,18 @@ export type ClientFieldOptions={
 export function clientFields({mode,plan=null,planRequired=false,restricted=false,rucLookup,rucAfter}:ClientFieldOptions):Field[]{
   const S=CLIENT_SECTIONS;
   const fields:Field[]=[
+    {key:'tax_id',label:'RUC',optional:true,section:S.identity,span:4,maxLength:14,disabled:restricted,validate:taxIdError,help:'Enter o Buscar consulta el RUC. Revisá y aplicá la razón social; también podés completar manualmente.',lookup:rucLookup,after:rucAfter},
+    {key:'legal_name',label:'Razón social / nombre legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted,help:'Se completa al aplicar la consulta y sigue siendo editable. Si falta, los contratos usan el nombre del cliente.'},
     {key:'name',label:'Nombre del cliente',section:S.identity,span:6,maxLength:120,validate:nameError},
     ...(mode==='edit'?[{key:'lifecycle_status',label:'Estado del servicio',section:S.identity,choices:clientStatuses,help:'Pausar o cancelar el cliente pausa o cancela sus proyectos activos.'} as Field]:[]),
-    {key:'legal_name',label:'Razón social / nombre legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted,help:'Si está vacío, se usa el nombre del cliente.'},
-    {key:'legal_representative_name',label:'Responsable legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted||(values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'),valueFrom:values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'?clientLegalName(values):undefined},
-    {key:CLIENT_REPRESENTATIVE_LINK,label:'El responsable legal es el mismo cliente',type:'checkbox',section:S.identity,span:12,disabled:restricted,help:'Vincula sólo los nombres: usa la razón social si está completa, o el nombre del cliente. Los documentos y el cargo se editan por separado.'},
-    {key:'notes',label:'Notas',type:'textarea',optional:true,section:S.identity,maxLength:2000},
+    {key:'legal_representative_name',label:'Responsable legal',optional:true,section:S.legal,span:6,maxLength:160,disabled:restricted||(values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'),valueFrom:values=>values[CLIENT_REPRESENTATIVE_LINK]==='true'?clientLegalName(values):undefined},
+    {key:CLIENT_REPRESENTATIVE_LINK,label:'El responsable legal es el mismo cliente',type:'checkbox',section:S.legal,span:12,disabled:restricted,help:'Vincula sólo los nombres: usa la razón social si está completa, o el nombre del cliente. Los documentos y el cargo se editan por separado.'},
+    {key:'notes',label:'Notas',type:'textarea',optional:true,wide:true,span:12,section:S.identity,maxLength:2000},
     {key:'email',label:'Correo',type:'email',optional:true,section:S.contact,disabled:restricted},
     {key:'phone',label:'Teléfono / WhatsApp',type:'phone',optional:true,section:S.contact,help:PHONE_HELP,disabled:restricted},
-    {key:'tax_id',label:'RUC',optional:true,section:S.tax,maxLength:14,disabled:restricted,validate:taxIdError,help:'Podés pegarlo con puntos o espacios; se guarda normalizado. «Buscar» consulta al proveedor y pide tu confirmación antes de aplicar nada.',lookup:rucLookup,after:rucAfter},
     {key:'party_type',label:'Tipo de parte contratante',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'person',label:'Persona física'},{value:'company',label:'Empresa / persona jurídica'}],help:'Se declara manualmente; no se deduce del RUC.'},
     {key:'document_type',label:'Tipo de documento',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'ci',label:'Cédula de identidad'},{value:'ruc',label:'RUC'},{value:'passport',label:'Pasaporte'},{value:'other',label:'Otro'}]},
-    {key:'document_number',label:'Número de documento',optional:true,section:S.legal,maxLength:80,disabled:restricted},
+    {key:'document_number',label:'Número de documento',optional:true,section:S.legal,maxLength:80,disabled:restricted,valueFrom:values=>values.document_type==='ruc'&&!values.document_number?values.tax_id:undefined,help:'Al elegir RUC, se reutiliza el RUC de la ficha si el documento está vacío.'},
     {key:'address',label:'Domicilio contractual',optional:true,section:S.legal,maxLength:400,disabled:restricted},
     {key:'city',label:'Ciudad',optional:true,section:S.legal,maxLength:120,disabled:restricted},
     {key:'department',label:'Departamento',optional:true,section:S.legal,maxLength:120,disabled:restricted},
@@ -87,7 +87,8 @@ export function clientFields({mode,plan=null,planRequired=false,restricted=false
       {key:'other',label:'Otros: nombre | enlace (uno por línea)',type:'textarea',optional:true,wide:true,section:S.links,disabled:restricted},
     );
   }
-  return fields;
+  const order=[S.identity,S.contact,S.tax,S.legal,S.plan,S.links];
+  return fields.sort((a,b)=>order.indexOf(a.section as ClientSectionName)-order.indexOf(b.section as ClientSectionName));
 }
 
 export function clientEditDefaults(record:ClientRecord|null,plan:PlanTermsResponse|null):Record<string,string>{
