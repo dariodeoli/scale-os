@@ -17,3 +17,16 @@ Hallazgo corregido: el formulario público sin consulta de RUC ofrecía «Enter 
 Pendiente de otra entrega: formularios bancarios #331 todavía no integrados al tomar estas evidencias. Catálogo raíz auditado: 244 herramientas únicas, copias web/backend iguales; dominios clientes 6, finanzas 61, operaciones 136, workspace 41. No aparecen herramientas con nombres de purga, contraseñas, secretos, SQL o despliegue. El check canónico detectó únicamente metadata pendiente de regenerar en scale_update_salary; el integrador debe regenerar al congelar el registro.
 
 Reproducción local: `node tests/team-access-intake-browser-330.test.mjs` (Chromium en `/usr/bin/chromium`, dependencias frontend/backend instaladas). La fixture sólo escucha en loopback, bloquea solicitudes externas y deja resultados en `/tmp/scale330-browser-qa.json`.
+
+## Ronda final integrada de bancos y cobros
+
+Fuente congelada `4d84779d`, con UI #331 integrada. `node tests/finance-nested-browser-330.test.mjs` reproduce 12 comprobaciones adicionales en 320/390/768/1440 (claro/oscuro real). Reutiliza FinanceCollections, ReceiptPaymentDialog, AccountCreateDialog, AccountForm, BancoCombobox/Logo diferidos y Editor reales; servidor HTTP local sintético.
+
+- Pago vacío muestra el resumen superior de errores.
+- Sin cliente, Proyecto está deshabilitado. Al elegir Alfa sólo se ofrece Proyecto Alfa; después de elegirlo y cambiar a Beta se limpia el proyecto anterior y sólo se ofrece Proyecto Beta. La fixture devuelve ambos proyectos deliberadamente para probar el filtro real de la UI.
+- Crear cuenta anidada conserva el foco dentro del nuevo diálogo incluso con errores en el padre. Búsqueda Familiar selecciona el banco y su logo original decodifica (352 px de ancho natural).
+- Nombre sugerido usa el banco y la cola 6789; titular y referencia se envían al endpoint local canónico.
+- Al crear la cuenta, se conserva el importe 50000 y la referencia del borrador, y se selecciona la nueva cuenta 90. El pago local conserva cliente Beta, proyecto vacío, fecha, importe, referencia e identificador de operación.
+- Documento y los dos diálogos no desbordan en ninguno de los cuatro anchos. Cero pageerrors o tráfico externo. No se crean cuentas ni movimientos reales.
+
+Evidencia: `bank-nested-results.json`, `bank-nested-320.png` (claro), `bank-nested-1440.png` (oscuro). No se cambiaron las fuentes del producto en esta ronda. Las pruebas transaccionales de PostgreSQL y de autorización pertenecen al API; este reporte acredita la interacción visual de la UI.
