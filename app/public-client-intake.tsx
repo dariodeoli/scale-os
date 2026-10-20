@@ -29,4 +29,4 @@ export function PublicClientIntake({token}:{token:string}){
   </>:!error?<p role="status">Comprobando enlace…</p>:null}
  </section>;
 }
-function InputTrap({value,set}:{value:string;set:(value:string)=>void}){return <InputControl name="website" tabIndex={-1} autoComplete="off" value={value} onChange={event=>set(event.target.value)}/>;}
+function InputTrap({value,set}:{value:string;set:(value:string)=>void}){return <InputControl aria-label="Sitio web" name="website" tabIndex={-1} autoComplete="off" value={value} onChange={event=>set(event.target.value)}/>;}
