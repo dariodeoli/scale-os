@@ -44,7 +44,7 @@ let renderer:ReactTestRenderer;const rendered=()=>JSON.stringify(renderer.toJSON
 const byClass=(name:string)=>renderer.root.findAll(node=>typeof node.props?.className==='string'&&node.props.className.split(' ').includes(name)).length;async function respond(request:Request,data:unknown,status=200){await act(async()=>{request.resolve(new Response(JSON.stringify(data),{status}));});}
 const buttonText=(button:{props:{children?:unknown}}):string=>{const value=button.props.children;return (Array.isArray(value)?value:(value===undefined||value===null?[]:[value])).filter((item):item is string=>typeof item==='string').join('');};
 async function run(){
- for(const role of ['management','sales','production','editor','viewer','collaborator']){await act(async()=>{renderer=create(<FinancialForecast role={role} organizationId="one"/>);});assert.equal(renderer.toJSON(),null);act(()=>renderer.unmount());}assert.equal(requests.length,0,'restricted roles do not request financial data');
+ for(const role of ['sales','production','editor','viewer','collaborator']){await act(async()=>{renderer=create(<FinancialForecast role={role} organizationId="one"/>);});assert.equal(renderer.toJSON(),null);act(()=>renderer.unmount());}assert.equal(requests.length,0,'restricted roles do not request financial data');
  await act(async()=>{renderer=create(<FinancialForecast role="finance" organizationId="one"/>);});await act(async()=>{});assert.equal(requests[0].url,'/core-api/api/agency/forecast?month=2026-09');await respond(requests[0],fixture);assert.match(rendered(),/Recurrente contratado/);assert.match(rendered(),/1\.000/,'contracted total comes from top-level aggregate');assert.match(rendered(),/Cobrado/);assert.match(rendered(),/80/,'numeric canonical transport is accepted');assert.match(rendered(),/Gastos planificados/);assert.equal(byClass('forecast-currency'),2,'resumen por moneda: una tarjeta por moneda con datos');assert.equal(byClass('forecast-personnel-card'),0,'el detalle salarial se trasladó a Balance');assert.equal(byClass('forecast-planned-card'),1,'gastos planificados: total por moneda');
  assert.equal(byClass('forecast-person-actions'),0,'los editores de salario viven sólo en Balance');
  const selects=renderer.root.findAllByType(SelectCustom);assert.equal(selects.find(select=>select.props.value==='variable')!==undefined,true,'kind select defaults to variable');act(()=>selects[0].props.onChange('recurring'));act(()=>selects[1].props.onChange('Herramientas'));act(()=>selects[2].props.onChange('fixed'));act(()=>renderer.root.findAllByType(ExpenseAmountInput).find(input=>input.props.id==='forecast-expense-amount')!.props.onChange('3500'));act(()=>renderer.root.findAllByProps({id:'forecast-expense-currency'})[0].props.onChange('USD'));act(()=>renderer.root.findAllByType('input').find(input=>input.props.maxLength===280)!.props.onChange({target:{setCustomValidity(){},value:'Licencia'}}));
@@ -165,6 +165,16 @@ async function run(){
  act(()=>{void paidForm.props.onSubmit({preventDefault(){}});});
  const paidPost=requests.at(-1)!;assert.equal(paidPost.url,'/core-api/api/agency/expenses');assert.equal(JSON.parse(String(paidPost.init.body)).amount,'100.25');
  await respond(paidPost,{expense:decimalRow});act(()=>renderer.unmount());
+ // Gerencia puede operar previsión, manteniendo el detalle salarial excluido.
+ const managerStart=requests.length;
+ await act(async()=>{renderer=create(<FinancialForecast role="management" organizationId="manager"/>);});
+ const managerForecast=requests.slice(managerStart).find(request=>request.url.includes('/forecast?'));
+ assert(managerForecast,'management requests its authorized forecast');
+ await respond(managerForecast,fixture);
+ assert.match(rendered(),/Recurrente contratado|Ingresos vs gastos/);
+ assert.doesNotMatch(rendered(),/Salario variable|Salario USD|Editar salario/,'management never receives personnel editors or identities in forecast');
+ assert.equal(renderer.root.findAll(node=>node.props.etiqueta==='Personal').length,0,'management cannot render the salary subtotal');
+ act(()=>renderer.unmount());
  console.log('PASS financial forecast: role gating, canonical numeric/string response transport, top-level segregated aggregates, per-currency rendering, exact planned-expense POST, refresh, horizon selection with multi-month projection tables, contracted versus invoiced per client, masked per-person salaries (salary.view), the six company currencies with the salary kept in the record currency, and empty states with contextual exits (#62)');
 }
 void run();
