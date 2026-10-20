@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {groupDueAlerts,normalizeSearch,shortDate,DueAlert} from '../app/control-center-data';
 import {sections,legacyRoutes,legacyDestination,parentSection,childSections,sectionPath,sectionLabel,navGroups,moduleNavGroup} from '../app/navigation';
 import {visibleModule} from '../app/workspace-access';
+import {workspaceNavGroups,temporaryAiNavigationVisible,AI_NAV_EXPIRES_AT} from '../app/workspace-navigation';
 import {workspaceSource} from './workspace-source';
 const records:DueAlert[]=[{id:'1',type:'invoice',name:'DEMO-PRO-3',due:'2026-08-29'},...Array.from({length:4},(_,i)=>({id:String(i+2),type:'work_order',name:'Reel de lanzamiento',due:'2026-09-07',context:`Cliente ${i}`}))];
 const snapshot=JSON.stringify(records),groups=groupDueAlerts(records);
@@ -56,7 +57,10 @@ const ui=workspaceSource();
 // Nav v3 (issue #68): 6 entradas desplegables; los apartados siguen dentro de su
 // módulo y las rutas no cambian.
 const navModules=navGroups.flatMap(([,modules])=>modules as readonly string[]);
-assert.deepEqual(navGroups.map(([group])=>group),['Resumen','Clientes','Flujo','Recursos','Finanzas','Configuración'],'el menú principal tiene 6 entradas');
+const stableGroups=['Resumen','Clientes','Flujo','Recursos','Finanzas','Configuración'];
+assert.deepEqual(navGroups.map(([group])=>group),[...stableGroups,'Conexiones de IA'],'el acceso temporal se ubica debajo de Configuración');
+assert.deepEqual(workspaceNavGroups('owner',undefined,temporaryAiNavigationVisible(AI_NAV_EXPIRES_AT)).map(item=>item.group),stableGroups,'al vencer se conservan las seis entradas estables');
+assert.deepEqual(workspaceNavGroups('owner',undefined,temporaryAiNavigationVisible(AI_NAV_EXPIRES_AT-1)).map(item=>item.group),[...stableGroups,'Conexiones de IA'],'el instante anterior conserva el acceso temporal');
 assert.equal(new Set(navModules).size,navModules.length,'cada módulo vive en un solo grupo');
 for(const [label] of sections)if(['Mora','Previsión','Balance','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'].includes(label))continue;else assert(navModules.includes(label),`${label} sigue siendo un módulo del menú`);
 for(const apartado of ['Mora','Previsión','Balance','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'])assert(!navModules.includes(apartado),`${apartado} es apartado de su módulo, nunca ítem del menú`);
