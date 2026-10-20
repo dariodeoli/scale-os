@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {AjvJsonSchemaValidator} from '@modelcontextprotocol/sdk/validation/ajv-provider.js';
 import {PGlite} from '@electric-sql/pglite';
 import {mcpWorkspaceTools as tools,mcpWorkspaceHandlers as handlers} from './mcp-workspace-tools.js';
 import {roleCan} from './permissions.js';
@@ -15,7 +16,7 @@ try{
  alter table organization_members add column purged_at timestamptz;
  create table agency_role_permissions(organization_id bigint,role text,capability text,allowed boolean,updated_at timestamptz);
  create table agency_notification_preferences(organization_id bigint,user_id bigint,email_enabled boolean,assignment boolean,comment boolean,due boolean,primary key(organization_id,user_id));`);
- for(const migration of ['20261017_contract_documents.sql','20261018_workspace_preferences.sql','20261020_list_column_preferences.sql'])await pg.exec(await fs.readFile(new URL('./migrations/'+migration,import.meta.url),'utf8'));
+ for(const migration of ['20261017_contract_documents.sql','20261018_workspace_preferences.sql','20261020_list_column_preferences.sql','20261020_member_permissions.sql'])await pg.exec(await fs.readFile(new URL('./migrations/'+migration,import.meta.url),'utf8'));
  const q=(sql,args)=>pg.query(sql,args),db={query:q,connect:async()=>({query:q,release(){}})};
  const org=(await q("insert into organizations(slug,name) values('mcp-workspace','Workspace') returning id")).rows[0].id;
  const other=(await q("insert into organizations(slug,name) values('mcp-other-workspace','Other workspace') returning id")).rows[0].id;
@@ -57,7 +58,15 @@ try{
  assert.equal((await call('scale_update_notification_preferences',{data:{email_enabled:true,due:false}})).status,200);
  r=await call('scale_get_notification_preferences');assert.equal(r.data.preferences.email_enabled,true);assert.equal(r.data.preferences.due,false);
  assert.equal((await call('scale_list_members',{}, {...actor,role:'viewer'})).status,403);
- assert.equal((await call('scale_get_permission_matrix',{}, {...actor,role:'management'})).status,403,'read permission matrix retains owner/admin guard');
+ await q("update organization_members set role='management' where organization_id=$1 and user_id=$2",[org,uid]);
+ assert.equal((await call('scale_get_permission_matrix',{}, {...actor,role:'management'})).status,200,'management can read scoped lower-role policy');
+ await q("update organization_members set role='owner' where organization_id=$1 and user_id=$2",[org,uid]);
+ const schemaProvider=new AjvJsonSchemaValidator();for(const descriptor of tools)schemaProvider.getValidator(descriptor.inputSchema);
+ const manager={...actor,role:'management'},invite=tools.find(t=>t.name==='scale_invite_member'),inviteSchema=invite.inputSchemaForActor(manager),inviteValid=schemaProvider.getValidator(inviteSchema);
+ assert(inviteValid({confirm:true,data:{email:'person@example.invalid',role:'editor'}}).valid);assert.equal(inviteValid({confirm:true,data:{email:'person@example.invalid',role:'admin'}}).valid,false);assert.equal(inviteValid({confirm:true,data:{email:'person@example.invalid',role:'finance'}}).valid,false,'cannot assign salary-bearing role through schema');
+ const profile=tools.find(t=>t.name==='scale_update_collaborator'),profileSchema=profile.inputSchemaForActor(manager);assert(!Object.hasOwn(profileSchema.properties.data.properties,'compensation_amount'));assert.equal(schemaProvider.getValidator(profileSchema)({id:'1',confirm:true,data:{compensation_amount:1000}}).valid,false);
+ assert.equal((await call('scale_update_member_access',{id:String(uid),data:{active:false}})).status,403,'self access blocked before canonical lock upgrade');
+ const permission=tools.find(t=>t.name==='scale_update_role_permission'),permissionSchema=permission.inputSchemaForActor(manager);assert(!permissionSchema.properties.data.properties.role.enum.includes('management'));assert(!permissionSchema.properties.data.properties.capability.enum.includes('salary.view'));
  const settingsTool=tools.find(t=>t.name==='scale_update_company_settings');assert(!roleCan({...actor,role:'admin',capabilities:{'settings.manage':false}},settingsTool.cap));
  console.log(`MCP workspace: ${tools.length} fixed descriptors; canonical company, preferences, permissions, notifications and tenant/live-access negatives passed.`);
 }finally{await pg.close();}

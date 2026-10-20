@@ -456,9 +456,9 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       return send(res,201,{workOrder:r.rows[0]});
     }
     if (url.pathname === '/api/agency/members' && req.method === 'GET') {
-      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
+      const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); const policy=await permissionPolicy(db,user);if (!roleCan(user,'members.manage')&&!policy.canManageRoles) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const r = await db.query('select u.id,u.email,m.role,m.active,m.created_at from organization_members m join users u on u.id=m.user_id where m.organization_id=$1 and m.removed_at is null and m.purged_at is null order by m.created_at asc',[user.organization_id]);
-      return send(res,200,{members:r.rows.map(member=>({...member,access_editable:accessEditable(user,member),permissions_editable:permissionsEditable(user,member)})),policy:await permissionPolicy(db,user)});
+      return send(res,200,{members:r.rows.map(member=>({...member,access_editable:accessEditable(user,member),permissions_editable:permissionsEditable(user,member)})),policy});
     }
     if (url.pathname.match(/^\/api\/agency\/members\/\d+\/permanent$/) && req.method === 'DELETE') {
       // Eliminación definitiva desde Equipo: solo integrantes con el acceso ya

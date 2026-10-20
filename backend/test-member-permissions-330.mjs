@@ -4,7 +4,9 @@ import {PGlite} from '@electric-sql/pglite';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {CAPABILITIES,rolePermissions,roleCan,loadActorPermissions,permissionPolicy} from './permissions.js';
 import {suite} from './agency-suite.js';
+import {inviteLinks} from './invite-links.js';
 import {agencyCore} from './agency-core.js';
+process.env.INVITE_LINK_SECRET??='test-member-policy330-secret-length32';
 const pg=new PGlite();
 try{
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
@@ -19,13 +21,16 @@ try{
  const live=async actor=>({...actor,capabilities:await loadActorPermissions(db,actor)});
  async function call(path='/api/agency/permissions',method='GET',data={},actor=manager){let response;
   const user=actor&&await live(actor),ctx={req:{method,headers:{},socket:{remoteAddress:'permission-policy-fixture'}},res:{},url:new URL(path,'https://test.invalid'),db,session:async()=>user,body:async()=>data,send:(_,status,result)=>{response={status,...result};return true;},auditContext:async()=>{},sendInvitation:async()=>true};
-  let handled=false;for(const handler of [rolePermissions,suite,agencyCore])if(await handler(ctx)){handled=true;break;}assert(handled);return response;
+  let handled=false;for(const handler of [rolePermissions,inviteLinks,suite,agencyCore])if(await handler(ctx)){handled=true;break;}assert(handled);return response;
  }
  for(const cap of ['settings.manage','contracts.view','contracts.manage','contracts.issue','accounts.manage','payments.manage','finance.view','permissions.manage'])assert(roleCan(manager,cap),cap);
  for(const cap of ['salary.view','finance.balance.view']){assert.equal(roleCan(manager,cap),false);assert.equal(roleCan({...manager,capabilities:{[cap]:true}},cap),false,'manager hard denial '+cap);}
  assert(roleCan(actors.finance,'salary.view'),'existing finance salary default preserved');
  let result=await call();assert.equal(result.status,200,JSON.stringify(result));assert(result.policy.permissionRoles.includes('finance'));assert(!result.policy.editableRoles.includes('finance'),'cannot assign salary-bearing role');assert.equal(result.policy.canResetRoles,false);
  assert(result.roles.every(role=>!['owner','admin','management'].includes(role)));assert(result.capabilities.every(cap=>!['salary.view','finance.balance.view'].includes(cap.id)));assert(result.capabilities.every(cap=>cap.defaults.every(role=>!['owner','admin','management'].includes(role))));
+ const financeInvite=await call('/api/agency/invite-links','POST',{role:'finance',mode:'single'},actors.owner);assert.equal(financeInvite.status,200);
+ const inviteMetadata=await call('/api/agency/invite-links');assert.equal(inviteMetadata.status,200);assert.equal(inviteMetadata.links.find(link=>String(link.id)===String(financeInvite.id)).url,null,'manager cannot obtain a salary-granting bearer invitation issued by an owner');
+ assert.equal((await call('/api/agency/invite-links','POST',{role:'finance',mode:'single'})).status,403,'cannot issue salary-bearing invitation');
  assert.equal((await call(undefined,'PATCH',{role:'editor',capability:'clients.manage',allowed:false})).status,200);
  assert.equal((await call(undefined,'PATCH',{role:'editor',capability:'salary.view',allowed:true})).status,403);
  assert.equal((await call(undefined,'PATCH',{role:'management',capability:'clients.manage',allowed:true})).status,403);

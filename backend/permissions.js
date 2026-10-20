@@ -66,7 +66,9 @@ export function roleCan(user,capability){
 export async function loadActorPermissions(db,user){
  const roleRows=(await db.query('select capability,allowed from agency_role_permissions where organization_id=$1 and role=$2',[user.organization_id,user.role])).rows;
  const memberRows=(await db.query('select capability,allowed from agency_member_permissions where organization_id=$1 and user_id=$2',[user.organization_id,user.id])).rows;
- return Object.fromEntries([...roleRows,...memberRows].map(row=>[row.capability,row.allowed]));
+ const effective=Object.fromEntries([...roleRows,...memberRows].map(row=>[row.capability,row.allowed]));
+ if(user.role==='management')for(const capability of protectedManagement)effective[capability]=false;
+ return effective;
 }
 const manageableAccessRoles=user=>user?.role==='owner'?[...roles]:user?.role==='admin'?roles.filter(role=>role!=='owner'):lowerRoles(user);
 export function accessEditable(actor,target){return String(actor?.id)!==String(target?.user_id??target?.id)&&manageableAccessRoles(actor).includes(target?.role)&&roleCan(actor,'members.manage');}
