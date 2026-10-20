@@ -1,0 +1,2 @@
+# Refs #335: reviewed client registration forms.
+tsx tests/client-intake-335.test.tsx

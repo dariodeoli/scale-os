@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "protocol": "MCP",
-  "count": 216,
+  "count": 238,
   "tools": [
     {
       "name": "scale_list_clients",
@@ -394,7 +394,16 @@
       "scope": "scale:write",
       "cap": "accounts.manage",
       "domain": "finance",
-      "description": "Crear una cuenta con saldo inicial cero. Para registrar dinero previo usar scale_add_account_opening. No reintentar automáticamente: API sin requestId."
+      "description": "Crear cuenta idempotente con requestId y saldo inicial cero. Nombre opcional generado desde banco/tipo/titular; saldo previo mediante account_opening."
+    },
+    {
+      "name": "scale_update_account",
+      "method": "PATCH",
+      "path": "/api/agency/accounts/:id",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Editar metadata bancaria/titular/custodio con requestId y revisión exacta; moneda no cambia si hay movimientos."
     },
     {
       "name": "scale_list_account_custodians",
@@ -455,7 +464,7 @@
       "method": "GET",
       "path": "/api/agency/finance/balance-details",
       "scope": "scale:read",
-      "cap": "finance.view",
+      "cap": "finance.balance.view",
       "domain": "finance",
       "description": "Balance de contratado y recibido, gastos, equipo y salarios; datos salariales enmascarados según permiso."
     },
@@ -503,6 +512,24 @@
       "cap": "finance.view",
       "domain": "finance",
       "description": "Reabrir mes con motivo y revisión. Sólo el dueño: handler verifica rol y período; no reintentar con revisión actualizada automáticamente."
+    },
+    {
+      "name": "scale_list_client_payment_reviews",
+      "method": "GET",
+      "path": "/api/agency/finance/payment-reviews",
+      "scope": "scale:read",
+      "cap": "billing.view",
+      "domain": "finance",
+      "description": "Revisión pendiente por defecto de cada cliente/mes, separada de pagos reales; evidencia y faltantes, sin inferir cobros."
+    },
+    {
+      "name": "scale_update_client_payment_review",
+      "method": "PATCH",
+      "path": "/api/agency/finance/payment-reviews/:id",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Marcar revisión documental del cliente/mes con motivo y revisión; nunca cobra, cancela ni modifica deuda."
     },
     {
       "name": "scale_update_receipt_links",
@@ -769,6 +796,15 @@
       "description": "Pagos reales de equipo/comisiones con cuenta, fecha e importe."
     },
     {
+      "name": "scale_create_payout",
+      "method": "POST",
+      "path": "/api/agency/payouts",
+      "scope": "scale:write",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Pagar colaborador o comisión aprobada, exactamente un destino explícito, con requestId idempotente; salarios requieren salary.view y toda operación payments.manage."
+    },
+    {
       "name": "scale_list_commissions",
       "method": "GET",
       "path": "/api/agency/commissions",
@@ -785,6 +821,15 @@
       "cap": "commissions.manage",
       "domain": "finance",
       "description": "Comisiones previstas, pendientes, aprobadas y pagadas del mes."
+    },
+    {
+      "name": "scale_create_commission",
+      "method": "POST",
+      "path": "/api/agency/commissions",
+      "scope": "scale:write",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Registrar comisión fija o porcentual de factura explícita con requestId idempotente."
     },
     {
       "name": "scale_update_commission_status",
@@ -1752,6 +1797,168 @@
       "description": "Consultar list client portal access en la empresa autorizada. Se conservan permisos y validaciones actuales."
     },
     {
+      "name": "scale_list_invitation_links",
+      "method": "GET",
+      "path": "/api/agency/invite-links",
+      "scope": "scale:read",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Consultar metadatos de enlaces de invitación sin devolver URLs ni credenciales de acceso."
+    },
+    {
+      "name": "scale_revoke_invitation_link",
+      "method": "DELETE",
+      "path": "/api/agency/invite-links",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar revoke invitation link en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_invite_client_portal_user",
+      "method": "POST",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Invitar por correo a un cliente al portal. Devuelve metadatos y el estado real de envío; nunca devuelve la credencial de acceso."
+    },
+    {
+      "name": "scale_update_member_photo",
+      "method": "PATCH",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar update member photo en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_collaborators",
+      "method": "GET",
+      "path": "/api/agency/collaborators",
+      "scope": "scale:read",
+      "cap": [
+        "members.manage",
+        "finance.view"
+      ],
+      "domain": "workspace",
+      "description": "Consultar list collaborators en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_create_collaborator",
+      "method": "POST",
+      "path": "/api/agency/collaborators",
+      "scope": "scale:write",
+      "cap": [
+        "members.manage",
+        "finance.view"
+      ],
+      "domain": "workspace",
+      "description": "Crear un perfil laboral. Si el actor está autorizado, el módulo canónico puede vincular o invitar acceso de lectura por correo; los permisos salariales se verifican por separado."
+    },
+    {
+      "name": "scale_update_collaborator",
+      "method": "PATCH",
+      "path": "/api/agency/collaborators",
+      "scope": "scale:write",
+      "cap": [
+        "members.manage",
+        "finance.view"
+      ],
+      "domain": "workspace",
+      "description": "Editar el perfil laboral con los permisos actuales. Gerencia no puede cambiar remuneraciones ni perfiles ligados a integrantes superiores. El módulo canónico conserva las reglas de vinculación de acceso."
+    },
+    {
+      "name": "scale_invite_member",
+      "method": "POST",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar invite member en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_member_access",
+      "method": "PATCH",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar update member access en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_resend_member_invitation",
+      "method": "POST",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar resend member invitation en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_remove_member_access",
+      "method": "DELETE",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar remove member access en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_decide_access_request",
+      "method": "PATCH",
+      "path": "/api/agency/access-requests",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar decide access request en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_role_permission",
+      "method": "PATCH",
+      "path": "/api/agency/permissions",
+      "scope": "scale:write",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Actualizar update role permission en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_member_permissions",
+      "method": "GET",
+      "path": "/api/agency/members",
+      "scope": "scale:read",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Consultar get member permissions en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_member_permission",
+      "method": "PATCH",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Actualizar update member permission en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_revoke_client_portal_invitation",
+      "method": "POST",
+      "path": "/api/agency/client-portal-invites",
+      "scope": "scale:write",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Actualizar revoke client portal invitation en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_revoke_client_portal_grant",
+      "method": "POST",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Actualizar revoke client portal grant en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
       "name": "scale_get_my_profile",
       "method": "GET",
       "path": "/api/agency/productivity/profile",
@@ -1819,7 +2026,10 @@
       "method": "GET",
       "path": "/api/agency/members",
       "scope": "scale:read",
-      "cap": "members.manage",
+      "cap": [
+        "members.manage",
+        "permissions.manage"
+      ],
       "domain": "workspace",
       "description": "Consultar list members en la empresa autorizada. Se conservan permisos y validaciones actuales."
     },
@@ -1936,9 +2146,9 @@
       "method": "GET",
       "path": "/api/agency/permissions",
       "scope": "scale:read",
-      "cap": null,
+      "cap": "permissions.manage",
       "domain": "workspace",
-      "description": "Consultar la matriz de permisos de la empresa. El handler canónico limita la lectura a dueño y administrador."
+      "description": "Consultar permisos de roles inferiores autorizados; Gerencia no recibe valores de roles superiores ni capacidades protegidas."
     },
     {
       "name": "scale_get_active_announcement",
