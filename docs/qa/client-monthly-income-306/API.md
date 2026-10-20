@@ -28,3 +28,7 @@ La migración es aditiva y reentrante. Los triggers de período también impiden
 `node backend/test-client-monthly-income.mjs`: cliente sin plan, base/varios extras/zero, mover mes, plan/fallback, moneda separada, total único en Balance/Previsión, idempotencia, tenant, permisos, revisión obsoleta, papelera, cierre financiero y guardas SQL, sin movimientos/facturas.
 
 Focales existentes: `node backend/test-economic-history.mjs`, `node backend/test-forecast.mjs`, `node backend/test-release-migrations.mjs`. Usan PGlite y datos sintéticos aislados. La concurrencia está serializada por el lock financiero existente; este cambio no añade operaciones de ledger/caja. La integración y CI completos los acredita el integrador; este documento no declara un deploy.
+
+## Compatibilidad de arranque
+
+El CI detectó que la prueba de bootstrap esperaba aún116 migraciones. Se preservan congelados los puntos110/111/114/116 y se agrega un paso separado116→117 para ingresos mensuales: sin inventar filas ni cambiar los snapshots/tracker previos, con dos reinicios adicionales sin replay. `node backend/test-bootstrap-migrations.mjs` aprueba la instalación nueva, la base pre-tracker y las actualizaciones pobladas.

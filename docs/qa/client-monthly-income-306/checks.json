@@ -25,6 +25,13 @@
       "lastPass": "PASS: schema + 117 server-registered migrations with tracked restart, session identity initialization, real reactivation/HR sync, demo isolation, assignee flow, inventory/checklist relations; optional Dadoo excluded",
       "sha256": "b2edc3d9d35d5a67989668b342356566abb5a78ba0dda8da7810bde7270c9ef4",
       "localLog": "/tmp/income306-migrations.log"
+    },
+    "bootstrapUpgrade": {
+      "exitCode": 0,
+      "lastPass": "PASS bootstrap: 117 curated files fresh/legacy; tracked 110->111 111->114 114->116 and 116->117 upgrades preserve preferences, secondary contacts, ownership.changed, USD100.25, invoices and payouts across restarts; unknown legacy salary dates remain null and economic history stays immutable; future files once; DDL+tracker rollback atomic, no reseeding",
+      "sha256": "c41aefdbe1ea84cf44fc40a2e05ef937fae1cb01cd8503975c4c1c8b8b678928",
+      "localLog": "/tmp/income306-bootstrap-fix.log",
+      "negativeControl": "Original117 migration list failed frozen116 expected tail; /tmp/income306-bootstrap-negative.log. Added separate116->117 upgrade, did not weaken110/111/114/116 baselines."
     }
   },
   "unrun": [
