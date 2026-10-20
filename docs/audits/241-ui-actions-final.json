@@ -279,6 +279,31 @@
       "sha256": "3c992a59d8c0ba9a8f0eb176d8c8d37461c1b7da99cbb98d78bddb13f4ec03d7"
     },
     {
+      "file": "app/documentacion/__tests__/content.test.tsx",
+      "changed": false,
+      "sha256": "9e6b9bf225baea4a704c1818ec6376801b07a59af6159d45d466aa3bf215703b"
+    },
+    {
+      "file": "app/documentacion/api/page.tsx",
+      "changed": false,
+      "sha256": "8edeb2add81c529848c3825f5b7ee492c4ae2140e4a58760c030cbbf519b50ed"
+    },
+    {
+      "file": "app/documentacion/layout.tsx",
+      "changed": false,
+      "sha256": "81169cbd1cd5cabf20affaed78f17194f26e2c14ca4a373e0cddfc501285f517"
+    },
+    {
+      "file": "app/documentacion/mcp/page.tsx",
+      "changed": false,
+      "sha256": "13fae57acefb86a94196769e6d83d60e1c707bc190f35d9b0b474aecec49fb4f"
+    },
+    {
+      "file": "app/documentacion/page.tsx",
+      "changed": false,
+      "sha256": "f69d10888648719d9360e2c412979ac080e656fdeb083a84b7c85bf449ee8b85"
+    },
+    {
       "file": "app/drive-link.tsx",
       "changed": false,
       "sha256": "07cbb366dbb882968759afe9b98d01f48e1f1b6f5d346b4039567c273e1e99f4"
@@ -597,6 +622,11 @@
       "file": "app/project-card.tsx",
       "changed": false,
       "sha256": "da3703b55dc91f6b77c6a6b43a6b8c7747b517658d113566244fb7126897d5a6"
+    },
+    {
+      "file": "app/public-docs.tsx",
+      "changed": false,
+      "sha256": "36de98f5434e504a2a342d5e9eeeb841d7277c0d2c7cee325bcca03e44872cbf"
     },
     {
       "file": "app/quote-composer.tsx",
@@ -1091,7 +1121,7 @@
     {
       "file": "app/workspace-footer.tsx",
       "changed": false,
-      "sha256": "cdd1bdbcf48aefa439e1bcd5c9be98d64a873776cd9ede3743dffe499fc71f1c"
+      "sha256": "6222856eb920e6520289c98d8e773fb51808a15bd51264c176205d97ae2ac257"
     },
     {
       "file": "app/workspace-forms.tsx",

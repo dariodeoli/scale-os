@@ -1,0 +1,133 @@
+{
+  "issue": 325,
+  "baseline": "74f2d89d2309378ba3a3a3eb8238c262295531a6",
+  "integrationHead": "179d48c82183983a701eccd7e5ebdcdeb83e9ca9",
+  "approved": true,
+  "reviewedFiles": [
+    {
+      "file": "app/public-docs.tsx",
+      "sha256": "36de98f5434e504a2a342d5e9eeeb841d7277c0d2c7cee325bcca03e44872cbf"
+    },
+    {
+      "file": "app/documentacion/page.tsx",
+      "sha256": "f69d10888648719d9360e2c412979ac080e656fdeb083a84b7c85bf449ee8b85"
+    },
+    {
+      "file": "app/documentacion/mcp/page.tsx",
+      "sha256": "13fae57acefb86a94196769e6d83d60e1c707bc190f35d9b0b474aecec49fb4f"
+    },
+    {
+      "file": "app/documentacion/api/page.tsx",
+      "sha256": "8edeb2add81c529848c3825f5b7ee492c4ae2140e4a58760c030cbbf519b50ed"
+    },
+    {
+      "file": "app/documentacion/layout.tsx",
+      "sha256": "81169cbd1cd5cabf20affaed78f17194f26e2c14ca4a373e0cddfc501285f517"
+    },
+    {
+      "file": "app/workspace-footer.tsx",
+      "sha256": "6222856eb920e6520289c98d8e773fb51808a15bd51264c176205d97ae2ac257"
+    },
+    {
+      "file": "middleware.ts",
+      "sha256": "d9ae5ed6fff34b1f1e28706d86f5f06f81649f621cf2a94b639f69f391318545"
+    },
+    {
+      "file": "public/scale-os.html",
+      "sha256": "2705f5daef6c072ed4d1f401ececf6cce8e163212807fb0e2ccb57fdab1bbfca"
+    }
+  ],
+  "publicRoutes": [
+    {
+      "path": "/documentacion",
+      "status": 200,
+      "anchorCount": 25,
+      "samePageFragmentsValid": true,
+      "crossGuideFragmentsValid": true,
+      "forms": 0,
+      "buttons": 0,
+      "destinations": [
+        "#contenido",
+        "#empezar",
+        "#permisos",
+        "#primeros-pasos",
+        "/documentacion",
+        "/documentacion/api",
+        "/documentacion/mcp",
+        "https://app.scaleparaguay.com/",
+        "https://app.scaleparaguay.com/registro",
+        "https://owncoding.dev/",
+        "https://scaleparaguay.com/",
+        "https://sistema.scaleparaguay.com/",
+        "https://sistema.scaleparaguay.com/#precio",
+        "https://sistema.scaleparaguay.com/demo",
+        "https://sistema.scaleparaguay.com/documentacion",
+        "https://sistema.scaleparaguay.com/privacidad"
+      ]
+    },
+    {
+      "path": "/documentacion/mcp",
+      "status": 200,
+      "anchorCount": 29,
+      "samePageFragmentsValid": true,
+      "crossGuideFragmentsValid": true,
+      "forms": 0,
+      "buttons": 0,
+      "destinations": [
+        "#conectar",
+        "#contenido",
+        "#ejemplos",
+        "#herramientas",
+        "#oauth",
+        "#permisos",
+        "#revocar",
+        "/documentacion",
+        "/documentacion/api",
+        "/documentacion/mcp",
+        "https://app.scaleparaguay.com/",
+        "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+        "https://owncoding.dev/",
+        "https://scaleparaguay.com/",
+        "https://sistema.scaleparaguay.com/",
+        "https://sistema.scaleparaguay.com/#precio",
+        "https://sistema.scaleparaguay.com/demo",
+        "https://sistema.scaleparaguay.com/documentacion",
+        "https://sistema.scaleparaguay.com/privacidad"
+      ]
+    },
+    {
+      "path": "/documentacion/api",
+      "status": 200,
+      "anchorCount": 25,
+      "samePageFragmentsValid": true,
+      "crossGuideFragmentsValid": true,
+      "forms": 0,
+      "buttons": 0,
+      "destinations": [
+        "#acceso",
+        "#contenido",
+        "#datos",
+        "#existentes",
+        "#implementar",
+        "/documentacion",
+        "/documentacion/api",
+        "/documentacion/mcp",
+        "/documentacion/mcp#oauth",
+        "https://app.scaleparaguay.com/",
+        "https://owncoding.dev/",
+        "https://scaleparaguay.com/",
+        "https://sistema.scaleparaguay.com/",
+        "https://sistema.scaleparaguay.com/#precio",
+        "https://sistema.scaleparaguay.com/demo",
+        "https://sistema.scaleparaguay.com/documentacion",
+        "https://sistema.scaleparaguay.com/privacidad"
+      ]
+    }
+  ],
+  "review": "Reviewed full documentation modules and footer; exact middleware allowlist for three public routes; fixed first-party home/demo/login/signup destinations; ordinary anchors perform GET navigation only, no approval/mutation/form callbacks, no interpolated untrusted redirect. Landing docs anchors remain local routes. Footer price is absolute to marketing home #precio; documentation footer points to marketing docs. External MCP specification is HTTPS; no new target blank opener. Landing executable scripts are byte-for-byte unchanged versus baseline. Canonical action inventory remains 628/55/1 with zero unreviewed; no structural exemptions or artificial action additions.",
+  "limitations": [
+    "Ordinary anchors and standalone public HTML are outside button migration taxonomy; explicitly reviewed here, not fabricated in canonical inventory.",
+    "Local Next read-only GET and source review; no real provider OAuth or physical mobile test.",
+    "Responsive browser evidence is owned by root/product QA."
+  ]
+}

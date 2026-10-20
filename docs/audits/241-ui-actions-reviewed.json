@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Scale #305–312: exact reviewed native widget JSX/owners preserved;25 new and2 changed canonical actions reviewed;2 inline actions retired with their shared-menu destination; file hashes and positions refreshed.",
+  "scope": "Scale #325: exact historical native widget JSX and canonical owners preserved; public documentation navigation reviewed separately; source hashes and positions refreshed.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",

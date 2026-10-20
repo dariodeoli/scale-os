@@ -51,8 +51,8 @@ export function middleware(request:NextRequest){
   if(path==='/registro')return NextResponse.redirect(new URL('https://app.scaleparaguay.com/registro'),307);
   // `/status` vive en la app; la landing lo enlaza sin host (issue #158).
   if(path==='/status')return NextResponse.redirect(new URL('https://app.scaleparaguay.com/status'),307);
-  if(path==='/privacidad')return NextResponse.next();
-  if(path.startsWith('/brand/')||path.startsWith('/landing/')||path==='/favicon.ico'||path==='/site.webmanifest'||path==='/apple-touch-icon.png')return NextResponse.next();
+  if(path==='/privacidad'||path==='/documentacion'||path==='/documentacion/mcp'||path==='/documentacion/api')return NextResponse.next();
+  if(path.startsWith('/brand/')||path.startsWith('/landing/')||path.startsWith('/fonts/')||path==='/favicon.ico'||path==='/site.webmanifest'||path==='/apple-touch-icon.png')return NextResponse.next();
   if(path==='/demo'||path.startsWith('/core-api/')||workspaceRoots.has(path.split('/')[1])){const response=NextResponse.next();response.headers.set('X-Robots-Tag','noindex, nofollow');return response;}
   return new NextResponse('Página no encontrada',{status:404,headers:{'X-Robots-Tag':'noindex'}});
  }

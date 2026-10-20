@@ -52,7 +52,7 @@ test('públicas: la landing standalone publica el mismo pie canónico',()=>{
  const footers=landing.match(/<footer\b[^>]*>[\s\S]*?<\/footer>/g)||[];
  assert.equal(footers.length,1,'la landing mantiene un solo pie');
  assertProductFooter(footers[0],'landing');
- assert(footers[0].includes('href="#precio"'),'la landing conserva su enlace de venta');
+ assert(footers[0].includes('href="https://sistema.scaleparaguay.com/#precio"'),'el pie compartido conserva su enlace de venta desde landing y documentación');
  assert(!footers[0].includes('<script'),'el pie de la landing no agrega runtime');
  assert(file('build-tools/sync-landing-footer.tsx').includes('variant="landing"'),'la landing se regenera desde el puente');
 });
