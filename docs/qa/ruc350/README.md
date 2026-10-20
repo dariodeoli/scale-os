@@ -6,10 +6,14 @@ La ruta real de Scale es `POST /api/agency/ruc-lookup`; `/api/ruc` es un ejemplo
 
 ## Pruebas
 
-`local-gates.json` registra comandos, BUILD_ID y hashes de fuente. Pasaron TypeScript, 295 regresiones frontend en 70 fragmentos, build, suite completa backend (incluido test-ruc), versiones/footer y assets iniciales. La prueba negativa reproduce el503 sin stateRaw en fuente anterior a203, sólo con mocks. La revisión estática independiente no encontró bloqueos.
+`local-gates.json` registra comandos, BUILD_ID y hashes de fuente. Pasaron TypeScript, 295 regresiones frontend en 70 fragmentos, build, suite completa backend (incluido test-ruc), versiones/footer y assets iniciales. La prueba negativa reproduce el 503 sin stateRaw en fuente anterior a 203, sólo con mocks. La revisión estática independiente no encontró bloqueos.
 
 Los casos focales incluyen ACTIVO, INACTIVO, SUSPENDIDO, otro estado y tipos futuros, legacy, ausencia de ambos; ausencia de nombre, RUC/DV inválidos, procedencia/HTTPS/hash/ambiente/cuota inválidos, códigos de activación/clave y desconocidos, caché saneada, ausencia de secretos, respuesta demasiado grande y fallo del limitador sin llamada externa.
 
 ## Límites
 
-Los fixtures y claves son sintéticos. No se acredita consulta real, activación de clave, sesión OAuth o aceptación autenticada de producción. El CI y el deploy se verifican después de publicar el PR. No hubo escrituras reales. La API disponible al inicio seguía en1.0.202; Coolify requiere acceso de red y credencial administrativa aún no configurados en esta sesión.
+Los fixtures y claves son sintéticos. No se acredita consulta real, activación de clave, sesión OAuth o aceptación autenticada de producción. El CI y el deploy se verifican después de publicar el PR. No hubo escrituras reales. La API disponible al inicio seguía en 1.0.202; Coolify requiere acceso de red y credencial administrativa aún no configurados en esta sesión.
+
+## Estado de publicación
+
+Rama `codex/ruc-optional-fiscal-state` publicada, con todas las pruebas locales aprobadas. No se pudo crear el PR por CONNECT 403 del proxy hacia `api.github.com`. No se inició CI, no se hizo merge ni deploy. Se guardó un borrador aditivo con los dominios GitHub API, Coolify, OwnData y Scale; para aplicarlo se requiere guardar/publicar el entorno. Se dejó preparado el requisito de secreto administrativo de Coolify en la configuración, sin valores ni claves en el repositorio. El cuerpo del PR está en `pull-request.md`.

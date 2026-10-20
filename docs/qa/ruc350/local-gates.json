@@ -47,5 +47,16 @@
     "verified": false,
     "reason": "Awaiting CI/merge and provider publication; no real OwnData key or authenticated Scale session available in this environment. Actual route POST /api/agency/ruc-lookup."
   },
-  "real_financial_writes": false
+  "real_financial_writes": false,
+  "publication": {
+    "branch": "codex/ruc-optional-fiscal-state",
+    "branch_pushed": true,
+    "pull_request_created": false,
+    "ci_started": false,
+    "merged": false,
+    "deployment_triggered": false,
+    "blocker": "Managed proxy CONNECT403 to api.github.com; additive network draft saved, requires user Save/Publish in environment settings.",
+    "coolify_panel": "https://hub.owncoding.dev",
+    "coolify_admin_access_configured": false
+  }
 }
