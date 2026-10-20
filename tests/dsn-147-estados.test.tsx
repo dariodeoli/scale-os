@@ -41,8 +41,8 @@ test('#147: Mis datos sin API marca los derechos como próximamente y deriva al 
 });
 
 
-const chrome=process.env.SCALE_QA_CHROME||'/usr/bin/chromium';
-test('#147 Chromium: actual preview fragment renders disabled neutral actions in both themes', {skip:!existsSync(chrome)},async()=>{
+const chrome=process.env.SCALE_QA_CHROME||process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium';
+test('#147 Chromium: actual preview fragment renders disabled neutral actions in both themes', {skip:!process.env.CI&&!existsSync(chrome)},async()=>{
  const source=file('app/daily-controls.tsx'),parsed=ts.createSourceFile('daily-controls.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  const preview=parsed.statements.find((node):node is ts.FunctionDeclaration=>ts.isFunctionDeclaration(node)&&node.name?.text==='ClientReviewPreview');assert(preview,'execute the actual app preview function');
  const bundle=await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
