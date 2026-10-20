@@ -2,4 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://sistema.scaleparaguay.com/</loc></url>
   <url><loc>https://sistema.scaleparaguay.com/privacidad</loc></url>
+  <url><loc>https://sistema.scaleparaguay.com/documentacion</loc></url>
+  <url><loc>https://sistema.scaleparaguay.com/documentacion/mcp</loc></url>
+  <url><loc>https://sistema.scaleparaguay.com/documentacion/api</loc></url>
 </urlset>

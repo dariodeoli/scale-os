@@ -19,7 +19,9 @@ export function WorkspaceFooter({variant='workspace',year}:{variant?:'workspace'
  // en el marco interno se navega dentro del host; la landing es un documento
  // standalone sin Tailwind y usa la URL absoluta canónica.
  if(variant==='landing')return <ProductFooter {...props} className="workspace-footer workspace-footer-landing">
-   <a href="#precio">Ver el plan</a>
+   <a href="https://sistema.scaleparaguay.com/#precio">Ver el plan</a>
+   {' · '}
+   <a href="https://sistema.scaleparaguay.com/documentacion">Documentación</a>
    {' · '}
    <a href={PRIVACY_NOTICE_URL}>Privacidad</a>
    {' · '}

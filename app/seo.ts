@@ -3,7 +3,7 @@
 // mantener una sola definición de robots y sitemap.
 export const SEO_LANDING_ORIGIN = 'https://sistema.scaleparaguay.com';
 export const SEO_APP_ORIGIN = 'https://app.scaleparaguay.com';
-export const SEO_LANDING_PATHS = ['/', '/privacidad'] as const;
+export const SEO_LANDING_PATHS = ['/', '/privacidad', '/documentacion', '/documentacion/mcp', '/documentacion/api'] as const;
 
 // Blogs (#156/#157): hosts propios, indexables, con sitemap y RSS por sección.
 export type BlogSection = 'empresa' | 'producto';
