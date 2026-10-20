@@ -129,4 +129,4 @@ export async function callMcpTool(options){
 }
 
 async function asyncDeliveryUnavailable(){throw Object.assign(Error('El envío requiere el servicio de correo configurado de Scale'),{status:503});}
-export function mcpToolCatalog(){return definitions.map(d=>({name:d.name,method:d.method,path:d.path,scope:d.scope,cap:d.cap??null,domain:d.domain||(/finance|account|payment|receipt|salary|payout|expense|invoice|commission/.test(d.name)?'finance':/company|member|team|workspace|permission|notification|announcement/.test(d.name)?'workspace':'operations'),description:d.description||toolShape(d).description}));}
+export function mcpToolCatalog(){return definitions.map(d=>({name:d.name,method:d.method,path:d.path,scope:d.scope,cap:d.cap??null,domain:d.domain||d.handlerGroup||(/finance|account|payment|receipt|salary|payout|expense|invoice|commission/.test(d.name)?'finance':/company|member|team|workspace|permission|notification|announcement/.test(d.name)?'workspace':'operations'),description:d.description||toolShape(d).description}));}
