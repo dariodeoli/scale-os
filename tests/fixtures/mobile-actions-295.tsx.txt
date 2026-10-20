@@ -29,7 +29,7 @@ window.fetch=async(input,init={})=>{
  if(path.endsWith('internal-tasks'))return respond({records:[{...task}],counts:{today:1},page:{has_more:false},can_edit:true,can_assign:true});
  if(path.endsWith('/contracts/config'))return respond({capabilities:{view:true,create:true,edit:true,templates_manage:true,issue:true,bank_data_view:false,assist:false},clients:[{id:'1',name:'Cliente QA',logo_url:'/logo.svg',legal_name:'Cliente QA Sociedad'}],collaborators:[{id:'2',name:'Colaborador QA',photo_url:'/logo.svg'}],bank_accounts:[]});
  if(path.endsWith('/contracts/models'))return respond({models:[{key:'qa-monthly',name:'Mensual QA',body:'Acuerdo de muestra QA',required_fields:[]}]});
- if(path.endsWith('/contracts/templates'))return respond({templates:[{id:'t1',name:'Modelo QA',body:'Servicio QA',required_fields:[],revision:1}],variables:[]});
+ if(path.endsWith('/contracts/templates'))return respond({templates:[{id:'t1',name:'Modelo QA',body:'Servicio QA',required_fields:[],revision:1}],variables:['company.legal_representative_document','counterparty.legal_representative_name']});
  if(path.endsWith('/versions'))return respond({versions:[]});
  if(path.endsWith('/contracts'))return respond({contracts:[]});
  return respond({currency:'PYG',company:{currency:'PYG'},contacts:[],records:[]});
