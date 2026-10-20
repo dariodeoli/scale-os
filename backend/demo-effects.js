@@ -14,6 +14,7 @@ export function assertDemoEffectAllowed(actor,effect='external'){
 }
 export function demoRequestEffect(method,path){
  if(['GET','HEAD','OPTIONS'].includes(method))return null;
+ if(method==='POST'&&path==='/api/agency/client-intake-links')return 'external';
  if(path==='/api/ia/carga'||/^\/api\/agency\/contracts\/\d+\/assist$/.test(path))return 'ai';
  if(/^\/api\/agency\/clients\/\d+\/client-portal-invites$/.test(path)||/^\/api\/agency\/work-orders\/\d+\/client-portal-delivery$/.test(path)||path.startsWith('/api/agency/members')||path.startsWith('/api/agency/invite-links')||path.startsWith('/api/agency/access-requests'))return 'invitation';
  if(path==='/api/agency/ruc-lookup'||/^\/api\/agency\/clients\/\d+\/ruc-refresh$/.test(path)||/^\/api\/agency\/sso\/domains\/\d+\/verify$/.test(path))return 'lookup';

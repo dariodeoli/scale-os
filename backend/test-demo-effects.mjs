@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {demoEffectGate,demoRequestEffect,isDemoActor} from './demo-effects.js';
+import {clientIntake} from './client-intake.js';
 import {clientPortal} from './client-portal.js';
 import {iaCarga} from './ia-carga.js';
 import {contracts} from './contracts.js';
@@ -44,6 +45,14 @@ try{
  for(const actor of demos){
   assert(isDemoActor(actor));
   const before=await countInvites();
+  const beforeIntake=Number((await query('select count(*) as n from agency_client_intake_links')).rows[0].n);
+  const intake=await call(clientIntake,'/api/agency/client-intake-links','POST',{scope:'basic'},actor);
+  assert.equal(intake.status,403);assert.equal(intake.path,undefined);assert.equal(intake.link,undefined);
+  assert.equal(Number((await query('select count(*) as n from agency_client_intake_links')).rows[0].n),beforeIntake);
+  assert.equal(demoRequestEffect('POST','/api/agency/client-intake-links'),'external');
+  assert.equal(demoRequestEffect('GET','/api/agency/client-intake-links'),null);
+  let intakeGateStatus=0;
+  assert.equal(await demoEffectGate({req:{method:'POST'},res:{},url:new URL('https://fixture.invalid/api/agency/client-intake-links'),session:async()=>actor,send:(_,status)=>{intakeGateStatus=status;}}),true);assert.equal(intakeGateStatus,403);
   let result=await call(clientPortal,`/api/agency/clients/${client}/client-portal-invites`,'POST',{email:'recipient@example.invalid'},actor,{sendInvite:externalMail});
   assert.equal(result.status,403);assert.equal(result.url,undefined);assert.equal(await countInvites(),before);
   assert.equal((await call(clientPortal,`/api/agency/clients/${client}/client-portal-invites`,'GET',{},actor)).status,200,'local portal access list remains readable');
@@ -117,7 +126,7 @@ try{
  const source=await fs.readFile(new URL('./server.js',import.meta.url),'utf8');
  const guard=source.indexOf('demoEffectGate({');
  assert(guard>0&&guard<source.indexOf('subscriptionBilling({')&&guard<source.indexOf('clientPortal({')&&guard<source.indexOf('iaCarga({'));
- for(const path of ['/api/ia/carga',`${root}/${record.id}/assist`,`/api/agency/clients/${client}/client-portal-invites`,'/api/agency/sso/domains/1/verify','/api/billing/checkout']){
+ for(const path of ['/api/agency/client-intake-links','/api/ia/carga',`${root}/${record.id}/assist`,`/api/agency/clients/${client}/client-portal-invites`,'/api/agency/sso/domains/1/verify','/api/billing/checkout']){
   assert(demoRequestEffect('POST',path));
   let response;const base={req:{method:'POST'},res:{},url:new URL('https://fixture.invalid'+path),send:(_,status,data)=>{response={status,...data};}};
   assert.equal(await demoEffectGate({...base,session:async()=>demo}),true);assert.equal(response.status,403);

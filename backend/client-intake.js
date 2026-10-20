@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {ensureConsent} from './personal-data.js';
-import {roleCan} from './permissions.js';
+import {roleCan,loadActorPermissions} from './permissions.js';
+import {assertDemoEffectAllowed} from './demo-effects.js';
 import {fail,id,text,email,phone,clientLegalProfile,clientLegalFields} from './suite-validation.js';
 import {normalizeRuc,assertUniqueClientRuc} from './ruc-lookup.js';
 import {requireClientBudget,throttle} from './request-guard.js';
@@ -32,10 +33,12 @@ export function clientCompleteness(client){
 async function authorized(c,actor,write=false){
  // Take the uniqueness lock before shared membership/organization locks.
  if(write)await c.query('select id from organizations where id=$1 for update',[actor.organization_id]);
- const member=(await c.query('select m.role from organization_members m join organizations o on o.id=m.organization_id where m.organization_id=$1 and m.user_id=$2 and m.active=true and m.removed_at is null and o.active=true for share of m,o',[actor.organization_id,actor.id])).rows[0];
+ const member=(await c.query('select m.role,o.slug as organization_slug,o.demo_owner_user_id,o.demo_source_id from organization_members m join organizations o on o.id=m.organization_id where m.organization_id=$1 and m.user_id=$2 and m.active=true and m.removed_at is null and o.active=true for share of m,o',[actor.organization_id,actor.id])).rows[0];
  if(!member)fail('Sin acceso activo a esta empresa',403);
- const override=(await c.query("select allowed from agency_role_permissions where organization_id=$1 and role=$2 and capability='clients.manage'",[actor.organization_id,member.role])).rows[0];
- if(!roleCan({...actor,role:member.role,capabilities:override?{'clients.manage':override.allowed}:{}},'clients.manage'))fail('Sin permiso para gestionar clientes',403);
+ const current={...actor,...member};
+ current.capabilities=await loadActorPermissions(c,current);
+ if(!roleCan(current,'clients.manage'))fail('Sin permiso para gestionar clientes',403);
+ return current;
 }
 async function clientRow(c,org,key){
  const row=(await c.query('select * from agency_clients where organization_id=$1 and id=$2 for update',[org,id(key)])).rows[0];
@@ -76,7 +79,7 @@ export async function clientIntake({req,res,url,db,session,body,send}){
    await c.query('commit');tx=false;send(res,201,{received:true,message:'Datos recibidos para revisión. Todavía no se creó ni modificó ninguna ficha.'});return true;
   }
   const actor=await session(req);if(!actor)fail('No autenticado',401);
-  c=await db.connect();await c.query('begin');tx=true;await authorized(c,actor,req.method!=='GET');
+  c=await db.connect();await c.query('begin');tx=true;const liveActor=await authorized(c,actor,req.method!=='GET');
   const org=actor.organization_id;let result,status=200;
   await c.query("select set_config('app.current_user',$1,true)",[String(actor.id)]);
   if(completeness){
@@ -87,6 +90,8 @@ export async function clientIntake({req,res,url,db,session,body,send}){
     const clientId=url.searchParams.get('client_id');if(clientId)await clientRow(c,org,clientId);
     result={links:(await c.query(`select id,client_id,scope,created_at,expires_at,revoked_at,consumed_at from agency_client_intake_links where organization_id=$1${clientId?' and client_id=$2':''} order by id desc limit 100`,clientId?[org,clientId]:[org])).rows};
    }else if(req.method==='POST'&&!links[1]){
+    assertDemoEffectAllowed(actor,'external');
+    assertDemoEffectAllowed(liveActor,'external');
     if(!await throttle(db,'client-intake-issue:'+org+':'+actor.id,40))fail('Esperá unos minutos antes de emitir más enlaces',429);
     const incoming=await body(req);if(Object.keys(incoming).some(key=>!['scope','client_id','expires_in_days'].includes(key)))fail('Campo no permitido');
     if(!['basic','contract'].includes(incoming.scope))fail('Elegí alta básica o contrato');
