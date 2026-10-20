@@ -1,0 +1,3 @@
+# Self-owned list display preferences and canonical grid/table adaptation.
+tsx --test tests/list-column-preferences-310.test.ts tests/list-columns-table-310.test.tsx
+node tests/list-columns-browser-310.test.mjs

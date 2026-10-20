@@ -11,6 +11,7 @@ insert into organizations(id) values(1),(2),(3);insert into users values(10),(11
 insert into organization_members(organization_id,user_id,role) values(1,10,'owner'),(2,10,'viewer'),(1,11,'editor'),(3,10,'owner');
 insert into agency_clients values(100,1),(200,2);`);
 const migration=await fs.readFile(new URL('./migrations/20261018_workspace_preferences.sql',import.meta.url),'utf8');await pg.exec(migration);await pg.exec(migration);
+const columnsMigration=await fs.readFile(new URL('./migrations/20261020_list_column_preferences.sql',import.meta.url),'utf8');await pg.exec(columnsMigration);await pg.exec(columnsMigration);
 const query=(sql,params)=>pg.query(sql,params),db={connect:async()=>({query,release(){}})},self={id:'10',organization_id:'1',role:'owner'};
 async function call(user=self,method='GET',payload={},headers={},database=db){let response;const handled=await workspacePreferences({req:{method,headers:{'x-scale-preference-scope':`${user?.id}:${user?.organization_id}`,...headers}},res:{},url:new URL('https://test/api/agency/workspace-preferences'),db:database,session:async()=>user,body:async()=>payload,send:(_,status,data)=>{response={status,...data};}});assert.equal(handled,true);return response;}
 try{
@@ -25,6 +26,15 @@ try{
  assert.equal((await call({...self,id:'11'})).preferences.startup,'summary');assert.equal((await call({...self,organization_id:'2'})).preferences.startup,'summary');
  assert.equal((await call({...self,organization_id:'2'},'PATCH',{startup:'my-day'})).status,200);assert.equal((await call()).preferences.startup,'production');
  for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'])assert.equal((await call({...self,role},'PATCH',{startup:'summary'})).status,200,role);
+ // Refs #310: independent lists merge without deleting startup/filter choices.
+ const columns={'/clientes:clientes':{order:['client','activity','state'],hidden:['state']}};
+ assert.equal((await call(self,'PATCH',{columns})).status,200);assert.deepEqual((await call()).preferences.columns,columns);
+ assert.equal((await call(self,'PATCH',{columns:{'/produccion:trabajos':{order:['title','status'],hidden:[]}}})).status,200);
+ assert.equal((await call()).preferences.columns['/clientes:clientes'].hidden[0],'state');
+ assert.equal((await call()).preferences.production.mine,true,'column changes preserve filters');
+ assert.equal((await call({...self,id:'11'})).preferences.columns,undefined,'columns do not leak to another member');
+ for(const invalid of [{columns:[]},{columns:{'bad key':{order:[],hidden:[]}}},{columns:{x:{order:['name','name'],hidden:[]}}},{columns:{x:{order:[],hidden:['__proto__']}}},{columns:{x:{order:[],hidden:[],other:true}}},{columns:{x:{order:Array(33).fill('a'),hidden:[]}}}])assert.equal((await call(self,'PATCH',invalid)).status,400,JSON.stringify(invalid));
+ const many=Object.fromEntries(Array.from({length:25},(_,i)=>['list'+i,{order:['name','activity','state','actions'],hidden:['activity']}]));assert.equal((await call(self,'PATCH',{columns:many})).status,200,'payload beyond original1KB persists');
  await query('update organization_members set active=false where organization_id=1 and user_id=10');assert.equal((await call()).status,403);assert.equal((await call(self,'PATCH',{startup:'my-day'})).status,403);await query('update organization_members set active=true where organization_id=1 and user_id=10');
  assert.equal((await call({...self,organization_id:'3',demo_owner_user_id:'10'},'PATCH',{startup:'my-day'})).status,200);assert.equal((await call()).preferences.startup,'summary');
  await query('delete from agency_clients where id=100');assert.equal((await call()).preferences.production.clientId,'');
