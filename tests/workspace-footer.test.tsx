@@ -13,7 +13,8 @@ test('workspace and landing render the same release and requested year',()=>{
   assert.ok(html.includes('data-testid="product-footer"'),'el pie sale del objeto de la biblioteca');
   assert.ok(html.includes('Desarrollado por')&&html.includes('href="https://owncoding.dev/"'),'el crédito con enlace está en todas las variantes');
   assert.ok(!html.includes('usage-disclosure'),'usage disclosure paragraph is removed from every footer');
-  assert.equal(html.includes('href="#precio"'),variant==='landing');
+  assert.equal(html.includes('href="https://sistema.scaleparaguay.com/#precio"'),variant==='landing');
+  assert.equal(html.includes('href="https://sistema.scaleparaguay.com/documentacion"'),variant==='landing');
  }
 });
 test('standalone landing contains the complete shared footer without runtime scripts',()=>{
