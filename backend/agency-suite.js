@@ -249,16 +249,20 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
    }else if(req.method==='PATCH'&&!action){if(b.status==='accepted')fail('Una propuesta aceptada no se puede modificar');const incoming=await body(req),sections=budgetSections(incoming.sections??b.sections),list=items(incoming.items),title=text(incoming.title,160);if(title.length<2)fail('Ingresá el título');const subtotal=amount(list.reduce((s,i)=>s+i.total,0)),taxRate=Number(incoming.tax_rate??b.tax_rate);if(![0,.05,.1].includes(taxRate))fail('IVA inválido');await c.query('update agency_budgets set title=$1,currency=$2,subtotal=$3,total=$4,tax_rate=$5,notes=$6,valid_until=$7,revision=revision+1,sections=$9,updated_at=now() where id=$8',[title,option(incoming.currency||b.currency,currencies),subtotal,amount(subtotal*(1+taxRate)),taxRate,text(incoming.notes||''),date(incoming.valid_until),key,JSON.stringify(sections)]);await c.query('delete from agency_budget_items where budget_id=$1',[key]);for(const [i,row] of list.entries())await c.query('insert into agency_budget_items(budget_id,position,description,quantity,unit_price,total) values($1,$2,$3,$4,$5,$6)',[key,i+1,row.description,row.quantity,row.unitPrice,row.total]);result=await document(c,key,org);}
    else fail('Método no permitido',405);
   }else if(kind==='activity'&&req.method==='GET'){
+   const canReadSalary=roleCan(user,'salary.view');
+   // Apply privacy before pagination/counts so hidden payroll cannot leak through
+   // amounts, references, record IDs, page totals or inferred missing rows.
+   const activityPrivacy=canReadSalary?'':" and a.table_name not in ('agency_salary_month_overrides','agency_salary_history') and not (a.table_name='agency_payouts' and (coalesce(a.after_state,a.before_state)->>'commission_id') is null and (coalesce(a.after_state,a.before_state)->>'collaborator_id') is not null)";
    // Ventana canónica (#105/#106): `?limit`/`?offset` con total por `count(*) over()`.
    // Sin `limit` el contrato sigue devolviendo las últimas 100 filas (compatibilidad).
    const window=parseListWindow(url,100);
    const params=[org];
    const page=window.paginated?windowSql(window.limit,window.offset,params):{pageClause:'',totalExpression:''};
-   const rows=(await c.query(`select ${activityColumns}${page.totalExpression} from agency_operation_audit a left join organization_person_identity i on i.user_id::text=a.actor and i.organization_id=a.organization_id ${activityJoins} where a.organization_id=$1 order by a.id desc${page.pageClause||' limit 100'}`,params)).rows;
-   const total=window.paginated?Number(rows[0]?.total_count)||0:Number((await c.query('select count(*)::int as n from agency_operation_audit where organization_id=$1',[org])).rows[0].n);
+   const rows=(await c.query(`select ${activityColumns}${page.totalExpression} from agency_operation_audit a left join organization_person_identity i on i.user_id::text=a.actor and i.organization_id=a.organization_id ${activityJoins} where a.organization_id=$1${activityPrivacy} order by a.id desc${page.pageClause||' limit 100'}`,params)).rows;
+   const total=window.paginated?Number(rows[0]?.total_count)||0:Number((await c.query(`select count(*)::int as n from agency_operation_audit a where a.organization_id=$1${activityPrivacy}`,[org])).rows[0].n);
    const cut=windowRows(rows,window.limit);
    // #108: la foto del actor viaja como URL del medio (cacheable).
-   const records=dropWindowTotal(cut.rows).map(row=>({...row,actor_photo_url:/^\d+$/.test(String(row.actor??''))?mediaPhoto('person',row.actor,row.actor_photo_url):row.actor_photo_url}));
+   const records=dropWindowTotal(cut.rows).map(row=>({...row,...(!canReadSalary&&row.table_name==='agency_collaborators'?{amount:null,total:null,currency:null,reference:null}:{}),actor_photo_url:/^\d+$/.test(String(row.actor??''))?mediaPhoto('person',row.actor,row.actor_photo_url):row.actor_photo_url}));
    result={records,total,...(window.paginated?{page:{limit:window.limit,offset:window.offset,hasMore:cut.hasMore,total}}:{})};
   }else if(kind==='dashboard'&&req.method==='GET'){
    const monthStart=`date_trunc('month',current_date)::date`;
