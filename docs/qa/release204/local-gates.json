@@ -1,0 +1,52 @@
+{
+  "candidateSha": "8315c9f391df0398cb575bb75296681a1e719384",
+  "mergeSha": "feafd529f0484e9816dabfc12ce49f5f6a1241ff",
+  "version": "1.0.204",
+  "frontendEntries": 295,
+  "frontendFragments": 70,
+  "buildId": "rGlLo7UFuO13JeKGNY7SU",
+  "checks": [
+    {
+      "command": "npm run test:release-regression",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm --prefix backend run test:release",
+      "exitCode": 0
+    },
+    {
+      "command": "node build-tools/check-initial-assets.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run release:check",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run footer:check",
+      "exitCode": 0
+    },
+    {
+      "command": "npm --prefix backend run test:postgres",
+      "exitCode": 0
+    },
+    {
+      "command": "npm --prefix backend run test:finance-postgres",
+      "exitCode": 0
+    }
+  ],
+  "backendSyntaxFiles": 6,
+  "initialAssets": [
+    "PASS initial login: 1275291 raw / 383811 gzip bytes, 21 scripts, no financial artwork",
+    "PASS initial status: 674166 raw / 204174 gzip bytes, 14 scripts, no financial artwork",
+    "PASS initial registro: 943386 raw / 286721 gzip bytes, 16 scripts, no financial artwork"
+  ],
+  "candidateTree": "4fe73b58b1a3e1664bf999542d5007c5fc66b144",
+  "mainTree": "4fe73b58b1a3e1664bf999542d5007c5fc66b144",
+  "sourceComparison": "git diff --exit-code HEAD origin/main: empty",
+  "productionWrites": false
+}

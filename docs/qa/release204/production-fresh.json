@@ -1,0 +1,28 @@
+[
+  {
+    "service": "web",
+    "http": "200",
+    "curlExit": 0,
+    "cacheHeaders": {
+      "date": "Tue, 20 Oct 2026 16:39:39 GMT",
+      "cache-control": "s-maxage=31536000"
+    },
+    "versions": [
+      "1.0.204"
+    ]
+  },
+  {
+    "service": "api",
+    "http": "200",
+    "curlExit": 0,
+    "cacheHeaders": {
+      "date": "Tue, 20 Oct 2026 16:39:40 GMT"
+    },
+    "ok": true,
+    "database": "ready",
+    "release": {
+      "version": "1.0.202",
+      "application": "Scale OS"
+    }
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "probe": "web-status",
+    "http": "200",
+    "expected": 200,
+    "curlExit": 0,
+    "status": "PASS",
+    "versions": [
+      "1.0.204"
+    ]
+  },
+  {
+    "probe": "session-anonymous",
+    "http": "401",
+    "expected": 401,
+    "curlExit": 0,
+    "status": "PASS",
+    "body": {
+      "error": "No autenticado"
+    }
+  },
+  {
+    "probe": "providers",
+    "http": "200",
+    "expected": 200,
+    "curlExit": 0,
+    "status": "PASS",
+    "body": {
+      "google": true,
+      "microsoft": false,
+      "apple": true
+    }
+  },
+  {
+    "probe": "maintenance",
+    "http": "200",
+    "expected": 200,
+    "curlExit": 0,
+    "status": "PASS",
+    "body": {
+      "maintenance": false,
+      "message": "",
+      "until": null,
+      "bypass": false
+    }
+  }
+]

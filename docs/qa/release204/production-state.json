@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-10-20T13:39:40.366561-03:00",
+  "codeIntegrated": true,
+  "candidateCi": "success",
+  "mainCi": "success",
+  "version": "1.0.204",
+  "mergeSha": "feafd529f0484e9816dabfc12ce49f5f6a1241ff",
+  "providerSha": null,
+  "webPublished": true,
+  "apiPublished": false,
+  "authenticatedFormsVerified": false,
+  "publicSmoke": "blocked: API serves1.0.202",
+  "services": [
+    {
+      "service": "web",
+      "http": "200",
+      "curlExit": 0,
+      "cacheHeaders": {
+        "date": "Tue, 20 Oct 2026 16:39:39 GMT",
+        "cache-control": "s-maxage=31536000"
+      },
+      "versions": [
+        "1.0.204"
+      ]
+    },
+    {
+      "service": "api",
+      "http": "200",
+      "curlExit": 0,
+      "cacheHeaders": {
+        "date": "Tue, 20 Oct 2026 16:39:40 GMT"
+      },
+      "ok": true,
+      "database": "ready",
+      "release": {
+        "version": "1.0.202",
+        "application": "Scale OS"
+      }
+    }
+  ],
+  "productionWrites": false
+}

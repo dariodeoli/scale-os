@@ -1,0 +1,19 @@
+
+> scale-os@1.0.204 release:smoke
+> node build-tools/release-smoke.mjs
+
+file:///workspace/scale-os/build-tools/release-smoke.mjs:12
+ let last='';while(now()<deadline){try{const response=await fetchImpl(url,{redirect:'error',credentials:'omit',signal:AbortSignal.timeout(15000)}),body=await response.text();if(response.status===status&&verify(body,response)){log(`PASS: ${name} (${response.status})`);return;}last=`HTTP ${response.status}${response.status===status?' con respuesta inesperada':''}`;}catch{last='sin respuesta válida';}await pause(5000);}throw new Error(`${name} no confirmó v${expected}: ${last}`);
+                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+
+Error: Scale OS público no confirmó v1.0.204: HTTP 200 con respuesta inesperada
+    at probe (file:///workspace/scale-os/build-tools/release-smoke.mjs:12:427)
+    at async runReleaseSmoke (file:///workspace/scale-os/build-tools/release-smoke.mjs:16:1)
+    at async file:///workspace/scale-os/build-tools/release-smoke.mjs:25:75
+
+Node.js v24.19.0
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
