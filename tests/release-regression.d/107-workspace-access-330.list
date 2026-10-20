@@ -1,0 +1,2 @@
+# Refs #330: temporal AI shortcut expires live in America/Asuncion.
+tsx tests/temporary-ai-navigation-330.test.tsx

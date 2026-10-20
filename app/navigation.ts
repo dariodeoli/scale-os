@@ -7,7 +7,9 @@ export const sections = [
  ['Métricas','pipeline/metricas'],['Planes','presupuestos/planes'],
   ['Historial de trabajo','equipo/historial'],['Actividad','equipo/actividad'],['Configuración','configuracion'],['Previsión','pagos/prevision'],['Balance','pagos/balance'],['Preferencias','configuracion/preferencias'],['Papelera','configuracion/papelera'],
 ] as const;
-export function sectionPath(label:string){if(label==='Tablero de producción')label='Producción';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
+export const AI_CONNECTIONS_LABEL='Conexiones de IA';
+export const AI_CONNECTIONS_PATH='/configuracion/preferencias#preferences-ai';
+export function sectionPath(label:string){if(label===AI_CONNECTIONS_LABEL)return AI_CONNECTIONS_PATH;if(label==='Tablero de producción')label='Producción';if(label==='Pagos')label='Finanzas';return '/'+(sections.find(([name])=>name===label)?.[1]||'resumen');}
 export function sectionLabel(path:string){return sections.find(([,slug])=>'/'+slug===path.replace(/\/$/,''))?.[0]||'Resumen';}
 export function validSection(slug:string){return sections.some(([,value])=>value===slug);}
 // Fuente única de compatibilidad (regla 7, §15): el mapa vive en
@@ -18,7 +20,7 @@ export function legacyDestination(slug:string){return Object.prototype.hasOwnPro
 export const sectionGroups:Record<string,readonly string[]>={Finanzas:['Finanzas','Mora','Previsión','Balance'],Pipeline:['Pipeline','Métricas'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad'],'Configuración':['Configuración','Preferencias','Papelera']};
 export function parentSection(label:string){if(label==='Métricas')return 'Pipeline';return Object.entries(sectionGroups).find(([,children])=>children.includes(label))?.[0]||label;}
 export function childSections(label:string){return sectionGroups[parentSection(label)]||[label];}
-// Nav v3 (issue #68): el menú principal son 6 entradas desplegables. Cada grupo
+// Nav v3 (issue #68): grupos estables más el acceso temporal de IA (#330). Cada grupo
 // lista sus MÓDULOS; los apartados de cada módulo siguen accesibles por los
 // tabs de la sección (`sectionGroups`/`childSections`) y las rutas no cambian.
 export const navGroups = [
@@ -28,6 +30,7 @@ export const navGroups = [
  ['Recursos',['Inventario','Estudio','Equipo']],
  ['Finanzas',['Finanzas','Informes']],
  ['Configuración',['Configuración']],
+ [AI_CONNECTIONS_LABEL,[AI_CONNECTIONS_LABEL]],
 ] as const;
 export type NavGroupLabel = typeof navGroups[number][0];
 /** Grupo del menú que contiene a un módulo ('' si el módulo no está en el nav). */
