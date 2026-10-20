@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+import {mcpWorkspaceTools as tools,mcpWorkspaceHandlers as handlers} from './mcp-workspace-tools.js';
+import {roleCan} from './permissions.js';
+const pg=new PGlite();
+try{
+ await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
+ await pg.exec(await fs.readFile(new URL('./migrations/20260908_treasury_ledger.sql',import.meta.url),'utf8'));
+ for(const migration of ['20260908_people_commissions_comments.sql','20260908_operations_complete.sql','20260908_agency_suite.sql'])await pg.exec(await fs.readFile(new URL('./migrations/'+migration,import.meta.url),'utf8'));
+ await pg.exec(`alter table organizations add column if not exists logo_url text;
+ alter table agency_settings add column default_currency text not null default 'PYG';
+ alter table organization_members add column purged_at timestamptz;
+ create table agency_role_permissions(organization_id bigint,role text,capability text,allowed boolean,updated_at timestamptz);
+ create table agency_notification_preferences(organization_id bigint,user_id bigint,email_enabled boolean,assignment boolean,comment boolean,due boolean,primary key(organization_id,user_id));`);
+ for(const migration of ['20261017_contract_documents.sql','20261018_workspace_preferences.sql','20261020_list_column_preferences.sql'])await pg.exec(await fs.readFile(new URL('./migrations/'+migration,import.meta.url),'utf8'));
+ const q=(sql,args)=>pg.query(sql,args),db={query:q,connect:async()=>({query:q,release(){}})};
+ const org=(await q("insert into organizations(slug,name) values('mcp-workspace','Workspace') returning id")).rows[0].id;
+ const other=(await q("insert into organizations(slug,name) values('mcp-other-workspace','Other workspace') returning id")).rows[0].id;
+ const uid=(await q("insert into users(email,password_hash) values('workspace@example.invalid','unused') returning id")).rows[0].id;
+ await q("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner'),($3,$2,'viewer')",[org,uid,other]);
+ const actor={id:uid,organization_id:org,role:'owner'};
+ async function call(name,args={},user=actor){
+  const d=tools.find(t=>t.name===name);assert(d);
+  const route=d.resolve(args),url=new URL(route.path,'https://test.invalid');
+  for(const [key,value] of Object.entries(route.query||{}))url.searchParams.set(key,String(value));
+  let result;
+  const req={method:d.method,headers:{},socket:{remoteAddress:'127.0.0.1'}};
+  const ctx={req,res:{},url,db,session:async()=>user,body:async()=>structuredClone(args.data||{}),send:(_,status,data)=>{result={status,data};return true;}};
+  for(const handler of handlers)if(await handler(ctx))return result;
+  assert.fail('Canonical route not handled: '+name);
+ }
+ let legal=await call('scale_get_company_legal_profile');assert.equal(legal.status,200);assert.equal(legal.data.profile.revision,0);
+ legal=await call('scale_update_company_legal_profile',{data:{expected_revision:0,legal_representative_name:'Company representative'}});assert.equal(legal.status,200,JSON.stringify(legal));assert.equal(legal.data.profile.revision,1);
+ assert.equal((await call('scale_update_company_legal_profile',{data:{expected_revision:0,legal_representative_name:'Stale save'}})).status,409,'canonical legal profile revision preserved');
+ assert.equal((await call('scale_get_company_legal_profile',{}, {...actor,role:'viewer'})).status,403);
+ assert.equal(new Set(tools.map(t=>t.name)).size,tools.length);
+ for(const t of tools){assert.equal(t.inputSchema.additionalProperties,false);assert.equal(t.inputSchema.type,'object');assert.match(t.path,/^\/api\/agency\//);if(t.scope==='scale:write'){assert.deepEqual(t.inputSchema.properties.confirm,{type:'boolean',const:true,description:'Confirmación explícita de la operación solicitada.'});assert.equal(t.inputSchema.properties.data.additionalProperties,false);}}
+ let r=await call('scale_update_company_settings',{data:{name:'New company name',legal_name:'Legal entity',default_currency:'USD'}});assert.equal(r.status,200,JSON.stringify(r));
+ r=await call('scale_get_company_settings');assert.equal(r.data.settings.name,'New company name');assert.equal(r.data.settings.legal_name,'Legal entity');
+ r=await call('scale_update_company_settings',{data:{address:'Address only'}});assert.equal(r.status,200);assert.equal((await call('scale_get_company_settings')).data.settings.name,'New company name','partial updates preserve company name');
+ assert.equal((await q('select name from organizations where id=$1',[other])).rows[0].name,'Other workspace','canonical tenant context isolates writes');
+ assert.equal((await call('scale_update_company_settings',{data:{name:'Forbidden'}},{...actor,role:'viewer'})).status,403);
+ assert.equal((await call('scale_update_company_settings',{data:{name:'Forbidden'}},{...actor,role:'admin',capabilities:{'settings.manage':false}})).status,403,'live capability override respected by canonical handler');
+ assert.equal((await call('scale_update_company_settings',{data:{name:'x'}})).status,400,'canonical validation preserved');
+ r=await call('scale_update_workspace_preferences',{data:{startup:'my-day',production:{mine:true},columns:{clients:{order:['name','email'],hidden:['email']}}}});assert.equal(r.status,200,JSON.stringify(r));
+ assert.equal((await call('scale_get_workspace_preferences')).data.preferences.startup,'my-day');
+ r=await call('scale_get_workspace_preferences',{}, {...actor,organization_id:other,role:'viewer'});assert.equal(r.data.preferences.startup,'summary','same user has independent company preferences');
+ const foreignClient=(await q("insert into agency_clients(organization_id,name) values($1,'Foreign client') returning id",[other])).rows[0].id;
+ assert.equal((await call('scale_update_workspace_preferences',{data:{production:{clientId:String(foreignClient)}}})).status,400,'foreign client cannot enter actor preferences');
+ assert.equal((await call('scale_update_workspace_preferences',{data:{production:{mine:'yes'}}})).status,400);
+ await q('update organization_members set active=false where organization_id=$1 and user_id=$2',[org,uid]);
+ assert.equal((await call('scale_update_workspace_preferences',{data:{startup:'production'}})).status,403,'revoked membership rejected by canonical final guard');
+ await q('update organization_members set active=true where organization_id=$1 and user_id=$2',[org,uid]);
+ assert.equal((await call('scale_update_notification_preferences',{data:{email_enabled:true,due:false}})).status,200);
+ r=await call('scale_get_notification_preferences');assert.equal(r.data.preferences.email_enabled,true);assert.equal(r.data.preferences.due,false);
+ assert.equal((await call('scale_list_members',{}, {...actor,role:'viewer'})).status,403);
+ assert.equal((await call('scale_get_permission_matrix',{}, {...actor,role:'management'})).status,403,'read permission matrix retains owner/admin guard');
+ const settingsTool=tools.find(t=>t.name==='scale_update_company_settings');assert(!roleCan({...actor,role:'admin',capabilities:{'settings.manage':false}},settingsTool.cap));
+ console.log(`MCP workspace: ${tools.length} fixed descriptors; canonical company, preferences, permissions, notifications and tenant/live-access negatives passed.`);
+}finally{await pg.close();}
