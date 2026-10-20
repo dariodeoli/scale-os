@@ -12,7 +12,7 @@ import {Dialog,FormActions,useDialogPending,useDialogClose} from "./dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {validateCivilDate,validateTime} from './ui/temporal-value';
+import {validateCivilDate,validateTime,validateMonth} from './ui/temporal-value';
 import {LookupField,type LookupState} from './ui/smart-field';
 import { Building2, MessageSquare, Star } from "lucide-react";
 import { AmountInput, SelectCustom, type SelectChoice } from './profile-controls';
@@ -88,8 +88,13 @@ type Choice = SelectChoice;
 export type Field = {
   key: string;
   label: string;
-  type?: "number" | "date" | "time" | "email" | "url" | "textarea" | "money" | "password" | "phone" | "checkbox";
+  type?: "number" | "date" | "month" | "time" | "email" | "url" | "textarea" | "money" | "password" | "phone" | "checkbox";
   choices?: Choice[];
+  /** Dependent options reuse the same selector; changing a client can filter projects. */
+  choicesFrom?: (values:Record<string,string>)=>Choice[];
+  onSearchChange?: (query:string)=>void;
+  /** Clear only after an actual dependency change, never while options load. */
+  resetOnChange?:string[];
   optional?: boolean;
   section?: string;
   wide?: boolean;
@@ -165,15 +170,16 @@ export function Editor({
     if(f.integer)s=s.refine(value=>value===''||(f.type==='money'?normalizeWholeMoney(value)!==null:/^\d+$/.test(value)),'Ingresá un número entero.');
     if(f.type==='phone')s=s.refine(value=>value===''||phoneValid(value),PHONE_ERROR);
     if(f.type==='email')s=s.refine(value=>value===''||emailValid(value),EMAIL_ERROR);
-    if(f.type==='date'||f.type==='time'){
-      const valid=f.type==='date'?validateCivilDate:validateTime;
-      s=s.refine(value=>value===''||valid(value),f.type==='date'?'Ingresá una fecha válida.':'Ingresá una hora válida (HH:mm).');
+    if(f.type==='date'||f.type==='time'||f.type==='month'){
+      const valid=f.type==='date'?validateCivilDate:f.type==='month'?validateMonth:validateTime;
+      s=s.refine(value=>value===''||valid(value),f.type==='date'?'Ingresá una fecha válida.':f.type==='month'?'Ingresá un mes válido (AAAA-MM).':'Ingresá una hora válida (HH:mm).');
       if(f.min)s=s.refine(value=>value===''||!valid(value)||!valid(f.min!)||value>=f.min!,`El valor debe ser igual o posterior a ${f.min}.`);
       if(f.max)s=s.refine(value=>value===''||!valid(value)||!valid(f.max!)||value<=f.max!,`El valor debe ser igual o anterior a ${f.max}.`);
     }
     const check=f.validate;
     shape[f.key] = check?s.superRefine((value,ctx)=>{const problem=value===''?null:check(value);if(problem)ctx.addIssue({code:'custom',message:problem});}):s;
   }
+  const formDefaults={...Object.fromEntries(fields.map(field=>[field.key,''])),...defaults};
   const form = useForm<Record<string, string>>({
     // Focus is coordinated below: section-aware controls in Dialog, top summary outside.
     shouldFocusError:false,
@@ -190,9 +196,11 @@ export function Editor({
       }
       return Object.keys(result.errors).length?{values:{},errors:result.errors}:result;
     },
-    defaultValues: defaults,
+    defaultValues: formDefaults,
   });
   const currentValues=form.watch();
+  const previousValues=useRef<Record<string,string>|null>(null);
+  useEffect(()=>{const before=previousValues.current;previousValues.current={...currentValues};if(!before)return;for(const field of fields)if(field.resetOnChange?.some(key=>before[key]!==currentValues[key])&&form.getValues(field.key)!=='')form.setValue(field.key,'',{shouldDirty:true,shouldValidate:true});},[fields,currentValues,form]);
   const valuesObserver=useRef(onValuesChange),lastObserved=useRef('');valuesObserver.current=onValuesChange;
   useEffect(()=>{const signature=JSON.stringify(currentValues);if(signature!==lastObserved.current){lastObserved.current=signature;valuesObserver.current?.({...currentValues});}},[currentValues]);
   useEffect(()=>{
@@ -285,12 +293,15 @@ export function Editor({
     // Un campo dependiente se deshabilita con los valores actuales (issue #152);
     // el guardado del formulario conserva el valor tal como se guardó antes.
     const fieldDisabled=pending||(typeof f.disabled==='boolean'?f.disabled:Boolean(f.disabled?.(form.watch() as Record<string,string>)));
-    return <div ref={element=>{if(element)fieldElements.current.set(f.key,element);else fieldElements.current.delete(f.key);}} key={f.key} data-field={f.key} data-span={f.span} className={f.wide || f.type === 'textarea' || f.type === 'url' || ['title','description','drive_url','drive_links','address','notes','legal_name'].includes(f.key) ? 'ops-wide' : undefined}>
+    const wide=f.wide||f.type==='textarea'||f.type==='url'||['description','drive_links','address','notes'].includes(f.key);
+    const span=f.span??(wide?12:['date','month','time','number','money','checkbox'].includes(f.type||'')||f.choices||f.choicesFrom?3:(f.maxLength??120)>160?6:4);
+    const choices=f.choicesFrom?.(currentValues)||f.choices;
+    return <div ref={element=>{if(element)fieldElements.current.set(f.key,element);else fieldElements.current.delete(f.key);}} key={f.key} data-field={f.key} data-span={span} data-field-type={f.type|| (choices?'select':'text')} className={wide?'ops-wide':undefined}>
       {f.lookup?<LookupField id={id} label={<>{f.label}{f.optional&&<OptionalMark/>}</>} help={f.help?<small className="field-help">{f.help}</small>:undefined}
         error={invalid?<span className="error">{String(form.formState.errors[f.key]?.message)}</span>:undefined} disabled={fieldDisabled}
         state={lookupBusy===f.key&&lookupNotices[f.key]?.state!=='found'?'loading':lookupNotices[f.key]?.state||'idle'} policy={{allowed:lookupBusy!==f.key}} message={lookupNotices[f.key]?.message}
         lookupLabel={f.lookup.label} onLookup={()=>void runLookup(f)} placeholder={f.placeholder} maxLength={f.maxLength}
-        {...form.register(f.key)}/>:f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><InputControl id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:f.choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={f.choices} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
+        {...form.register(f.key)}/>:f.type==='checkbox'?<label htmlFor={id} className="ops-checkbox-field"><InputControl id={id} type="checkbox" checked={form.watch(f.key)==='true'} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} onChange={event=>form.setValue(f.key,String(event.target.checked),{shouldValidate:true,shouldDirty:true})}/><span>{f.label}</span></label>:choices ? <SelectCustom label={optionalLabel(f.label,Boolean(f.optional))} choices={choices} onSearchChange={f.onSearchChange} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <label htmlFor={id}><span>{f.key==='drive_url'||f.key==='drive_links'?'Enlace de archivo o carpeta de Drive':f.label}{f.optional&&<OptionalMark/>}</span>
         {f.key==='drive_links' ? (
           <DriveLinksInput value={form.watch(f.key)||''} disabled={fieldDisabled} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/>
         ) : f.type === 'textarea' ? <TextareaBase rows={f.rows} id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/> : f.type === 'password' ? <PasswordField bare id={id} invalid={invalid} describedBy={describedBy} label={f.label} name={f.key} disabled={fieldDisabled} value={form.watch(f.key)||''} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})} autoComplete="new-password" required={!f.optional} minLength={8}/> : f.type === 'money' ? <AmountInput id={id} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder||'0'} value={form.watch(f.key)||''} currency={f.currency||derivedCurrency||form.watch(f.currencyKey||'currency')||'PYG'} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'phone' ? <PhoneField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : f.type === 'email' ? <EmailField id={id} value={form.watch(f.key)||''} disabled={fieldDisabled} invalid={invalid} describedBy={describedBy} onChange={value=>form.setValue(f.key,value,{shouldValidate:true,shouldDirty:true})}/> : <span><InputControl id={id} disabled={fieldDisabled} aria-invalid={invalid||undefined} aria-describedby={describedBy} numberPolicy={f.type==='number'?f.integer?'integer':'decimal':undefined} inputMode={f.type === 'number' ? (f.integer?'numeric':'decimal') : undefined} type={f.type||'text'} min={f.min} max={f.max} step={f.type === 'number' ? f.integer?'1':'0.01' : undefined} placeholder={f.placeholder} maxLength={f.maxLength} {...form.register(f.key)}/></span>}
@@ -315,7 +326,7 @@ export function Editor({
           // so every existing form remains simple and type-safe.
           await saveFn(values as unknown as Record<string, string>);
           lookupGeneration.current++;lookupRequest.current?.controller.abort();lookupRequest.current=null;setLookupBusy('');serverErrors.current={};
-          if(resetOnSave||another){form.reset(defaults);if(another){const first=fields[0]?.key;if(first)form.setFocus(first);}}
+          if(resetOnSave||another){form.reset(formDefaults);if(another){const first=fields[0]?.key;if(first)form.setFocus(first);}}
           // Lo guardado pasa a ser la base: cerrar después no pide descartar nada.
           else form.reset(v);
           setInteracted(false);

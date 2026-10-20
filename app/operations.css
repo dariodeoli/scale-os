@@ -333,7 +333,7 @@
 .ops-person-select .buscador-personas{min-width:0}
 .ops-person-select input{width:100%}
 @media(min-width:640px){
- .ops-form-grid:has(>[data-span]){grid-template-columns:repeat(12,minmax(0,1fr))}
+ .ops-form-grid:has(>[data-span]),.ops-form-grid:has(>.ui-form-fields>[data-span]){grid-template-columns:repeat(12,minmax(0,1fr))}
  .ops-form-grid:has(>[data-span])>:is(div,label):not(.ops-wide,.form-actions,.dialog-actions,.error,.form-note,.inventory-full){grid-column:span 6}
  .ops-form-grid [data-span="2"]{grid-column:span 2!important}
  .ops-form-grid [data-span="3"]{grid-column:span 3!important}
@@ -341,6 +341,12 @@
  .ops-form-grid [data-span="6"]{grid-column:span 6!important}
  .ops-form-grid [data-span="12"]{grid-column:1/-1!important}
 }
+/* Compact fields remain one shared grid, including nested Editor sections. */
+.ops-form-grid [data-field-type]:is(div,label){align-content:start}
+.ops-form-grid [data-field-type] :is(input,textarea,[data-ui-selector]){max-width:100%;min-width:0}
+.ops-form-grid [data-field-type="checkbox"]{align-self:end}
+.account-bank-input{display:flex;align-items:center;gap:8px;min-width:0}.account-bank-input>span{display:flex;align-items:center;justify-content:center;flex:none;max-width:36px}.account-bank-input>div{min-width:0;flex:1}.account-bank-input [data-bank-selected]{display:none}
+@media(max-width:639px){.ops-form-grid [data-span]{grid-column:1/-1!important}.ops-form-grid{grid-template-columns:minmax(0,1fr)}}
 .inventory-item-form{grid-template-columns:minmax(0,1fr)}
 .inventory-item-form>*,.inventory-item-form fieldset>*{min-width:0}
 @media(min-width:640px){

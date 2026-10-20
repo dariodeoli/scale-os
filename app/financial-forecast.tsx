@@ -60,8 +60,8 @@ const BALANCE_ROW='forecast-balance-row grid min-w-0 grid-cols-[4.75rem_minmax(0
 // target táctil de 44 px y en escritorio vuelven a su tamaño compacto.
 const ICON_TARGETS='[&>button]:h-11 [&>button]:w-11 md:[&>button]:h-7 md:[&>button]:w-7';
 
-export function FinancialForecast({role,organizationId,navigate,onCreateInvoice}:{role:string;organizationId:string|number;navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {return ['owner','admin','finance'].includes(role)?<ForecastPanel key={String(organizationId)} navigate={navigate} onCreateInvoice={onCreateInvoice}/>:null;}
-function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {
+export function FinancialForecast({role,organizationId,navigate,onCreateInvoice}:{role:string;organizationId:string|number;navigate?:(label:string)=>void;onCreateInvoice?:()=>void}) {return ['owner','admin','management','finance'].includes(role)?<ForecastPanel canSalary={role!=='management'} key={String(organizationId)} navigate={navigate} onCreateInvoice={onCreateInvoice}/>:null;}
+function ForecastPanel({navigate,onCreateInvoice,canSalary}:{navigate?:(label:string)=>void;onCreateInvoice?:()=>void;canSalary:boolean}) {
  const [month,,monthDraft,setMonthDraft]=useTemporalFilter(currentForecastMonth,value=>validateMonth(value)&&value>='1900-01'&&value<='9998-12'?value:null),[horizon,setHorizon]=useState<Horizon>('1');
  const {data,error,reload,version,setError:setForecastError}=useForecast(month,horizon);
  const {accounts,expenses:realExpenses,error:realError,setError:setRealError}=useRealExpenses(month,data);
@@ -149,7 +149,7 @@ function ForecastPanel({navigate,onCreateInvoice}:{navigate?:(label:string)=>voi
       <FilaDato etiqueta={`Emitido / facturado (${count(row?.invoice_count)} ${count(row?.invoice_count)===1?'factura':'facturas'})`} valor={moneyNowrap(formatWholeMoney(row?.issued_total,currency))}/>
       <FilaDato etiqueta="Cobrado" valor={moneyNowrap(formatSignedMoney(amountFor(aggregates?.collected,currency),currency))}/>
       <FilaDato etiqueta="Saldo inicial de caja" valor={moneyNowrap(formatWholeMoney(opening,currency))}/>
-      <FilaDato etiqueta="Personal" valor={moneyNowrap(formatWholeMoney(personnel?.expected_end_of_month_expense,currency))}/>
+      {canSalary?<FilaDato etiqueta="Personal" valor={moneyNowrap(formatWholeMoney(personnel?.expected_end_of_month_expense,currency))}/>:null}
       <FilaDato etiqueta="Comisiones de clientes" valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.commissions,currency),currency))}/>
       <FilaDato etiqueta={`Gastos planificados (${count(plannedFor(currency)?.expense_count)})`} valor={moneyNowrap(formatWholeMoney(amountFor(aggregates?.expenses,currency),currency))}/>
       <FilaDato etiqueta="Gastos reales" valor={moneyNowrap(formatRealMoney(realFor(currency),currency))}/>
