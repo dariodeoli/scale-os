@@ -47,6 +47,9 @@ const ownEnvelope={data:{ruc:'80168807',dv:'8',fullRuc:'80168807-8',nameOfficial
 let ownCalls=0,ownStatus=200,ownResponse=ownEnvelope;
 const ownProvider=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',allowedHosts:['app.controlaria.online'],fetcher:async(url,init)=>{ownCalls++;assert.equal(url,OWNDATA_RUC_URL+'/80168807-8');assert.equal(init.headers['X-API-Key'],'synthetic-secret');assert.equal(init.redirect,'error');assert(!url.includes('synthetic-secret'));return new Response(JSON.stringify(ownResponse),{status:ownStatus});}});
 assert.equal((await ownProvider.lookup('80168807-8')).name,'EMPRESA OFICIAL');
+// OwnData contract 1.4.0 deliberately strips stateRaw from commercial/public data.
+const currentEnvelope={...ownEnvelope,data:{ruc:'80168807',dv:'8',fullRuc:'80168807-8',nameOfficial:'EMPRESA OFICIAL',equivalenceRaw:''}};
+ownResponse=currentEnvelope;assert.equal((await ownProvider.lookup('80168807-8')).state,'','absent tax status must stay unknown');ownResponse=ownEnvelope;
 let beforeCalls=ownCalls;await assert.rejects(()=>ownProvider.lookup('80168807-0'),e=>e.status===400);assert.equal(ownCalls,beforeCalls,'invalid DV never sent or retried by base');
 for(const [status,code,expected] of [[400,'INVALID_RUC_DV',400],[400,'INVALID_RUC_FORMAT',400],[401,'API_KEY_INVALID',503],[403,'INSUFFICIENT_SCOPE',503],[403,'PLAN_REQUIRED',503],[429,'DAILY_QUOTA_REACHED',429],[503,'COMMERCIAL_API_DISABLED',503],[503,'DNIT_DATA_UNAVAILABLE',503],[404,'OTHER_NOT_FOUND',503]]){
  ownStatus=status;ownResponse={error:{code,message:'private upstream synthetic-secret'}};beforeCalls=ownCalls;

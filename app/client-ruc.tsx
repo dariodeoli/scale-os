@@ -13,8 +13,8 @@ export type RucRecord={name:string;tax_id:string;tax_state:string;publication_da
 
 /** Datos que «Aplicar» vuelca a la ficha: RUC del proveedor y razón social normalizada. */
 export function rucApplyValues(record:RucRecord){
- // El proveedor devuelve nombres de persona en mayúsculas y "apellidos primero"; la librería los reordena y respeta las razones sociales.
- return {tax_id:record.tax_id,legal_name:normalizarNombre(record.name,{apellidosPrimero:'sifen'})};
+ // OwnData entrega nameOfficial de la fuente y se conserva exacto. El proveedor legado mantiene su presentación histórica.
+ return {tax_id:record.tax_id,legal_name:record.source==='owndata:dnit_official_snapshot'?record.name:normalizarNombre(record.name,{apellidosPrimero:'sifen'})};
 }
 
 /** Consulta al proveedor con el RUC tal como se escribió (sin inventar el dígito verificador). */
