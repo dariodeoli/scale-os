@@ -28,3 +28,11 @@ Catálogo41 herramientas. Cambiar precio/plan permanente conserva vigencia, snap
 Se detectó un defecto preexistente del retry REST con plan automático sin ID, registrado en #322. MCP no anuncia ni acepta ese camino y no amplía permisos. El handler REST requiere seguimiento separado; no se afirma que ese defecto haya sido corregido.
 
 Backend64 scripts pasó antes del último guard MCP; el focal PostgreSQL/SDK y UTF8 pasó tras el guard. El CI final vuelve a ejecutar64 scripts completos sobre el candidato final.
+
+## Diagnóstico CI #323
+
+El runner fallaba en el gate120 al enviar End antes de que el foco inicial del menú se aplicara en requestAnimationFrame. La presencia del selector no acreditaba que el menú estuviera listo para teclado. Se exige foco en la primera acción antes de End y foco en la última después, manteniendo geometría/hit-test/edición/Escape. Control independiente con rAF inicial retrasado80ms:PRE falla con el mismo resultado de GitHub, POST pasa9 casos. No cambia el motor del menú.
+
+El entorno devuelve CONNECT403 para descargar logs de GitHub. El workflow conserva pipefail y exit original y publica diagnóstico acotado/escapado mediante anotaciones disponibles por API. Control local:exit7 preservado y comando inyectado como texto, sin crear otra anotación. El propio fallo de GitHub fue recuperado por esa vía; no se eludió la restricción de red.
+
+Regresión local nueva completa con CI=true:284/284 entradas PASS sobre producto final; el gate120 se ejecutó antes del ajuste de sincronización del harness y su focal corregido9/9 más control de retraso9/9 pasan por separado. El CI del candidato final verifica la cadena con el harness actualizado desde cero.

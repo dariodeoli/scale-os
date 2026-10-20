@@ -37,5 +37,11 @@
     "No real Claude/ChatGPT account connected",
     "No certified digital signature",
     "CI/deploy pending at local gate snapshot"
-  ]
+  ],
+  "laterFreshCiModeRun": {
+    "entries": 284,
+    "passed": true,
+    "logSha256": "c91d01b7abeb2f58ba128cc656112ebe38572ea019976f379ac6fbacb22277f0",
+    "note": "Gate120 preceded test-harness readiness patch; corrected focal9 and deterministic delayed-focus9 passed separately; final candidate CI will run updated chain"
+  }
 }

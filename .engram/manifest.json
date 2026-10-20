@@ -192,6 +192,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "ce54f7b2",
+      "created_by": "agent",
+      "created_at": "2026-10-20T06:06:17.069457442Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
