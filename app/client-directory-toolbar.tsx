@@ -1,4 +1,5 @@
 "use client";
+import {ClientIntakeButton} from './client-intake';
 import {FieldLabel as Label} from './ui/field';
 
 import {OptionsSelect as Select} from './ui/options-select';
@@ -92,6 +93,7 @@ export function ClientDirectoryToolbar({
         <ViewSwitch value={view} onChange={onViewChange}/>
       </div>
       {query || status ? <ScaleButton type="button" className="text-button min-h-11 md:min-h-8" onClick={() => {onQueryChange(''); onStatusChange('');}} variant="ghost">Limpiar filtros</ScaleButton> : null}
+      {canCreate?<ClientIntakeButton/>:null}
       {children}
       {canCreate && (
         <Button

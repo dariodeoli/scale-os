@@ -3,6 +3,7 @@ import {Notice as Aviso} from './ui/notice';
 
 import {PendingFields} from './ui/form-state';
 import {useDialogPending} from './dialog';
+import {Button} from './ui/button';
 import {InputControl} from './ui/input-control';
 // Rediseño v2 (campaña #41 / spec #43 §1): identidad y apariencia del cliente.
 // La paleta y el mapeo de color viven en ./client-identity-data (puros).
@@ -48,9 +49,9 @@ export function ClientLegalIdentity({name,legalName,representativeName,linked=fa
 }
 
 const schema=z.object({color_key:z.enum(CLIENT_COLOR_VALUES)});
-export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true,legalName,representativeName,linked=false,restricted=false}:{id:string;name:string;legalName?:string|null;representativeName?:string|null;linked?:boolean;restricted?:boolean;logo?:string|null;color?:string|null;refresh:()=>Promise<void>;showIdentity?:boolean}){
+export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true,legalName,representativeName,linked=false,restricted=false,compact=false}:{id:string;compact?:boolean;name:string;legalName?:string|null;representativeName?:string|null;linked?:boolean;restricted?:boolean;logo?:string|null;color?:string|null;refresh:()=>Promise<void>;showIdentity?:boolean}){
  const form=useForm<z.infer<typeof schema>>({resolver:zodResolver(schema),defaultValues:{color_key:identityColor(color)}});
- const [error,setError]=useState('');
+ const [error,setError]=useState(''),[expanded,setExpanded]=useState(!compact);
  const [saving,setSaving]=useState(false),pending=useRef(false);
  const [photoSaving,setPhotoSaving]=useState(false),photoPending=useRef(false);
  const busy=saving||photoSaving;
@@ -63,23 +64,24 @@ export function ClientAppearance({id,name,logo,color,refresh,showIdentity=true,l
   finally{pending.current=false;setSaving(false);}
  }
  const current=form.watch('color_key');
- return <section className="grid gap-4 rounded-xl border border-ink-600 bg-ink-800 p-4 md:grid-cols-2 md:p-5">
-  {showIdentity&&<div className="md:col-span-2"><ClientLegalIdentity name={name} legalName={legalName} representativeName={representativeName} linked={linked} restricted={restricted} logo={logo} color={current}/></div>}
-  <ProfilePhoto disabled={saving} onPendingChange={value=>{photoPending.current=value;setPhotoSaving(value);}} label="Logo o foto del cliente" name={name} photo={logo||null} save={async photo=>{await api(`/api/agency/clients/${id}`,{logo_url:photo},'PATCH');try{await refresh();}catch{notify({tone:'warning',message:'Logo guardado. Actualizá la página para refrescar las otras vistas.'});}}}/>
+ return <section className="client-appearance-compact grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-3 sm:grid-cols-2">
+  {compact?<div className="flex min-w-0 items-center gap-3 sm:col-span-2"><ClientLogo name={name} logo={logo} color={current} size="md"/><strong className="min-w-0 flex-1 break-words">{name}</strong><Button type="button" variant="ghost" aria-expanded={expanded} onClick={()=>setExpanded(value=>!value)}>{expanded?'Cerrar apariencia':'Editar logo y color'}</Button></div>:null}
+  {!compact&&showIdentity&&<div className="sm:col-span-2"><ClientLegalIdentity name={name} legalName={legalName} representativeName={representativeName} linked={linked} restricted={restricted} logo={logo} color={current}/></div>}
+  {expanded?<><ProfilePhoto disabled={saving} onPendingChange={value=>{photoPending.current=value;setPhotoSaving(value);}} label="Logo o foto del cliente" name={name} photo={logo||null} save={async photo=>{await api(`/api/agency/clients/${id}`,{logo_url:photo},'PATCH');try{await refresh();}catch{notify({tone:'warning',message:'Logo guardado. Actualizá la página para refrescar las otras vistas.'});}}}/>
   <form noValidate aria-busy={busy} className="grid content-start gap-3" onSubmit={event=>event.preventDefault()}>
    <PendingFields pending={busy}><fieldset disabled={busy} className="min-w-0 border-0 p-0">
-    <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Color identificador</legend>
+    <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-mute">Color del cliente</legend>
     <div className="flex flex-wrap gap-2">
-     {clientColors.map(([key,label])=>{const active=current===key;return <label key={key} className={`identity-${key} flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition ${active?'border-fono/60 bg-fono/10 text-fore':'border-interactivo bg-ink-800 text-mute hover:border-fono/40 hover:text-fore'}`}>
+     {clientColors.map(([key,label])=>{const active=current===key;return <label key={key} className={`identity-${key} flex min-h-9 cursor-pointer items-center gap-1.5 rounded-lg border px-2 text-xs font-semibold transition ${active?'border-fono/60 bg-fono/10 text-fore':'border-interactivo bg-ink-800 text-mute hover:border-fono/40 hover:text-fore'}`}>
       <InputControl type="radio" name="color_key" value={key} checked={active} disabled={busy} className="sr-only" onChange={()=>void saveColor(key)}/>
       <span className="h-3.5 w-3.5 shrink-0 rounded-full" style={{background:'var(--client-accent)'}} aria-hidden="true"/>
       {label}
      </label>;})}
     </div>
    </fieldset></PendingFields>
-   <p className="text-xs leading-5 text-mute">Se guarda al elegir. Identifica al cliente en sus proyectos y piezas; no cambia el estado de producción.</p>
+   <p className="text-xs leading-5 text-mute">El logo y el color se guardan al elegir.</p>
    {error&&<Aviso tono="error" compact role="alert">{error}</Aviso>}
    {saving&&<p role="status" className="text-xs text-mute">Guardando color…</p>}
-  </form>
+  </form></>:null}
  </section>;
 }
