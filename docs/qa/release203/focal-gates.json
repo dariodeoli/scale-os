@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-10-20T09:12:36.553193+00:00",
+  "candidate": "c6536cabd720937575cf901b6440abf81dc7bab9",
+  "main": "2bedb6c679215dfd8574eb5b235700d87de8a95e",
+  "checks": {
+    "postgres_concurrency": {
+      "result": "PASS",
+      "sha256": "c7e7e23b217056a728410bde559cdaaa5563c3f2163d4b2feb4e3d6a871c5138",
+      "summary": [
+        "PASS: concurrent payments cannot overpay an invoice and concurrent transfers cannot overdraw an account",
+        "SERVER PostgreSQL 17.11 (Debian 17.11-0+deb13u1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit; Unix socket only; pool max=6",
+        "PASS inventory photo HTTP: proxy/core-api round-trips, original bytes/stamp0, manual/follow, audited read-only recovery/clear boundaries, legacy cycles finite, cross-item/tenant/roles, external HTTPS, upload/clear/archive",
+        "PASS historical inactive custody: unchanged identity edits return 200; new inactive/foreign assignments remain 400",
+        "PASS tenant reads/writes/membership isolation; custody, return locations and exact version increments",
+        "PASS direct inventory_no_overlapping_reservations: PIDs 448279, 448278 -> committed, 23P01",
+        "PASS real PostgreSQL: seven handler races plus direct constraint race; real localhost HTTP; no PGlite, UI or production connection"
+      ]
+    },
+    "migrations_runner": {
+      "result": "PASS",
+      "sha256": "3e96d07bce2e7d258ea41acde7e4d3bc0d1cf1128303a96a53104dd95209de36",
+      "summary": [
+        "PASS: migration runner applies pending files once, records the explicit baseline and ignores duplicated copies."
+      ]
+    },
+    "sdk_intake_postgres": {
+      "result": "PASS",
+      "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9",
+      "summary": [
+        "PASS MCP: 77 HTTP checks (PostgreSQL real); official SDK initialize/list/call, real canonical clients/plans/projects, OAuth PKCE/DCR/CSRF/resource/replay/refresh/revoke, live roles/overrides, tenant and immutable cash boundary"
+      ]
+    },
+    "sdk_finance": {
+      "result": "PASS",
+      "sha256": "ab3819e5163284aa86c635b7825ba1fe794dc1169522ec25fda9abb3b06ed6c2",
+      "summary": [
+        "PASS all finance additions/legacy schemas advertised once; canonical idempotent cash payout available",
+        "PASS canonical bank/cash creation and explicit holder/custodian; no implicit balance",
+        "PASS account metadata optimistic revision and idempotent retry through SDK",
+        "PASS opening balance idempotent once",
+        "PASS document review defaults pending, audit/retry independent of real payments",
+        "PASS unassigned receipt requires no client and retry creates one cash movement",
+        "PASS late explicit receipt association tenant isolated and optimistic revision protects edits",
+        "PASS receipt application idempotent and does not add cash",
+        "PASS manual mora with explicit expected payment date and later receipt application",
+        "PASS decimal expense idempotency and audited reversal",
+        "PASS transfer retry debits/credits exactly once",
+        "PASS planned recurring expense editing does not mutate cash",
+        "PASS salary audit chronology, idempotent revision and monthly signed adjustment without payroll cash",
+        "PASS canonical balance, forecast, report, personnel and financial selectors execute through SDK",
+        "PASS statement import/exact explicit reconciliation does not invent cash or client associations",
+        "PASS salary and commission payouts idempotent over MCP with exact one debit per request",
+        "PASS manager sees real caja and normal finance; salary records and Balance remain restricted",
+        "PASS money mutation denied with stale real OAuth login before canonical cash mutation",
+        "PASS money mutation denied with stale consent",
+        "PASS confirmation and strict context-key rejection",
+        "PASS live custom capability denial overrides prior grant",
+        "PASS closed period prevents backdated money; owner reopen requires exact revision",
+        "PASS account archive/restore retains cash safeguards",
+        "PASS write scope required despite owner role",
+        "PASS inactive membership invalidates bearer before money write",
+        "PASS finance MCP #330: 97 checks via official SDK/HTTP and isolated PostgreSQL; no production credentials or money used."
+      ]
+    }
+  }
+}

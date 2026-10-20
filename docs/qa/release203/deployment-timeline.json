@@ -1,0 +1,32 @@
+[
+  {
+    "observedAt": "2026-10-20T09:06:54.305Z",
+    "results": [
+      {
+        "service": "api",
+        "status": 200,
+        "version": "1.0.202"
+      },
+      {
+        "service": "web",
+        "status": 200,
+        "version": "1.0.202"
+      }
+    ]
+  },
+  {
+    "observedAt": "2026-10-20T09:22:38.690Z",
+    "results": [
+      {
+        "service": "api",
+        "status": 200,
+        "version": "1.0.202"
+      },
+      {
+        "service": "web",
+        "status": 200,
+        "version": "1.0.203"
+      }
+    ]
+  }
+]

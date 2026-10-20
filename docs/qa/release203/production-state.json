@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-20T09:31:41.152Z",
+  "expected": "1.0.203",
+  "main": "2bedb6c679215dfd8574eb5b235700d87de8a95e",
+  "candidate": "c6536cabd720937575cf901b6440abf81dc7bab9",
+  "checks": [
+    {
+      "service": "api",
+      "url": "https://api.scaleparaguay.com/health",
+      "status": 200,
+      "version": "1.0.202",
+      "database": "ready"
+    },
+    {
+      "service": "web",
+      "url": "https://app.scaleparaguay.com/status",
+      "status": 200,
+      "version": "1.0.203"
+    }
+  ],
+  "completed": false,
+  "blocker": "API still serves1.0.202; Coolify status/logs unavailable to this integration; no duplicate deployment requested"
+}
