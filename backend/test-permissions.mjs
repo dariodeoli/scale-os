@@ -15,6 +15,7 @@ for(const file of migrationOrder){
  await pg.exec(await fs.readFile(`migrations/${file}`,'utf8'));
  if(file==='20260921_role_permissions_audit.sql')break;
 }
+await pg.exec(await fs.readFile('migrations/20261020_member_permissions.sql','utf8'));
 const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const other=(await query("insert into organizations(slug,name) values('perm-other','Otra') returning id")).rows[0].id;
@@ -24,9 +25,9 @@ const peers=(await query(`insert into users(email,password_hash) values
 const members=(await query(`insert into organization_members(organization_id,user_id,role)
  values($1,$2,'owner'),($1,$3,'admin'),($1,$4,'finance'),($1,$5,'viewer') returning user_id,role`,[org,uid,peers[0],peers[1],peers[2]])).rows;
 const owner={id:uid,organization_id:org,role:'owner',organization_name:'Scale'};
-const admin={...owner,role:'admin'};
-const finance={...owner,role:'finance'};
-const viewer={...owner,role:'viewer'};
+const admin={...owner,id:peers[0],role:'admin'};
+const finance={...owner,id:peers[1],role:'finance'};
+const viewer={...owner,id:peers[2],role:'viewer'};
 assert.equal(members.length,4);
 
 let result;
@@ -48,7 +49,8 @@ assert.equal(matrix.capabilities.length,CAPABILITIES.length);
 assert.equal(matrix.capabilities.find(row=>row.id==='members.manage').defaults.includes('management'),true);
 
 // Escritura: solo el Dueño; nunca sobre el rol Dueño.
-assert.equal((await call('PATCH',{capability:'members.manage',role:'management',allowed:false},admin)).status,403,'un administrador no personaliza permisos');
+assert.equal((await call('PATCH',{capability:'contracts.view',role:'editor',allowed:false},admin)).status,200,'administración gestiona permisos de roles inferiores');
+await query("delete from agency_role_permissions where organization_id=$1 and role='editor' and capability='contracts.view'",[org]);
 assert.equal((await call('PATCH',{capability:'members.manage',role:'owner',allowed:false},owner)).status,400,'el Dueño conserva todas las capacidades');
 assert.equal((await call('PATCH',{capability:'inexistente',role:'sales',allowed:true})).status,400);
 assert.equal((await call('PATCH',{capability:'members.manage',role:'socio',allowed:true})).status,400);
@@ -96,9 +98,10 @@ assert.equal((await query('select count(*)::int as total from agency_role_permis
 
 // Aislamiento por empresa.
 await call('PATCH',{capability:'members.manage',role:'management',allowed:false});
+await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'owner')",[other,uid]);
 const isolated=await call('GET',undefined,{...owner,organization_id:other});
 assert.equal(isolated.status,200);
-assert.equal(isolated.capabilities.find(row=>row.id==='members.manage').overrides.management,undefined,'los overrides no cruzan de empresa');
+assert.equal(isolated.capabilities.find(row=>row.id==='members.manage').overrides.management,null,'los overrides no cruzan de empresa');
 
 // El Dueño siempre puede: roleCan no consulta overrides para owner.
 assert.equal(roleCan({role:'owner',capabilities:{'members.manage':false}},'members.manage'),true);

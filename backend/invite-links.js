@@ -3,7 +3,7 @@ import {assertDemoEffectAllowed} from './demo-effects.js';
 import {fail} from './suite-validation.js';
 import {requireClientBudget} from './request-guard.js';
 import crypto from 'node:crypto';
-import {roleCan,roles,assertAssignableRole,accessEditable,loadActorPermissions,CAPABILITIES} from './permissions.js';
+import {roleCan,roles,assertAssignableRole,accessEditable,loadActorPermissions,CAPABILITIES,permissionPolicy} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
 import {ensureConsent} from './personal-data.js';
 // Fuente única de roles: la lista canónica vive en permissions.js.
@@ -102,8 +102,9 @@ export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendA
      where m.invite_link_id=l.id and not exists(select 1 from agency_access_requests ar where ar.link_id=l.id and ar.user_id=m.user_id and ar.status='approved')
     ) j),'[]'::jsonb) as joined_users
     from agency_invite_links l join users u on u.id=l.created_by where l.organization_id=$1 order by l.id desc limit 100`,[org])).rows;
+   const assignable=(await permissionPolicy(c,user)).editableRoles;
    result={links:rows.map(({token_ciphertext,...row})=>{
-    const token=token_ciphertext&&(row.role!=='owner'||user.role==='owner')?unseal(token_ciphertext):null;
+    const token=token_ciphertext&&assignable.includes(row.role)?unseal(token_ciphertext):null;
     return {...row,url:token?`${appUrl}/invitacion?token=${token}`:null};
    })};
   }

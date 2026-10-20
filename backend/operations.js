@@ -45,13 +45,14 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
   const org=user.organization_id;
   if(req.method!=='GET'&&(collaboratorMatch||salaryOverrideMatch))await lockFinanceMutation(c,org);
   let result, status=200, notifyEmail=null;
-  const withoutSalary=row=>{if(roleCan(user,'salary.view'))return row;return {...row,compensation_amount:null,monthly_salary_amount:null,monthly_salary_currency:null,payment_day:null,invoices_company:null};};
+  const withoutSalary=row=>{if(roleCan(user,'salary.view'))return row;return {...row,compensation_type:null,currency:null,compensation_amount:null,monthly_salary_amount:null,monthly_salary_currency:null,payment_day:null,invoices_company:null};};
   if(teamRoute){
    if(req.method!=='GET')fail('Método no permitido',405);
    // Every member reaches the team directory, but only finance keeps the full
    // record. Directory roles receive photo, name and cargo and nothing else:
    // no salaries, no contact data, no access state.
-   if(!roleCan(user,'finance.view')&&!roleCan(user,'members.manage')){
+   const teamPolicy=await permissionPolicy(c,user);
+   if(!roleCan(user,'finance.view')&&!roleCan(user,'members.manage')&&!teamPolicy.canManageRoles){
     const members=(await c.query(`select u.id::text as id,coalesce(nullif(p.full_name,''),u.email) as full_name,p.photo_url,m.role from organization_members m join users u on u.id=m.user_id left join agency_user_profiles p on p.user_id=u.id and p.organization_id=m.organization_id where m.organization_id=$1 and m.active and m.removed_at is null and m.purged_at is null order by full_name`,[org])).rows;
     const extra=(await c.query(`select c.id::text as id,c.full_name,c.photo_url,c.job_title from agency_collaborators c where c.organization_id=$1 and c.user_id is null and ${visibleRecord('c','collaborators')} order by c.full_name`,[org])).rows;
     result={directory:[...mediaPeople(members),...extra.map(person=>({id:person.id,full_name:person.full_name,photo_url:mediaPhoto('collaborator',person.id,person.photo_url),role:'',cargo:person.job_title||''}))]};
@@ -68,7 +69,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
    }
    }
    if(result?.members)result.members=result.members.map(member=>({...member,access_editable:accessEditable(user,member),permissions_editable:permissionsEditable(user,member)}));
-   result.policy=await permissionPolicy(c,user);
+   result.policy=teamPolicy;
   }else if(jobMatch) {
    await c.query('select ensure_agency_job_catalog($1)',[org]);
    if(req.method==='GET')result={roles:(await c.query('select * from agency_job_roles where organization_id=$1 order by active desc,name',[org])).rows};
