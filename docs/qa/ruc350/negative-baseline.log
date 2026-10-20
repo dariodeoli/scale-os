@@ -1,0 +1,1 @@
+PASS: source before v203 reproduces503 when stateRaw missing; same fixture with stateRaw succeeds. Mock only, no external request.

@@ -1,0 +1,51 @@
+{
+  "issue": 350,
+  "release": "1.0.205",
+  "checked_at": "2026-10-20T20:41:47.122028+00:00",
+  "release_commit": "25db60b75d4554caae6c3cb1ba793c43f193262c",
+  "build_id": "dmSyYV1K8VQuXuPEJWbEp",
+  "gates": {
+    "typescript": {
+      "command": "npx tsc --noEmit",
+      "exit_code": 0
+    },
+    "release_prepare": {
+      "command": "npm run release:patch -- --prepare",
+      "exit_code": 0,
+      "frontend_entries": 295,
+      "frontend_fragments": 70,
+      "build": true,
+      "backend_release_suite": true,
+      "version_footer": true
+    },
+    "initial_assets": {
+      "command": "node build-tools/check-initial-assets.mjs",
+      "exit_code": 0
+    },
+    "negative_baseline": {
+      "source": "2bedb6c6^:backend/ruc-lookup.js",
+      "mock_transport_only": true,
+      "missing_stateRaw_503_reproduced": true
+    }
+  },
+  "source_sha256": {
+    "backend/ruc-lookup.js": "01fa0c652fef2940ad1ac0c1e5fa40bdae1ded0781407936a6a032dfc6a7f7e2",
+    "backend/test-ruc.mjs": "3ca05fc6b92186525567900fb36dcf4dc0844ccefd9c051e2975e4af22a55bef",
+    "backend/RUC-LOOKUP.md": "24fedb694b7b176ed9f152d67e94ffc6e611687f04c93b58c70596ce1d5565f2"
+  },
+  "acceptance": {
+    "fiscal_status_optional": true,
+    "fiscal_fields_not_published": true,
+    "required_metadata_validated": true,
+    "error_codes_allowlisted": true,
+    "server_key_only": true,
+    "no_owndata_cookies": true,
+    "limiter_fails_closed": true,
+    "provider_response_limit_bytes": 65536
+  },
+  "production": {
+    "verified": false,
+    "reason": "Awaiting CI/merge and provider publication; no real OwnData key or authenticated Scale session available in this environment. Actual route POST /api/agency/ruc-lookup."
+  },
+  "real_financial_writes": false
+}
