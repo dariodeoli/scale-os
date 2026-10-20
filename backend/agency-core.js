@@ -1,3 +1,4 @@
+import {forecastMonth} from './forecast.js';
 import {financeAccounts} from './finance-accounts.js';
 import {lockMemberManager} from './member-access.js';
 import crypto from 'node:crypto';
@@ -209,8 +210,11 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const status=url.searchParams.get('status');
       const statuses=['up_to_date','due_soon','late','severe'];
       if(status && !statuses.includes(status)) return send(res,400,{error:'Estado de cobro inválido'});
-      const r=await db.query(`select * from client_payment_status where organization_id=$1 ${status ? 'and payment_status=$2' : ''} order by days_overdue desc, next_due_on nulls last, client_name`,status?[user.organization_id,status]:[user.organization_id]);
-      return send(res,200,{clients:r.rows});
+      const month=forecastMonth(url.searchParams.get('month'));
+      const r=await db.query(`select cs.*,cl.logo_url as client_logo_url,case when rv.status='reviewed' then 'reviewed' else 'pending_review' end as verification_status,$2::text as verification_month,rv.reviewed_at,rv.reviewed_by::text,coalesce(rv.revision,0) as verification_revision,
+       (select count(*)::int from agency_payments p left join agency_invoices i on i.organization_id=p.organization_id and i.id=p.invoice_id left join agency_payment_links l on l.organization_id=p.organization_id and l.payment_id=p.id where p.organization_id=cs.organization_id and coalesce(i.client_id,l.client_id)=cs.client_id and (l.period=($2||'-01')::date or (l.period is null and p.received_on>=($2||'-01')::date and p.received_on<(($2||'-01')::date+interval '1 month'))) and not exists(select 1 from agency_payment_reversals pr where pr.organization_id=p.organization_id and pr.payment_id=p.id)) as payment_evidence_count
+       from client_payment_status cs join agency_clients cl on cl.organization_id=cs.organization_id and cl.id=cs.client_id left join agency_client_payment_reviews rv on rv.organization_id=cs.organization_id and rv.client_id=cs.client_id and rv.month=($2||'-01')::date where cs.organization_id=$1 ${status ? 'and cs.payment_status=$3' : ''} order by cs.days_overdue desc,cs.next_due_on nulls last,cs.client_name`,status?[user.organization_id,month,status]:[user.organization_id,month]);
+      return send(res,200,{month,clients:r.rows});
     }
     if (url.pathname === '/api/agency/clients' && req.method === 'GET') {
       const user=await session(req); if(!user) return send(res,401,{error:'No autenticado'});
