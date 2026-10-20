@@ -14,6 +14,7 @@ let contract=null;
 const respond=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
 window.fetch=async(input,init={})=>{
  const path=new URL(String(input),location.href).pathname,method=init.method||'GET',body=init.body?JSON.parse(init.body):{};
+ if(path.endsWith('/contracts/preview'))return respond({preview:{title:body.title||'Contrato de ejemplo QA',html:'<!doctype html><html><head><style>body{font:16px/1.6 Georgia;padding:20px;overflow-wrap:anywhere}</style></head><body><h1>Contrato de ejemplo QA</h1><p>Documento sintético para validar la vista imprimible.</p></body></html>',rendered_text:'Documento QA',missing:[],simulated:body.sample===true,draft:true}});
  if(method!=='GET'){
   window.writes.push({path,method,body});
   if(window.failNext){window.failNext=false;return respond({error:'Fallo temporal sintético'},503);}
@@ -26,7 +27,8 @@ window.fetch=async(input,init={})=>{
  if(path.endsWith('internal-tasks/context'))return respond({people:[],projects:[],clients:[],can_assign:true,can_edit:true});
  if(path.endsWith('internal-tasks/1'))return respond({record:{...task}});
  if(path.endsWith('internal-tasks'))return respond({records:[{...task}],counts:{today:1},page:{has_more:false},can_edit:true,can_assign:true});
- if(path.endsWith('/contracts/config'))return respond({capabilities:{view:true,create:true,edit:true,templates_manage:true,issue:true,bank_data_view:false,assist:false},clients:[{id:'1',name:'Cliente QA'}],collaborators:[],bank_accounts:[]});
+ if(path.endsWith('/contracts/config'))return respond({capabilities:{view:true,create:true,edit:true,templates_manage:true,issue:true,bank_data_view:false,assist:false},clients:[{id:'1',name:'Cliente QA',logo_url:'/logo.svg',legal_name:'Cliente QA Sociedad'}],collaborators:[{id:'2',name:'Colaborador QA',photo_url:'/logo.svg'}],bank_accounts:[]});
+ if(path.endsWith('/contracts/models'))return respond({models:[{key:'qa-monthly',name:'Mensual QA',body:'Acuerdo de muestra QA',required_fields:[]}]});
  if(path.endsWith('/contracts/templates'))return respond({templates:[{id:'t1',name:'Modelo QA',body:'Servicio QA',required_fields:[],revision:1}],variables:[]});
  if(path.endsWith('/versions'))return respond({versions:[]});
  if(path.endsWith('/contracts'))return respond({contracts:[]});
