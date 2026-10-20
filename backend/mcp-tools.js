@@ -87,6 +87,17 @@ function cleanOutput(value,depth=0,limitations=[],path='$'){
  if(typeof value==='string'&&value.length>12000){limitations.push({path,reason:'text_limit'});return value.slice(0,12000)+'… [Texto truncado]';}return value;
 }
 function validateData(data,depth=0,allowedFields=[]){if(depth>12)fail('Cuerpo demasiado anidado');if(Array.isArray(data)){if(data.length>500)fail('Demasiados elementos');for(const item of data)validateData(item,depth+1,allowedFields);return;}if(data&&typeof data==='object'){for(const [key,value] of Object.entries(data)){if(['__proto__','constructor','prototype','organization_id','organizationId','role','capabilities','headers','sql','session','url','method'].includes(key)&&!(depth===0&&allowedFields.includes(key)))fail('Campo de contexto no permitido');validateData(value,depth+1,allowedFields);}}}
+// Canonical handlers use their own transactions while the OAuth actor lease
+// stays locked. Bound cross-actor lock waits so concurrent access edits retry
+// rather than keeping both requests and pool clients waiting indefinitely.
+function canonicalDatabase(db){
+ return {options:db.options,query:(...args)=>db.query(...args),async connect(){
+  const client=await db.connect();return {release:(...args)=>client.release(...args),async query(...args){
+   try{const result=await client.query(...args);if(typeof args[0]==='string'&&/^\s*begin\s*;?\s*$/i.test(args[0]))await client.query("set local lock_timeout = '3s'");return result;}
+   catch(error){if(error.code==='55P03')throw Object.assign(Error('Otro usuario está actualizando estos datos. Volvé a consultar y reintentá.'),{status:409});throw error;}
+  }};
+ }};
+}
 async function executeMcpTool({db,context,name,args={},subscription,request,handlers,services={}}){
  const d=definitions.find(d=>d.name===name);if(!d)fail('Herramienta desconocida',404);
  const shape=toolShape(d,context.actor);
@@ -116,7 +127,7 @@ async function executeMcpTool({db,context,name,args={},subscription,request,hand
   const send=(_,code,data)=>{status=code;result=data;return true;};
   const auditContext=(c,u,r)=>c.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(u.id),r.socket.remoteAddress||'']);
   const auditedQuery=async(u,r,sql,params)=>{const c=await db.connect();try{await c.query('begin');await auditContext(c,u,r);const value=await c.query(sql,params);await c.query('commit');return value;}catch(e){await c.query('rollback');throw e;}finally{c.release();}};
-  const ctx={...services,req,res:{},url,db,session:async()=>actor,body:async()=>args.data||{},send,auditContext,auditedQuery,id:()=>crypto.randomBytes(32).toString('base64url'),sendInvitation:services.sendInvitation||asyncDeliveryUnavailable,sendAccessGranted:services.sendAccessGranted||asyncDeliveryUnavailable};
+  const ctx={...services,req,res:{},url,db:canonicalDatabase(db),session:async()=>actor,body:async()=>args.data||{},send,auditContext,auditedQuery,id:()=>crypto.randomBytes(32).toString('base64url'),sendInvitation:services.sendInvitation||asyncDeliveryUnavailable,sendAccessGranted:services.sendAccessGranted||asyncDeliveryUnavailable};
   if(await maintenanceGate(ctx)){if(status>=400)fail(result?.error||'La aplicación está en mantenimiento',status);}
   let routes=handlers||(d.handlerGroup==='operations'?mcpOperationsHandlers:d.handlerGroup==='finance'?mcpFinanceHandlers:d.handlerGroup==='workspace'?mcpWorkspaceHandlers:d.handlerGroup==='clients'?mcpClientIntakeHandlers:[economicHistory,employeeTasks,contracts,inventoryReservations,financeTreasury,financeControls,reports,suite,operations,agencyCore]);
   if(d.monthlyIncome){const {clientMonthlyIncome}=await import('./client-monthly-income.js');routes=[clientMonthlyIncome];}
