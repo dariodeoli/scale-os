@@ -67,6 +67,21 @@ if(fixture.realPostgres){
 }
 let result=await clientSdk.callTool({name:'scale_create_client',arguments:{confirm:true,data:{name:'Cliente desde SDK',legal_name:'Razón QA'}}});assert.equal(result.isError,undefined,JSON.stringify(result));const created=JSON.parse(result.content[0].text).client;assert.ok(created.id);
 assert.equal((await one('select organization_id from agency_clients where id=$1',[created.id])).organization_id,org);
+// Real HTTP/SDK dispatch and canonical permission checks for the intake group.
+{
+ const intake=async(name,args)=>{const answer=await clientSdk.callTool({name,arguments:args});assert.equal(answer.isError,undefined,JSON.stringify(answer));return JSON.parse(answer.content[0].text);};
+ const completeness=await intake('scale_get_client_completeness',{id:String(created.id)});assert.equal(completeness.clientId,String(created.id));
+ const issued=await intake('scale_create_client_intake_link',{confirm:true,data:{scope:'basic',client_id:String(created.id),expires_in_days:1}});assert.match(issued.path,/^\/adhesion\/[A-Za-z0-9_-]{43}$/);
+ const listed=await intake('scale_list_client_intake_links',{client_id:String(created.id)});assert(listed.links.some(link=>String(link.id)===String(issued.link.id)));assert(!JSON.stringify(listed).includes(issued.path.split('/').at(-1)),'existing links never reveal bearer credentials');
+ await intake('scale_revoke_client_intake_link',{id:String(issued.link.id),confirm:true,data:{}});assert((await one('select revoked_at from agency_client_intake_links where id=$1',[issued.link.id])).revoked_at);
+ await q("update organization_members set role='production' where organization_id=$1 and user_id=$2",[org,uid]);
+ await q("insert into agency_member_permissions(organization_id,user_id,capability,allowed) values($1,$2,'clients.manage',true)",[org,uid]);
+ assert.equal((await intake('scale_get_client_completeness',{id:String(created.id)})).clientId,String(created.id),'member grant is honored by both MCP and canonical intake');
+ await q("delete from agency_member_permissions where organization_id=$1 and user_id=$2 and capability='clients.manage'",[org,uid]);
+ assert.equal((await clientSdk.callTool({name:'scale_get_client_completeness',arguments:{id:String(created.id)}})).isError,true,'individual grant revocation is live');
+ await q("update organization_members set role='owner' where organization_id=$1 and user_id=$2",[org,uid]);
+}
+
 result=await clientSdk.callTool({name:'scale_update_client',arguments:{id:String(created.id),confirm:true,data:{name:'Cliente editado'}}});assert.equal(result.isError,undefined,JSON.stringify(result));assert.equal((await one('select name from agency_clients where id=$1',[created.id])).name,'Cliente editado');
 result=await clientSdk.callTool({name:'scale_create_plan',arguments:{confirm:true,data:{name:'Plan personalizado MCP',currency:'PYG',items:[{description:'Cuatro videos',quantity:4,unitPrice:100000}],notes:'Acuerdo QA'}}});assert.equal(result.isError,undefined,JSON.stringify(result));
 result=await clientSdk.callTool({name:'scale_create_project',arguments:{confirm:true,data:{name:'Proyecto MCP',clientId:String(created.id)}}});assert.equal(result.isError,undefined,JSON.stringify(result));
