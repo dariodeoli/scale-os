@@ -8,6 +8,7 @@ import {Plus} from 'lucide-react';
 import {EmptyBlock, ErrorBlock, FilterToolbar, ListPage, Kpi, KpiStrip, ListGrid, ListRow, LoadingBlock, MoneyText, StateChip, type ChipTone, type Column} from '../ui-v2';
 
 import {SearchField} from '../search-field';
+import {ClientIdentity} from '../client-identity';
 import {listDateFull, listDateShort, dueTone} from '../list-format';
 import {roleCan} from '../capabilities';
 import {buildMoraBuckets, filterMoraClients, moraAgeKey, moraKpis, MORA_AGE_LABELS, type ClientPaymentStatus, type MoraFilter} from '../mora-data';
@@ -49,7 +50,7 @@ const MORA_COLUMNS: Column[] = [
 const STATUS_TONE: Record<ClientPaymentStatus['payment_status'], ChipTone> = {up_to_date: 'ok', due_soon: 'warn', late: 'warn', severe: 'bad'};
 
 function statusLabel(client: ClientPaymentStatus) {
-  if (client.payment_status === 'up_to_date') return 'Sin mora';
+  if (client.payment_status === 'up_to_date') return client.verification_status==='reviewed'?'Revisado · sin saldo registrado':'Pago por verificar';
   if (client.payment_status === 'due_soon') return `Vence ${listDateShort(client.next_due_on) || 'próximamente'}`;
   return `${client.days_overdue} días de mora`;
 }
@@ -59,15 +60,15 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
   const due = client.next_due_on;
   return <ListRow template={MORA_TEMPLATE}>
     <div className="min-w-0">
-      <strong className="block text-[13.5px] font-semibold leading-snug text-fore">{client.client_name}</strong>
+      <ClientIdentity compact name={client.client_name} logo={client.client_logo_url}/>
       <small className="block text-[11px] text-mute">{client.currency || 'Sin moneda de cobro'}</small>
     </div>
-    <div className="min-w-0"><StateChip tone={STATUS_TONE[client.payment_status]} title={statusLabel(client)}>{statusLabel(client)}</StateChip></div>
+    <div className="min-w-0"><StateChip tone={client.payment_status==='up_to_date'?(client.verification_status==='reviewed'?'info':'warn'):STATUS_TONE[client.payment_status]} title={statusLabel(client)}>{statusLabel(client)}</StateChip></div>
     <div className="min-w-0">
       {due ? <span className={`whitespace-nowrap tabular-nums ${dueTone(due) ? 'font-semibold text-warn' : 'text-fore'}`} title={listDateFull(due) || undefined}>{listDateShort(due)}</span> : <span className="text-[11px] text-mute">Sin fecha</span>}
     </div>
     <div className="min-w-0">
-      {ageKey ? <StateChip tone={ageKey === 'critical' ? 'bad' : 'warn'} title={`${client.days_overdue} días de mora`}>{MORA_AGE_LABELS[ageKey]}</StateChip> : <span className="text-[11px] text-mute">Sin mora</span>}
+      {ageKey ? <StateChip tone={ageKey === 'critical' ? 'bad' : 'warn'} title={`${client.days_overdue} días de mora`}>{MORA_AGE_LABELS[ageKey]}</StateChip> : <span className="text-[11px] text-mute">Por verificar</span>}
     </div>
     <div className="min-w-0">
       {client.has_invoice
@@ -77,7 +78,7 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
     <div className="min-w-0 text-right">
       {client.currency && Number(client.outstanding_amount) > 0
         ? <MoneyText valor={client.outstanding_amount} currency={client.currency} tono={ageKey ? (ageKey === 'critical' ? 'bad' : 'warn') : ''} className="text-[13.5px]"/>
-        : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo pendiente</span>}
+        : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo registrado</span>}
     </div>
   </ListRow>;
 }
@@ -101,7 +102,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
     : null}
 
     <KpiStrip>
-      <Kpi label="Sin mora" valor={kpis.alDia} hint="Sin saldo vencido"/>
+      <Kpi label="Por verificar" valor={kpis.alDia} hint="Sin saldo vencido registrado; revisar cobros del mes"/>
       <Kpi label="Por vencer" valor={kpis.porVencer} hint="Vencen en los próximos días"/>
       <Kpi label="En mora" valor={kpis.enMora} hint="Tarde o mora grave" destacado={kpis.enMora > 0}/>
       <Kpi
@@ -128,7 +129,7 @@ export function MoraSection({user, paymentStatuses, moraState = 'ready', onRetry
         del shell; los indicadores cuentan toda la cartera y la toolbar queda
         pegada a la lista que filtra. */}
     <FilterToolbar className="mb-0" summary={`${visible.length} de ${paymentStatuses.length}`}>
-      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Sin mora'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
+      <SegmentedField className="[&>button]:min-h-11 md:[&>button]:min-h-8" ariaLabel="Filtrar estado de cobro" value={moraFilter} onChange={(value: string) => setMoraFilter(value)} options={[['', 'Todos'], ['up_to_date', 'Por verificar'], ['due_soon', 'Por vencer'], ['late', 'En mora'], ['severe', 'Mora grave'], ['no_invoice', 'Sin factura']]}/>
       <SearchField className="w-full sm:w-72 md:[&>button]:h-7 md:[&>button]:w-7" label="Buscar cliente en cobranza" hideLabel value={moraSearch} onChange={(nextSearchValue)=>setMoraSearch(nextSearchValue)} placeholder="Buscar cliente…"/>
     </FilterToolbar>
 
