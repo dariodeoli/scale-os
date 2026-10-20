@@ -64,7 +64,7 @@ try{
  temporary=mkdtempSync(path.join(process.env.TMPDIR||'/tmp','scale-treasury-pg-'));
  const data=path.join(temporary,'data');
  pgTool('initdb',['-D',data,'-U',user,'--no-locale','-E','UTF8']);
- pgTool('pg_ctl',['-D',data,'-l',path.join(temporary,'postgres.log'),'-o',`-p ${port} -h 127.0.0.1 -F -c max_connections=40 -c listen_addresses=127.0.0.1`,'-w','-t','60','start'],60000);
+ pgTool('pg_ctl',['-D',data,'-l',path.join(temporary,'postgres.log'),'-o',`-p ${port} -h 127.0.0.1 -F -c max_connections=40 -c listen_addresses=127.0.0.1 -c unix_socket_directories=''`,'-w','-t','60','start'],60000);
  pool=new pg.Pool({host:'127.0.0.1',port,user,database:'postgres'});
  pool.on('error',()=>{});
  const query=(sql,args)=>pool.query(sql,args);
