@@ -13,10 +13,11 @@ import {inventoryReservations} from './inventory-reservations.js';
 import {studioReservations} from './studio-reservations.js';
 import {pipelineStages} from './pipeline-stages.js';
 import {recordLifecycle} from './record-lifecycle.js';
+import {clientPortal} from './client-portal.js';
 
 // More-specific routes precede the broad suite/core routes. In particular the
 // modern employee task handler MUST precede productivity's legacy task branch.
-const canonicalOperationsHandlers=[employeeTasks,workChecklists,workOrderLinks,projectAssignees,contracts,inventoryReservations,studioReservations,pipelineStages,recordLifecycle,productivity,operations,suite,agencyCore];
+const canonicalOperationsHandlers=[employeeTasks,workChecklists,workOrderLinks,projectAssignees,contracts,inventoryReservations,studioReservations,pipelineStages,recordLifecycle,clientPortal,productivity,operations,suite,agencyCore];
 const read='scale:read',write='scale:write';
 const str=(maxLength=2000,minLength=0)=>({type:'string',maxLength,...(minLength?{minLength}:{})});
 const choice=(...values)=>({type:'string',enum:values});
@@ -59,7 +60,8 @@ add('get_project','GET',projectPath+'/:id',null);
 add('create_project','POST',projectPath,'projects.manage',{dataSchema:object({name:str(160,2),clientId:id,driveUrl:nullable(link),urgency},['name','clientId'])});
 add('update_project','PATCH',projectPath+'/:id','projects.edit',{dataSchema:object({name:str(160,2),approval_levels:{type:'integer',enum:[1,2,3]},status:choice('active','paused','completed','cancelled'),start_date:nullable(date),due_date:nullable(date),drive_url:nullable(link),drive_links:driveLinks,active:bool,urgency,assignees,expected_updated_at:timestamp})});
 archive('projects','project','projects.edit');
-add('list_work_orders','GET',orderPath,null,{listKey:'workOrders',listMode:'native',query:{status:choice('blocked','to_record','recorded','editing','review','approved','published'),project_id:id}});
+add('batch_set_project_active','POST',projectPath+'/batch','projects.edit',{dataSchema:object({ids:ids(50,1),archived:bool},['ids','archived']),description:'Cambia active de proyectos en lote (archived=true significa inactivo en este API). Para Papelera usar archive_project.'});
+add('list_work_orders','GET',orderPath,null,{listKey:'workOrders',listMode:'native',query:{status:choice('blocked','to_record','recorded','editing','review','approved','published'),project_id:id,due:choice('overdue','week','overdue,week'),counts:{type:'string',const:'1'}}});
 add('get_work_order','GET',orderPath+'/:id',null);
 const workState=choice('blocked','to_record','recorded','editing','review','approved','published');
 const workType=nullable(choice('video','reedicion','foto','produccion','entregable'));
@@ -82,6 +84,10 @@ add('list_work_order_links','GET',orderPath+'/:id/links',null,{listKey:'links'})
 add('add_work_order_link','POST',orderPath+'/:id/links','work-orders.edit',{dataSchema:object({label:str(120,2),url:link,visible_to_client:bool},['label','url']),description:'Guarda un enlace HTTPS de entrega; no descarga ni ejecuta la URL. Visibilidad al cliente sólo si se solicita explícitamente.'});
 add('update_work_order_link','PATCH',orderPath+'/:id/links/:linkId','work-orders.edit',{dataSchema:object({visible_to_client:bool},['visible_to_client'])});
 add('remove_work_order_link','DELETE',orderPath+'/:id/links/:linkId','work-orders.edit');
+add('get_work_order_portal_delivery','GET',orderPath+'/:id/client-portal-delivery','portal.manage');
+const deliveryProps={title:str(180),summary:str(2000),assetName:str(180),assetUrl:link,visible:bool};
+add('publish_work_order_portal_delivery','POST',orderPath+'/:id/client-portal-delivery','portal.manage',{dataSchema:object(deliveryProps,['assetUrl']),description:'Publica entrega para revisión del cliente después de aprobación interna. Guarda enlace HTTPS sin descargarlo; no suplanta la decisión del cliente. Demo rechaza este efecto.'});
+add('update_work_order_portal_delivery','PATCH',orderPath+'/:id/client-portal-delivery','portal.manage',{dataSchema:object(deliveryProps),description:'Oculta/muestra una entrega o publica una versión revisada. visible=false conserva el historial; volver a mostrar sin assetUrl no crea otra versión.'});
 add('get_work_checklist','GET',orderPath+'/:id/checklist','work-checklists.view');
 add('add_work_checklist_item','POST',orderPath+'/:id/checklist/items','checklists.edit',{dataSchema:object({expected_version:revision,text:str(500,1)},['expected_version','text'])});
 add('update_work_checklist_item','PATCH',orderPath+'/:id/checklist/items/:itemId','checklists.edit',{dataSchema:object({expected_version:revision,text:str(500,1),completed:bool},['expected_version'])});
@@ -104,6 +110,8 @@ crud('leads','lead','/api/agency/leads','commercial.manage',lead,['name'],{listK
 add('convert_lead','POST','/api/agency/leads/:id/convert','commercial.manage');
 archive('leads','lead','commercial.manage');
 crud('pipeline_stages','pipeline_stage','/api/agency/pipeline-stages','commercial.manage',{label:str(60,2),slug:{type:'string',maxLength:40,pattern:'^[a-z0-9][a-z0-9_-]{0,39}$'},kind:choice('open','won','lost'),position:integer(0,9999),active:bool},['label'],{detail:false,listKey:'stages'});
+// Kind and slug are stable after creation; PATCH only accepts mutable catalog fields.
+operationsDefinitions.find(d=>d.name==='scale_update_pipeline_stage').dataSchema=object({label:str(60,2),position:integer(0,9999),active:bool});
 const budgetItem=object({description:str(500,1),quantity:{type:'number',minimum:0,maximum:999999},unitPrice:money},['description','quantity','unitPrice']);
 const sections=array(object({type:choice('meta','items','totals','notes','text'),title:str(120),body:str(5000),enabled:bool},['type','enabled']),24,2);
 const budgetProps={title:str(160,2),currency,items:array(budgetItem,100,1),notes:str(),valid_until:nullable(date),tax_rate:{type:'number',enum:[0,0.05,0.1]},sections};
@@ -111,8 +119,9 @@ add('list_budgets','GET','/api/agency/budgets','budgets.manage',{listKey:'budget
 add('get_budget','GET','/api/agency/budgets/:id','budgets.manage');
 add('create_budget','POST','/api/agency/budgets','budgets.manage',{dataSchema:object({...budgetProps,clientId:id,validUntil:nullable(date)},['title','clientId','items'])});
 add('update_budget','PATCH','/api/agency/budgets/:id','budgets.manage',{dataSchema:object(budgetProps,['title','items'])});
-for(const action of ['share','revoke','invoice'])add(action+'_budget','POST','/api/agency/budgets/:id/'+action,'budgets.manage',{description:action==='invoice'?'Genera factura del presupuesto aceptado; handler también exige invoices.manage. No registra cobros ni cambia saldo.':action==='share'?'Habilita el enlace público de propuesta para el cliente sólo con confirmación explícita.':'Revoca el enlace público de la propuesta; no borra el documento.'});
+for(const action of ['share','revoke'])add(action+'_budget','POST','/api/agency/budgets/:id/'+action,'budgets.manage',{description:action==='share'?'Habilita el enlace público de propuesta para el cliente sólo con confirmación explícita.':'Revoca el enlace público de la propuesta; no borra el documento.'});
 archive('budgets','budget','budgets.manage');
+add('batch_archive_budgets','POST','/api/agency/budgets/batch','budgets.manage',{dataSchema:object({ids:ids(50,1),archived:bool},['ids','archived']),description:'Archiva/restaura propuestas en Papelera; al archivar también revoca su enlace público.'});
 
 const variables=object(Object.fromEntries(CONTRACT_VARIABLES.map(key=>[key,str(4000)])));
 const source=object({source:str(120),record_id:id,verified_at:str(60)},['source']);
@@ -163,6 +172,8 @@ add('batch_cancel_studio_reservations','POST','/api/agency/studio-reservations/b
 // An exclusion is a documented limitation, never a claim that MCP implements it.
 export const operationsExclusions=[
  {method:'DELETE',path:'/api/agency/inventory-locations/:id',reason:'Permanent catalog deletion excluded; update_inventory_location active=false retains history and provides the recoverable business operation.'},
+ {method:'POST',path:'/api/agency/budgets/:id/invoice',reason:'Owned by finance MCP scale_invoice_budget; no duplicate tool registration.'},
+ {method:'POST',path:'/api/client-portal/deliveries/:id/decision',reason:'Decision requires the external counterparty session; agency MCP may publish deliveries and inspect approval state but never impersonates client acceptance.'},
  {method:'DELETE',path:'/api/agency/pipeline-stages/:id',reason:'Deletion can physically remove unused stages; update_pipeline_stage active=false is exposed instead with canonical last-open-stage guard.'},
  {method:'POST',path:'/p/:token/respond',reason:'External customer acceptance must use the customer public session/link; agency MCP must not impersonate the counterparty.'},
  {method:'GET',path:'/p/:token',reason:'Public customer token routes are not tenant agency operations; get_budget returns the authenticated document.'},
@@ -173,6 +184,8 @@ export const operationsExclusions=[
  {method:'POST',path:'/api/agency/inventory-reservations/:id/check-out',reason:'Legacy alias; checkout_inventory_reservation exposes canonical /checkout exactly once.'},
  {method:'POST',path:'/api/agency/inventory-reservations/:id/check-in',reason:'Legacy alias; return_inventory_reservation exposes canonical /return exactly once.'},
  {method:'GET',path:'/api/agency/productivity/clients/:id',reason:'Combined legacy 100-row report overlaps canonical client reporting and project/work-order/financial tools; does not have independent edit actions.'},
+ {method:'GET',path:'/api/agency/leads/:id',reason:'Canonical suite does not implement single-lead GET (it returns the collection); list_leads paginates actual rows instead of inventing a detail operation.'},
+ {method:'PATCH',path:'/api/agency/work-orders/:id/checklist/dates/:date',reason:'Piece checklist API stores completion timestamps, not independent daily snapshots. For a dated checklist use create_task with due_date, project_id and checklist, then list_tasks from/to or bucket=today.'},
  {method:'PATCH',path:'/api/agency/productivity/templates/:id',reason:'No canonical API for editing production templates exists; create and generate supported. Do not invent a route or direct SQL.'},
  {method:'POST',path:'/api/agency/contracts/:id/sign',reason:'No bilateral certified digital signature API exists; issue_contract_version emits reviewed document only.'},
  {method:'POST',path:'/api/agency/inventory/:id/print',reason:'Physical printer dispatch is browser/device-dependent and no server print route exists; inventory detail supplies code/label data.'},
