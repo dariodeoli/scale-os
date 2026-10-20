@@ -168,6 +168,14 @@
       "sessions": 1,
       "memories": 5,
       "prompts": 0
+    },
+    {
+      "id": "46375652",
+      "created_by": "agent",
+      "created_at": "2026-10-20T05:30:49.405232942Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }

@@ -272,5 +272,36 @@
     "no real Claude/ChatGPT registration or provider login",
     "Chromium emulation, not Safari/physical devices",
     "combined build/CI/deployment owned by integrator"
-  ]
+  ],
+  "revokeRecovery": {
+    "result": "PASS",
+    "unitTests": 8,
+    "nonceModel": "GET creates a fresh nonce; DELETE consumes before simulated server failure",
+    "cases": [
+      "fresh nonce on user retry",
+      "wrong response ID",
+      "lost response reconciles revokedAt",
+      "refresh failure blocks DELETE across cancel/reopen",
+      "missing row does not prove revocation",
+      "401/403 and organization mismatch clear content",
+      "stale user recovery ignored"
+    ],
+    "checks": {
+      "unit": {
+        "result": "PASS",
+        "sha256": "29f3b119c4b16cadfade6640e33f164a8d4f8d843ea51a79f0259ea0f67156fa",
+        "localLog": "/tmp/mcp312-ui-recovery.log"
+      },
+      "types": {
+        "result": "PASS",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "localLog": "/tmp/mcp312-recovery-types.log"
+      },
+      "browser": {
+        "result": "PASS",
+        "sha256": "4583e6de3c120bb747bfc8edf7aa0ff89f79264e7e108e91b915c00f3a53fa37",
+        "localLog": "/tmp/mcp312-recovery-browser.log"
+      }
+    }
+  }
 }

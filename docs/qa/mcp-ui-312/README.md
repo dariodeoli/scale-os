@@ -8,7 +8,7 @@ Copiar URL HTTPS del servidor MCP y agregar un conector remoto con OAuth en Clau
 
 El navegador abre `/mcp/autorizar?request=<opaque>`. Antes de cualquier POST se muestran aplicación, callback completo, empresa y permisos `scale:read`/`scale:write`. El nombre lo declara la aplicación solicitante: no certifica que sea Claude o ChatGPT. Autorizar y denegar son decisiones explícitas, con CSRF de ese pending request; abrir la página no concede acceso. El redireccionamiento sólo se acepta por HTTPS, sin credenciales/fragmento, con mismo origen/path y query fija del callback mostrado.
 
-La pantalla de conexiones muestra scopes y fechas. Revocar pide confirmación, envía su CSRF propio y exige `{revoked:true,id:<seleccionado>}` antes de afirmar éxito. Errores y reintentos conservan el estado; IDs incorrectos no quitan la conexión ni afirman revocación.
+La pantalla de conexiones muestra scopes y fechas. Revocar pide confirmación y envía su CSRF propio de un solo uso. El éxito directo exige `{revoked:true,id:<seleccionado>}`. Ante error o respuesta perdida se vuelve a consultar la lista para renovar CSRF y conciliar el estado: sólo `revokedAt` del ID seleccionado confirma una revocación completada. Una fila ausente no acredita éxito. Si la consulta también falla, el diálogo sólo permite actualizar; cancelar y volver a abrir no habilita una mutación con el nonce consumido. Si sigue activa, el usuario debe confirmar nuevamente con CSRF fresco. Errores de sesión/empresa eliminan el contenido anterior.
 
 ## Login y privacidad
 
@@ -26,6 +26,10 @@ Los GET/POST/DELETE usan cookie, `no-store`, timeout20s y `redirect:error`. Los 
 
 ## Evidencia
 
-[JSON](results.json). Cinco suites focales PASS;19 preferencias y7 header, además del retorno login. Revisión independiente: cuatro adversariales PASS (revocación de otro ID, POST401/403/410, usuario anterior y query fija). TypeScript y arquitectura PASS.
+[JSON](results.json). Ocho pruebas focales PASS;19 preferencias y7 header, además del retorno login. Revisión independiente: cuatro adversariales PASS (revocación de otro ID, POST401/403/410, usuario anterior y query fija). TypeScript y arquitectura PASS.
 
 Browser real con API sintética:30 combinaciones (consentimiento/conexiones ×5 geometrías ×3 temas), CSS real con Tailwind recompilado desde este checkout; sin overflow horizontal ni errores de runtime. Interacciones: retorno de login, vencimiento, rol denegado, denegación explícita, cancelación y confirmación de revocación. No equivale a OAuth real de proveedores ni dispositivos físicos. Gate `103-mcp-ui-312.list`. El integrador acredita build/CI y publicación del conjunto por separado.
+
+## Corrección de integración: CSRF de revocación
+
+Runner `./node_modules/.bin/tsx tests/mcp-ui-312.test.tsx`:8/8 PASS con fixture que consume cada nonce antes de simular un fallo, igual que el handler backend. Cubre reintentos con CSRF fresco, ID incorrecto, respuesta perdida con revocación ya completada, fallo de actualización seguido de recuperación sólo GET, cancelación/reapertura, fila ausente,401/403, empresa distinta y respuesta tardía tras cambiar de usuario. TypeScript PASS. Se repitió el runner browser existente sobre el delta:30 combinaciones y6 interacciones PASS. No se ejecutó OAuth real de proveedor ni deploy.

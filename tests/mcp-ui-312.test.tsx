@@ -4,7 +4,7 @@ import {test} from 'node:test';
 import {act,create,type ReactTestInstance,type ReactTestRenderer} from 'react-test-renderer';
 Object.assign(globalThis,{React});require.extensions['.css']=()=>{};
 const layout=require.resolve('../app/access-layout');require.cache[layout]={id:layout,filename:layout,loaded:true,exports:{AccessLayout:({children}:{children:React.ReactNode})=><main>{children}</main>}} as NodeModule;
-const dialog=require.resolve('../app/dialog');require.cache[dialog]={id:dialog,filename:dialog,loaded:true,exports:{ConfirmDialog:({onConfirm,onCancel,error,busy}:{onConfirm:()=>void;onCancel:()=>void;error?:string;busy:boolean})=><section role="dialog"><button disabled={busy} onClick={onConfirm}>Confirmar revocación</button><button disabled={busy} onClick={onCancel}>Cancelar</button>{error?<p role="alert">{error}</p>:null}</section>}} as NodeModule;
+const dialog=require.resolve('../app/dialog');require.cache[dialog]={id:dialog,filename:dialog,loaded:true,exports:{ConfirmDialog:({onConfirm,onCancel,error,busy,confirmLabel}:{onConfirm:()=>void;onCancel:()=>void;error?:string;busy:boolean;confirmLabel:string})=><section role="dialog"><button disabled={busy} data-confirm-label={confirmLabel} onClick={onConfirm}>Confirmar revocación</button><button disabled={busy} onClick={onCancel}>Cancelar</button>{error?<p role="alert">{error}</p>:null}</section>}} as NodeModule;
 Object.assign(globalThis,{window:{setInterval,clearInterval}});
 const {McpConsent}=require('../app/mcp-consent') as typeof import('../app/mcp-consent');
 const {McpConnections}=require('../app/mcp-connections') as typeof import('../app/mcp-connections');
@@ -35,8 +35,59 @@ test('sin sesión, rol denegado, solicitud vencida/desconocida y scopes inválid
  route=()=>({...authorization(),scopes:['superadmin']});r=await mount(<McpConsent request={request}/>);assert.match(text(r.root),/No se pudo validar/);assert.equal(r.root.findAllByType('button').some(node=>text(node).startsWith('Autorizar ')),false);await unmount(r);
 });
 
-test('revocación exige confirmación/CSRF, conserva conexión ante fallo y retira acceso sólo tras confirmación del API',async()=>{
- let deleted=false,attempts=0;route=call=>{if(call.method==='GET')return {...connections(),connections:deleted?[]:connections().connections};assert.equal(call.method,'DELETE');assert.deepEqual(call.body,{csrfToken:csrf});attempts++;if(attempts===1)return new Response(JSON.stringify({error:'server_error',error_description:'No se pudo revocar; reintentá.'}),{status:503});if(attempts===2)return{revoked:true,id:'other'};deleted=true;return{revoked:true,id:'12'};};const r=await mount(<McpConnections organizationId="1" userId="7"/>);await act(async()=>button(r,'Revocar conexión').props.onClick());assert.equal(calls.filter(call=>call.method==='DELETE').length,0);await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.match(text(r.root),/No se pudo revocar/);assert.match(text(r.root),/Asistente de prueba/);await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(attempts,2);assert.match(text(r.root),/No se pudo confirmar la revocación/);assert.doesNotMatch(text(r.root),/Conexión revocada/);assert.match(text(r.root),/Asistente de prueba/);await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(attempts,3);assert.match(text(r.root),/Conexión revocada/);assert.match(text(r.root),/No hay conexiones autorizadas/);await unmount(r);
+// Faithful to the backend: every GET issues a new nonce; every DELETE consumes
+// it before the update/audit and therefore before a possible failure response.
+function nonceApi({lost=false}:{lost?:boolean}={}){
+ let sequence=0,nonce='',revoked=false,attempts=0,failRefresh=false;
+ return {
+  get attempts(){return attempts;},set failRefresh(value:boolean){failRefresh=value;},
+  handle(call:Call){
+   if(call.method==='GET'){
+    if(failRefresh)throw new Error('network unavailable');
+    nonce='nonce-'+(++sequence);
+    return {...connections(),csrfToken:nonce,connections:connections().connections.map(connection=>({...connection,revokedAt:revoked?'2026-10-20T13:00:00Z':null}))};
+   }
+   assert.equal(call.method,'DELETE');assert.ok(nonce,'a consumed CSRF must never be reused');assert.deepEqual(call.body,{csrfToken:nonce});nonce='';attempts++;
+   if(attempts===1){if(lost){revoked=true;throw new Error('response lost');}return new Response(JSON.stringify({error:'server_error',error_description:'No se pudo revocar; reintentá.'}),{status:503});}
+   if(attempts===2)return {revoked:true,id:'other'};
+   revoked=true;return {revoked:true,id:'12'};
+  }
+ };
+}
+
+test('revocación renueva el CSRF consumido antes de cada reintento y valida el ID confirmado',async()=>{
+ const api=nonceApi();route=call=>api.handle(call);const r=await mount(<McpConnections organizationId="1" userId="7"/>);
+ await act(async()=>button(r,'Revocar conexión').props.onClick());assert.equal(api.attempts,0);
+ await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.match(text(r.root),/No se pudo revocar/);assert.match(text(r.root),/Asistente de prueba/);
+ assert.equal(calls.filter(call=>call.method==='GET').length,2);
+ await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(api.attempts,2);assert.match(text(r.root),/No se pudo confirmar la revocación/);assert.doesNotMatch(text(r.root),/Conexión revocada/);
+ await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(api.attempts,3);assert.match(text(r.root),/Conexión revocada/);assert.equal(r.root.findAllByProps({role:'dialog'}).length,0);await unmount(r);
+});
+
+test('respuesta DELETE perdida concilia revokedAt sin un segundo DELETE ni consentimiento adicional',async()=>{
+ const api=nonceApi({lost:true});route=call=>api.handle(call);const r=await mount(<McpConnections organizationId="1" userId="7"/>);
+ await act(async()=>button(r,'Revocar conexión').props.onClick());await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();
+ assert.equal(api.attempts,1);assert.equal(calls.filter(call=>call.method==='GET').length,2);assert.match(text(r.root),/Conexión revocada/);assert.equal(r.root.findAllByProps({role:'dialog'}).length,0);await unmount(r);
+});
+
+test('si falla conciliación sólo permite GET; cancelar/reabrir no reutiliza el nonce y una fila ausente no confirma éxito',async()=>{
+ const api=nonceApi();route=call=>api.handle(call);const r=await mount(<McpConnections organizationId="1" userId="7"/>);
+ await act(async()=>button(r,'Revocar conexión').props.onClick());api.failRefresh=true;
+ await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(api.attempts,1);assert.match(text(r.root),/Actualizá antes de volver a confirmar/);assert.equal(button(r,'Confirmar revocación').props['data-confirm-label'],'Actualizar conexión');
+ await act(async()=>button(r,'Cancelar').props.onClick());await act(async()=>button(r,'Revocar conexión').props.onClick());
+ await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(api.attempts,1);
+ api.failRefresh=false;route=call=>call.method==='GET'?{...api.handle(call),connections:[]}:api.handle(call);
+ await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(api.attempts,1);assert.doesNotMatch(text(r.root),/Conexión revocada/);assert.equal(button(r,'Confirmar revocación').props['data-confirm-label'],'Revocar conexión');await unmount(r);
+});
+
+test('conciliación rechaza sesión/empresa cambiadas y descarta respuestas tras cambiar de usuario',async()=>{
+ for(const outcome of [401,403,'organization'] as const){let gets=0;route=call=>{if(call.method==='DELETE')throw new Error('response lost');gets++;if(gets===1)return connections();if(outcome==='organization')return {...connections(),organization:{id:'2',name:'Empresa ajena'}};return new Response(JSON.stringify({error_description:'Sesión no disponible'}),{status:outcome});};const r=await mount(<McpConnections organizationId="1" userId="7"/>);await act(async()=>button(r,'Revocar conexión').props.onClick());await act(async()=>button(r,'Confirmar revocación').props.onClick());await settle();assert.equal(r.root.findAllByProps({role:'dialog'}).length,0);assert.doesNotMatch(text(r.root),/Asistente de prueba|Conexión revocada/);await unmount(r);}
+ let release:(value:unknown)=>void=()=>{};let gets=0;route=call=>{if(call.method==='DELETE')throw new Error('response lost');gets++;if(gets===2)return new Promise(resolve=>{release=resolve;});return {...connections(),connections:[]};};
+ // First user needs an active connection before the pending recovery GET.
+ route=(()=>{const handle=route;return(call:Call)=>gets===0&&call.method==='GET'?(gets++,connections()):handle(call);})();
+ const r=await mount(<McpConnections organizationId="1" userId="7"/>);await act(async()=>button(r,'Revocar conexión').props.onClick());await act(async()=>{void button(r,'Confirmar revocación').props.onClick();});await settle();
+ await act(async()=>r.update(<McpConnections organizationId="1" userId="8"/>));await settle();
+ await act(async()=>release({...connections(),connections:connections().connections.map(connection=>({...connection,revokedAt:'2026-10-20T13:00:00Z'}))}));await settle();assert.doesNotMatch(text(r.root),/Conexión revocada|Asistente de prueba/);await unmount(r);
 });
 
 test('configuración rechaza respuesta de otra empresa y callbacks/login return no permiten destinos abiertos',async()=>{
