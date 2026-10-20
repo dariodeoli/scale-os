@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {mcpWorkspaceTools as tools,mcpWorkspaceHandlers as handlers} from './mcp-workspace-tools.js';
 import {roleCan} from './permissions.js';
+const coverage=JSON.parse(await fs.readFile(new URL('./mcp-workspace-coverage.json',import.meta.url),'utf8'));
+for(const tool of tools)assert(coverage.some(row=>row.tool===tool.name&&row.method===tool.method&&row.status==='covered'),'Missing route coverage: '+tool.name);
 const pg=new PGlite();
 try{
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));

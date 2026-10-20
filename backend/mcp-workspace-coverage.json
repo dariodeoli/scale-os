@@ -1,0 +1,386 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/agency/clients/:id/client-portal-invites",
+    "status": "covered",
+    "tool": "scale_list_client_portal_access",
+    "capability": "portal-access.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/productivity/profile",
+    "status": "covered",
+    "tool": "scale_get_my_profile",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/company-legal-profile",
+    "status": "covered",
+    "tool": "scale_get_company_legal_profile",
+    "capability": "settings.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/company-legal-profile",
+    "status": "covered",
+    "tool": "scale_update_company_legal_profile",
+    "capability": "settings.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/summary",
+    "status": "covered",
+    "tool": "scale_get_summary",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/settings",
+    "status": "covered",
+    "tool": "scale_get_company_settings",
+    "capability": "settings.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/settings",
+    "status": "covered",
+    "tool": "scale_update_company_settings",
+    "capability": "settings.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/team",
+    "status": "covered",
+    "tool": "scale_list_team",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/members",
+    "status": "covered",
+    "tool": "scale_list_members",
+    "capability": "members.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/job-roles",
+    "status": "covered",
+    "tool": "scale_list_job_titles",
+    "capability": "finance.view",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/job-roles",
+    "status": "covered",
+    "tool": "scale_create_job_title",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/job-roles/:id",
+    "status": "covered",
+    "tool": "scale_update_job_title",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/workspace-preferences",
+    "status": "covered",
+    "tool": "scale_get_workspace_preferences",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/workspace-preferences",
+    "status": "covered",
+    "tool": "scale_update_workspace_preferences",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/notifications/preferences",
+    "status": "covered",
+    "tool": "scale_get_notification_preferences",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/notifications/preferences",
+    "status": "covered",
+    "tool": "scale_update_notification_preferences",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/notifications",
+    "status": "covered",
+    "tool": "scale_list_notifications",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/notifications/:id",
+    "status": "covered",
+    "tool": "scale_update_notification",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/notifications/read-all",
+    "status": "covered",
+    "tool": "scale_mark_notifications_read",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/activity",
+    "status": "covered",
+    "tool": "scale_list_activity",
+    "capability": "activity.view",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/access-requests",
+    "status": "covered",
+    "tool": "scale_list_access_requests",
+    "capability": "members.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/permissions",
+    "status": "covered",
+    "tool": "scale_get_permission_matrix",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/announcements/active",
+    "status": "covered",
+    "tool": "scale_get_active_announcement",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/announcements/:id/dismiss",
+    "status": "covered",
+    "tool": "scale_dismiss_announcement",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/clients/:id/client-portal-invites",
+    "status": "excluded",
+    "reason": "Canonical response returns a raw bearer invitation URL. Human UI issues access credentials; MCP only reads invite/grant metadata."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/client-portal-invites/:id/revoke",
+    "status": "excluded",
+    "reason": "Access security action remains in human access UI pending recent authorization review."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/clients/:id/portal-access/grants/:grantId/revoke",
+    "status": "excluded",
+    "reason": "Access security action remains in human access UI pending recent authorization review."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/productivity/profile",
+    "status": "excluded",
+    "reason": "Canonical personal profile writes lock the acting user FOR UPDATE, conflicting with the MCP live actor lease on another connection. Human profile UI retains identity edits."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/permissions",
+    "status": "excluded",
+    "reason": "Security boundary: changes can grant the connection actor new permissions. Managed by a human in the permissions UI; no self-grant tools."
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/invite-links",
+    "status": "excluded",
+    "reason": "Contains raw bearer invitation URLs; credential-bearing access links stay in the human UI."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/invite-links",
+    "status": "excluded",
+    "reason": "Creates bearer credentials and assigns access roles. Human access UI owns invitations."
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/invite-links/:id",
+    "status": "excluded",
+    "reason": "Access revocation and permanent deletion remain in the human access UI; no purge parameter exposed."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/members",
+    "status": "excluded",
+    "reason": "Pending security decision: assigning access requires fresh human authorization, narrow role fields, real invitation service, and no actor membership update on a second connection."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/members/:id/resend",
+    "status": "excluded",
+    "reason": "Pending security decision: access notifications require the configured delivery service and recent human authorization."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/members/:id",
+    "status": "excluded",
+    "reason": "Security boundary: roles and access remain in the human UI until fresh human authorization and non-self lock-safe execution are guaranteed."
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/members/:id",
+    "status": "excluded",
+    "reason": "Security boundary: removal of access requires human access UI and non-self lock-safe execution."
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/members/:id/permanent",
+    "status": "excluded",
+    "reason": "Permanent purge is outside business MCP scope."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/members/:id/photo",
+    "status": "excluded",
+    "reason": "Personal identity write may update the locked acting user indirectly via identity triggers; human profile UI handles identity edits."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/access-requests/:id",
+    "status": "excluded",
+    "reason": "Access grants require recent human authorization and protection against changing the locked acting membership; human access UI owns the decision."
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/collaborators",
+    "status": "excluded",
+    "reason": "Covered by scale_list_team with canonical contact and salary redaction; no separate unredacted collaborator reader."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/collaborators",
+    "status": "excluded",
+    "reason": "Canonical profile save implicitly creates and links viewer access by email. Requires a separate human access decision; cannot expose as a contact-only save. Salary agreements/history belong to finance tools."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/collaborators/:id",
+    "status": "excluded",
+    "reason": "Canonical profile save implicitly creates/links access and can update personal identity. Self updates can conflict with locked actor identity; human team UI preserves those guards. Salary history/adjustments belong to finance tools."
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/sso/providers/:id",
+    "status": "excluded",
+    "reason": "Security configuration includes client secrets and login providers; managed by human authentication UI."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/sso/providers/:id",
+    "status": "excluded",
+    "reason": "Security configuration includes client secrets and login providers; managed by human authentication UI."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/sso/domains",
+    "status": "excluded",
+    "reason": "Authentication domain configuration remains managed by human security UI."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/account/*",
+    "status": "excluded",
+    "reason": "Passwords, authentication recovery, account deletion and identity proofs are excluded; no model-visible reauthentication credentials."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/auth/account/*",
+    "status": "excluded",
+    "reason": "Passwords, authentication recovery, account deletion and identity proofs are excluded; no model-visible reauthentication credentials."
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/auth/account/*",
+    "status": "excluded",
+    "reason": "Passwords, authentication recovery, account deletion and identity proofs are excluded; no model-visible reauthentication credentials."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/organizations",
+    "status": "excluded",
+    "reason": "Creates new tenant context outside the explicitly authorized current company."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/switch-organization",
+    "status": "excluded",
+    "reason": "MCP is bound to a specific authorized company; cannot change tenant context."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/default-organization",
+    "status": "excluded",
+    "reason": "Global account preference across companies remains in human account UI."
+  },
+  {
+    "method": "ANY",
+    "path": "/api/platform/*",
+    "status": "excluded",
+    "reason": "Platform administration, infrastructure and global tenant operations are outside agency business scope."
+  }
+]
