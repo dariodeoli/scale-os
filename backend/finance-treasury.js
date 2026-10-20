@@ -1,3 +1,4 @@
+import {financeRetry,financeRemember} from './finance-idempotency.js';
 import {financePaymentReviews} from './finance-payment-reviews.js';
 import {fail,text,id,optId,amount,date,owned} from './suite-validation.js';
 import {roleCan} from './permissions.js';
@@ -37,6 +38,7 @@ async function saveLinks(c,u,payment,input){
  return (await c.query("update agency_payment_links set monthly_income_entry_id=$3,period=$4::date where organization_id=$1 and payment_id=$2 returning *,to_char(period,'YYYY-MM') as period",[u.organization_id,payment.id,entryId,period])).rows[0];
 }
 export async function createUnassignedReceipt(c,u,b){
+ const cached=await financeRetry(c,u,'receipt-unassigned',b);if(cached)return cached.response;
  if(b.invoiceId)fail('Un cobro libre se aplica a una factura después de registrarlo');
  if(b.parts)fail('Registrá un cobro libre por cuenta de ingreso');
  const paid=positive(b.amount),on=date(b.receivedOn)||await today(c),key=requestKey(b.requestId),org=u.organization_id;
@@ -49,7 +51,7 @@ export async function createUnassignedReceipt(c,u,b){
  const receiver=optId(b.receivedByUserId)||String(u.id);
  if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
  const payment=(await c.query('insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,null,$2,$3,$4,$5,$6,$7) returning *,received_on::text as received_on',[org,account.id,paid,on,text(b.reference||'',180),receiver,key])).rows[0];
- const linked=await saveLinks(c,u,payment,{...b,...resolved});return {payment:{...payment,...{client_id:linked.client_id,project_id:linked.project_id,plan_id:linked.plan_id}}};
+ const linked=await saveLinks(c,u,payment,{...b,...resolved});const result={payment:{...payment,...{client_id:linked.client_id,project_id:linked.project_id,plan_id:linked.plan_id,monthly_income_entry_id:linked.monthly_income_entry_id,period:linked.period}}};await financeRemember(c,u,'receipt-unassigned',b,result,201);return result;
 }
 export async function treasurySnapshot(c,org,month){
  const accounts=(await c.query(`select a.id,a.name,a.account_type,a.currency,a.institution,a.custodian_user_id,a.active,custodian.name as custodian_name,custodian.photo_url as custodian_photo_url,
