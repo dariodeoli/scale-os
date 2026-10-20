@@ -14,7 +14,7 @@ Entrega integrada en PR #339. Este documento distingue evidencia de pruebas y es
 ## Evidencia
 
 - SDK oficial + HTTP + PostgreSQL: 97 comprobaciones financieras sobre runtime root `17a07a21`, fuentes idénticas a `6d77e643`. Incluye dinero exacto, idempotencia, conflictos, cuentas, revisión, permisos revocados, privacidad y autenticación reciente. Pruebas exclusivamente aisladas.
-- APIs de adhesión: 70 comprobaciones canónicas. Pruebas de jerarquía e invitaciones incluyen tenant, límites de rol y filtrado de eventos salariales.
+- APIs de adhesión: 78 comprobaciones canónicas, incluidas concesión/revocación individual y emisión externa bloqueada en demo. Pruebas de jerarquía e invitaciones incluyen tenant, límites de rol y filtrado de eventos salariales.
 - Migraciones aditivas 120→123: frontera histórica preservada, datos existentes y tracker conservados tras reinicios; no se crean cobros ni deudas por migración.
 - Chromium: controles reales y HTTP sintético en 320/390/768/1440, temas claro/oscuro, errores superiores, permisos, adhesión y creación bancaria anidada. Ver `README.md`, JSON y capturas de este directorio. Esta evidencia no sustituye dispositivos físicos ni conexión real de cuentas Claude/ChatGPT.
 
@@ -24,4 +24,4 @@ Matrices en `backend/mcp-*-coverage.json` documentan rutas soportadas y límites
 
 El dueño informó haber configurado las tres variables OwnData y hecho deploy. La comprobación pública posterior dio API `/health` 200, versión1.0.202, base ready. No se ejecutó una consulta real con su sesión/clave; la disponibilidad del proveedor no se acredita con health. #213 conserva seguimiento externo; #312 conserva conexión real de asistentes.
 
-Versión nueva, regresión completa, CI y smoke de producción: pendientes de completar por el integrador antes de cerrar issues. Se actualizarán con evidencia del SHA final.
+Validación local candidata1.0.203: regresión frontend completa292 entradas PASS; suite backend completa PASS, más pruebas focales posteriores de adhesión/demo y SDK real PostgreSQL PASS. Build de producción `c68V-SdJqUR_qDYM4rOuN`, presupuesto de carga de login/registro/status y versiones/footer PASS. CI final, integración y smoke de producción pendientes; se acreditan por separado antes del cierre.

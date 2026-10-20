@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-10-20T08:57:49.542313+00:00",
+  "release": "1.0.203",
+  "buildId": "c68V-SdJqUR_qDYM4rOuN",
+  "frontendScripts": 292,
+  "mcpTools": 244,
+  "status": "Local gates PASS; final CI and deploy pending",
+  "logs": {
+    "frontend": {
+      "localPath": "/tmp/scale203-front-release-final.log",
+      "sha256": "093c2280c5d701611600a68b31cb74c617cb5a4990bdaad3f0771d0bf713bf2b"
+    },
+    "backend": {
+      "localPath": "/tmp/scale203-backend-release.log",
+      "sha256": "e497749762f0c3bb9c698f72c145ffdba0900304d72a8ad9f56912c143c3da08"
+    },
+    "build": {
+      "localPath": "/tmp/scale203-build-candidate.log",
+      "sha256": "66f35fc76a9ba6a30c30ef289bb1e2b33b1d5adfe7b31dd9585f29e04cbaa7e3"
+    },
+    "intake": {
+      "localPath": "/tmp/scale203-client-intake-final.log",
+      "sha256": "151f83c7e8bacbe8ba1d131c4416b80e452e119768759cc1529df108680ab01c"
+    },
+    "demo": {
+      "localPath": "/tmp/scale203-demo-effects-final.log",
+      "sha256": "f980d61208b299b7353cf09174164cf93cbda19342e7c2adf0f5c48f02a29e25"
+    },
+    "mcp_intake_pg": {
+      "localPath": "/tmp/scale203-mcp-intake-sdk-pg.log",
+      "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9"
+    },
+    "finance_sdk": {
+      "localPath": "/tmp/mcp-finance-330-sdk-final-root.log",
+      "sha256": "ab3819e5163284aa86c635b7825ba1fe794dc1169522ec25fda9abb3b06ed6c2"
+    },
+    "bank_responsive": {
+      "localPath": "/tmp/scale203-bank-responsive-final.log",
+      "sha256": "475b6742011852c52dc962a5cbb9d5b9a694ea54eae78c61e8eadb058a82c30a"
+    },
+    "bank_nested": {
+      "localPath": "/tmp/scale203-bank-nested-final.log",
+      "sha256": "baea6ba05d37480bb9425df9cbf35cf2a19b15eb5b319a41da2b01a8150c66db"
+    }
+  },
+  "limitations": [
+    "Browser fixtures and emulated Chromium viewports; no physical Safari/iOS or Android proof",
+    "No production financial writes during QA",
+    "Real OwnData query and external Claude/ChatGPT account validation tracked separately"
+  ]
+}
