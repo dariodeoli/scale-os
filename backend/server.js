@@ -64,7 +64,8 @@ import {publicAnalytics} from './public-analytics.js';
 import {platformAnnouncements,agencyAnnouncements} from './platform-announcements.js';
 import {platformMaintenance,maintenanceGate} from './platform-maintenance.js';
 import {applyCuratedMigrations,applyPendingMigrations} from './migrations-runner.mjs';
-import {rolePermissions,roleCan} from './permissions.js';
+import {rolePermissions,roleCan,loadActorPermissions} from './permissions.js';
+import {clientIntake} from './client-intake.js';
 import {redactPiiText} from './pii-safety.js';
 import {createEmailDelivery,publicEmailDeliveryStatus} from './email-delivery.js';
 import {acceptClientPortalGoogleInvite,clientPortal,clientPortalGoogleInvite,clientPortalResetEmail,clientPortalInviteEmail,clientPortalUrl} from './client-portal.js';
@@ -291,7 +292,10 @@ async function init() {
      "20261020_inventory_external_owner.sql",
      "20261020_client_monthly_income.sql",
      "20261020_list_column_preferences.sql",
-     "20261020_mcp_connections.sql"
+     "20261020_mcp_connections.sql",
+     "20261020_member_permissions.sql",
+     "20261020_client_intake.sql",
+     "20261021_finance_management.sql"
     ];
     await applyCuratedMigrations(migration,path.join(root,'migrations'),migrationChain);
     await applyPendingMigrations(migration,path.join(root,'migrations'));
@@ -316,7 +320,6 @@ async function provisionOwnerForOrganization(email, password, slug) {
   await db.query("insert into organization_members(organization_id,user_id,role) select id,$1,'owner' from organizations where slug=$2 on conflict(organization_id,user_id) do update set role='owner'", [user.rows[0].id, slug]);
 }
 const sessionCache = new WeakMap();
-let permissionDefaultsLogged = false;
 async function session(req) {
   if (sessionCache.has(req)) return sessionCache.get(req);
   const value = await resolveSession(req);
@@ -334,13 +337,11 @@ async function resolveSession(req) {
     if(!identity)return null;
     Object.assign(user,identity);
   }
-  if(user){delete user.has_personal_identity;
-   try{
-    const overrides=(await db.query('select capability,allowed from agency_role_permissions where organization_id=$1 and role=$2',[user.organization_id,user.role])).rows;
-    if(overrides.length)user.capabilities=Object.fromEntries(overrides.map(row=>[row.capability,row.allowed]));
-   }catch(error){if(!permissionDefaultsLogged){permissionDefaultsLogged=true;console.info(JSON.stringify({event:'permission_defaults_fallback',error:String(error?.message||error)}));}}
+  if(user){
+    delete user.has_personal_identity;
+    if(user.demo_owner_user_id){const preview=(await db.query('select demo_role from sessions where id=$1',[token])).rows[0];if(preview?.demo_role)user.role=preview.demo_role;}
+    user.capabilities=await loadActorPermissions(db,user);
   }
-  if(user?.demo_owner_user_id){const preview=(await db.query('select demo_role from sessions where id=$1',[token])).rows[0];if(preview?.demo_role)user.role=preview.demo_role;}
   if(user?.organization_slug==='scale-demo-controles-20260908'){
     const c=await db.connect();try{
       await c.query('begin');
@@ -374,7 +375,7 @@ function cors(req, res) {
   res.setHeader('Vary', 'Origin');
   return true;
 }
-const mcpIntegration=createMcpIntegration({db,session,services:{sendInvitation,sendAccessGranted,appUrl}});
+const mcpIntegration=createMcpIntegration({db,session,services:{sendInvitation,sendAccessGranted,sendInvite:sendClientPortalInvite,appUrl}});
 const server = http.createServer(async (req,res) => {
   security(res);
   const startedAt = Date.now();
@@ -409,6 +410,7 @@ const server = http.createServer(async (req,res) => {
     }
     // La matriz de permisos es una lectura/escritura privada más: va después del
     // corte por suscripción, como el resto de /api/agency/*.
+    if(await clientIntake({req,res,url,db,session,body,send}))return;
     if(await rolePermissions({req,res,url,db,session,body,send}))return;
     if(await agencyAnnouncements({req,res,url,db,session,send}))return;
     if(url.pathname==='/api/invitations/status'&&req.method==='GET'){
