@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "protocol": "MCP",
-  "count": 238,
+  "count": 244,
   "tools": [
     {
       "name": "scale_list_clients",
@@ -2167,6 +2167,60 @@
       "cap": null,
       "domain": "workspace",
       "description": "Actualizar dismiss announcement en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_client_completeness",
+      "method": "GET",
+      "path": "/api/agency/clients/:id/completeness",
+      "scope": "scale:read",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Consultar nombres de campos pendientes de un cliente y los que reutiliza el autofill contractual. No inventa datos, pagos ni revisión mensual."
+    },
+    {
+      "name": "scale_list_client_intake_links",
+      "method": "GET",
+      "path": "/api/agency/client-intake-links",
+      "scope": "scale:read",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Listar últimos 100 enlaces de registro de la empresa o de una ficha: alcance, expiración, revocación y consumo. Nunca devuelve tokens, hashes ni enlaces portadores existentes."
+    },
+    {
+      "name": "scale_create_client_intake_link",
+      "method": "POST",
+      "path": "/api/agency/client-intake-links",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Emitir un enlace básico o completo para compartir explícitamente con el cliente. Devuelve el path portador una sola vez; tratarlo como enlace privado. No enviar mensajes automáticamente. Ante respuesta ambigua no reintentar: revisar enlaces emitidos y, si hace falta, revocar y emitir otro con confirmación."
+    },
+    {
+      "name": "scale_revoke_client_intake_link",
+      "method": "DELETE",
+      "path": "/api/agency/client-intake-links/:id",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Revocar un enlace de registro de la empresa. Es idempotente y no borra fichas ni solicitudes ya recibidas."
+    },
+    {
+      "name": "scale_list_client_intake_submissions",
+      "method": "GET",
+      "path": "/api/agency/client-intake-submissions",
+      "scope": "scale:read",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Consultar últimas 100 solicitudes para revisión autorizada, con los datos personales que el cliente envió. No vincula ni sobrescribe fichas; divulgar únicamente lo necesario para la solicitud del usuario."
+    },
+    {
+      "name": "scale_review_client_intake_submission",
+      "method": "POST",
+      "path": "/api/agency/client-intake-submissions/:id/review",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Confirmar revisión humana: crear ficha, completar sólo campos vacíos expresamente seleccionados de una ficha o rechazar. Primero consultar solicitud y ficha actual; link requiere updated_at ISO exacto. Nunca reemplaza datos existentes ni registra pagos. Revisión repetida devuelve conflicto, sin duplicación."
     }
   ]
 }

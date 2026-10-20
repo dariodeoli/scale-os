@@ -3,6 +3,7 @@ import {AjvJsonSchemaValidator} from '@modelcontextprotocol/sdk/validation/ajv-p
 import {mcpFinanceTools,mcpFinanceHandlers,mcpFinanceOverrides} from './mcp-finance-tools.js';
 import {mcpOperationsTools,mcpOperationsHandlers,mcpOperationsOverrides} from './mcp-operations-tools.js';
 import {mcpWorkspaceTools,mcpWorkspaceHandlers} from './mcp-workspace-tools.js';
+import {mcpClientIntakeTools,mcpClientIntakeHandlers} from './mcp-client-intake-tools.js';
 import {roleCan} from './permissions.js';
 import {mcpLiveActor} from './mcp-oauth.js';
 import {agencyCore} from './agency-core.js';
@@ -47,9 +48,9 @@ for(const patch of [...mcpFinanceOverrides,...mcpOperationsOverrides]){
  for(const field of Object.keys(patch))if(!['name','inputSchema','resolve','description'].includes(field))throw Error('Unsafe MCP override field: '+field);
  Object.assign(target,patch,{handlerGroup:mcpFinanceOverrides.includes(patch)?'finance':'operations'});
 }
-for(const definition of [...mcpFinanceTools,...mcpOperationsTools,...mcpWorkspaceTools]){
+for(const definition of [...mcpFinanceTools,...mcpOperationsTools,...mcpWorkspaceTools,...mcpClientIntakeTools]){
  if(definitions.some(existing=>existing.name===definition.name))throw Error('Duplicate MCP tool: '+definition.name);
- definitions.push({...definition,handlerGroup:mcpFinanceTools.includes(definition)?'finance':mcpOperationsTools.includes(definition)?'operations':'workspace'});
+ definitions.push({...definition,handlerGroup:mcpFinanceTools.includes(definition)?'finance':mcpOperationsTools.includes(definition)?'operations':mcpClientIntakeTools.includes(definition)?'clients':'workspace'});
 }
 for(const definition of definitions)if(definition.scope===write&&['scale_create_planned_expense','scale_update_planned_expense'].includes(definition.name))definition.financial=true;
 const schemaProvider=new AjvJsonSchemaValidator(),schemaValidators=new Map();
@@ -117,7 +118,7 @@ async function executeMcpTool({db,context,name,args={},subscription,request,hand
   const auditedQuery=async(u,r,sql,params)=>{const c=await db.connect();try{await c.query('begin');await auditContext(c,u,r);const value=await c.query(sql,params);await c.query('commit');return value;}catch(e){await c.query('rollback');throw e;}finally{c.release();}};
   const ctx={...services,req,res:{},url,db,session:async()=>actor,body:async()=>args.data||{},send,auditContext,auditedQuery,id:()=>crypto.randomBytes(32).toString('base64url'),sendInvitation:services.sendInvitation||asyncDeliveryUnavailable,sendAccessGranted:services.sendAccessGranted||asyncDeliveryUnavailable};
   if(await maintenanceGate(ctx)){if(status>=400)fail(result?.error||'La aplicación está en mantenimiento',status);}
-  let routes=handlers||(d.handlerGroup==='operations'?mcpOperationsHandlers:d.handlerGroup==='finance'?mcpFinanceHandlers:d.handlerGroup==='workspace'?mcpWorkspaceHandlers:[economicHistory,employeeTasks,contracts,inventoryReservations,financeTreasury,financeControls,reports,suite,operations,agencyCore]);
+  let routes=handlers||(d.handlerGroup==='operations'?mcpOperationsHandlers:d.handlerGroup==='finance'?mcpFinanceHandlers:d.handlerGroup==='workspace'?mcpWorkspaceHandlers:d.handlerGroup==='clients'?mcpClientIntakeHandlers:[economicHistory,employeeTasks,contracts,inventoryReservations,financeTreasury,financeControls,reports,suite,operations,agencyCore]);
   if(d.monthlyIncome){const {clientMonthlyIncome}=await import('./client-monthly-income.js');routes=[clientMonthlyIncome];}
   let handled=false;for(const handler of routes)if(await handler(ctx)){handled=true;break;}if(!handled)fail('El módulo todavía no está disponible en esta versión',503);
   if(status>=400)fail(result?.error||'La operación fue rechazada por el módulo',status);
