@@ -2,6 +2,10 @@
 
 Acumulativo por versión, en lenguaje de producto. Lo mantiene el integrador en cada ciclo `hd`.
 
+## v1.0.201
+
+- Verificación de ingresos mensuales: el test visual espera a que finalice la carga antes de usar sus acciones, también con respuestas demoradas. Se conservan las comprobaciones de validación, edición, eliminación, foco y responsive.
+
 ## v1.0.200
 
 - Formularios: los errores aparecen sobre el cuerpo desplazable de la ventana.
