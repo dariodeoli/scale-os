@@ -2,6 +2,7 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {renderToStaticMarkup} from 'react-dom/server';
+import publicCatalog from '../../public-mcp-catalog.json';
 Object.assign(globalThis,{React});
 const Home=require('../page') as typeof import('../page');
 const Mcp=require('../mcp/page') as typeof import('../mcp/page');
@@ -17,8 +18,12 @@ test('documentation links point at actual guides and login/registration/demo rou
  for(const html of htmls.values()){assert.match(html,/https:\/\/app.scaleparaguay.com\//);assert.match(html,/https:\/\/sistema.scaleparaguay.com\/demo/);for(const match of html.matchAll(/href="(\/documentacion[^"#]*)(?:#[^"]*)?"/g))assert.ok(htmls.has(match[1] as typeof entries[number][0]),'missing documentation route '+match[1]);assert.doesNotMatch(html,/<form|<button|<script/i);}
 });
 test('MCP documentation retains concrete permissions, plan ID and financial limits without claiming live provider validation',()=>{
- const html=htmls.get('/documentacion/mcp')!;for(const required of ['41 herramientas','scale:read','scale:write','scale_create_plan','scale_update_client_commercial_terms','scale_get_client_plan_history','identificador positivo','15 minutos','validación externa','CIMD','no está implementado','tokens','revoc'])assert.ok(html.includes(required),'missing '+required);assert.match(html,/https:\/\/api.scaleparaguay.com\/mcp/);assert.match(html,/ejemplo son ficticios/);
+ const html=htmls.get('/documentacion/mcp')!;for(const required of [`${publicCatalog.count} herramientas`,'scale:read','scale:write','scale_create_plan','scale_update_client_commercial_terms','scale_get_client_plan_history','identificador positivo','15 minutos','validación externa','CIMD','no está implementado','tokens','revoc'])assert.ok(html.includes(required),'missing '+required);assert.match(html,/https:\/\/api.scaleparaguay.com\/mcp/);assert.match(html,/ejemplo son ficticios/);
 });
 test('API documentation separates internal API, library, configured adapters and external acceptance',()=>{
  const html=htmls.get('/documentacion/api')!;for(const required of ['API REST pública','token MCP','OwnData','pendientes','Microsoft','Apple','OwnCoding UI','no es una API','PagaYa/Stripe','Resend','WEEM','Carga con IA','No implica sincronización'])assert.ok(html.includes(required),'missing '+required);
+});
+
+test('MCP public catalog count and names are generated together, with current business boundaries',()=>{
+ const html=htmls.get('/documentacion/mcp')!;assert.equal(publicCatalog.count,publicCatalog.tools.length);assert.equal(new Set(publicCatalog.tools.map(tool=>tool.name)).size,publicCatalog.count);for(const tool of publicCatalog.tools)assert(html.includes(tool.name),tool.name);for(const required of ['ingresos sin cliente','transferencias','permisos individuales','roles inferiores','no accede a Balance','no se identifica a una persona por coincidencia'])assert(html.includes(required),required);
 });
