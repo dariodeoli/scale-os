@@ -6,6 +6,9 @@ import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction}
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {ActorAvatar, safePhoto} from '../actor-identity';
 import {PersonContainer} from '../person-container';
+import {AccountCreateDialog} from '../account-create-dialog';
+import {financePermission} from '../finance-balance-data';
+import {roleCan} from '../capabilities';
 import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
@@ -111,6 +114,8 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
 }
 
 export function FinanzasSection({user, navigate, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment}: FinanzasSectionProps) {
+  const [editingAccount,setEditingAccount]=useState<Account|null>(null);
+  const canSalary=!!user&&financePermission(user,'salary.view',roleCan(user.role,'salary.view'));
   const [invoiceFilter, setInvoiceFilter] = useState('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
   // Historial en tabs (#142): transferencias, cobros registrados y movimientos
@@ -200,7 +205,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
                 {!account.institution && !account.account_number && !account.holder_name ? <span>Sin datos bancarios</span> : null}
               </span>
               {account.custodian_name||account.custodian_email ? <span className="flex shrink-0 items-center gap-1" title={`Custodia: ${account.custodian_name||account.custodian_email}`}><span className="sr-only">Custodia:</span><PersonContainer size="sm" name={account.custodian_name||account.custodian_email!} photoUrl={account.custodian_photo_url}/></span> : null}
-              <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
+              <ScaleButton variant="ghost" type="button" className="text-button" onClick={()=>setEditingAccount(account)}>Editar</ScaleButton><RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
             </div>
           </article>)}
         </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<ScaleButton className="primary" onClick={() => setModal('account')} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</ScaleButton>}/>}
@@ -231,7 +236,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           : <EmptyBlock compact title="Nada urgente por cobrar." description="Cuando una factura venza o esté por vencer dentro de 7 días y tenga saldo, aparece acá."/>}
       </section>
 
-      <SalariosPanel navigate={navigate}/>
+      {canSalary?<SalariosPanel navigate={navigate}/>:null}
     </div>
 
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-invoices-title">
@@ -320,5 +325,6 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
 
       <div hidden={historyTab !== 'movimientos'}><ReconciliationWorkspace accounts={accounts}/></div>
     </section>
+  {editingAccount?<AccountCreateDialog account={editingAccount} close={()=>setEditingAccount(null)} done={()=>{setEditingAccount(null);void loadFinance();}}/>:null}
   </ListPage>;
 }

@@ -1,7 +1,7 @@
 'use client';
 import {useCallback,useEffect,useState} from 'react';
 import {api,Dialog} from './operations';
-import {ActorIdentity} from './actor-identity';
+import {AuditActor} from './actor-identity';
 import {ErrorBlock,LoadingBlock,MoneyText} from './ui-v2';
 import {listDateFull} from './list-format';
 import {dateLabel} from './forecast-data';
@@ -25,7 +25,7 @@ export function FinanceHistoryPanel({data,error,onRetry}:{data:FinanceHistoryPay
   {row.before_plan_name||row.after_plan_name?<p className="field-help">Plan: {row.before_plan_name||'Sin dato previo'} → {row.after_plan_name||'Sin plan'}</p>:null}
   <p className="field-help">{row.history_known&&row.effective_from?<>Vigente desde <time dateTime={row.effective_from}>{dateLabel(row.effective_from.slice(0,7))}</time></>:'Vigencia anterior no registrada; no se reconstruye una fecha desconocida.'}</p>
   <p className="finance-history-reason">{row.reason||'Sin motivo registrado'}</p>
-  <ActorIdentity name={row.actor_name} photoUrl={row.actor_photo_url} verified={!!row.actor_name} imported={!row.actor_name}/>
+  <AuditActor name={row.actor_name} photoUrl={row.actor_photo_url} verified={row.actor_verified===true} imported={row.source==='legacy-baseline'} timestamp={row.created_at}/>
  </li>)}</ol>}</section>;
 }
 export function FinanceHistoryDialog({kind,id,name,close}:{kind:FinanceHistoryKind;id:string;name:string;close:()=>void}){

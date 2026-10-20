@@ -1,8 +1,10 @@
 "use client";
 import {InputControl} from './ui/input-control';
 import {TextareaBase} from './ui/input';
-import {useState} from 'react';
-import {BancoComboboxLazy as BancoCombobox} from 'owncoding-ui/financial-lazy';
+import {useEffect,useRef,useState} from 'react';
+import {BancoComboboxLazy as BancoCombobox,BancoLogoLazy as BancoLogo} from 'owncoding-ui/financial-lazy';
+import {LookupField,LookupReview} from './ui/smart-field';
+import {lookupRuc,rucApplyValues,type RucRecord} from './client-ruc';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {z} from 'zod';
@@ -293,158 +295,44 @@ export function OrderForm({
   );
 }
 const accountSchema = z.object({
-  name: z.string().trim().min(2, "Escribí el nombre de la cuenta.").max(120, "El nombre no puede superar los 120 caracteres."),
-  accountType: z.enum(["bank", "cash", "digital", "investment"]),
-  currency: z.enum(currencyCodes),
-  institution: z.string().max(100).optional(),
-  accountNumber: z.string().max(80).optional(),
-  holderName: z.string().max(120).optional(),
-  custodianUserId: z.string().optional(),
+ name:z.string().trim().max(120).refine(value=>!value||value.length>=2,'Usá al menos 2 caracteres para el nombre.'),
+ accountType:z.enum(['bank','cash','digital','investment']),currency:z.enum(currencyCodes),
+ institution:z.string().max(100),accountNumber:z.string().max(80),holderName:z.string().max(120),holderTaxId:z.string().max(60),alias:z.string().max(120),accountSubtype:z.enum(['','savings','checking']),custodianUserId:z.string(),
 });
-type AccountValues = z.infer<typeof accountSchema>;
-export function AccountForm({
-  custodians,
-  request,
-  done,
-  initialCurrency,
-}: {
-  custodians: Member[];
-  request: WorkspaceRequest;
-  done: (account: Account) => void;
-  initialCurrency?:Account['currency'];
-}) {
-  const {currency:defaultCurrency}=useCompanyCurrency();
-  const form = useForm<AccountValues>({
-    resolver: zodResolver(accountSchema),
-    defaultValues: {
-      name: "",
-      accountType: "bank",
-      currency: initialCurrency||defaultCurrency,
-      institution: "",
-      accountNumber: "",
-      holderName: "",
-      custodianUserId: "",
-    },
-  });
-  const [error, setError] = useState("");
-  const submission=useSingleFlightSubmit(event=>{setError("");return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
-  const focus=useFormFocus(submission.pending);
-  const custodianOptions:EntityOption[]=custodians.map(member=>({id:String(member.id),name:member.full_name?.trim()||member.email,secondary:teamRoleLabels[member.role]||member.role,photoUrl:member.photo_url,person:true,searchText:member.email}));
-  async function submit(values: AccountValues) {
-    try {
-      const data = await request<{ account: Account }>("/api/agency/accounts", {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      done(data.account);
-    } catch (cause) {
-      if(cause instanceof ApiFieldError){
-        const accepted:Record<string,{message:string}>={};
-        for(const [key,message] of Object.entries(cause.fieldErrors))if(key in form.getValues()){
-          form.setError(key as keyof typeof values,{type:'server',message});accepted[key]={message};
-        }
-        focus.onInvalid(accepted);
-      }
-      setError(
-        cause instanceof Error ? cause.message : "No se pudo crear la cuenta.",
-      );
-    }
-  }
-  return (
-    <form
-      className="form-stack ops-form-grid"
-      noValidate
-      onSubmit={submission.onSubmit}
-      ref={focus.formRef}
-      aria-busy={submission.pending}
-    >
-      <PendingFields pending={submission.pending}>
-      <label data-span="6">
-        Nombre de la cuenta
-        <InputControl
-          {...form.register("name")}
-          placeholder="Banco Regional — Operativa"
-        />
-      </label>
-      <fieldset data-span="6" data-form-field="accountType">
-        <legend>Tipo</legend>
-        <div className="choice-list compact">
-          {(
-            [
-              { id: "bank", label: "Banco" },
-              { id: "cash", label: "Caja" },
-              { id: "digital", label: "Digital" },
-              { id: "investment", label: "Inversión" },
-            ] as const
-          ).map((type) => (
-            <button
-              type="button"
-              className={
-                form.watch("accountType") === type.id
-                  ? "choice active"
-                  : "choice"
-              }
-              onClick={() => form.setValue("accountType", type.id,{shouldDirty:true})}
-              key={type.id}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <div data-span="6">
-        <label htmlFor="account-institution">Banco, billetera o institución</label>
-        <BancoCombobox disabled={submission.pending} id="account-institution" value={form.watch('institution')||''} onChange={(value:string)=>form.setValue('institution',value,{shouldValidate:true,shouldDirty:true})} placeholder="Buscar banco de Paraguay o escribir otra institución" showSelectedLogo showHorizontalLogo/>
-        <small className="field-help">Catálogo compartido de Paraguay. También admite una institución personalizada o efectivo.</small>
-      </div>
-      <label data-span="3">
-        Número de cuenta o referencia
-        <InputControl {...form.register("accountNumber")} placeholder="Opcional" />
-      </label>
-      <label data-span="3">
-        Titular de la cuenta
-        <InputControl
-          {...form.register("holderName")}
-          placeholder="Empresa, socio o familiar"
-        />
-      </label>
-      <div className="contents" data-form-field="custodianUserId"><EntityPicker
-        disabled={submission.pending}
-        legend="Quién custodia este dinero"
-        options={custodianOptions}
-        value={form.watch("custodianUserId")||""}
-        onChange={value=>form.setValue("custodianUserId",value,{shouldValidate:true,shouldDirty:true})}
-        placeholder="Buscar persona…"
-        searchLabel="Buscar persona"
-        allowEmpty
-        emptyLabel="Sin asignar"
-      /></div>
-      <fieldset data-span="6" data-form-field="currency">
-        <legend>Moneda</legend>
-        <div className="choice-list compact">
-          {currencyCodes.map((currency) => (
-            <button
-              type="button"
-              className={
-                form.watch("currency") === currency ? "choice active" : "choice"
-              }
-              onClick={() => form.setValue("currency", currency,{shouldDirty:true})}
-              key={currency}
-            >
-              {currency}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {error && <p className="error" role="alert">{error}</p>}
-      <p className="field-help">{financePurposeNotice('treasury')} · <a href={financeNoticeHref('treasury')} target="_blank" rel="noreferrer">Aviso de Privacidad</a></p>
-      <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton className="primary" disabled={submission.pending} variant="primary">
-        {submission.pending ? "Creando…" : "Crear cuenta"}
-      </ScaleButton></SaveActions>
-      <FormValidationErrors errors={form.formState.errors}/>
-      </PendingFields>
-    </form>
-  );
+type AccountValues=z.infer<typeof accountSchema>;
+export function suggestedAccountName(values:{institution?:string;accountNumber?:string;holderName?:string;accountType?:string}){
+ const institution=values.institution?.trim()||({cash:'Efectivo',digital:'Billetera',investment:'Inversión'}[values.accountType||'']||'Cuenta');
+ return [institution,values.accountNumber?.trim()?`···${values.accountNumber.trim().slice(-4)}`:values.holderName?.trim()].filter(Boolean).join(' · ').slice(0,120);
+}
+export function AccountForm({custodians,request,done,initialCurrency,account}:{custodians:Member[];request:WorkspaceRequest;done:(account:Account)=>void;initialCurrency?:Account['currency'];account?:Account}){
+ const {currency:defaultCurrency}=useCompanyCurrency();
+ const form=useForm<AccountValues>({resolver:zodResolver(accountSchema),defaultValues:{name:account?.name||'',accountType:account?.account_type||'bank',currency:account?.currency||initialCurrency||defaultCurrency,institution:account?.institution||'',accountNumber:account?.account_number||'',holderName:account?.holder_name||'',holderTaxId:account?.holder_tax_id||'',alias:account?.alias||'',accountSubtype:account?.account_subtype||'',custodianUserId:account?.custodian_user_id||''}});
+ const values=form.watch(),manualName=useRef(Boolean(account)),requestId=useRef(crypto.randomUUID());
+ const [error,setError]=useState(''),[lookupBusy,setLookupBusy]=useState(false),[lookupError,setLookupError]=useState(''),[found,setFound]=useState<{record:RucRecord;taxId:string;holder:string}|null>(null);
+ const lookupGeneration=useRef(0),mounted=useRef(true);
+ useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;lookupGeneration.current++;};},[]);
+ useEffect(()=>{if(!manualName.current){const suggestion=suggestedAccountName(values);if(values.name!==suggestion)form.setValue('name',suggestion,{shouldDirty:false});}},[values.institution,values.accountNumber,values.holderName,values.accountType,form]);
+ useEffect(()=>{lookupGeneration.current++;setFound(null);},[values.holderTaxId]);
+ const submission=useSingleFlightSubmit(event=>{setError('');return form.handleSubmit(submit,errors=>focus.onInvalid(errors))(event);});
+ const focus=useFormFocus(submission.pending);
+ async function lookup(){if(lookupBusy||submission.pending)return;const taxId=form.getValues('holderTaxId'),holder=form.getValues('holderName'),generation=++lookupGeneration.current;setLookupBusy(true);setLookupError('');setFound(null);try{const record=await lookupRuc(taxId);if(mounted.current&&generation===lookupGeneration.current&&form.getValues('holderTaxId')===taxId)setFound({record,taxId,holder});}catch(cause){if(mounted.current&&generation===lookupGeneration.current)setLookupError(cause instanceof Error?cause.message:'Consulta no disponible; completá el titular manualmente.');}finally{if(mounted.current)setLookupBusy(false);}}
+ async function submit(value:AccountValues){try{const data=await request<{account:Account}>(`/api/agency/accounts${account?'/'+account.id:''}`,{method:account?'PATCH':'POST',body:JSON.stringify({...value,accountSubtype:value.accountType==='bank'?value.accountSubtype||null:null,requestId:requestId.current,...(account?{expectedRevision:account.revision??0}:{})})});done(data.account);}catch(cause){if(cause instanceof ApiFieldError){const accepted:Record<string,{message:string}>={};for(const[key,message]of Object.entries(cause.fieldErrors))if(key in form.getValues()){form.setError(key as keyof AccountValues,{type:'server',message});accepted[key]={message};}focus.onInvalid(accepted);}setError(cause instanceof Error?cause.message:'No se pudo crear la cuenta.');}}
+ const custodiansOptions:EntityOption[]=custodians.map(member=>({id:String(member.id),name:member.full_name?.trim()||member.email,secondary:teamRoleLabels[member.role]||member.role,photoUrl:member.photo_url,person:true,searchText:member.email}));
+ return <form className="form-stack ops-form-grid account-form" noValidate onSubmit={submission.onSubmit} ref={focus.formRef} aria-busy={submission.pending}><PendingFields pending={submission.pending}>
+  <div data-span="6" data-form-field="institution"><label htmlFor="account-institution">Institución</label><div className="account-bank-input"><BancoLogo banco={values.institution} alto="h-7" soloCatalogo decorativo/><BancoCombobox id="account-institution" value={values.institution} onChange={(value:string)=>form.setValue('institution',value,{shouldDirty:true})} disabled={submission.pending} placeholder="Buscar banco o escribir otra institución" showSelectedLogo={false} showHorizontalLogo={false}/></div><small className="field-help">Catálogo OwnCoding UI; también admite una institución personalizada.</small></div>
+  <div data-span="3"><SelectCustom label="Tipo de cuenta" value={values.accountType} choices={[{value:'bank',label:'Banco'},{value:'cash',label:'Efectivo'},{value:'digital',label:'Digital'},{value:'investment',label:'Inversión'}]} onChange={value=>form.setValue('accountType',value as AccountValues['accountType'],{shouldDirty:true})}/></div>
+  <div data-span="3"><SelectCustom label="Moneda" value={values.currency} choices={currencyCodes.map(value=>({value,label:value}))} onChange={value=>form.setValue('currency',value as AccountValues['currency'],{shouldDirty:true})}/></div>
+  <div data-span="6"><LookupField id="account-holder-tax" label="RUC / documento del titular" value={values.holderTaxId} maxLength={60} onChange={event=>form.setValue('holderTaxId',event.target.value,{shouldDirty:true})} onLookup={()=>void lookup()} lookupLabel="Consultar RUC" state={lookupBusy?'loading':lookupError?'error':'idle'} disabled={submission.pending} policy={{allowed:!lookupBusy&&!!values.holderTaxId}} message={lookupError||'Consulta opcional si el proveedor está habilitado; siempre podés completar manualmente.'}/></div>
+  <div data-span="6"><SelectCustom label="Modalidad bancaria" value={values.accountSubtype} disabled={values.accountType!=='bank'} choices={[{value:'',label:'Otra / sin especificar'},{value:'savings',label:'Caja de ahorro'},{value:'checking',label:'Cuenta corriente'}]} onChange={value=>form.setValue('accountSubtype',value as AccountValues['accountSubtype'],{shouldDirty:true})}/></div>
+  {found?<div className="ops-wide"><LookupReview label="Revisar datos del titular" heading={rucApplyValues(found.record).legal_name} description="Aplicar completa sólo documento y nombre del titular. La consulta fiscal no acredita propiedad de esta cuenta bancaria." disabled={submission.pending} onDiscard={()=>setFound(null)} onApply={()=>{if(form.getValues('holderTaxId')!==found.taxId||form.getValues('holderName')!==found.holder){setFound(null);setLookupError('Los datos cambiaron; consultá nuevamente antes de aplicar.');return;}form.setValue('holderTaxId',found.record.tax_id,{shouldDirty:true});form.setValue('holderName',rucApplyValues(found.record).legal_name,{shouldDirty:true});setFound(null);}}><p>RUC {found.record.tax_id} · Fuente {found.record.source||'No informada'}</p></LookupReview></div>:null}
+  <label data-span="6">Titular<InputControl {...form.register('holderName')} maxLength={120} placeholder="Empresa o persona titular"/></label>
+  <label data-span="6">Número / referencia<InputControl {...form.register('accountNumber')} maxLength={80} placeholder="Número de cuenta"/></label>
+  <label data-span="6">Nombre visible<InputControl {...form.register('name',{onChange:()=>{manualName.current=true;}})} maxLength={120} placeholder={suggestedAccountName(values)}/><small className="field-help">Sugerido automáticamente hasta que lo personalices.</small></label>
+  <label data-span="6">Alias · Opcional<InputControl {...form.register('alias')} maxLength={120} placeholder="Operativa, ahorro, caja…"/></label>
+  <div data-span="12" data-form-field="custodianUserId"><EntityPicker disabled={submission.pending} legend="Quién custodia este dinero" options={custodiansOptions} value={values.custodianUserId} onChange={value=>form.setValue('custodianUserId',value,{shouldDirty:true})} placeholder="Buscar persona…" searchLabel="Buscar persona" allowEmpty emptyLabel="Sin asignar"/></div>
+  {error?<p className="error ops-wide" role="alert">{error}</p>:null}<p className="field-help ops-wide">Los datos del titular se declaran manualmente o se revisan después de consultar el RUC; no verificamos titularidad bancaria.</p>
+  <SaveActions pending={submission.pending} dirty={form.formState.isDirty}><ScaleButton className="primary" disabled={submission.pending} variant="primary">{submission.pending?'Guardando…':account?'Guardar cuenta':'Crear cuenta'}</ScaleButton></SaveActions><FormValidationErrors errors={form.formState.errors}/>
+ </PendingFields></form>;
 }
 const invoiceSchema = z.object({
   clientId: z.string().min(1, "Elegí un cliente."),

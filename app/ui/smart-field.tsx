@@ -31,6 +31,7 @@ export const LookupField=forwardRef<HTMLInputElement,LookupFieldProps>(function 
    return <>
     <div className="ops-lookup-row" data-ui-lookup-field="" data-lookup-state={state} aria-busy={state==='loading'||undefined}>
      <InputBase {...input} ref={ref} id={control.id} disabled={disabled} pending={pending}
+      onKeyDown={event=>{input.onKeyDown?.(event);if(event.key!=='Enter')return;const cancelled=event.defaultPrevented;event.preventDefault();event.stopPropagation();if(!cancelled&&!event.repeat&&!event.nativeEvent.isComposing&&!disabled&&!pending&&state!=='loading'&&policy?.allowed!==false)onLookup();}}
       invalid={invalid||control.invalid} describedBy={[control.describedBy,describedBy,feedback?statusId:undefined].filter(Boolean).join(' ')||undefined}/>
      <Button type="button" variant="ghost" size="compact" className="text-button ops-lookup-button"
       disabled={disabled||pending||policy?.allowed===false} loading={state==='loading'} onClick={onLookup}>

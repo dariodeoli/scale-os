@@ -70,6 +70,10 @@ export type Account = {
   institution: string | null;
   account_number: string | null;
   holder_name: string | null;
+  holder_tax_id?:string|null;
+  account_subtype?:'savings'|'checking'|null;
+  alias?:string|null;
+  revision?:number;
   custodian_user_id: string | null;
   custodian_email?: string | null;
   /** Identidad resuelta para mostrar la custodia sin correos técnicos (#149). */
