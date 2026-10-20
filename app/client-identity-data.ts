@@ -30,3 +30,8 @@ export type ClientIdentityRecord={
 export function clientLegalName(values:Record<string,unknown>):string{
  return String(values.legal_name||'').trim()||String(values.name||'').trim();
 }
+
+/** Client selectors share the same identity metadata before and after saving. */
+export function clientSelectChoices(clients:readonly (ClientIdentityRecord&{id:string|number;legal_name?:string|null;tax_id?:string|null})[]){
+ return clients.map(client=>({value:String(client.id),label:client.name,photoUrl:client.logo_url,kind:'entity' as const,secondary:[client.legal_name?.trim(),client.tax_id?.trim()].filter(Boolean).join(' · ')||undefined,searchText:[client.name,client.legal_name,client.tax_id].filter(Boolean).join(' ')}));
+}
