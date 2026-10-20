@@ -15,6 +15,6 @@ export function InvitacionesSection({user}: InvitacionesSectionProps){
     <EmptyBlock compact title="El Demo no crea accesos externos" description="Probá los permisos desde la barra superior: los cambios de rol se aplican en el momento y no envían invitaciones. En tu empresa real, cada enlace queda auditado con quién lo creó y quién ingresó."/>
   </section>;
   return (
-    <InviteLinks role={user?.role||'viewer'}/>
+    <InviteLinks key={`${user?.organization_id}:${user?.id}:${user?.role}:${JSON.stringify(user?.capabilities||{})}`} role={user?.role||'viewer'}/>
   );
 }

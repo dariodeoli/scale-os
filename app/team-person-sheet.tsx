@@ -6,6 +6,8 @@ import {currencyChoices} from './currencies';
 import {PersonPhotoField} from './person-photo';
 import {RemoveRecord} from './archive-controls';
 import {TeamAccess} from './team-access';
+import {MemberPermissions} from './member-permissions';
+import {accessRoleChoices,editableMemberAccess,editableMemberPermissions,type TeamPermissionPolicy} from './team-permission-policy';
 import {TeamMember,teamRoleLabels,isCurrentTeamMember} from './team-directory';
 import {PersonSheet,type SheetTab,type SheetTabId} from './person-sheet';
 import {AVISO_REFRESCO,completeSave} from './save-completion';
@@ -71,9 +73,7 @@ function accessMessage(access:CollaboratorSave['access']){
 }
 
 /** ¿Este acceso se puede editar desde la ficha? (no el propio ni el de un dueño sin ser dueño). */
-function accessEditable(member:TeamMember|null,role:string,currentUserId:string){
-  return Boolean(member&&!member.removed_at&&!isCurrentTeamMember(member,currentUserId)&&!(member.role==='owner'&&role!=='owner'));
-}
+
 
 function ProfileTab({role,person,member,seedEmail,load,onCreated}:{role:string;person:Person|null;member:TeamMember|null;seedEmail:string;load:()=>Promise<void>;onCreated:(person:Person)=>void}){
   const defaults:Record<string,string>={
@@ -117,19 +117,19 @@ function ProfileTab({role,person,member,seedEmail,load,onCreated}:{role:string;p
   </>;
 }
 
-function AccessTab({role,capabilities,currentUserId,person,member,ambiguous,load}:{role:string;capabilities?:Record<string,boolean>;currentUserId:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;load:()=>Promise<void>}){
-  const editable=accessEditable(member,role,currentUserId);
+function AccessTab({role,capabilities,permissionPolicy,currentUserId,person,member,ambiguous,load}:{role:string;capabilities?:Record<string,boolean>;permissionPolicy?:TeamPermissionPolicy;currentUserId:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;load:()=>Promise<void>}){
+  const editable=editableMemberAccess(member,currentUserId)&&!member?.removed_at;
   const [draft,setDraft]=useState<{role:string;active:string}|null>(null);
   const [busy,setBusy]=useState(''),[error,setError]=useState('');
   useEffect(()=>{setDraft(member&&editable?{role:member.role,active:String(member.active!==false)}:null);},[member?.id,member?.role,member?.active,member?.removed_at,editable]);
   const email=person?.email||(member&&member.email)||null;
   const dirty=Boolean(draft&&member&&(draft.role!==member.role||draft.active!==String(member.active!==false)));
   async function saveAccess(){
-    if(!draft||!member||busy)return;
+    if(!draft||!member||!editable||busy)return;
     setBusy('save');setError('');
     try{
       // Compare-and-set: el API rechaza (409) si otra persona cambió el rol o el acceso mientras tanto.
-      await api(`/api/agency/members/${member.id}`,{role:draft.role,active:draft.active==='true',expected_role:member.role,expected_active:member.active!==false},'PATCH');
+      await api(`/api/agency/members/${member.id}`,{...(draft.role!==member.role?{role:draft.role}:{}),...(draft.active!==String(member.active!==false)?{active:draft.active==='true'}:{}),expected_role:member.role,expected_active:member.active!==false},'PATCH');
       await completeSave(()=>{},load);
     }catch(cause){setError(errorText(cause));}
     finally{setBusy('');}
@@ -144,9 +144,9 @@ function AccessTab({role,capabilities,currentUserId,person,member,ambiguous,load
     }catch(cause){setError(errorText(cause));}
     finally{setBusy('');}
   }
-  const choices=[...(role==='owner'?['owner']:[]),'admin','management','finance','sales','production','editor','viewer','collaborator'].map(value=>({value,label:teamRoleLabels[value]||value}));
+  const choices=accessRoleChoices(permissionPolicy,member?.role).map(value=>({value,label:teamRoleLabels[value]||value}));
   return <section className="grid min-w-0 gap-3" aria-label="Acceso al panel">
-    <TeamAccess capabilities={capabilities} member={member} ambiguous={ambiguous} email={email} role={role} refresh={load}/>
+    <TeamAccess policy={permissionPolicy} capabilities={capabilities} member={member} ambiguous={ambiguous} email={email} role={role} refresh={load}/>
     {ambiguous?<p className="form-note">Hay perfiles con el mismo correo. Revisá sus datos antes de vincular accesos; no se combinaron sus pagos.</p>:null}
     {member&&!member.removed_at?(draft?<>
       <div className="ops-form-grid">
@@ -160,7 +160,8 @@ function AccessTab({role,capabilities,currentUserId,person,member,ambiguous,load
         {member.active!==false?<ScaleButton type="button" className="secondary" disabled={Boolean(busy)} onClick={()=>void resend()} variant="secondary">Reenviar invitación</ScaleButton>:null}
         <RemoveRecord kind="members" id={member.id} name={member.email} role={role} done={load}/>
       </div>
-    </>:<p className="form-note">Tu propio acceso se administra desde Mi perfil; el de otros dueños, desde Equipo.</p>):null}
+    </>:<p className="form-note">Este acceso no se puede modificar desde tu cuenta. Los permisos superiores y tu propio acceso están protegidos.</p>):null}
+    {editableMemberPermissions(member,currentUserId)?<MemberPermissions key={member!.id} memberId={String(member!.id)}/>:null}
     {!member&&!person?<p className="form-note">Guardá el perfil para poder invitar a esta persona al panel.</p>:null}
   </section>;
 }
@@ -197,11 +198,12 @@ export type SheetTarget={personId:string|null;memberId:string|null;seedEmail:str
  * Ficha de una persona de Equipo. Cada pestaña guarda por separado (perfil,
  * acceso, remuneración): no hay un guardado a medias entre ellas (#186 E3).
  */
-export function TeamPersonSheet({role,capabilities,currentEmail,currentUserId='',person,member,ambiguous,seedEmail,tab,defaultCurrency,load,onCreated,close}:{role:string;capabilities?:Record<string,boolean>;currentEmail:string;currentUserId?:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;seedEmail:string;tab:SheetTabId;defaultCurrency:string;load:()=>Promise<void>;onCreated:(person:Person)=>void;close:()=>void}){
-  const salaryView=effectiveCapability(role,'salary.view',capabilities);
+export function TeamPersonSheet({role,capabilities,permissionPolicy,currentEmail,currentUserId='',person,member,ambiguous,seedEmail,tab,defaultCurrency,load,onCreated,close}:{role:string;capabilities?:Record<string,boolean>;permissionPolicy?:TeamPermissionPolicy;currentEmail:string;currentUserId?:string;person:Person|null;member:TeamMember|null;ambiguous:boolean;seedEmail:string;tab:SheetTabId;defaultCurrency:string;load:()=>Promise<void>;onCreated:(person:Person)=>void;close:()=>void}){
+  const salaryView=effectiveCapability(role,'salary.view',capabilities)&&permissionPolicy?.canViewSalary!==false;
   const canManageAccess=effectiveCapability(role,'members.manage',capabilities);
+  const canManagePermissions=effectiveCapability(role,'permissions.manage',capabilities)&&editableMemberPermissions(member,currentUserId);
   const tabs:SheetTab[]=[{id:'perfil',label:'Perfil',content:<ProfileTab role={role} person={person} member={member} seedEmail={seedEmail} load={load} onCreated={onCreated}/>}];
-  if(canManageAccess&&(person||member))tabs.push({id:'acceso',label:'Acceso',content:<AccessTab capabilities={capabilities} role={role} currentUserId={currentUserId} person={person} member={member} ambiguous={ambiguous} load={load}/>});
+  if((canManageAccess||canManagePermissions)&&(person||member)&&(!member?permissionPolicy?.canManageMembers===true:editableMemberAccess(member,currentUserId)||editableMemberPermissions(member,currentUserId)))tabs.push({id:'acceso',label:'Acceso',content:<AccessTab permissionPolicy={permissionPolicy} capabilities={capabilities} role={role} currentUserId={currentUserId} person={person} member={member} ambiguous={ambiguous} load={load}/>});
   // Sin `salary.view` la pestaña no se arma: ni su contenido ni sus datos existen.
   if(salaryView&&person)tabs.push({id:'remuneracion',label:'Remuneración',content:<PayTab person={person} defaultCurrency={defaultCurrency} load={load}/>});
   const title=person?'Editar persona':'Nueva persona';

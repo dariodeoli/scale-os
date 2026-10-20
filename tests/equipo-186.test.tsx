@@ -19,7 +19,7 @@ const {PeopleWorkspace}=require('../app/team-workspace') as typeof import('../ap
 
 const AMOUNT='4500000';
 const person={id:'7',full_name:'Ana Pérez',email:'ana@example.invalid',photo_url:null,job_title:'Diseñadora',compensation_type:'fixed',compensation_amount:AMOUNT,currency:'PYG',invoices_company:true,started_on:'2026-01-05',ended_on:null,payment_day:5,active:true,notes:null,user_id:'u1',access_email:'ana@example.invalid'};
-const member={id:'u1',email:'ana@example.invalid',role:'sales',active:true,removed_at:null,full_name:'Ana Pérez',photo_url:null};
+const member={access_editable:true,permissions_editable:false,id:'u1',email:'ana@example.invalid',role:'sales',active:true,removed_at:null,full_name:'Ana Pérez',photo_url:null};
 const textOf=(node:any):string=>typeof node==='string'?node:node?.children?.map(textOf).join('')||'';
 const content=(renderer:ReactTestRenderer)=>JSON.stringify(renderer.toJSON());
 const tab=(renderer:ReactTestRenderer,label:string)=>renderer.root.findAllByType('button').find(button=>textOf(button)===label);

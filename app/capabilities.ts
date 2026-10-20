@@ -16,11 +16,13 @@
 
 export const CAPABILITY_ROLES = {
  'members.manage': ['owner','admin','management'],
- 'settings.manage': ['owner','admin'],
- 'activity.view': ['owner','admin'],
- 'metrics.view': ['owner','admin'],
- 'visitors.view': ['owner','admin'],
- 'company.create': ['owner','admin'],
+ 'permissions.manage': ['owner','admin','management'],
+ 'finance.balance.view': ['owner','admin','finance'],
+ 'settings.manage': ['owner','admin','management'],
+ 'activity.view': ['owner','admin','management'],
+ 'metrics.view': ['owner','admin','management'],
+ 'visitors.view': ['owner','admin','management'],
+ 'company.create': ['owner','admin','management'],
  'clients.manage': ['owner','admin','management','sales','finance','collaborator'],
  'projects.manage': ['owner','admin','management','sales','production','collaborator'],
  'projects.edit': ['owner','admin','management','production','collaborator'],
@@ -32,22 +34,22 @@ export const CAPABILITY_ROLES = {
  'tasks.view': ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'],
  'tasks.assign': ['owner','admin','management','production'],
  'tasks.edit': ['owner','admin','management','production','editor','collaborator','sales','finance'],
- 'contracts.view': ['owner','admin'],
- 'contracts.manage': ['owner','admin'],
- 'contracts.issue': ['owner','admin'],
- 'contracts.bank-data.view': ['owner','admin','finance'],
+ 'contracts.view': ['owner','admin','management'],
+ 'contracts.manage': ['owner','admin','management'],
+ 'contracts.issue': ['owner','admin','management'],
+ 'contracts.bank-data.view': ['owner','admin','management','finance'],
  'commercial.manage': ['owner','admin','management','finance','sales','collaborator'],
  'budgets.manage': ['owner','admin','management','finance','sales','production','collaborator'],
  'commercial-terms.manage': ['owner','admin','management','sales'],
  'billing.view': ['owner','admin','management','finance','sales'],
- 'finance.view': ['owner','admin','finance'],
- 'accounts.manage': ['owner','admin','finance'],
+ 'finance.view': ['owner','admin','management','finance'],
+ 'accounts.manage': ['owner','admin','management','finance'],
  'invoices.manage': ['owner','admin','management','finance','sales'],
- 'payments.manage': ['owner','admin','finance'],
- 'transfers.manage': ['owner','admin','finance'],
- 'commissions.manage': ['owner','admin','finance'],
- 'reports.view': ['owner','admin','finance','sales'],
- 'expenses.manage': ['owner','admin','finance'],
+ 'payments.manage': ['owner','admin','management','finance'],
+ 'transfers.manage': ['owner','admin','management','finance'],
+ 'commissions.manage': ['owner','admin','management','finance'],
+ 'reports.view': ['owner','admin','management','finance','sales'],
+ 'expenses.manage': ['owner','admin','management','finance'],
  'inventory.view': ['owner','admin','management','finance','sales','production','editor','viewer','collaborator'],
  'inventory.manage': ['owner','admin','management','production','finance','collaborator'],
  'inventory.book': ['owner','admin','management','production','collaborator'],
@@ -55,7 +57,7 @@ export const CAPABILITY_ROLES = {
  'portal-access.manage': ['owner','admin','management','production'],
  'portal.manage': ['owner','admin','management','production','collaborator'],
  'salary.view': ['owner','admin','finance'],
- 'privacy.manage': ['owner','admin'],
+ 'privacy.manage': ['owner','admin','management'],
 } as const;
 
 export type Capability = keyof typeof CAPABILITY_ROLES;
@@ -69,6 +71,8 @@ export function roleCan(role: string | null | undefined, capability: Capability)
 
 /** Authoritative session overrides win over role defaults; owners retain access. */
 export function effectiveCapability(role:string|null|undefined,capability:Capability,capabilities?:Record<string,boolean>){
+ // Mirrors the API's non-delegable management privacy boundary, including stale overrides.
+ if(role==='management'&&(capability==='salary.view'||capability==='finance.balance.view'))return false;
  return role==='owner'||(capabilities?.[capability]??roleCan(role,capability));
 }
 
@@ -92,7 +96,7 @@ export function canSeeTrash(role: string | null | undefined){
 
 /** El workspace completo de Equipo es para quienes gestionan personas o ven salarios. */
 export function canOpenPeopleWorkspace(role: string | null | undefined,capabilities?:Record<string,boolean>){
- return effectiveCapability(role,'members.manage',capabilities)||effectiveCapability(role,'salary.view',capabilities);
+ return effectiveCapability(role,'members.manage',capabilities)||effectiveCapability(role,'permissions.manage',capabilities)||effectiveCapability(role,'salary.view',capabilities);
 }
 
 /**

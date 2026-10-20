@@ -3,6 +3,7 @@ import {InputControl} from './ui/input-control';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {api,Editor} from './operations';
 import {teamRoleLabels} from './team-directory';
+import {accessRoleChoices,type TeamPermissionPolicy} from './team-permission-policy';
 import {dueTone,listDateShort} from './list-format';
 import {Copy,Link2,Trash2,UserCheck,X} from 'lucide-react';
 import {SearchField} from './search-field';
@@ -32,13 +33,16 @@ function linkState(link:LinkRow){if(link.revoked_at)return{tone:'bad' as const,l
 export function InviteLinks({role}:{role:string}){
  const [links,setLinks]=useState<LinkRow[]>([]),[requests,setRequests]=useState<RequestRow[]>([]),[created,setCreated]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[copied,setCopied]=useState('');
  const [loading,setLoading]=useState(true),[query,setQuery]=useState('');
+ const [policy,setPolicy]=useState<TeamPermissionPolicy>();
  // La tarjeta de creación vive arriba de la lista: el vacío de enlaces lleva
  // hasta ella y enfoca el primer control (CTA contextual, #62).
  const createCard=useRef<HTMLDivElement|null>(null);
  const focusCreate=()=>{const card=createCard.current;card?.scrollIntoView({behavior:'smooth',block:'center'});card?.querySelector<HTMLButtonElement>('button.ops-select-trigger')?.focus();};
- async function load(){try{const [a,b]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests')]);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar la información de invitaciones.');}finally{setLoading(false);}}
+ async function load(){try{const [a,b,members]=await Promise.all([api<{links:LinkRow[]}>('/api/agency/invite-links'),api<{requests:RequestRow[]}>('/api/agency/access-requests'),api<{policy:TeamPermissionPolicy}>('/api/agency/members')]);setPolicy(members.policy);setLinks(a.links);setRequests(b.requests);setError('');}catch(e){setError(e instanceof Error?e.message:'No se pudo cargar la información de invitaciones.');}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
  async function act(path:string,data:unknown,method='POST'){setBusy(true);try{await api(path,data,method);await load();}catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');}finally{setBusy(false);}}
+ const choices=accessRoleChoices(policy).map(value=>({value,label:teamRoleLabels[value]||value}));
+ const mayAssign=(targetRole:string)=>policy?.canManageMembers===true&&policy.editableRoles.includes(targetRole);
  const needle=query.trim().toLowerCase();
  const shownRequests=useMemo(()=>needle?requests.filter(request=>`${request.actor_name||request.full_name} ${request.email} ${teamRoleLabels[request.role]||request.role}`.toLowerCase().includes(needle)):requests,[requests,needle]);
  const shownLinks=useMemo(()=>needle?links.filter(link=>`${teamRoleLabels[link.role]||link.role} ${link.mode==='single'?'un solo uso':'con aprobación'} ${link.actor_name||link.created_by_email}`.toLowerCase().includes(needle)):links,[links,needle]);
@@ -76,15 +80,15 @@ export function InviteLinks({role}:{role:string}){
         </span>
         <span className="whitespace-nowrap text-[12px] tabular-nums text-mute">{listDateShort(request.created_at)||'Sin fecha'}</span>
         <span className="flex min-w-0 items-center justify-end gap-1 whitespace-nowrap">
-         {request.status==='pending'&&<ScaleButton className="text-button positive" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')} variant="ghost">Aprobar acceso</ScaleButton>}
-         <ScaleButton className="text-button danger" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')} variant="ghost" color="danger"><X size={14} aria-hidden="true"/>Rechazar</ScaleButton>
+         {request.status==='pending'&&mayAssign(request.role)&&<ScaleButton className="text-button positive" disabled={busy} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')} variant="ghost">Aprobar acceso</ScaleButton>}
+         {mayAssign(request.role)?<ScaleButton className="text-button danger" disabled={busy} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')} variant="ghost" color="danger"><X size={14} aria-hidden="true"/>Rechazar</ScaleButton>:null}
         </span>
        </ListRow>;})}
      </ListGrid>}
    </div>
    <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" ref={createCard}>
     <div className="min-w-0"><h3 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-fore"><Link2 size={18} aria-hidden="true"/> Crear enlace</h3><p className="mt-1 text-xs text-mute">Elegí el permiso y el tipo. El enlace vence a los 7 días o al primer uso, según el modo.</p></div>
-    <Editor columns fields={[{key:'role',label:'Permiso del enlace',choices:Object.entries(teamRoleLabels).filter(([value])=>value!=='owner'||role==='owner').map(([value,label])=>({value,label}))},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:'viewer',mode:'single'}} label="Generar enlace" save={async values=>{const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');notify({tone:'success',message:'Enlace generado. Copialo desde el recuadro.'});await load();}}/>
+    {choices.length>0&&policy?.canManageMembers?<Editor columns fields={[{key:'role',label:'Permiso del enlace',choices},{key:'mode',label:'Tipo de invitación',choices:[{value:'single',label:'Una persona · un solo uso'},{value:'approval',label:'Varias personas · requiere aprobación'}]}]} defaults={{role:choices.some(choice=>choice.value==='viewer')?'viewer':choices[0]?.value||'',mode:'single'}} label="Generar enlace" save={async values=>{if(!mayAssign(values.role))return;const result=await api<{url:string}>('/api/agency/invite-links',values);setCreated(result.url);setCopied('');notify({tone:'success',message:'Enlace generado. Copialo desde el recuadro.'});await load();}}/>:<p className="form-note">Tu acceso actual no permite asignar un rol a nuevas personas.</p>}
     {created?<div className="grid gap-2 rounded-lg border border-ink-600 px-3 py-2"><label className="grid gap-1.5 text-xs text-mute">Enlace generado<InputControl readOnly className="rounded-md border border-ink-600 bg-ink-900 px-3 py-2 font-mono text-xs text-fore" value={created} onFocus={e=>e.target.select()}/></label><ScaleButton className="secondary" onClick={async()=>{try{await navigator.clipboard.writeText(created);setCopied(created);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}} variant="secondary"><Copy size={16} aria-hidden="true"/>{copied===created?'Copiado':'Copiar enlace'}</ScaleButton></div>:null}
    </div>
    <div className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4">
@@ -100,8 +104,8 @@ export function InviteLinks({role}:{role:string}){
        <span className="min-w-0 truncate text-[11.5px] tabular-nums text-mute" title={joinedUsers.length?`${activity} · Se unieron ${joinedText(joinedUsers)}`:activity}>{activity}</span>
        <ActorIdentity name={link.actor_name||link.created_by_email||'El equipo'} photoUrl={link.actor_photo_url} verified={link.actor_verified===true}/>
        <span className="flex min-w-0 items-center justify-end gap-1 whitespace-nowrap">
-        {link.url?<ScaleButton className="text-button" disabled={busy} onClick={async()=>{try{await navigator.clipboard.writeText(link.url!);setCopied(link.url!);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}} variant="ghost"><Copy size={14} aria-hidden="true"/>{copied===link.url?'Copiado':'Copiar enlace'}</ScaleButton>:null}
-        {!joinedUsers.length&&(link.revoked_at||link.used_at?<ScaleButton className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}?permanent=1`,{},'DELETE')} variant="ghost"><Trash2 size={14} aria-hidden="true"/>Eliminar</ScaleButton>:<ScaleButton className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}`,{},'DELETE')} variant="ghost"><X size={14} aria-hidden="true"/>Revocar</ScaleButton>)}
+        {link.url&&mayAssign(link.role)?<ScaleButton className="text-button" disabled={busy} onClick={async()=>{try{await navigator.clipboard.writeText(link.url!);setCopied(link.url!);setTimeout(()=>setCopied(''),1800);}catch{setError('Seleccioná el enlace y copialo manualmente.');}}} variant="ghost"><Copy size={14} aria-hidden="true"/>{copied===link.url?'Copiado':'Copiar enlace'}</ScaleButton>:null}
+        {!joinedUsers.length&&policy?.permissionRoles.includes(link.role)&&(link.revoked_at||link.used_at?<ScaleButton className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}?permanent=1`,{},'DELETE')} variant="ghost"><Trash2 size={14} aria-hidden="true"/>Eliminar</ScaleButton>:<ScaleButton className="text-button" disabled={busy} onClick={()=>act(`/api/agency/invite-links/${link.id}`,{},'DELETE')} variant="ghost"><X size={14} aria-hidden="true"/>Revocar</ScaleButton>)}
        </span>
       </ListRow>;})}
      </ListGrid>}

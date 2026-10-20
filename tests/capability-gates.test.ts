@@ -44,7 +44,7 @@ const gates:[string,string,RegExp][]=[
  ['app/scale-workspace.tsx','projects.manage',/roleCan\(user\?\.role,'projects\.manage'\)/],
  ['app/scale-workspace.tsx','projects.edit',/const canManageProjects=roleCan\(user\?\.role,'projects\.edit'\)/],
  ['app/scale-workspace.tsx','budgets.manage',/roleCan\(user\?\.role,'budgets\.manage'\)/],
- ['app/scale-workspace.tsx','billing.view',/const canSeeBilling=roleCan\(user\?\.role,'billing\.view'\)/],
+ ['app/scale-workspace.tsx','billing.view',/const canSeeBilling=effectiveCapability\(user\?\.role,'billing\.view',user\?\.capabilities\)/],
 ];
 for(const [file,capability,pattern] of gates)assert.match(read(file),pattern,`${file} gates on ${capability}`);
 const createTask=actionElements(read('app/employee-tasks.tsx')).find(action=>action.children==='Crear tarea');assert(createTask);assert(createTask.guardedBy('context.can_edit'),'task creation is inside the effective API edit capability');assert.equal(createTask.attribute('onClick'),"()=>setEdit('new')");

@@ -2,13 +2,13 @@ import React from 'react';
 import assert from 'node:assert/strict';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {AI_CONNECTIONS_LABEL,AI_CONNECTIONS_PATH,sectionPath,childSections} from '../app/navigation';
-import {AI_NAV_EXPIRES_AT,temporaryAiNavigationVisible,workspaceNavGroups} from '../app/workspace-navigation';
+import {AI_NAV_EXPIRES_AT,temporaryAiNavigationVisible,workspaceNavGroups,workspaceNavigationPath} from '../app/workspace-navigation';
 import {useTemporaryAiNavigation} from '../app/use-temporary-ai-navigation';
 
 const before=Date.parse('2026-10-29T23:59:59.999-03:00');
 assert(temporaryAiNavigationVisible(before));assert(!temporaryAiNavigationVisible(AI_NAV_EXPIRES_AT));assert(!temporaryAiNavigationVisible(AI_NAV_EXPIRES_AT+1));assert(!temporaryAiNavigationVisible(NaN));
 assert.equal(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Asuncion',dateStyle:'short',timeStyle:'medium',hourCycle:'h23'}).format(AI_NAV_EXPIRES_AT),'30/10/2026, 00:00:00');
-assert.equal(sectionPath(AI_CONNECTIONS_LABEL),AI_CONNECTIONS_PATH);assert.deepEqual(childSections(AI_CONNECTIONS_LABEL),['Preferencias'],'the shortcut prefetches only the existing preferences module');
+assert.equal(workspaceNavigationPath('Configuración','viewer'),'/configuracion/preferencias','stable own-account preferences remain reachable after the shortcut expires');assert.equal(workspaceNavigationPath(AI_CONNECTIONS_LABEL,'viewer'),AI_CONNECTIONS_PATH);assert.equal(sectionPath(AI_CONNECTIONS_LABEL),AI_CONNECTIONS_PATH);assert.deepEqual(childSections(AI_CONNECTIONS_LABEL),['Preferencias'],'the shortcut prefetches only the existing preferences module');
 for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){
  const nav=workspaceNavGroups(role,undefined,true),labels=nav.map(item=>item.group);
  assert.equal(labels.at(-1),AI_CONNECTIONS_LABEL,role);

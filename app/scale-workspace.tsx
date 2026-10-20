@@ -7,7 +7,7 @@ import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
 import {sectionLabel,sectionPath,parentSection,childSections,tabLabels,moduleNavGroup} from './navigation';
 import Link from 'next/link';
-import {workspaceNavGroups} from './workspace-navigation';
+import {workspaceNavGroups,workspaceNavigationPath} from './workspace-navigation';
 import {useTemporaryAiNavigation} from './use-temporary-ai-navigation';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
@@ -15,7 +15,7 @@ import {WorkspaceBrand} from './workspace-brand';
 import {AccessLayout} from './access-layout';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
-import {roleCan,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
+import {roleCan,effectiveCapability,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
 import {maskEmail} from './list-format';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
@@ -258,7 +258,7 @@ export default function Home() {
   const [demoWelcome,setDemoWelcome]=useState(false);
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
-  const canSeeBilling=roleCan(user?.role,'billing.view');
+  const canSeeBilling=effectiveCapability(user?.role,'billing.view',user?.capabilities);
   const canManageClients=roleCan(user?.role,'clients.manage');
   // «Carga con IA» (Refs #118): el asistente se ofrece sólo a quien puede crear
   // al menos uno de los tipos de la fase; el diálogo muestra su estado real.
@@ -593,7 +593,7 @@ export default function Home() {
               : "No se pudo cargar la mora.",
           );
         });
-      if (active === "Mora" && ["owner", "admin", "finance"].includes(user?.role || "")) {
+      if (active === "Mora" && effectiveCapability(user?.role,'reports.view',user?.capabilities)) {
         setMoraReportsError(false);
         setMoraReports(null);
         request<ReportsData>(`/api/agency/reports?month=${localMonth()}&months=2`)
@@ -601,7 +601,7 @@ export default function Home() {
           .catch(() => setMoraReportsError(true));
       }
     }
-  }, [active, operationalAccess, user?.role, moraReload]);
+  }, [active, operationalAccess, user?.role, user?.capabilities, moraReload]);
   useEffect(() => {
     if (operationalAccess && active === "Clientes" && ["owner", "admin", "management", "sales", "finance"].includes(user?.role || "")) {
       setCommercialSummary(null);
@@ -980,7 +980,7 @@ export default function Home() {
               aria-current={containsActive?'page':undefined}
               title={groupTitle}
               aria-label={groupTitle}
-              href={sectionPath(target)}
+              href={workspaceNavigationPath(target,user?.role||'viewer',user?.capabilities)}
               onMouseEnter={()=>prefetchSection(allowedChildren(target)[0])}
               onFocus={()=>prefetchSection(allowedChildren(target)[0])}
             >

@@ -1,4 +1,4 @@
-import {canSeeTrash, roleCan, type Capability} from './capabilities';
+import {canSeeTrash, effectiveCapability, type Capability} from './capabilities';
 
 /**
  * Módulo del NAV → capacidad del API. Los defaults viven en `capabilities.ts`
@@ -12,9 +12,9 @@ export const MODULE_CAPABILITIES: Record<string, Capability> = {
   Finanzas: 'finance.view',
   Pagos: 'payments.manage',
   Comisiones: 'commissions.manage',
-  'Roles y permisos': 'settings.manage',
+  'Roles y permisos': 'permissions.manage',
   Previsión: 'finance.view',
-  Balance: 'finance.view',
+  Balance: 'finance.balance.view',
   Informes: 'reports.view',
   Pipeline: 'commercial.manage',
   Mora: 'billing.view',
@@ -36,6 +36,5 @@ export const visibleModule = (label: string, role: string, overrides?:Record<str
   // filtra qué tipos devuelve.
   if (label === 'Papelera') return canSeeTrash(role);
   const capability = MODULE_CAPABILITIES[label];
-  if(role!=='owner'&&capability&&overrides&&Object.hasOwn(overrides,capability))return overrides[capability];
-  return capability ? roleCan(role, capability) : true;
+  return capability ? effectiveCapability(role,capability,overrides) : true;
 };

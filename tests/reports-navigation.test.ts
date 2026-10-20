@@ -8,7 +8,7 @@ assert.equal(sectionLabel('/informes'),'Informes');
 assert(validSection('informes'));
 assert.equal(parentSection('Informes'),'Informes');
 for(const role of ['owner','admin','management','finance','sales','production','editor','viewer','collaborator']){
- assert.equal(visibleModule('Informes',role),['owner','admin','finance','sales'].includes(role),role);
+ assert.equal(visibleModule('Informes',role),['owner','admin','management','finance','sales'].includes(role),role);
 }
 const workspace=workspaceSource();
 assert(workspace.includes("dynamic(()=>import('../reports-workspace')"));
@@ -21,4 +21,4 @@ assert(workspace.includes('<ReportsWorkspace key={user?.organization_id}'));
 assert(workspace.indexOf('if(user?.subscription?.hasAccess===false)return')<workspace.indexOf('<ReportsWorkspace key='));
 const detail=readFileSync(new URL('../app/productivity-ui.tsx',import.meta.url),'utf8');
 assert(detail.includes('<ClientReporting key={id} id={id} role={role} onSaved={reload}/>'));
-console.log('PASS: direct reports route, lazy tenant-keyed module, unchanged financial roles and subscription gate; client reporting integrated into profile. Not browser QA.');
+console.log('PASS: direct reports route, lazy tenant-keyed module, capability-based financial roles and subscription gate; client reporting integrated into profile. Not browser QA.');
