@@ -5,6 +5,7 @@
 // muestra cuando es un día distinto del alta; el resto de las fechas legítimas
 // (inicio comercial, activación comercial) viven con su propio nombre en sus
 // secciones. Un solo objeto de resumen para toda la ficha.
+import {ClientMonthlyIncomeButton} from './client-monthly-income';
 import {fechaListaCorta} from 'owncoding-ui/core';
 import {roleCan} from './capabilities';
 import {clientDateSummary} from './client-format';
@@ -50,5 +51,6 @@ export function ClientCommercialSummary({id, client, payStatus, summary, role, r
       <article><span>Factura</span><strong>{summary.terms ? summary.terms.invoiceRequired ? 'Pide factura' : 'No pide factura' : 'Sin datos'}</strong></article>
       <article><span>RUC</span><strong title={s(client, 'tax_id') || undefined}>{s(client, 'tax_id') || 'Sin RUC registrado'}</strong>{s(client, 'legal_name') && s(client, 'legal_name') !== s(client, 'name') ? <small title={s(client, 'legal_name')}>{s(client, 'legal_name')}</small> : null}</article>
     </div>
+    {roleCan(role,'billing.view')?<ClientMonthlyIncomeButton clientId={id} name={s(client,'name')} onSaved={reload}/>:null}
   </section>;
 }

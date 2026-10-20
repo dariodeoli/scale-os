@@ -1,4 +1,5 @@
 'use client';
+import {ClientMonthlyIncomeButton} from './client-monthly-income';
 import {EmptyBlock as EmptyState} from './ui-v2';
 import {FormField} from './ui/field';
 import {Note as Nota,Notice as Aviso} from './ui/notice';
@@ -42,6 +43,7 @@ function ReportingEditor({id,writable,financial,onSaved}:{id:string;writable:boo
   {!data&&!error?<LoadingBlock label="Cargando datos del cliente…" lines={3}/>:null}
   {data?<>
    {!writable?<p className="text-sm text-mute">Solo lectura: Finanzas puede consultar estos datos, no modificarlos.</p>:record?.archived?<p className="text-sm text-mute">El cliente está archivado. Esta ficha es de solo lectura.</p>:null}
+   {financial&&termData?<ClientMonthlyIncomeButton clientId={id} name="Cliente" onSaved={onSaved}/>:null}
    {financial&&termData?<section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="client-commercial-terms-title">
     <h4 id="client-commercial-terms-title" className="text-sm font-bold text-fore">Términos comerciales efectivos</h4>
     {commercial?<dl className="grid gap-2 text-sm">

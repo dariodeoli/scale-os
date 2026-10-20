@@ -1,0 +1,164 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "width": 320,
+      "height": 844,
+      "theme": "light",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 320,
+      "height": 844,
+      "theme": "dark",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 320,
+      "height": 844,
+      "theme": "contrast",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "contrast",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "contrast",
+      "passed": true,
+      "actions": [
+        "required-validation",
+        "create-extra-without-plan",
+        "edit-extra",
+        "delete-extra",
+        "refresh-origin",
+        "escape-focus-return"
+      ],
+      "api": "synthetic",
+      "components": "real",
+      "horizontalOverflow": false
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Chromium viewport/touch emulation only",
+    "Synthetic API transport; no production customer changes",
+    "No physical device, Safari or real keyboard claim"
+  ]
+}

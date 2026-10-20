@@ -48,3 +48,11 @@
 .finance-client-identity{display:flex;align-items:center;gap:4px}
 .finance-client-identity>.person-container{min-width:0}
 .finance-client-inactive-status{flex-shrink:0;font-size:10px;color:var(--text-muted)}
+
+/* #306: monthly income is a base plus dated extras, without mixing it with cash. */
+.finance-client-contract-breakdown{display:grid;gap:3px}
+.finance-client-contract-breakdown small{color:var(--text-muted);font-size:10px;line-height:1.45;font-weight:400}
+.finance-client-table{--finance-client-actions-width:6.5rem}
+.finance-client-table>div{min-width:max(31.25rem,calc(20.75rem + 2 * var(--finance-amount-width)))}
+.finance-result-card{border-top:3px solid var(--brand-600)}
+@media(max-width:760px),(pointer:coarse){.finance-client-table{--finance-client-actions-width:9rem}.finance-client-table>div{min-width:max(33.75rem,calc(23.75rem + 2 * var(--finance-amount-width)))}}

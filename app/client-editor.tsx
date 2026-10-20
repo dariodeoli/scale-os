@@ -1,4 +1,5 @@
 "use client";
+import {ClientMonthlyIncomeButton} from './client-monthly-income';
 import {Notice as Aviso} from './ui/notice';
 
 // Editor único de clientes (#184 C1/C3): «Nuevo cliente», ⋯ «Editar cliente»,
@@ -151,6 +152,7 @@ export function ClientEditorDialog({mode,clientId,role,canManageTerms,planFocus=
     {mode==='edit'&&record&&<ClientAppearance id={String(clientId)} name={String(record.name??'')} logo={String(record.logo_url??'')} color={String(record.color_key??'')} legalName={String(record.legal_name??'')} representativeName={String(record.legal_representative_name??'')} linked={record.legal_representative_same_as_client===true} restricted={record.contact_restricted===true} refresh={async()=>{await refresh();await load();}}/>}
     {mode==='create'?<p className="form-note">Después de guardar la ficha podés agregar contactos adicionales sin cambiar el correo o teléfono principal.</p>:null}
     {mode==='edit'&&record&&clientId?<ClientContacts clientId={clientId} restricted={record.contact_restricted===true}/>:null}
+    {mode==='edit'&&record&&clientId&&roleCan(role,'billing.view')?<ClientMonthlyIncomeButton clientId={clientId} name={String(record.name??'Cliente')} onSaved={refresh}/>:null}
     {canPlan&&record?<ScaleButton type="button" className="secondary mb-3" onClick={()=>setHistoryOpen(true)} variant="secondary">Historial del plan</ScaleButton>:null}
     {historyOpen&&clientId&&record?<FinanceHistoryDialog kind="plan" id={clientId} name={String(record.name??'')} close={()=>setHistoryOpen(false)}/>:null}
     {planError&&<Aviso tono="error" compact role="alert">{planError}</Aviso>}
