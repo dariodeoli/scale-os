@@ -1,0 +1,65 @@
+{
+  "checked_at": "2026-10-20T21:40:28.411448+00:00",
+  "version_expected": "1.0.205",
+  "pull_request": 351,
+  "merge_sha": "dc7cdb00ce7aded5d0313ee0135193e77306046c",
+  "candidate_sha": "b9f730a6fb828e68987d5f2b26429b49845ea25e",
+  "candidate_main_tree_equal": true,
+  "ci_candidate": {
+    "conclusion": "success",
+    "head_sha": "b9f730a6fb828e68987d5f2b26429b49845ea25e",
+    "html_url": "https://github.com/dariodeoli/scale-os/actions/runs/39499938616",
+    "id": 39499938616,
+    "status": "completed"
+  },
+  "ci_main": {
+    "conclusion": "success",
+    "head_sha": "dc7cdb00ce7aded5d0313ee0135193e77306046c",
+    "html_url": "https://github.com/dariodeoli/scale-os/actions/runs/39501090741",
+    "id": 39501090741,
+    "status": "completed"
+  },
+  "production": {
+    "web_version": "1.0.205",
+    "registration_version": "1.0.205",
+    "api_health": {
+      "ok": true,
+      "database": "ready",
+      "release": {
+        "version": "1.0.202",
+        "application": "Scale OS"
+      }
+    },
+    "provider_served_sha": null,
+    "web_published": true,
+    "api_published": false,
+    "anonymous_ruc_status": 401,
+    "authenticated_ruc_lookup_verified": false,
+    "owndata_key_activation_verified": false
+  },
+  "smoke": {
+    "after_web_exit_code": 1,
+    "command": "NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt SCALE_EXPECTED_VERSION=1.0.205 SCALE_SMOKE_TIMEOUT_MS=120000 npm run release:smoke",
+    "first_attempt": "No valid Node response in managed environment before explicit proxy/CA; not evidence of production outage.",
+    "actual_failure": "API still serves1.0.202, HTTP200 database ready; web/registration PASS."
+  },
+  "coolify": {
+    "origin": "https://hub.owncoding.dev",
+    "frontend_requires_login": true,
+    "api_access_status": 401,
+    "token_configured": false,
+    "direct_webhook_configured": false,
+    "deployment_state": null,
+    "failure_cause": null
+  },
+  "writes": {
+    "financial": false,
+    "production_records": false,
+    "manual_deploy_triggered": false
+  },
+  "tracking": {
+    "350": "open: API publication and real protected lookup pending",
+    "253": "open: provider rollout diagnosis needs admin access",
+    "352": "QA acceptance completed with main CI; no separate product deployment required"
+  }
+}

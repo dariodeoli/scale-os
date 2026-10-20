@@ -1,0 +1,17 @@
+[
+  {
+    "path": "/core-api/api/auth/me",
+    "status": 401,
+    "passed": true
+  },
+  {
+    "path": "/core-api/api/auth/providers",
+    "status": 200,
+    "passed": true
+  },
+  {
+    "path": "/core-api/api/public/maintenance",
+    "status": 200,
+    "passed": true
+  }
+]
