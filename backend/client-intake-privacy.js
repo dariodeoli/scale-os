@@ -5,7 +5,7 @@ async function installed(c){return Boolean((await c.query("select to_regclass('a
 const subjectMatch=`(s.client_id=c.id or l.client_id=c.id or (nullif(c.email,'') is not null and lower(s.payload->>'email')=lower(c.email)) or (nullif(c.tax_id,'') is not null and regexp_replace(s.payload->>'tax_id','[^0-9]','','g')=regexp_replace(c.tax_id,'[^0-9]','','g')))`;
 export async function exportClientIntake(c,organizationId,clientId){
  if(!await installed(c))return [];
- return (await c.query(`select s.payload,s.status,s.created_at,s.reviewed_at,l.scope from agency_client_intake_submissions s join agency_client_intake_links l on l.id=s.link_id and l.organization_id=s.organization_id join agency_clients c on c.organization_id=s.organization_id where c.organization_id=$1 and c.id=$2 and ${subjectMatch} order by s.id`,[organizationId,clientId])).rows;
+ return (await c.query(`select s.payload,s.status,s.created_at,s.reviewed_at,s.notice_version,s.consent_at,l.scope from agency_client_intake_submissions s join agency_client_intake_links l on l.id=s.link_id and l.organization_id=s.organization_id join agency_clients c on c.organization_id=s.organization_id where c.organization_id=$1 and c.id=$2 and ${subjectMatch} order by s.id`,[organizationId,clientId])).rows;
 }
 export async function suppressClientIntake(c,organizationId,clientId){
  if(!await installed(c))return;

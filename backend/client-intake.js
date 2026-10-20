@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import {ensureConsent} from './personal-data.js';
 import {roleCan} from './permissions.js';
 import {fail,id,text,email,phone,clientLegalProfile,clientLegalFields} from './suite-validation.js';
 import {normalizeRuc,assertUniqueClientRuc} from './ruc-lookup.js';
@@ -120,6 +121,7 @@ export async function clientIntake({req,res,url,db,session,body,send}){
       const keys=Object.keys(selected);await c.query(`update agency_clients set ${keys.map((key,index)=>key+'=$'+(index+3)).join(',')},updated_at=now() where organization_id=$1 and id=$2`,[org,clientId,...Object.values(selected)]);
      }
     }
+    if(clientId)await ensureConsent(c,{organizationId:org,subjectKind:'client',subjectId:String(clientId),purpose:'service',source:'public_client_intake',basis:'consent',grantedByUserId:actor.id,noticeVersion:entry.notice_version,evidence:{submission_id:String(entry.id),consent_at:entry.consent_at,channel:'public_client_intake',reviewed_by:String(actor.id)}});
     await c.query('update agency_client_intake_submissions set status=$1,reviewed_at=now(),reviewed_by=$2,client_id=$3 where organization_id=$4 and id=$5',[incoming.action==='reject'?'rejected':'accepted',actor.id,clientId,org,entry.id]);
     result={reviewed:true,clientId:clientId?String(clientId):null};
    }else fail('Método no permitido',405);

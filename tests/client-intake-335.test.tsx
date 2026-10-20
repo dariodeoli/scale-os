@@ -16,7 +16,7 @@ async function mount(scope='basic'){
  calls.length=0;reply=(_,options)=>new Response(JSON.stringify(options.method==='POST'?{received:true}:{scope,expires_at:'2026-10-25'}));let render!:ReactTestRenderer;await act(async()=>{render=create(<PublicClientIntake token={'x'.repeat(43)}/>);});await settle();return render;
 }
 const input=(render:ReactTestRenderer,name:string)=>render.root.findAll(node=>node.props['data-field']===name)[0]?.findAllByType('input').find(node=>node.props.type!=='hidden');
-const change=async(render:ReactTestRenderer,name:string,value:string)=>{await act(async()=>{input(render,name).props.onChange({target:{name,value},type:'change'});});};
+const change=async(render:ReactTestRenderer,name:string,value:string)=>{await act(async()=>{input(render,name)!.props.onChange({target:{name,value},type:'change'});});};
 async function submit(render:ReactTestRenderer){await act(async()=>{await render.root.findByType('form').props.onSubmit({preventDefault(){},stopPropagation(){}});});await settle();}
 test('335 fiscal identity starts with RUC and broad notes; contract reuses existing RUC explicitly',()=>{
  const fields=clientFields({mode:'create'});assert.equal(fields[0].key,'tax_id');assert.equal(fields[1].key,'legal_name');assert.equal(fields.find(field=>field.key==='notes')?.span,12);
@@ -25,7 +25,7 @@ test('335 fiscal identity starts with RUC and broad notes; contract reuses exist
 test('335 public basic form validates authorization, sends only scoped fields without credentials and ends in review',async()=>{
  const render=await mount();assert.equal(calls[0].options.credentials,'omit');assert.equal(input(render,'legal_representative_document'),undefined);assert.match(text(render.root),/Teléfono/);
  await change(render,'name','Persona fixture');await change(render,'email','persona@example.invalid');await submit(render);assert.equal(calls.filter(call=>call.options.method==='POST').length,0);
- await act(async()=>{input(render,'consent').props.onChange({target:{name:'consent',checked:true,type:'checkbox'},type:'change'});});await submit(render);
+ await act(async()=>{input(render,'consent')!.props.onChange({target:{name:'consent',checked:true,type:'checkbox'},type:'change'});});await submit(render);
  const post=calls.find(call=>call.options.method==='POST');assert(post);assert.equal(post.options.credentials,'omit');assert.equal(post.payload?.consent,true);assert.equal(post.payload?.name,'Persona fixture');assert.equal(post.payload?.legal_representative_same_as_client,undefined);assert.match(text(render.root),/Recibimos tus datos para revisión/);assert.equal(render.root.findAllByType('form').length,0);act(()=>render.unmount());
 });
 test('335 contract form includes legal identity and unavailable tokens never show a writable form',async()=>{
