@@ -4,7 +4,7 @@
   "migrationBaseline": "1cc44010",
   "sourceSnapshot": "4390696900a911979fcdc33e84db70f73128e929",
   "previousAudit": "38ef3704",
-  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions. Scale #305–312: refresh source hashes and positions without new structural exemptions.",
+  "scope": "Refresh explícito posterior a catálogo local, Balance #247, header #245, lifecycle Dialog/reporte y preview neutra. Historial167 preapply intacto; no nueva migración producto. Revisión final: layouts de clientes/proyecto/finanzas, ownership de tamaños de Inventario y fachadas del paquete numérico publicado0.68.17, sin alterar producto ni excepciones. Release194: jerarquíaContratos, agendaHoy, tareas compactas/lista, contactos, preferenciasAPI y recursos financieros diferidos; sin excepciones nuevas. Release195/#265: refresh source hashes and positions without new structural exemptions. Compact Balance #289: refresh source hashes and positions without new structural exemptions. Portal mobile #292: refresh source hashes and positions without new structural exemptions. Scale #305–312: refresh source hashes and positions without new structural exemptions. Scale #325: refresh source hashes and positions without new structural exemptions; public anchors reviewed separately from button taxonomy.",
   "changedFiles": [
     {
       "file": "app/biblioteca-ui/catalog.tsx",
@@ -323,6 +323,48 @@
       "beforeHash": null,
       "afterHash": "7e14b1c9cb2162106997758801154b54652cc815127a49e3a82a9535817fd238",
       "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/documentacion/__tests__/content.test.tsx",
+      "beforeHash": null,
+      "afterHash": "9e6b9bf225baea4a704c1818ec6376801b07a59af6159d45d466aa3bf215703b",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/documentacion/api/page.tsx",
+      "beforeHash": null,
+      "afterHash": "8edeb2add81c529848c3825f5b7ee492c4ae2140e4a58760c030cbbf519b50ed",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/documentacion/layout.tsx",
+      "beforeHash": null,
+      "afterHash": "81169cbd1cd5cabf20affaed78f17194f26e2c14ca4a373e0cddfc501285f517",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/documentacion/mcp/page.tsx",
+      "beforeHash": null,
+      "afterHash": "13fae57acefb86a94196769e6d83d60e1c707bc190f35d9b0b474aecec49fb4f",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/documentacion/page.tsx",
+      "beforeHash": null,
+      "afterHash": "f69d10888648719d9360e2c412979ac080e656fdeb083a84b7c85bf449ee8b85",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/public-docs.tsx",
+      "beforeHash": null,
+      "afterHash": "36de98f5434e504a2a342d5e9eeeb841d7277c0d2c7cee325bcca03e44872cbf",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
+    },
+    {
+      "file": "app/workspace-footer.tsx",
+      "beforeHash": "cdd1bdbcf48aefa439e1bcd5c9be98d64a873776cd9ede3743dffe499fc71f1c",
+      "afterHash": "6222856eb920e6520289c98d8e773fb51808a15bd51264c176205d97ae2ac257",
+      "rationale": "Scale #325: public documentation content and navigation source reviewed; exact historical native widget JSX and canonical ownership preserved."
     }
   ],
   "addedCanonical": [
@@ -1482,5 +1524,16 @@
         "rationale": "Full consent/data transport and return routing reviewed; opaque request, explicit scopes, organization, expiry and CSRF verified. Shared immediate decision ref prevents double approve/deny; epoch guard blocks stale navigation; callback must match exact HTTPS origin/path and fixed query parameters. Retry GET only for recoverable load errors; terminal/401/403 clears actionable data, no implicit consent."
       }
     ]
+  },
+  "issue325": {
+    "baseline": "74f2d89d2309378ba3a3a3eb8238c262295531a6",
+    "integrationHead": "179d48c82183983a701eccd7e5ebdcdeb83e9ca9",
+    "baselineCanonicalMetadataCorrections": [],
+    "canonicalActions": 628,
+    "newCanonicalActions": 0,
+    "retainedStructuralWidgets": 55,
+    "unchangedStructuralJsxHashes": true,
+    "unreviewed": 0,
+    "reviewedChangedActions": []
   }
 }
