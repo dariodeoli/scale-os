@@ -34,6 +34,10 @@
     "commercial": {
       "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9",
       "bytes": 295
+    },
+    "explicit-plan": {
+      "sha256": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9",
+      "bytes": 295
     }
   }
 }
