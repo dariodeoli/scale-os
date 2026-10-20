@@ -6,6 +6,7 @@ import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction}
 import {ArrowLeftRight, Plus} from 'lucide-react';
 import {AuditActor} from '../actor-identity';
 import {PersonContainer} from '../person-container';
+import {AccountInstitutionLogo} from '../account-institution-logo';
 import {AccountCreateDialog} from '../account-create-dialog';
 import {financePermission} from '../finance-balance-data';
 import {roleCan} from '../capabilities';
@@ -196,6 +197,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               Mismos datos que la tarjeta alta, sin la columna de rótulos. */}
           {accounts.map(account => <article key={account.id} className="grid min-w-0 gap-1 rounded-xl border border-ink-600 bg-ink-900 px-3 py-2 transition-colors hover:border-ink-500 data-[archived]:opacity-70" data-archived={account.active === false || undefined}>
             <header className="flex min-w-0 items-center gap-2">
+              <AccountInstitutionLogo institution={account.institution}/>
               <b className="min-w-0 flex-1 truncate text-[13.5px] font-semibold leading-snug text-fore" title={account.name}>{account.name}</b>
               <StateChip tone="mute" title={`${ACCOUNT_TYPES[account.account_type] || account.account_type} · ${account.currency}`}>{ACCOUNT_TYPES[account.account_type] || account.account_type} · {account.currency}</StateChip>
               <MoneyText valor={account.balance} currency={account.currency} tono={Number(account.balance) < 0 ? 'bad' : ''} className="text-base leading-tight"/>
