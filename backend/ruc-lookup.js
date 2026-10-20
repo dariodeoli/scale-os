@@ -64,7 +64,7 @@ function ownDataMetadata(meta){
  let https=false;try{const url=new URL(source?.sourcePage);https=typeof source?.sourcePage==='string'&&url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443');}catch{}
  return ['test','live'].includes(meta?.environment)&&source?.source==='dnit_official_snapshot'&&https&&validDay(source.publicationDate)&&
   nonempty(source.importedAt)&&validDay(source.importedAt.slice(0,10))&&Number.isFinite(Date.parse(source.importedAt))&&typeof source.publishedText==='string'&&typeof source.snapshotHash==='string'&&/^[a-f0-9]{64}$/i.test(source.snapshotHash)&&
-  quota&&['limit','used','remaining','resetAfter'].every(key=>Number.isSafeInteger(quota[key])&&quota[key]>=0)&&validDay(quota.day);
+  quota&&quota.limit>=1&&quota.resetAfter>=1&&['limit','used','remaining','resetAfter'].every(key=>Number.isSafeInteger(quota[key])&&quota[key]>=0)&&validDay(quota.day);
 }
 // Bound the response too; never retain upstream diagnostics or include them in errors.
 async function ownDataEnvelope(response){

@@ -17,3 +17,7 @@ Los fixtures y claves son sintéticos. No se acredita consulta real, activación
 ## Estado de publicación
 
 Rama `codex/ruc-optional-fiscal-state` publicada, con todas las pruebas locales aprobadas. No se pudo crear el PR por CONNECT 403 del proxy hacia `api.github.com`. No se inició CI, no se hizo merge ni deploy. Se guardó un borrador aditivo con los dominios GitHub API, Coolify, OwnData y Scale; para aplicarlo se requiere guardar/publicar el entorno. Se dejó preparado el requisito de secreto administrativo de Coolify en la configuración, sin valores ni claves en el repositorio. El cuerpo del PR está en `pull-request.md`.
+
+## Reanudación
+
+Recuperado el acceso de red, se creó el PR #351. Contrato público OpenAPI 1.4.0 contrastado: no exige campos fiscales y requiere limit/resetAfter positivos. Se agregaron dos rechazos focales para cuota cero y pasaron. El juego completo local corresponde al commit de release registrado; el ajuste de cuota final se valida con la prueba focal y el CI completo del candidato. Se mantiene la versión 1.0.205, sin otro bump. La nota de bloqueo de red anterior es histórica. Coolify responde al login pero no hay una credencial administrativa configurada.

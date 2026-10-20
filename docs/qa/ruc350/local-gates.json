@@ -16,7 +16,8 @@
       "frontend_fragments": 70,
       "build": true,
       "backend_release_suite": true,
-      "version_footer": true
+      "version_footer": true,
+      "source_commit": "25db60b75d4554caae6c3cb1ba793c43f193262c"
     },
     "initial_assets": {
       "command": "node build-tools/check-initial-assets.mjs",
@@ -26,12 +27,21 @@
       "source": "2bedb6c6^:backend/ruc-lookup.js",
       "mock_transport_only": true,
       "missing_stateRaw_503_reproduced": true
+    },
+    "final_provider_contract_focal": {
+      "command": "node backend/test-ruc.mjs (cwd backend/)",
+      "exit_code": 0,
+      "additional_cases": [
+        "quota.limit=0",
+        "quota.resetAfter=0"
+      ],
+      "public_contract": "OwnData OpenAPI 1.4.0 fetched2026-10-20"
     }
   },
   "source_sha256": {
-    "backend/ruc-lookup.js": "01fa0c652fef2940ad1ac0c1e5fa40bdae1ded0781407936a6a032dfc6a7f7e2",
-    "backend/test-ruc.mjs": "3ca05fc6b92186525567900fb36dcf4dc0844ccefd9c051e2975e4af22a55bef",
-    "backend/RUC-LOOKUP.md": "24fedb694b7b176ed9f152d67e94ffc6e611687f04c93b58c70596ce1d5565f2"
+    "backend/ruc-lookup.js": "8a34018fd03ea7d1d47e4f17bc47f42940aa9bdb81d563a12d933e3b7f2e1fa8",
+    "backend/test-ruc.mjs": "e7dc08f4721405dea5e39bf103b2a03fb1543a9e817acc92c8412f1ed1e0d061",
+    "backend/RUC-LOOKUP.md": "f125f0d69dc0010e4c9cb3aea5e2f950726cc6f89227d700aba19cbaeb28f917"
   },
   "acceptance": {
     "fiscal_status_optional": true,
@@ -51,12 +61,13 @@
   "publication": {
     "branch": "codex/ruc-optional-fiscal-state",
     "branch_pushed": true,
-    "pull_request_created": false,
-    "ci_started": false,
+    "pull_request_created": true,
+    "ci_started": true,
     "merged": false,
     "deployment_triggered": false,
-    "blocker": "Managed proxy CONNECT403 to api.github.com; additive network draft saved, requires user Save/Publish in environment settings.",
+    "blocker": null,
     "coolify_panel": "https://hub.owncoding.dev",
-    "coolify_admin_access_configured": false
+    "coolify_admin_access_configured": false,
+    "pull_request": "https://github.com/dariodeoli/scale-os/pull/351"
   }
 }
