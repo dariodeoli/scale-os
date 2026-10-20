@@ -1,0 +1,120 @@
+{
+  "issue": 305,
+  "browser": {
+    "passed": true,
+    "results": [
+      {
+        "width": 390,
+        "height": 568,
+        "mode": "editor",
+        "validation": true,
+        "api": true,
+        "retry": true
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "mode": "native",
+        "validation": true,
+        "customApi": true,
+        "retry": true
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "mode": "custom",
+        "nestedIsolation": true
+      },
+      {
+        "width": 390,
+        "height": 568,
+        "mode": "standalone",
+        "validationFocus": true,
+        "apiFocus": true
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "mode": "editor",
+        "validation": true,
+        "api": true,
+        "retry": true
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "mode": "native",
+        "validation": true,
+        "customApi": true,
+        "retry": true
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "mode": "custom",
+        "nestedIsolation": true
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "mode": "standalone",
+        "validationFocus": true,
+        "apiFocus": true
+      }
+    ],
+    "runtimeErrors": []
+  },
+  "checks": {
+    "visibleBrowser": {
+      "result": "PASS",
+      "sha256": "2cc5c4d778b9587d592e7c6c87f549dfd2e6002dc4ff866519825b647d40995e",
+      "localLog": "/tmp/forms305-visible-browser.log"
+    },
+    "existingFocusBrowser": {
+      "result": "PASS",
+      "sha256": "aad96c12b35ee1d35dd9b9de000c033757d1fce3ef846c30ac3714677cc802c5",
+      "localLog": "/tmp/forms305-existing-browser.log"
+    },
+    "reportBrowser": {
+      "result": "PASS",
+      "sha256": "079baeb7f9b4c8da51cef0f437ee46f35487e0b7576960422cbf9054b60e066c",
+      "localLog": "/tmp/forms305-report-browser.log"
+    },
+    "editor": {
+      "result": "PASS",
+      "sha256": "d0adfd90b457267749f04035f17bbc2bd17fb5861394cbc804701af01df04114",
+      "localLog": "/tmp/forms305-editor.log"
+    },
+    "dialog": {
+      "result": "PASS",
+      "sha256": "a932d5209a184b747f901d9e8beb5b9149d04a1c1add5b285d55a400aababfb1",
+      "localLog": "/tmp/forms305-dialog.log"
+    },
+    "popups": {
+      "result": "PASS",
+      "sha256": "e26e6b4b1b0b1fac348d65cf9212a09ca8ec3f6c73f08725b65c78c8f993b416",
+      "localLog": "/tmp/forms305-popups.log"
+    },
+    "architecture": {
+      "result": "PASS",
+      "sha256": "3971a693f9912146b2fec3c28f2cfefa5c7848cb6a3be3dc0aacd08842fd6f9f",
+      "localLog": "/tmp/forms305-architecture.log"
+    },
+    "types": {
+      "result": "PASS",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localLog": "/tmp/forms305-types.log"
+    },
+    "negativeControl": {
+      "result": "expected-failure without new Dialog",
+      "sha256": "cf53ac114dd975569b135691c5636a6115f38ce7f9f7f5321b870a74f4205c7b",
+      "localLog": "/tmp/forms305-visible-negative.log"
+    }
+  },
+  "limitations": [
+    "synthetic writes",
+    "Dialog CSS plus fixture basics",
+    "Chromium emulation, no physical Safari/mobile",
+    "aggregate release/build/CI performed by integrator"
+  ]
+}

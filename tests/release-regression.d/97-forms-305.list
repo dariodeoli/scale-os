@@ -1,0 +1,2 @@
+# Refs #305: shared validation/API errors stay visible above long dialog forms.
+node tests/form-errors-visible-305.test.mjs

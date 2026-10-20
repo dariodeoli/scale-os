@@ -173,6 +173,8 @@ export function Editor({
     shape[f.key] = check?s.superRefine((value,ctx)=>{const problem=value===''?null:check(value);if(problem)ctx.addIssue({code:'custom',message:problem});}):s;
   }
   const form = useForm<Record<string, string>>({
+    // Focus is coordinated below: section-aware controls in Dialog, top summary outside.
+    shouldFocusError:false,
     resolver:async(values,context,options)=>{
       const result=await zodResolver(z.object(shape))(values,context,options);
       // noValidate forms also honor the numeric adapter's explicit native constraints.
@@ -199,11 +201,17 @@ export function Editor({
   },[fields,currentValues,form]);
   const [error, setError] = useState("");
   const formPrefix=useId(),saving=useRef(false),requestClose=useDialogClose();
+  const formElement=useRef<HTMLFormElement>(null),summaryFocus=useRef(false);
   const [savingNow,setSavingNow]=useState(false),[saved,setSaved]=useState(false);
   const [lookupBusy,setLookupBusy]=useState(''),[lookupNotices,setLookupNotices]=useState<Record<string,{state:LookupState;message:string}>>({});
   const lookupRequest=useRef<{generation:number;controller:AbortController;key:string;value:string}|null>(null),lookupGeneration=useRef(0);
   const fieldElements=useRef(new Map<string,HTMLDivElement>()),[focusTarget,setFocusTarget]=useState<{key:string}|null>(null);
   const pending=form.formState.isSubmitting||savingNow;
+  useEffect(()=>{
+    if(!summaryFocus.current||pending)return;
+    const summary=formElement.current?.querySelector<HTMLElement>('.form-error-summary');
+    if(summary){summaryFocus.current=false;summary.scrollIntoView?.({block:'start'});summary.focus?.({preventScroll:true});}
+  },[error,form.formState.submitCount,pending]);
   useEffect(()=>()=>{lookupGeneration.current++;lookupRequest.current?.controller.abort();},[]);
   useEffect(()=>{
     const request=lookupRequest.current;
@@ -241,7 +249,8 @@ export function Editor({
   });
   const sectionErrorCount=(name:string)=>fields.filter(f=>f.section===name&&form.formState.errors[f.key]).length;
   const errorSections=sectionNames.filter(name=>sectionErrorCount(name)>0);
-  const showSectionSummary=form.formState.submitCount>0&&errorSections.length>0;
+  const invalidFields=fields.filter(field=>form.formState.errors[field.key]);
+  const showSectionSummary=form.formState.submitCount>0&&invalidFields.length>0;
   const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.({afterSave:true});}},[saved,pending,requestClose]);
   async function runLookup(f:Field){
@@ -266,7 +275,7 @@ export function Editor({
     }catch(cause){if(!controller.signal.aborted&&generation===lookupGeneration.current)setLookupNotices(current=>({...current,[f.key]:{state:f.lookup?.errorState?.(cause)||'error',message:message(cause)}}));}
     finally{if(generation===lookupGeneration.current){lookupRequest.current=null;setLookupBusy('');}}
   }
-  const focusError=(key:string)=>{const section=fields.find(field=>field.key===key)?.section;if(section)revealSection(section);setFocusTarget({key});};
+  const focusError=(key:string)=>{const section=fields.find(field=>field.key===key)?.section;if(section)revealSection(section);if(requestClose)setFocusTarget({key});else summaryFocus.current=true;};
   const renderField = (f: Field) => {
     const id=`${formPrefix}-${f.key}`,invalid=!!form.formState.errors[f.key];
     const describedBy=[f.help?`${id}-help`:null,invalid?`${id}-error`:null,lookupNotices[f.key]?`${id}-lookup`:null].filter(Boolean).join(' ')||undefined;
@@ -312,6 +321,7 @@ export function Editor({
           // simple edit dialogs opt in; multi-action detail drawers stay open.
           if(closeOnSave&&!another)setSaved(true);
         } catch (e) {
+          if(!requestClose)summaryFocus.current=true;
           setError(message(e));
           if(e instanceof ApiFieldError){
             for(const field of fields){const problem=e.fieldErrors[field.key];if(problem){serverErrors.current[field.key]={value:v[field.key],message:problem};form.setError(field.key,{type:'server',message:problem});}}
@@ -328,6 +338,7 @@ export function Editor({
       });
   return (
     <form
+      ref={formElement}
       className={columns ? "form-stack ops-form-grid" : "form-stack"}
       noValidate
       aria-busy={pending}
@@ -335,12 +346,13 @@ export function Editor({
       onPointerDownCapture={()=>{if(!interacted)setInteracted(true);}}
       onSubmit={submitWith(save)}
     >
+      {error&&<p className="error form-error-summary ops-wide" role="alert" tabIndex={-1}>{error}</p>}
+      {showSectionSummary&&<div className="error form-error-summary ops-wide" role="alert" tabIndex={-1}>
+        {errorSections.length>0?<><span>Revisá {errorSections.length===1?'esta sección':'estas secciones'}:</span>{' '}{errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<ScaleButton type="button" className="text-button" onClick={()=>revealSection(name)} variant="ghost">{name} ({sectionErrorCount(name)})</ScaleButton></span>)}</>:<strong>Revisá los campos indicados:</strong>}
+        <ul>{invalidFields.map(field=><li key={field.key}>{field.label}: {String(form.formState.errors[field.key]?.message)}</li>)}</ul>
+      </div>}
       {fields.some(f=>f.key==='drive_url'||f.key==='drive_links')&&<div className="ops-wide"><DriveLinkNote multiple={fields.some(f=>f.key==='drive_links')}/></div>}
       {fields.filter(f=>!f.section).map(renderField)}
-      {showSectionSummary&&<div className="error form-error-summary ops-wide" role="alert">
-        <span>Revisá {errorSections.length===1?'esta sección':'estas secciones'}:</span>{' '}
-        {errorSections.map((name,index)=><span key={name}>{index>0?', ':''}<ScaleButton type="button" className="text-button" onClick={()=>revealSection(name)} variant="ghost">{name} ({sectionErrorCount(name)})</ScaleButton></span>)}
-      </div>}
       {sectionNames.map((section,index)=>{
         const errors=sectionErrorCount(section);
         return <details className="ops-profile-section ops-wide" key={section} open={stepper||sectionIsOpen(section)} hidden={stepper&&index!==activeStep} data-section-errors={errors||undefined}
@@ -353,11 +365,6 @@ export function Editor({
         <span aria-live="polite">Paso {activeStep+1} de {sectionNames.length}</span>
         <ScaleButton type="button" className="secondary" disabled={pending||activeStep>=sectionNames.length-1} onClick={()=>setStep(activeStep+1)} variant="secondary">Siguiente</ScaleButton>
       </div>}
-      {error && (
-        <p className="error form-error-summary ops-wide" role="alert">
-          {error}
-        </p>
-      )}
       <FormActions>{requestClose&&cancelLabel&&<ScaleButton className="secondary" type="button" disabled={pending} onClick={()=>requestClose()} variant="secondary">{cancelLabel}</ScaleButton>}{secondaryAction&&<ScaleButton className="secondary" type="button" disabled={pending} onClick={()=>void submitWith(secondaryAction.save,true)()} variant="secondary">{secondaryAction.label}</ScaleButton>}<ScaleButton type="submit" className="primary ops-wide" disabled={pending} variant="primary">
         {pending ? "Guardando…" : label}
       </ScaleButton></FormActions>
