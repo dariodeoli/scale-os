@@ -63,8 +63,8 @@ assert.equal(forecastMonth(null,new Date('2026-10-01T02:59:59Z')),'2026-09');
 assert.equal(forecastMonth(null,new Date('2026-10-01T03:00:00Z')),'2026-10');
 for(const invalid of ['2026-00','2026-13','26-09','2026-09-01','','9999-01'])assert.throws(()=>forecastMonth(invalid));
 assert.equal((await call(path,'GET',{},null)).status,401);
-for(const role of ['management','sales','production','editor','viewer'])assert.equal((await call(path,'GET',{}, {...user,role})).status,403);
-for(const role of ['owner','admin','finance'])assert.deepEqual((await call(path,'GET',{}, {...user,role})).records,[]);
+for(const role of ['sales','production','editor','viewer'])assert.equal((await call(path,'GET',{}, {...user,role})).status,403);
+for(const role of ['owner','admin','finance','management'])assert.deepEqual((await call(path,'GET',{}, {...user,role})).records,[]);
 assert.equal((await call(path,'POST')).status,405);
 assert.equal((await call('/api/agency/forecast?month=2026-13')).status,400);
 assert.equal((await call('/api/agency/collaborators','GET',{}, {...user,role:'viewer'})).status,403,'staff cannot read salary fields');
@@ -116,19 +116,20 @@ const salaryPygMember=salaryPygRow.members.find(member=>String(member.collaborat
 assert.deepEqual({name:salaryPygMember.name,type:salaryPygMember.compensation_type,base:salaryPygMember.base_amount,override:salaryPygMember.override_amount,currency:salaryPygMember.currency},{name:'Salario PYG',type:'fixed',base:1000,override:1250,currency:'PYG'},'members expose name, compensation and projected amounts');
 const salaryUsdMember=salaryUsdRow.members.find(member=>String(member.collaborator_id)===String(salaryUsd.collaborator.id));
 assert.deepEqual({name:salaryUsdMember.name,base:salaryUsdMember.base_amount,override:salaryUsdMember.override_amount},{name:'Salario USD',base:200,override:0});
-// salary.view decides the per-person amounts: with finance.view but without
-// salary.view the members keep identity and the row keeps the planning aggregate,
-// but every per-person salary/adjustment travels as null.
+// Without salary.view, forecasts retain aggregate planning values but omit
+// per-person records, including identities and adjustment details.
 const salaryHidden={...user,role:'management',capabilities:{'finance.view':true,'salary.view':false}};
 const hiddenPersonnel=(await call(path,'GET',{},salaryHidden)).personnel;
 const hiddenPyg=hiddenPersonnel.records.find(row=>row.currency==='PYG');
-assert.equal(hiddenPersonnel.records.every(row=>row.members.every(member=>member.base_amount===null&&member.override_amount===null)),true,'per-person salaries are null without salary.view');
+assert.ok(hiddenPersonnel.records.every(row=>row.members.length===0),'per-person salary records are omitted without salary.view');
 assert.equal(hiddenPyg.base_amount,1000,'the planning aggregate stays with finance.view');
 assert.equal(hiddenPyg.expected_end_of_month_expense,2250,'the planning expense stays with finance.view');
 assert.equal(hiddenPersonnel.included_headcount,2,'headcounts are not salary data');
-assert.deepEqual({name:hiddenPyg.members[0].name,type:hiddenPyg.members[0].compensation_type,currency:hiddenPyg.members[0].currency},{name:'Salario PYG',type:'fixed',currency:'PYG'},'identity and modality stay without salary.view');
-assert.equal((await call(path,'GET',{}, {...user,role:'management'})).status,403,'finance.view is still the endpoint gate');
-assert.equal((await call(path,'GET',{}, {...user,role:'management',capabilities:{'salary.view':true}})).status,403,'salary.view alone does not open the forecast');
+assert.deepEqual(hiddenPyg.members,[],'salary identities and modalities stay hidden without salary.view');
+assert.equal((await call(path,'GET',{}, {...user,role:'management'})).status,200,'management has operational forecast access');
+assert.equal((await call(path,'GET',{}, {...user,role:'management',capabilities:{'finance.view':false}})).status,403,'an explicit finance.view denial still closes the endpoint');
+assert.equal((await call(path,'GET',{}, {...user,role:'management',capabilities:{'finance.view':false,'salary.view':true}})).status,403,'salary.view alone does not open the forecast');
+assert.ok((await call(path,'GET',{}, {...user,role:'management',capabilities:{'salary.view':true}})).personnel.records.every(row=>row.members.length===0),'management cannot bypass protected salary visibility through an override');
 assert.equal((await call(`/api/agency/collaborators/${salaryPyg.collaborator.id}/salary-overrides`,'PATCH',{month:'2026-09',amount:'-500',note:'Descuento puntual'})).override.amount,'-500','signed discounts are accepted');
 assert.equal((await call(`/api/agency/collaborators/${salaryPyg.collaborator.id}/salary-overrides?month=2026-09`)).override.note,'Descuento puntual','GET roundtrips the signed override');
 const negativeRow=(await call(path)).personnel.records.find(row=>row.currency==='PYG');
@@ -175,26 +176,28 @@ assert.deepEqual(contractedOctober.contracted_recurring.records,[],'an ended agr
 assert.equal((await call(termsPath,'PATCH',{...terms,endsOn:null},user)).terms.endsOn,null,'the end date can be cleared');
 assert.equal((await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:'10'},managementUser)).status,400,'none rejects a value without recipient');
 await call(termsPath,'PATCH',terms,user);
+const salesId=(await query("insert into users(email,password_hash) values('forecast-sales@example.invalid','unused') returning id")).rows[0].id;await query("insert into organization_members(organization_id,user_id,role) values($1,$2,'sales')",[org,salesId]);const salesUser={id:salesId,organization_id:org,role:'sales'};
+assert.equal((await call(termsPath,'GET',{},managementUser)).terms.commissionMode,'percentage','management reads operational commissions');
 // La comisión es dato personal del destinatario: `commissions.manage` decide
-// leerla y definirla. Management conserva el plan, preserva la comisión vigente
-// y nunca la cambia desde su editor.
-const managementRead=await call(termsPath,'GET',{},managementUser);
-assert.deepEqual({mode:managementRead.terms.commissionMode,value:managementRead.terms.commissionValue,recipient:managementRead.terms.commissionRecipientId,name:managementRead.terms.commissionRecipientName},{mode:'none',value:null,recipient:null,name:null},'management receives the commission masked');
-assert.deepEqual(managementRead.collaborators,[],'management does not receive the commission catalog');
-const preserved=await call(termsPath,'PATCH',{...terms,commissionRecipientId:null,commissionMode:'none',commissionValue:null},managementUser);
-assert.equal(preserved.status,200,'management still edits the plan fields');
-assert.equal(preserved.terms.commissionMode,'none','the response stays masked for management');
+// leerla y definirla. Ventas conserva el plan y preserva la comisión vigente.
+// Gerencia posee commissions.manage en la política operativa actual.
+const salesRead=await call(termsPath,'GET',{},salesUser);
+assert.deepEqual({mode:salesRead.terms.commissionMode,value:salesRead.terms.commissionValue,recipient:salesRead.terms.commissionRecipientId,name:salesRead.terms.commissionRecipientName},{mode:'none',value:null,recipient:null,name:null},'sales receives the commission masked');
+assert.deepEqual(salesRead.collaborators,[],'sales does not receive the commission catalog');
+const preserved=await call(termsPath,'PATCH',{...terms,commissionRecipientId:null,commissionMode:'none',commissionValue:null},salesUser);
+assert.equal(preserved.status,200,'sales still edits the plan fields');
+assert.equal(preserved.terms.commissionMode,'none','the response stays masked for sales');
 const liveCommission=(await query("select commission_mode,commission_value::text as value,commission_recipient_id::text as recipient from agency_client_commercial_terms where organization_id=$1 and client_id=$2 and effective_until is null",[org,client])).rows[0];
-assert.deepEqual(liveCommission,{commission_mode:'percentage',value:'10',recipient:String(salaryPyg.collaborator.id)},'a management plan edit preserves the live commission');
-assert.equal((await call(termsPath,'PATCH',terms,managementUser)).status,403,'management cannot define or change a commission');
-assert.equal((await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:null},managementUser)).status,200,'management may keep editing the plan without touching the commission');
+assert.deepEqual(liveCommission,{commission_mode:'percentage',value:'10',recipient:String(salaryPyg.collaborator.id)},'a sales plan edit preserves the live commission');
+assert.equal((await call(termsPath,'PATCH',terms,salesUser)).status,403,'sales cannot define or change a commission');
+assert.equal((await call(termsPath,'PATCH',{...terms,commissionMode:'none',commissionRecipientId:null,commissionValue:null},salesUser)).status,200,'sales may keep editing the plan without touching the commission');
 const financeTerms=await call(termsPath,'GET',{},financeUser);
 assert.deepEqual({mode:financeTerms.terms.commissionMode,value:financeTerms.terms.commissionValue},{mode:'percentage',value:10},'finance keeps reading the commission for liquidation');
 
 const expensesPath='/api/agency/planned-expenses?month=2026-09';
 const recurringExpense={cadence:'recurring',effectiveMonth:'2026-08',category:'Software',amount:'300',currency:'PYG',note:'Licencias'};
 const monthlyExpense={cadence:'monthly',effectiveMonth:'2026-09',category:'Producción',amount:200,currency:'USD',note:null};
-assert.equal((await call(expensesPath,'POST',recurringExpense,{...user,role:'management'})).status,403,'only owner/admin/finance manage planned expenses');
+assert.equal((await call(expensesPath,'POST',recurringExpense,{...user,role:'management',capabilities:{'expenses.manage':false}})).status,403,'an explicit expenses.manage denial protects planned expense writes');
 for(const amount of [0,-1,'20.5',true,Number.MAX_SAFE_INTEGER+1])assert.equal((await call(expensesPath,'POST',{...recurringExpense,amount},financeUser)).status,400,`expenses reject amount ${String(amount)}`);
 const recurringCreated=await call(expensesPath,'POST',recurringExpense,financeUser);const monthlyCreated=await call(expensesPath,'POST',monthlyExpense,financeUser);
 assert.equal(recurringCreated.status,201);assert.equal(monthlyCreated.status,201);
@@ -330,7 +333,8 @@ for(const currency of ['PYG','USD','EUR','BRL','ARS','MXN']) {
 assert.equal((await call('/api/agency/settings')).settings.legal_name,'Keep me');
 assert.equal((await call('/api/agency/settings','PATCH',{name:'Name only'})).default_currency,'MXN');
 for(const currency of ['GBP','eur','',null])assert.equal((await call('/api/agency/settings','PATCH',{default_currency:currency})).status,400);
-for(const role of ['management','finance','sales','production','editor','viewer']){
+assert.equal((await call('/api/agency/settings','GET',{}, {...user,role:'management'})).status,200,'management can read operational company settings');
+for(const role of ['finance','sales','production','editor','viewer']){
  assert.equal((await call('/api/agency/settings','PATCH',{default_currency:'USD'},{...user,role})).status,403);
  assert.equal((await call('/api/agency/settings','GET',{}, {...user,role})).status,403);
 }
@@ -371,7 +375,8 @@ const usdExpenseAccount=(await query("insert into bank_accounts(organization_id,
 const poorAccount=(await query("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Caja chica','cash','PYG',100) returning id",[org])).rows[0].id;
 const otherExpenseAccount=(await query("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Gastos ajenos','bank','PYG',100000) returning id",[other])).rows[0].id;
 assert.equal((await call(realExpensesPath,'GET',{},null)).status,401);
-for(const role of ['management','sales','production','editor','viewer'])assert.equal((await call(realExpensesPath,'GET',{}, {...user,role})).status,403,`${role} cannot touch real expenses`);
+assert.equal((await call(realExpensesPath,'GET',{}, {...user,role:'management'})).status,200,'management can read operational expenses');
+for(const role of ['sales','production','editor','viewer'])assert.equal((await call(realExpensesPath,'GET',{}, {...user,role})).status,403,`${role} cannot touch real expenses`);
 assert.equal((await call(realExpensesPath,'POST',{},financeUser)).status,400,'an empty expense is rejected');
 assert.equal((await call(realExpensesPath,'GET',{},financeUser)).expenses.length,0,'the month starts without real expenses');
 const realExpensePayload={accountId:String(expenseAccount),amount:'1500',currency:'PYG',category:'Herramientas',kind:'fixed',paidOn:'2026-09-12',reference:'Licencia de edición'};
@@ -438,7 +443,7 @@ const statement=await call(`/api/agency/reconciliation?accountId=${transferSourc
 assert.equal(statement.lines.some(line=>dateOnly(line.booked_on)),true,'statement lines carry booked_on as YYYY-MM-DD text');
 assert.equal(statement.movements.every(movement=>dateOnly(movement.booked_on)),true,'cash movements carry booked_on as YYYY-MM-DD text');
 // Each finance resource is gated by its own matrix capability.
-for(const [resource,payload] of [['payments',{invoiceId:String(paidInvoice),accountId:String(paymentAccount),amount:'10'}]])assert.equal((await call(`/api/agency/${resource}`,'POST',payload,{...user,role:'management'})).status,403,`${resource} rejects roles outside the capability`);
+for(const [resource,payload] of [['payments',{invoiceId:String(paidInvoice),accountId:String(paymentAccount),amount:'10'}]])assert.equal((await call(`/api/agency/${resource}`,'POST',payload,{...user,role:'management',capabilities:{'payments.manage':false}})).status,403,`${resource} respects explicit capability denial`);
 // Real expenses accept the six company currencies: the account decides the currency.
 const eurAccount=(await query("insert into bank_accounts(organization_id,name,account_type,currency,balance) values($1,'Gastos EUR','bank','EUR',900) returning id",[org])).rows[0].id;
 assert.equal((await call(realExpensesPath,'POST',{...realExpensePayload,accountId:String(eurAccount),amount:'120'},financeUser)).status,400,'an expense must use its account currency');
