@@ -80,7 +80,7 @@ export async function claimInvite(c,linkId,profile,{method='google'}={}){
  await c.query('update agency_invite_links set used_at=now() where id=$1',[l.id]);
  return{userId:u.id,organizationId:l.organization_id};
 }
-export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendAccessGranted}){
+export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendAccessGranted,exposeInviteCredentials=true}){
  const match=url.pathname.match(/^\/api\/agency\/(invite-links|access-requests)(?:\/(\d+))?$/);
  if(!match&&url.pathname!=='/api/invitations/preview')return false;
  let c,notifyGranted=null;
@@ -104,7 +104,7 @@ export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendA
     from agency_invite_links l join users u on u.id=l.created_by where l.organization_id=$1 order by l.id desc limit 100`,[org])).rows;
    const assignable=(await permissionPolicy(c,user)).editableRoles;
    result={links:rows.map(({token_ciphertext,...row})=>{
-    const token=token_ciphertext&&assignable.includes(row.role)?unseal(token_ciphertext):null;
+    const token=exposeInviteCredentials&&token_ciphertext&&assignable.includes(row.role)?unseal(token_ciphertext):null;
     return {...row,url:token?`${appUrl}/invitacion?token=${token}`:null};
    })};
   }

@@ -209,7 +209,7 @@ assert.equal(invoiceActivity.currency,'USD');
 assert.equal(Number(invoiceActivity.total),150.5);
 for(const role of ['owner','admin'])assert.equal((await call('/api/agency/activity','GET',{}, {...user,role})).status,200,`${role} ve la actividad`);
 for(const role of ['viewer','finance','sales','production','editor','collaborator'])assert.equal((await call('/api/agency/activity','GET',{}, {...user,role})).status,403,`${role} no ve la actividad`);
-assert.equal((await call('/api/agency/activity','GET',{}, {...user,role:'management'})).status,403,'gerencia no ve la actividad del equipo');
+assert.equal((await call('/api/agency/activity','GET',{}, {...user,role:'management'})).status,200,'gerencia ve la actividad de su empresa dentro de sus permisos de gestión');
 assert.equal((await call('/api/agency/activity','GET',{},null)).status,401);
 assert.equal((await call('/api/agency/activity','GET',{}, {...user,organization_id:other})).records.length,0);
 const token='a'.repeat(32);const budget=(await query("insert into agency_budgets(organization_id,client_id,number,title,currency,subtotal,total,public_token) values($1,$2,'Q-TEST','Quote','USD',200,220,$3) returning id",[org,client,token])).rows[0].id;
