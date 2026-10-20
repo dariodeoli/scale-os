@@ -30,3 +30,5 @@ Fuente congelada `4d84779d`, con UI #331 integrada. `node tests/finance-nested-b
 - Documento y los dos diálogos no desbordan en ninguno de los cuatro anchos. Cero pageerrors o tráfico externo. No se crean cuentas ni movimientos reales.
 
 Evidencia: `bank-nested-results.json`, `bank-nested-320.png` (claro), `bank-nested-1440.png` (oscuro). No se cambiaron las fuentes del producto en esta ronda. Las pruebas transaccionales de PostgreSQL y de autorización pertenecen al API; este reporte acredita la interacción visual de la UI.
+
+Recheck final en ROOT después de la congelación: `node backend/scripts/export-mcp-catalog.mjs --check` PASS, 244 herramientas y ambas copias sincronizadas; el drift transitorio de metadata indicado arriba quedó resuelto.
