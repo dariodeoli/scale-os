@@ -111,6 +111,45 @@ export function useDialogPending(pending:boolean,dirty=false){
  useLayoutEffect(()=>{controls?.setPending(id,pending);return()=>controls?.setPending(id,false);},[controls,id,pending]);
  useLayoutEffect(()=>{controls?.setDirty(id,dirty);return()=>controls?.setDirty(id,false);},[controls,id,dirty]);
 }
+/** Reflect form failures outside the scroll area, including custom/native forms.
+ * The observer reads only the body; its own output never feeds back into it.
+ * It announces nothing twice and never moves focus while the user is editing.
+ */
+function useDialogErrors(panel:RefObject<HTMLElement>){
+ const [errors,setErrors]=useState<string[]>([]);
+ useEffect(()=>{
+  const element=panel.current,body=element?.querySelector<HTMLElement>('.dialog-body');
+  if(!element||!body?.querySelectorAll||!element.addEventListener||!body.addEventListener)return;
+  let nativeField:HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement|null=null;
+  const visible=(node:HTMLElement)=>{
+   if(node.closest('[hidden],[inert],[aria-hidden="true"]'))return false;
+   for(let parent=node.parentElement;parent&&parent!==body;parent=parent.parentElement)if(parent.tagName==='DETAILS'&&!(parent as HTMLDetailsElement).open&&!parent.querySelector('summary')?.contains(node))return false;
+   return node.getClientRects().length>0&&node.ownerDocument.defaultView?.getComputedStyle(node).visibility!=='hidden';
+  };
+  const update=()=>{
+   const messages:string[]=[];
+   for(const node of body.querySelectorAll<HTMLElement>('[role="alert"],.error')){
+    if(!visible(node))continue;
+    const parent=node.parentElement?.closest('[role="alert"],.error');
+    if(parent&&body.contains(parent)&&visible(parent as HTMLElement))continue;
+    const value=node.textContent?.replace(/\s+/g,' ').trim();if(value)messages.push(value);
+   }
+   if(nativeField?.isConnected&&body.contains(nativeField)&&!nativeField.validity.valid){
+    const label=Array.from(nativeField.labels||[]).map(label=>label.textContent?.trim()).filter(Boolean).join(' ')||nativeField.getAttribute('aria-label')||nativeField.name;
+    messages.unshift([label,nativeField.validationMessage].filter(Boolean).join(': '));
+   }else nativeField=null;
+   const next=Array.from(new Set(messages));
+   setErrors(current=>current.length===next.length&&current.every((value,index)=>value===next[index])?current:next);
+  };
+  const invalid=(event:Event)=>{const target=event.target as HTMLInputElement;if(target?.validity&&(!nativeField||nativeField.validity.valid))nativeField=target;update();};
+  const Observer=element.ownerDocument.defaultView?.MutationObserver;
+  const observer=Observer?new Observer(update):null;
+  observer?.observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','role','hidden','open','aria-hidden','aria-invalid']});
+  element.addEventListener('invalid',invalid,true);body.addEventListener('input',update);body.addEventListener('change',update);body.addEventListener('toggle',update,true);update();
+  return()=>{observer?.disconnect();element.removeEventListener('invalid',invalid,true);body.removeEventListener('input',update);body.removeEventListener('change',update);body.removeEventListener('toggle',update,true);};
+ },[panel]);
+ return errors;
+}
 /** Tamaños nombrados (issue #183). `compact` y `wide` se aceptan como alias de `corto` y `amplio`. */
 export type DialogSize='corto'|'default'|'amplio'|'drawer';
 export const dialogSizeAliases={compact:'corto',wide:'amplio'} as const;
@@ -119,7 +158,8 @@ export function dialogSize(size:DialogSize|keyof typeof dialogSizeAliases|undefi
 }
 export function Dialog({title,close,children,variant='modal',busy=false,size:requestedSize='default'}:{title:string;close:()=>void;children:ReactNode;variant?:'modal'|'drawer';busy?:boolean;size?:DialogSize|keyof typeof dialogSizeAliases}){
  const size=dialogSize(requestedSize),drawer=variant==='drawer'||size==='drawer';
- const panel=useRef<HTMLElement>(null),heading=useId();
+ const panel=useRef<HTMLElement>(null),heading=useId(),errorsId=useId();
+ const errors=useDialogErrors(panel);
  const [footer,setFooter]=useState<HTMLDivElement|null>(null);
  const pendingForms=useRef(new Set<symbol>()),[formBusy,setFormBusy]=useState(false);
  const dirtyForms=useRef(new Set<symbol>()),[discardAsked,setDiscardAsked]=useState(false);
@@ -137,6 +177,7 @@ export function Dialog({title,close,children,variant='modal',busy=false,size:req
  const ancestry=useMemo(()=>[...parents,id],[parents,id]);
  return createPortal(<div className={`ops-overlay${drawer?' detail-drawer-overlay':''}`} onMouseDown={event=>{if(event.target===event.currentTarget&&event.button===0)requestClose();}}><section className="ops-dialog unified-dialog" data-dialog-size={size} ref={panel} role="dialog" aria-modal={isTop?'true':undefined} aria-labelledby={heading} aria-busy={blocked||undefined} tabIndex={-1}>
   <div className="dialog-heading"><h2 id={heading}>{title}</h2><ScaleIconButton className="icon-button" type="button" title="Cerrar" onClick={requestClose} disabled={blocked} label="Cerrar" icon={<><X size={18}/></>} variant="ghost" size="compact"></ScaleIconButton></div>
+  {errors.length>0&&<aside className="dialog-error-summary" aria-labelledby={errorsId} tabIndex={0}><strong id={errorsId}>Revisá el formulario</strong><ul>{errors.map(message=><li key={message}>{message}</li>)}</ul></aside>}
   <OverlayContext.Provider value={ancestry}><DialogContext.Provider value={controls}><FooterContext.Provider value={footer}><div className="dialog-body">{children}</div></FooterContext.Provider></DialogContext.Provider></OverlayContext.Provider>
   <div className="dialog-footer" ref={setFooter}/>
   {discardAsked?<OverlayContext.Provider value={ancestry}><ConfirmDialog title="¿Descartar los cambios?" description="Hay datos sin guardar en este formulario. Si cerrás ahora, se pierden." confirmLabel="Descartar cambios" cancelLabel="Seguir editando" variant="danger" onCancel={()=>setDiscardAsked(false)} onConfirm={()=>{setDiscardAsked(false);dirtyForms.current.clear();closeRef.current();}}/></OverlayContext.Provider>:null}
