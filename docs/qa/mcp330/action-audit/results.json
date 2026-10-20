@@ -48,5 +48,12 @@
     "change": "AccountForm holder RUC lookup precedes bank institution. Exact JSX and callbacks unchanged; source hash refreshed.",
     "countsUnchanged": true,
     "newReviewsRequired": false
+  },
+  "treasuryNoticeRecheck": {
+    "integrationHead": "1e02a624",
+    "uiChangeCommit": "a9c7bdd2",
+    "change": "Restores the existing treasury purpose/privacy notice and ordinary privacy anchor before SaveActions. Button/widget JSX and callbacks unchanged; source hash refreshed.",
+    "countsUnchanged": true,
+    "newReviewsRequired": false
   }
 }

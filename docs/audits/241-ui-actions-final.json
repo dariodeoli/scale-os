@@ -1151,7 +1151,7 @@
     {
       "file": "app/workspace-forms.tsx",
       "changed": false,
-      "sha256": "57ecc4d3a52b89489cae8a81a48fdf0586bcda93aa1029fa4e67e37488c301fd"
+      "sha256": "4972099bf4685e3d71c7671ccd5a9b100d18e749acdabd9d3cf91af97f2deef4"
     },
     {
       "file": "app/workspace-frame.tsx",
@@ -8695,7 +8695,7 @@
       "file": "app/workspace-forms.tsx",
       "line": 334,
       "column": 76,
-      "offset": 23114,
+      "offset": 23248,
       "kind": "canonical-button",
       "owner": "AccountForm",
       "status": "canonical",
@@ -8706,7 +8706,7 @@
       "file": "app/workspace-forms.tsx",
       "line": 413,
       "column": 13,
-      "offset": 26843,
+      "offset": 26977,
       "kind": "native",
       "owner": "InvoiceForm",
       "status": "structural",
@@ -8719,7 +8719,7 @@
       "file": "app/workspace-forms.tsx",
       "line": 432,
       "column": 80,
-      "offset": 27624,
+      "offset": 27758,
       "kind": "canonical-button",
       "owner": "InvoiceForm",
       "status": "canonical",
@@ -8730,7 +8730,7 @@
       "file": "app/workspace-forms.tsx",
       "line": 547,
       "column": 13,
-      "offset": 32329,
+      "offset": 32463,
       "kind": "native",
       "owner": "PaymentForm",
       "status": "structural",
@@ -8743,7 +8743,7 @@
       "file": "app/workspace-forms.tsx",
       "line": 585,
       "column": 80,
-      "offset": 34375,
+      "offset": 34509,
       "kind": "canonical-button",
       "owner": "PaymentForm",
       "status": "canonical",

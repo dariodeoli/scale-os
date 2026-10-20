@@ -28,3 +28,5 @@ node build-tools/check-ui-action-ownership.mjs
 ```
 
 The refresh helper only writes the three current audit JSON files when `--write` is explicitly supplied. This audit does not prove production deployment, provider credentials, physical devices or real money workflows.
+
+Final treasury notice recheck at `1e02a624` (UI change `a9c7bdd2`) restores the existing privacy purpose text and ordinary privacy link before AccountForm SaveActions. This changes only source metadata in the action audit: Button/widget JSX, callbacks, categories and counts remain unchanged.
