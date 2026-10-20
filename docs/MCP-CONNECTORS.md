@@ -13,11 +13,11 @@ El endpoint es `https://api.scaleparaguay.com/mcp`. Implementa Streamable HTTP c
 
 ## Catálogo
 
-El servidor ofrece hasta 38 herramientas; el listado efectivo se filtra según scopes y capacidades actuales:
+El servidor ofrece hasta 41 herramientas; el listado efectivo se filtra según scopes y capacidades actuales:
 
 | Área | Operaciones disponibles |
 | --- | --- |
-| Clientes | listar, consultar, crear, editar |
+| Clientes | listar, consultar, crear, editar; consultar reporting y cronología; cambiar condiciones comerciales permanentes |
 | Planes personalizados | listar, crear, editar |
 | Proyectos | listar, consultar, crear, editar |
 | Piezas/órdenes de trabajo | listar, consultar, crear, editar |
@@ -30,6 +30,8 @@ El servidor ofrece hasta 38 herramientas; el listado efectivo se filtra según s
 | Cobros | listar recibos, registrar cobro mediante el handler canónico |
 
 No ofrece eliminación, purga, cambios de roles, administración global, secretos, deploy, SQL, transferencias ni edición directa de saldos. Tampoco emite/firma contratos mediante una herramienta alternativa. Los gastos disponibles son los **planificados**; otros flujos financieros no enumerados no se exponen.
+
+El cambio permanente de plan/precio del cliente usa `scale_update_client_commercial_terms`, distinto del catálogo de planes y de extras de un solo mes. Primero consultar `scale_get_client_plan_history` para obtener la revisión actual. Se requieren todos los campos comerciales del editor, `effectiveFrom`, `reason`, `requestId` y `expectedRevision`; el handler conserva cronología, idempotencia y cierres financieros. `scale_get_client_reporting` y la cronología requieren `billing.view`; el cambio requiere `commercial-terms.manage`.
 
 Las herramientas de escritura requieren `confirm: true` y los datos del editor canónico, y se marcan con `destructiveHint`. El agente debe obtener la confirmación del usuario antes de enviarlo: ese booleano no constituye firma ni prueba independiente de intención humana. El consentimiento OAuth sí pasa por una pantalla humana explícita.
 
