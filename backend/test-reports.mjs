@@ -234,7 +234,9 @@ const financeRead=await call(commissionPath,'GET',{}, {...user,role:'finance'});
 assert.equal(financeRead.status,200);
 assert.deepEqual({mode:financeRead.terms.commissionMode,value:financeRead.terms.commissionValue},{mode:'percentage',value:10},'finance (commissions.manage without commercial-terms.manage) still reads the commission');
 let livePlan=800000;
-for(const role of ['management','sales']){
+await query("update organization_members set role='management' where organization_id=$1 and user_id=$2",[org,uid]);
+const managementRead=await call(commissionPath,'GET',{}, {...user,role:'management'});assert.equal(managementRead.status,200);assert.deepEqual({mode:managementRead.terms.commissionMode,value:managementRead.terms.commissionValue},{mode:'percentage',value:10},'management has operational commission permission; only salary and Balance are protected');assert.ok(managementRead.collaborators.some(person=>person.id===String(recipient)));
+for(const role of ['sales']){
  await query('update organization_members set role=$3 where organization_id=$1 and user_id=$2',[org,uid,role]);
  const masked=await call(commissionPath,'GET',{}, {...user,role});
  assert.equal(masked.status,200);
