@@ -142,7 +142,7 @@ function matchesReviewedWidget(site,history,changes,visited=new Set()){
  if(site.action!=='retain'||visited.has(site.siteHash))return false;
  if(history.some(old=>old.action==='retain'&&old.file===site.file&&old.owner===site.owner&&old.siteHash===site.siteHash))return true;
  const review=changes.find(change=>change.approved===true&&change.file===site.file&&change.owner===site.owner&&change.afterHash===site.siteHash);
- if(!review||typeof review.beforeJsx!=='string'||typeof review.afterJsx!=='string'||review.rationale?.length<=20)return false;
+ if(!review||typeof review.beforeJsx!=='string'||typeof review.afterJsx!=='string'||typeof review.rationale!=='string'||review.rationale.length<=20)return false;
  const hash=jsx=>createHash('sha256').update(jsx).digest('hex');
  if(hash(review.beforeJsx)!==review.beforeHash||hash(review.afterJsx)!==review.afterHash||!review.beforeJsx.startsWith('<button')||!review.afterJsx.startsWith('<button'))return false;
  const nextVisited=new Set(visited);nextVisited.add(site.siteHash);
@@ -156,7 +156,7 @@ test('structural widget review rejects tampered JSX, owners, hashes and unapprov
  const site={...historical,siteHash:hash(after)},review={approved:true,file:site.file,owner:site.owner,beforeHash:hash(before),afterHash:hash(after),beforeJsx:before,afterJsx:after,rationale:'Existing role toggle adds the canonical hierarchy guard, retaining native anatomy.'};
  assert.equal(matchesReviewedWidget(site,[historical],[review]),true);
  assert.equal(matchesReviewedWidget(site,[historical],[]),false,'changed JSX needs explicit review');
- for(const patch of [{approved:false},{beforeJsx:before+' '},{afterJsx:after+' '},{beforeHash:'0'.repeat(64)},{afterHash:'0'.repeat(64)},{owner:'UnreviewedWidget'}])assert.equal(matchesReviewedWidget(site,[historical],[{...review,...patch}]),false,JSON.stringify(patch));
+ for(const patch of [{approved:false},{rationale:undefined},{rationale:''},{beforeJsx:before+' '},{afterJsx:after+' '},{beforeHash:'0'.repeat(64)},{afterHash:'0'.repeat(64)},{owner:'UnreviewedWidget'}])assert.equal(matchesReviewedWidget(site,[historical],[{...review,...patch}]),false,JSON.stringify(patch));
  assert.equal(matchesReviewedWidget({...site,owner:'UnreviewedWidget'},[historical],[{...review,owner:'UnreviewedWidget'}]),false,'a new owner cannot inherit another widget exemption');
  assert.equal(matchesReviewedWidget(site,[],[review]),false,'review must trace to immutable structural history');
 });
