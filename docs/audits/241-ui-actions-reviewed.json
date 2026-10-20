@@ -2,7 +2,7 @@
   "schema": 1,
   "issue": 241,
   "baseline": "4390696900a911979fcdc33e84db70f73128e929",
-  "scope": "Scale #325: exact historical native widget JSX and canonical owners preserved; public documentation navigation reviewed separately; source hashes and positions refreshed. Scale #330/#331/#335: existing structural owners retained; explicit native permission gating review and current source hashes/positions recorded.",
+  "scope": "Scale #325: exact historical native widget JSX and canonical owners preserved; public documentation navigation reviewed separately; source hashes and positions refreshed. Scale #330/#331/#335: existing structural owners retained; explicit native permission gating review and current source hashes/positions recorded. Scale #330/#331/#335: existing structural owners retained; explicit native permission gating review and current source hashes/positions recorded.",
   "files": [
     {
       "file": "app/assignee-picker.tsx",
@@ -124,10 +124,10 @@
     },
     {
       "file": "app/employee-tasks.tsx",
-      "sourceHash": "86822a46a0d718453052abf8fae8fcda7688fa8de3c8039a95255c2171ce5360",
+      "sourceHash": "13cb09274d758a4d43cabcb594cde23032119b719a10aed3352279af5f9efbec",
       "sites": [
         {
-          "line": 54,
+          "line": 55,
           "column": 104,
           "siteHash": "3a123131e4f3f2d537ea73d23cdfe424ba0b0322c7064c6f4b6187776b7727ba",
           "owner": "TaskDashboard",
@@ -556,10 +556,10 @@
     },
     {
       "file": "app/sections/finanzas.tsx",
-      "sourceHash": "2a8223077a98ec4e421869e5168f77972e0ed3ef8b6712517336357f583c686d",
+      "sourceHash": "9b75c2d524edfd884716270e1f26e76d17d5448c4edea483e68a5788fc631714",
       "sites": [
         {
-          "line": 258,
+          "line": 260,
           "column": 52,
           "siteHash": "9c5817fc09e5dc093f81d42cf7e32fb045ea59c4ee21457f0250deaedb85f445",
           "owner": "FinanzasSection",
@@ -691,14 +691,14 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "sourceHash": "4972099bf4685e3d71c7671ccd5a9b100d18e749acdabd9d3cf91af97f2deef4",
+      "sourceHash": "747682eb3acad88428ade3b94522f200cfe6927901e35e29e64d57047a64421e",
       "sites": [
         {
           "action": "retain",
           "canonical": "app/workspace-forms.tsx::OrderForm choice group",
           "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
           "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
-          "line": 244,
+          "line": 245,
           "column": 13,
           "siteHash": "df3b8bfa97d21a0b52c12f636a4d11d9160d50f943e5d63737e1f8d42aef0c11",
           "owner": "OrderForm",
@@ -709,7 +709,7 @@
           "canonical": "app/workspace-forms.tsx::InvoiceForm choice group",
           "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
           "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
-          "line": 413,
+          "line": 414,
           "column": 13,
           "siteHash": "0e1d4c81a4c749ac5a827ecf4de4eea27876e00f5bcfcb2e65b07af63f5694d2",
           "owner": "InvoiceForm",
@@ -720,7 +720,7 @@
           "canonical": "app/workspace-forms.tsx::PaymentForm choice group",
           "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
           "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
-          "line": 547,
+          "line": 548,
           "column": 13,
           "siteHash": "b372b3adc411d9906774894126d4706aeb04f17c053724d2b129a1dbe401888a",
           "owner": "PaymentForm",
