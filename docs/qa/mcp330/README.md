@@ -14,7 +14,7 @@ Capturas: `team-320.png`, `team-1440.png`, `client-390.png`, `client-768.png`. D
 
 Hallazgo corregido: el formulario público sin consulta de RUC ofrecía «Enter o Buscar» aunque no existe lookup. La ayuda ahora depende de la consulta disponible; los datos protegidos tampoco ofrecen edición. `tests/client-intake-help-330.test.ts` cubre los tres estados. No se habilita consulta tributaria pública nueva.
 
-Pendiente de otra entrega: formularios bancarios #331 todavía no integrados al tomar estas evidencias. Catálogo raíz auditado: 244 herramientas únicas, copias web/backend iguales; dominios clientes 6, finanzas 61, operaciones 136, workspace 41. No aparecen herramientas con nombres de purga, contraseñas, secretos, SQL o despliegue. El check canónico detectó únicamente metadata pendiente de regenerar en scale_update_salary; el integrador debe regenerar al congelar el registro.
+En la ronda inicial, los formularios bancarios #331 todavía no estaban integrados. La ronda final de abajo acredita su integración. Catálogo raíz auditado: 244 herramientas únicas, copias web/backend iguales; dominios clientes 6, finanzas 61, operaciones 136, workspace 41. No aparecen herramientas con nombres de purga, contraseñas, secretos, SQL o despliegue. El check canónico detectó únicamente metadata pendiente de regenerar en scale_update_salary; el integrador debe regenerar al congelar el registro.
 
 Reproducción local: `node tests/team-access-intake-browser-330.test.mjs` (Chromium en `/usr/bin/chromium`, dependencias frontend/backend instaladas). La fixture sólo escucha en loopback, bloquea solicitudes externas y deja resultados en `/tmp/scale330-browser-qa.json`.
 
