@@ -7,7 +7,7 @@ import {amount,date as validDate,email as validEmail,fail,items as validItems,op
 import {normalizeUrgency} from './urgency.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {mediaPeople,mediaPhoto} from './agency-media.js';
-import {roleCan,roles} from './permissions.js';
+import {roleCan,roles,accessEditable,permissionsEditable,permissionPolicy,assertAssignableRole,CAPABILITIES,loadActorPermissions} from './permissions.js';
 import {externalLink,profilePhoto} from './media-policy.js';
 import {email as normalizedEmail,phone as normalizedPhone} from './suite-validation.js';
 import {budgetSections} from './budget-sections.js';
@@ -458,7 +458,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
     if (url.pathname === '/api/agency/members' && req.method === 'GET') {
       const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const r = await db.query('select u.id,u.email,m.role,m.active,m.created_at from organization_members m join users u on u.id=m.user_id where m.organization_id=$1 and m.removed_at is null and m.purged_at is null order by m.created_at asc',[user.organization_id]);
-      return send(res,200,{members:r.rows});
+      return send(res,200,{members:r.rows.map(member=>({...member,access_editable:accessEditable(user,member),permissions_editable:permissionsEditable(user,member)})),policy:await permissionPolicy(db,user)});
     }
     if (url.pathname.match(/^\/api\/agency\/members\/\d+\/permanent$/) && req.method === 'DELETE') {
       // Eliminación definitiva desde Equipo: solo integrantes con el acceso ya
@@ -476,7 +476,8 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         const manager=await lockMemberManager(client,user);
         const member = (await client.query('select role,active,removed_at from organization_members where organization_id=$1 and user_id=$2 and purged_at is null for update',[user.organization_id,target])).rows[0];
         if (!member) { await client.query('rollback'); return send(res,404,{error:'Miembro no encontrado'}); }
-        if (member.role === 'owner' && manager.role !== 'owner') { await client.query('rollback'); return send(res,403,{error:'Solo un dueño puede eliminar a otro dueño'}); }
+        if(!accessEditable(manager,{...member,id:target})){await client.query('rollback');return send(res,403,{error:'Solo podés gestionar integrantes autorizados con un rol inferior'});}
+      if (member.role === 'owner' && manager.role !== 'owner') { await client.query('rollback'); return send(res,403,{error:'Solo un dueño puede eliminar a otro dueño'}); }
         if (member.active && !member.removed_at) { await client.query('rollback'); return send(res,409,{error:'Solo se elimina definitivamente a integrantes con el acceso retirado o suspendido'}); }
         await client.query('update organization_members set active=false,removed_at=coalesce(removed_at,now()),purged_at=now() where organization_id=$1 and user_id=$2',[user.organization_id,target]);
         await client.query('delete from sessions where organization_id=$1 and user_id=$2',[user.organization_id,target]);
@@ -496,6 +497,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         await client.query('begin');
         await auditContext(client,user,req);
         const manager=await lockMemberManager(client,user);
+        await assertAssignableRole(client,manager,role);
         if(role==='owner'&&manager.role!=='owner'){await client.query('rollback');return send(res,403,{error:'Solo un dueño puede invitar a otro dueño'});}
         // Un huésped del Demo no puede iniciar sesión: crearle una membresía real
         // sería un acceso inutilizable. Se pide otro correo.
@@ -506,8 +508,12 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
           const hash = await bcrypt.hash(password || id(),12);
           account = await client.query('insert into users(email,password_hash,role) values($1,$2,$3) returning id',[normalizedEmail,hash,role]);
         }
-        const existing = await client.query('select removed_at from organization_members where organization_id=$1 and user_id=$2 for update',[user.organization_id,account.rows[0].id]);
+        if(String(account.rows[0].id)===String(user.id)){await client.query('rollback');return send(res,403,{error:'No podés invitarte a vos mismo'});}
+        const existing = await client.query('select removed_at,role,user_id from organization_members where organization_id=$1 and user_id=$2 for update',[user.organization_id,account.rows[0].id]);
         if (existing.rows[0]&&!existing.rows[0].removed_at) { await client.query('rollback'); return send(res,409,{error:'Ese usuario ya pertenece a esta empresa'}); }
+        if(existing.rows[0]){if(!accessEditable(manager,existing.rows[0])){await client.query('rollback');return send(res,403,{error:'Solo podés devolver acceso a integrantes autorizados'});}
+         const targetActor={id:account.rows[0].id,organization_id:user.organization_id,role};targetActor.capabilities=await loadActorPermissions(client,targetActor);
+         if(CAPABILITIES.some(cap=>roleCan(targetActor,cap.id)&&!roleCan(manager,cap.id))){await client.query('rollback');return send(res,403,{error:'No podés otorgar permisos superiores a los tuyos'});}}
         const membership = await client.query('insert into organization_members(organization_id,user_id,role) values($1,$2,$3) on conflict(organization_id,user_id) do update set role=excluded.role,active=true,removed_at=null,purged_at=null,created_at=now() returning organization_id,user_id,role,created_at',[user.organization_id,account.rows[0].id,role]);
         await client.query('commit');
         const member={id:account.rows[0].id,email:normalizedEmail,...membership.rows[0]};
@@ -519,6 +525,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
       const user = await session(req); if (!user) return send(res,401,{error:'No autenticado'}); if (!roleCan(user,'members.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});
       const target = Number(url.pathname.split('/')[4]);
       if (!Number.isSafeInteger(target) || target <= 0) return send(res,400,{error:'Miembro inválido'});
+      if(user.role==='management'){const targetMember=(await db.query('select user_id,role from organization_members where organization_id=$1 and user_id=$2 and removed_at is null',[user.organization_id,target])).rows[0];if(!targetMember||!accessEditable(user,targetMember))return send(res,403,{error:'Solo podés editar fotos de integrantes con un rol inferior autorizado'});}
       const {photo_url} = await body(req); if (typeof photo_url !== 'string') return send(res,400,{error:'Foto inválida'});
       let photo; try { photo = await profilePhoto(photo_url); } catch (error) { return send(res,400,{error:error.message||'Foto inválida'}); }
       const client = await db.connect();
@@ -625,7 +632,7 @@ export async function agencyCore({req,res,url,db,session,body,send:rawSend,cooki
         left join organization_person_identity i on i.organization_id=m.organization_id and i.user_id=m.user_id
         left join agency_collaborators c on c.organization_id=m.organization_id and c.user_id=m.user_id
         where m.organization_id=$1 and m.active=true order by full_name`,[user.organization_id]);
-      return send(res,200,{members:r.rows});
+      return send(res,200,{members:r.rows.map(member=>({...member,access_editable:accessEditable(user,member),permissions_editable:permissionsEditable(user,member)})),policy:await permissionPolicy(db,user)});
     }
     if (url.pathname === '/api/agency/invoices' && req.method === 'GET') {
       const user=await session(req); if(!roleCan(user,'invoices.manage')) return send(res,403,{error:'No tenés permiso para esta acción. Pedile acceso a un administrador de tu empresa.'});

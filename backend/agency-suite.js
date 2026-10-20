@@ -14,7 +14,7 @@ import {clientLinks} from './client-links.js';
 import {setRecordAssignees} from './project-assignees.js';
 import {enrichWorkOrderAssignees} from './work-order-assignees.js';
 import {assertUniqueClientRuc} from './ruc-lookup.js';
-import {roleCan,roles} from './permissions.js';
+import {roleCan,roles,accessEditable,assertAssignableRole,loadActorPermissions,CAPABILITIES} from './permissions.js';
 import {parseListFields,parseListWindow,windowSql,windowRows,dropWindowTotal,projectionSelect,projectRows} from './list-projection.js';
 import {mediaPeople,mediaPhoto} from './agency-media.js';
 import {commercialProfile} from './commercial-lifecycle.js';
@@ -113,10 +113,16 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
   if(kind==='members'){
    const manager=await lockMemberManager(c,user);
    const current=(await c.query('select m.*,u.email from organization_members m join users u on u.id=m.user_id where m.user_id=$1 and m.organization_id=$2 and m.removed_at is null for update of m',[key,org])).rows[0];if(!current)fail('Integrante no encontrado',404);
+   if(!accessEditable(manager,current))fail('Solo podés gestionar accesos de integrantes autorizados distintos de vos.',403);
    if(action==='resend'&&req.method==='POST'){if(!current.active)fail('Reactivá el acceso antes de invitar');await c.query('commit');transaction=false;const emailSent=await sendInvitation(current.email,user.organization_name,current.role).catch(()=>false);send(res,200,{emailSent});return true;}
    if(req.method!=='PATCH'||action)fail('Método no permitido',405);
    const b=await body(req),role=option(b.role??current.role,roles),active=b.active??current.active;
    if(typeof active!=='boolean')fail('Estado inválido');
+   if(role!==current.role||active&&!current.active){
+    await assertAssignableRole(c,manager,role);
+    const target={id:current.user_id,organization_id:org,role};target.capabilities=await loadActorPermissions(c,target);
+    if(CAPABILITIES.some(cap=>roleCan(target,cap.id)&&!roleCan(manager,cap.id)))fail('No podés devolver acceso con permisos superiores a los tuyos.',403);
+   }
    // Compare-and-set: el cliente manda el rol/estado que estaba viendo; si otra persona lo cambió antes, 409.
    if(b.expected_role!==undefined&&b.expected_role!==current.role)fail('Otra persona cambió el rol de este integrante. Recargá para ver el valor actual.',409);
    if(b.expected_active!==undefined&&b.expected_active!==current.active)fail('Otra persona cambió el acceso de este integrante. Recargá para ver el valor actual.',409);

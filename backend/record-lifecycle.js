@@ -1,6 +1,6 @@
 import {lockMemberManager} from './member-access.js';
 import {attributeActors} from './actor-identity.js';
-import {roleCan} from './permissions.js';
+import {roleCan,accessEditable} from './permissions.js';
 import {parseListWindow,windowRows,windowSql} from './list-projection.js';
 
 
@@ -67,6 +67,7 @@ export async function recordLifecycle({req,res,url,db,session,send}) {
    const member=(await c.query('select * from organization_members where organization_id=$1 and user_id=$2 for update',[org,key])).rows[0];
    if(!member)fail('Integrante no encontrado',404);
    if(String(user.id)===key)fail('No podés quitar tu propio acceso');
+   if(!accessEditable(manager,member))fail('Solo podés quitar accesos de integrantes autorizados con un rol inferior.',403);
    if(member.role==='owner'){
     if(manager.role!=='owner')fail('Solo un dueño puede quitar a otro dueño',403);
     const owners=(await c.query("select count(*)::int as total from organization_members where organization_id=$1 and role='owner' and active=true and removed_at is null and user_id<>$2",[org,key])).rows[0].total;
@@ -78,6 +79,7 @@ export async function recordLifecycle({req,res,url,db,session,send}) {
    const definition=archiveKinds[kind];
    const record=(await c.query(`select * from ${definition.table} where id=$1 and organization_id=$2 for update`,[key,org])).rows[0];
    if(!record)fail('Registro no encontrado',404);
+   if(kind==='collaborators'&&user.role==='management'&&record.user_id){const target=(await c.query('select user_id,role from organization_members where organization_id=$1 and user_id=$2',[org,record.user_id])).rows[0];if(!target||!accessEditable(user,target))fail('Solo podés gestionar perfiles vinculados a integrantes con un rol inferior autorizado.',403);}
    if(restore){
     const removed=await c.query('delete from agency_archived_records where organization_id=$1 and kind=$2 and record_id=$3 returning record_id',[org,kind,key]);
     if(kind==='accounts'&&removed.rows.length)await c.query('update bank_accounts set active=true,updated_at=now() where id=$1 and organization_id=$2',[key,org]);

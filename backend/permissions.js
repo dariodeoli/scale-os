@@ -30,6 +30,8 @@ export const CAPABILITIES=[
  {id:'budgets.manage',label:'Presupuestos y planes',description:'Presupuestos, planes reutilizables y cotización.',roles:['owner','admin','management','finance','sales','production','collaborator']},
  {id:'commercial-terms.manage',label:'Términos comerciales',description:'Plan contratado, monto, comisión y factura por cliente.',roles:['owner','admin','management','sales']},
  {id:'billing.view',label:'Cobranza y facturas',description:'Ver mora, facturas y cobros.',roles:['owner','admin','management','finance','sales']},
+ {id:'permissions.manage',label:'Gestionar permisos',description:'Permisos de roles y personas dentro de la jerarquía autorizada.',roles:['owner','admin','management']},
+ {id:'finance.balance.view',label:'Ver Balance',description:'Balance financiero y patrimonio de la empresa.',roles:['owner','admin','finance']},
  {id:'finance.view',label:'Saldos y previsión',description:'Saldos, dashboard financiero y previsión mensual.',roles:['owner','admin','finance']},
  {id:'accounts.manage',label:'Cuentas y custodios',description:'Cuentas bancarias y custodios.',roles:['owner','admin','finance']},
  {id:'invoices.manage',label:'Facturas',description:'Crear y editar facturas.',roles:['owner','admin','management','finance','sales']},
@@ -47,61 +49,110 @@ export const CAPABILITIES=[
  {id:'salary.view',label:'Ver salarios',description:'Salarios y ajustes mensuales del equipo.',roles:['owner','admin','finance']},
  {id:'privacy.manage',label:'Protección de datos',description:'Consentimientos, solicitudes de derechos, export y retención.',roles:['owner','admin']},
 ];
+// Management operates agency business, while salaries and Balance stay protected.
+for(const capability of CAPABILITIES)if(!['salary.view','finance.balance.view'].includes(capability.id)&&!capability.roles.includes('management'))capability.roles.push('management');
 const byId=new Map(CAPABILITIES.map(capability=>[capability.id,capability]));
-/** The owner always keeps every capability; overrides apply to the other roles. */
+const protectedManagement=new Set(['salary.view','finance.balance.view']);
+const lowerRoles=user=>user?.role==='owner'?roles.filter(role=>role!=='owner'):user?.role==='admin'?roles.filter(role=>!['owner','admin'].includes(role)):user?.role==='management'?roles.filter(role=>!['owner','admin','management'].includes(role)):[];
 export function roleCan(user,capability){
  if(!user)return false;
- if(user.role==='owner')return true;
+ if(user.role==='management'&&protectedManagement.has(capability))return false;
  const definition=byId.get(capability);if(!definition)return false;
+ if(user.role==='owner')return true;
  const override=user.capabilities?.[capability];
  return override===undefined?definition.roles.includes(user.role):Boolean(override);
 }
-export function permissionMatrix(overrides){
- const rows=(overrides||[]).reduce((map,row)=>{map[`${row.role}:${row.capability}`]=row.allowed;return map;},{});
- return CAPABILITIES.map(capability=>({id:capability.id,label:capability.label,description:capability.description,defaults:capability.roles,overrides:Object.fromEntries(roles.filter(role=>role!=='owner').map(role=>[role,rows[`${role}:${capability.id}`]]))}));
+/** One loader for browser sessions, MCP and canonical access mutation guards. */
+export async function loadActorPermissions(db,user){
+ const roleRows=(await db.query('select capability,allowed from agency_role_permissions where organization_id=$1 and role=$2',[user.organization_id,user.role])).rows;
+ const memberRows=(await db.query('select capability,allowed from agency_member_permissions where organization_id=$1 and user_id=$2',[user.organization_id,user.id])).rows;
+ return Object.fromEntries([...roleRows,...memberRows].map(row=>[row.capability,row.allowed]));
 }
+const manageableAccessRoles=user=>user?.role==='owner'?[...roles]:user?.role==='admin'?roles.filter(role=>role!=='owner'):lowerRoles(user);
+export function accessEditable(actor,target){return String(actor?.id)!==String(target?.user_id??target?.id)&&manageableAccessRoles(actor).includes(target?.role)&&roleCan(actor,'members.manage');}
+export function permissionsEditable(actor,target){return String(actor?.id)!==String(target?.user_id??target?.id)&&lowerRoles(actor).includes(target?.role)&&roleCan(actor,'permissions.manage');}
+const roleRowsToMap=(rows,role)=>Object.fromEntries(rows.filter(row=>row.role===role).map(row=>[row.capability,row.allowed]));
+function canAssignRoleWithRows(actor,role,rows){
+ if(!manageableAccessRoles(actor).includes(role))return false;
+ const target={role,capabilities:roleRowsToMap(rows,role)};
+ return CAPABILITIES.every(capability=>!roleCan(target,capability.id)||roleCan(actor,capability.id));
+}
+export async function permissionPolicy(db,user){
+ const rows=(await db.query('select role,capability,allowed from agency_role_permissions where organization_id=$1',[user.organization_id])).rows;
+ const visibleRoles=lowerRoles(user);
+ return {canManageRoles:visibleRoles.length>0&&roleCan(user,'permissions.manage'),canResetRoles:user.role==='owner'&&roleCan(user,'permissions.manage'),canManageMembers:visibleRoles.length>0&&roleCan(user,'members.manage'),visibleRoles,permissionRoles:visibleRoles,editableRoles:manageableAccessRoles(user).filter(role=>canAssignRoleWithRows(user,role,rows)),grantableCapabilities:CAPABILITIES.filter(cap=>roleCan(user,cap.id)).map(cap=>cap.id),canViewSalary:roleCan(user,'salary.view'),canViewBalance:roleCan(user,'finance.balance.view')};
+}
+export async function assertAssignableRole(db,actor,role){
+ const rows=(await db.query('select role,capability,allowed from agency_role_permissions where organization_id=$1',[actor.organization_id])).rows;
+ if(!canAssignRoleWithRows(actor,role,rows))fail('No podés asignar un rol con permisos superiores a los tuyos.',403);
+}
+export async function refreshPermissionActor(db,user){
+ const current=(await db.query('select role,active,removed_at from organization_members where organization_id=$1 and user_id=$2',[user.organization_id,user.id])).rows[0];
+ if(!current?.active||current.removed_at)fail('Tu acceso a esta empresa cambió. Volvé a ingresar.',403);
+ const actor={...user,role:current.role};actor.capabilities=await loadActorPermissions(db,actor);return actor;
+}
+export function permissionMatrix(overrides,visibleRoles=roles.filter(role=>role!=='owner'),visibleCapabilities=CAPABILITIES.map(cap=>cap.id)){
+ const rows=(overrides||[]).reduce((map,row)=>{map[`${row.role}:${row.capability}`]=row.allowed;return map;},{});
+ return CAPABILITIES.filter(cap=>visibleCapabilities.includes(cap.id)).map(capability=>({id:capability.id,label:capability.label,description:capability.description,defaults:capability.roles.filter(role=>visibleRoles.includes(role)),overrides:Object.fromEntries(visibleRoles.map(role=>[role,rows[`${role}:${capability.id}`]??null]))}));
+}
+async function rolePermissionResult(db,user){
+ const policy=await permissionPolicy(db,user),rows=(await db.query('select role,capability,allowed,updated_at from agency_role_permissions where organization_id=$1 order by role,capability',[user.organization_id])).rows;
+ return {roles:policy.visibleRoles,capabilities:permissionMatrix(rows,policy.visibleRoles,user.role==='management'?policy.grantableCapabilities:undefined),policy};
+}
+const validObject=input=>input&&typeof input==='object'&&!Array.isArray(input);
 export async function rolePermissions({req,res,url,db,session,body,send}){
- if(!url.pathname.startsWith('/api/agency/permissions'))return false;
+ const memberMatch=url.pathname.match(/^\/api\/agency\/members\/([1-9]\d{0,18})\/permissions$/);
+ if(url.pathname!=='/api/agency/permissions'&&!memberMatch)return false;
+ let client;
  try{
-  const user=await session(req);if(!user)fail('No autenticado',401);
-  if(!['owner','admin'].includes(user.role))fail('Tu rol no permite ver los permisos',403);
-  if(req.method==='GET'){
-   const rows=(await db.query('select role,capability,allowed,updated_at from agency_role_permissions where organization_id=$1 order by role,capability',[user.organization_id])).rows;
-   send(res,200,{roles:roles.filter(role=>role!=='owner'),capabilities:permissionMatrix(rows)});return true;
+  let user=await session(req);if(!user)fail('No autenticado',401);
+  if(!lowerRoles(user).length||!roleCan(user,'permissions.manage'))fail('Tu rol no permite gestionar permisos',403);
+  if(!['GET','PATCH'].includes(req.method))fail('Método no permitido',405);
+  if(memberMatch&&String(memberMatch[1])===String(user.id))fail('No podés cambiar ni consultar tus permisos desde el editor de accesos.',403);
+  client=await db.connect();await client.query('begin');
+  if(req.method==='PATCH')await client.query('select id from organizations where id=$1 for update',[user.organization_id]);
+  user=await refreshPermissionActor(client,user);
+  if(!lowerRoles(user).length||!roleCan(user,'permissions.manage'))fail('Tu rol no permite gestionar permisos',403);
+  await client.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket?.remoteAddress||'']);
+  let target;
+  if(memberMatch){
+   target=(await client.query('select user_id,role,active,removed_at from organization_members where organization_id=$1 and user_id=$2 and removed_at is null'+(req.method==='PATCH'?' for update':''),[user.organization_id,memberMatch[1]])).rows[0];
+   if(!target)fail('Integrante no encontrado',404);
+   if(!permissionsEditable(user,target))fail('Solo podés gestionar permisos de integrantes con un rol inferior.',403);
   }
   if(req.method==='PATCH'){
-   if(user.role!=='owner')fail('Solo un dueño puede personalizar permisos',403);
-   const input=await body(req);
-   const keys=Object.keys(input||{});
-   if(!input||keys.some(key=>!['capability','role','allowed'].includes(key))||!Object.hasOwn(input,'allowed'))fail('Campos de permiso inválidos');
-   const capability=input.capability??null,role=input.role??null,allowed=input.allowed;
+   const input=await body(req),keys=Object.keys(input||{}),allowed=input?.allowed;
+   if(!validObject(input)||keys.some(key=>!(memberMatch?['capability','allowed']:['capability','role','allowed']).includes(key))||!Object.hasOwn(input,'allowed')||allowed!==null&&typeof allowed!=='boolean')fail('Campos de permiso inválidos');
+   const capability=input.capability??null,role=input.role??null;
    if(capability!==null&&(typeof capability!=='string'||!byId.has(capability)))fail('Capacidad inválida');
-   if(role!==null&&(typeof role!=='string'||!roles.includes(role)||role==='owner'))fail('Rol inválido');
-   if(allowed!==null&&typeof allowed!=='boolean')fail('Valor de permiso inválido');
-   // La UI promete auditar los cambios de permisos: el trigger compartido de
-   // agency_operation_audit los registra con actor, IP y antes/después. La
-   // transacción fija app.current_user/ip para que el actor sea real.
-   const client=typeof db.connect==='function'?await db.connect():null;
-   const runner=client||db;
-   try{
-    if(client){
-     await client.query('begin');
-     await client.query("select set_config('app.current_user',$1,true),set_config('app.current_ip',$2,true)",[String(user.id),req.socket?.remoteAddress||'']);
-    }
+   if(memberMatch){
+    if(!capability)fail('Indicá la capacidad para aplicar un permiso');
+    if(!roleCan(user,capability))fail('No podés gestionar una capacidad que no tenés.',403);
+    if(allowed===null)await client.query('delete from agency_member_permissions where organization_id=$1 and user_id=$2 and capability=$3',[user.organization_id,target.user_id,capability]);
+    else await client.query('insert into agency_member_permissions(organization_id,user_id,capability,allowed,updated_by_user_id) values($1,$2,$3,$4,$5) on conflict(organization_id,user_id,capability) do update set allowed=excluded.allowed,updated_by_user_id=excluded.updated_by_user_id,updated_at=now()',[user.organization_id,target.user_id,capability,allowed,user.id]);
+   }else{
+    if(role!==null&&(typeof role!=='string'||!roles.includes(role)||role==='owner'))fail('Rol inválido');
+    if(user.role!=='owner'&&(!role||!capability))fail('Indicá un rol inferior y una capacidad; solo el dueño puede restablecer permisos en conjunto.',403);
+    if(role&&!lowerRoles(user).includes(role))fail('Solo podés gestionar permisos de roles inferiores.',403);
+    if(capability&&!roleCan(user,capability))fail('No podés gestionar una capacidad que no tenés.',403);
     if(allowed===null){
-     if(capability===null)await runner.query('delete from agency_role_permissions where organization_id=$1',[user.organization_id]);
-     else if(role===null)await runner.query('delete from agency_role_permissions where organization_id=$1 and capability=$2',[user.organization_id,capability]);
-     else await runner.query('delete from agency_role_permissions where organization_id=$1 and role=$2 and capability=$3',[user.organization_id,role,capability]);
+     if(capability===null)await client.query('delete from agency_role_permissions where organization_id=$1',[user.organization_id]);
+     else if(role===null)await client.query('delete from agency_role_permissions where organization_id=$1 and capability=$2',[user.organization_id,capability]);
+     else await client.query('delete from agency_role_permissions where organization_id=$1 and role=$2 and capability=$3',[user.organization_id,role,capability]);
     }else{
-     if(capability===null)fail('Indicá la capacidad para aplicar un permiso');
-     if(role===null)fail('Indicá el rol para aplicar un permiso');
-     await runner.query(`insert into agency_role_permissions(organization_id,role,capability,allowed,updated_by_user_id) values($1,$2,$3,$4,$5) on conflict(organization_id,role,capability) do update set allowed=excluded.allowed,updated_by_user_id=excluded.updated_by_user_id,updated_at=now()`,[user.organization_id,role,capability,allowed,user.id]);
+     if(!capability||!role)fail('Indicá el rol y la capacidad para aplicar un permiso');
+     await client.query('insert into agency_role_permissions(organization_id,role,capability,allowed,updated_by_user_id) values($1,$2,$3,$4,$5) on conflict(organization_id,role,capability) do update set allowed=excluded.allowed,updated_by_user_id=excluded.updated_by_user_id,updated_at=now()',[user.organization_id,role,capability,allowed,user.id]);
     }
-    if(client)await client.query('commit');
-   }catch(error){if(client)await client.query('rollback');throw error;}finally{client?.release();}
-   const rows=(await db.query('select role,capability,allowed,updated_at from agency_role_permissions where organization_id=$1 order by role,capability',[user.organization_id])).rows;
-   send(res,200,{roles:roles.filter(role=>role!=='owner'),capabilities:permissionMatrix(rows)});return true;
+   }
   }
-  fail('Método no permitido',405);
- }catch(error){send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de permisos.'});return true;}
+  let result;
+  if(memberMatch){
+   const policy=await permissionPolicy(client,user),roleRows=(await client.query('select capability,allowed from agency_role_permissions where organization_id=$1 and role=$2',[user.organization_id,target.role])).rows;
+   const memberRows=(await client.query('select capability,allowed from agency_member_permissions where organization_id=$1 and user_id=$2',[user.organization_id,target.user_id])).rows;
+   const defaults=Object.fromEntries(roleRows.map(row=>[row.capability,row.allowed])),overrides=Object.fromEntries(memberRows.map(row=>[row.capability,row.allowed]));
+   result={member:{id:target.user_id,role:target.role},capabilities:CAPABILITIES.filter(cap=>user.role!=='management'||policy.grantableCapabilities.includes(cap.id)).map(cap=>({id:cap.id,label:cap.label,description:cap.description,defaultAllowed:roleCan({role:target.role,capabilities:defaults},cap.id),override:overrides[cap.id]??null,effectiveAllowed:roleCan({role:target.role,capabilities:{...defaults,...overrides}},cap.id),canGrant:roleCan(user,cap.id)})),policy};
+  }else result=await rolePermissionResult(client,user);
+  await client.query('commit');send(res,200,result);return true;
+ }catch(error){if(client)await client.query('rollback');send(res,error.status||500,{error:error.status?error.message:'No se pudo completar la operación de permisos.'});return true;}
+ finally{client?.release();}
 }
