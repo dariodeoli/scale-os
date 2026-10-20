@@ -47,13 +47,14 @@ assert.doesNotMatch(pre,/<FinanceClientsSection|<FinancePersonnelSection|forecas
 assert.match(balanceCss,/\.finance-balance-columns\{[^}]*grid-template-columns:minmax\(0,1fr\)/,'en móvil los paneles se apilan');
 assert.match(balanceCss,/@media\(min-width:1024px\)\{\.finance-balance-columns\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'en escritorio las dos mitades son iguales');
 assert.match(balanceCss,/grid-template-rows:subgrid/,'las tablas comparten filas incluso con distinta cantidad de monedas');
-for(const [source,template] of [[clients,'CLIENT_FINANCE_COLUMNS'],[personnel,'PERSONNEL_COLUMNS']]){
+for(const [source,template,identity] of [[clients,'CLIENT_FINANCE_COLUMNS','ClientIdentity'],[personnel,'PERSONNEL_COLUMNS','PersonContainer']]){
  assert.match(source,new RegExp(`<ListGrid[^>]*template=\\{${template}\\}`),'encabezado y filas usan la misma plantilla');
  assert.match(source,new RegExp(`<ListRow template=\\{${template}\\}`),'las filas comparten la plantilla del encabezado');
- assert.match(source,/PersonContainer/,'cada fila conserva identidad visual canónica');
+ assert.match(source,new RegExp(`<${identity}\\b`),'cada tipo de fila conserva su identidad visual canónica');
  assert.doesNotMatch(source,/md:hidden/,'una sola lista sirve para móvil y escritorio');
  assert.match(source,/MoneyText/,'los montos usan el formateador común');
 }
+assert.match(clients,/<ClientIdentity[^>]*logo=\{client\.client_logo_url\}/,'el cliente conserva su logo mediante la identidad canónica compartida');
 assert.match(balanceCss,/\.finance-detail-amount\{[^}]*white-space:nowrap[^}]*text-align:right[^}]*tabular-nums/,'los importes alinean y conservan la cifra completa');
 assert.match(balanceCss,/\.finance-client-table>div\{min-width:max\(/,'las columnas grandes crecen en el scroll de la tabla, no en la página');
 assert.match(balanceCss,/\.finance-personnel-table>div\{min-width:max\(/,'personal mantiene sus columnas al reducir la pantalla');
