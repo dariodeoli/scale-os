@@ -161,7 +161,7 @@ import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button"
 // es el que marca al padre cuando el módulo activo vive adentro. Estudio vive
 // en Recursos (agenda de espacios/equipos). Las rutas y los apartados de cada
 // módulo no cambian.
-const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
+const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Clientes:Users,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
 const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
 function localMonth(){return currentAsuncionMonth();}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
@@ -360,6 +360,7 @@ export default function Home() {
     const url=new URL(window.location.href);url.searchParams.delete('demoWelcome');window.history.replaceState(window.history.state,'',url);
   },[pathname,user?.demo_owner_user_id]);
   useEffect(()=>{if(signedIn){const id=new URLSearchParams(window.location.search).get('order');if(id&&/^\d+$/.test(id))setDetail({kind:'order',id});}},[signedIn,pathname]);
+  useEffect(()=>{if(signedIn&&pathname==='/clientes'){const id=new URLSearchParams(window.location.search).get('client');if(id&&/^[1-9]\d{0,18}$/.test(id)&&BigInt(id)<=9223372036854775807n)setDetail({kind:'client',id});}},[signedIn,pathname]);
   const [clients, setClients] = useState<Client[]>([]);
   const displayedClients=filterClientDirectory(clients,clientSearch,clientStatusFilter);
   const liveClients=displayedClients.filter(client=>client.active!==false);

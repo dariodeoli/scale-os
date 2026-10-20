@@ -25,7 +25,7 @@ export type InventoryItem={
  serial_number:string|null;photo_url?:string|null;value:string;currency:string;status:string;
  storage_shelf:string;storage_row:string;storage_location_id?:string|null;storage_location_name?:string|null;
  storage_location_active?:boolean;location_changed_at?:string|null;
- ownership_kind?:'unspecified'|'company'|'person';owner_user_id?:string|null;owner_name?:string|null;owner_photo_url?:string|null;
+ ownership_kind?:'unspecified'|'company'|'person'|'external';owner_user_id?:string|null;external_owner_name?:string|null;owner_name?:string|null;owner_photo_url?:string|null;
  custodian_user_id:string|null;location_type?:string;
  current_custodian_name?:string;current_custodian_user_id?:string|null;
  production_name?:string;project_name?:string;active_reservation_id?:string|null;

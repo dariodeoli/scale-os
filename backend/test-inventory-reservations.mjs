@@ -35,7 +35,7 @@ const photosMigration=await fs.readFile(new URL('./migrations/20260915_inventory
 const categoryIconsMigration=await fs.readFile(new URL('./migrations/20260915_inventory_category_icons.sql',import.meta.url),'utf8');await pg.exec(categoryIconsMigration);await pg.exec(categoryIconsMigration);
 const photoStampMigration=await fs.readFile(new URL('./migrations/20260924_inventory_photo_stamp.sql',import.meta.url),'utf8');await pg.exec(photoStampMigration);await pg.exec(photoStampMigration);
 const valueMaintenanceMigration=await fs.readFile(new URL('./migrations/20260919_inventory_value_maintenance.sql',import.meta.url),'utf8');await pg.exec(valueMaintenanceMigration);await pg.exec(valueMaintenanceMigration);
-const ownershipMigration=await fs.readFile(new URL('./migrations/20261017_inventory_ownership.sql',import.meta.url),'utf8');await pg.exec(ownershipMigration);await pg.exec(ownershipMigration);
+const ownershipMigration=await fs.readFile(new URL('./migrations/20261017_inventory_ownership.sql',import.meta.url),'utf8');await pg.exec(ownershipMigration);await pg.exec(ownershipMigration);const externalOwnerMigration=await fs.readFile(new URL('./migrations/20261020_inventory_external_owner.sql',import.meta.url),'utf8');await pg.exec(externalOwnerMigration);await pg.exec(externalOwnerMigration);
 assert((await query('select category_id from agency_inventory where id=$1',[legacy])).rows[0].category_id);
 await query("insert into agency_settings(organization_id,default_currency) values($1,'EUR')",[org]);
 // PGlite has one connection. Queue leased transactions, as a size-1 pg Pool does.

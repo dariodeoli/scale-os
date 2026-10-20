@@ -108,7 +108,7 @@ export const migrationOrder = [
   '20261017_employee_tasks.sql',
   '20261017_contract_documents.sql',
   '20261017_client_legal_profile.sql',
-  '20261017_inventory_ownership.sql',
+  '20261017_inventory_ownership.sql','20261020_inventory_external_owner.sql',
   '20261017_finance_periods_receipts.sql',
   '20261017_expense_currency_precision.sql',
   '20261017_client_representative_link.sql',

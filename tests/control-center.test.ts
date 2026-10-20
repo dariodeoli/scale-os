@@ -53,10 +53,10 @@ for(const role of ['owner','admin','management','finance','sales','production','
 }
 assert(!visibleModule('Pagos','sales'));assert(visibleModule('Mora','sales'));assert(!visibleModule('Configuración','production'));assert(visibleModule('Papelera','production'));assert(!visibleModule('Comisiones','editor'));assert(visibleModule('Equipo','editor'));
 const ui=workspaceSource();
-// Nav v3 (issue #68): 5 grupos desplegables; los apartados siguen dentro de su
+// Nav v3 (issue #68): 6 entradas desplegables; los apartados siguen dentro de su
 // módulo y las rutas no cambian.
 const navModules=navGroups.flatMap(([,modules])=>modules as readonly string[]);
-assert.deepEqual(navGroups.map(([group])=>group),['Resumen','Flujo','Recursos','Finanzas','Configuración'],'el menú principal tiene 5 grupos');
+assert.deepEqual(navGroups.map(([group])=>group),['Resumen','Clientes','Flujo','Recursos','Finanzas','Configuración'],'el menú principal tiene 6 entradas');
 assert.equal(new Set(navModules).size,navModules.length,'cada módulo vive en un solo grupo');
 for(const [label] of sections)if(['Mora','Previsión','Balance','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'].includes(label))continue;else assert(navModules.includes(label),`${label} sigue siendo un módulo del menú`);
 for(const apartado of ['Mora','Previsión','Balance','Métricas','Planes','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad','Preferencias','Papelera'])assert(!navModules.includes(apartado),`${apartado} es apartado de su módulo, nunca ítem del menú`);
@@ -65,7 +65,7 @@ const recursos=navGroups.find(([group])=>group==='Recursos');
 assert(recursos&&recursos[1].join(',')==='Inventario,Estudio,Equipo','Recursos agrupa los dos reservables y después Equipo (refine OPS #70)');
 // Contrato del encabezado navegable (#72): el clic de un grupo va a su primer módulo.
 const firstModule=(group:string)=>navGroups.find(([label])=>label===group)?.[1][0];
-assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producción (primer módulo del grupo)');assert.deepEqual(navGroups.find(([group])=>group==='Flujo')?.[1],['Producción','Pipeline','Clientes','Presupuestos','Contratos','Proyectos'],'Flujo mantiene producción y pipeline primero y agrega contratos al circuito comercial');
+assert.equal(firstModule('Flujo'),'Producción','clic en Flujo navega a Producción (primer módulo del grupo)');assert.deepEqual(navGroups.find(([group])=>group==='Flujo')?.[1],['Producción','Pipeline','Presupuestos','Contratos','Proyectos'],'Flujo mantiene producción y pipeline primero y agrega contratos al circuito comercial');
 assert.equal(firstModule('Recursos'),'Inventario','clic en Recursos navega a Inventario');
 assert.equal(firstModule('Finanzas'),'Finanzas','clic en Finanzas navega a Finanzas');
 assert.equal(moduleNavGroup('Sin acceso'),'','fuera del nav no hay grupo activo');

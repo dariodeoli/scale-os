@@ -252,8 +252,8 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
 // ── Nav v3 (#68) y acceso a la administración (#69) ─────────────────────────
 {
  const shell=read('app/scale-workspace.tsx');
- // Nav v3: 5 grupos, acordeón del grupo activo, hojas sólo cuando está abierto.
- assert.match(shell,/NAV_GROUP_ICONS/,'el nav v3 define los íconos de los 5 grupos');
+ // Nav v3: 6 entradas, acordeón del grupo activo, hojas sólo cuando está abierto.
+ assert.match(shell,/NAV_GROUP_ICONS/,'el nav v3 define los íconos de los 6 entradas');
  assert.match(shell,/nav-group-toggle/,'el grupo desplegable es un botón con estado');
  assert.match(shell,/aria-expanded=\{open\}/,'el grupo anuncia si está expandido');
  assert.match(shell,/className="nav-leaves grid gap-1 pl-3"/,'las hojas del grupo se renderizan sólo al abrir');
@@ -302,7 +302,7 @@ console.log('PASS rediseño del marco: tiles de nav, acento activo, drawer fijo 
  assert.match(read('app/theme-toggle.css'),/@media\(max-width:767px\)\{\.theme-toggle:not\(:where\(\[data-ui-button\]\)\)\{width:44px/,'el cambio de tema usa target de 44 px en móvil');
  assert.match(read('app/workspace-footer.tsx'),/import \{ProductFooter[^}]*\} from 'owncoding-ui\/core'/,'el pie institucional es el objeto de la biblioteca: el crédito trae su target de 44 px');
 }
-console.log('PASS nav v3: 5 grupos con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
+console.log('PASS nav v3: 6 entradas con acordeón y acceso admin gateado por servidor (Issues #68 #69)');
 
 test('los formularios del shell anuncian sus errores (role=alert) y el enlace inválido de una orden no bloquea en silencio',()=>{
   const forms=read('app/workspace-forms.tsx');

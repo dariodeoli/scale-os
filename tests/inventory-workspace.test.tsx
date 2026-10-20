@@ -364,6 +364,18 @@ async function run(){
  await act(async()=>{renderer=create(<InventoryDetail item={equipment[0]} members={context.members} canManage={false}/>);});
  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
  assert.match(text(renderer.root),/Identificación física/);assert.match(text(renderer.root),/Sin valor de compra registrado/);assert.match(text(renderer.root),/Sin mantenimientos registrados/);act(()=>renderer.unmount());
+ // Refs #311: every equipment view opens the same actions and the real editor.
+ for(const view of ['Cuadrícula','Lista','Ubicaciones']){
+  await act(async()=>{renderer=create(<InventoryWorkspace role="management"/>);});
+  act(()=>viewButton(view).props.onClick());
+  const dropdown=renderer.root.findAll(node=>node.props?.ariaLabel===`Acciones del equipo: ${equipment[0].name}`&&typeof node.type==='function')[0];assert(dropdown,`${view} has an item menu`);
+  act(()=>dropdown.findAllByType('button').find(node=>node.props['aria-haspopup']==='menu')!.props.onClick());
+  const actions=dropdown.findAll(node=>node.props?.role==='menuitem');
+  assert.deepEqual(actions.map(text),['Ver detalle y trazabilidad','Imprimir etiqueta','Verificar con detalle','Editar equipo','Archivar equipo'],`${view} shares all actions`);
+  act(()=>actions.find(node=>text(node)==='Editar equipo')!.props.onClick());
+  assert(renderer.root.findAll(node=>node.props?.title==='Editar equipo').length,`${view} opens edit instead of traceability`);
+  act(()=>renderer.unmount());
+ }
  console.log('PASS: inventario v2 — borradores de reserva, retornos completos, polling, permisos, lote con topes, vistas y drawer intactos. API/Editor simulados; el layout se mide con el harness visual.');
 }
 void run();

@@ -221,3 +221,9 @@ test('custodio histórico sin identidad conocida muestra su ID sin atribuir otra
  assert.equal(historical.label,'Custodio registrado · ID 99');assert.equal(historical.photoUrl,null);
  act(()=>form.renderer.unmount());
 });
+
+test('propietario externo se edita separado del custodio y conserva nombre',async()=>{
+ const form=await mount({...baseItem,ownership_kind:'external',external_owner_name:'Equipo de proveedor',owner_name:'Equipo de proveedor',custodian_user_id:'12'});
+ await form.submit();assert.equal(body().ownership_kind,'external');assert.equal(body().external_owner_name,'Equipo de proveedor');assert.equal(body().owner_user_id,null);assert.equal(body().custodian_user_id,'12');
+ act(()=>form.renderer.unmount());
+});

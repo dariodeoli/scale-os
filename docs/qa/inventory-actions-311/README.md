@@ -1,0 +1,16 @@
+# Inventario y navegación — preparación #309/#311
+
+Menú único para cuadrícula, lista y ubicaciones con detalle/trazabilidad, imprimir, verificar, editar y archivar según permisos. Las ubicaciones reciben los callbacks reales de edición/verificación/archivo en vez de redirigir todo al detalle. El adaptador compartido conserva el motor de menú/teclado de owncoding-ui y usa top-layer para evitar clipping por contenedores con overflow/transform; mantiene posición dentro del viewport y foco al cerrar.
+
+Propietario externo opcional con nombre, independiente del custodio; propietario integrante conserva selector e identidad existentes. API valida pertenencia interna, nulabilidad, longitud y auditoría; cambiar a empresa limpia propietario anterior sin cambiar custodia. Migración aditiva e idempotente registrada en cadena/fixtures.
+
+Clientes queda como enlace principal entre Resumen y Flujo, sin duplicarlo en el submenú. /clientes?client=ID abre la ficha existente y conserva permisos del API, para completar datos legales desde contratos.
+
+## Pruebas ejecutadas
+
+- Chromium real:9 casos (320/390/1440 ×3 temas), menú dentro de tarjeta transformada con overflowhidden, todas las acciones alcanzables, End/Escape/foco y editar. [Resultados](menu-results.json).
+- Control negativo con menú original: falla esperado en hit-test de última acción recortada; log /tmp/scale311-menu-negative.log. No es una falla del gate final.
+- InventarioReact: mismas acciones en las tres vistas y edición real en ubicaciones; formulario de propietario externo separado del custodio.
+- API/PGlite: inventario valor/propiedad +236casos reservas/verificación/fotos y aislamiento, incluyendo creación/edición/batch externo/auditoría/proyección. TypeScript y navegación/controlcenter/mobile PASS.
+
+No se afirma impresión física. PostgreSQL concurrente, gate integrado, CI y producción se acreditan por separado al terminar. Guardar columnas usa el adaptador compartido #310 al integrar.

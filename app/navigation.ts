@@ -18,12 +18,13 @@ export function legacyDestination(slug:string){return Object.prototype.hasOwnPro
 export const sectionGroups:Record<string,readonly string[]>={Finanzas:['Finanzas','Mora','Previsión','Balance'],Pipeline:['Pipeline','Métricas'],Presupuestos:['Presupuestos','Planes'],Equipo:['Equipo','Invitaciones','Comisiones','Roles y permisos','Historial de trabajo','Actividad'],'Configuración':['Configuración','Preferencias','Papelera']};
 export function parentSection(label:string){if(label==='Métricas')return 'Pipeline';return Object.entries(sectionGroups).find(([,children])=>children.includes(label))?.[0]||label;}
 export function childSections(label:string){return sectionGroups[parentSection(label)]||[label];}
-// Nav v3 (issue #68): el menú principal son 5 grupos desplegables. Cada grupo
+// Nav v3 (issue #68): el menú principal son 6 entradas desplegables. Cada grupo
 // lista sus MÓDULOS; los apartados de cada módulo siguen accesibles por los
 // tabs de la sección (`sectionGroups`/`childSections`) y las rutas no cambian.
 export const navGroups = [
  ['Resumen',['Resumen']],
- ['Flujo',['Producción','Pipeline','Clientes','Presupuestos','Contratos','Proyectos']],
+ ['Clientes',['Clientes']],
+ ['Flujo',['Producción','Pipeline','Presupuestos','Contratos','Proyectos']],
  ['Recursos',['Inventario','Estudio','Equipo']],
  ['Finanzas',['Finanzas','Informes']],
  ['Configuración',['Configuración']],

@@ -1,3 +1,4 @@
+import {MenuDesplegable} from './ui/menu';
 "use client";
 import {Notice as Aviso,Note as Nota} from './ui/notice';
 import {CardSurface as Card} from './ui/surface';
@@ -23,7 +24,7 @@ import {TextareaBase} from './ui/input';
  * el encabezado comparte la misma grilla que las filas.
  */
 import {useEffect,useMemo,useRef,useState,type FormEvent,type ReactNode} from 'react';
-import {BarraProgreso,CeldaMoneda,FilaDato,MenuDesplegable,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui/core';
+import {BarraProgreso,CeldaMoneda,FilaDato,SerialField,SerialTexto,primerNombre,diasHasta} from 'owncoding-ui/core';
 import {IconAction} from "./ui/icon-action";
 import {Button} from "./ui/button";
 import {SearchField} from './search-field';
@@ -153,15 +154,11 @@ function menuItemsFrom(menu:ReturnType<typeof inventoryItemActions>['menu']){
  return menu.flatMap(action=>{const item={id:action.key,label:action.texto,icono:action.icon,disabled:action.disabled,peligro:action.peligro,onClick:action.onClick};return action.key==='archive'?[{separador:true},item]:[item];});
 }
 function InventoryItemActions(context:InventoryItemActionContext&{dense?:boolean}){
- const {dense=false,item}=context;
- const {quick,menu}=inventoryItemActions(context);
- const inlineEdit=!dense?menu.find(action=>action.key==='edit'):null;
- const menuActions=menu.filter(action=>action!==inlineEdit);
- return <span className={`flex flex-nowrap items-center justify-end gap-1 ${dense?`shrink-0 ${ROW_ICON_TARGETS}`:`silent-scroll min-w-0 max-w-full overflow-x-auto ${ICON_TARGETS}`}`}>
-  {inlineEdit?<Button type="button" variant="ghost" onClick={inlineEdit.onClick} aria-label={inlineEdit.label}><Pencil size={14}/>Editar</Button>:null}
+ const {item}=context,{quick,menu}=inventoryItemActions(context);
+ return <div className={`flex min-w-0 flex-nowrap items-center justify-end gap-1 ${context.dense?ROW_ICON_TARGETS:ICON_TARGETS}`}>
   {quick?<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>:null}
-  {menuActions.length?<MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones del equipo: ${item.name}`} title={`Acciones del equipo: ${item.name}`}>⋮</span>} items={menuItemsFrom(menuActions)}/>:null}
- </span>;
+  {menu.length?<MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute md:h-7 md:w-7" aria-hidden="true">⋮</span>} items={menuItemsFrom(menu)}/>:null}
+ </div>;
 }
 
 /**
@@ -190,7 +187,7 @@ function EquipmentCard({item,selectable,selected,onSelect,canManage,verifying,on
    {facts.hasDepreciation?<span className="whitespace-nowrap" title={`Valor actual con depreciación: ${facts.monthsElapsed} de ${facts.usefulLifeMonths} meses`}>Actual <CeldaMoneda valor={facts.currentValue??0} currency={item.currency}/></span>:null}
    {item.return_user_name?<span className="min-w-0 truncate" title={`Devuelve ${item.return_user_name}${item.expected_return_at?` · previsto ${dateTime(item.expected_return_at)}`:''}`}>Devuelve {item.return_user_name}{item.expected_return_at?<> · <span className="whitespace-nowrap" data-tone={(diasHasta(item.expected_return_at,{timeZone:OPS_TIME_ZONE})??99)<=7?'warn':undefined}>{dateTime(item.expected_return_at)}</span></>:null}</span>:null}
   </div>
-  <div className="text-xs text-mute">{item.ownership_kind==='person'?<PersonContainer size="sm" name={item.owner_name||'Persona propietaria'} photoUrl={item.owner_photo_url} secondary="Propietario"/>:item.ownership_kind==='company'?'Propiedad de la empresa':'Propiedad sin registrar'}</div>
+  <div className="text-xs text-mute">{['person','external'].includes(item.ownership_kind||'')?<PersonContainer size="sm" name={item.owner_name||'Persona propietaria'} photoUrl={item.owner_photo_url} secondary={item.ownership_kind==='external'?'Propietario externo':'Propietario'}/>:item.ownership_kind==='company'?'Propiedad de la empresa':'Propiedad sin registrar'}</div>
   <div className="mt-auto flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-ink-600 pt-2">
    <VerificationStamp item={item} empty={<span className="text-[11px] text-mute">Sin verificación física</span>}/>
    <InventoryItemActions item={item} canManage={canManage} verifying={verifying} onDetail={onDetail} onVerify={onVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
@@ -211,7 +208,7 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  return <article data-list-row="equipment" className={`${EQUIPMENT_GRID} min-h-[44px] rounded-xl border px-3 py-1 transition-colors ${selected?'border-fono/50 bg-fono/10':'border-ink-600/60 bg-ink-800/40 hover:bg-ink-700/40'}`} data-status={item.status}>
   <span className="flex h-11 items-center md:h-auto">{selectable?<label className="flex h-11 min-w-11 items-center justify-center md:h-auto md:min-w-0" title="Seleccionar para operar en lote"><InputControl type="checkbox" className="h-6 w-6 p-0 accent-fono" aria-label={`Seleccionar ${item.name}`} checked={selected} onChange={onSelect}/></label>:null}</span>
   <span className="flex items-center"><EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="row"/></span>
-  <span className="flex min-w-0 items-center gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code>{item.ownership_kind==='person'?<span title={`Propietario: ${item.owner_name||'Persona del equipo'}`}><ActorAvatar name={item.owner_name||'Persona del equipo'} photo={safePhoto(item.owner_photo_url)}/></span>:null}</span>
+  <span className="flex min-w-0 items-center gap-2"><b className="truncate text-[13px] font-semibold text-fore" title={item.name}>{item.name}</b><code className="shrink-0 whitespace-nowrap font-mono text-[11px] text-mute">{code}</code>{['person','external'].includes(item.ownership_kind||'')?<span title={`Propietario: ${item.owner_name||'Persona del equipo'}`}><ActorAvatar name={item.owner_name||'Persona del equipo'} photo={safePhoto(item.owner_photo_url)}/></span>:null}</span>
   <span className={CELL}><InventoryItemMeta item={item} layout="row"/></span>
   <span className="flex justify-end whitespace-nowrap">{Number(item.value)>0?<CeldaMoneda valor={Number(item.value)} currency={item.currency} className="text-[13px] font-semibold text-fore"/>:<span className="text-[12px] text-mute">Sin valor</span>}</span>
   <span className="flex justify-start pl-1"><StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip></span>
@@ -221,7 +218,7 @@ function EquipmentRow({item,selectable,selected,onSelect,canManage,verifying,onD
  </article>;
 }
 
-function InventoryPipeline({items,locations,canManage,onReorder,onDetail,onAdd,onMoved,onQuickVerify,verifyingId,onMoveLocally}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onReorder?:(ids:string[])=>Promise<void>;onDetail:(item:InventoryItem)=>void;onAdd?:()=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onMoveLocally:(id:string,storageLocationId:string|null,shelf:string)=>void}){
+function InventoryPipeline({items,locations,canManage,onReorder,onDetail,onAdd,onMoved,onQuickVerify,verifyingId,onMoveLocally,onEdit,onArchive,onVerifyDetail}:{items:InventoryItem[];locations:StorageTemplate[];canManage:boolean;onReorder?:(ids:string[])=>Promise<void>;onDetail:(item:InventoryItem)=>void;onAdd?:()=>void;onMoved:()=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onMoveLocally:(id:string,storageLocationId:string|null,shelf:string)=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void}){
  const [dragged,setDragged]=useState<InventoryItem|null>(null);
  const [moveError,setMoveError]=useState('');
  const [hideUnassigned,setHideUnassigned]=useState(false);
@@ -265,7 +262,7 @@ function InventoryPipeline({items,locations,canManage,onReorder,onDetail,onAdd,o
   {moveError?<Aviso tono="error">{moveError}</Aviso>:null}
   <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={event=>setDragged(items.find(candidate=>String(candidate.id)===String(event.active.id))||null)} onDragCancel={()=>setDragged(null)} onDragEnd={onDragEnd}>
    <div data-board="locations" className="silent-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [--location-cols:1] sm:[--location-cols:2] xl:[--location-cols:3]" role="region" aria-label="Pipeline de ubicaciones">
-    {visibleColumns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} canReorder={Boolean(onReorder)&&canManage&&orderIds.length>1} position={column.locationId?orderIds.indexOf(String(column.locationId)):-1} total={orderIds.length} onMove={moveLocation} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId} onHideUnassigned={()=>setHideUnassigned(true)}/>)}
+    {visibleColumns.map(column=><PipelineColumn key={column.key} column={column} canManage={canManage} canReorder={Boolean(onReorder)&&canManage&&orderIds.length>1} position={column.locationId?orderIds.indexOf(String(column.locationId)):-1} total={orderIds.length} onMove={moveLocation} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId} onHideUnassigned={()=>setHideUnassigned(true)} onEdit={onEdit} onArchive={onArchive} onVerifyDetail={onVerifyDetail}/>)}
    </div>
    <DragOverlay>{dragged?<article className="rounded-xl border border-fono/40 bg-ink-800 p-3 shadow-2xl"><b className="text-sm text-fore">{dragged.name}</b><code className="block whitespace-nowrap font-mono text-[11px] text-mute">{itemCode(dragged)}</code><small className="text-xs text-mute">{dragged.category_name||dragged.category||'Sin categoría'}</small></article>:null}</DragOverlay>
   </DndContext>
@@ -275,7 +272,7 @@ function InventoryPipeline({items,locations,canManage,onReorder,onDetail,onAdd,o
 }
 /** Columna del pipeline (#103): encabezado de altura fija, contador a la derecha
  *  y ancho fluido por breakpoint (nunca queda cortada a mitad de columna). */
-function PipelineColumn({column,canManage,canReorder=false,position=-1,total=0,onMove,onDetail,onQuickVerify,verifyingId,onHideUnassigned}:{column:PipelineColumn;canManage:boolean;canReorder?:boolean;position?:number;total?:number;onMove?:(locationId:string,direction:-1|1)=>void;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHideUnassigned:()=>void}){
+function PipelineColumn({column,canManage,canReorder=false,position=-1,total=0,onMove,onDetail,onQuickVerify,verifyingId,onHideUnassigned,onEdit,onArchive,onVerifyDetail}:{column:PipelineColumn;canManage:boolean;canReorder?:boolean;position?:number;total?:number;onMove?:(locationId:string,direction:-1|1)=>void;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onHideUnassigned:()=>void;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void}){
  // La columna es el destino del arrastre (id = clave de la columna, la que resuelve
  // `pipelineDropColumn`); las de solo lectura no aceptan drops ni se resaltan.
  const droppable=useDroppable({id:column.key,disabled:column.readOnly});
@@ -298,19 +295,19 @@ function PipelineColumn({column,canManage,canReorder=false,position=-1,total=0,o
    {locationActions.length?<MenuDesplegable ariaLabel={`Acciones de la ubicación: ${column.title}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones de la ubicación: ${column.title}`} title={`Acciones de la ubicación: ${column.title}`}>⋮</span>} items={locationActions}/>:null}
   </header>
   <div className="grid gap-2">
-   {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId}/>)}
+   {column.rows.map(item=><PipelineCard key={item.id} item={item} canManage={canManage} onDetail={onDetail} onQuickVerify={onQuickVerify} verifyingId={verifyingId} onEdit={onEdit} onArchive={onArchive} onVerifyDetail={onVerifyDetail}/>)}
    {!column.rows.length?<p className="py-3 text-center text-xs text-mute">{column.readOnly?'':canManage?'Arrastrá equipos hasta acá':'Sin equipos'}</p>:null}
   </div>
  </section>;
 }
 /** Tarjeta interna del pipeline (#103): foto/placeholder, nombre, código y
  *  categoría, verificación, «aquí desde» como metadata y estado + acciones abajo. */
-function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:InventoryItem;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null}){
+function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId,onEdit,onArchive,onVerifyDetail}:{item:InventoryItem;canManage:boolean;onDetail:(item:InventoryItem)=>void;onQuickVerify:(item:InventoryItem)=>void;verifyingId:string|null;onEdit:(item:InventoryItem)=>void;onArchive:(item:InventoryItem)=>void;onVerifyDetail:(item:InventoryItem)=>void}){
  const disabled=!canManage||item.location_type==='checked_out';
  const draggable=useDraggable({id:item.id,disabled});
  const verifying=verifyingId===String(item.id);
  const movedAt=item.location_type==='checked_out'?'En préstamo: devolvelo para cambiar su ubicación':item.location_changed_at?`Aquí desde ${dateTime(item.location_changed_at)}`:'Sin registro de ingreso a esta ubicación';
- const {quick,menu}=inventoryItemActions({item,canManage,verifying,onDetail,onVerify:onQuickVerify,onVerifyDetail:onDetail,onEdit:onDetail,onArchive:onDetail});
+ const {quick,menu}=inventoryItemActions({item,canManage,verifying,onDetail,onVerify:onQuickVerify,onVerifyDetail,onEdit,onArchive});
  return <article ref={draggable.setNodeRef} {...draggable.listeners} {...draggable.attributes} data-board-card data-status={item.status} className={`grid gap-1.5 rounded-xl border border-ink-600 bg-ink-800 p-3 transition-colors ${draggable.isDragging?'opacity-60':''} ${disabled?'':'cursor-grab hover:border-fono/40'}`}>
   <button type="button" className="flex min-h-11 min-w-0 items-center gap-2 text-left md:min-h-0" title={`Abrir detalle: ${item.name}`} onClick={()=>onDetail(item)}>
    <EquipmentPhoto nombre={item.name} foto={item.photo_url} icono={item.category_icon} size="pipeline"/>
@@ -323,11 +320,10 @@ function PipelineCard({item,canManage,onDetail,onQuickVerify,verifyingId}:{item:
   <p className="truncate text-[11px] leading-4 text-mute" title={movedAt} data-tone={item.location_type==='checked_out'?'warn':undefined}>{movedAt}</p>
   <div className="mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-ink-600 pt-1.5">
    <StateChip tone={statusTone(item.status)}>{equipmentStatusLabel(item.status)}</StateChip>
-   <span className={`flex shrink-0 items-center gap-1 ${ROW_ICON_TARGETS}`}>
-    {canManage&&!disabled&&quick?<IconAction icon={quick.icon} tone={quick.tone} disabled={quick.disabled} label={quick.label} onClick={quick.onClick}/>:null}
-    {menu.length?<MenuDesplegable ariaLabel={`Acciones del equipo: ${item.name}`} trigger={<span className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-mute transition hover:bg-ink-700 hover:text-fore md:h-7 md:w-7" role="img" aria-label={`Acciones del equipo: ${item.name}`} title={`Acciones del equipo: ${item.name}`}>⋮</span>} items={menuItemsFrom(menu)}/>:null}
-    {!disabled?<span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`} title={`Mover ${item.name}`}>⋮⋮</span>:null}
-   </span>
+   <div className="flex shrink-0 items-center gap-1" onPointerDown={event=>event.stopPropagation()} onMouseDown={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
+    <InventoryItemActions item={item} canManage={canManage} verifying={verifying} dense onDetail={onDetail} onVerify={onQuickVerify} onVerifyDetail={onVerifyDetail} onEdit={onEdit} onArchive={onArchive}/>
+    {!disabled?<span className="select-none text-mute" role="img" aria-label={`Mover ${item.name}`}>⋮⋮</span>:null}
+   </div>
   </div>
  </article>;
 }
@@ -499,7 +495,7 @@ function InventoryPanel(){
   {/* Equipos sin card contenedora (pase de densidad): KPIs y lista/cuadrícula
       van directo sobre el lienzo; se ganan el borde y el padding del panel. */}
   {view!=='reservations'&&!loading&&!error?<section className="grid min-w-0 gap-3" aria-label="Equipos">
-   {equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onReorder={context?.can_manage?reorderLocations:undefined} onDetail={setDetail} onAdd={context?.can_manage?()=>setEditItem('new'):undefined} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally}/>:null}
+   {equipmentView==='pipeline'?<InventoryPipeline items={items} locations={storageTemplates} canManage={Boolean(context?.can_manage)} onReorder={context?.can_manage?reorderLocations:undefined} onDetail={setDetail} onAdd={context?.can_manage?()=>setEditItem('new'):undefined} onMoved={()=>refreshed('Ubicación actualizada.')} onQuickVerify={quickVerify} verifyingId={verifyingId} onMoveLocally={moveItemLocally} onEdit={setEditItem} onArchive={setArchive} onVerifyDetail={setVerification}/>:null}
    {equipmentView!=='pipeline'?<>
     <InventorySummary items={items} onAddValue={context?.can_manage&&itemWithoutValue?()=>setEditItem(itemWithoutValue):undefined}/>
     {equipmentView==='list'?<div data-list="equipment" className="silent-scroll min-w-0 overflow-x-auto">
@@ -548,7 +544,7 @@ function InventoryPanel(){
   {editItem&&context?.can_manage?<Dialog size="amplio" title={editItem==='new'?'Nuevo equipo':'Editar equipo'} close={()=>setEditItem(null)}><InventoryItemForm item={editItem==='new'?null:editItem} categories={categories} members={context.members} storageTemplates={storageTemplates} canManageStorage={context.can_manage} createStorageTemplate={async name=>{const result=await api<{location:StorageTemplate}>('/api/agency/inventory-locations',{name},'POST');addStorageTemplate(result.location);setRefresh(current=>current+1);return result.location;}} done={(count=1,keepOpen=false)=>{if(keepOpen){setRefresh(current=>current+1);return;}saved(count>1?`${count} equipos guardados.`:'Equipo guardado.');}}/></Dialog>:null}
   {editStorageTemplate&&context?.can_manage?<Dialog title={editStorageTemplate==='new'?'Nueva ubicación':'Editar ubicación'} close={()=>setEditStorageTemplate(null)}><StorageTemplateForm template={editStorageTemplate==='new'?null:editStorageTemplate} members={context.members} done={message=>saved(message)}/></Dialog>:null}
   {verification&&context?.can_manage?<Dialog title={`Verificar con detalle · ${verification.name}`} close={()=>setVerification(null)}><InventoryVerificationForm item={verification} done={()=>saved('Verificación física registrada.')}/></Dialog>:null}
-  {batchOwnership&&context?.can_manage?<Dialog title={`Propiedad de ${selectedItems.length} equipos`} close={()=>setBatchOwnership(false)}><Editor fields={[{key:'kind',label:'Pertenece a',choices:[{value:'unspecified',label:'Sin registrar'},{value:'company',label:'Empresa'},{value:'person',label:'Persona del equipo'}]},{key:'owner_user_id',label:'Persona propietaria',optional:true,choices:[{value:'',label:'Sin persona'},...context.members.map(member=>({value:String(member.id),label:member.name,photoUrl:member.photo_url,kind:'person' as const}))],disabled:values=>values.kind!=='person'}]} defaults={{kind:'person',owner_user_id:''}} save={async values=>{await api('/api/agency/inventory/batch',{ids:selectedItems,change:{ownership:{kind:values.kind,owner_user_id:values.kind==='person'?values.owner_user_id:null}}});setBatchOwnership(false);bulk.clear();refreshed('Propiedad actualizada.');}}/></Dialog>:null}
+  {batchOwnership&&context?.can_manage?<Dialog title={`Propiedad de ${selectedItems.length} equipos`} close={()=>setBatchOwnership(false)}><Editor fields={[{key:'kind',label:'Pertenece a',choices:[{value:'unspecified',label:'Sin registrar'},{value:'company',label:'Empresa'},{value:'person',label:'Persona del equipo'},{value:'external',label:'Persona externa'}]},{key:'owner_user_id',label:'Persona propietaria',optional:true,choices:[{value:'',label:'Sin persona'},...context.members.map(member=>({value:String(member.id),label:member.name,photoUrl:member.photo_url,kind:'person' as const}))],disabled:values=>values.kind!=='person'},{key:'external_owner_name',label:'Nombre del propietario externo',optional:true,maxLength:160,disabled:values=>values.kind!=='external'}]} defaults={{kind:'person',owner_user_id:'',external_owner_name:''}} save={async values=>{await api('/api/agency/inventory/batch',{ids:selectedItems,change:{ownership:{kind:values.kind,owner_user_id:values.kind==='person'?values.owner_user_id:null,external_owner_name:values.kind==='external'?values.external_owner_name:null}}});setBatchOwnership(false);bulk.clear();refreshed('Propiedad actualizada.');}}/></Dialog>:null}
   {batchLocation?<Dialog title={`Mover ${batchLocation.length} equipo${batchLocation.length===1?'':'s'} de ubicación`} close={()=>setBatchLocation(null)}>{storageTemplates.some(template=>template.active)?<Editor columns fields={[{key:'location',label:'Ubicación',choices:storageTemplates.filter(template=>template.active).map(template=>({value:String(template.id),label:template.name}))},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{location:String(storageTemplates.find(template=>template.active)?.id||''),storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation(values.location,values.storage_row);}}/>:<Editor columns fields={[{key:'storage_shelf',label:'Ubicación',help:'Sin lugares configurados: escribí dónde se guardan.'},{key:'storage_row',label:'Fila / posición',optional:true}]} defaults={{storage_shelf:'',storage_row:''}} label="Mover" save={async values=>{await batchMoveLocation('',values.storage_row,values.storage_shelf);}}/>}</Dialog>:null}
   {detail?<Dialog size="drawer" title="Detalle y trazabilidad" close={()=>setDetail(null)}><InventoryDetail item={detail} members={context?.members||[]} canManage={Boolean(context?.can_manage)} onChanged={()=>refreshed('Mantenimiento actualizado.')}/></Dialog>:null}
   {editCategory&&context?.can_manage?<Dialog title={editCategory==='new'?'Nueva categoría':'Editar categoría'} close={()=>setEditCategory(null)}><CategoryForm category={editCategory==='new'?null:editCategory} done={message=>saved(message)}/></Dialog>:null}
@@ -560,7 +556,7 @@ function InventoryPanel(){
 
 export function InventoryItemForm({item,categories,members,storageTemplates,canManageStorage,createStorageTemplate,done}:{item:InventoryItem|null;categories:Category[];members:Person[];storageTemplates:StorageTemplate[];canManageStorage:boolean;createStorageTemplate:(name:string)=>Promise<StorageTemplate>;done:(count?:number,keepOpen?:boolean)=>void}){
  const {currency:companyCurrency}=useCompanyCurrency();
- const [values,setValues]=useState(()=>({name:item?.name||'',category_id:String(item?.category_id||categories.find(c=>c.active)?.id||''),serial_number:item?.serial_number||'',photo_url:item?.photo_url||'',storage_shelf:item?.storage_shelf||'',storage_row:item?.storage_row||'',value:item?.value==null?'':String(item.value),currency:item?.currency||companyCurrency,status:item?.status||'available',custodian_user_id:String(item?.custodian_user_id||''),ownership_kind:item?.ownership_kind||'unspecified',owner_user_id:String(item?.owner_user_id||''),acquired_on:String(item?.acquired_on||'').slice(0,10),notes:String(item?.notes||''),purchase_value:item?.purchase_value==null?'':String(item.purchase_value),purchase_date:String(item?.purchase_date||'').slice(0,10),depreciation_method:item?.depreciation_method==='linear'?'linear':'none',useful_life_months:item?.useful_life_months==null?'':String(item.useful_life_months),residual_value:item?.residual_value==null?'0':String(item.residual_value)}));
+ const [values,setValues]=useState(()=>({name:item?.name||'',category_id:String(item?.category_id||categories.find(c=>c.active)?.id||''),serial_number:item?.serial_number||'',photo_url:item?.photo_url||'',storage_shelf:item?.storage_shelf||'',storage_row:item?.storage_row||'',value:item?.value==null?'':String(item.value),currency:item?.currency||companyCurrency,status:item?.status||'available',custodian_user_id:String(item?.custodian_user_id||''),ownership_kind:item?.ownership_kind||'unspecified',owner_user_id:String(item?.owner_user_id||''),external_owner_name:item?.external_owner_name||'',acquired_on:String(item?.acquired_on||'').slice(0,10),notes:String(item?.notes||''),purchase_value:item?.purchase_value==null?'':String(item.purchase_value),purchase_date:String(item?.purchase_date||'').slice(0,10),depreciation_method:item?.depreciation_method==='linear'?'linear':'none',useful_life_months:item?.useful_life_months==null?'':String(item.useful_life_months),residual_value:item?.residual_value==null?'0':String(item.residual_value)}));
  const ownershipMembers=item?.owner_user_id&&!members.some(person=>String(person.id)===String(item.owner_user_id))?[...members,{id:String(item.owner_user_id),name:item.owner_name||'Propietario registrado',photo_url:item.owner_photo_url}]:members;
  const historicalCustodian=String(item?.custodian_user_id||'');
  const custodyIdentityMatches=!item?.current_custodian_user_id||String(item.current_custodian_user_id)===historicalCustodian;
@@ -590,6 +586,7 @@ export function InventoryItemForm({item,categories,members,storageTemplates,canM
  // Obligatorios mínimos: nombre (#130). El valor vacío se guarda como 0 y el
  // catálogo lo marca como «valor faltante» para completarlo después.
  function validate(){const next:typeof fieldErrors={};
+  if(values.ownership_kind==='external'&&values.external_owner_name.trim().length<2){setError('Indicá el nombre de la persona propietaria externa.');return false;}
   if(values.ownership_kind==='person'&&!values.owner_user_id){setError('Elegí la persona propietaria del equipo.');return false;}
   if(values.name.trim().length<2)next.name='Escribí el nombre del equipo (mínimo 2 caracteres).';
   if(!item&&!hasSerial&&(!/^\d+$/.test(quantity)||Number(quantity)<1||Number(quantity)>IA_REGISTROS_MAX))next.quantity=`Indicá cuántas unidades crear (1–${IA_REGISTROS_MAX}).`;
@@ -598,7 +595,7 @@ export function InventoryItemForm({item,categories,members,storageTemplates,canM
   if(next.depreciation)setAdvancedOpen(true);
   return Object.keys(next).length===0;
  }
- function payload(){return {...values,value:values.value||'0',owner_user_id:values.ownership_kind==='person'?values.owner_user_id:null,storage_location_id:templateId||null,purchase_value:values.purchase_value||null,purchase_date:values.purchase_date||null,useful_life_months:values.depreciation_method==='linear'?Number(values.useful_life_months):null,residual_value:values.residual_value||'0'};}
+ function payload(){return {...values,value:values.value||'0',owner_user_id:values.ownership_kind==='person'?values.owner_user_id:null,external_owner_name:values.ownership_kind==='external'?values.external_owner_name.trim():null,storage_location_id:templateId||null,purchase_value:values.purchase_value||null,purchase_date:values.purchase_date||null,useful_life_months:values.depreciation_method==='linear'?Number(values.useful_life_months):null,residual_value:values.residual_value||'0'};}
  async function save(resume:boolean){
   if(busy)return;
   setError('');setNotice('');
@@ -637,8 +634,8 @@ export function InventoryItemForm({item,categories,members,storageTemplates,canM
   <div className="inventory-value"><Label htmlFor="inventory-item-value">Valor del equipo</Label><MoneyInput placeholder="0" id="inventory-item-value" value={values.value} currency={values.currency} onChange={(value:string|number)=>changeValue(typeof value==='number'?String(value):value)}/>{Number(values.value||0)<=0?<small className="field-help">Sin valor queda como «valor faltante» en el catálogo; podés completarlo después.</small>:null}</div>
   <div className="inventory-currency"><SelectCustom label="Moneda" choices={currencyChoices} value={values.currency} onChange={(value:string)=>change('currency',value)}/></div>
   <fieldset className="grid gap-3 sm:grid-cols-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Propiedad del equipo</legend>
-   <SelectCustom label="Pertenece a" value={values.ownership_kind} choices={[{value:'unspecified',label:'Sin registrar'},{value:'company',label:'Empresa'},{value:'person',label:'Persona del equipo'}]} onChange={value=>{change('ownership_kind',value);if(value!=='person')change('owner_user_id','');}}/>
-   {values.ownership_kind==='person'?<SelectCustom label="Persona propietaria" value={values.owner_user_id} choices={[{value:'',label:'Elegí la persona propietaria'},...ownershipMembers.map(member=>({value:String(member.id),label:member.name,photoUrl:member.photo_url,kind:'person' as const}))]} onChange={value=>change('owner_user_id',value)}/>:<p className="self-end text-xs text-mute">La propiedad es independiente de quien tiene el equipo en custodia. No se asigna por el nombre del artículo.</p>}
+   <SelectCustom label="Pertenece a" value={values.ownership_kind} choices={[{value:'unspecified',label:'Sin registrar'},{value:'company',label:'Empresa'},{value:'person',label:'Persona del equipo'},{value:'external',label:'Persona externa'}]} onChange={value=>{change('ownership_kind',value);if(value!=='person')change('owner_user_id','');}}/>
+   {values.ownership_kind==='external'?<div><Label htmlFor="inventory-external-owner">Persona propietaria externa</Label><Input id="inventory-external-owner" value={values.external_owner_name} maxLength={160} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>change('external_owner_name',event.target.value)} placeholder="Nombre de la persona o empresa"/></div>:values.ownership_kind==='person'?<SelectCustom label="Persona propietaria" value={values.owner_user_id} choices={[{value:'',label:'Elegí la persona propietaria'},...ownershipMembers.map(member=>({value:String(member.id),label:member.name,photoUrl:member.photo_url,kind:'person' as const}))]} onChange={value=>change('owner_user_id',value)}/>:<p className="self-end text-xs text-mute">La propiedad es independiente de quien tiene el equipo en custodia. No se asigna por el nombre del artículo.</p>}
   </fieldset>
   <fieldset className="grid gap-2 sm:col-span-2"><legend className="text-[11px] font-medium uppercase tracking-wider text-mute">Ubicación de guardado</legend><div className="grid gap-2 sm:grid-cols-3"><div><SelectCustom label="Ubicación" choices={[{value:'',label:'Ubicación personalizada'},...availableTemplates.map(template=>({value:String(template.id),label:template.active?template.name:template.name+' · archivada'}))]} value={templateId} onChange={value=>{setTemplateId(value);const template=availableTemplates.find(candidate=>String(candidate.id)===value);if(template)change('storage_shelf',template.name);}}/></div>{!templateId?<div><Label htmlFor="inventory-item-shelf">Ubicación personalizada</Label><Input id="inventory-item-shelf" value={values.storage_shelf} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>change('storage_shelf',event.target.value)} maxLength={100} placeholder="Estante, depósito o lugar"/></div>:<p className="self-end text-xs text-mute">Se guarda como {availableTemplates.find(template=>template.id===templateId)?.name||values.storage_shelf}.</p>}<div><Label htmlFor="inventory-item-row">Fila / posición</Label><Input id="inventory-item-row" className="w-36" value={values.storage_row} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>change('storage_row',event.target.value)} maxLength={80}/></div></div>{canManageStorage?<div className="flex flex-wrap items-end gap-2"><div><Label htmlFor="inventory-item-new-place">Crear lugar</Label><Input id="inventory-item-new-place" className="w-52" value={newPlace} onChange={(event:React.ChangeEvent<HTMLInputElement>)=>setNewPlace(event.target.value)} maxLength={100} placeholder="Ej.: Depósito · Rack A"/></div><Button type="button" variant="ghost" disabled={!newPlace.trim()||creatingPlace} onClick={()=>void createPlace()}>{creatingPlace?'Creando…':'Crear lugar'}</Button></div>:null}</fieldset>
   <details className="rounded-xl border border-ink-600/60 bg-ink-800/40 p-3 sm:col-span-2" open={advancedOpen} onToggle={(event:React.SyntheticEvent<HTMLDetailsElement>)=>setAdvancedOpen((event.currentTarget as HTMLDetailsElement).open)}>
