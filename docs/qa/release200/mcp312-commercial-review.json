@@ -1,0 +1,68 @@
+{
+  "reviewedAt": "2026-10-20T05:47:14.076884+00:00",
+  "scope": "Read-only delta b374179a: permanent commercial terms, reporting and plan-history MCP tools; no full suite rerun",
+  "rootHead": "0bf6519076844f0f0cf375b2fae9578ffd13c137",
+  "deltaCommit": "b374179ab096300c6b462bbb241b75e00179b3b3",
+  "sourceSha256": {
+    "backend/mcp-tools.js": "8a1b2e7eaf7763d6dc0599508a50930ca4cbda586b0b713c0aaf7576d6b28ffa",
+    "backend/mcp-oauth.js": "799c9f32bde01b025b8a0f22c9c848d1a8ba19b9ec5f2820d09292e7794127e6",
+    "backend/mcp-server.js": "e9f3fda6fd61ef2cb036fe0d317fad5feb8225f15ddaeb0d22c3e39016acde48",
+    "backend/reports.js": "88e813b1ef525ae95231e283a53b02a5af3d36aaac0a9e992edcb05e3cf74c18",
+    "backend/economic-history.js": "4ebe6b6890dd87b2da7027e8695de207b972be8fb63662a00c386bd6696a56fe",
+    "backend/test-mcp.mjs": "b8d4e1ecb5daee49d868c9ed50dd449b351dd84680467fb6f3c99a4c72f9af11"
+  },
+  "verifiedBySourceReview": [
+    "Registry adds three tools, total 41; read tools scale:read+billing.view; PATCH scale:write+commercial-terms.manage",
+    "Reporting routes to reports.js, history to economicHistory, commercial PATCH to reports; monthlyIncome flag avoids intercepting all suffix routes",
+    "Write schema requires requestId, expectedRevision, reason, effectiveFrom and complete commercial fields; MCP enforces presence even where legacy REST is optional",
+    "Canonical PATCH revalidates tenant and capability, locks finance/client rows, checks revision and closed period, appends history and supports explicit-plan retry",
+    "Actor lease FOR SHARE holds only users and organization_members; new canonical routes do not update either table; finance advisory/client/plan locks do not introduce actor-lease cycle",
+    "Root/writer report PostgreSQL SDK integration tests PASS including commercial update/history, retry explicit plan, stale revision, role/capability denial, required revision and closed month; assertions independently inspected, suite not repeated"
+  ],
+  "observations": [
+    {
+      "severity": "medium",
+      "status": "Mitigated for MCP by explicit positive-ID schema and runtime guard in cc6a836a; preexisting canonical REST empty-plan retry tracked separately in issue #322",
+      "finding": "Commercial schema permits planId empty string; canonical validateTerms resolves it to Plan personalizado ID, but retry compares raw empty planId to stored generated ID, returning 409 for same request",
+      "proof": {
+        "schemaAllowsEmpty": true,
+        "canonicalRetryComparisonForGeneratedPlan": true
+      },
+      "files": [
+        "backend/mcp-tools.js commercial schema",
+        "backend/reports.js validateTerms and retry branch"
+      ],
+      "suggestion": "Require explicit planId in MCP until canonical retry normalizes generated custom-plan identity, or fix handler with focused regression",
+      "issue": "https://github.com/dariodeoli/scale-os/issues/322",
+      "mitigationProof": "/tmp/mcp312-commercial-plan-guard.log"
+    }
+  ],
+  "result": "PASS delta commercial review, including explicit-plan guard mitigation. No unresolved MCP finding in reviewed scope; canonical REST empty-plan retry remains tracked in #322.",
+  "limits": [
+    "Source review only for this delta; root and writer ran real PostgreSQL MCP suite",
+    "No production writes, external connector verification, deploy, repository edits or full-suite rerun",
+    "Previous independent review and focused authorization/rollback/concurrency proofs remain in /tmp/mcp312-final-review.json"
+  ],
+  "guardReviewedAt": "2026-10-20T05:49:12.600232+00:00",
+  "guardCommit": "cc6a836a27f04f1e3c3cdda67c0f0f734cbdf45b",
+  "guardSourceSha256": {
+    "backend/mcp-tools.js": "8c5f8b1a0203caa7f05572d4056dda4517058a7ebb3135d2fae13c32db9a715b",
+    "backend/test-mcp.mjs": "47aac5292fe34563fc34840faf28865c91da55aaf0cb303098f7fc7896eb9885",
+    "docs/MCP-CONNECTORS.md": "c0ffee51c1bf4a0a1f1bd4cf016454d0a7977804c8b2e9cc1a4604eb176a3060",
+    "docs/qa/mcp-312/explicit-plan.log": "c69e4524d2b2d15262629c5822230f63b1653809dc62cba7276b2ff3b5b889c9"
+  },
+  "rootHeadAtGuardReview": "17574130ad41dd2794e6bb93ff73bb81d1740dbc",
+  "guardMcpToolsIdenticalToRoot": true,
+  "guardChecks": {
+    "result": "PASS",
+    "log": "/tmp/mcp312-commercial-plan-guard.log",
+    "sha256": "b66c98401e818b41bc827b3b705eb83b48fe89ec62ce4120970470b3397b33e4",
+    "details": [
+      "41 tools remain advertised",
+      "Schema excludes empty planId and accepts positive plan ID",
+      "Independent actual callMcpTool invocation rejects empty plan before any DB access, lease or canonical handler",
+      "Writer PG test checks unchanged plan/term counts and bank balances, and explicit-ID retry remains idempotent",
+      "Docs instruct scale_create_plan then assign returned plan ID; #322 tracked outside MCP"
+    ]
+  }
+}

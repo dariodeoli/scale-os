@@ -20,3 +20,11 @@ Una rama integra formularios, ingresos por mes/extras, contratos, navegación, c
 - La preparación bumpó una sola vez a1.0.200. Tras un gate que encontró un tooltip perdido, se corrigió y completaron manualmente los mismos gates; no se ejecutó otro bump.
 
 CI y producción se agregan con resultados concretos al terminar. No se probó conexión con una cuenta real de Claude/ChatGPT ni firma digital certificada. El documento de firma es una propuesta técnica. No se probó impresión física.
+
+## Revisión comercial MCP final
+
+Catálogo41 herramientas. Cambiar precio/plan permanente conserva vigencia, snapshots, motivo, revisión, idempotencia y cierres con los handlers canónicos. Para un plan nuevo, el agente crea el plan con `scale_create_plan` y lo asigna por su ID explícito; el usuario puede pedirlo como una sola operación de negocio. Schema y runtime rechazan ID vacío antes de tocar DB. Reviewer independiente comprobó ese rechazo con Proxy DB que falla ante cualquier acceso; root y writer comprobaron PostgreSQL77+SDK.
+
+Se detectó un defecto preexistente del retry REST con plan automático sin ID, registrado en #322. MCP no anuncia ni acepta ese camino y no amplía permisos. El handler REST requiere seguimiento separado; no se afirma que ese defecto haya sido corregido.
+
+Backend64 scripts pasó antes del último guard MCP; el focal PostgreSQL/SDK y UTF8 pasó tras el guard. El CI final vuelve a ejecutar64 scripts completos sobre el candidato final.
