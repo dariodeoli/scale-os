@@ -1,0 +1,46 @@
+{
+  "baseline": "4530281ebb4bbb909f75afc02e9d00ccf9f3b057",
+  "integrationHead": "7f4a690f3db8374923c8e87ee28d279b84ec0536",
+  "issues": [
+    330,
+    331,
+    335
+  ],
+  "counts": {
+    "canonical": 634,
+    "structural": 53,
+    "renderer": 1
+  },
+  "unreviewed": 0,
+  "newCanonical": 8,
+  "changedCanonical": 3,
+  "retiredCanonical": 2,
+  "changedStructural": 1,
+  "retiredStructural": 2,
+  "immutableRecords": [
+    {
+      "file": "build-tools/migrate-ui-actions.mjs",
+      "sha256": "93de2c1686944bb756fa83e0c8068daa8c74e12ee83f3282cb45baa698bb8074",
+      "unchangedFromBaseline": true
+    },
+    {
+      "file": "docs/audits/241-ui-actions-migration-reviewed.json",
+      "sha256": "5bbc080f5ddc411bb67fb29725abb579d0dd34c7ccb50823978f4f55b2e13452",
+      "unchangedFromBaseline": true
+    },
+    {
+      "file": "docs/audits/241-ui-actions-applied.json",
+      "sha256": "8de04768324e4e843ece799ca039e79f3938af140a8b75d85b41107a53d1aaf9",
+      "unchangedFromBaseline": true
+    }
+  ],
+  "checks": {
+    "migrationTests": "PASS22",
+    "diffCheck": "PASS",
+    "ownershipBrowser": {
+      "scenarios": 18,
+      "comparisons": 1056,
+      "failures": 0
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "approved": true,
+    "file": "app/permissions-matrix.tsx",
+    "owner": "ModulePermissions",
+    "beforeHash": "1b4153c67ea9afcba0e4c979228e36376049b7c8d68eac88aafc9d8fcdb0bbb4",
+    "beforeLine": 104,
+    "beforeColumn": 76,
+    "beforeJsx": "<button key={roleId} type=\"button\" aria-pressed={checked} disabled={!owner||busy} title={`${row.label} \u00b7 ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${owner?'':'cursor-default'}`} onClick={()=>{if(owner&&!busy)void toggle(row.id,roleId,!checked);}}>\n        {checked?<Check size={12} aria-hidden=\"true\"/>:<X size={12} aria-hidden=\"true\"/>}\n        {teamRoleLabels[roleId]||roleId}\n       </button>",
+    "afterHash": "37b21629e80c6d9c40e865529c8d8139802ba695cd21fdbc4c5d84e252e697c0",
+    "afterLine": 106,
+    "afterColumn": 207,
+    "afterJsx": "<button key={roleId} type=\"button\" aria-pressed={checked} disabled={!editable||busy} title={`${row.label} \u00b7 ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${editable?'':'cursor-default'}`} onClick={()=>{if(editable&&!busy)void toggle(row.id,roleId,!checked);}}>\n        {checked?<Check size={12} aria-hidden=\"true\"/>:<X size={12} aria-hidden=\"true\"/>}\n        {teamRoleLabels[roleId]||roleId}\n       </button>",
+    "rationale": "The existing native permission option remains a type=button aria-pressed toggle, using the same roleId/row.id/checked values and busy guard. Its editable predicate now also requires the canonical policy permissionRoles and grantableCapabilities, so manager cannot toggle superior roles or salary permissions. Disabled, cursor and callback use the same predicate; no new widget exemption or save action is introduced."
+  }
+]

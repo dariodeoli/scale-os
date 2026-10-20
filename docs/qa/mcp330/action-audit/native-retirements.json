@@ -1,0 +1,26 @@
+[
+  {
+    "approved": true,
+    "file": "app/workspace-forms.tsx",
+    "owner": "AccountForm",
+    "siteHash": "3b6ba0f3aafacff712d6c643e64f94ccdd43c321070aece2168516ea1e7cb914",
+    "beforeLine": 380,
+    "beforeColumn": 13,
+    "beforeJsx": "<button\n              type=\"button\"\n              className={\n                form.watch(\"accountType\") === type.id\n                  ? \"choice active\"\n                  : \"choice\"\n              }\n              onClick={() => form.setValue(\"accountType\", type.id,{shouldDirty:true})}\n              key={type.id}\n            >\n              {type.label}\n            </button>",
+    "destination": "app/workspace-forms.tsx::AccountForm SelectCustom Tipo de cuenta",
+    "destinationJsx": "<SelectCustom label=\"Tipo de cuenta\" value={values.accountType} choices={[{value:'bank',label:'Banco'},{value:'cash',label:'Efectivo'},{value:'digital',label:'Digital'},{value:'investment',label:'Inversi\u00f3n'}]} onChange={value=>form.setValue('accountType',value as AccountValues['accountType'],{shouldDirty:true})}/>",
+    "rationale": "AccountForm removes this local native choice template and uses shared SelectCustom for Tipo de cuenta. Selected value and exact form.setValue field/shouldDirty callback are preserved; the shared presenter owns keyboard, search, labels and disabled fieldset inheritance. No selection capability was removed and no native exemption was added."
+  },
+  {
+    "approved": true,
+    "file": "app/workspace-forms.tsx",
+    "owner": "AccountForm",
+    "siteHash": "0e1d4c81a4c749ac5a827ecf4de4eea27876e00f5bcfcb2e65b07af63f5694d2",
+    "beforeLine": 426,
+    "beforeColumn": 13,
+    "beforeJsx": "<button\n              type=\"button\"\n              className={\n                form.watch(\"currency\") === currency ? \"choice active\" : \"choice\"\n              }\n              onClick={() => form.setValue(\"currency\", currency,{shouldDirty:true})}\n              key={currency}\n            >\n              {currency}\n            </button>",
+    "destination": "app/workspace-forms.tsx::AccountForm SelectCustom Moneda",
+    "destinationJsx": "<SelectCustom label=\"Moneda\" value={values.currency} choices={currencyCodes.map(value=>({value,label:value}))} onChange={value=>form.setValue('currency',value as AccountValues['currency'],{shouldDirty:true})}/>",
+    "rationale": "AccountForm removes this local native choice template and uses shared SelectCustom for Moneda. Selected value and exact form.setValue field/shouldDirty callback are preserved; the shared presenter owns keyboard, search, labels and disabled fieldset inheritance. No selection capability was removed and no native exemption was added."
+  }
+]

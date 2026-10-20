@@ -136,6 +136,31 @@ test('write refuses an unreviewed site before any eligible source changes',()=>{
  try{assert.throws(()=>runMigration({root,write:true,files:['app/page.tsx']}),/UNREVIEWED/);assert.equal(fs.readFileSync(path.join(root,'app/page.tsx'),'utf8'),source);}finally{fs.rmSync(root,{recursive:true,force:true});}
 });
 
+// A changed structural widget must trace back to an immutable reviewed widget.
+// Exact archived JSX binds each step; it cannot authorize a new native owner.
+function matchesReviewedWidget(site,history,changes,visited=new Set()){
+ if(site.action!=='retain'||visited.has(site.siteHash))return false;
+ if(history.some(old=>old.action==='retain'&&old.file===site.file&&old.owner===site.owner&&old.siteHash===site.siteHash))return true;
+ const review=changes.find(change=>change.approved===true&&change.file===site.file&&change.owner===site.owner&&change.afterHash===site.siteHash);
+ if(!review||typeof review.beforeJsx!=='string'||typeof review.afterJsx!=='string'||review.rationale?.length<=20)return false;
+ const hash=jsx=>createHash('sha256').update(jsx).digest('hex');
+ if(hash(review.beforeJsx)!==review.beforeHash||hash(review.afterJsx)!==review.afterHash||!review.beforeJsx.startsWith('<button')||!review.afterJsx.startsWith('<button'))return false;
+ const nextVisited=new Set(visited);nextVisited.add(site.siteHash);
+ return matchesReviewedWidget({...site,siteHash:review.beforeHash},history,changes,nextVisited);
+}
+
+test('structural widget review rejects tampered JSX, owners, hashes and unapproved changes',()=>{
+ const before='<button type="button" aria-pressed={on} onClick={toggle}>Role</button>',after='<button type="button" aria-pressed={on} disabled={!editable} onClick={toggle}>Role</button>';
+ const hash=jsx=>createHash('sha256').update(jsx).digest('hex');
+ const historical={action:'retain',file:'app/widget.tsx',owner:'RolePicker',siteHash:hash(before)};
+ const site={...historical,siteHash:hash(after)},review={approved:true,file:site.file,owner:site.owner,beforeHash:hash(before),afterHash:hash(after),beforeJsx:before,afterJsx:after,rationale:'Existing role toggle adds the canonical hierarchy guard, retaining native anatomy.'};
+ assert.equal(matchesReviewedWidget(site,[historical],[review]),true);
+ assert.equal(matchesReviewedWidget(site,[historical],[]),false,'changed JSX needs explicit review');
+ for(const patch of [{approved:false},{beforeJsx:before+' '},{afterJsx:after+' '},{beforeHash:'0'.repeat(64)},{afterHash:'0'.repeat(64)},{owner:'UnreviewedWidget'}])assert.equal(matchesReviewedWidget(site,[historical],[{...review,...patch}]),false,JSON.stringify(patch));
+ assert.equal(matchesReviewedWidget({...site,owner:'UnreviewedWidget'},[historical],[{...review,owner:'UnreviewedWidget'}]),false,'a new owner cannot inherit another widget exemption');
+ assert.equal(matchesReviewedWidget(site,[],[review]),false,'review must trace to immutable structural history');
+});
+
 test('repository migration accounts for every action and only explicitly reviewed native widgets remain',()=>{
  const read=name=>JSON.parse(fs.readFileSync(new URL(`../docs/audits/${name}`,import.meta.url),'utf8'));
  const history=read('241-ui-actions-migration-reviewed.json'),manifest=read('241-ui-actions-reviewed.json');
@@ -151,8 +176,12 @@ test('repository migration accounts for every action and only explicitly reviewe
  assert.equal(applied.unreviewed,0);assert.equal(final.unreviewed,0);
  assert.equal(reviewed.length,applied.sites.filter(s=>s.reviewed).length,'history includes every explicit decision, without a fixed inventory count');
  assert.equal(retained.length,reviewed.filter(s=>s.action==='retain').length-refresh.retiredStructural.length,'only still-present reviewed structural exceptions survive');
- assert(retained.every(site=>reviewed.some(old=>old.action==='retain'&&old.file===site.file&&old.siteHash===site.siteHash)),'all remaining widget JSX exactly matches its reviewed history');
- for(const retired of refresh.retiredStructural){assert(reviewed.some(site=>site.action==='retain'&&site.file===retired.file&&site.siteHash===retired.siteHash));assert(!retained.some(site=>site.file===retired.file&&site.siteHash===retired.siteHash));assert(retired.rationale.length>20);}
+ const structuralChanges=refresh.reviewedStructuralChanges||[];
+ assert.equal(new Set(structuralChanges.map(change=>`${change.file}:${change.owner}:${change.afterHash}`)).size,structuralChanges.length,'structural changes cannot be counted twice');
+ assert(retained.every(site=>matchesReviewedWidget(site,reviewed,structuralChanges)),'remaining widgets match immutable history or an exact independently reviewed JSX chain');
+ for(const change of structuralChanges){assert.match(change.baseline,/^[a-f0-9]{40}$/);assert(Number.isInteger(change.beforeLine)&&Number.isInteger(change.beforeColumn)&&Number.isInteger(change.afterLine)&&Number.isInteger(change.afterColumn));assert(retained.some(site=>site.file===change.file&&site.owner===change.owner&&site.siteHash===change.afterHash)||structuralChanges.some(next=>next.file===change.file&&next.owner===change.owner&&next.beforeHash===change.afterHash),'structural review must apply to a retained widget or the next exact review');}
+
+ for(const retired of refresh.retiredStructural){assert(reviewed.some(site=>site.action==='retain'&&site.file===retired.file&&site.siteHash===retired.siteHash&&(!retired.owner||site.owner===retired.owner)));assert(!retained.some(site=>site.file===retired.file&&site.siteHash===retired.siteHash&&(!retired.owner||site.owner===retired.owner)));assert(retired.rationale.length>20);}
  assert.equal(new Set(refresh.addedCanonical.map(site=>`${site.file}:${site.line}:${site.column}`)).size,refresh.addedCanonical.length);
  for(const added of refresh.addedCanonical){assert(final.sites.some(site=>site.status==='canonical'&&site.file===added.file&&site.line===added.line&&site.column===added.column));assert.match(added.siteHash,/^[a-f0-9]{64}$/);assert(added.rationale.length>20);}
  for(const changed of refresh.changedFiles){assert.equal(final.files.find(file=>file.file===changed.file)?.sha256,changed.afterHash);assert(changed.rationale.length>20);}

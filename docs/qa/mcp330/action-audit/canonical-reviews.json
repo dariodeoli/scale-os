@@ -1,0 +1,132 @@
+[
+  {
+    "approved": true,
+    "file": "app/invite-links.tsx",
+    "owner": "InviteLinks",
+    "beforeLine": 79,
+    "beforeColumn": 39,
+    "beforeHash": "09abd219c21ac9929c85addfae6faf474b4803e9846e3fca17657c0874d953bc",
+    "beforeJsx": "<ScaleButton className=\"text-button positive\" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')} variant=\"ghost\">Aprobar acceso</ScaleButton>",
+    "afterLine": 83,
+    "afterColumn": 64,
+    "afterHash": "6fa9794d307b771ba5fcedd307cb817dc8a02e904a46f034cee764d5ed912968",
+    "afterJsx": "<ScaleButton className=\"text-button positive\" disabled={busy} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'approve'},'PATCH')} variant=\"ghost\">Aprobar acceso</ScaleButton>",
+    "rationale": "The canonical access decision keeps the same selected request.id, action payload and PATCH route. The old owner-only disabled condition is replaced by an enclosing mayAssign(request.role) check sourced from policy.canManageMembers and policy.editableRoles; busy still disables the control. Both canonical API and live permission policy reject superior/peer grants."
+  },
+  {
+    "approved": true,
+    "file": "app/invite-links.tsx",
+    "owner": "InviteLinks",
+    "beforeLine": 80,
+    "beforeColumn": 10,
+    "beforeHash": "9868b8be91ea295ea784cc379961a7819ad526197ffad944c754eea9c2d43114",
+    "beforeJsx": "<ScaleButton className=\"text-button danger\" disabled={busy||(request.role==='owner'&&role!=='owner')} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')} variant=\"ghost\" color=\"danger\"><X size={14} aria-hidden=\"true\"/>Rechazar</ScaleButton>",
+    "afterLine": 84,
+    "afterColumn": 35,
+    "afterHash": "7381ed2f7be6e27e42da931eb9a4b34f818a7a4e01548b0bab15a0cbd91f8fe3",
+    "afterJsx": "<ScaleButton className=\"text-button danger\" disabled={busy} onClick={()=>act(`/api/agency/access-requests/${request.id}`,{action:'reject'},'PATCH')} variant=\"ghost\" color=\"danger\"><X size={14} aria-hidden=\"true\"/>Rechazar</ScaleButton>",
+    "rationale": "The canonical access decision keeps the same selected request.id, action payload and PATCH route. The old owner-only disabled condition is replaced by an enclosing mayAssign(request.role) check sourced from policy.canManageMembers and policy.editableRoles; busy still disables the control. Both canonical API and live permission policy reject superior/peer grants."
+  },
+  {
+    "approved": true,
+    "file": "app/workspace-forms.tsx",
+    "owner": "AccountForm",
+    "beforeLine": 441,
+    "beforeColumn": 80,
+    "beforeHash": "0f9b87c67d571213790ded57a8711d145bf8443d532657e631c5390416fec3c5",
+    "beforeJsx": "<ScaleButton className=\"primary\" disabled={submission.pending} variant=\"primary\">\n        {submission.pending ? \"Creando\u2026\" : \"Crear cuenta\"}\n      </ScaleButton>",
+    "afterLine": 334,
+    "afterColumn": 76,
+    "afterHash": "dc3a8d37457a4cf14c75b0bee087b85ccf82f37e05c0e0540b9fd3affc734c93",
+    "afterJsx": "<ScaleButton type=\"submit\" className=\"primary\" disabled={submission.pending} variant=\"primary\">{submission.pending?'Guardando\u2026':account?'Guardar cuenta':'Crear cuenta'}</ScaleButton>",
+    "rationale": "The shared AccountForm submit remains canonical primary and pending-disabled, now explicitly type=submit. Create and edit labels reflect account mode; both flow through useSingleFlightSubmit/form.handleSubmit, canonical POST/PATCH, request UUID and edit expectedRevision. No click writes outside validated submit."
+  },
+  {
+    "approved": true,
+    "file": "app/client-identity.tsx",
+    "owner": "ClientAppearance",
+    "beforeHash": null,
+    "afterLine": 68,
+    "afterColumn": 200,
+    "afterHash": "36b3f9d002f38ca655f53770fa75d98ebc827453a4e5cdf7906f6387119724f4",
+    "afterJsx": "<Button type=\"button\" variant=\"ghost\" aria-expanded={expanded} onClick={()=>setExpanded(value=>!value)}>{expanded?'Cerrar apariencia':'Editar logo y color'}</Button>",
+    "rationale": "The canonical ghost button toggles only the compact logo/color disclosure with setExpanded and mirrors state in aria-expanded; it has explicit type=button, preserves client edits and performs no API write itself."
+  },
+  {
+    "approved": true,
+    "file": "app/client-intake.tsx",
+    "owner": "ClientIntakeButton",
+    "beforeHash": null,
+    "afterLine": 14,
+    "afterColumn": 11,
+    "afterHash": "d3b655de398e6a2f8c954cde1ddb0bd1b828bbef9c0c7267546055cd567b94e7",
+    "afterJsx": "<Button type=\"button\" variant=\"secondary\" onClick={()=>setOpen(true)}>Enlaces de registro</Button>",
+    "rationale": "The canonical secondary type=button opens the existing reviewed intake Dialog for its scoped clientId. Parent renders it only with clients.manage and unrestricted contact; opening alone creates no link or client."
+  },
+  {
+    "approved": true,
+    "file": "app/client-intake.tsx",
+    "owner": "ClientIntakeDialog",
+    "beforeHash": null,
+    "afterLine": 29,
+    "afterColumn": 405,
+    "afterHash": "703c1377e6dae3385a0a4bda58919ed7207c756919ffb2e6a554cf49b725d34b",
+    "afterJsx": "<Button type=\"button\" variant=\"ghost\" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await api('/api/agency/client-intake-links/'+link.id,{},'DELETE');await load();}catch(cause){setError(message(cause));}finally{setBusy(false);}}}>Revocar enlace #{link.id}</Button>",
+    "rationale": "Revocation is available only for unrevoked/unconsumed links, disables while busy, sends canonical DELETE for the selected link.id, refreshes on success and exposes errors above. It revokes an invitation without deleting client data."
+  },
+  {
+    "approved": true,
+    "file": "app/client-intake.tsx",
+    "owner": "ClientIntakeDialog",
+    "beforeHash": null,
+    "afterLine": 31,
+    "afterColumn": 266,
+    "afterHash": "8f5762481bf3930b3f5edf24a82ba4a78a59ce6a121458007279d2274cf7564e",
+    "afterJsx": "<Button type=\"button\" variant=\"secondary\" onClick={()=>setReview(entry)}>Revisar solicitud #{entry.id}</Button>",
+    "rationale": "The canonical secondary type=button appears only for pending submissions and selects that exact entry for IntakeReview. It does not accept, create or overwrite a record; subsequent explicit reviewed fields and canonical revision guards perform the write."
+  },
+  {
+    "approved": true,
+    "file": "app/payment-review-panel.tsx",
+    "owner": "PaymentReviewPanel",
+    "beforeHash": null,
+    "afterLine": 27,
+    "afterColumn": 732,
+    "afterHash": "8de44b982702f66b6bc8807b51f6b4e6101f37a11870f9982492a214f6e831d2",
+    "afterJsx": "<Button variant=\"ghost\" type=\"button\" onClick={()=>setSelected(row)}>Regularizar</Button>",
+    "rationale": "The canonical ghost type=button selects the exact returned client review row and opens its month-specific review Dialog. The dialog states no payment is created; its Editor preserves requestId and expectedRevision for canonical review-only PATCH."
+  },
+  {
+    "approved": true,
+    "file": "app/payment-review-panel.tsx",
+    "owner": "PaymentReviewPanel",
+    "beforeHash": null,
+    "afterLine": 27,
+    "afterColumn": 821,
+    "afterHash": "1d47e27b6a14097fcb147359707b50cb2b3ee13d91b71c3c743213cd0b63ba0e",
+    "afterJsx": "<Button variant=\"secondary\" type=\"button\" onClick={()=>onReceive(String(row.client_id),month)}>Recibir pago</Button>",
+    "rationale": "The canonical secondary type=button invokes onReceive with the row.client_id and current month, opening the existing receipt form preselected. It does not infer payer, amount, account or create money before explicit form submission."
+  },
+  {
+    "approved": true,
+    "file": "app/payment-review-panel.tsx",
+    "owner": "PaymentReviewPanel",
+    "beforeHash": null,
+    "afterLine": 28,
+    "afterColumn": 11,
+    "afterHash": "63426047f89c8bce804fe45e804a3034fb519d08255127ac9def8416b672bc2d",
+    "afterJsx": "<Button type=\"button\" variant=\"secondary\" disabled={loadingMore} onClick={()=>void more()}>{loadingMore?'Cargando\u2026':'Cargar m\u00e1s clientes para revisar'}</Button>",
+    "rationale": "The canonical secondary type=button appears only when hasMore, disables during loadingMore, and invokes the locked more() reader. The reader binds generation and month, validates response rows, deduplicates and never writes payments."
+  },
+  {
+    "approved": true,
+    "file": "app/sections/finanzas.tsx",
+    "owner": "FinanzasSection",
+    "beforeHash": null,
+    "afterLine": 211,
+    "afterColumn": 30,
+    "afterHash": "7bf363490b21d1af9663c771db388f1678a79e8c77fc1bbc3eca397ededc7708",
+    "afterJsx": "<ScaleButton variant=\"ghost\" type=\"button\" className=\"text-button\" onClick={()=>setEditingAccount(account)}>Editar</ScaleButton>",
+    "rationale": "The canonical ghost type=button is inside canAccounts, opens the shared AccountCreateDialog with the exact current account, and performs no immediate write. Its PATCH uses current revision and request UUID; completed edits reload balances."
+  }
+]
