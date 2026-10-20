@@ -755,7 +755,10 @@
       "method": "POST",
       "path": "/api/agency/collaborators/:id/salary-history",
       "scope": "scale:write",
-      "cap": "salary.view",
+      "cap": [
+        "finance.view",
+        "members.manage"
+      ],
       "domain": "finance",
       "description": "Cambiar salario con vigencia, motivo, requestId y revisión. Además exige finance.view o members.manage; canonical registra cronología."
     },
