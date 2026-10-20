@@ -1,45 +1,21 @@
 [
   {
-    "method": "POST",
-    "path": "/api/agency/clients/:id/client-portal-invites",
-    "status": "excluded",
-    "reason": "Canonical response returns a raw bearer invitation URL. Human UI issues access credentials; MCP only reads invite/grant metadata."
-  },
-  {
     "method": "PATCH",
     "path": "/api/agency/productivity/profile",
     "status": "excluded",
     "reason": "Canonical personal profile writes lock the acting user FOR UPDATE, conflicting with the MCP live actor lease on another connection. Human profile UI retains identity edits."
   },
   {
-    "method": "GET",
-    "path": "/api/agency/invite-links",
-    "status": "excluded",
-    "reason": "Contains raw bearer invitation URLs; credential-bearing access links stay in the human UI."
-  },
-  {
     "method": "POST",
     "path": "/api/agency/invite-links",
     "status": "excluded",
-    "reason": "Creates bearer credentials and assigns access roles. Human access UI owns invitations."
-  },
-  {
-    "method": "DELETE",
-    "path": "/api/agency/invite-links/:id",
-    "status": "excluded",
-    "reason": "Access revocation and permanent deletion remain in the human access UI; no purge parameter exposed."
+    "reason": "Creates a bearer credential without a recipient delivery channel. The business invitation action is covered by scale_invite_member, which sends an email and returns no access credential."
   },
   {
     "method": "DELETE",
     "path": "/api/agency/members/:id/permanent",
     "status": "excluded",
     "reason": "Permanent purge is outside business MCP scope."
-  },
-  {
-    "method": "PATCH",
-    "path": "/api/agency/members/:id/photo",
-    "status": "excluded",
-    "reason": "Personal identity write may update the locked acting user indirectly via identity triggers; human profile UI handles identity edits."
   },
   {
     "method": "GET",
@@ -110,6 +86,46 @@
     "scope": "scale:read",
     "canonicalHandlers": true,
     "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/invite-links",
+    "status": "covered",
+    "tool": "scale_list_invitation_links",
+    "capability": "members.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/invite-links/:id",
+    "status": "covered",
+    "tool": "scale_revoke_invitation_link",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/clients/:id/client-portal-invites",
+    "status": "covered",
+    "tool": "scale_invite_client_portal_user",
+    "capability": "portal-access.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/members/:id/photo",
+    "status": "covered",
+    "tool": "scale_update_member_photo",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
   },
   {
     "method": "GET",

@@ -4,6 +4,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {migrationOrder} from './scripts/migration-order.mjs';
 import {CAPABILITIES,rolePermissions,roleCan,loadActorPermissions,permissionPolicy} from './permissions.js';
 import {suite} from './agency-suite.js';
+import {mcpWorkspaceTools,mcpWorkspaceHandlers} from './mcp-workspace-tools.js';
 import {inviteLinks} from './invite-links.js';
 import {agencyCore} from './agency-core.js';
 process.env.INVITE_LINK_SECRET??='test-member-policy330-secret-length32';
@@ -23,6 +24,7 @@ try{
   const user=actor&&await live(actor),ctx={req:{method,headers:{},socket:{remoteAddress:'permission-policy-fixture'}},res:{},url:new URL(path,'https://test.invalid'),db,session:async()=>user,body:async()=>data,send:(_,status,result)=>{response={status,...result};return true;},auditContext:async()=>{},sendInvitation:async()=>true};
   let handled=false;for(const handler of [rolePermissions,inviteLinks,suite,agencyCore])if(await handler(ctx)){handled=true;break;}assert(handled);return response;
  }
+ async function callMcp(name,args={},actor=actors.owner,services={}){const descriptor=mcpWorkspaceTools.find(tool=>tool.name===name),route=descriptor.resolve(args);let response;const ctx={...services,req:{method:descriptor.method,headers:{},socket:{remoteAddress:'mcp-permission-fixture'}},res:{},url:new URL(route.path,'https://test.invalid'),db,session:async()=>live(actor),body:async()=>structuredClone(args.data||{}),send:(_,status,result)=>{response={status,...result};return true;},auditContext:async()=>{},sendInvitation:async()=>true};let handled=false;for(const handler of mcpWorkspaceHandlers)if(await handler(ctx)){handled=true;break;}assert(handled);return response;}
  for(const cap of ['settings.manage','contracts.view','contracts.manage','contracts.issue','accounts.manage','payments.manage','finance.view','permissions.manage'])assert(roleCan(manager,cap),cap);
  for(const cap of ['salary.view','finance.balance.view']){assert.equal(roleCan(manager,cap),false);assert.equal(roleCan({...manager,capabilities:{[cap]:true}},cap),false,'manager hard denial '+cap);}
  assert(roleCan(actors.finance,'salary.view'),'existing finance salary default preserved');
@@ -31,6 +33,14 @@ try{
  const financeInvite=await call('/api/agency/invite-links','POST',{role:'finance',mode:'single'},actors.owner);assert.equal(financeInvite.status,200);
  const inviteMetadata=await call('/api/agency/invite-links');assert.equal(inviteMetadata.status,200);assert.equal(inviteMetadata.links.find(link=>String(link.id)===String(financeInvite.id)).url,null,'manager cannot obtain a salary-granting bearer invitation issued by an owner');
  assert.equal((await call('/api/agency/invite-links','POST',{role:'finance',mode:'single'})).status,403,'cannot issue salary-bearing invitation');
+ const priorSecret=process.env.INVITE_LINK_SECRET;delete process.env.INVITE_LINK_SECRET;
+ const safeMetadata=await callMcp('scale_list_invitation_links');assert.equal(safeMetadata.status,200);assert(safeMetadata.links.every(link=>!Object.hasOwn(link,'url')),'metadata reader never exposes invitation URLs, even to owner');process.env.INVITE_LINK_SECRET=priorSecret;
+ const client=(await one("insert into agency_clients(organization_id,name) values($1,'Client portal access policy') returning id",[org])).id;
+ assert.equal((await callMcp('scale_invite_client_portal_user',{id:String(client),data:{email:'portal-policy330@example.invalid'}})).status,503,'missing delivery service fails before creating a credential');
+ let deliveryCalls=0;const delivery={sendInvite:async()=>{deliveryCalls++;return false;}};
+ const portalInvite=await callMcp('scale_invite_client_portal_user',{id:String(client),data:{email:'portal-policy330@example.invalid'}},actors.owner,delivery);assert.equal(portalInvite.status,201,JSON.stringify(portalInvite));assert.equal(portalInvite.emailSent,false);assert(!Object.hasOwn(portalInvite,'url'));assert.equal(deliveryCalls,1);
+ const portalDelivered=await callMcp('scale_invite_client_portal_user',{id:String(client),data:{email:'portal-policy330@example.invalid'}},actors.owner,{sendInvite:async()=>true});assert.equal(portalDelivered.emailSent,true);assert(!Object.hasOwn(portalDelivered,'url'));
+
  assert.equal((await call(undefined,'PATCH',{role:'editor',capability:'clients.manage',allowed:false})).status,200);
  assert.equal((await call(undefined,'PATCH',{role:'editor',capability:'salary.view',allowed:true})).status,403);
  assert.equal((await call(undefined,'PATCH',{role:'management',capability:'clients.manage',allowed:true})).status,403);
@@ -49,7 +59,7 @@ try{
  assert.equal((await call('/api/agency/members/'+actors.viewer.id,'PATCH',{role:'admin'})).status,403,'no promotion above manager');
  assert.equal((await call('/api/agency/members/'+actors.viewer.id,'PATCH',{role:'finance'})).status,403,'no indirect salary grant via role');
  assert.equal((await call('/api/agency/members/'+actors.viewer.id,'PATCH',{role:'editor',expected_role:'viewer',expected_active:true})).status,200,'allowed subordinate role edit');
- assert.equal((await call('/api/agency/members/'+manager.id,'PATCH',{active:false})).status,403,'no self access edits');
+ assert.equal((await call('/api/agency/members/'+manager.id,'PATCH',{active:false})).status,400,'no self access edits');
  assert.equal((await call('/api/agency/members/'+actors.finance.id,'PATCH',{active:false})).status,200,'can suspend lower finance access without granting salary');
  assert.equal((await call('/api/agency/members/'+actors.finance.id,'PATCH',{active:true})).status,403,'reactivation cannot indirectly grant salary');
  const members=await call('/api/agency/members');assert.equal(members.status,200);assert.equal(members.members.find(row=>String(row.id)===String(manager.id)).access_editable,false);assert.equal(members.members.find(row=>String(row.id)===String(actors.admin.id)).permissions_editable,false);

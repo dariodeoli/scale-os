@@ -113,6 +113,7 @@ export async function suite({req,res,url,db,session,body,send,sendInvitation,sen
   if(kind==='members'){
    const manager=await lockMemberManager(c,user);
    const current=(await c.query('select m.*,u.email from organization_members m join users u on u.id=m.user_id where m.user_id=$1 and m.organization_id=$2 and m.removed_at is null for update of m',[key,org])).rows[0];if(!current)fail('Integrante no encontrado',404);
+   if(String(current.user_id)===String(user.id))fail('No podés cambiar tu propio acceso desde el editor del equipo');
    if(!accessEditable(manager,current))fail('Solo podés gestionar accesos de integrantes autorizados distintos de vos.',403);
    if(action==='resend'&&req.method==='POST'){if(!current.active)fail('Reactivá el acceso antes de invitar');await c.query('commit');transaction=false;const emailSent=await sendInvitation(current.email,user.organization_name,current.role).catch(()=>false);send(res,200,{emailSent});return true;}
    if(req.method!=='PATCH'||action)fail('Método no permitido',405);

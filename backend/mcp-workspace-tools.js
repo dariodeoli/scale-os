@@ -41,6 +41,10 @@ const collaboratorProfile=object({full_name:{type:'string',minLength:2,maxLength
 const salaryFields=['compensation_type','compensation_amount','currency','monthly_salary_amount','monthly_salary_currency','payment_day','invoices_company'];
 export const mcpWorkspaceTools=[
  tool('scale_list_client_portal_access','GET','/api/agency/clients','portal-access.manage',{properties:{id:identifier},required:['id'],resolve:args=>({path:`/api/agency/clients/${args.id}/client-portal-invites`})}),
+ tool('scale_list_invitation_links','GET','/api/agency/invite-links','members.manage',{description:'Consultar metadatos de enlaces de invitación sin devolver URLs ni credenciales de acceso.'}),
+ tool('scale_revoke_invitation_link','DELETE','/api/agency/invite-links','members.manage',{...protectedAccess,properties:{id:identifier},required:['id'],resolve:args=>({path:`/api/agency/invite-links/${args.id}`})}),
+ tool('scale_invite_client_portal_user','POST','/api/agency/clients','portal-access.manage',{financial:true,properties:{id:identifier},required:['id'],data:object({email:{type:'string',format:'email',maxLength:200},expiresInDays:{type:'integer',minimum:1,maximum:30}},['email']),resolve:args=>({path:`/api/agency/clients/${args.id}/client-portal-invites`}),description:'Invitar por correo a un cliente al portal. Devuelve metadatos y el estado real de envío; nunca devuelve la credencial de acceso.'}),
+ tool('scale_update_member_photo','PATCH','/api/agency/members','members.manage',{...protectedAccess,properties:{id:identifier},required:['id'],data:object({photo_url:string(2000)},['photo_url']),resolve:args=>({path:`/api/agency/members/${args.id}/photo`})}),
  tool('scale_list_collaborators','GET','/api/agency/collaborators',['members.manage','finance.view']),
  tool('scale_create_collaborator','POST','/api/agency/collaborators',['members.manage','finance.view'],{financial:true,data:{...collaboratorProfile,required:['full_name']},description:'Crear un perfil laboral. Si el actor está autorizado, el módulo canónico puede vincular o invitar acceso de lectura por correo; los permisos salariales se verifican por separado.'}),
  tool('scale_update_collaborator','PATCH','/api/agency/collaborators',['members.manage','finance.view'],{financial:true,properties:{id:identifier},required:['id'],data:collaboratorProfile,resolve:args=>({path:`/api/agency/collaborators/${args.id}`}),description:'Editar el perfil laboral con los permisos actuales. Gerencia no puede cambiar remuneraciones ni perfiles ligados a integrantes superiores. El módulo canónico conserva las reglas de vinculación de acceso.'}),
@@ -89,6 +93,15 @@ async function scopedWorkspacePreferences(ctx){
  const req={...ctx.req,headers:{...ctx.req.headers,'x-scale-preference-scope':`${actor?.id}:${actor?.organization_id}`}};
  return workspacePreferences({...ctx,req});
 }
+async function privateInvitationMetadata(ctx){
+ if(ctx.url.pathname==='/api/agency/invite-links'&&ctx.req.method==='GET')return inviteLinks({...ctx,exposeInviteCredentials:false,send:(res,status,data)=>ctx.send(res,status,data?.links?{...data,links:data.links.map(({url,...link})=>link)}:data)});
+ if(/^\/api\/agency\/clients\/\d+\/client-portal-invites$/.test(ctx.url.pathname)&&ctx.req.method==='POST'){
+  if(typeof ctx.sendInvite!=='function')return ctx.send(ctx.res,503,{error:'El servicio de invitaciones del portal no está disponible.'});
+  let emailSent=false;
+  return clientPortal({...ctx,sendInvite:async(...args)=>{const sent=await ctx.sendInvite(...args);emailSent=sent===true;return sent;},send:(res,status,data)=>{const {url,...metadata}=data||{};return ctx.send(res,status,status<400?{...metadata,emailSent}:metadata);}});
+ }
+ return false;
+}
 async function protectedWorkspaceAccess(ctx){
  const member=ctx.url.pathname.match(/^\/api\/agency\/members\/(\d+)(?:\/(?:resend|permissions|photo))?$/);
  if(member&&ctx.req.method!=='GET'){const actor=await ctx.session(ctx.req);if(String(BigInt(member[1]))===String(actor.id))return ctx.send(ctx.res,403,{error:'No podés modificar tu propio acceso, permisos o identidad mediante esta conexión.'});}
@@ -100,4 +113,4 @@ async function protectedWorkspaceAccess(ctx){
  }
  return false;
 }
-export const mcpWorkspaceHandlers=[protectedWorkspaceAccess,scopedWorkspacePreferences,notifications,rolePermissions,inviteLinks,agencyAnnouncements,recordLifecycle,clientPortal,contracts,productivity,suite,operations,agencyCore];
+export const mcpWorkspaceHandlers=[protectedWorkspaceAccess,privateInvitationMetadata,scopedWorkspacePreferences,notifications,rolePermissions,inviteLinks,agencyAnnouncements,recordLifecycle,clientPortal,contracts,productivity,suite,operations,agencyCore];
