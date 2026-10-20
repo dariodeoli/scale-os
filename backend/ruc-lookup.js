@@ -61,7 +61,7 @@ const nonempty=value=>typeof value==='string'&&value.trim().length>0;
 const validDay=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 function ownDataMetadata(meta){
  const source=meta?.provenance,quota=meta?.quota;
- let https=false;try{const url=new URL(source?.sourcePage);https=url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443');}catch{}
+ let https=false;try{const url=new URL(source?.sourcePage);https=typeof source?.sourcePage==='string'&&url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443');}catch{}
  return ['test','live'].includes(meta?.environment)&&source?.source==='dnit_official_snapshot'&&https&&validDay(source.publicationDate)&&
   nonempty(source.importedAt)&&validDay(source.importedAt.slice(0,10))&&Number.isFinite(Date.parse(source.importedAt))&&typeof source.publishedText==='string'&&typeof source.snapshotHash==='string'&&/^[a-f0-9]{64}$/i.test(source.snapshotHash)&&
   quota&&['limit','used','remaining','resetAfter'].every(key=>Number.isSafeInteger(quota[key])&&quota[key]>=0)&&validDay(quota.day);
