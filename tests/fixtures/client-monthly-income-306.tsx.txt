@@ -1,0 +1,17 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {ClientMonthlyIncomeButton} from './app/client-monthly-income';
+import {FinanceClientsSection} from './app/finance-clients';
+import {CompanyCurrencyProvider} from './app/currency-provider';
+const month='2026-10';
+let revision=1,entries:any[]=[];let nextId=20;
+Object.assign(window,{incomeWrites:[],incomeRefreshes:0});
+const state=()=>({clientId:'7',month,revision:String(revision),canManage:true,periodClosed:false,archived:false,entries,totals:[{currency:'PYG',baseAmount:entries.find(e=>e.kind==='base')?.amount||0,extrasAmount:entries.filter(e=>e.kind==='extra').reduce((s,e)=>s+Number(e.amount),0),totalAmount:entries.reduce((s,e)=>s+Number(e.amount),0)}]});
+window.fetch=async(input:any,init:any={})=>{
+ const url=String(input);if(!url.includes('/clients/7/monthly-income'))return new Response(JSON.stringify({error:'Synthetic fixture route missing'}),{status:404});
+ if(init.body){const body=JSON.parse(init.body);window.incomeWrites.push({url,method:init.method,body});if(body.expectedRevision!==String(revision))return new Response(JSON.stringify({error:'Revisión obsoleta'}),{status:409});
+ const id=url.match(/monthly-income\/(\d+)/)?.[1];if(init.method==='DELETE')entries=entries.filter(e=>e.id!==id);else{const row={id:id||String(++nextId),month,kind:body.kind,label:body.label,amount:Number(body.amount),currency:body.currency,version:1,createdAt:'2026-10-20T15:00:00Z'};entries=id?entries.map(e=>e.id===id?row:e):[...entries,row];}revision++;}
+ return new Response(JSON.stringify(state()),{status:init.method==='POST'?201:200,headers:{'Content-Type':'application/json'}});
+};
+const client={client_id:'7',client_name:'Cliente de ejemplo sin plan · Servicios audiovisuales y producción mensual',client_active:true,client_logo_url:null,plan_id:null,plan_name:null,currency:'PYG',base_amount:'0',extras_amount:'0',contracted_amount:'0',invoice_required:false,received_in_month:'0',applied_to_month_invoices:'0',unallocated_received_in_month:'0',registered_outstanding:'0'};
+createRoot(document.getElementById('root')!).render(<CompanyCurrencyProvider organizationId="fixture306" defaultCurrency="PYG"><main className="control-shell"><section className="panel"><h1>Finanzas · ejemplo sintético</h1><ClientMonthlyIncomeButton clientId="7" name={client.client_name} month={month} onSaved={()=>{window.incomeRefreshes++;}}/></section><FinanceClientsSection clients={[client]} month={month} role="owner" canManageTerms canHistory onReload={()=>{window.incomeRefreshes++;}}/></main></CompanyCurrencyProvider>);
