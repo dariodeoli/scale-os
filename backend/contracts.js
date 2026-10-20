@@ -1,7 +1,11 @@
+import {mediaPhoto} from './agency-media.js';
+import {contractHtml} from './contract-document.js';
+export {contractHtml} from './contract-document.js';
 import {companyLocalityCatalog,companyLocalityProfile,companyLocalityProvenance,CompanyLocalityValidationError} from './company-locality.js';
 import {assertDemoEffectAllowed,isDemoActor} from './demo-effects.js';
 import {roleCan} from './permissions.js';
 import {fillContractCommercial} from './contract-commercial.js';
+import {CONTRACT_EXAMPLE_VARIABLES} from './contract-examples.js';
 import {BUILTIN_CONTRACT_MODELS} from './contract-models.js';
 import {assertRecordAvailable,visibleRecord} from './record-lifecycle.js';
 import {fail,text,id,optId} from './suite-validation.js';
@@ -35,8 +39,7 @@ export function contractBody(value){const body=clean(value,60000);if(!body)fail(
 function required(input=[]){if(!Array.isArray(input)||input.length>CONTRACT_VARIABLES.length||input.some(k=>!CONTRACT_VARIABLES.includes(k)))fail('Campos requeridos inválidos');return [...new Set(input)];}
 export function contractMissing(body,variables,fields=[]){return [...new Set([...required(parse(fields)),...[...body.matchAll(/\{\{\s*([\w.]+)\s*\}\}/g)].map(m=>m[1])])].filter(k=>!variables[k]?.trim());}
 export function renderContractText(body,variables){return body.replace(/\{\{\s*([\w.]+)\s*\}\}/g,(_,k)=>variables[k]??'');}
-const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function contractHtml(version){return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escape(version.title)}</title><style>@page{size:A4;margin:20mm}body{font:12pt/1.55 Arial,sans-serif;color:#171717}h1{font-size:19pt;overflow-wrap:anywhere}.body{white-space:pre-wrap;overflow-wrap:anywhere}footer{margin-top:24pt;font-size:9pt;color:#555}</style></head><body><h1>${escape(version.title)}</h1><div class="body">${escape(version.rendered_text)}</div><footer>Versión ${Number(version.version)} · Documento revisado por una persona. La asistencia de IA no constituye validación legal.</footer></body></html>`;}
+
 function revision(value,old){if(!Number.isSafeInteger(value)||value<1)fail('Indicá la revisión esperada');if(value!==old.revision)fail('El documento cambió. Actualizá antes de guardar.',409);}
 function bankAccess(user){return roleCan(user,'contracts.bank-data.view');}
 function guardBank(user,row){if(row.contains_bank_data&&!bankAccess(user))fail('Sin permiso para datos bancarios del contrato',403);}
@@ -93,7 +96,7 @@ export async function contracts({req,res,url,db,session,body,send,pdfRenderer=re
   const u=await session(req);if(!u)fail('No autenticado',401);
   if(!roleCan(u,path===profilePath?'settings.manage':'contracts.view'))fail('Sin permiso para contratos',403);
   c=await db.connect();await c.query('begin');tx=true;
-  const mutate=req.method!=='GET';if(mutate&&path!==profilePath&&!roleCan(u,'contracts.manage'))fail('Sin permiso para gestionar contratos',403);
+  const mutate=req.method!=='GET';if(mutate&&path!==profilePath&&path!=='/api/agency/contracts/preview'&&!roleCan(u,'contracts.manage'))fail('Sin permiso para gestionar contratos',403);
   let result,status=200;
   if(path===profilePath){
    if(req.method==='GET')result={profile:companyLocalityProfile(hydrate((await c.query('select * from agency_company_legal_profiles where organization_id=$1',[u.organization_id])).rows[0])||{revision:0,city:'',department:'',legal_representative_name:'',legal_representative_document:'',legal_representative_role:'',provenance:{}}),locality_catalog:companyLocalityCatalog()};
@@ -108,8 +111,30 @@ export async function contracts({req,res,url,db,session,body,send,pdfRenderer=re
    }else fail('Método no permitido',405);
   }else if(path==='/api/agency/contracts/config'&&req.method==='GET'){
    const manage=roleCan(u,'contracts.manage'),bank=bankAccess(u)&&roleCan(u,'finance.view'),commercial=manage&&roleCan(u,'budgets.manage');
-   result={capabilities:{view:true,create:manage,edit:manage,templates_manage:manage,issue:roleCan(u,'contracts.issue'),bank_data_view:bankAccess(u),assist:manage&&!isDemoActor(u)&&Boolean(iaConfig())},clients:manage?(await c.query(`select r.id,r.name from agency_clients r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','clients')} order by r.name`,[u.organization_id])).rows:[],collaborators:manage?(await c.query(`select r.id,r.full_name as name from agency_collaborators r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','collaborators')} order by r.full_name`,[u.organization_id])).rows:[],budgets:commercial?(await c.query(`select r.id,r.title as name,r.client_id from agency_budgets r join agency_clients cl on cl.id=r.client_id and cl.organization_id=r.organization_id where r.organization_id=$1 and r.status not in ('rejected','expired') and cl.active=true and ${visibleRecord('r','budgets')} and ${visibleRecord('cl','clients')} order by r.id desc`,[u.organization_id])).rows:[],plans:commercial?(await c.query(`select r.id,r.name from agency_plans r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','plans')} order by r.name`,[u.organization_id])).rows:[],bank_accounts:manage&&bank?(await c.query('select id,name from bank_accounts where organization_id=$1 and active=true order by name',[u.organization_id])).rows:[]};
+   result={capabilities:{view:true,create:manage,edit:manage,templates_manage:manage,issue:roleCan(u,'contracts.issue'),bank_data_view:bankAccess(u),assist:manage&&!isDemoActor(u)&&Boolean(iaConfig())},clients:manage?(await c.query(`select r.id,r.name,r.legal_name,r.logo_url from agency_clients r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','clients')} order by r.name`,[u.organization_id])).rows:[],collaborators:manage?(await c.query(`select r.id,r.full_name as name,r.photo_url from agency_collaborators r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','collaborators')} order by r.full_name`,[u.organization_id])).rows:[],budgets:commercial?(await c.query(`select r.id,r.title as name,r.client_id from agency_budgets r join agency_clients cl on cl.id=r.client_id and cl.organization_id=r.organization_id where r.organization_id=$1 and r.status not in ('rejected','expired') and cl.active=true and ${visibleRecord('r','budgets')} and ${visibleRecord('cl','clients')} order by r.id desc`,[u.organization_id])).rows:[],plans:commercial?(await c.query(`select r.id,r.name from agency_plans r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','plans')} order by r.name`,[u.organization_id])).rows:[],bank_accounts:manage&&bank?(await c.query('select id,name from bank_accounts where organization_id=$1 and active=true order by name',[u.organization_id])).rows:[]};
+   result.clients=result.clients.map(row=>({...row,logo_url:mediaPhoto('client',row.id,row.logo_url)}));
+   result.collaborators=result.collaborators.map(row=>({...row,photo_url:mediaPhoto('collaborator',row.id,row.photo_url)}));
   }else if(path==='/api/agency/contracts/models'&&req.method==='GET'){result={models:BUILTIN_CONTRACT_MODELS};}
+  else if(path==='/api/agency/contracts/preview'&&req.method==='POST'){
+   const b=object(await body(req)),allowed=['model_key','template_id','contract_id','title','body','variables','sample','client_id','collaborator_id','bank_account_id','budget_id','plan_id','expected_revision'];
+   if(!roleCan(u,'contracts.manage')&&(!b.contract_id||Object.keys(b).some(key=>key!=='contract_id')))fail('Sin permiso para editar o completar la vista previa',403);
+   if(Object.keys(b).some(key=>!allowed.includes(key)))fail('Campo de vista previa inválido');
+   if(b.sample!==undefined&&typeof b.sample!=='boolean')fail('Indicá si la vista es un ejemplo');
+   if(['model_key','template_id','contract_id'].filter(key=>Object.hasOwn(b,key)).length!==1)fail('Elegí un único modelo, plantilla o contrato para la vista previa');
+   if(b.sample&&(!b.model_key||['client_id','collaborator_id','bank_account_id','budget_id','plan_id','variables','title','body'].some(key=>Object.hasOwn(b,key))))fail('El ejemplo usa sólo datos ficticios del modelo, sin registros reales');
+   let source;
+   if(b.model_key){source=BUILTIN_CONTRACT_MODELS.find(model=>model.key===b.model_key);if(!source)fail('Modelo no encontrado',404);}
+   else if(b.template_id)source=await owned(c,'agency_contract_templates',b.template_id,u);
+   else{source=await owned(c,'agency_contracts',b.contract_id,u);guardBank(u,source);if(['client_id','collaborator_id','bank_account_id','budget_id','plan_id'].some(key=>Object.hasOwn(b,key)))fail('La vista previa conserva la contraparte y los orígenes del contrato');if(b.expected_revision!==undefined)revision(b.expected_revision,source);}
+   const document=b.body===undefined?source.body:contractBody(b.body),title=clean(b.title??source.title??source.name,160);
+   if(!title)fail('Ingresá el título');
+   const filled=b.sample?{variables:Object.fromEntries(Object.entries(CONTRACT_EXAMPLE_VARIABLES).filter(([key])=>source.required_fields.includes(key)))}:b.contract_id?{variables:source.variables}:await fill(c,u,b);
+   const variables={...filled.variables,...contractVariables(b.variables??{})};
+   if((hasBank(document,variables)||source.contains_bank_data)&&!bankAccess(u))fail('Sin permiso para datos bancarios',403);
+   const missing=contractMissing(document,variables,source.required_fields),rendered_text=renderContractText(document,Object.fromEntries(CONTRACT_VARIABLES.map(key=>[key,variables[key]?.trim()?variables[key]:`⟦Pendiente: ${key}⟧`])));
+   result={preview:{title,html:contractHtml({title,rendered_text},{draft:true,simulated:b.sample===true,missing}),rendered_text,missing,simulated:b.sample===true,draft:true}};
+   await audit(c,u,'preview',source.id??b.model_key,'view',source.revision??null);
+  }
   else if(path==='/api/agency/contracts/templates/from-model'&&req.method==='POST'){
    const b=object(await body(req)),model=BUILTIN_CONTRACT_MODELS.find(model=>model.key===b.model_key);if(!model)fail('Modelo no encontrado',404);
    const row=(await c.query('insert into agency_contract_templates(organization_id,name,agreement_type,body,required_fields,created_by) values($1,$2,$3,$4,$5::jsonb,$6) returning *',[u.organization_id,clean(model.name,160),clean(model.agreement_type,120),contractBody(model.body),JSON.stringify(required(model.required_fields)),u.id])).rows[0];result={template:hydrate(row)};status=201;await audit(c,u,'template',row.id,'create',1);
