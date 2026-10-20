@@ -1,0 +1,213 @@
+{
+  "passed": true,
+  "browser": "Chromium",
+  "scope": "Standalone shared renderer and real A4 PDFs; fictional data, no authenticated application routes or physical printing",
+  "measurements": [
+    {
+      "model": "marketing-monthly",
+      "width": 320,
+      "scrollWidth": 320,
+      "bodyWidth": 320,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-monthly",
+      "width": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-monthly",
+      "width": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-monthly",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "bodyWidth": 793.6875,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-monthly",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 793.6875,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-preferential",
+      "width": 320,
+      "scrollWidth": 320,
+      "bodyWidth": 320,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-preferential",
+      "width": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-preferential",
+      "width": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-preferential",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "bodyWidth": 793.6875,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "marketing-preferential",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 793.6875,
+      "headings": 17,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "audiovisual-package",
+      "width": 320,
+      "scrollWidth": 320,
+      "bodyWidth": 320,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "audiovisual-package",
+      "width": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "audiovisual-package",
+      "width": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "audiovisual-package",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "bodyWidth": 793.6875,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "audiovisual-package",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 793.6875,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "project-services",
+      "width": 320,
+      "scrollWidth": 320,
+      "bodyWidth": 320,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "project-services",
+      "width": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "project-services",
+      "width": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "project-services",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "bodyWidth": 793.6875,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    },
+    {
+      "model": "project-services",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 793.6875,
+      "headings": 16,
+      "unresolved": false,
+      "simulated": true
+    }
+  ],
+  "documents": [
+    {
+      "model": "marketing-monthly",
+      "pdf": "/tmp/scale-contract-document-308/marketing-monthly.pdf",
+      "pages": 3,
+      "fictional": true
+    },
+    {
+      "model": "marketing-preferential",
+      "pdf": "/tmp/scale-contract-document-308/marketing-preferential.pdf",
+      "pages": 3,
+      "fictional": true
+    },
+    {
+      "model": "audiovisual-package",
+      "pdf": "/tmp/scale-contract-document-308/audiovisual-package.pdf",
+      "pages": 3,
+      "fictional": true
+    },
+    {
+      "model": "project-services",
+      "pdf": "/tmp/scale-contract-document-308/project-services.pdf",
+      "pages": 3,
+      "fictional": true
+    }
+  ]
+}
