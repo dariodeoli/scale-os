@@ -518,9 +518,9 @@
   {
     "method": "PATCH",
     "path": "/api/agency/collaborators/:id",
-    "tool": null,
-    "status": "excluded-access-side-effects",
-    "reason": "General collaborator PATCH may create users/memberships implicitly. Finance exposes audited salary-history only; compensation modality/profile requires team-domain guard and dedicated coverage."
+    "tool": "scale_update_collaborator",
+    "status": "covered-other-domain",
+    "reason": "Workspace module provides hierarchical/access guards and salary.view restrictions on compensation fields; finance provides audited salary-history and monthly overrides."
   },
   {
     "method": "POST",
