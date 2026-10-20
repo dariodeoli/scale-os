@@ -2,7 +2,7 @@ import {isDemoActor} from './demo-effects.js';
 import {financeError,lockFinanceMutation} from './finance-treasury.js';
 import {fail,text,id,optId,option,amount,date,email} from './suite-validation.js';
 import {currencies} from './currencies.js';
-import {roleCan} from './permissions.js';
+import {roleCan,accessEditable,permissionsEditable,permissionPolicy} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
 import {companyCurrency,forecastMonth,forecastTimezone} from './forecast.js';
 import { collaboratorAccess } from './collaborator-access.js';
@@ -66,6 +66,8 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
     if(withSalary.length)await logPersonalDataAccess(c,{organizationId:org,actorUserId:user.id,actorLabel:user.full_name||user.email||null,action:'salary.view',context:'team',details:{collaborator_ids:withSalary.slice(0,100).map(row=>String(row.id))}});
    }
    }
+   if(result?.members)result.members=result.members.map(member=>({...member,access_editable:accessEditable(user,member),permissions_editable:permissionsEditable(user,member)}));
+   result.policy=await permissionPolicy(c,user);
   }else if(jobMatch) {
    await c.query('select ensure_agency_job_catalog($1)',[org]);
    if(req.method==='GET')result={roles:(await c.query('select * from agency_job_roles where organization_id=$1 order by active desc,name',[org])).rows};
@@ -132,6 +134,7 @@ export async function operations({req,res,url,db,session,body,send,sendInvitatio
      if((await c.query('select id from agency_collaborators where organization_id=$1 and lower(trim(email))=$2',[org,contact])).rows.length)fail('Esta persona ya tiene un perfil en la empresa. Buscalo en Equipo o restauralo desde Papelera.',409);
     }
     if(uid&&String(uid)!==String(previous.user_id||'')&&!roleCan(user,'members.manage'))fail('Solo administración puede vincular accesos',403);
+    if(user.role==='management'&&uid){const target=(await c.query('select user_id,role from organization_members where organization_id=$1 and user_id=$2',[org,uid])).rows[0];if(!target||!accessEditable(user,target))fail('Solo podés editar perfiles vinculados a integrantes con un rol inferior autorizado.',403);}
     if(uid&&!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2',[org,uid])).rows.length) fail('El acceso debe pertenecer a esta empresa');
     if(uid&&contact){const linked=(await c.query('select email from users where id=$1',[uid])).rows[0];if(linked.email!==contact){if(incoming.user_id)fail('El acceso debe coincidir con el correo de contacto');uid=null;}}
     const jobId=optId(b.job_role_id);let jobTitle=text(b.job_title||'',120);
