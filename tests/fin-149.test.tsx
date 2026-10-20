@@ -78,7 +78,7 @@ async function formulariosBloquean(){
  console.log('PASS #149 bloqueo: factura y cobro deshabilitados con obligatorios incompletos, errores inline, identidades demo con nombre');
 }
 
-/** #149: etiquetas de mes largas y «Sin mora» cuando no hay saldo vencido. */
+/** #149/#335: etiquetas de mes largas; sin evidencia mensual no se afirma cobro. */
 async function etiquetasYEstado(){
  assert.equal(listMonthLabel('2026-10'),'Octubre 2026','el mes se etiqueta completo');
  assert.equal(dateLabel('2026-10'),'Octubre 2026','Previsión usa la etiqueta completa');
@@ -94,10 +94,11 @@ async function etiquetasYEstado(){
   moraDso={null}
  />);});
  const maquetado=textOf(renderer!);
- assert.match(maquetado,/Sin mora/,'un cliente sin saldo vencido se rotula «Sin mora»');
+ assert.match(maquetado,/Pago por verificar/,'sin metadata mensual no se afirma el cobro');
+ assert.doesNotMatch(maquetado,/Sin mora/,'saldo no vencido no acredita el cobro del mes');
  assert.doesNotMatch(maquetado,/Al día/,'«Al día» ya no se usa con saldo pendiente');
  await act(async()=>{renderer!.unmount();});
- console.log('PASS #149 formatos: «Octubre 2026» en meses y «Sin mora» en cobranza');
+ console.log('PASS #149/#335 formatos: mes completo y pago por verificar sin evidencia mensual');
 }
 
 async function cuentaConBancoCompartido(){

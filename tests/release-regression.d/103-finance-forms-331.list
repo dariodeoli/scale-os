@@ -1,0 +1,3 @@
+# Canonical compact finance forms, account identity and truthful monthly review.
+tsx --test tests/finance-forms-331.test.tsx
+node tests/finance-forms-browser-331.test.mjs

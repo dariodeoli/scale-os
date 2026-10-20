@@ -51,3 +51,26 @@ test('management cannot mount Balance even with a forged positive override; unkn
  let view!:ReactTestRenderer;try{await act(async()=>{view=create(<BalanceSection user={{id:'1',organization_id:'1',role:'management',capabilities:{'finance.balance.view':true,'salary.view':true}} as any}/>);});assert.equal(view.toJSON(),null);await act(async()=>view.update(<AuditActor name={null} photoUrl="https://example.invalid/fake.png" verified timestamp="2026-10-20T16:32:00Z"/>));assert.match(JSON.stringify(view.toJSON()),/Autor no identificado/);assert.equal(view.root.findAllByType('img').length,0);assert.match(view.root.findByType('time').props.children,/13:32/);
  }finally{act(()=>view?.unmount());}
 });
+test('monthly review defaults remain unverified, paginates, uses real revision and never records money',async()=>{
+ const {PaymentReviewPanel}=require('../app/payment-review-panel') as typeof import('../app/payment-review-panel');
+ const {clearDataCache}=require('../app/data-cache') as typeof import('../app/data-cache');
+ const {currentForecastMonth}=require('../app/forecast-data') as typeof import('../app/forecast-data');
+ const month=currentForecastMonth(),before=globalThis.fetch;let view!:ReactTestRenderer;const calls:{path:string;body:any}[]=[],received:string[][]=[];
+ const row=(id:string)=>({client_id:id,name:'Cliente '+id,verification_status:'pending_review',verification_month:month,revision:7,note:'',evidence:{payments:[],opening_receivables:[],monthly_income:[],commercial_terms:[]},missing:{agreement:true,payment_evidence:true}});
+ globalThis.fetch=async(input,init)=>{const path=String(input),body=init?.body?JSON.parse(String(init.body)):null;calls.push({path,body});return new Response(JSON.stringify(body?{}:{clients:[row(path.includes('offset=1')?'2':'1')],hasMore:!path.includes('offset=1')}),{status:200,headers:{'Content-Type':'application/json'}});};clearDataCache();
+ try{await act(async()=>{view=create(<PaymentReviewPanel onReceive={(id,month)=>received.push([id,month])}/>);await tick();});assert.match(JSON.stringify(view.toJSON()),/Pago por verificar/);assert.doesNotMatch(JSON.stringify(view.toJSON()),/Sin mora/);
+  const button=(label:string)=>view.root.findAllByType('button').find(node=>node.children.includes(label))!;
+  await act(async()=>{await button('Cargar más clientes para revisar').props.onClick();await tick();});assert.match(JSON.stringify(view.toJSON()),/Cliente 2/);assert(calls.some(call=>call.path.includes('offset=1')));
+  await act(async()=>button('Recibir pago').props.onClick());assert.deepEqual(received,[['1',month]]);
+  await act(async()=>button('Regularizar').props.onClick());assert.match(JSON.stringify(view.toJSON()),/evidencia de pago/);await act(async()=>{await view.root.findByType(Editor).props.save({status:'reviewed',note:'Comprobantes pendientes de conciliación'});await tick();});
+  const write=calls.find(call=>call.body)!;assert.match(write.path,/payment-reviews\/1$/);assert.equal(write.body.expectedRevision,7);assert.equal(write.body.month,month);assert.equal(write.body.status,'reviewed');assert.match(write.body.requestId,/^[a-f0-9-]{36}$/);assert.equal(calls.filter(call=>call.body).length,1);assert(!calls.some(call=>/\/payments(?:$|\?)/.test(call.path)));
+ }finally{act(()=>view?.unmount());globalThis.fetch=before;clearDataCache();}
+});
+
+test('review labels require this month and never equate a review with paid',()=>{
+ const {paymentReviewLabel,paymentReviewedForMonth}=require('../app/payment-verification') as typeof import('../app/payment-verification');
+ assert.equal(paymentReviewLabel({},'2026-10'),'Pago por verificar');
+ assert.equal(paymentReviewLabel({verification_status:'reviewed',verification_month:'2026-09'},'2026-10'),'Pago por verificar');
+ assert.equal(paymentReviewedForMonth({verification_status:'reviewed',verification_month:'2026-10'},'2026-10'),true);
+ assert.equal(paymentReviewLabel({verification_status:'reviewed',verification_month:'2026-10'},'2026-10'),'Revisado · sin saldo registrado');
+});

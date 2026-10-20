@@ -1,4 +1,5 @@
 "use client";
+import {paymentReviewedForMonth,paymentReviewLabel} from '../payment-verification';
 import {Notice as Aviso} from '../ui/notice';
 import {SegmentedField} from '../ui/navigation';
 
@@ -50,7 +51,7 @@ const MORA_COLUMNS: Column[] = [
 const STATUS_TONE: Record<ClientPaymentStatus['payment_status'], ChipTone> = {up_to_date: 'ok', due_soon: 'warn', late: 'warn', severe: 'bad'};
 
 function statusLabel(client: ClientPaymentStatus) {
-  if (client.payment_status === 'up_to_date') return client.verification_status==='reviewed'?'Revisado · sin saldo registrado':'Pago por verificar';
+  if (client.payment_status === 'up_to_date') return paymentReviewLabel(client);
   if (client.payment_status === 'due_soon') return `Vence ${listDateShort(client.next_due_on) || 'próximamente'}`;
   return `${client.days_overdue} días de mora`;
 }
@@ -63,7 +64,7 @@ function ClientLine({client}: {client: ClientPaymentStatus}) {
       <ClientIdentity compact name={client.client_name} logo={client.client_logo_url}/>
       <small className="block text-[11px] text-mute">{client.currency || 'Sin moneda de cobro'}</small>
     </div>
-    <div className="min-w-0"><StateChip tone={client.payment_status==='up_to_date'?(client.verification_status==='reviewed'?'info':'warn'):STATUS_TONE[client.payment_status]} title={statusLabel(client)}>{statusLabel(client)}</StateChip></div>
+    <div className="min-w-0"><StateChip tone={client.payment_status==='up_to_date'?(paymentReviewedForMonth(client)?'info':'warn'):STATUS_TONE[client.payment_status]} title={statusLabel(client)}>{statusLabel(client)}</StateChip></div>
     <div className="min-w-0">
       {due ? <span className={`whitespace-nowrap tabular-nums ${dueTone(due) ? 'font-semibold text-warn' : 'text-fore'}`} title={listDateFull(due) || undefined}>{listDateShort(due)}</span> : <span className="text-[11px] text-mute">Sin fecha</span>}
     </div>
