@@ -29,6 +29,14 @@ try{
   let checks=0,controls=0,templateTextareaHeight=null;
   if(flow==='client'){
    await type('[data-field="name"] input','Cliente móvil QA');
+   // El editor canónico usa pasos en móvil y secciones plegables en desktop.
+   // Abrir la sección como usuario, sin forzar hidden/open por DOM.
+   if(await page.$('[aria-label="Pasos del formulario"]')){
+    for(let step=0;step<6;step++){
+     if(await page.$eval('[data-field="legal_representative_same_as_client"] input',n=>n.getBoundingClientRect().height>0))break;
+     await clickText('Siguiente');await page.evaluate(()=>new Promise(requestAnimationFrame));
+    }
+   }else await tap('details:has([data-field="legal_representative_same_as_client"])>summary');
    await tap('[data-field="legal_representative_same_as_client"] input');
    assert.equal(await page.$eval('[data-field="legal_representative_name"] input',n=>n.disabled),true);checks++;
    controls=await assertFit();await clickText('Crear cliente');await page.waitForFunction(()=>window.completed>0);

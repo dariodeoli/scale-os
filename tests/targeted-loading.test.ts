@@ -18,12 +18,14 @@ test('actual team loader: one team read feeds people, members and archived profi
  const {ast,fn}=component('team-workspace.tsx','PeopleWorkspace');
  const load=fn.body!.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='load')!;
  const calls:string[]=[],resolvers:(()=>void)[]=[],state:Record<string,unknown>={};
- const deps:Record<string,unknown>={api:(path:string)=>{calls.push(path);return new Promise(resolve=>resolvers.push(()=>resolve({collaborators:[{id:'1'}],members:[{id:'2'}],archivedProfiles:[]})))}};
- for(const setter of ['setPeople','setMembers','setArchivedProfiles'])deps[setter]=(value:unknown)=>{state[setter]=value;};
+ const policy={canManageMembers:false,canManageRoles:true,canViewSalary:false,editableRoles:['viewer']};
+ const deps:Record<string,unknown>={api:(path:string)=>{calls.push(path);return new Promise(resolve=>resolvers.push(()=>resolve({collaborators:[{id:'1'}],members:[{id:'2'}],archivedProfiles:[],policy})))}};
+ for(const setter of ['setPeople','setMembers','setArchivedProfiles','setPermissionPolicy'])deps[setter]=(value:unknown)=>{state[setter]=value;};
  const run=execute(load.getText(ast)+';return load;',deps);const finished=run();
  assert.deepEqual(calls,['/api/agency/team'],'Equipo reads the team endpoint only');
  assert.equal(Object.keys(state).length,0);resolvers.forEach(resolve=>resolve());await finished;
- assert.deepEqual(state,{setPeople:[{id:'1'}],setMembers:[{id:'2'}],setArchivedProfiles:[]});
+ assert.deepEqual(state,{setPeople:[{id:'1'}],setMembers:[{id:'2'}],setArchivedProfiles:[],setPermissionPolicy:policy});
+ assert.equal(state.setPermissionPolicy,policy,'the same canonical response supplies current hierarchy and privacy policy');
 });
 
 test('actual company loader renders settings without waiting for the rate request',async()=>{

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import {roleCan} from './permissions.js';
+import {roleCan,loadActorPermissions} from './permissions.js';
 import {subscriptionState} from './subscription-billing.js';
 import {throttleClient} from './request-guard.js';
 export const MCP_SCOPES=Object.freeze(['scale:read','scale:write']);
@@ -20,7 +20,7 @@ export function mcpConfiguration({issuer=process.env.SCALE_MCP_ISSUER||'https://
 export async function mcpLiveActor(db,connection,{subscription=subscriptionState,lock=false}={}){
  const actor=(await db.query(`select u.id,m.organization_id,m.role,o.name as organization_name,o.slug as organization_slug,o.demo_owner_user_id,o.demo_source_id from users u join organization_members m on m.user_id=u.id join organizations o on o.id=m.organization_id where u.id=$1 and m.organization_id=$2 and u.deleted_at is null and u.anonymized_at is null and m.active and m.removed_at is null and o.active and o.demo_owner_user_id is null and o.demo_source_id is null and not exists(select 1 from account_closure_requests a where a.user_id=u.id and a.cancelled_at is null and a.recoverable_until>now())${lock?' for share of u,m':''}`,[connection.user_id,connection.organization_id])).rows[0];
  if(!actor)return null;
- actor.capabilities=Object.fromEntries((await db.query('select capability,allowed from agency_role_permissions where organization_id=$1 and role=$2',[actor.organization_id,actor.role])).rows.map(x=>[x.capability,x.allowed]));
+ actor.capabilities=await loadActorPermissions(db,actor);
  if(!(await subscription(db,actor)).hasAccess)return null;return actor;
 }
 export function createMcpOAuth({db,session,configuration=mcpConfiguration(),subscription=subscriptionState}){

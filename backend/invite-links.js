@@ -1,8 +1,9 @@
+import {lockMemberManager} from './member-access.js';
 import {assertDemoEffectAllowed} from './demo-effects.js';
 import {fail} from './suite-validation.js';
 import {requireClientBudget} from './request-guard.js';
 import crypto from 'node:crypto';
-import {roleCan,roles} from './permissions.js';
+import {roleCan,roles,assertAssignableRole,accessEditable,loadActorPermissions,CAPABILITIES,permissionPolicy} from './permissions.js';
 import {attributeActors} from './actor-identity.js';
 import {ensureConsent} from './personal-data.js';
 // Fuente única de roles: la lista canónica vive en permissions.js.
@@ -79,17 +80,18 @@ export async function claimInvite(c,linkId,profile,{method='google'}={}){
  await c.query('update agency_invite_links set used_at=now() where id=$1',[l.id]);
  return{userId:u.id,organizationId:l.organization_id};
 }
-export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendAccessGranted}){
+export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendAccessGranted,exposeInviteCredentials=true}){
  const match=url.pathname.match(/^\/api\/agency\/(invite-links|access-requests)(?:\/(\d+))?$/);
  if(!match&&url.pathname!=='/api/invitations/preview')return false;
  let c,notifyGranted=null;
  try{
   // Vista previa pública: el tope por cliente corre antes de buscar el token.
   if(!match){if(req.method!=='GET')fail('Método no permitido',405);await requireClientBudget(db,req,'invite-preview',60);send(res,200,await resolveInvite(db,url.searchParams.get('token'),{countVisit:true}));return true;}
-  const user=await session(req);if(!user)fail('Ingresá a tu cuenta',401);
+  let user=await session(req);if(!user)fail('Ingresá a tu cuenta',401);
   if(!roleCan(user,'members.manage'))fail('Sin permiso para gestionar accesos',403);
   if(req.method!=='GET')assertDemoEffectAllowed(user,'invitation');
   c=await db.connect();await c.query('begin');
+  if(req.method!=='GET')user=await lockMemberManager(c,user);
   await c.query("select set_config('app.current_user',$1,true)",[String(user.id)]);
   const [ ,kind,key]=match,org=user.organization_id;let result;
   if(kind==='invite-links'&&req.method==='GET'&&!key){
@@ -100,21 +102,24 @@ export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendA
      where m.invite_link_id=l.id and not exists(select 1 from agency_access_requests ar where ar.link_id=l.id and ar.user_id=m.user_id and ar.status='approved')
     ) j),'[]'::jsonb) as joined_users
     from agency_invite_links l join users u on u.id=l.created_by where l.organization_id=$1 order by l.id desc limit 100`,[org])).rows;
+   const assignable=(await permissionPolicy(c,user)).editableRoles;
    result={links:rows.map(({token_ciphertext,...row})=>{
-    const token=token_ciphertext&&(row.role!=='owner'||user.role==='owner')?unseal(token_ciphertext):null;
+    const token=exposeInviteCredentials&&token_ciphertext&&assignable.includes(row.role)?unseal(token_ciphertext):null;
     return {...row,url:token?`${appUrl}/invitacion?token=${token}`:null};
    })};
   }
   else if(kind==='invite-links'&&req.method==='POST'&&!key){
    const b=await body(req);if(!accessRoles.includes(b.role)||!['single','approval'].includes(b.mode))fail('Permiso o tipo de enlace inválido');
+   await assertAssignableRole(c,user,b.role);
    if(b.role==='owner'&&user.role!=='owner')fail('Solo un dueño puede invitar dueños',403);
    const token=crypto.randomBytes(32).toString('base64url');
    const link=(await c.query("insert into agency_invite_links(organization_id,token_hash,token_ciphertext,role,mode,created_by,expires_at) values($1,$2,$3,$4,$5,$6,now()+interval '7 days') returning id,expires_at,created_by",[org,hash(token),seal(token),b.role,b.mode,user.id])).rows[0];
    result={...link,url:appUrl+'/invitacion?token='+token};
   }else if(kind==='invite-links'&&key&&req.method==='DELETE'){
    const permanent=url.searchParams.get('permanent')==='1';
-   const r=(await c.query("select id from agency_invite_links where id=$1 and organization_id=$2 and ($3='owner' or role<>'owner') for update",[key,org,user.role])).rows[0];
+   const r=(await c.query("select id,role from agency_invite_links where id=$1 and organization_id=$2 and ($3='owner' or role<>'owner') for update",[key,org,user.role])).rows[0];
    if(!r)fail('Enlace no encontrado o sin permiso',404);
+   if(!accessEditable(user,{id:'invite-link',role:r.role}))fail('Solo podés revocar invitaciones con un rol autorizado inferior.',403);
    if(!permanent){
     await c.query('update agency_invite_links set revoked_at=now() where id=$1',[key]);result={ok:true,revoked:true};
    }else{
@@ -133,9 +138,13 @@ export async function inviteLinks({req,res,url,db,session,body,send,appUrl,sendA
    // Same lock as link claiming/revocation. Concurrent approvals are idempotent.
    const r=(await c.query('select r.*,l.organization_id,l.role,l.revoked_at,l.used_at,l.expires_at>now() as link_valid,o.active as organization_active from agency_access_requests r join agency_invite_links l on l.id=r.link_id join organizations o on o.id=l.organization_id where r.id=$1 and l.organization_id=$2 for update of l,r',[key,org])).rows[0];
    if(!r)fail('Solicitud no encontrada',404);if(r.status!=='pending')fail('La solicitud ya fue atendida',409);
+   if(!accessEditable(user,{id:r.user_id,role:r.role}))fail('Solo podés decidir accesos con un rol inferior autorizado.',403);
    if(r.role==='owner'&&user.role!=='owner')fail('Solo un dueño puede aprobar otro dueño',403);
    if(String(r.user_id)===String(user.id))fail('No podés aprobar tu propia solicitud',403);
    if(b.action==='approve'){
+    await assertAssignableRole(c,user,r.role);
+    const targetActor={id:r.user_id,organization_id:org,role:r.role};targetActor.capabilities=await loadActorPermissions(c,targetActor);
+    if(CAPABILITIES.some(cap=>roleCan(targetActor,cap.id)&&!roleCan(user,cap.id)))fail('No podés otorgar permisos superiores a los tuyos.',403);
     if(accessRequestState(r).status==='unavailable')fail('La invitación ya no está disponible. Revisá la empresa y generá otro enlace.',409);
     const old=(await c.query('select user_id,active,removed_at from organization_members where user_id=$1 and organization_id=$2 for update',[r.user_id,org])).rows[0];
     if(old?.active&&!old.removed_at)fail('Esta persona ya tiene acceso. Gestioná su permiso desde Equipo.',409);

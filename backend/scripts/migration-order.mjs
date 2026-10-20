@@ -120,4 +120,7 @@ export const migrationOrder = [
   '20261020_client_monthly_income.sql',
   '20261020_list_column_preferences.sql',
   '20261020_mcp_connections.sql',
+  '20261020_member_permissions.sql',
+  '20261020_client_intake.sql',
+  '20261021_finance_management.sql',
 ];

@@ -1,4 +1,4 @@
-import {roleCan} from './permissions.js';
+import {roleCan,loadActorPermissions} from './permissions.js';
 import {fail,id,text,email,phone} from './suite-validation.js';
 import {assertRecordAvailable} from './record-lifecycle.js';
 
@@ -28,8 +28,8 @@ export async function clientContacts({req,res,url,db,session,body,send}){
   // Revalidar acceso y permisos tras cualquier espera; bloquea revocación concurrente.
   const member=(await c.query('select m.role from organization_members m join organizations o on o.id=m.organization_id where m.organization_id=$1 and m.user_id=$2 and m.active=true and m.removed_at is null and o.active=true for share of m,o',[org,actor.id])).rows[0];
   if(!member)fail('Sin acceso activo a esta empresa',403);
-  const override=(await c.query("select allowed from agency_role_permissions where organization_id=$1 and role=$2 and capability='clients.manage'",[org,member.role])).rows[0];
-  if(!roleCan({...actor,role:member.role,capabilities:override?{'clients.manage':override.allowed}:{}},'clients.manage'))fail('Los contactos están reservados a quienes gestionan clientes',403);
+  const live={...actor,role:member.role};live.capabilities=await loadActorPermissions(c,live);
+  if(!roleCan(live,'clients.manage'))fail('Los contactos están reservados a quienes gestionan clientes',403);
   const parent=(await c.query(`select * from agency_clients where organization_id=$1 and id=$2 for ${req.method==='GET'?'share':'update'}`,[org,clientId])).rows[0];
   if(!parent)fail('Cliente no encontrado',404);
   await assertRecordAvailable(c,'agency_clients',parent);

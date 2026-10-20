@@ -1,3 +1,4 @@
+import {exportClientIntake,suppressClientIntake} from './client-intake-privacy.js';
 // PDP — Ley N° 7593/2025 (scale-os#112): consentimientos verificables, derechos
 // del titular (ARSOP + portabilidad), bitácora de accesos y supresión compatible
 // con conservación legal. Los textos jurídicos finales los aprueba el dueño; acá
@@ -151,6 +152,7 @@ export async function buildPersonalDataExport(c,{organizationId,subjectKind,subj
  }else if(subjectKind==='client'){
   const client=(await c.query(`select to_jsonb(c)->>'address' as address,to_jsonb(c)->>'city' as city,to_jsonb(c)->>'department' as department,to_jsonb(c)->>'document_type' as document_type,to_jsonb(c)->>'document_number' as document_number,to_jsonb(c)->>'legal_representative_name' as legal_representative_name,to_jsonb(c)->>'legal_representative_document' as legal_representative_document,to_jsonb(c)->>'legal_representative_role' as legal_representative_role,to_jsonb(c)->>'party_type' as party_type,name,legal_name,email,phone,tax_id,notes,active,created_at,updated_at,personal_data_blocked_at,to_jsonb(c)->>'lifecycle_status' as lifecycle_status from agency_clients c where c.organization_id=$1 and c.id=$2`,[organizationId,subjectId])).rows[0]||{};
   section('ficha','Ficha del cliente',[client]);
+  section('registro','Solicitudes de registro público',await exportClientIntake(c,organizationId,subjectId));
   section('contactos','Contactos del cliente',(await c.query('select name,role,email,phone,created_at,updated_at from agency_client_contacts where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
   section('proyectos','Proyectos',(await c.query('select name,status,start_date,due_date,created_at from agency_projects where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
   section('presupuestos','Presupuestos',(await c.query('select number,title,status,currency,total,valid_until,created_at from agency_budgets where organization_id=$1 and client_id=$2 order by id',[organizationId,subjectId])).rows);
@@ -200,6 +202,7 @@ export async function applySuppression(c,{organizationId,subjectKind,subjectId,a
  if(subjectKind==='client'){
   // Serializar supresión con alta/edición de contactos antes de borrar los hijos.
   await c.query('select id from agency_clients where organization_id=$1 and id=$2 for update',[org,key]);
+  await suppressClientIntake(c,org,key);
   await c.query('delete from agency_client_contacts where organization_id=$1 and client_id=$2',[org,key]);
   await c.query("update agency_clients set address='',city='',department='',document_type='',document_number='',legal_representative_name='',legal_representative_document='',legal_representative_role='',party_type='' where organization_id=$1 and id=$2",[org,key]);
   const fiscal=(await c.query("select 1 from agency_invoices where organization_id=$1 and client_id=$2 and status<>'draft' limit 1",[org,key])).rows.length>0;
@@ -383,6 +386,10 @@ export async function personalData({req,res,url,db,session,body,send}){
      if(req.method!=='GET')fail('Método no permitido',405);
      const request=await requestOut(c,org,id);
      if(request.subject_kind==='other'||!request.subject_id)fail('Esta solicitud no tiene un titular con datos exportables',409);
+     // A managed user export contains the employee's financial HR record.
+     // Privacy administration never substitutes for the salary capability;
+     // self portability remains available to the data subject.
+     if(request.subject_kind==='user'&&String(request.subject_id)!==String(user.id)&&!roleCan(user,'salary.view'))fail('La exportación de otro usuario requiere permiso para ver salarios',403);
      const data=await buildPersonalDataExport(c,{organizationId:org,subjectKind:request.subject_kind,subjectId:request.subject_id,organizationName:user.organization_name});
      await audit('export',{subjectKind:request.subject_kind,subjectId:request.subject_id,context:'request',details:{request_id:Number(id),format:url.searchParams.get('format')||'json'}});
      await c.query('commit');transaction=false;

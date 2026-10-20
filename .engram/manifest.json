@@ -200,6 +200,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "f7170fcd",
+      "created_by": "agent",
+      "created_at": "2026-10-20T08:56:43.523539873Z",
+      "sessions": 1,
+      "memories": 3,
+      "prompts": 0
     }
   ]
 }

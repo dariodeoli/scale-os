@@ -3,13 +3,15 @@ import {useEffect,useState} from 'react';
 import {Check,ChevronDown,ShieldCheck,X} from 'lucide-react';
 import {api,Dialog} from './operations';
 import {notify} from './feedback';
+import type {TeamPermissionPolicy} from './team-permission-policy';
 import {teamRoleLabels} from './team-directory';
 import {EmptyBlock,ErrorBlock,Kpi,KpiStrip,ListPage,LoadingBlock,StateChip} from './ui-v2';
 import {Button as ScaleButton} from "./ui/button";
 
 
 type MatrixRow={id:string;label:string;description:string;defaults:string[];overrides:Record<string,boolean|undefined>};
-type MatrixData={roles:string[];capabilities:MatrixRow[]};
+type MatrixData={roles:string[];capabilities:MatrixRow[];policy?:TeamPermissionPolicy};
+function scopedMatrix(data:MatrixData):MatrixData{if(!data.policy)return data;const visible=new Set(data.policy.visibleRoles);return {...data,roles:data.roles.filter(role=>visible.has(role)),capabilities:data.capabilities.filter(row=>data.policy!.grantableCapabilities.includes(row.id)).map(row=>({...row,defaults:row.defaults.filter(role=>visible.has(role)),overrides:Object.fromEntries(Object.entries(row.overrides).filter(([role])=>visible.has(role)))}))};}
 const errorText=(error:unknown)=>error instanceof Error?error.message:'No se pudo guardar el permiso.';
 function defaultAllowed(row:MatrixRow,role:string){return row.defaults.includes(role);}
 function effective(row:MatrixRow,role:string){const override=row.overrides[role];return override===undefined?defaultAllowed(row,role):override;}
@@ -18,7 +20,7 @@ function overrideCount(row:MatrixRow){return Object.values(row.overrides).filter
 export const roleDescriptions:Record<string,string>={
  owner:'Dueño: acceso total al panel, incluidos permisos, accesos y configuración.',
  admin:'Administrador: gestiona el equipo, las invitaciones y los ajustes de la empresa.',
- management:'Gerencia: dirige clientes, proyectos, producción y la operación comercial.',
+ management:'Gerencia: administra la operación y los permisos inferiores, sin Balance ni remuneraciones personales.',
  finance:'Finanzas: administra pagos, informes, Equipo y comisiones.',
  sales:'Ventas: atiende clientes, presupuestos y las oportunidades del pipeline.',
  production:'Producción: ejecuta proyectos y órdenes y utiliza Inventario y Estudio.',
@@ -47,7 +49,7 @@ function groupedRows(capabilities:MatrixRow[]):CapabilityGroup[]{
 
 function RoleExplorer({data}:{data:MatrixData}){
  return <div className="grid gap-2">
-  {Object.keys(teamRoleLabels).map(roleId=>{
+  {(data.policy?.visibleRoles||data.roles).map(roleId=>{
    const granted=data.capabilities.filter(row=>effective(row,roleId));
    const denied=data.capabilities.filter(row=>!effective(row,roleId));
    const all=granted.length===data.capabilities.length;
@@ -77,8 +79,8 @@ function RoleExplorer({data}:{data:MatrixData}){
 
 /**
  * Vista por módulo (#143): reemplaza la tabla ancha por un acordeón donde cada
- * capacidad muestra el estado por cargo en pastillas editables. El Dueño es el
- * único que alterna (`aria-pressed` + `disabled`) y el API revalida cada PATCH.
+ * capacidad muestra el estado por cargo en pastillas editables. El API entrega los roles y capacidades administrables; cada PATCH vuelve
+ * a comprobar la jerarquía y los permisos actuales de la persona.
  */
 /** Plantilla única de la matriz: el encabezado de columnas y cada capacidad comparten esta grilla. */
 const CAPABILITY_ROW_TEMPLATE='lg:grid-cols-[minmax(14rem,1fr)_minmax(0,1.5fr)]';
@@ -101,7 +103,7 @@ function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boole
        <small className="mt-0.5 block text-[11.5px] leading-[1.4] text-mute" title={`${row.description}${overrideCount(row)?` · ${overrideCount(row)} ajuste${overrideCount(row)===1?'':'s'} manual${overrideCount(row)===1?'':'es'}`:''}`}>{row.description}</small>
       </div>
       <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Permisos de ${row.label}`}>
-       {data.roles.map(roleId=>{const checked=effective(row,roleId);return <button key={roleId} type="button" aria-pressed={checked} disabled={!owner||busy} title={`${row.label} · ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${owner?'':'cursor-default'}`} onClick={()=>{if(owner&&!busy)void toggle(row.id,roleId,!checked);}}>
+       {data.roles.map(roleId=>{const checked=effective(row,roleId),editable=owner&&(!data.policy||(data.policy.permissionRoles.includes(roleId)&&data.policy.grantableCapabilities.includes(row.id)));return <button key={roleId} type="button" aria-pressed={checked} disabled={!editable||busy} title={`${row.label} · ${teamRoleLabels[roleId]||roleId}: ${checked?'habilitado':'sin permiso'}`} className={`${ROLE_PILL} ${checked?'border-ok/40 bg-ok/10 text-ok':'border-ink-600 bg-ink-700 text-mute'} ${editable?'':'cursor-default'}`} onClick={()=>{if(editable&&!busy)void toggle(row.id,roleId,!checked);}}>
         {checked?<Check size={12} aria-hidden="true"/>:<X size={12} aria-hidden="true"/>}
         {teamRoleLabels[roleId]||roleId}
        </button>;})}
@@ -115,11 +117,12 @@ function ModulePermissions({data,owner,busy,toggle}:{data:MatrixData;owner:boole
 function MatrixView({role,explorer}:{role:string;explorer:boolean}){
  const [data,setData]=useState<MatrixData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [loading,setLoading]=useState(true);
- const owner=role==='owner';
- async function load(){setLoading(true);setError('');try{setData(await api<MatrixData>('/api/agency/permissions'));}catch(cause){setError(errorText(cause));}finally{setLoading(false);}}
+ const owner=data?.policy?.canManageRoles??role==='owner';
+ const canReset=data?.policy?data.policy.canResetRoles===true:role==='owner';
+ async function load(){setLoading(true);setError('');try{setData(scopedMatrix(await api<MatrixData>('/api/agency/permissions')));}catch(cause){setError(errorText(cause));}finally{setLoading(false);}}
  useEffect(()=>{void load();},[]);
- async function toggle(rowId:string,roleId:string,allowed:boolean){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:rowId,role:roleId,allowed},'PATCH');setData(updated);notify({tone:'success',message:'Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
- async function resetAll(){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:null,role:null,allowed:null},'PATCH');setData(updated);notify({tone:'success',message:'Todos los permisos volvieron a los valores por defecto.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
+ async function toggle(rowId:string,roleId:string,allowed:boolean){if(!owner)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:rowId,role:roleId,allowed},'PATCH');setData(scopedMatrix(updated));notify({tone:'success',message:'Permiso guardado. Los cambios se aplican desde la próxima acción de esa persona.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
+ async function resetAll(){if(!canReset)return;setBusy(true);setError('');try{const updated=await api<MatrixData>('/api/agency/permissions',{capability:null,role:null,allowed:null},'PATCH');setData(scopedMatrix(updated));notify({tone:'success',message:'Todos los permisos volvieron a los valores por defecto.'});}catch(cause){setError(errorText(cause));}finally{setBusy(false);}}
  const manual=data?data.capabilities.reduce((total,row)=>total+overrideCount(row),0):0;
  const kpis=explorer&&data?<KpiStrip compact className="xl:!grid-cols-3">
    <Kpi label="Capacidades" valor={data.capabilities.length} hint="Acciones que controla el panel"/>
@@ -144,7 +147,7 @@ function MatrixView({role,explorer}:{role:string;explorer:boolean}){
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h3 className="m-0 text-[15px] font-semibold tracking-tight text-fore">Permisos por módulo</h3><p className="m-0 text-xs text-mute">Tocá una pastilla para habilitar o quitar el permiso de ese cargo.</p></div>
     <ModulePermissions data={data} owner={owner} busy={busy} toggle={toggle}/>
    </div>
-   {owner?<div className="flex justify-end"><ScaleButton type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()} variant="ghost">Restablecer todos los permisos por defecto</ScaleButton></div>:<p className="m-0 text-xs text-mute">Solo el Dueño puede modificar esta matriz.</p>}
+   {canReset?<div className="flex justify-end"><ScaleButton type="button" className="text-button" disabled={busy} onClick={()=>void resetAll()} variant="ghost">Restablecer todos los permisos por defecto</ScaleButton></div>:<p className="m-0 text-xs text-mute">Los permisos disponibles para editar dependen de tu acceso actual y de la jerarquía del equipo.</p>}
   </>}
  </>;
  return explorer?<ListPage aria-label="Roles y permisos" aria-busy={loading||busy} kpis={kpis}>{body}</ListPage>:<div className="grid gap-4" aria-busy={loading||busy}>{body}</div>;

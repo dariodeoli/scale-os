@@ -1,3 +1,5 @@
+import {financeRetry,financeRemember} from './finance-idempotency.js';
+import {financePaymentReviews} from './finance-payment-reviews.js';
 import {fail,text,id,optId,amount,date,owned} from './suite-validation.js';
 import {roleCan} from './permissions.js';
 import {assertRecordAvailable,visibleRecord} from './record-lifecycle.js';
@@ -28,9 +30,15 @@ async function links(c,u,input,payment=null){
 }
 async function saveLinks(c,u,payment,input){
  const values=await links(c,u,input,payment);
- return (await c.query('insert into agency_payment_links(organization_id,payment_id,client_id,project_id,plan_id,updated_by) values($1,$2,$3,$4,$5,$6) on conflict(payment_id) do update set client_id=excluded.client_id,project_id=excluded.project_id,plan_id=excluded.plan_id,revision=agency_payment_links.revision+1,updated_by=excluded.updated_by,updated_at=now() returning *',[u.organization_id,payment.id,values.clientId,values.projectId,values.planId,u.id])).rows[0];
+ const current=(await c.query('select monthly_income_entry_id,period::text as period from agency_payment_links where payment_id=$1',[payment.id])).rows[0];
+ const supplied=Object.hasOwn(input,'monthlyIncomeEntryId'),entryId=supplied?optId(input.monthlyIncomeEntryId):current?.monthly_income_entry_id||null;
+ let period=Object.hasOwn(input,'period')?(input.period===null||input.period===''?null:forecastMonth(input.period)+'-01'):current?.period||null;
+ if(entryId){const entry=(await c.query('select client_id,month::text as month,currency from agency_client_monthly_income where organization_id=$1 and id=$2 and deleted_at is null',[u.organization_id,entryId])).rows[0];if(!entry)fail('El extra o importe mensual no está disponible',404);if(values.clientId&&String(entry.client_id)!==String(values.clientId))fail('El ingreso mensual pertenece a otro cliente',409);if(!values.clientId)fail('Seleccioná el cliente antes de asociar un ingreso mensual');if(period&&period!==entry.month)fail('El ingreso mensual pertenece a otro mes',409);period=entry.month;const account=await owned(c,'bank_accounts',payment.account_id,u.organization_id);if(account.currency!==entry.currency)fail('La moneda del cobro debe coincidir con el ingreso mensual',409);}
+ const saved= (await c.query('insert into agency_payment_links(organization_id,payment_id,client_id,project_id,plan_id,updated_by) values($1,$2,$3,$4,$5,$6) on conflict(payment_id) do update set client_id=excluded.client_id,project_id=excluded.project_id,plan_id=excluded.plan_id,revision=agency_payment_links.revision+1,updated_by=excluded.updated_by,updated_at=now() returning *',[u.organization_id,payment.id,values.clientId,values.projectId,values.planId,u.id])).rows[0];
+ return (await c.query("update agency_payment_links set monthly_income_entry_id=$3,period=$4::date where organization_id=$1 and payment_id=$2 returning *,to_char(period,'YYYY-MM') as period",[u.organization_id,payment.id,entryId,period])).rows[0];
 }
 export async function createUnassignedReceipt(c,u,b){
+ const cached=await financeRetry(c,u,'receipt-unassigned',b);if(cached)return cached.response;
  if(b.invoiceId)fail('Un cobro libre se aplica a una factura después de registrarlo');
  if(b.parts)fail('Registrá un cobro libre por cuenta de ingreso');
  const paid=positive(b.amount),on=date(b.receivedOn)||await today(c),key=requestKey(b.requestId),org=u.organization_id;
@@ -43,7 +51,7 @@ export async function createUnassignedReceipt(c,u,b){
  const receiver=optId(b.receivedByUserId)||String(u.id);
  if(!(await c.query('select 1 from organization_members where organization_id=$1 and user_id=$2 and active=true',[org,receiver])).rows.length)fail('La persona debe tener acceso activo a la empresa');
  const payment=(await c.query('insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,null,$2,$3,$4,$5,$6,$7) returning *,received_on::text as received_on',[org,account.id,paid,on,text(b.reference||'',180),receiver,key])).rows[0];
- const linked=await saveLinks(c,u,payment,resolved);return {payment:{...payment,...{client_id:linked.client_id,project_id:linked.project_id,plan_id:linked.plan_id}}};
+ const linked=await saveLinks(c,u,payment,{...b,...resolved});const result={payment:{...payment,...{client_id:linked.client_id,project_id:linked.project_id,plan_id:linked.plan_id,monthly_income_entry_id:linked.monthly_income_entry_id,period:linked.period}}};await financeRemember(c,u,'receipt-unassigned',b,result,201);return result;
 }
 export async function treasurySnapshot(c,org,month){
  const accounts=(await c.query(`select a.id,a.name,a.account_type,a.currency,a.institution,a.custodian_user_id,a.active,custodian.name as custodian_name,custodian.photo_url as custodian_photo_url,
@@ -58,7 +66,7 @@ export async function treasurySnapshot(c,org,month){
 }
 async function receiptList(c,org,limit,offset=0){
  const rows=(await c.query(`select p.*,receiver.email as received_by_email,coalesce(nullif(trim(person.full_name),''),receiver.email) as received_by_name,person.photo_url as received_by_photo_url,coalesce(nullif(trim(person.full_name),''),receiver.email) as actor_name,person.photo_url as actor_photo_url,p.received_on::text as received_on,i.number as invoice_number,
- coalesce(i.client_id,l.client_id)::text as client_id,cl.name as client_name,l.project_id,l.plan_id,l.revision as links_revision,
+ coalesce(i.client_id,l.client_id)::text as client_id,cl.name as client_name,l.project_id,l.plan_id,l.monthly_income_entry_id,to_char(l.period,'YYYY-MM') as period,l.revision as links_revision,
  a.name as account_name,a.currency,a.account_type,(select x.replacement_payment_id from agency_payment_date_corrections x where x.original_payment_id=p.id) as corrected_payment_id,r.id as reversal_id,r.reason as reversal_reason,r.reversed_on::text as reversed_on,
  case when r.id is not null or p.invoice_id is not null then 0 else p.amount-coalesce((select sum(x.amount) from agency_active_payment_applications x where x.payment_id=p.id),0) end::text as available_amount
  from agency_payments p join bank_accounts a on a.id=p.account_id and a.organization_id=p.organization_id
@@ -69,6 +77,7 @@ async function receiptList(c,org,limit,offset=0){
  return {payments:rows.slice(0,limit),receipts:rows.slice(0,limit),hasMore:rows.length>limit};
 }
 export async function financeTreasury({req,res,url,db,session,body,send}){
+ if(await financePaymentReviews({req,res,url,db,session,body,send}))return true;
  const path=url.pathname,base='/api/agency/finance',payment=path.match(/^\/api\/agency\/payments\/(\d+)\/(links|applications|date-correction)(?:\/(\d+))?$/),listPayments=(path==='/api/agency/payments'||path===base+'/receipts')&&req.method==='GET';
  if(!path.startsWith(base+'/')&&!payment&&!listPayments)return false;
  if(path===base+'/balance')return false; // Separate read-only balance projection.
@@ -81,15 +90,15 @@ export async function financeTreasury({req,res,url,db,session,body,send}){
   const org=u.organization_id;let result,status=200;
   if(listPayments){const rawLimit=url.searchParams.get('limit')||'20',rawOffset=url.searchParams.get('offset')||'0';if(rawLimit!=='all'&&!/^[1-9]\d{0,2}$/.test(rawLimit)||!/^\d{1,7}$/.test(rawOffset))fail('Ventana de cobros inválida');result=await receiptList(c,org,rawLimit==='all'?10000:Math.min(Number(rawLimit),100),Number(rawOffset));}
   else if(path===base+'/context'&&req.method==='GET'){
-   const search='%'+text(url.searchParams.get('q')||'',120)+'%',limit=500,definitions={
-    clients:`select r.id,r.name,r.active from agency_clients r where r.organization_id=$1 and ${visibleRecord('r','clients')} and r.name ilike $2 order by r.name limit 501`,
-    projects:`select r.id,r.name,r.client_id from agency_projects r join agency_clients cl on cl.organization_id=r.organization_id and cl.id=r.client_id where r.organization_id=$1 and r.active=true and cl.active=true and ${visibleRecord('r','projects')} and ${visibleRecord('cl','clients')} and r.name ilike $2 order by r.name limit 501`,
+   const search='%'+text(url.searchParams.get('q')||'',120)+'%',clientKey=optId(url.searchParams.get('clientId')),limit=500,definitions={
+    clients:`select r.id,r.name,r.logo_url,r.legal_name,r.tax_id,r.active from agency_clients r where r.organization_id=$1 and ${visibleRecord('r','clients')} and (r.name ilike $2 or r.id=$3::bigint) order by r.name limit 501`,
+    projects:`select r.id,r.name,r.client_id from agency_projects r join agency_clients cl on cl.organization_id=r.organization_id and cl.id=r.client_id where r.organization_id=$1 and r.active=true and cl.active=true and ${visibleRecord('r','projects')} and ${visibleRecord('cl','clients')} and (($3::bigint is null and r.name ilike $2) or r.client_id=$3::bigint) order by r.name limit 501`,
     plans:`select r.id,r.name from agency_plans r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','plans')} and r.name ilike $2 order by r.name limit 501`,
     accounts:`select r.id,r.name,r.currency,r.account_type from bank_accounts r where r.organization_id=$1 and r.active=true and ${visibleRecord('r','accounts')} and r.name ilike $2 order by r.name limit 501`,
     invoices:`select r.id,r.number,r.client_id,r.currency,r.total::text as total,r.paid_amount::text as paid_amount,r.status from agency_invoices r where r.organization_id=$1 and r.status not in ('draft','cancelled') and r.total>r.paid_amount and r.number ilike $2 order by r.due_on,r.id limit 501`,
    };
    result={capabilities:{payments_manage:true,periods_manage:u.role==='owner',finance_view:roleCan(u,'finance.view')},truncated:{}};
-   for(const [key,sql] of Object.entries(definitions)){const rows=(await c.query(sql,[org,search])).rows;result[key]=rows.slice(0,limit);result.truncated[key]=rows.length>limit;}
+   for(const [key,sql] of Object.entries(definitions)){const rows=(await c.query(sql,['clients','projects'].includes(key)?[org,search,clientKey]:[org,search])).rows;result[key]=rows.slice(0,limit);result.truncated[key]=rows.length>limit;}
   }else if(payment){
    if(payment[2]==='date-correction')await lockFinanceMutation(c,org);
    const p=await owned(c,'agency_payments',payment[1],org);
@@ -108,7 +117,7 @@ export async function financeTreasury({req,res,url,db,session,body,send}){
      // date correction also works after part of the receipt has been spent.
      const replacement=(await c.query('insert into agency_payments(organization_id,invoice_id,account_id,amount,received_on,reference,received_by_user_id,request_key) values($1,$2,$3,$4,$5,$6,$7,$8) returning *,received_on::text as received_on',[org,null,p.account_id,p.amount,on,p.reference,p.received_by_user_id,key])).rows[0];
      if(!oldLinks&&p.invoice_id){const invoice=await owned(c,'agency_invoices',p.invoice_id,org);await saveLinks(c,u,replacement,{clientId:invoice.client_id});}
-     if(oldLinks)await c.query('insert into agency_payment_links(organization_id,payment_id,client_id,project_id,plan_id,updated_by) values($1,$2,$3,$4,$5,$6)',[org,replacement.id,oldLinks.client_id,oldLinks.project_id,oldLinks.plan_id,u.id]);
+     if(oldLinks)await c.query('insert into agency_payment_links(organization_id,payment_id,client_id,project_id,plan_id,updated_by,monthly_income_entry_id,period) values($1,$2,$3,$4,$5,$6,$7,$8)',[org,replacement.id,oldLinks.client_id,oldLinks.project_id,oldLinks.plan_id,u.id,oldLinks.monthly_income_entry_id,civilDate(oldLinks.period)]);
      await c.query('insert into agency_payment_reversals(organization_id,payment_id,reason,reversed_on,created_by_user_id) values($1,$2,$3,$4,$5)',[org,p.id,'Corrección de fecha: '+why,oldDate,u.id]);
      for(const app of applications)await c.query('insert into agency_payment_applications(organization_id,payment_id,invoice_id,receivable_id,amount,created_by) values($1,$2,$3,$4,$5,$6)',[org,replacement.id,app.invoice_id,app.receivable_id,app.amount,u.id]);
      const correction=(await c.query('insert into agency_payment_date_corrections(organization_id,original_payment_id,replacement_payment_id,previous_date,corrected_date,reason,request_key,created_by) values($1,$2,$3,$4,$5,$6,$7,$8) returning *',[org,p.id,replacement.id,oldDate,on,why,key,u.id])).rows[0];result={correction,payment:replacement};status=201;
@@ -153,8 +162,8 @@ export async function financeTreasury({req,res,url,db,session,body,send}){
   }else if(path===base+'/treasury'&&req.method==='GET'){
    const month=forecastMonth(url.searchParams.get('month')),snapshot=await treasurySnapshot(c,org,month);
    const period=(await c.query("select *,to_char(month,'YYYY-MM') as month from agency_finance_periods where organization_id=$1 and month=$2::date",[org,month+'-01'])).rows[0]||null;
-   const movements=(await c.query(`select m.*,m.booked_on::text as booked_on,case when m.movement_type='payout' and not $3 then '' else m.reference end as reference from agency_cash_movements m where m.organization_id=$1 and m.booked_on>=$2::date and m.booked_on<($2::date+interval '1 month')::date order by m.booked_on desc,m.account_id,m.movement_id`,[org,month+'-01',roleCan(u,'salary.view')])).rows;
-   result={...snapshot,period,movements};
+   const movements=(await c.query(`select m.*,m.booked_on::text as booked_on,m.reference as reference from agency_cash_movements m where m.organization_id=$1 and m.booked_on>=$2::date and m.booked_on<($2::date+interval '1 month')::date and ($3 or m.movement_type<>'payout' or exists(select 1 from agency_payouts p where p.organization_id=m.organization_id and p.id=m.movement_id and p.commission_id is not null)) order by m.booked_on desc,m.account_id,m.movement_id`,[org,month+'-01',roleCan(u,'salary.view')])).rows;
+   result={...snapshot,period,movements,restricted_movements:!roleCan(u,'salary.view')};
   }else if(path===base+'/periods'&&req.method==='GET')result={periods:(await c.query("select organization_id,to_char(month,'YYYY-MM') as month,status,revision,reason,closed_at,reopened_at,updated_by from agency_finance_periods where organization_id=$1 order by month desc",[org])).rows};
   else{
    const match=path.match(/^\/api\/agency\/finance\/periods\/(\d{4}-\d{2})\/(close|reopen)$/);if(!match||req.method!=='POST')fail('Ruta no encontrada',404);

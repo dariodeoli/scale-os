@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {existsSync, readFileSync} from 'node:fs';
+import {editableMemberAccess} from '../app/team-permission-policy';
 
 // Issue scale-os#22: contratos de equipo (retirados con reinvitación), portal
 // (invitaciones pendientes + reenvío de verificación) y limpieza de rutas y
@@ -9,10 +10,14 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 const missing = (path: string) => !existsSync(new URL(`../${path}`, import.meta.url));
 
 // Equipo: el lote no ofrece filas retiradas y una fila vencida no lo aborta.
+const target={id:'2',email:'synthetic@example.invalid',role:'sales',active:true,removed_at:null,access_editable:true};
+assert(editableMemberAccess(target,'1'));
+assert(!editableMemberAccess(target,'2'),'el acceso propio queda fuera incluso si llega un flag viejo true');
+assert(!editableMemberAccess({...target,access_editable:false},'1'),'un superior no editable nunca entra al lote');
 const operations = read('app/team-workspace.tsx');
 assert.match(
   operations,
-  /const selectable=\(entry:Entry\)=>Boolean\(canManageAccess&&entry\.member&&!entry\.member\.removed_at&&!isCurrentTeamMember\(entry\.member,currentUserId\)\)/,
+  /const selectable=\(entry:Entry\)=>Boolean\(canManageAccess&&entry\.member&&!entry\.member\.removed_at&&editableMemberAccess\(entry\.member,currentUserId\)\)/,
   'la selección masiva excluye accesos retirados y el acceso propio por ID',
 );
 assert.ok(

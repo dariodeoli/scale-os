@@ -1,4 +1,5 @@
 "use client";
+import {paymentReviewedForMonth,paymentReviewLabel} from '../payment-verification';
 import {Notice as Aviso} from '../ui/notice';
 
 import {InputControl} from '../ui/input-control';
@@ -46,9 +47,9 @@ const CLIENT_COLUMNS: Column[] = [
 const CLIENT_TEMPLATE = 'grid-cols-[minmax(10.5rem,1fr)_5.5rem_minmax(15.5rem,1fr)_minmax(9.5rem,.85fr)_minmax(12.5rem,1.55fr)_9.5rem]';
 
 const STATE_TONE: Record<string, ChipTone> = {active: 'ok', paused: 'warn', cancelled: 'bad', expired: 'warn', inactive: 'mute'};
-const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 'up_to_date' ? 'ok' : pay.payment_status === 'due_soon' ? 'warn' : pay.days_overdue > 30 ? 'bad' : 'warn';
+const moraTone = (pay: ClientPaymentStatus): ChipTone => pay.payment_status === 'up_to_date' ? (paymentReviewedForMonth(pay)?'info':'warn') : pay.payment_status === 'due_soon' ? 'warn' : pay.days_overdue > 30 ? 'bad' : 'warn';
 const moraLabel = (pay: ClientPaymentStatus) => pay.payment_status === 'up_to_date'
-  ? 'Sin mora'
+  ? paymentReviewLabel(pay)
   : pay.payment_status === 'due_soon'
     ? `Vence ${fechaListaCorta(pay.next_due_on,'próximamente')}`
     : `${pay.days_overdue} días de mora`;
@@ -90,7 +91,7 @@ function ClientLine({client, pay, stat, canSeeBilling, canManage, canManageTerms
     <div role="cell" className="min-w-0"><StateChip tone={STATE_TONE[state.value] ?? 'mute'} title={state.label}>{state.label}</StateChip></div>
     <div role="cell" className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
       {canSeeBilling ? <>
-        {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Sin datos de cobro</span>}
+        {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Pago por verificar</span>}
         {pay && pay.currency && Number(pay.outstanding_amount) > 0
           ? <MoneyText valor={Number(pay.outstanding_amount)} currency={pay.currency} tono={pay.days_overdue > 15 ? 'bad' : pay.days_overdue > 0 ? 'warn' : ''}/>
           : <span className="whitespace-nowrap text-[11px] text-mute">Sin saldo</span>}
@@ -143,7 +144,7 @@ function ClientTile({client, pay, stat, canSeeBilling, canManage, canManageTerms
     </header>
     <div className="flex min-h-7 min-w-0 items-center justify-between gap-2 rounded-lg bg-ink-700/40 px-2.5 py-1" aria-label="Cobros">
       {canSeeBilling ? <>
-        {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Sin datos de cobro</span>}
+        {pay ? <StateChip tone={moraTone(pay)} title={moraLabel(pay)}>{moraLabel(pay)}</StateChip> : <span className="text-[11px] text-mute">Pago por verificar</span>}
         <span className="flex items-center gap-1.5">
           {client.has_recurring_price !== true && !canManageTerms ? <span className="client-price-missing" title="Sin precio definido: editá el cliente y completá Plan y pago."><CircleDollarSign size={14} aria-label="Sin precio definido"/></span> : null}
           {pay && pay.currency && Number(pay.outstanding_amount) > 0

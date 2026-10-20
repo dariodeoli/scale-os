@@ -1,0 +1,1462 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "width": 320,
+      "height": 640,
+      "theme": "light",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 16,
+            "y": 186.8125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 16,
+            "y": 339,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 16,
+            "y": 457.1875,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 16,
+            "y": 545.375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 16,
+            "y": 633.5625,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 16,
+            "y": 721.75,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 16,
+            "y": 803.9375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 16,
+            "y": 886.125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 16,
+            "y": 1016.3125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 16,
+            "y": 1098.5,
+            "width": 273,
+            "right": 289
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 320,
+          "width": 320
+        },
+        "bodyWidth": 305,
+        "bodyScrollWidth": 305,
+        "documentWidth": 320
+      }
+    },
+    {
+      "width": 320,
+      "height": 640,
+      "theme": "light",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 16,
+            "y": 186.8125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 16,
+            "y": 269,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 16,
+            "y": 351.1875,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 16,
+            "y": 433.375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 16,
+            "y": 515.5625,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 16,
+            "y": 603.75,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 16,
+            "y": 691.9375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 16,
+            "y": 780.125,
+            "width": 273,
+            "right": 289
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 320,
+          "width": 320
+        },
+        "bodyWidth": 305,
+        "bodyScrollWidth": 305,
+        "documentWidth": 320
+      }
+    },
+    {
+      "width": 320,
+      "height": 640,
+      "theme": "dark",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 16,
+            "y": 186.8125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 16,
+            "y": 339,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 16,
+            "y": 457.1875,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 16,
+            "y": 545.375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 16,
+            "y": 633.5625,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 16,
+            "y": 721.75,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 16,
+            "y": 803.9375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 16,
+            "y": 886.125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 16,
+            "y": 1016.3125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 16,
+            "y": 1098.5,
+            "width": 273,
+            "right": 289
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 320,
+          "width": 320
+        },
+        "bodyWidth": 305,
+        "bodyScrollWidth": 305,
+        "documentWidth": 320
+      }
+    },
+    {
+      "width": 320,
+      "height": 640,
+      "theme": "dark",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 16,
+            "y": 186.8125,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 16,
+            "y": 269,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 16,
+            "y": 351.1875,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 16,
+            "y": 433.375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 16,
+            "y": 515.5625,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 16,
+            "y": 603.75,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 16,
+            "y": 691.9375,
+            "width": 273,
+            "right": 289
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 16,
+            "y": 780.125,
+            "width": 273,
+            "right": 289
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 320,
+          "width": 320
+        },
+        "bodyWidth": 305,
+        "bodyScrollWidth": 305,
+        "documentWidth": 320
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 16,
+            "y": 211.28125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 16,
+            "y": 345.46875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 16,
+            "y": 463.65625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 16,
+            "y": 551.84375,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 16,
+            "y": 640.03125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 16,
+            "y": 728.21875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 16,
+            "y": 810.40625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 16,
+            "y": 892.59375,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 16,
+            "y": 1004.78125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 16,
+            "y": 1086.96875,
+            "width": 343,
+            "right": 359
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 390,
+          "width": 390
+        },
+        "bodyWidth": 375,
+        "bodyScrollWidth": 375,
+        "documentWidth": 390
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 16,
+            "y": 211.28125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 16,
+            "y": 293.46875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 16,
+            "y": 375.65625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 16,
+            "y": 457.84375,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 16,
+            "y": 540.03125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 16,
+            "y": 628.21875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 16,
+            "y": 716.40625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 16,
+            "y": 804.59375,
+            "width": 343,
+            "right": 359
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 390,
+          "width": 390
+        },
+        "bodyWidth": 375,
+        "bodyScrollWidth": 375,
+        "documentWidth": 390
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 16,
+            "y": 211.28125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 16,
+            "y": 345.46875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 16,
+            "y": 463.65625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 16,
+            "y": 551.84375,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 16,
+            "y": 640.03125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 16,
+            "y": 728.21875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 16,
+            "y": 810.40625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 16,
+            "y": 892.59375,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 16,
+            "y": 1004.78125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 16,
+            "y": 1086.96875,
+            "width": 343,
+            "right": 359
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 390,
+          "width": 390
+        },
+        "bodyWidth": 375,
+        "bodyScrollWidth": 375,
+        "documentWidth": 390
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 16,
+            "y": 211.28125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 16,
+            "y": 293.46875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 16,
+            "y": 375.65625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 16,
+            "y": 457.84375,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 16,
+            "y": 540.03125,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 16,
+            "y": 628.21875,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 16,
+            "y": 716.40625,
+            "width": 343,
+            "right": 359
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 16,
+            "y": 804.59375,
+            "width": 343,
+            "right": 359
+          }
+        ],
+        "dialog": {
+          "x": 0,
+          "right": 390,
+          "width": 390
+        },
+        "bodyWidth": 375,
+        "bodyScrollWidth": 375,
+        "documentWidth": 390
+      }
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "theme": "light",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 41,
+            "y": 195.921875,
+            "width": 327.5,
+            "right": 368.5
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 384.5,
+            "y": 195.921875,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 41,
+            "y": 322.109375,
+            "width": 155.75,
+            "right": 196.75
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 212.75,
+            "y": 322.109375,
+            "width": 155.75,
+            "right": 368.5
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 384.5,
+            "y": 322.109375,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 41,
+            "y": 402.296875,
+            "width": 327.5,
+            "right": 368.5
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 384.5,
+            "y": 402.296875,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 41,
+            "y": 476.484375,
+            "width": 327.5,
+            "right": 368.5
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 384.5,
+            "y": 476.484375,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 41,
+            "y": 580.671875,
+            "width": 671,
+            "right": 712
+          }
+        ],
+        "dialog": {
+          "x": 20,
+          "right": 748,
+          "width": 728
+        },
+        "bodyWidth": 711,
+        "bodyScrollWidth": 711,
+        "documentWidth": 768
+      }
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "theme": "light",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 41,
+            "y": 335.625,
+            "width": 213,
+            "right": 254
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 270,
+            "y": 335.625,
+            "width": 213,
+            "right": 483
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 499,
+            "y": 335.625,
+            "width": 213,
+            "right": 712
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 41,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 196.75
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 212.75,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 368.5
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 384.5,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 540.25
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 556.25,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 712
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 41,
+            "y": 490,
+            "width": 671,
+            "right": 712
+          }
+        ],
+        "dialog": {
+          "x": 20,
+          "right": 748,
+          "width": 728
+        },
+        "bodyWidth": 711,
+        "bodyScrollWidth": 711,
+        "documentWidth": 768
+      }
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "theme": "dark",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 41,
+            "y": 195.921875,
+            "width": 327.5,
+            "right": 368.5
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 384.5,
+            "y": 195.921875,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 41,
+            "y": 322.109375,
+            "width": 155.75,
+            "right": 196.75
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 212.75,
+            "y": 322.109375,
+            "width": 155.75,
+            "right": 368.5
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 384.5,
+            "y": 322.109375,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 41,
+            "y": 402.296875,
+            "width": 327.5,
+            "right": 368.5
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 384.5,
+            "y": 402.296875,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 41,
+            "y": 476.484375,
+            "width": 327.5,
+            "right": 368.5
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 384.5,
+            "y": 476.484375,
+            "width": 327.5,
+            "right": 712
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 41,
+            "y": 580.671875,
+            "width": 671,
+            "right": 712
+          }
+        ],
+        "dialog": {
+          "x": 20,
+          "right": 748,
+          "width": 728
+        },
+        "bodyWidth": 711,
+        "bodyScrollWidth": 711,
+        "documentWidth": 768
+      }
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "theme": "dark",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 41,
+            "y": 335.625,
+            "width": 213,
+            "right": 254
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 270,
+            "y": 335.625,
+            "width": 213,
+            "right": 483
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 499,
+            "y": 335.625,
+            "width": 213,
+            "right": 712
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 41,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 196.75
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 212.75,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 368.5
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 384.5,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 540.25
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 556.25,
+            "y": 409.8125,
+            "width": 155.75,
+            "right": 712
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 41,
+            "y": 490,
+            "width": 671,
+            "right": 712
+          }
+        ],
+        "dialog": {
+          "x": 20,
+          "right": 748,
+          "width": 728
+        },
+        "bodyWidth": 711,
+        "bodyScrollWidth": 711,
+        "documentWidth": 768
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 331,
+            "y": 195.921875,
+            "width": 373.5,
+            "right": 704.5
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 720.5,
+            "y": 195.921875,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 331,
+            "y": 322.109375,
+            "width": 178.75,
+            "right": 509.75
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 525.75,
+            "y": 322.109375,
+            "width": 178.75,
+            "right": 704.5
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 720.5,
+            "y": 322.109375,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 331,
+            "y": 402.296875,
+            "width": 373.5,
+            "right": 704.5
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 720.5,
+            "y": 402.296875,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 331,
+            "y": 476.484375,
+            "width": 373.5,
+            "right": 704.5
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 720.5,
+            "y": 476.484375,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 331,
+            "y": 580.671875,
+            "width": 763,
+            "right": 1094
+          }
+        ],
+        "dialog": {
+          "x": 310,
+          "right": 1130,
+          "width": 820
+        },
+        "bodyWidth": 803,
+        "bodyScrollWidth": 803,
+        "documentWidth": 1440
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 331,
+            "y": 335.625,
+            "width": 243.65625,
+            "right": 574.65625
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 590.65625,
+            "y": 335.625,
+            "width": 243.671875,
+            "right": 834.328125
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 850.328125,
+            "y": 335.625,
+            "width": 243.671875,
+            "right": 1094
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 331,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 509.75
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 525.75,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 704.5
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 720.5,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 899.25
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 915.25,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 1094
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 331,
+            "y": 490,
+            "width": 763,
+            "right": 1094
+          }
+        ],
+        "dialog": {
+          "x": 310,
+          "right": 1130,
+          "width": 820
+        },
+        "bodyWidth": 803,
+        "bodyScrollWidth": 803,
+        "documentWidth": 1440
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "mode": "account",
+      "geometry": {
+        "fields": [
+          {
+            "name": "RUC / documento del titularConsulta",
+            "span": "6",
+            "x": 331,
+            "y": 195.921875,
+            "width": 373.5,
+            "right": 704.5
+          },
+          {
+            "name": "InstituciónCatálogo OwnCoding UI; t",
+            "span": "6",
+            "x": 720.5,
+            "y": 195.921875,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Tipo de cuentaBanco",
+            "span": "3",
+            "x": 331,
+            "y": 322.109375,
+            "width": 178.75,
+            "right": 509.75
+          },
+          {
+            "name": "MonedaPYG",
+            "span": "3",
+            "x": 525.75,
+            "y": 322.109375,
+            "width": 178.75,
+            "right": 704.5
+          },
+          {
+            "name": "Modalidad bancariaOtra / sin especi",
+            "span": "6",
+            "x": 720.5,
+            "y": 322.109375,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Titular",
+            "span": "6",
+            "x": 331,
+            "y": 402.296875,
+            "width": 373.5,
+            "right": 704.5
+          },
+          {
+            "name": "Número / referencia",
+            "span": "6",
+            "x": 720.5,
+            "y": 402.296875,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Nombre visibleSugerido automáticame",
+            "span": "6",
+            "x": 331,
+            "y": 476.484375,
+            "width": 373.5,
+            "right": 704.5
+          },
+          {
+            "name": "Alias · Opcional",
+            "span": "6",
+            "x": 720.5,
+            "y": 476.484375,
+            "width": 373.5,
+            "right": 1094
+          },
+          {
+            "name": "Quién custodia este dineroQuién cus",
+            "span": "12",
+            "x": 331,
+            "y": 580.671875,
+            "width": 763,
+            "right": 1094
+          }
+        ],
+        "dialog": {
+          "x": 310,
+          "right": 1130,
+          "width": 820
+        },
+        "bodyWidth": 803,
+        "bodyScrollWidth": 803,
+        "documentWidth": 1440
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "theme": "dark",
+      "mode": "editor",
+      "geometry": {
+        "fields": [
+          {
+            "name": "name",
+            "span": "4",
+            "x": 331,
+            "y": 335.625,
+            "width": 243.65625,
+            "right": 574.65625
+          },
+          {
+            "name": "category",
+            "span": "4",
+            "x": 590.65625,
+            "y": 335.625,
+            "width": 243.671875,
+            "right": 834.328125
+          },
+          {
+            "name": "reference",
+            "span": "4",
+            "x": 850.328125,
+            "y": 335.625,
+            "width": 243.671875,
+            "right": 1094
+          },
+          {
+            "name": "value",
+            "span": "3",
+            "x": 331,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 509.75
+          },
+          {
+            "name": "date",
+            "span": "3",
+            "x": 525.75,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 704.5
+          },
+          {
+            "name": "month",
+            "span": "3",
+            "x": 720.5,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 899.25
+          },
+          {
+            "name": "state",
+            "span": "3",
+            "x": 915.25,
+            "y": 409.8125,
+            "width": 178.75,
+            "right": 1094
+          },
+          {
+            "name": "notes",
+            "span": "12",
+            "x": 331,
+            "y": 490,
+            "width": 763,
+            "right": 1094
+          }
+        ],
+        "dialog": {
+          "x": 310,
+          "right": 1130,
+          "width": 820
+        },
+        "bodyWidth": 803,
+        "bodyScrollWidth": 803,
+        "documentWidth": 1440
+      }
+    }
+  ],
+  "write": {
+    "path": "/api/agency/accounts",
+    "body": {
+      "name": "Mi cuenta operativa",
+      "accountType": "bank",
+      "currency": "PYG",
+      "institution": "",
+      "accountNumber": "123456789",
+      "holderName": "Titular de prueba",
+      "holderTaxId": "",
+      "alias": "",
+      "accountSubtype": null,
+      "custodianUserId": "",
+      "requestId": "e3ade26b-d4cd-4117-bc41-2c32fc637893"
+    }
+  },
+  "runtimeErrors": []
+}

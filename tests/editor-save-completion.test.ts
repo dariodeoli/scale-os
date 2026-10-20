@@ -58,11 +58,18 @@ for(const [module,name,component,attribute] of cases)test(`${name} ${component}:
  const scope={completeSave,api:async()=>{writes++;return persist();},refresh,load:refresh,
   close:closeProp,setEdit:close,setOpen:close,setRecord:close,setInvite:close,
   member:{id:'7'},recordId:'8',kind:'leads',row:{id:'9'},
-  planData:null,canPlan:false,isDate:()=>true,
+  planData:null,canPlan:false,canInvite:true,isDate:()=>true,
  };
  const compiled=ts.transpileModule(`const callback=${callbackSource};`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
  const callback=new Function(...Object.keys(scope),`${compiled}\nreturn callback;`)(...Object.values(scope)) as (values:Record<string,string>)=>Promise<void>;
  const values={name:'Fixture',email:'fixture@example.invalid',role:'viewer',active:'true'};
+ if(name==='TeamAccess'){
+  const deniedScope={...scope,canInvite:false};
+  const denied=new Function(...Object.keys(deniedScope),`${compiled}\nreturn callback;`)(...Object.values(deniedScope)) as typeof callback;
+  await denied(values);
+  assert.equal(writes,0,'a revoked invitation permission cannot persist');
+  assert.equal(closed,false);assert.equal(refreshes,0);
+ }
  const before=notices.length;
  if(attribute==='save'){
   await assert.rejects(callback(values),/Persist failed/);

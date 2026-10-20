@@ -9,6 +9,7 @@ const pg=new PGlite(),read=name=>readFile(new URL(name,import.meta.url),'utf8');
 try{
  await pg.exec(await read('./schema.sql'));for(const name of migrationOrder)await pg.exec(await read('./migrations/'+name));
  await pg.exec(await read('./migrations/20261018_client_contacts.sql'));
+ await pg.exec(await read('./migrations/20261020_member_permissions.sql'));
  const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})},one=async(sql,args)=>(await query(sql,args)).rows[0];
  const org=(await one("insert into organizations(slug,name) values('contacts-qa184','Fixture') returning id")).id;
  const other=(await one("insert into organizations(slug,name) values('contacts-other184','Other') returning id")).id;

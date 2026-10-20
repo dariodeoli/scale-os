@@ -4,8 +4,11 @@ import {Subtabs} from '../ui/navigation';
 
 import {useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction} from 'react';
 import {ArrowLeftRight, Plus} from 'lucide-react';
-import {ActorAvatar, safePhoto} from '../actor-identity';
+import {AuditActor} from '../actor-identity';
 import {PersonContainer} from '../person-container';
+import {AccountCreateDialog} from '../account-create-dialog';
+import {financePermission} from '../finance-balance-data';
+import {roleCan} from '../capabilities';
 import {ReceiptReversal, ReconciliationWorkspace} from '../daily-controls';
 import {RemoveRecord} from '../archive-controls';
 import {moneyKpi} from '../client-format';
@@ -111,6 +114,11 @@ function SalariosPanel({navigate}: {navigate?: (label: string) => void}) {
 }
 
 export function FinanzasSection({user, navigate, financeState, accounts, invoices, transfers, payments, invoiceHasMore, paymentHasMore, financeEmpty, loadFinance, loadAllInvoices, loadAllPayments, setModal, openPayment}: FinanzasSectionProps) {
+  const [editingAccount,setEditingAccount]=useState<Account|null>(null);
+  const canSalary=!!user&&financePermission(user,'salary.view',roleCan(user.role,'salary.view'));
+  const canAccounts=!!user&&financePermission(user,'accounts.manage',roleCan(user.role,'accounts.manage'));
+  const canPayments=!!user&&financePermission(user,'payments.manage',roleCan(user.role,'payments.manage'));
+  const canTransfers=!!user&&financePermission(user,'transfers.manage',roleCan(user.role,'transfers.manage'));
   const [invoiceFilter, setInvoiceFilter] = useState('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
   // Historial en tabs (#142): transferencias, cobros registrados y movimientos
@@ -168,7 +176,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
     ? <span className="inline-flex flex-wrap items-baseline gap-x-2">{Array.from(totals).map(([currency, total]) => <span key={currency}>{moneyKpi(total, currency)}</span>)}</span>
     : null;
 
-  return <ListPage aria-label="Finanzas" primaryAction={<ScaleButton className="primary" onClick={() => openPayment()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar cobro</ScaleButton>}>
+  return <ListPage aria-label="Finanzas" primaryAction={canPayments?<ScaleButton className="primary" onClick={() => openPayment()} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar cobro</ScaleButton>:undefined}>
     {financeState === 'error' ? <Aviso tono="error" como="div">No se pudieron actualizar las finanzas. Se muestra la última información recibida. <ScaleButton type="button" className="text-button" onClick={retry} variant="ghost">Reintentar</ScaleButton></Aviso> : null}
 
     {/* Primer pliegue (#142): balances, cobros urgentes y proyección, sin mezclar todo en una vista. */}
@@ -177,8 +185,8 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0"><h3 id="finance-accounts-title" className="m-0 text-[17px] font-semibold tracking-tight text-fore" title="Disponibilidad por cuenta y custodia.">Balances</h3></div>
           <div className="flex flex-wrap items-center gap-1">
-            <ScaleButton className="text-button" onClick={() => setModal('account')} variant="ghost"><Plus size={14} aria-hidden="true"/>Cuenta</ScaleButton>
-            <ScaleButton className="text-button" onClick={() => setModal('transfer')} variant="ghost"><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</ScaleButton>
+            {canAccounts?<ScaleButton className="text-button" onClick={() => setModal('account')} variant="ghost"><Plus size={14} aria-hidden="true"/>Cuenta</ScaleButton>:null}
+            {canTransfers?<ScaleButton className="text-button" onClick={() => setModal('transfer')} variant="ghost"><ArrowLeftRight size={14} aria-hidden="true"/>Transferir</ScaleButton>:null}
           </div>
         </div>
         {availability.size ? <p className="m-0 min-w-0 truncate text-xs text-mute" title="Saldo actual de cuentas activas por moneda.">Disponible: <span className="font-semibold text-fore">{multiCurrency(availability)}</span></p> : null}
@@ -200,10 +208,10 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
                 {!account.institution && !account.account_number && !account.holder_name ? <span>Sin datos bancarios</span> : null}
               </span>
               {account.custodian_name||account.custodian_email ? <span className="flex shrink-0 items-center gap-1" title={`Custodia: ${account.custodian_name||account.custodian_email}`}><span className="sr-only">Custodia:</span><PersonContainer size="sm" name={account.custodian_name||account.custodian_email!} photoUrl={account.custodian_photo_url}/></span> : null}
-              <RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/>
+              {canAccounts?<><ScaleButton variant="ghost" type="button" className="text-button" onClick={()=>setEditingAccount(account)}>Editar</ScaleButton><RemoveRecord kind="accounts" id={account.id} name={account.name} role={user?.role || 'viewer'} done={loadFinance}/></>:null}
             </div>
           </article>)}
-        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={<ScaleButton className="primary" onClick={() => setModal('account')} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</ScaleButton>}/>}
+        </div> : <EmptyBlock compact title="Todavía no hay cuentas registradas." description="Sin cuentas no se pueden imputar cobros, pagos ni transferencias." action={canAccounts?<ScaleButton className="primary" onClick={() => setModal('account')} variant="primary"><Plus size={16} aria-hidden="true"/>Registrar primera cuenta</ScaleButton>:undefined}/>}
       </section>
 
       <section className="grid content-start gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-urgent-title">
@@ -231,7 +239,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
           : <EmptyBlock compact title="Nada urgente por cobrar." description="Cuando una factura venza o esté por vencer dentro de 7 días y tenga saldo, aparece acá."/>}
       </section>
 
-      <SalariosPanel navigate={navigate}/>
+      {canSalary?<SalariosPanel navigate={navigate}/>:null}
     </div>
 
     <section className="grid gap-3 rounded-xl border border-ink-600 bg-ink-800 p-4" aria-labelledby="finance-invoices-title">
@@ -308,7 +316,7 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
               <div className="flex min-w-0 items-center gap-2"><b className="truncate text-[13.5px] font-semibold leading-snug text-fore" title={`${payment.client_name} · ${payment.invoice_number}`}>{payment.client_name} · {payment.invoice_number}</b>{payment.reversal_id ? <StateChip tone="warn" title={payment.reversal_reason || 'Cobro revertido'}>Revertido</StateChip> : null}</div>
               <div className="min-w-0"><span className="whitespace-nowrap tabular-nums text-fore" title={listDateFull(payment.received_on) || undefined}>{listDateShort(payment.received_on) || '—'}</span></div>
               <div className="min-w-0 truncate text-[11.5px] text-fore" title={`${payment.account_name} · ${ACCOUNT_TYPES[payment.account_type] || payment.account_type}`}>{payment.account_name} · {ACCOUNT_TYPES[payment.account_type] || payment.account_type}</div>
-              <div className="flex min-w-0 items-center gap-1.5 text-xs text-mute"><ActorAvatar name={payment.actor_name || payment.received_by_email || 'Sin asignar'} photo={safePhoto(payment.actor_photo_url)}/><span className="truncate" title={payment.actor_name || payment.received_by_email || 'Sin asignar'}>{payment.actor_name || payment.received_by_email || 'Sin asignar'}</span></div>
+              <AuditActor name={payment.actor_name} photoUrl={payment.actor_photo_url} verified={payment.actor_verified===true}/>
               <div className="min-w-0 truncate text-[11.5px] text-mute" title={payment.reference || 'Sin referencia'}>{payment.reference || 'Sin referencia'}</div>
               <div className="min-w-0 text-right"><MoneyText valor={payment.amount} currency={payment.currency}/></div>
               <div className="flex min-w-0 items-center justify-end gap-1"><ReceiptReversal payment={payment} refresh={loadFinance}/></div>
@@ -320,5 +328,6 @@ export function FinanzasSection({user, navigate, financeState, accounts, invoice
 
       <div hidden={historyTab !== 'movimientos'}><ReconciliationWorkspace accounts={accounts}/></div>
     </section>
+  {editingAccount?<AccountCreateDialog account={editingAccount} close={()=>setEditingAccount(null)} done={()=>{setEditingAccount(null);void loadFinance();}}/>:null}
   </ListPage>;
 }

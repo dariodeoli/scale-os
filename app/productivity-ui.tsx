@@ -1,5 +1,6 @@
 "use client";
 import {ClientContacts} from './client-contacts';
+import {ClientIntakeButton} from './client-intake';
 import {Notice as Aviso,Note as Nota} from './ui/notice';
 import {Subtabs} from './ui/navigation';
 
@@ -134,7 +135,7 @@ export function WorkDetail({id,organizationId,role,close,refresh,anchor,initialE
 
 export function ClientDetail({id,role,close,refresh,createProject,openOrder,openProjects}:{id:string;role:string;close:()=>void;refresh:()=>Promise<void>;createProject:(id:string)=>void;openOrder:(id:string)=>void;openProjects?:(id:string)=>void}){
  const [data,setData]=useState<{client:Row;projects:Row[];orders:Row[];invoices?:Row[];payments?:Row[];budgets?:Row[];leads?:Row[]}|null>(null),[error,setError]=useState(''),[tab,setTab]=useState('Producción');
- const [payStatus,setPayStatus]=useState<{payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
+ const [payStatus,setPayStatus]=useState<{verification_status?:'pending_review'|'reviewed';verification_month?:string;payment_evidence_count?:number;payment_status:string;days_overdue:number;next_due_on:string|null;outstanding_amount:string;currency:string|null}|null>(null);
  const [summary,setSummary]=useState<ClientSummary|null>(null),[editing,setEditing]=useState(false);
  async function reload(){setData(await api(`/api/agency/productivity/clients/${id}`));await refresh();}
  useEffect(()=>{void api<typeof data>(`/api/agency/productivity/clients/${id}`).then(setData).catch(e=>setError(errorText(e)));},[id]);
@@ -163,6 +164,7 @@ export function ClientDetail({id,role,close,refresh,createProject,openOrder,open
      ? <p className="m-0 min-w-0 flex-1 text-[13px] text-mute" title="Contacto y datos fiscales reservados para los roles que gestionan clientes (Ley 7593/2025).">Contacto y datos fiscales reservados para los roles que gestionan clientes.</p>
      : <p className="m-0 min-w-0 flex-1 text-[13px] text-fore [overflow-wrap:anywhere]"><PiiTexto kind="email" value={s(data.client,'email')} masked={!canSeeContact} fallback="Sin correo"/><span className="text-mute"> · </span><PiiTexto kind="telefono" value={s(data.client,'phone')} masked={!canSeeContact} fallback="Sin teléfono"/></p>}
     <span className="flex shrink-0 items-center gap-2">
+     {roleCan(role,'clients.manage')&&data.client.contact_restricted!==true?<ClientIntakeButton clientId={id} onReviewed={reload}/>:null}
      {data.client.contact_restricted!==true&&canSeeContact?<WhatsAppButton compact className="client-whatsapp min-h-11 md:min-h-8" href={clientWhatsappUrl(s(data.client,'phone'))} label={`WhatsApp: ${s(data.client,'name')}`}/>:null}
      {['owner','admin','management','sales','finance','collaborator'].includes(role)&&<ScaleButton type="button" className="secondary min-h-11 md:min-h-9" title={`Editar cliente: ${s(data.client,'name')}`} aria-label={`Editar cliente: ${s(data.client,'name')}`} onClick={()=>setEditing(true)} variant="secondary"><Pencil size={14}/>Editar</ScaleButton>}
     </span>

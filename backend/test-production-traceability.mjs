@@ -7,7 +7,7 @@ import {identitySchema} from './scripts/test-identity-schema.mjs';
 import {externalLink} from './media-policy.js';
 import {visibleRecord} from './record-lifecycle.js';
 import {normalizeUrgency} from './urgency.js';
-import {roleCan} from './permissions.js';
+import {roleCan,loadActorPermissions} from './permissions.js';
 import {ensurePersonalIdentity} from './identity-session.js';
 import {weeklyReports} from './weekly-reports.js';
 
@@ -32,19 +32,19 @@ const route=betweenRoutes("    if (url.pathname === '/api/agency/work-orders' &&
 const helpers=between('const send =','const cookie =')+between('const parseCookies =','const id =')+between('const sessionCache =','async function session(req) {')+between('async function session(req) {','async function auditContext(')+between('async function auditContext(','function security(');
 
 const pg=new PGlite();
-await pg.exec(await fs.readFile('schema.sql','utf8'));
+await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
 for(const name of ['20260908_treasury_ledger','20260908_people_commissions_comments','20260908_operations_complete',
  '20260908_referral_discounts','20260908_collaborator_profiles','20260908_agency_suite','20260908_daily_controls',
- '20260910_work_checklists','20260910_company_currency','20260912_urgency','20260913_ruc_collaboration','20260911_weekly_reports'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
+ '20260910_work_checklists','20260910_company_currency','20260912_urgency','20260913_ruc_collaboration','20260911_weekly_reports'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}.sql`,import.meta.url),'utf8'));
 await identitySchema(pg);
-for(const name of ['20260910_notifications','20260912_comment_mentions','20260914_production_traceability'])await pg.exec(await fs.readFile(`migrations/${name}.sql`,'utf8'));
-await pg.exec(await fs.readFile('migrations/20260911_weekly_reports.sql','utf8'));
+for(const name of ['20260910_notifications','20260912_comment_mentions','20260914_production_traceability','20260914_role_permissions','20261020_member_permissions'])await pg.exec(await fs.readFile(new URL(`./migrations/${name}.sql`,import.meta.url),'utf8'));
+await pg.exec(await fs.readFile(new URL('./migrations/20260911_weekly_reports.sql',import.meta.url),'utf8'));
 const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
 const insert=async(sql,args)=>(await query(sql+' returning id',args)).rows[0].id;
 import {compressionPlan} from './response-compression.js';
-const postOrder=new Function('db','crypto','externalLink','visibleRecord','normalizeUrgency','roleCan','ensurePersonalIdentity','compressionPlan',`${helpers}
+const postOrder=new Function('db','crypto','externalLink','visibleRecord','normalizeUrgency','roleCan','ensurePersonalIdentity','compressionPlan','loadActorPermissions',`${helpers}
  return async function(req,res){const url=new URL(req.url,'https://test.invalid');${route}
-  throw new Error('Unexpected route in traceability test');};`)(db,crypto,externalLink,visibleRecord,normalizeUrgency,roleCan,ensurePersonalIdentity,compressionPlan);
+  throw new Error('Unexpected route in traceability test');};`)(db,crypto,externalLink,visibleRecord,normalizeUrgency,roleCan,ensurePersonalIdentity,compressionPlan,loadActorPermissions);
 
 const org=(await query("select id from organizations where slug='scale'")).rows[0].id;
 const other=await insert("insert into organizations(slug,name) values('trace-other','Other')");

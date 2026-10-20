@@ -1,0 +1,39 @@
+// Real canonical account/editor controls and stylesheet geometry. Local synthetic data only.
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {build} from 'esbuild';
+import {fileURLToPath} from 'node:url';
+import {createServer} from 'node:http';
+import {execFileSync} from 'node:child_process';
+const require=createRequire(new URL('../backend/package.json',import.meta.url)),puppeteer=require('puppeteer-core');
+const repo=fileURLToPath(new URL('../',import.meta.url));
+const artifact=process.env.SCALE_331_ARTIFACT_DIR||'/tmp/scale-finance-331-browser';await mkdir(artifact,{recursive:true});
+execFileSync(process.execPath,[`${repo}node_modules/tailwindcss/lib/cli.js`,'-i',`${repo}app/tailwind.css`,'-o',`${artifact}/tailwind.css`],{cwd:repo,stdio:'pipe'});
+const bundle=await build({stdin:{contents:`
+import'owncoding-ui/styles.css';import'./app/ui-tokens.css';import'./app/globals.css';import'./app/qa-fixes.css';import'./app/mobile-forms.css';import'./app/ui-system.css';import'./app/ui/field.css';import'./app/contrast.css';import React from'react';import{createRoot}from'react-dom/client';import{AccountForm}from'./app/workspace-forms';import{Dialog}from'./app/dialog';import{Editor}from'./app/operations';import'./app/globals.css';import'./app/ui-system.css';import'./app/operations.css';import'./app/dialog.css';
+window.writes=[];const root=createRoot(document.getElementById('root'));
+window.mount=mode=>root.render(<main key={mode} className="control-shell">{mode==='account'?<Dialog title="Nueva cuenta" close={()=>{}}><AccountForm custodians={[]} request={async(path,init)=>{window.writes.push({path,body:JSON.parse(init.body)});return{account:{id:'1'}};}} done={()=>{}}/></Dialog>:<Dialog title="Formulario compartido" close={()=>{}}><Editor fields={[{key:'name',label:'Nombre'},{key:'category',label:'Categoría'},{key:'reference',label:'Referencia'},{key:'value',label:'Valor',type:'money',optional:true},{key:'date',label:'Fecha',type:'date',optional:true},{key:'month',label:'Mes',type:'month',optional:true},{key:'state',label:'Estado',choices:[{value:'active',label:'Activo'}]},{key:'notes',label:'Observación',type:'textarea',optional:true}]} defaults={{name:'',category:'',reference:'',state:'active'}} save={async()=>{window.writes.push('editor');}}/></Dialog>}</main>);
+`,resolveDir:repo,loader:'tsx'},bundle:true,write:false,outfile:'/tmp/finance331.js',external:['/fonts/*'],jsx:'automatic',platform:'browser',format:'iife',loader:{'.woff2':'empty','.woff':'empty'},define:{'process.env.NODE_ENV':'"production"'},logLevel:'silent'});
+const js=bundle.outputFiles.find(file=>file.path.endsWith('.js')).text,css=bundle.outputFiles.find(file=>file.path.endsWith('.css')).text;
+const tailwind=await readFile(`${artifact}/tailwind.css`,'utf8');
+const server=createServer(async(req,res)=>{if(req.url.startsWith('/fonts/')){try{const path=new URL(req.url,'http://local').pathname;res.writeHead(200,{'Content-Type':'font/woff2'});res.end(await readFile(repo+'public'+path));}catch{res.writeHead(404);res.end();}return;}res.writeHead(200,{'Content-Type':'text/html'});res.end(`<!doctype html><html><head><style>${css}\n${tailwind}</style></head><body><div id="root"></div></body></html>`);});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const browser=await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});const results=[];
+try{
+ const page=await browser.newPage();page.setDefaultTimeout(10000);const runtime=[];page.on('pageerror',error=>runtime.push(error.message));
+ for(const [width,height]of [[320,640],[390,844],[768,900],[1440,900]])for(const theme of ['light','dark']){
+  await page.setViewport({width,height});await page.goto(`http://127.0.0.1:${server.address().port}`);await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await page.addScriptTag({content:js});
+  for(const mode of ['account','editor']){
+   await page.evaluate(mode=>window.mount(mode),mode);await page.waitForSelector(mode==='account'?'.account-form':'[data-field=name]');await page.waitForFunction(()=>!!document.querySelector('.dialog-footer button[type=submit]')?.form);if(mode==='account'){await page.click('#account-institution');await page.waitForSelector('[role=option]');await page.evaluate(()=>document.querySelector('[role=option]').click());await page.click('.dialog-heading h2');}
+   const geometry=await page.evaluate(()=>{const fields=[...document.querySelectorAll('form [data-span]')].map(node=>{const r=node.getBoundingClientRect();return {name:node.getAttribute('data-field')||node.textContent.slice(0,35),span:node.getAttribute('data-span'),x:r.x,y:r.y,width:r.width,right:r.right};});const dialog=document.querySelector('[role=dialog]').getBoundingClientRect(),body=document.querySelector('.dialog-body');return {fields,dialog:{x:dialog.x,right:dialog.right,width:dialog.width},bodyWidth:body.clientWidth,bodyScrollWidth:body.scrollWidth,documentWidth:document.documentElement.scrollWidth};});
+   assert(geometry.dialog.x>=-1&&geometry.dialog.right<=width+1,JSON.stringify({width,theme,mode,geometry}));assert(geometry.documentWidth<=width+1);assert(geometry.bodyScrollWidth<=geometry.bodyWidth+1,'form must not overflow its dialog '+JSON.stringify({width,mode,geometry}));
+   const short=geometry.fields.filter(field=>field.span==='3'||field.span==='4'||field.span==='6');
+   if(width<700)assert(short.every(field=>Math.abs(field.x-short[0].x)<2),'mobile controls occupy one column');
+   if(mode==='account'&&width>=768){const holder=geometry.fields.find(field=>field.name.startsWith('Titular')),number=geometry.fields.find(field=>field.name.startsWith('Número'));assert(holder&&number);assert(Math.abs(holder.y-number.y)<2);assert(Math.abs(holder.width-number.width)<2);assert(number.x>holder.x+holder.width-2);}
+   if(mode==='editor'&&width>=768){const normal=geometry.fields.filter(field=>['name','category','reference'].includes(field.name));assert.equal(normal.length,3);assert(normal.every(field=>Math.abs(field.y-normal[0].y)<2),'three normal text fields share one row');assert(normal[0].width<geometry.dialog.width/2);}
+   await page.screenshot({path:`${artifact}/${mode}-${width}-${theme}.png`});results.push({width,height,theme,mode,geometry});
+  }
+ }
+ await page.setViewport({width:1440,height:900});await page.evaluate(()=>window.mount('account'));await page.waitForSelector('input[name=accountNumber]');assert.equal(await page.$eval('input[name=name]',node=>node.value),'','untouched bank name must not prefill literal Cuenta');await page.type('input[name=accountNumber]','123456789');await page.waitForFunction(()=>document.querySelector('input[name=name]').value.includes('6789'));await page.$eval('input[name=name]',node=>{node.focus();node.select();});await page.keyboard.type('Mi cuenta operativa');await page.type('input[name=holderName]','Titular de prueba');await page.click('.dialog-footer button[type=submit]');await page.waitForFunction(()=>window.writes.length===1);const write=await page.evaluate(()=>window.writes[0]);assert.equal(write.body.name,'Mi cuenta operativa');assert.equal(write.body.accountNumber,'123456789');assert.match(write.body.requestId,/^[a-f0-9-]{36}$/);
+ assert.deepEqual(runtime,[]);await writeFile(`${artifact}/report.json`,JSON.stringify({passed:true,results,write,runtimeErrors:runtime},null,2));console.log(`PASS Chromium: ${results.length} form/theme/viewport combinations, actual compiled CSS, compact desktop/one-column mobile, no dialog overflow, manual name preserved and idempotent account payload. Evidence: ${artifact}`);
+}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

@@ -1,0 +1,2229 @@
+{
+  "formatVersion": 1,
+  "protocol": "MCP",
+  "count": 244,
+  "tools": [
+    {
+      "name": "scale_list_clients",
+      "method": "GET",
+      "path": "/api/agency/clients",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "Consultar clientes. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Las listas están limitadas y pueden requerir paginación."
+    },
+    {
+      "name": "scale_get_client",
+      "method": "GET",
+      "path": "/api/agency/clients",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "Consultar get_client. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Las listas están limitadas y pueden requerir paginación."
+    },
+    {
+      "name": "scale_create_client",
+      "method": "POST",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "operations",
+      "description": "Crear create_client. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_update_client",
+      "method": "PATCH",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "operations",
+      "description": "Editar update_client. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_list_plans",
+      "method": "GET",
+      "path": "/api/agency/plans",
+      "scope": "scale:read",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Consultar planes. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Las listas están limitadas y pueden requerir paginación."
+    },
+    {
+      "name": "scale_create_plan",
+      "method": "POST",
+      "path": "/api/agency/plans",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Crear create_plan. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_update_plan",
+      "method": "PATCH",
+      "path": "/api/agency/plans",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Editar update_plan. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_list_projects",
+      "method": "GET",
+      "path": "/api/agency/projects",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/projects. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_project",
+      "method": "GET",
+      "path": "/api/agency/projects",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/projects/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_project",
+      "method": "POST",
+      "path": "/api/agency/projects",
+      "scope": "scale:write",
+      "cap": "projects.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/projects. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_project",
+      "method": "PATCH",
+      "path": "/api/agency/projects",
+      "scope": "scale:write",
+      "cap": "projects.edit",
+      "domain": "operations",
+      "description": "PATCH /api/agency/projects/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_work_orders",
+      "method": "GET",
+      "path": "/api/agency/work-orders",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/work-orders. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_work_order",
+      "method": "GET",
+      "path": "/api/agency/work-orders",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/work-orders/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_work_order",
+      "method": "POST",
+      "path": "/api/agency/work-orders",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/work-orders. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_work_order",
+      "method": "PATCH",
+      "path": "/api/agency/work-orders",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "PATCH /api/agency/work-orders/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_tasks",
+      "method": "GET",
+      "path": "/api/agency/productivity/internal-tasks",
+      "scope": "scale:read",
+      "cap": "tasks.view",
+      "domain": "operations",
+      "description": "GET /api/agency/productivity/internal-tasks. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_task",
+      "method": "GET",
+      "path": "/api/agency/productivity/internal-tasks",
+      "scope": "scale:read",
+      "cap": "tasks.view",
+      "domain": "operations",
+      "description": "GET /api/agency/productivity/internal-tasks/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_task",
+      "method": "POST",
+      "path": "/api/agency/productivity/internal-tasks",
+      "scope": "scale:write",
+      "cap": "tasks.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/internal-tasks. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_task",
+      "method": "PATCH",
+      "path": "/api/agency/productivity/internal-tasks",
+      "scope": "scale:write",
+      "cap": "tasks.edit",
+      "domain": "operations",
+      "description": "PATCH /api/agency/productivity/internal-tasks/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_budgets",
+      "method": "GET",
+      "path": "/api/agency/budgets",
+      "scope": "scale:read",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "GET /api/agency/budgets. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_budget",
+      "method": "GET",
+      "path": "/api/agency/budgets",
+      "scope": "scale:read",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "GET /api/agency/budgets/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_budget",
+      "method": "POST",
+      "path": "/api/agency/budgets",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/budgets. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_budget",
+      "method": "PATCH",
+      "path": "/api/agency/budgets",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/budgets/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_contracts",
+      "method": "GET",
+      "path": "/api/agency/contracts",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_contract",
+      "method": "GET",
+      "path": "/api/agency/contracts",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_contract",
+      "method": "POST",
+      "path": "/api/agency/contracts",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/contracts. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_contract",
+      "method": "PATCH",
+      "path": "/api/agency/contracts",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/contracts/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_planned_expenses",
+      "method": "GET",
+      "path": "/api/agency/planned-expenses",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Gastos previstos del mes, únicos o recurrentes; no egresan dinero."
+    },
+    {
+      "name": "scale_create_planned_expense",
+      "method": "POST",
+      "path": "/api/agency/planned-expenses",
+      "scope": "scale:write",
+      "cap": "expenses.manage",
+      "domain": "finance",
+      "description": "Planificar gasto único o recurrente; no mueve caja. API no soporta requestId, no reintentar altas automáticamente."
+    },
+    {
+      "name": "scale_update_planned_expense",
+      "method": "PATCH",
+      "path": "/api/agency/planned-expenses",
+      "scope": "scale:write",
+      "cap": "expenses.manage",
+      "domain": "finance",
+      "description": "Editar gasto previsto sin modificar pagos reales. API no tiene revisión optimista."
+    },
+    {
+      "name": "scale_get_client_monthly_income",
+      "method": "GET",
+      "path": "/api/agency/clients",
+      "scope": "scale:read",
+      "cap": "billing.view",
+      "domain": "operations",
+      "description": "Consultar get_client_monthly_income. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Las listas están limitadas y pueden requerir paginación."
+    },
+    {
+      "name": "scale_add_client_monthly_income",
+      "method": "POST",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": [
+        "commercial-terms.manage",
+        "expenses.manage"
+      ],
+      "domain": "operations",
+      "description": "Crear add_client_monthly_income. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_update_client_monthly_income",
+      "method": "PATCH",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": [
+        "commercial-terms.manage",
+        "expenses.manage"
+      ],
+      "domain": "operations",
+      "description": "Editar update_client_monthly_income. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_list_receipts",
+      "method": "GET",
+      "path": "/api/agency/finance/receipts",
+      "scope": "scale:read",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Cobros con/sin cliente, aplicaciones, saldo disponible y asociaciones explícitas."
+    },
+    {
+      "name": "scale_receive_payment",
+      "method": "POST",
+      "path": "/api/agency/payments",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Recibir dinero en cuenta explícita. mode=unassigned permite sin cliente; factura o cliente explícitos aplican deuda existente. Asociar luego mediante links/applications. Nunca inferir cliente ni destino."
+    },
+    {
+      "name": "scale_get_client_reporting",
+      "method": "GET",
+      "path": "/api/agency/clients",
+      "scope": "scale:read",
+      "cap": "billing.view",
+      "domain": "operations",
+      "description": "Consultar get_client_reporting. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Las listas están limitadas y pueden requerir paginación."
+    },
+    {
+      "name": "scale_get_client_plan_history",
+      "method": "GET",
+      "path": "/api/agency/clients",
+      "scope": "scale:read",
+      "cap": "billing.view",
+      "domain": "operations",
+      "description": "Consultar get_client_plan_history. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Las listas están limitadas y pueden requerir paginación."
+    },
+    {
+      "name": "scale_update_client_commercial_terms",
+      "method": "PATCH",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "commercial-terms.manage",
+      "domain": "operations",
+      "description": "Editar update_client_commercial_terms. Sólo en la empresa autorizada y con permisos actuales. Las acciones disponibles siguen las reglas del módulo canónico. Los campos y errores son los del formulario canónico."
+    },
+    {
+      "name": "scale_list_inventory",
+      "method": "GET",
+      "path": "/api/agency/inventory",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_inventory",
+      "method": "POST",
+      "path": "/api/agency/inventory",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_inventory",
+      "method": "PATCH",
+      "path": "/api/agency/inventory",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/inventory/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_accounts",
+      "method": "GET",
+      "path": "/api/agency/accounts",
+      "scope": "scale:read",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Cuentas bancarias, efectivo, digitales e inversión con saldo actual y titular/custodio."
+    },
+    {
+      "name": "scale_create_account",
+      "method": "POST",
+      "path": "/api/agency/accounts",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Crear cuenta idempotente con requestId y saldo inicial cero. Nombre opcional generado desde banco/tipo/titular; saldo previo mediante account_opening."
+    },
+    {
+      "name": "scale_update_account",
+      "method": "PATCH",
+      "path": "/api/agency/accounts/:id",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Editar metadata bancaria/titular/custodio con requestId y revisión exacta; moneda no cambia si hay movimientos."
+    },
+    {
+      "name": "scale_list_account_custodians",
+      "method": "GET",
+      "path": "/api/agency/custodians",
+      "scope": "scale:read",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Personas con acceso para elegir explícitamente custodio de una cuenta."
+    },
+    {
+      "name": "scale_archive_account",
+      "method": "DELETE",
+      "path": "/api/agency/accounts/:id",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Retirar cuenta a papelera; canonical impide retirar una cuenta con saldo. No purga."
+    },
+    {
+      "name": "scale_restore_account",
+      "method": "POST",
+      "path": "/api/agency/accounts/:id/restore",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Restaurar cuenta de papelera, conservando movimientos e historial."
+    },
+    {
+      "name": "scale_add_account_opening",
+      "method": "POST",
+      "path": "/api/agency/finance/account-openings",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Registrar saldo previo de cuenta por fecha real, motivo y requestId; no representa ingreso operativo."
+    },
+    {
+      "name": "scale_get_treasury",
+      "method": "GET",
+      "path": "/api/agency/finance/treasury",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Caja por cuenta: apertura, entradas, salidas, cierre, saldo actual y movimientos reales del mes."
+    },
+    {
+      "name": "scale_get_finance_context",
+      "method": "GET",
+      "path": "/api/agency/finance/context",
+      "scope": "scale:read",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Buscar IDs explícitos de clientes, proyectos, planes, cuentas y facturas pendientes. No asociar automáticamente por coincidencias."
+    },
+    {
+      "name": "scale_get_financial_balance",
+      "method": "GET",
+      "path": "/api/agency/finance/balance-details",
+      "scope": "scale:read",
+      "cap": "finance.balance.view",
+      "domain": "finance",
+      "description": "Balance de contratado y recibido, gastos, equipo y salarios; datos salariales enmascarados según permiso."
+    },
+    {
+      "name": "scale_get_financial_forecast",
+      "method": "GET",
+      "path": "/api/agency/forecast",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Previsión por moneda; proyección separada del dinero recibido. Sin convertir contratos en cobros."
+    },
+    {
+      "name": "scale_get_financial_report",
+      "method": "GET",
+      "path": "/api/agency/reports",
+      "scope": "scale:read",
+      "cap": "reports.view",
+      "domain": "finance",
+      "description": "Informe histórico de ingresos y costos por período, con límites de cobertura conocidos."
+    },
+    {
+      "name": "scale_list_finance_periods",
+      "method": "GET",
+      "path": "/api/agency/finance/periods",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Consultar meses abiertos/cerrados y revisión de cada cierre."
+    },
+    {
+      "name": "scale_close_finance_period",
+      "method": "POST",
+      "path": "/api/agency/finance/periods/:month/close",
+      "scope": "scale:write",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Cerrar mes con motivo y revisión. Sólo el dueño: handler verifica rol y período; no reintentar con revisión actualizada automáticamente."
+    },
+    {
+      "name": "scale_reopen_finance_period",
+      "method": "POST",
+      "path": "/api/agency/finance/periods/:month/reopen",
+      "scope": "scale:write",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Reabrir mes con motivo y revisión. Sólo el dueño: handler verifica rol y período; no reintentar con revisión actualizada automáticamente."
+    },
+    {
+      "name": "scale_list_client_payment_reviews",
+      "method": "GET",
+      "path": "/api/agency/finance/payment-reviews",
+      "scope": "scale:read",
+      "cap": "billing.view",
+      "domain": "finance",
+      "description": "Revisión pendiente por defecto de cada cliente/mes, separada de pagos reales; evidencia y faltantes, sin inferir cobros."
+    },
+    {
+      "name": "scale_update_client_payment_review",
+      "method": "PATCH",
+      "path": "/api/agency/finance/payment-reviews/:id",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Marcar revisión documental del cliente/mes con motivo y revisión; nunca cobra, cancela ni modifica deuda."
+    },
+    {
+      "name": "scale_update_receipt_links",
+      "method": "PATCH",
+      "path": "/api/agency/payments/:id/links",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Asociar o desasociar cobro a IDs explícitos de cliente/proyecto/plan con expectedRevision; no mueve caja."
+    },
+    {
+      "name": "scale_list_receipt_applications",
+      "method": "GET",
+      "path": "/api/agency/payments/:id/applications",
+      "scope": "scale:read",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Aplicaciones y saldo disponible de un cobro, sin sumar dinero por segunda vez."
+    },
+    {
+      "name": "scale_apply_receipt",
+      "method": "POST",
+      "path": "/api/agency/payments/:id/applications",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Aplicar cobro libre a factura o mora previa explícita (exactamente un destino), importe y requestId; no crea otro cobro."
+    },
+    {
+      "name": "scale_reverse_receipt_application",
+      "method": "DELETE",
+      "path": "/api/agency/payments/:id/applications/:applicationId",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Revertir aplicación conservando cobro e historial; requiere motivo."
+    },
+    {
+      "name": "scale_correct_receipt_date",
+      "method": "POST",
+      "path": "/api/agency/payments/:id/date-correction",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Corregir fecha real mediante reemplazo y reversión auditados, con requestId; protege meses cerrados y no duplica caja."
+    },
+    {
+      "name": "scale_reverse_payment",
+      "method": "POST",
+      "path": "/api/agency/payments/:id/reverse",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Revertir cobro por ID explícito, fecha y motivo. Requiere dinero disponible; mantiene el historial."
+    },
+    {
+      "name": "scale_list_opening_receivables",
+      "method": "GET",
+      "path": "/api/agency/finance/opening-receivables",
+      "scope": "scale:read",
+      "cap": [
+        "billing.view",
+        "payments.manage"
+      ],
+      "domain": "finance",
+      "description": "Moras previas: saldo pendiente, período, vencimiento y previsibilidad de pago."
+    },
+    {
+      "name": "scale_create_opening_receivable",
+      "method": "POST",
+      "path": "/api/agency/finance/opening-receivables",
+      "scope": "scale:write",
+      "cap": "payments.manage",
+      "domain": "finance",
+      "description": "Registrar deuda previa manual de cliente explícito con motivo, período, vencimiento y fecha de pago prevista opcional; no recibe dinero."
+    },
+    {
+      "name": "scale_get_client_payment_status",
+      "method": "GET",
+      "path": "/api/agency/client-payment-status",
+      "scope": "scale:read",
+      "cap": "billing.view",
+      "domain": "finance",
+      "description": "Estado de cobranza y mora de clientes."
+    },
+    {
+      "name": "scale_list_expenses",
+      "method": "GET",
+      "path": "/api/agency/expenses",
+      "scope": "scale:read",
+      "cap": "expenses.manage",
+      "domain": "finance",
+      "description": "Gastos pagados y reversiones por fecha real."
+    },
+    {
+      "name": "scale_create_expense",
+      "method": "POST",
+      "path": "/api/agency/expenses",
+      "scope": "scale:write",
+      "cap": "expenses.manage",
+      "domain": "finance",
+      "description": "Registrar egreso real en cuenta explícita, categoría y fecha; requestId conserva idempotencia."
+    },
+    {
+      "name": "scale_reverse_expense",
+      "method": "DELETE",
+      "path": "/api/agency/expenses/:id",
+      "scope": "scale:write",
+      "cap": "expenses.manage",
+      "domain": "finance",
+      "description": "Revertir gasto por ID y motivo, conservando auditoría y fecha real."
+    },
+    {
+      "name": "scale_delete_planned_expense",
+      "method": "DELETE",
+      "path": "/api/agency/planned-expenses/:id",
+      "scope": "scale:write",
+      "cap": "expenses.manage",
+      "domain": "finance",
+      "description": "Eliminar planificación de gasto; no revierte egresos ya pagados."
+    },
+    {
+      "name": "scale_list_transfers",
+      "method": "GET",
+      "path": "/api/agency/transfers",
+      "scope": "scale:read",
+      "cap": "transfers.manage",
+      "domain": "finance",
+      "description": "Transferencias entre cuentas: egreso, recepción, moneda y tipo de cambio explícitos."
+    },
+    {
+      "name": "scale_create_transfer",
+      "method": "POST",
+      "path": "/api/agency/transfers",
+      "scope": "scale:write",
+      "cap": "transfers.manage",
+      "domain": "finance",
+      "description": "Transferir entre dos cuentas explícitas con requestId. Para monedas distintas especificar receivedAmount; no inferir cotización."
+    },
+    {
+      "name": "scale_list_reconciliation",
+      "method": "GET",
+      "path": "/api/agency/reconciliation",
+      "scope": "scale:read",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Extracto y movimientos pendientes de conciliar de cuenta explícita."
+    },
+    {
+      "name": "scale_import_statement",
+      "method": "POST",
+      "path": "/api/agency/reconciliation",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Importar extracto con IDs externos únicos. No crea ingresos ni egresos; filas repetidas se validan contra el original."
+    },
+    {
+      "name": "scale_match_statement_line",
+      "method": "POST",
+      "path": "/api/agency/reconciliation/:id/match",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Conciliar una línea explícita con un movimiento explícito, sin inferir cliente por importe."
+    },
+    {
+      "name": "scale_unmatch_statement_line",
+      "method": "POST",
+      "path": "/api/agency/reconciliation/:id/unmatch",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Quitar conciliación de línea explícita; no cambia caja."
+    },
+    {
+      "name": "scale_auto_reconcile_account",
+      "method": "POST",
+      "path": "/api/agency/reconciliation/:id/auto",
+      "scope": "scale:write",
+      "cap": "accounts.manage",
+      "domain": "finance",
+      "description": "Conciliación canónica sólo con referencia, fecha e importe únicos exactos. No asocia clientes ni mueve dinero."
+    },
+    {
+      "name": "scale_list_invoices",
+      "method": "GET",
+      "path": "/api/agency/invoices",
+      "scope": "scale:read",
+      "cap": "invoices.manage",
+      "domain": "finance",
+      "description": "Facturas y saldos pendientes. API devuelve ventana fija 20 o all; respuesta MCP sigue límite global."
+    },
+    {
+      "name": "scale_create_invoice",
+      "method": "POST",
+      "path": "/api/agency/invoices",
+      "scope": "scale:write",
+      "cap": "invoices.manage",
+      "domain": "finance",
+      "description": "Crear factura para cliente explícito; no es cobro. API sin requestId, no reintentar alta automáticamente."
+    },
+    {
+      "name": "scale_invoice_budget",
+      "method": "POST",
+      "path": "/api/agency/budgets/:id/invoice",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "finance",
+      "description": "Crear/recuperar factura de presupuesto aceptado; además requiere invoices.manage en handler."
+    },
+    {
+      "name": "scale_list_salary_history",
+      "method": "GET",
+      "path": "/api/agency/collaborators/:id/salary-history",
+      "scope": "scale:read",
+      "cap": "salary.view",
+      "domain": "finance",
+      "description": "Historial salarial, vigencias y revisión del colaborador explícito."
+    },
+    {
+      "name": "scale_update_salary",
+      "method": "POST",
+      "path": "/api/agency/collaborators/:id/salary-history",
+      "scope": "scale:write",
+      "cap": [
+        "finance.view",
+        "members.manage"
+      ],
+      "domain": "finance",
+      "description": "Cambiar salario con vigencia, motivo, requestId y revisión. Además exige finance.view o members.manage; canonical registra cronología."
+    },
+    {
+      "name": "scale_list_salary_override",
+      "method": "GET",
+      "path": "/api/agency/collaborators/:id/salary-overrides",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Consultar ajuste salarial del mes; también exige salary.view."
+    },
+    {
+      "name": "scale_update_salary_override",
+      "method": "PATCH",
+      "path": "/api/agency/collaborators/:id/salary-overrides",
+      "scope": "scale:write",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Ajuste salarial positivo o negativo del mes; también exige salary.view. Sustituye ajuste previo del mismo mes."
+    },
+    {
+      "name": "scale_delete_salary_override",
+      "method": "DELETE",
+      "path": "/api/agency/collaborators/:id/salary-overrides",
+      "scope": "scale:write",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Quitar ajuste salarial del mes; también exige salary.view."
+    },
+    {
+      "name": "scale_list_payouts",
+      "method": "GET",
+      "path": "/api/agency/payouts",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Pagos reales de equipo/comisiones con cuenta, fecha e importe."
+    },
+    {
+      "name": "scale_create_payout",
+      "method": "POST",
+      "path": "/api/agency/payouts",
+      "scope": "scale:write",
+      "cap": "finance.view",
+      "domain": "finance",
+      "description": "Pagar colaborador o comisión aprobada, exactamente un destino explícito, con requestId idempotente; salarios requieren salary.view y toda operación payments.manage."
+    },
+    {
+      "name": "scale_list_commissions",
+      "method": "GET",
+      "path": "/api/agency/commissions",
+      "scope": "scale:read",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Comisiones registradas y estados."
+    },
+    {
+      "name": "scale_get_monthly_commissions",
+      "method": "GET",
+      "path": "/api/agency/commissions/monthly",
+      "scope": "scale:read",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Comisiones previstas, pendientes, aprobadas y pagadas del mes."
+    },
+    {
+      "name": "scale_create_commission",
+      "method": "POST",
+      "path": "/api/agency/commissions",
+      "scope": "scale:write",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Registrar comisión fija o porcentual de factura explícita con requestId idempotente."
+    },
+    {
+      "name": "scale_update_commission_status",
+      "method": "PATCH",
+      "path": "/api/agency/commissions/:id",
+      "scope": "scale:write",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Aprobar o cancelar comisión pendiente/aprobada; pago separado mediante payouts."
+    },
+    {
+      "name": "scale_list_referral_discounts",
+      "method": "GET",
+      "path": "/api/agency/referral-discounts",
+      "scope": "scale:read",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Descuentos de referidos aplicados a facturas."
+    },
+    {
+      "name": "scale_create_referral_discount",
+      "method": "POST",
+      "path": "/api/agency/referral-discounts",
+      "scope": "scale:write",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Aplicar descuento a factura explícita; no reduce total bajo pagado. API sin requestId, no reintentar alta automáticamente."
+    },
+    {
+      "name": "scale_reverse_referral_discount",
+      "method": "PATCH",
+      "path": "/api/agency/referral-discounts/:id",
+      "scope": "scale:write",
+      "cap": "commissions.manage",
+      "domain": "finance",
+      "description": "Revertir descuento aplicado, conservando registro original."
+    },
+    {
+      "name": "scale_list_exchange_rates",
+      "method": "GET",
+      "path": "/api/agency/exchange-rates",
+      "scope": "scale:read",
+      "cap": "commercial.manage",
+      "domain": "finance",
+      "description": "Cotizaciones USD/PYG registradas; no convertir ni transferir automáticamente."
+    },
+    {
+      "name": "scale_set_exchange_rate",
+      "method": "POST",
+      "path": "/api/agency/exchange-rates",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "finance",
+      "description": "Registrar cotización USD/PYG por fecha explícita."
+    },
+    {
+      "name": "scale_archive_project",
+      "method": "DELETE",
+      "path": "/api/agency/projects/:id",
+      "scope": "scale:write",
+      "cap": "projects.edit",
+      "domain": "operations",
+      "description": "Archiva en Papelera sin purgar; conserva validaciones de padres y reservas abiertas. Requiere confirmación explícita."
+    },
+    {
+      "name": "scale_restore_project",
+      "method": "POST",
+      "path": "/api/agency/projects/:id/restore",
+      "scope": "scale:write",
+      "cap": "projects.edit",
+      "domain": "operations",
+      "description": "Restaura desde Papelera, sin modificar roles ni acceso y con el permiso canónico del recurso."
+    },
+    {
+      "name": "scale_batch_set_project_active",
+      "method": "POST",
+      "path": "/api/agency/projects/batch",
+      "scope": "scale:write",
+      "cap": "projects.edit",
+      "domain": "operations",
+      "description": "Cambia active de proyectos en lote (archived=true significa inactivo en este API). Para Papelera usar archive_project."
+    },
+    {
+      "name": "scale_approve_work_order",
+      "method": "POST",
+      "path": "/api/agency/work-orders/:id/approve",
+      "scope": "scale:write",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/work-orders/:id/approve. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_publish_work_order",
+      "method": "POST",
+      "path": "/api/agency/work-orders/:id/publish",
+      "scope": "scale:write",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/work-orders/:id/publish. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_archive_work_order",
+      "method": "DELETE",
+      "path": "/api/agency/work-orders/:id",
+      "scope": "scale:write",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "Archiva en Papelera sin purgar; conserva validaciones de padres y reservas abiertas. Requiere confirmación explícita."
+    },
+    {
+      "name": "scale_restore_work_order",
+      "method": "POST",
+      "path": "/api/agency/work-orders/:id/restore",
+      "scope": "scale:write",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "Restaura desde Papelera, sin modificar roles ni acceso y con el permiso canónico del recurso."
+    },
+    {
+      "name": "scale_get_project_assignees",
+      "method": "GET",
+      "path": "/api/agency/projects/:id/assignees",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/projects/:id/assignees. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_project_assignees",
+      "method": "PATCH",
+      "path": "/api/agency/projects/:id/assignees",
+      "scope": "scale:write",
+      "cap": "assignees.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/projects/:id/assignees. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_work_order_assignees",
+      "method": "GET",
+      "path": "/api/agency/work-orders/:id/assignees",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/work-orders/:id/assignees. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_work_order_assignees",
+      "method": "PATCH",
+      "path": "/api/agency/work-orders/:id/assignees",
+      "scope": "scale:write",
+      "cap": "assignees.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/work-orders/:id/assignees. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_assignable_people",
+      "method": "GET",
+      "path": "/api/agency/assignees",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/assignees. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_project_comments",
+      "method": "GET",
+      "path": "/api/agency/projects/:id/comments",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/projects/:id/comments. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_add_project_comment",
+      "method": "POST",
+      "path": "/api/agency/projects/:id/comments",
+      "scope": "scale:write",
+      "cap": "projects.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/projects/:id/comments. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_work_order_activity",
+      "method": "GET",
+      "path": "/api/agency/productivity/orders/:id",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "Detalle de pieza, historial de estados y comentarios; historial limitado por el handler y redacción por rol."
+    },
+    {
+      "name": "scale_add_work_order_comment",
+      "method": "POST",
+      "path": "/api/agency/productivity/orders/:id/comments",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/orders/:id/comments. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_duplicate_work_order",
+      "method": "POST",
+      "path": "/api/agency/productivity/orders/:id/duplicate",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/orders/:id/duplicate. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_work_order_links",
+      "method": "GET",
+      "path": "/api/agency/work-orders/:id/links",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/work-orders/:id/links. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_add_work_order_link",
+      "method": "POST",
+      "path": "/api/agency/work-orders/:id/links",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "Guarda un enlace HTTPS de entrega; no descarga ni ejecuta la URL. Visibilidad al cliente sólo si se solicita explícitamente."
+    },
+    {
+      "name": "scale_update_work_order_link",
+      "method": "PATCH",
+      "path": "/api/agency/work-orders/:id/links/:linkId",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "PATCH /api/agency/work-orders/:id/links/:linkId. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_remove_work_order_link",
+      "method": "DELETE",
+      "path": "/api/agency/work-orders/:id/links/:linkId",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "DELETE /api/agency/work-orders/:id/links/:linkId. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_work_order_portal_delivery",
+      "method": "GET",
+      "path": "/api/agency/work-orders/:id/client-portal-delivery",
+      "scope": "scale:read",
+      "cap": "portal.manage",
+      "domain": "operations",
+      "description": "GET /api/agency/work-orders/:id/client-portal-delivery. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_publish_work_order_portal_delivery",
+      "method": "POST",
+      "path": "/api/agency/work-orders/:id/client-portal-delivery",
+      "scope": "scale:write",
+      "cap": "portal.manage",
+      "domain": "operations",
+      "description": "Publica entrega para revisión del cliente después de aprobación interna. Guarda enlace HTTPS sin descargarlo; no suplanta la decisión del cliente. Demo rechaza este efecto."
+    },
+    {
+      "name": "scale_update_work_order_portal_delivery",
+      "method": "PATCH",
+      "path": "/api/agency/work-orders/:id/client-portal-delivery",
+      "scope": "scale:write",
+      "cap": "portal.manage",
+      "domain": "operations",
+      "description": "Oculta/muestra una entrega o publica una versión revisada. visible=false conserva el historial; volver a mostrar sin assetUrl no crea otra versión."
+    },
+    {
+      "name": "scale_get_work_checklist",
+      "method": "GET",
+      "path": "/api/agency/work-orders/:id/checklist",
+      "scope": "scale:read",
+      "cap": "work-checklists.view",
+      "domain": "operations",
+      "description": "GET /api/agency/work-orders/:id/checklist. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_add_work_checklist_item",
+      "method": "POST",
+      "path": "/api/agency/work-orders/:id/checklist/items",
+      "scope": "scale:write",
+      "cap": "checklists.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/work-orders/:id/checklist/items. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_work_checklist_item",
+      "method": "PATCH",
+      "path": "/api/agency/work-orders/:id/checklist/items/:itemId",
+      "scope": "scale:write",
+      "cap": "checklists.edit",
+      "domain": "operations",
+      "description": "PATCH /api/agency/work-orders/:id/checklist/items/:itemId. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_remove_work_checklist_item",
+      "method": "DELETE",
+      "path": "/api/agency/work-orders/:id/checklist/items/:itemId",
+      "scope": "scale:write",
+      "cap": "checklists.edit",
+      "domain": "operations",
+      "description": "DELETE /api/agency/work-orders/:id/checklist/items/:itemId. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_task_context",
+      "method": "GET",
+      "path": "/api/agency/productivity/internal-tasks/context",
+      "scope": "scale:read",
+      "cap": "tasks.view",
+      "domain": "operations",
+      "description": "GET /api/agency/productivity/internal-tasks/context. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_add_task_comment",
+      "method": "POST",
+      "path": "/api/agency/productivity/internal-tasks/:id/comments",
+      "scope": "scale:write",
+      "cap": "tasks.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/internal-tasks/:id/comments. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_production_history",
+      "method": "GET",
+      "path": "/api/agency/productivity/history",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "operations",
+      "description": "GET /api/agency/productivity/history. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_production_source_events",
+      "method": "GET",
+      "path": "/api/agency/productivity/source-events",
+      "scope": "scale:read",
+      "cap": "activity.view",
+      "domain": "operations",
+      "description": "GET /api/agency/productivity/source-events. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_import_production_source_events",
+      "method": "POST",
+      "path": "/api/agency/productivity/source-events",
+      "scope": "scale:write",
+      "cap": [
+        "activity.view"
+      ],
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/source-events. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_batch_update_work_orders",
+      "method": "POST",
+      "path": "/api/agency/productivity/batch",
+      "scope": "scale:write",
+      "cap": "work-orders.edit",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/batch. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_production_templates",
+      "method": "GET",
+      "path": "/api/agency/productivity/templates",
+      "scope": "scale:read",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "GET /api/agency/productivity/templates. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_production_template",
+      "method": "POST",
+      "path": "/api/agency/productivity/templates",
+      "scope": "scale:write",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/templates. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_generate_production_template",
+      "method": "POST",
+      "path": "/api/agency/productivity/templates/:id/generate",
+      "scope": "scale:write",
+      "cap": "work-orders.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/productivity/templates/:id/generate. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_leads",
+      "method": "GET",
+      "path": "/api/agency/leads",
+      "scope": "scale:read",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "GET /api/agency/leads. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_lead",
+      "method": "POST",
+      "path": "/api/agency/leads",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/leads. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_lead",
+      "method": "PATCH",
+      "path": "/api/agency/leads/:id",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/leads/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_convert_lead",
+      "method": "POST",
+      "path": "/api/agency/leads/:id/convert",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/leads/:id/convert. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_archive_lead",
+      "method": "DELETE",
+      "path": "/api/agency/leads/:id",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "Archiva en Papelera sin purgar; conserva validaciones de padres y reservas abiertas. Requiere confirmación explícita."
+    },
+    {
+      "name": "scale_restore_lead",
+      "method": "POST",
+      "path": "/api/agency/leads/:id/restore",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "Restaura desde Papelera, sin modificar roles ni acceso y con el permiso canónico del recurso."
+    },
+    {
+      "name": "scale_list_pipeline_stages",
+      "method": "GET",
+      "path": "/api/agency/pipeline-stages",
+      "scope": "scale:read",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "GET /api/agency/pipeline-stages. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_pipeline_stage",
+      "method": "POST",
+      "path": "/api/agency/pipeline-stages",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/pipeline-stages. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_pipeline_stage",
+      "method": "PATCH",
+      "path": "/api/agency/pipeline-stages/:id",
+      "scope": "scale:write",
+      "cap": "commercial.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/pipeline-stages/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_share_budget",
+      "method": "POST",
+      "path": "/api/agency/budgets/:id/share",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Habilita el enlace público de propuesta para el cliente sólo con confirmación explícita."
+    },
+    {
+      "name": "scale_revoke_budget",
+      "method": "POST",
+      "path": "/api/agency/budgets/:id/revoke",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Revoca el enlace público de la propuesta; no borra el documento."
+    },
+    {
+      "name": "scale_archive_budget",
+      "method": "DELETE",
+      "path": "/api/agency/budgets/:id",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Archiva en Papelera sin purgar; conserva validaciones de padres y reservas abiertas. Requiere confirmación explícita."
+    },
+    {
+      "name": "scale_restore_budget",
+      "method": "POST",
+      "path": "/api/agency/budgets/:id/restore",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Restaura desde Papelera, sin modificar roles ni acceso y con el permiso canónico del recurso."
+    },
+    {
+      "name": "scale_batch_archive_budgets",
+      "method": "POST",
+      "path": "/api/agency/budgets/batch",
+      "scope": "scale:write",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Archiva/restaura propuestas en Papelera; al archivar también revoca su enlace público."
+    },
+    {
+      "name": "scale_get_contract_config",
+      "method": "GET",
+      "path": "/api/agency/contracts/config",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts/config. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_contract_models",
+      "method": "GET",
+      "path": "/api/agency/contracts/models",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts/models. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_contract_templates",
+      "method": "GET",
+      "path": "/api/agency/contracts/templates",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts/templates. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_contract_template",
+      "method": "GET",
+      "path": "/api/agency/contracts/templates/:id",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts/templates/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_contract_template",
+      "method": "POST",
+      "path": "/api/agency/contracts/templates",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/contracts/templates. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_contract_template",
+      "method": "PATCH",
+      "path": "/api/agency/contracts/templates/:id",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/contracts/templates/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_import_contract_model",
+      "method": "POST",
+      "path": "/api/agency/contracts/templates/from-model",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/contracts/templates/from-model. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_autofill_contract",
+      "method": "POST",
+      "path": "/api/agency/contracts/autofill",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/contracts/autofill. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_preview_contract",
+      "method": "POST",
+      "path": "/api/agency/contracts/preview",
+      "scope": "scale:write",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "Vista previa de borrador o modelo con datos ficticios opcionales. No emite ni firma un contrato; handler controla edición y acceso bancario."
+    },
+    {
+      "name": "scale_list_contract_versions",
+      "method": "GET",
+      "path": "/api/agency/contracts/:id/versions",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "GET /api/agency/contracts/:id/versions. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_issue_contract_version",
+      "method": "POST",
+      "path": "/api/agency/contracts/:id/versions",
+      "scope": "scale:write",
+      "cap": "contracts.issue",
+      "domain": "operations",
+      "description": "Emite una versión inmutable sólo después de revisión humana explícita y campos completos. Handler exige también contracts.manage. No aplica firma digital."
+    },
+    {
+      "name": "scale_assist_contract",
+      "method": "POST",
+      "path": "/api/agency/contracts/:id/assist",
+      "scope": "scale:write",
+      "cap": "contracts.manage",
+      "domain": "operations",
+      "description": "Solicita revisión estructural al proveedor IA configurado; no envía contenido ni emite ni firma. Demo y proveedor no habilitado son rechazados por el handler."
+    },
+    {
+      "name": "scale_get_inventory",
+      "method": "GET",
+      "path": "/api/agency/inventory/:id",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_archive_inventory",
+      "method": "DELETE",
+      "path": "/api/agency/inventory/:id",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "Archiva en Papelera sin purgar; conserva validaciones de padres y reservas abiertas. Requiere confirmación explícita."
+    },
+    {
+      "name": "scale_restore_inventory",
+      "method": "POST",
+      "path": "/api/agency/inventory/:id/restore",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "Restaura desde Papelera, sin modificar roles ni acceso y con el permiso canónico del recurso."
+    },
+    {
+      "name": "scale_get_inventory_context",
+      "method": "GET",
+      "path": "/api/agency/inventory-context",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory-context. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_verify_inventory",
+      "method": "POST",
+      "path": "/api/agency/inventory/:id/verify",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "Registra verificación declarada por el usuario. No acredita haber inspeccionado físicamente el equipo desde MCP."
+    },
+    {
+      "name": "scale_batch_update_inventory",
+      "method": "POST",
+      "path": "/api/agency/inventory/batch",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory/batch. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_inventory_categories",
+      "method": "GET",
+      "path": "/api/agency/inventory-categories",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory-categories. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_inventory_category",
+      "method": "POST",
+      "path": "/api/agency/inventory-categories",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-categories. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_inventory_category",
+      "method": "PATCH",
+      "path": "/api/agency/inventory-categories/:id",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/inventory-categories/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_inventory_locations",
+      "method": "GET",
+      "path": "/api/agency/inventory-locations",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory-locations. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_inventory_location",
+      "method": "POST",
+      "path": "/api/agency/inventory-locations",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-locations. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_inventory_location",
+      "method": "PATCH",
+      "path": "/api/agency/inventory-locations/:id",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/inventory-locations/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_reorder_inventory_locations",
+      "method": "PATCH",
+      "path": "/api/agency/inventory-locations/order",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/inventory-locations/order. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_inventory_maintenance",
+      "method": "GET",
+      "path": "/api/agency/inventory-maintenance",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory-maintenance. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_inventory_maintenance",
+      "method": "POST",
+      "path": "/api/agency/inventory-maintenance",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-maintenance. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_inventory_maintenance",
+      "method": "PATCH",
+      "path": "/api/agency/inventory-maintenance/:id",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/inventory-maintenance/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_void_inventory_maintenance",
+      "method": "DELETE",
+      "path": "/api/agency/inventory-maintenance/:id",
+      "scope": "scale:write",
+      "cap": "inventory.manage",
+      "domain": "operations",
+      "description": "Anula mantenimiento conservando registro auditado; no purga ni mueve dinero."
+    },
+    {
+      "name": "scale_list_inventory_reservations",
+      "method": "GET",
+      "path": "/api/agency/inventory-reservations",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory-reservations. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_inventory_reservation",
+      "method": "GET",
+      "path": "/api/agency/inventory-reservations/:id",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/inventory-reservations/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_inventory_reservation",
+      "method": "POST",
+      "path": "/api/agency/inventory-reservations",
+      "scope": "scale:write",
+      "cap": "inventory.book",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-reservations. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_inventory_reservation",
+      "method": "PATCH",
+      "path": "/api/agency/inventory-reservations/:id",
+      "scope": "scale:write",
+      "cap": "inventory.book",
+      "domain": "operations",
+      "description": "PATCH /api/agency/inventory-reservations/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_checkout_inventory_reservation",
+      "method": "POST",
+      "path": "/api/agency/inventory-reservations/:id/checkout",
+      "scope": "scale:write",
+      "cap": "inventory.book",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-reservations/:id/checkout. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_return_inventory_reservation",
+      "method": "POST",
+      "path": "/api/agency/inventory-reservations/:id/return",
+      "scope": "scale:write",
+      "cap": "inventory.book",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-reservations/:id/return. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_cancel_inventory_reservation",
+      "method": "POST",
+      "path": "/api/agency/inventory-reservations/:id/cancel",
+      "scope": "scale:write",
+      "cap": "inventory.book",
+      "domain": "operations",
+      "description": "POST /api/agency/inventory-reservations/:id/cancel. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_studio_context",
+      "method": "GET",
+      "path": "/api/agency/studio-context",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/studio-context. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_studio_spaces",
+      "method": "GET",
+      "path": "/api/agency/studio-spaces",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/studio-spaces. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_studio_space",
+      "method": "POST",
+      "path": "/api/agency/studio-spaces",
+      "scope": "scale:write",
+      "cap": "studio.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/studio-spaces. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_studio_space",
+      "method": "PATCH",
+      "path": "/api/agency/studio-spaces/:id",
+      "scope": "scale:write",
+      "cap": "studio.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/studio-spaces/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_list_studio_reservations",
+      "method": "GET",
+      "path": "/api/agency/studio-reservations",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/studio-reservations. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_studio_reservation",
+      "method": "GET",
+      "path": "/api/agency/studio-reservations/:id",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "GET /api/agency/studio-reservations/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_create_studio_reservation",
+      "method": "POST",
+      "path": "/api/agency/studio-reservations",
+      "scope": "scale:write",
+      "cap": "studio.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/studio-reservations. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_update_studio_reservation",
+      "method": "PATCH",
+      "path": "/api/agency/studio-reservations/:id",
+      "scope": "scale:write",
+      "cap": "studio.manage",
+      "domain": "operations",
+      "description": "PATCH /api/agency/studio-reservations/:id. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_cancel_studio_reservation",
+      "method": "POST",
+      "path": "/api/agency/studio-reservations/:id/cancel",
+      "scope": "scale:write",
+      "cap": "studio.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/studio-reservations/:id/cancel. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_batch_cancel_studio_reservations",
+      "method": "POST",
+      "path": "/api/agency/studio-reservations/batch",
+      "scope": "scale:write",
+      "cap": "studio.manage",
+      "domain": "operations",
+      "description": "POST /api/agency/studio-reservations/batch. Reutiliza permisos, validaciones e historial del formulario de Scale; sólo empresa autorizada."
+    },
+    {
+      "name": "scale_get_budget_pdf_metadata",
+      "method": "GET",
+      "path": "/api/agency/budgets/:id/pdf",
+      "scope": "scale:read",
+      "cap": "budgets.manage",
+      "domain": "operations",
+      "description": "Verifica acceso al presupuesto y devuelve URL fija de descarga autenticada. No devuelve base64 ni un enlace público ni ejecuta URLs elegidas por el modelo."
+    },
+    {
+      "name": "scale_get_contract_pdf_metadata",
+      "method": "GET",
+      "path": "/api/agency/contracts/:id/versions/:version/pdf",
+      "scope": "scale:read",
+      "cap": "contracts.view",
+      "domain": "operations",
+      "description": "Verifica contrato y versión emitida visible para este actor, y devuelve URL fija de descarga con sesión Scale. No aplica firma digital ni expone bytes/token público."
+    },
+    {
+      "name": "scale_get_inventory_photo_metadata",
+      "method": "GET",
+      "path": "/api/agency/inventory/:id/photo",
+      "scope": "scale:read",
+      "cap": "inventory.view",
+      "domain": "operations",
+      "description": "Verifica la ficha de inventario y devuelve sólo URL fija del recurso autenticado. No descarga URLs externas ni devuelve imágenes base64."
+    },
+    {
+      "name": "scale_list_client_portal_access",
+      "method": "GET",
+      "path": "/api/agency/clients",
+      "scope": "scale:read",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Consultar list client portal access en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_invitation_links",
+      "method": "GET",
+      "path": "/api/agency/invite-links",
+      "scope": "scale:read",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Consultar metadatos de enlaces de invitación sin devolver URLs ni credenciales de acceso."
+    },
+    {
+      "name": "scale_revoke_invitation_link",
+      "method": "DELETE",
+      "path": "/api/agency/invite-links",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar revoke invitation link en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_invite_client_portal_user",
+      "method": "POST",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Invitar por correo a un cliente al portal. Devuelve metadatos y el estado real de envío; nunca devuelve la credencial de acceso."
+    },
+    {
+      "name": "scale_update_member_photo",
+      "method": "PATCH",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar update member photo en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_collaborators",
+      "method": "GET",
+      "path": "/api/agency/collaborators",
+      "scope": "scale:read",
+      "cap": [
+        "members.manage",
+        "finance.view"
+      ],
+      "domain": "workspace",
+      "description": "Consultar list collaborators en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_create_collaborator",
+      "method": "POST",
+      "path": "/api/agency/collaborators",
+      "scope": "scale:write",
+      "cap": [
+        "members.manage",
+        "finance.view"
+      ],
+      "domain": "workspace",
+      "description": "Crear un perfil laboral. Si el actor está autorizado, el módulo canónico puede vincular o invitar acceso de lectura por correo; los permisos salariales se verifican por separado."
+    },
+    {
+      "name": "scale_update_collaborator",
+      "method": "PATCH",
+      "path": "/api/agency/collaborators",
+      "scope": "scale:write",
+      "cap": [
+        "members.manage",
+        "finance.view"
+      ],
+      "domain": "workspace",
+      "description": "Editar el perfil laboral con los permisos actuales. Gerencia no puede cambiar remuneraciones ni perfiles ligados a integrantes superiores. El módulo canónico conserva las reglas de vinculación de acceso."
+    },
+    {
+      "name": "scale_invite_member",
+      "method": "POST",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar invite member en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_member_access",
+      "method": "PATCH",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar update member access en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_resend_member_invitation",
+      "method": "POST",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar resend member invitation en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_remove_member_access",
+      "method": "DELETE",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar remove member access en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_decide_access_request",
+      "method": "PATCH",
+      "path": "/api/agency/access-requests",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar decide access request en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_role_permission",
+      "method": "PATCH",
+      "path": "/api/agency/permissions",
+      "scope": "scale:write",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Actualizar update role permission en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_member_permissions",
+      "method": "GET",
+      "path": "/api/agency/members",
+      "scope": "scale:read",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Consultar get member permissions en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_member_permission",
+      "method": "PATCH",
+      "path": "/api/agency/members",
+      "scope": "scale:write",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Actualizar update member permission en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_revoke_client_portal_invitation",
+      "method": "POST",
+      "path": "/api/agency/client-portal-invites",
+      "scope": "scale:write",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Actualizar revoke client portal invitation en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_revoke_client_portal_grant",
+      "method": "POST",
+      "path": "/api/agency/clients",
+      "scope": "scale:write",
+      "cap": "portal-access.manage",
+      "domain": "workspace",
+      "description": "Actualizar revoke client portal grant en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_my_profile",
+      "method": "GET",
+      "path": "/api/agency/productivity/profile",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar get my profile en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_company_legal_profile",
+      "method": "GET",
+      "path": "/api/agency/company-legal-profile",
+      "scope": "scale:read",
+      "cap": "settings.manage",
+      "domain": "workspace",
+      "description": "Consultar get company legal profile en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_company_legal_profile",
+      "method": "PATCH",
+      "path": "/api/agency/company-legal-profile",
+      "scope": "scale:write",
+      "cap": "settings.manage",
+      "domain": "workspace",
+      "description": "Actualizar update company legal profile en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_summary",
+      "method": "GET",
+      "path": "/api/agency/summary",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar get summary en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_company_settings",
+      "method": "GET",
+      "path": "/api/agency/settings",
+      "scope": "scale:read",
+      "cap": "settings.manage",
+      "domain": "workspace",
+      "description": "Consultar get company settings en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_company_settings",
+      "method": "PATCH",
+      "path": "/api/agency/settings",
+      "scope": "scale:write",
+      "cap": "settings.manage",
+      "domain": "workspace",
+      "description": "Actualizar update company settings en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_team",
+      "method": "GET",
+      "path": "/api/agency/team",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar el equipo. El módulo canónico oculta salarios, contactos y accesos según los permisos actuales."
+    },
+    {
+      "name": "scale_list_members",
+      "method": "GET",
+      "path": "/api/agency/members",
+      "scope": "scale:read",
+      "cap": [
+        "members.manage",
+        "permissions.manage"
+      ],
+      "domain": "workspace",
+      "description": "Consultar list members en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_job_titles",
+      "method": "GET",
+      "path": "/api/agency/job-roles",
+      "scope": "scale:read",
+      "cap": "finance.view",
+      "domain": "workspace",
+      "description": "Consultar list job titles en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_create_job_title",
+      "method": "POST",
+      "path": "/api/agency/job-roles",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar create job title en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_job_title",
+      "method": "PATCH",
+      "path": "/api/agency/job-roles",
+      "scope": "scale:write",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Actualizar update job title en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_workspace_preferences",
+      "method": "GET",
+      "path": "/api/agency/workspace-preferences",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar get workspace preferences en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_workspace_preferences",
+      "method": "PATCH",
+      "path": "/api/agency/workspace-preferences",
+      "scope": "scale:write",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Actualizar update workspace preferences en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_notification_preferences",
+      "method": "GET",
+      "path": "/api/agency/notifications/preferences",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar get notification preferences en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_notification_preferences",
+      "method": "PATCH",
+      "path": "/api/agency/notifications/preferences",
+      "scope": "scale:write",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Actualizar update notification preferences en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_notifications",
+      "method": "GET",
+      "path": "/api/agency/notifications",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar list notifications en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_update_notification",
+      "method": "PATCH",
+      "path": "/api/agency/notifications",
+      "scope": "scale:write",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Actualizar update notification en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_mark_notifications_read",
+      "method": "PATCH",
+      "path": "/api/agency/notifications/read-all",
+      "scope": "scale:write",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Actualizar mark notifications read en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_activity",
+      "method": "GET",
+      "path": "/api/agency/activity",
+      "scope": "scale:read",
+      "cap": "activity.view",
+      "domain": "workspace",
+      "description": "Consultar list activity en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_list_access_requests",
+      "method": "GET",
+      "path": "/api/agency/access-requests",
+      "scope": "scale:read",
+      "cap": "members.manage",
+      "domain": "workspace",
+      "description": "Consultar list access requests en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_permission_matrix",
+      "method": "GET",
+      "path": "/api/agency/permissions",
+      "scope": "scale:read",
+      "cap": "permissions.manage",
+      "domain": "workspace",
+      "description": "Consultar permisos de roles inferiores autorizados; Gerencia no recibe valores de roles superiores ni capacidades protegidas."
+    },
+    {
+      "name": "scale_get_active_announcement",
+      "method": "GET",
+      "path": "/api/agency/announcements/active",
+      "scope": "scale:read",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Consultar get active announcement en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_dismiss_announcement",
+      "method": "POST",
+      "path": "/api/agency/announcements",
+      "scope": "scale:write",
+      "cap": null,
+      "domain": "workspace",
+      "description": "Actualizar dismiss announcement en la empresa autorizada. Se conservan permisos y validaciones actuales."
+    },
+    {
+      "name": "scale_get_client_completeness",
+      "method": "GET",
+      "path": "/api/agency/clients/:id/completeness",
+      "scope": "scale:read",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Consultar nombres de campos pendientes de un cliente y los que reutiliza el autofill contractual. No inventa datos, pagos ni revisión mensual."
+    },
+    {
+      "name": "scale_list_client_intake_links",
+      "method": "GET",
+      "path": "/api/agency/client-intake-links",
+      "scope": "scale:read",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Listar últimos 100 enlaces de registro de la empresa o de una ficha: alcance, expiración, revocación y consumo. Nunca devuelve tokens, hashes ni enlaces portadores existentes."
+    },
+    {
+      "name": "scale_create_client_intake_link",
+      "method": "POST",
+      "path": "/api/agency/client-intake-links",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Emitir un enlace básico o completo para compartir explícitamente con el cliente. Devuelve el path portador una sola vez; tratarlo como enlace privado. No enviar mensajes automáticamente. Ante respuesta ambigua no reintentar: revisar enlaces emitidos y, si hace falta, revocar y emitir otro con confirmación."
+    },
+    {
+      "name": "scale_revoke_client_intake_link",
+      "method": "DELETE",
+      "path": "/api/agency/client-intake-links/:id",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Revocar un enlace de registro de la empresa. Es idempotente y no borra fichas ni solicitudes ya recibidas."
+    },
+    {
+      "name": "scale_list_client_intake_submissions",
+      "method": "GET",
+      "path": "/api/agency/client-intake-submissions",
+      "scope": "scale:read",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Consultar últimas 100 solicitudes para revisión autorizada, con los datos personales que el cliente envió. No vincula ni sobrescribe fichas; divulgar únicamente lo necesario para la solicitud del usuario."
+    },
+    {
+      "name": "scale_review_client_intake_submission",
+      "method": "POST",
+      "path": "/api/agency/client-intake-submissions/:id/review",
+      "scope": "scale:write",
+      "cap": "clients.manage",
+      "domain": "clients",
+      "description": "Confirmar revisión humana: crear ficha, completar sólo campos vacíos expresamente seleccionados de una ficha o rechazar. Primero consultar solicitud y ficha actual; link requiere updated_at ISO exacto. Nunca reemplaza datos existentes ni registra pagos. Revisión repetida devuelve conflicto, sin duplicación."
+    }
+  ]
+}

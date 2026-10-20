@@ -1,0 +1,502 @@
+[
+  {
+    "method": "PATCH",
+    "path": "/api/agency/productivity/profile",
+    "status": "excluded",
+    "reason": "Canonical personal profile writes lock the acting user FOR UPDATE, conflicting with the MCP live actor lease on another connection. Human profile UI retains identity edits."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/invite-links",
+    "status": "excluded",
+    "reason": "Creates a bearer credential without a recipient delivery channel. The business invitation action is covered by scale_invite_member, which sends an email and returns no access credential."
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/members/:id/permanent",
+    "status": "excluded",
+    "reason": "Permanent purge is outside business MCP scope."
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/sso/providers/:id",
+    "status": "excluded",
+    "reason": "Security configuration includes client secrets and login providers; managed by human authentication UI."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/sso/providers/:id",
+    "status": "excluded",
+    "reason": "Security configuration includes client secrets and login providers; managed by human authentication UI."
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/sso/domains",
+    "status": "excluded",
+    "reason": "Authentication domain configuration remains managed by human security UI."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/account/*",
+    "status": "excluded",
+    "reason": "Passwords, authentication recovery, account deletion and identity proofs are excluded; no model-visible reauthentication credentials."
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/auth/account/*",
+    "status": "excluded",
+    "reason": "Passwords, authentication recovery, account deletion and identity proofs are excluded; no model-visible reauthentication credentials."
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/auth/account/*",
+    "status": "excluded",
+    "reason": "Passwords, authentication recovery, account deletion and identity proofs are excluded; no model-visible reauthentication credentials."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/organizations",
+    "status": "excluded",
+    "reason": "Creates new tenant context outside the explicitly authorized current company."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/switch-organization",
+    "status": "excluded",
+    "reason": "MCP is bound to a specific authorized company; cannot change tenant context."
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/default-organization",
+    "status": "excluded",
+    "reason": "Global account preference across companies remains in human account UI."
+  },
+  {
+    "method": "ANY",
+    "path": "/api/platform/*",
+    "status": "excluded",
+    "reason": "Platform administration, infrastructure and global tenant operations are outside agency business scope."
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/clients/:id/client-portal-invites",
+    "status": "covered",
+    "tool": "scale_list_client_portal_access",
+    "capability": "portal-access.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/invite-links",
+    "status": "covered",
+    "tool": "scale_list_invitation_links",
+    "capability": "members.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/invite-links/:id",
+    "status": "covered",
+    "tool": "scale_revoke_invitation_link",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/clients/:id/client-portal-invites",
+    "status": "covered",
+    "tool": "scale_invite_client_portal_user",
+    "capability": "portal-access.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/members/:id/photo",
+    "status": "covered",
+    "tool": "scale_update_member_photo",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/collaborators",
+    "status": "covered",
+    "tool": "scale_list_collaborators",
+    "capability": [
+      "members.manage",
+      "finance.view"
+    ],
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/collaborators",
+    "status": "covered",
+    "tool": "scale_create_collaborator",
+    "capability": [
+      "members.manage",
+      "finance.view"
+    ],
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/collaborators/:id",
+    "status": "covered",
+    "tool": "scale_update_collaborator",
+    "capability": [
+      "members.manage",
+      "finance.view"
+    ],
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/members",
+    "status": "covered",
+    "tool": "scale_invite_member",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/members/:id",
+    "status": "covered",
+    "tool": "scale_update_member_access",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/members/:id/resend",
+    "status": "covered",
+    "tool": "scale_resend_member_invitation",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/agency/members/:id",
+    "status": "covered",
+    "tool": "scale_remove_member_access",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/access-requests/:id",
+    "status": "covered",
+    "tool": "scale_decide_access_request",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/permissions",
+    "status": "covered",
+    "tool": "scale_update_role_permission",
+    "capability": "permissions.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/members/:id/permissions",
+    "status": "covered",
+    "tool": "scale_get_member_permissions",
+    "capability": "permissions.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/members/:id/permissions",
+    "status": "covered",
+    "tool": "scale_update_member_permission",
+    "capability": "permissions.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/client-portal-invites/:id/revoke",
+    "status": "covered",
+    "tool": "scale_revoke_client_portal_invitation",
+    "capability": "portal-access.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/clients/:id/portal-access/grants/:grantId/revoke",
+    "status": "covered",
+    "tool": "scale_revoke_client_portal_grant",
+    "capability": "portal-access.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": true
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/productivity/profile",
+    "status": "covered",
+    "tool": "scale_get_my_profile",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/company-legal-profile",
+    "status": "covered",
+    "tool": "scale_get_company_legal_profile",
+    "capability": "settings.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/company-legal-profile",
+    "status": "covered",
+    "tool": "scale_update_company_legal_profile",
+    "capability": "settings.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/summary",
+    "status": "covered",
+    "tool": "scale_get_summary",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/settings",
+    "status": "covered",
+    "tool": "scale_get_company_settings",
+    "capability": "settings.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/settings",
+    "status": "covered",
+    "tool": "scale_update_company_settings",
+    "capability": "settings.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/team",
+    "status": "covered",
+    "tool": "scale_list_team",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/members",
+    "status": "covered",
+    "tool": "scale_list_members",
+    "capability": [
+      "members.manage",
+      "permissions.manage"
+    ],
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/job-roles",
+    "status": "covered",
+    "tool": "scale_list_job_titles",
+    "capability": "finance.view",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/job-roles",
+    "status": "covered",
+    "tool": "scale_create_job_title",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/job-roles/:id",
+    "status": "covered",
+    "tool": "scale_update_job_title",
+    "capability": "members.manage",
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/workspace-preferences",
+    "status": "covered",
+    "tool": "scale_get_workspace_preferences",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/workspace-preferences",
+    "status": "covered",
+    "tool": "scale_update_workspace_preferences",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/notifications/preferences",
+    "status": "covered",
+    "tool": "scale_get_notification_preferences",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/notifications/preferences",
+    "status": "covered",
+    "tool": "scale_update_notification_preferences",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/notifications",
+    "status": "covered",
+    "tool": "scale_list_notifications",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/notifications/:id",
+    "status": "covered",
+    "tool": "scale_update_notification",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/agency/notifications/read-all",
+    "status": "covered",
+    "tool": "scale_mark_notifications_read",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/activity",
+    "status": "covered",
+    "tool": "scale_list_activity",
+    "capability": "activity.view",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/access-requests",
+    "status": "covered",
+    "tool": "scale_list_access_requests",
+    "capability": "members.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/permissions",
+    "status": "covered",
+    "tool": "scale_get_permission_matrix",
+    "capability": "permissions.manage",
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "GET",
+    "path": "/api/agency/announcements/active",
+    "status": "covered",
+    "tool": "scale_get_active_announcement",
+    "capability": null,
+    "scope": "scale:read",
+    "canonicalHandlers": true,
+    "financial": false
+  },
+  {
+    "method": "POST",
+    "path": "/api/agency/announcements/:id/dismiss",
+    "status": "covered",
+    "tool": "scale_dismiss_announcement",
+    "capability": null,
+    "scope": "scale:write",
+    "canonicalHandlers": true,
+    "financial": false
+  }
+]

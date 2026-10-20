@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import ts from 'typescript';
 import {visibleModule} from '../app/workspace-access';
+import {effectiveCapability,canOpenPeopleWorkspace} from '../app/capabilities';
 import {workspaceSource} from './workspace-source';
 import {teamSheetSource,teamWorkspaceSource} from './team-source';
 
@@ -67,7 +68,10 @@ test('budgets reach production while the pipeline does not',()=>{
 
 test('management reaches the team without individual salary amounts',()=>{
  assert.match(team,/const allowed=canOpenPeopleWorkspace\(role,capabilities\);/);
- assert.match(team,/const salaryView=effectiveCapability\(role,'salary\.view',capabilities\);/);
+ assert.match(team,/const salaryView=effectiveCapability\(role,'salary\.view',capabilities\)&&permissionPolicy\?\.canViewSalary!==false;/);
+ assert(canOpenPeopleWorkspace('management'),'gerencia retains operational team access');
+ assert.equal(effectiveCapability('management','salary.view',{'salary.view':true}),false,'a stale override cannot reveal salaries');
+ assert.equal(visibleModule('Balance','management',{'finance.balance.view':true}),false,'Balance remains private even with a stale override');
  // La pestaña Remuneración no se arma sin `salary.view` (ni su contenido ni sus datos).
  assert.match(sheet,/if\(salaryView&&person\)tabs\.push\(\{id:'remuneracion'/);
  assert.match(sheet,/tab\.id!=='remuneracion'\|\|\(mode==='team'&&salaryView\)/,'el filtro de la carcasa repite la regla');
@@ -78,7 +82,9 @@ test('management reaches the team without individual salary amounts',()=>{
  assert.doesNotMatch(team,/setPay\(\{ person:/,'paying a collaborator lives in Finanzas, not in the team capsule');
  assert.match(archive,/const roles=ARCHIVE_KIND_CAPABILITIES as Record<string,Capability>/,'la papelera comparte el mapa de capacidades');
  assert.match(read('app/capabilities.ts'),/collaborators:'members\.manage'/);
- assert.match(access,/const manage=effectiveCapability\(role,'members\.manage',capabilities\)/);
+ assert.match(access,/const manage=policy\?\.canManageMembers===true/);
+ assert.match(access,/member\.access_editable===true/,'the API must authorize the actual target');
+ assert.match(access,/accessRoleChoices\(policy\)/,'assignable roles come from live policy, not a local hierarchy');
 });
 
 test('viewer never reaches a mutating control in the visible sections',()=>{

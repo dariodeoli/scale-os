@@ -19,6 +19,7 @@ import {BATCH_LIMITS,canOpenPeopleWorkspace,roleCan,effectiveCapability} from '.
 import {ActionMenu,BulkBar,CompactCard,EmptyBlock,FilterToolbar,ListActions,ListGrid,ListPage,ListRow,LoadingBlock,StateChip,ViewSwitch,useBulkSelection,type ChipTone,type CollectionView,type Column,type RecordMenuItem} from './ui-v2';
 import {teamDirectory,filterTeamEntries,teamRoleLabels,isCurrentTeamMember,type ArchivedProfile,type TeamEntry,type TeamMember,type TeamStatusFilter} from './team-directory';
 import {accessState} from './team-access';
+import {editableMemberAccess,editableMemberPermissions,type TeamPermissionPolicy} from './team-permission-policy';
 import {TeamPersonSheet,compensationTypes,type Person,type SheetTarget} from './team-person-sheet';
 import {Button as ScaleButton} from "./ui/button";
 
@@ -89,6 +90,7 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
   const [search,setSearch]=useState(''),[teamFilter,setTeamFilter]=useState<TeamStatusFilter>('all');
   const [loading,setLoading]=useState(true),[error,setError]=useState('');
   const [permissionsOpen,setPermissionsOpen]=useState(false);
+  const [permissionPolicy,setPermissionPolicy]=useState<TeamPermissionPolicy>();
   const [sheet,setSheet]=useState<SheetTarget|null>(null);
   const [revokeTarget,setRevokeTarget]=useState<TeamMember|null>(null);
   const [removeTarget,setRemoveTarget]=useState<{id:string;name:string}|null>(null);
@@ -97,16 +99,17 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
   // La preferencia Lista/Cuadrícula se recuerda por navegador (mismo criterio que Clientes).
   useEffect(()=>{try{const stored=localStorage.getItem(TEAM_VIEW_KEY);setView(stored==='cards'||stored==='grid'?'grid':'list');}catch{/* Preferencia opcional de la interfaz. */}},[]);
   const changeView=(next:CollectionView)=>{setView(next);try{localStorage.setItem(TEAM_VIEW_KEY,next);}catch{/* Preferencia opcional de la interfaz. */}};
-  const canManageAccess=effectiveCapability(role,'members.manage',capabilities);
+  const canManageAccess=effectiveCapability(role,'members.manage',capabilities)&&permissionPolicy?.canManageMembers===true;
+  const canManagePermissions=effectiveCapability(role,'permissions.manage',capabilities)&&permissionPolicy?.canManageRoles===true;
   // Equipo sigue a quienes gestionan personas o ven salarios (sin listas de roles paralelas).
-  const salaryView=effectiveCapability(role,'salary.view',capabilities);
+  const salaryView=effectiveCapability(role,'salary.view',capabilities)&&permissionPolicy?.canViewSalary!==false;
   const allowed=canOpenPeopleWorkspace(role,capabilities);
   const bulk=useBulkSelection({limit:BATCH_LIMITS.members,noun:'accesos'});
   const [bulkBusy,setBulkBusy]=useState(false);
 
   async function load(){
-    const data=await api<{collaborators:Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[]}>('/api/agency/team');
-    setPeople(data.collaborators);setMembers(data.members||[]);setArchivedProfiles(data.archivedProfiles||[]);
+    const data=await api<{collaborators:Person[];members?:TeamMember[];archivedProfiles?:ArchivedProfile[];policy?:TeamPermissionPolicy}>('/api/agency/team');
+    setPeople(data.collaborators);setMembers(data.members||[]);setArchivedProfiles(data.archivedProfiles||[]);setPermissionPolicy(data.policy);
   }
   useEffect(()=>{
     if(allowed)load().catch(cause=>setError(errorText(cause))).finally(()=>setLoading(false));
@@ -120,7 +123,7 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
 
   const directory=useMemo(()=>teamDirectory(people,members,archivedProfiles),[people,members,archivedProfiles]);
   const visible=useMemo(()=>filterTeamEntries(directory,search,teamFilter),[directory,search,teamFilter]);
-  const selectable=(entry:Entry)=>Boolean(canManageAccess&&entry.member&&!entry.member.removed_at&&!isCurrentTeamMember(entry.member,currentUserId));
+  const selectable=(entry:Entry)=>Boolean(canManageAccess&&entry.member&&!entry.member.removed_at&&editableMemberAccess(entry.member,currentUserId));
   const selectableIds=useMemo(()=>directory.filter(selectable).map(entry=>String(entry.member!.id)),[directory,canManageAccess,currentUserId]);
   const {prune}=bulk;
   useEffect(()=>{prune(selectableIds);},[selectableIds,prune]);
@@ -172,10 +175,10 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
     }else if(!entry.ambiguous){
       items.push({id:'profile',label:'Perfil',onClick:()=>openSheet({memberId:String(m!.id),seedEmail:m!.email&&!technicalEmail(m!.email)?m!.email:''})});
     }
-    if(canManageAccess&&(m||p))items.push({id:'access',label:'Acceso',onClick:()=>openSheet({personId:p?String(p.id):null,memberId:m?String(m.id):null,seedEmail:!p&&m&&!technicalEmail(m.email)?m.email:'',tab:'acceso'})});
-    if(m&&!m.removed_at&&canManageAccess&&!isCurrentTeamMember(m,currentUserId)&&!(m.role==='owner'&&role!=='owner'))items.push({id:'revoke',label:'Quitar acceso',peligro:true,onClick:()=>setRevokeTarget(m)});
-    if(p&&canManageAccess&&canRemoveRecord('collaborators',role))items.push({id:'remove',label:'Eliminar',peligro:true,onClick:()=>setRemoveTarget({id:String(p.id),name:p.full_name})});
-    else if(!p&&m&&canManageAccess&&(!m.active||Boolean(m.removed_at))&&!isCurrentTeamMember(m,currentUserId)&&!(m.role==='owner'&&role!=='owner'))items.push({id:'purge',label:'Eliminar',peligro:true,onClick:()=>{setPurgeError('');setPurgeTarget(m);}});
+    if((canManageAccess&&((m&&editableMemberAccess(m,currentUserId))||(!m&&p)))||(canManagePermissions&&editableMemberPermissions(m,currentUserId)))items.push({id:'access',label:'Acceso',onClick:()=>openSheet({personId:p?String(p.id):null,memberId:m?String(m.id):null,seedEmail:!p&&m&&!technicalEmail(m.email)?m.email:'',tab:'acceso'})});
+    if(m&&!m.removed_at&&canManageAccess&&editableMemberAccess(m,currentUserId))items.push({id:'revoke',label:'Quitar acceso',peligro:true,onClick:()=>setRevokeTarget(m)});
+    if(p&&canManageAccess&&(!m||editableMemberAccess(m,currentUserId))&&canRemoveRecord('collaborators',role))items.push({id:'remove',label:'Eliminar',peligro:true,onClick:()=>setRemoveTarget({id:String(p.id),name:p.full_name})});
+    else if(!p&&m&&canManageAccess&&(!m.active||Boolean(m.removed_at))&&editableMemberAccess(m,currentUserId))items.push({id:'purge',label:'Eliminar',peligro:true,onClick:()=>{setPurgeError('');setPurgeTarget(m);}});
     return items;
   }
   const menuLabel=(facts:Facts)=>`Acciones de ${facts.name}`;
@@ -226,7 +229,7 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
       className="directory grid-cols-[minmax(0,1fr)]"
       aria-label="Personas, accesos y remuneraciones"
       primaryAction={<>
-        {roleCan(role,'settings.manage')?<ScaleButton type="button" className="secondary" onClick={()=>setPermissionsOpen(true)} variant="secondary">Permisos del panel</ScaleButton>:null}
+        {effectiveCapability(role,'permissions.manage',capabilities)?<ScaleButton type="button" className="secondary" onClick={()=>setPermissionsOpen(true)} variant="secondary">Permisos del panel</ScaleButton>:null}
         <ScaleButton type="button" className="primary" onClick={()=>openSheet()} variant="primary"><Plus size={16} aria-hidden="true"/>Agregar persona</ScaleButton>
         <ViewSwitch value={view} onChange={changeView}/>
       </>}
@@ -253,6 +256,7 @@ export function PeopleWorkspace({role,capabilities,currentEmail='',currentUserId
     {sheet&&sheetReady?<TeamPersonSheet
       role={role}
       capabilities={capabilities}
+      permissionPolicy={permissionPolicy}
       currentEmail={currentEmail}
       currentUserId={currentUserId}
       person={sheetPerson}

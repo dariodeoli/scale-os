@@ -25,7 +25,7 @@ const columns:Column[]=[{key:'category',label:'Gasto'},{key:'date',label:'Fecha 
 type Expense=RealExpenseRow&{reversal_id?:string|null};
 type Modal={kind:'opening';accountId:string;currency:string}|{kind:'real'|'planned'}|{kind:'reverse';expense:Expense}|{kind:'remove';expense:PlannedExpenseRecord}|{kind:'period';month:string;closed:boolean;revision:number}|null;
 export function BalanceSection({user,navigate}:{user:User|null;navigate?:(label:string)=>void}){
- if(!user||!financePermission(user,'finance.view',roleCan(user.role,'finance.view')))return null;
+ if(!user||!financePermission(user,'finance.balance.view',['owner','admin','finance'].includes(user.role)))return null;
  return <BalancePanel user={user} navigate={navigate}/>;
 }
 function BalancePanel({user,navigate}:{user:User;navigate?:(label:string)=>void}){

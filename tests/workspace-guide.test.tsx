@@ -41,10 +41,11 @@ test('guide uses every canonical section except embedded Metrics and preserves a
   assert.deepEqual(available,sections.filter(([label])=>label!=='Métricas'&&visibleModule(label,role)).map(([label])=>label),role);
   assert.equal(available.length,new Set(available).size);
   assert(available.includes('Producción'));
-  assert.equal(available.includes('Informes'),['owner','admin','finance','sales'].includes(role));
+  assert.equal(available.includes('Informes'),['owner','admin','management','finance','sales'].includes(role));
   assert(available.includes('Historial de trabajo'),'el historial propio lo ve cualquier rol (workspace-access)');
   assert.equal(available.includes('Invitaciones'),['owner','admin','management'].includes(role));
   assert(!available.includes('Métricas'));
+  if(role==='management'){assert(available.includes('Finanzas'));assert(available.includes('Previsión'));assert(!available.includes('Balance'),'management cannot discover the restricted Balance destination');}
   close();
  }
  assert.equal(calls.length,0,'opening and reading the guide does not fetch or mutate data');

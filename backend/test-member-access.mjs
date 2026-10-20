@@ -9,6 +9,7 @@ const pg=new PGlite();
 try{
  await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
  for(const file of migrationOrder)await pg.exec(await fs.readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
+ await pg.exec(await fs.readFile(new URL('./migrations/20261020_member_permissions.sql',import.meta.url),'utf8'));
  const query=(sql,args)=>pg.query(sql,args),db={query,connect:async()=>({query,release(){}})};
  const insert=async(sql,args)=>(await query(sql+' returning id',args)).rows[0].id;
  const org=await insert("insert into organizations(slug,name) values('member-owner-fixture','Member owner fixture')");

@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {Check,X,Gem,Package,SlidersHorizontal,CircleHelp,TriangleAlert} from 'lucide-react';
 import {sumMoney} from './finance-money';
 import {IconAction} from "./ui/icon-action";
-import {PersonContainer} from './person-container';
+import {ClientIdentity} from './client-identity';
 import {ListGrid,ListRow,MoneyText,type Column} from './ui-v2';
 import {ClientEditorDialog} from './client-editor';
 import {ClientMonthlyIncomeDialog} from './client-monthly-income';
@@ -27,7 +27,7 @@ export function FinanceClientsSection({clients,month,role,canManageTerms,canHist
  {unknown?<p className="finance-balance-help">Estado de algunos clientes pendiente de confirmar; se mantienen visibles y en contratado hasta actualizar los datos.</p>:null}
  {inactive.length?<div className="finance-client-inactive-notice"><span><TriangleAlert size={14} aria-hidden="true"/>{new Set(inactive.map(row=>row.client_id)).size} cliente(s) inactivo(s) con acuerdos o movimientos. Sus cobros y deudas se conservan.</span><ScaleButton variant="ghost" size="compact" type="button" aria-pressed={showInactive} onClick={()=>setShowInactive(value=>!value)}>{showInactive?'Ocultar inactivos':'Revisar inactivos'}</ScaleButton></div>:null}</div>
  {visibleClients.length?<ListGrid label="Clientes y contratos del mes" template={CLIENT_FINANCE_COLUMNS} columns={columns} minWidthClass="min-w-0" className="finance-client-table">{visibleClients.map(client=><ListRow template={CLIENT_FINANCE_COLUMNS} key={`${client.client_id}-${client.currency}`}>
-  <span className="min-w-0 finance-client-identity"><PersonContainer name={client.client_name} photoUrl={client.client_logo_url} verified variante="logo" size="sm"/>{client.client_active===false?<span className="finance-client-inactive-status" title="Estado actual: inactivo. El acuerdo del mes se conserva para revisión.">Inactivo</span>:client.client_active==null?<span className="finance-client-inactive-status" title="Estado actual no disponible; revisar ficha del cliente.">Por confirmar</span>:null}</span>
+  <span className="min-w-0 finance-client-identity"><ClientIdentity compact name={client.client_name} logo={client.client_logo_url}/>{client.client_active===false?<span className="finance-client-inactive-status" title="Estado actual: inactivo. El acuerdo del mes se conserva para revisión.">Inactivo</span>:client.client_active==null?<span className="finance-client-inactive-status" title="Estado actual no disponible; revisar ficha del cliente.">Por confirmar</span>:null}</span>
   <span className="finance-plan-cell"><FinancePlanIcon name={client.plan_name}/></span>
   <span className="finance-detail-amount finance-client-contract-breakdown"><MoneyText valor={client.contracted_amount} currency={client.currency}/>{client.base_amount!==undefined&&client.extras_amount!==undefined?<small>Base <MoneyText valor={client.base_amount} currency={client.currency}/><br/>Extras <MoneyText valor={client.extras_amount} currency={client.currency}/></small>:null}</span>
   <span className="finance-detail-amount" title={`Cobrado en el mes: ${formatRealMoney(client.received_in_month,client.currency)}. Aplicado a facturas emitidas en este mes: ${formatRealMoney(client.applied_to_month_invoices,client.currency)}. Sin aplicación: ${formatRealMoney(client.unallocated_received_in_month,client.currency)}.`}><MoneyText valor={client.received_in_month} currency={client.currency}/></span>

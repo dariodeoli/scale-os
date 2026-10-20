@@ -11,6 +11,6 @@ type EquipoSectionProps = {
 };
 export function EquipoSection({user}: EquipoSectionProps){
   return (
-    <OperationsWorkspace key="people" capabilities={user?.capabilities} role={user?.role||'viewer'} currentEmail={user?.email||''} currentUserId={String(user?.id||'')} organizationName={user?.organization_name||''}/>
+    <OperationsWorkspace key={`${user?.organization_id}:${user?.id}:${user?.role}:${JSON.stringify(user?.capabilities||{})}`} capabilities={user?.capabilities} role={user?.role||'viewer'} currentEmail={user?.email||''} currentUserId={String(user?.id||'')} organizationName={user?.organization_name||''}/>
   );
 }

@@ -1,0 +1,2 @@
+# Refs #330: public/manual RUC fields must not advertise unavailable lookups.
+tsx tests/client-intake-help-330.test.ts

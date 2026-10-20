@@ -50,8 +50,8 @@ test('alta y edición usan el mismo ClientEditor con las mismas secciones y vali
   await act(async()=>{created=create(<ClientEditor mode="create"/>);});
   const record={id:'4',name:'ACME',email:'',phone:'',tax_id:'',legal_name:'',notes:'',lifecycle_status:'active',updated_at:'2026-09-20T12:00:00Z',social_links:{}};
   await act(async()=>{edited=create(<ClientEditor mode="edit" clientId="4" record={record}/>);});
-  assert.deepEqual(sections(created),['Identidad','Contacto','Fiscal','Datos para contratos']);
-  assert.deepEqual(sections(edited),['Identidad','Contacto','Fiscal','Datos para contratos','Enlaces']);
+  assert.deepEqual(sections(created),['Identidad fiscal','Contacto','Datos para contratos']);
+  assert.deepEqual(sections(edited),['Identidad fiscal','Contacto','Datos para contratos','Enlaces']);
   // Los campos compartidos salen de la misma definición (mismas reglas).
   const createFields=clientFields({mode:'create'}),editFields=clientFields({mode:'edit'});
   for(const key of ['name','email','phone','tax_id','legal_name','notes']){

@@ -9,6 +9,6 @@ type PermisosSectionProps = {
 };
 export function PermisosSection({user}: PermisosSectionProps){
   return (
-    <PermissionsMatrixPanel role={user?.role||'viewer'}/>
+    <PermissionsMatrixPanel key={`${user?.organization_id}:${user?.id}:${user?.role}:${JSON.stringify(user?.capabilities||{})}`} role={user?.role||'viewer'}/>
   );
 }

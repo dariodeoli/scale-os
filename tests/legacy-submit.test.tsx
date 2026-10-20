@@ -33,6 +33,7 @@ const {PendingFields}=require('../app/ui/form-state');
 const {InputControl}=require('../app/ui/input-control');
 const {TextareaBase}=require('../app/ui/input');
 const {ApiFieldError}=require('../app/operations');
+const {LookupField,LookupReview}=require('../app/ui/smart-field');
 const text=readFileSync(new URL('../app/scale-workspace.tsx',import.meta.url),'utf8');
 const file=ts.createSourceFile('scale-workspace.tsx',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const formsText=readFileSync(new URL('../app/workspace-forms.tsx',import.meta.url),'utf8');
@@ -41,6 +42,8 @@ const boardText=readFileSync(new URL('../app/production-board.tsx',import.meta.u
 const boardFile=ts.createSourceFile('production-board.tsx',boardText,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const statements=[...file.statements,...formsFile.statements,...boardFile.statements];
 const names=['ProjectForm','OrderForm','AccountForm','InvoiceForm','PaymentForm'];
+const suggestedAccountName=formsFile.statements.find((node):node is ts.FunctionDeclaration=>ts.isFunctionDeclaration(node)&&node.name?.text==='suggestedAccountName');
+assert(suggestedAccountName);
 const declarations=statements.filter(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>/Schema$/.test(d.name.getText())||d.name.getText()==='statuses'));
 const defaults={name:'Fixture client',email:'fixture@example.invalid',phone:'',clientId:'1',projectId:'2',title:'Fixture production',status:'to_record',driveUrl:'',description:'Fixture service',quantity:1,unitPrice:100,currency:'USD',validUntil:'',accountType:'bank',institution:'Fixture',accountNumber:'',holderName:'',custodianUserId:'',total:'100',dueOn:'',invoiceId:'3',accountId:'4',amount:'100',receivedOn:'2026-09-10',reference:'',receivedByUserId:'',fromAccountId:'4',toAccountId:'5',transferredOn:'2026-09-10'};
 const props={clients:[{id:'1',name:'Fixture client'}],projects:[{id:'2',name:'Fixture project'}],accounts:[{id:'4',name:'A',currency:'USD'},{id:'5',name:'B',currency:'USD'}],invoices:[{id:'3',status:'pending'}],custodians:[]};
@@ -54,7 +57,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
  let done=0;
  // Execute the actual form and schema, with real RHF/Zod/hooks. Only transport,
  // dialog environment, fixtures and initial field values are local doubles.
-  const scope={React,ScaleButton,useFormFocus,FormValidationErrors,PendingFields,InputControl,TextareaBase,ApiFieldError,useState:React.useState,useRef:React.useRef,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
+  const scope={React,ScaleButton,useFormFocus,FormValidationErrors,PendingFields,InputControl,TextareaBase,ApiFieldError,useState:React.useState,useRef:React.useRef,useEffect:React.useEffect,LookupField,LookupReview,BancoLogo:()=>null,z,zodResolver,currencyCodes,currencyLabels,SaveActions,useSingleFlightSubmit,UrgencySelect:({value,onChange,disabled}:{value:string;onChange:(value:string)=>void;disabled?:boolean})=>React.createElement('select',{'aria-label':'Urgencia',value,disabled,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),PHONE_ERROR,phoneValid,PhoneField,EmailField,Aviso,MENSAJE_RUC,normalizeTaxId,taxIdValid,financeNoticeHref,financePurposeNotice,
    BancoCombobox:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    AmountInput:({value,onChange}:{value:string;onChange:(value:string)=>void})=>React.createElement('input',{value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)}),
    EntityPicker:({legend}:{legend:string})=>React.createElement('fieldset',{'aria-label':legend}),
@@ -69,7 +72,7 @@ for(const name of names)test(`${name}: duplicate submit cannot write or unlock a
   useForm:(options:Parameters<typeof useForm>[0])=>useForm({...options,defaultValues:{...options?.defaultValues,...defaults}}),
   request:(path:string,options:{body:string})=>new Promise((resolve,reject)=>{requests.push({path,payload:JSON.parse(options.body),resolve,reject});}),
  };
- const compiled=ts.transpileModule([...declarations.map(node=>node.getText().replace(/^export\s+/,'')),parent.getText().replace(/^export\s+/,'')].join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React}}).outputText;
+ const compiled=ts.transpileModule([suggestedAccountName.getText().replace(/^export\s+/,''),...declarations.map(node=>node.getText().replace(/^export\s+/,'')),parent.getText().replace(/^export\s+/,'')].join('\n'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.React}}).outputText;
  const Component=new Function(...Object.keys(scope),`${compiled}\nreturn ${name};`)(...Object.values(scope)) as React.ComponentType<Record<string,unknown>>;
  let renderer:ReactTestRenderer;
  await act(async()=>{renderer=create(<Component {...props} request={scope.request} done={()=>{done++;}}/>);});

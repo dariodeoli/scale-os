@@ -1,0 +1,24 @@
+[
+  {
+    "approved": true,
+    "file": "app/finance-collections.tsx",
+    "owner": "CollectionsPanel",
+    "beforeLine": 43,
+    "beforeColumn": 243,
+    "beforeHash": "7249d827c4c67d812859b2d737b3b048c5ca48addeb692bb436b8da8353cb0d7",
+    "beforeJsx": "<ScaleButton className=\"secondary\" type=\"submit\" variant=\"secondary\">Buscar</ScaleButton>",
+    "destination": "app/operations.tsx Editor SelectCustom -> app/ui/select.tsx SearchField",
+    "rationale": "The former stand-alone Buscar control is removed because client search now belongs immediately above the client dropdown. Its relationships clientId field passes onSearchChange:setContextSearch; a 250ms debounced contextQuery performs the same canonical reader. Shared SearchField supplies clear onChange('') and Selector close resets the query, retaining both search and clearing without a duplicated remote search form."
+  },
+  {
+    "approved": true,
+    "file": "app/finance-collections.tsx",
+    "owner": "CollectionsPanel",
+    "beforeLine": 43,
+    "beforeColumn": 346,
+    "beforeHash": "bdda569de4c18751cef3ee5d69c559ef389332f950baff1db748fb39b300ad62",
+    "beforeJsx": "<ScaleButton className=\"text-button\" type=\"button\" onClick={()=>{setContextSearch('');setContextQuery('');}} variant=\"ghost\">Limpiar</ScaleButton>",
+    "destination": "app/operations.tsx Editor SelectCustom -> app/ui/select.tsx SearchField",
+    "rationale": "The former stand-alone Limpiar control is removed because client search now belongs immediately above the client dropdown. Its relationships clientId field passes onSearchChange:setContextSearch; a 250ms debounced contextQuery performs the same canonical reader. Shared SearchField supplies clear onChange('') and Selector close resets the query, retaining both search and clearing without a duplicated remote search form."
+  }
+]

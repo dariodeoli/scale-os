@@ -14,5 +14,5 @@ export function PersonSelect(props:SelectCustomProps){
  return <Selector label={props.label} value={props.value} options={optionsOf(props.choices)} onChange={props.onChange} onSearchChange={props.onSearchChange} variant="person" searchable disabled={props.disabled} invalid={props.invalid} describedBy={props.describedBy} loading={props.loading} error={props.error} placeholder={props.choices.find(choice=>choice.value==='')?.label||'Buscar persona…'} className="ops-select ops-person-select"/>;
 }
 export function PlainSelect(props:SelectCustomProps){
- return <Selector label={props.label} value={props.value} options={optionsOf(props.choices)} onChange={props.onChange} onSearchChange={props.onSearchChange} variant={props.variant??'plain'} disabled={props.disabled} invalid={props.invalid} describedBy={props.describedBy} loading={props.loading} error={props.error}/>;
+ return <Selector label={props.label} value={props.value} options={optionsOf(props.choices)} onChange={props.onChange} onSearchChange={props.onSearchChange} searchable={props.variant==='entity'||Boolean(props.onSearchChange)||props.choices.length>8} variant={props.variant??'plain'} disabled={props.disabled} invalid={props.invalid} describedBy={props.describedBy} loading={props.loading} error={props.error}/>;
 }

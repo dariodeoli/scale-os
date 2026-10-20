@@ -40,6 +40,11 @@ export function ActorIdentity({name,photoUrl,verified=false,imported=false,times
  const validDate=date&&!Number.isNaN(date.getTime())?date:null;
  return <span className="actor-identity"><ActorAvatar key={`${label}\n${photo}`} name={label} photo={photo}/><span className="actor-identity-details"><span className="actor-identity-name" title={label}>{label}</span>{validDate&&<time className="actor-identity-time" dateTime={validDate.toISOString()}>{listDateFull(validDate.toISOString())}</time>}{imported&&<span className="actor-identity-source">Autor de registro importado</span>}</span></span>;
 }
+/** Audit records never infer who performed an event from missing identity data. */
+export function AuditActor(props:ActorIdentityProps){
+ const known=Boolean(props.name?.trim());
+ return <ActorIdentity {...props} name={known?props.name:props.imported?'Autor importado no identificado':'Autor no identificado'} verified={known&&props.verified===true} photoUrl={known?props.photoUrl:null}/>;
+}
 /** Avatar de una identidad: el objeto único de foto de perfil (#107). */
 export function ActorAvatar({name,photo}:{name:string;photo:string}){
  return <FotoPerfil nombre={name} foto={photo} tamano="lg"/>;

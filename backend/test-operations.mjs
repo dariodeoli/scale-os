@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {operations} from './operations.js';
 import {roleCan} from './permissions.js';
+import {forecastMonth} from './forecast.js';
 import sharp from 'sharp';
 const pg=new PGlite();
 await pg.exec(await fs.readFile(new URL('./schema.sql',import.meta.url),'utf8'));
@@ -13,6 +14,7 @@ for(const file of ['20260910_productivity.sql','20260910_profile_identity.sql','
 for(const file of ['20260910_currencies.sql','20260910_company_currency.sql','20260914_salary_forecast.sql','20260915_salary_override_signed.sql','20260929_member_purge.sql','20260930_personal_data.sql'])await pg.exec(await fs.readFile(new URL(`./migrations/${file}`,import.meta.url),'utf8'));
 await identitySchema(pg);
 await economicFixtureSchema(pg);
+await pg.exec(await fs.readFile(new URL('./migrations/20261020_member_permissions.sql',import.meta.url),'utf8'));
 const sql=(s,v)=>pg.query(s,v);
 const org=(await sql("select id from organizations where slug='scale'")).rows[0].id;
 const other=(await sql("insert into organizations(slug,name) values('test-other','Other') returning id")).rows[0].id;
@@ -29,8 +31,8 @@ const {agencyCore}=await import('./agency-core.js');
 async function coreCall(path,as=user){let response;const handled=await agencyCore({req:{method:'GET',socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test'+path),db:{query:sql,connect:async()=>({query:sql,release(){}})},session:async()=>as,body:async()=>({}),send:(_,status,data)=>response={status,...data}});assert.equal(handled,true,`${path} is handled by agency-core`);return response;}
 // Custodians stay behind accounts.manage: finance reads them for treasury, nobody else.
 assert.equal((await coreCall('/api/agency/custodians')).status,200,'owner reads custodians');
-for(const role of ['admin','finance'])assert.equal((await coreCall('/api/agency/custodians',{...user,role})).status,200,`${role} reads custodians for treasury`);
-for(const role of ['management','sales','production','editor','viewer','collaborator'])assert.equal((await coreCall('/api/agency/custodians',{...user,role})).status,403,`custodians stay behind accounts.manage for ${role}`);
+for(const role of ['admin','finance','management'])assert.equal((await coreCall('/api/agency/custodians',{...user,role})).status,200,`${role} reads custodians for treasury`);
+for(const role of ['sales','production','editor','viewer','collaborator'])assert.equal((await coreCall('/api/agency/custodians',{...user,role})).status,403,`custodians stay behind accounts.manage for ${role}`);
 const person={full_name:'QA Person',email:'qa@example.invalid',compensation_type:'fixed',compensation_amount:100,currency:'PYG',payment_day:5,started_on:'2026-09-01'};
 let r=await call('/api/agency/collaborators','POST',person);assert.equal(r.status,201);const pid=r.collaborator.id;
 r=await call(`/api/agency/collaborators/${pid}`,'PATCH',{...person,job_title:'Editor'});assert.equal(r.collaborator.job_title,'Editor');
@@ -92,11 +94,11 @@ function between(start,end){
  return serverSource.slice(a,b);
 }
 const paymentRoute=between("    if (url.pathname === '/api/agency/client-payment-status' && req.method === 'GET') {","    if (url.pathname === '/api/agency/clients' && req.method === 'GET') {");
-const paymentStatusHandler=new Function('url','req','res','session','roleCan','send','db',`return (async()=>{${paymentRoute}})()`);
+const paymentStatusHandler=new Function('url','req','res','session','roleCan','send','db','forecastMonth',`return (async()=>{${paymentRoute}})()`);
 async function paymentStatusCall(as=user,status=null){
  let response;
  const url=new URL(`https://test/api/agency/client-payment-status${status?`?status=${status}`:''}`);
- await paymentStatusHandler(url,{method:'GET'},{},async()=>as,(u,c)=>roleCan(u,c),(res,code,data)=>{response={status:code,...data};},{query:sql});
+ await paymentStatusHandler(url,{method:'GET'},{},async()=>as,(u,c)=>roleCan(u,c),(res,code,data)=>{response={status:code,...data};},{query:sql},forecastMonth);
  return response;
 }
 const invoicedClient=(await sql("insert into agency_clients(name,organization_id) values('Invoiced',$1) returning id",[org])).rows[0].id;
@@ -226,18 +228,20 @@ assert.equal(zeroPayout.status,400);assert.equal(zeroPayout.error,'Importe invá
 const {rolePermissions}=await import('./permissions.js');
 const capabilityUser=async role=>{const rows=(await sql('select capability,allowed from agency_role_permissions where organization_id=$1 and role=$2',[org,role])).rows;return {...user,role,...(rows.length?{capabilities:Object.fromEntries(rows.map(row=>[row.capability,row.allowed]))}:{})};};
 async function permissionCall(method,payload){let response;const handled=await rolePermissions({req:{method,socket:{remoteAddress:'127.0.0.1'}},res:{},url:new URL('https://test/api/agency/permissions'),db:{query:sql,connect:async()=>({query:sql,release(){}})},session:async()=>user,body:async()=>payload,send:(_,status,data)=>response={status,...data}});assert.equal(handled,true);return response;}
+assert.equal((await call('/api/agency/commissions','GET',{},await capabilityUser('management'))).status,200,'management has operational commissions by default');
+assert.equal((await permissionCall('PATCH',{capability:'commissions.manage',role:'management',allowed:false})).status,200);
 const managerWithout=await capabilityUser('management');
-assert.equal((await call('/api/agency/commissions','GET',{},managerWithout)).status,403,'management does not manage commissions by default');
+assert.equal((await call('/api/agency/commissions','GET',{},managerWithout)).status,403,'an explicit override denies management commission access');
 assert.equal((await call('/api/agency/commissions/monthly?month=2026-08','GET',{},managerWithout)).status,403);
 assert.equal((await call('/api/agency/commissions','POST',commissionWrite,managerWithout)).status,403);
 assert.equal((await call('/api/agency/referral-discounts','GET',{},managerWithout)).status,403);
-const financeViewOnly={...user,role:'management',capabilities:{'finance.view':true}};
+const financeViewOnly={...user,role:'management',capabilities:{'finance.view':true,'commissions.manage':false}};
 assert.equal((await call('/api/agency/commissions','GET',{},financeViewOnly)).status,403,'finance.view alone does not open commissions');
 assert.equal((await call('/api/agency/commissions/monthly?month=2026-08','GET',{},financeViewOnly)).status,403,'finance.view alone does not open the monthly settlement');
 assert.equal((await call('/api/agency/referral-discounts','GET',{},financeViewOnly)).status,403,'finance.view alone does not open referrals');
 assert.equal((await call('/api/agency/payouts','GET',{},financeViewOnly)).status,200,'payouts remain behind finance.view by design');
 assert.equal((await permissionCall('PATCH',{capability:'commissions.manage',role:'management',allowed:true})).status,200);
-const managerWith=await capabilityUser('management');
+const managerWith={...await capabilityUser('management'),capabilities:{...(await capabilityUser('management')).capabilities,'finance.view':false}};
 assert.equal((await call('/api/agency/commissions','GET',{},managerWith)).status,200,'the granted capability opens the commissions list');
 assert.equal((await call('/api/agency/commissions/monthly?month=2026-08','GET',{},managerWith)).status,200,'the monthly settlement works without finance.view');
 const granted=await call('/api/agency/commissions','POST',commissionWrite,managerWith);assert.equal(granted.status,201);
@@ -252,14 +256,14 @@ assert.equal((await call('/api/agency/referral-discounts','GET',{},financeRevoke
 assert.equal((await call('/api/agency/payouts','GET',{},financeRevoked)).status,200,'finance keeps its treasury endpoints after the revocation');
 const panelGranted=await permissionCall('GET');
 const panelRow=panelGranted.capabilities.find(capability=>capability.id==='commissions.manage');
-assert.deepEqual(panelRow.defaults,['owner','admin','finance'],'the panel exposes commissions.manage with its default roles');
+assert.deepEqual(panelRow.defaults,['admin','finance','management'],'the panel exposes defaults only for editable non-owner roles');
 assert.equal(panelRow.overrides.management,true,'the panel reflects the granted override');
 assert.equal(panelRow.overrides.finance,false,'and the revoked one');
 assert.equal((await permissionCall('PATCH',{capability:'commissions.manage',role:'finance',allowed:null})).status,200);
 assert.equal((await call('/api/agency/commissions','GET',{},await capabilityUser('finance'))).status,200,'removing the override restores the finance default');
 assert.equal((await permissionCall('PATCH',{capability:'commissions.manage',role:'management',allowed:null})).status,200);
-assert.equal((await call('/api/agency/commissions','GET',{},await capabilityUser('management'))).status,403,'and management returns to its default without the capability');
-assert.equal((await permissionCall('GET')).capabilities.find(capability=>capability.id==='commissions.manage').overrides.management,undefined,'the panel clears the override');
+assert.equal((await call('/api/agency/commissions','GET',{},await capabilityUser('management'))).status,200,'removing the override restores operational management access');
+assert.equal((await permissionCall('GET')).capabilities.find(capability=>capability.id==='commissions.manage').overrides.management,null,'the panel clears the override');
 // Smoke e2e local: la factura recién creada viaja con `client_name` (mismo
 // contrato que el GET); sin él el selector de cobro mostraba «F-… · undefined».
 {

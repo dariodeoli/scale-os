@@ -1,0 +1,155 @@
+// Refs #330: catalog schemas + real canonical handlers on an isolated database.
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import Ajv from 'ajv';
+import {Client} from '@modelcontextprotocol/sdk/client/index.js';
+import {Server} from '@modelcontextprotocol/sdk/server/index.js';
+import {InMemoryTransport} from '@modelcontextprotocol/sdk/inMemory.js';
+import {CallToolRequestSchema,ListToolsRequestSchema} from '@modelcontextprotocol/sdk/types.js';
+import {mcpFixtureDatabase} from './scripts/test-mcp-db.mjs';
+import {migrationOrder} from './scripts/migration-order.mjs';
+import {operationsDefinitions,mcpOperationsTools,mcpOperationsOverrides,mcpOperationsHandlers,operationsRouteMatrix} from './mcp-operations-tools.js';
+
+const definitions=[...mcpOperationsTools,...mcpOperationsOverrides];
+const ajv=new Ajv({strict:false,allErrors:true});
+const validators=new Map(definitions.map(d=>[d.name,ajv.compile(d.inputSchema)]));
+assert.equal(new Set(definitions.map(d=>d.name)).size,definitions.length,'no duplicate legacy registrations');
+for(const d of definitions){
+ assert.equal(d.inputSchema.additionalProperties,false);
+ assert(!('cap'in d)&&!('scope'in d)||mcpOperationsTools.includes(d),'overrides never relax permission or scope');
+ const args={};for(const [key,schema]of Object.entries(d.inputSchema.properties))if(schema.pattern==='^[1-9][0-9]{0,18}$')args[key]='1';
+ const resolved=d.resolve(args);assert.match(resolved.path,/^\/api\/agency\/[a-z-]+/);assert(!resolved.path.includes('undefined'));
+ if(d.inputSchema.properties.confirm){assert.equal(d.inputSchema.properties.confirm.const,true);assert.equal(d.inputSchema.properties.data.additionalProperties,false);assert(d.inputSchema.required.includes('confirm'));}
+}
+assert.equal(validators.get('scale_update_work_checklist_item')({id:'1',itemId:'1',confirm:false,data:{expected_version:'0',completed:true}}),false);
+assert.equal(validators.get('scale_update_task')({id:'1',confirm:true,data:{expected_version:0,organization_id:'9'}}),false);
+assert.equal(validators.get('scale_add_work_order_link')({id:'1',confirm:true,data:{label:'Delivery',url:'javascript:alert(1)'}}),false);
+assert.equal(validators.get('scale_get_contract_pdf_metadata')({id:'1',version:'../2'}),false);
+assert.equal(validators.get('scale_list_tasks')({limit:20}),false,'task handler accepts canonical page sizes only');
+const fixture=await mcpFixtureDatabase(),pg=fixture.pg;
+let assertions=0;
+try{
+ await pg.exec(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
+ for(const file of migrationOrder)await pg.exec(await readFile(new URL('./migrations/'+file,import.meta.url),'utf8'));
+ const q=(sql,args=[])=>pg.query(sql,args),one=async(sql,args)=>(await q(sql,args)).rows[0];
+ const db={query:q,connect:fixture.realPostgres?()=>pg.connect():async()=>({query:q,release(){}})};
+ const org=(await one("insert into organizations(slug,name) values('operations330','Operations QA') returning id")).id;
+ const other=(await one("insert into organizations(slug,name) values('other330','Other QA') returning id")).id;
+ async function person(email,role,organization=org){const user=await one("insert into users(email,password_hash) values($1,'unused') returning id",[email]);await q('insert into organization_members(organization_id,user_id,role) values($1,$2,$3)',[organization,user.id,role]);return {...user,email,role,organization_id:organization};}
+ const owner=await person('owner330@example.invalid','owner'),viewer=await person('viewer330@example.invalid','viewer'),editor=await person('editor330@example.invalid','editor'),outsider=await person('outside330@example.invalid','owner',other);
+ const client=(await one("insert into agency_clients(organization_id,name) values($1,'Client 330') returning id",[org])).id;
+ const foreign=(await one("insert into agency_clients(organization_id,name) values($1,'Other client') returning id",[other])).id;
+ async function call(name,args={},actor=owner){
+  const d=definitions.find(d=>d.name==='scale_'+name);assert(d,'tool exists '+name);
+  const valid=validators.get(d.name);if(!valid(args))return {status:400,error:ajv.errorsText(valid.errors)};
+  const route=operationsDefinitions.find(d=>d.name==='scale_'+name),resolved=d.resolve(args),url=new URL(resolved.path,'https://api.scaleparaguay.com');
+  for(const [key,value]of Object.entries(resolved.query||{}))url.searchParams.set(key,String(value));
+  let result;const req={method:route.method,headers:{},socket:{remoteAddress:'127.0.0.1'}};
+  const auditContext=(c,u)=>c.query("select set_config('app.current_user',$1,true)",[String(u.id)]);
+  const auditedQuery=async(u,r,sql,values)=>{const c=await db.connect();try{await c.query('begin');await auditContext(c,u);const value=await c.query(sql,values);await c.query('commit');return value;}catch(e){await c.query('rollback');throw e;}finally{c.release();}};
+  const context={req,res:{},url,db,session:async()=>actor,body:async()=>args.data||{},send:(_,status,data)=>{result={status,...data};return true;},auditContext,auditedQuery};
+  assert.equal(await mcpOperationsHandlers[0](context),true,'fixed route handled '+name);
+  assert(result,'canonical handler responded '+name);assertions++;return result;
+ }
+ const mutation=(data,id)=>({confirm:true,data,...(id?{id:String(id)}:{})});
+ let result=await call('create_project',mutation({name:'QA project',clientId:String(client),urgency:3}));assert.equal(result.status,201,JSON.stringify(result));const project=result.project;
+ assert.equal((await call('create_project',mutation({name:'Cross company',clientId:String(foreign)}))).status,404);
+ assert.equal((await call('create_project',mutation({name:'Denied project',clientId:String(client)}),viewer)).status,403);
+ assert.equal((await call('get_project',{id:String(project.id)},outsider)).status,404);
+ result=await call('create_work_order',mutation({title:'QA production',projectId:String(project.id),status:'to_record',driveUrl:'https://drive.google.com/fixture',urgency:2}));assert.equal(result.status,201,JSON.stringify(result));const order=result.workOrder;
+ let checklist=await call('get_work_checklist',{id:String(order.id)});assert.equal(checklist.version,'0');
+ checklist=await call('add_work_checklist_item',{...mutation({expected_version:checklist.version,text:'Shoot today'},order.id)});assert.equal(checklist.status,201,JSON.stringify(checklist));const step=checklist.items[0];
+ result=await call('update_work_checklist_item',{...mutation({expected_version:checklist.version,completed:true},order.id),itemId:step.id});assert.equal(result.status,200);assert.equal(result.completed,1);
+ assert.equal((await call('update_work_checklist_item',{...mutation({expected_version:'0',completed:false},order.id),itemId:step.id})).status,409);
+ assert.equal((await call('get_work_checklist',{id:String(order.id)},outsider)).status,404);
+ assert.equal((await call('get_work_checklist',{id:String(order.id)}, {...viewer,capabilities:{'work-checklists.view':false}})).status,403);
+ result=await call('add_work_order_link',mutation({label:'Delivery folder',url:'https://drive.google.com/test330',visible_to_client:false},order.id));assert.equal(result.status,201);const link=result.link;
+ assert.equal((await call('update_work_order_link',{...mutation({visible_to_client:true},order.id),linkId:String(link.id)})).link.visible_to_client,true);
+ assert.equal((await call('add_work_order_comment',mutation({body:'Ready for review'},order.id))).status,201);
+ assert.equal((await call('add_project_comment',mutation({body:'Schedule confirmed'},project.id))).status,201);
+ assert.equal((await call('update_work_order',mutation({status:'review'},order.id))).status,200);
+ assert.equal((await call('publish_work_order',mutation({},order.id))).status,400,'publication cannot skip approval');
+ assert.equal((await call('approve_work_order',mutation({},order.id),editor)).status,403);
+ assert.equal((await call('approve_work_order',mutation({},order.id))).status,200);
+ assert.equal((await call('publish_work_order',mutation({},order.id))).status,200);
+ const assignment=await call('get_project_assignees',{id:String(project.id)});
+ assert.equal((await call('update_project_assignees',mutation({assigned_user_ids:[String(editor.id)],expected_version:assignment.assignee_version},project.id))).status,200);
+ assert.equal((await call('update_project_assignees',mutation({assigned_user_ids:[String(outsider.id)],expected_version:assignment.assignee_version},project.id))).status,409,'stale assignment cannot silently overwrite');
+ result=await call('publish_work_order_portal_delivery',mutation({title:'Client review',assetUrl:'https://drive.google.com/final',assetName:'Final file'},order.id));assert.equal(result.status,200,JSON.stringify(result));const deliveryVersion=result.delivery.version;
+ assert.equal((await call('get_work_order_portal_delivery',{id:String(order.id)},viewer)).status,403);
+ assert.equal((await call('update_work_order_portal_delivery',mutation({visible:false},order.id))).status,200);
+ assert.equal((await call('update_work_order_portal_delivery',mutation({visible:true},order.id))).status,200);
+ assert.equal((await call('get_work_order_portal_delivery',{id:String(order.id)})).delivery.version,deliveryVersion,'hide/show preserves delivery version');
+ result=await call('create_task',mutation({title:'QA internal task',expected_version:0,project_id:String(project.id),assigned_user_ids:[String(editor.id)],checklist:[{id:'daily',text:'Daily task',completed:false}],materials:[{label:'Brief',url:'https://drive.google.com/brief'}]}));assert.equal(result.status,201,JSON.stringify(result));let task=result.record;
+ assert.equal((await call('get_task',{id:String(task.id)},outsider)).status,404);
+ result=await call('update_task',mutation({expected_version:task.version,checklist:[{id:'daily',text:'Daily task',completed:true}],status:'done'},task.id),editor);assert.equal(result.status,200);task=result.record;
+ assert.equal((await call('add_task_comment',mutation({expected_version:task.version,body:'Completed'},task.id),editor)).status,201);
+ assert.equal((await call('update_task',mutation({expected_version:1,status:'pending'},task.id),editor)).status,409);
+ assert.equal((await call('create_task',mutation({title:'Viewer task',expected_version:0}),viewer)).status,403);
+ for(let i=0;i<4;i++)assert.equal((await call('create_project',mutation({name:'Page project '+i,clientId:String(client)}))).status,201);
+ const page1=await call('list_projects',{limit:2,offset:0}),page2=await call('list_projects',{limit:2,offset:2});assert.equal(page1.projects.length,2);assert.equal(page2.projects.length,2);assert(page1.mcpPage.hasMore);assert(!page1.projects.some(row=>page2.projects.some(next=>next.id===row.id)));
+ const people=await call('list_assignable_people',{limit:1,offset:0});assert.equal(people.members.length,1);
+ result=await call('create_lead',mutation({name:'QA opportunity',amount:'400000',currency:'PYG',do_not_contact:false}));assert.equal(result.status,201);const lead=result.record;
+ assert.equal((await call('update_lead',mutation({stage:'contacted',notes:'Interested'},lead.id))).status,200);
+ assert.equal((await call('convert_lead',mutation({},lead.id))).status,200);
+ result=await call('create_pipeline_stage',mutation({label:'Review QA',slug:'review-qa',kind:'open'}));assert.equal(result.status,201);assert.equal((await call('update_pipeline_stage',mutation({active:false},result.stage.id))).status,200);
+ result=await call('create_budget',mutation({title:'QA proposal',clientId:String(client),currency:'PYG',items:[{description:'Shoot',quantity:1,unitPrice:400000}],tax_rate:0}));assert.equal(result.status,201,JSON.stringify(result));const budget=result.budget;
+ const pdf=await call('get_budget_pdf_metadata',{id:String(budget.id)});assert.equal(pdf.status,200);assert.equal(pdf.resource.requiresBrowserSession,true);assert.equal(pdf.resource.downloadUrl,`https://api.scaleparaguay.com/api/agency/budgets/${budget.id}/pdf`);assert(!JSON.stringify(pdf).includes('base64'));
+ assert.equal((await call('get_budget_pdf_metadata',{id:String(budget.id)},outsider)).status,404);
+ assert.equal((await call('share_budget',mutation({},budget.id))).status,200);
+ assert.equal((await call('revoke_budget',mutation({},budget.id))).status,200);
+ result=await call('list_contract_models');assert.equal(result.status,200);const model=result.models[0];assert(model);
+ result=await call('import_contract_model',mutation({model_key:model.key}));assert.equal(result.status,201);const template=result.template;
+ result=await call('create_contract',mutation({template_id:String(template.id),title:'QA draft',client_id:String(client)}));assert.equal(result.status,201,JSON.stringify(result));let contract=result.contract;
+ assert.equal((await call('get_contract',{id:String(contract.id)},viewer)).status,403);
+ assert.equal((await call('get_contract',{id:String(contract.id)},outsider)).status,404);
+ assert.equal((await call('get_contract_pdf_metadata',{id:String(contract.id),version:'1'})).status,404,'draft is not an emitted PDF');
+ const values=Object.fromEntries(template.required_fields.map(key=>[key,'Fixture value']));
+ result=await call('update_contract',mutation({expected_revision:contract.revision,variables:values},contract.id));assert.equal(result.status,200);contract=result.contract;
+ result=await call('issue_contract_version',mutation({expected_revision:contract.revision,reviewed:true},contract.id));assert.equal(result.status,201,JSON.stringify(result));
+ assert.equal((await call('get_contract_pdf_metadata',{id:String(contract.id),version:String(result.version.version)})).status,200);
+ assert.equal((await call('get_contract_pdf_metadata',{id:String(contract.id),version:String(result.version.version)},outsider)).status,404);
+ result=await call('create_inventory',mutation({name:'QA microphone',category:'Audio',value:'100000',ownership_kind:'external',external_owner_name:'External owner'}));assert.equal(result.status,201,JSON.stringify(result));const item=result.record;
+ result=await call('create_inventory_location',mutation({name:'Storage QA',responsible_user_id:String(owner.id)}));assert.equal(result.status,201);const storage=result.location;
+ assert.equal((await call('reorder_inventory_locations',mutation({ids:[String(storage.id)]}))).status,200);
+ assert.equal((await call('update_inventory',mutation({storage_location_id:String(storage.id),storage_row:'A2'},item.id))).status,200);
+ result=await call('create_inventory_maintenance',mutation({inventory_id:String(item.id),maintenance_date:'2026-10-20',kind:'QA cleaning',cost:0,currency:'PYG'}));assert.equal(result.status,201);assert.equal((await call('void_inventory_maintenance',mutation({},result.maintenance.id))).status,200);
+ assert.equal((await call('update_inventory',mutation({ownership_kind:'person',owner_user_id:String(owner.id)},item.id))).status,200);
+ assert.equal((await call('verify_inventory',mutation({result:'confirmed',note:'User-declared check'},item.id))).status,200);
+ assert.equal((await call('update_inventory',mutation({value:'2'},item.id),viewer)).status,403);
+ assert.equal((await call('get_inventory',{id:String(item.id)},outsider)).status,404);
+ const now=new Date(),start=new Date(+now-60000).toISOString(),end=new Date(+now+3600000).toISOString();
+ result=await call('create_inventory_reservation',mutation({title:'QA shoot',project_id:String(project.id),starts_at:start,ends_at:end,inventory_ids:[String(item.id)],responsible_user_ids:[String(owner.id)],return_user_id:String(owner.id)}));assert.equal(result.status,201,JSON.stringify(result));let reservation=result.reservation;
+ assert.equal((await call('archive_inventory',mutation({},item.id))).status,409,'cannot archive booked equipment');
+ result=await call('checkout_inventory_reservation',mutation({expected_version:reservation.version,custodian_user_id:String(owner.id)},reservation.id));assert.equal(result.status,200,JSON.stringify(result));reservation=result.reservation;
+ assert.equal((await call('batch_update_inventory',mutation({ids:[String(item.id)],change:{location:{storage_shelf:'Other'}}}))).status,409,'cannot silently move checked out item');
+ result=await call('return_inventory_reservation',mutation({expected_version:reservation.version,locations:[{inventory_id:String(item.id),storage_shelf:'Shelf QA',storage_row:'A1',status:'available'}]},reservation.id));assert.equal(result.status,200,JSON.stringify(result));
+ const trace=await call('get_inventory',{id:String(item.id)});assert(trace.trace.some(row=>row.event_type==='loan.checked_in'));
+ assert.equal((await call('archive_inventory',mutation({},item.id))).status,200);assert.equal((await call('restore_inventory',mutation({},item.id))).status,200);
+ result=await call('create_studio_space',mutation({name:'QA studio',scenario:'White background'}));assert.equal(result.status,201);const space=result.space;
+ result=await call('create_studio_reservation',mutation({title:'QA studio shoot',space_id:String(space.id),project_id:String(project.id),production_type:'video',starts_at:start,ends_at:end,responsible_user_ids:[String(owner.id)]}));assert.equal(result.status,201,JSON.stringify(result));const studio=result.reservation;
+ assert.equal((await call('get_studio_reservation',{id:String(studio.id)},outsider)).status,404);
+ assert.equal((await call('cancel_studio_reservation',mutation({expected_version:studio.version},studio.id),viewer)).status,403);
+ assert.equal((await call('cancel_studio_reservation',mutation({expected_version:studio.version},studio.id))).status,200);
+ // Real SDK transport exercises these descriptor schemas and real handlers.
+ // OAuth/grant validation belongs to the core's separate SDK integration test;
+ // this deliberately uses a fixed test actor, never a fabricated OAuth pass.
+ let sdkActor=owner;
+ const sdkServer=new Server({name:'operations-fixture',version:'1.0.0'},{capabilities:{tools:{}}});
+ sdkServer.setRequestHandler(ListToolsRequestSchema,async()=>({tools:definitions.map(d=>({name:d.name,description:d.description,inputSchema:d.inputSchema}))}));
+ sdkServer.setRequestHandler(CallToolRequestSchema,async request=>{const result=await call(request.params.name.replace(/^scale_/,''),request.params.arguments,sdkActor);return {content:[{type:'text',text:JSON.stringify(result)}],isError:result.status>=400};});
+ const sdk=new Client({name:'operations-consumer',version:'1.0.0'},{capabilities:{}}),[clientTransport,serverTransport]=InMemoryTransport.createLinkedPair();
+ try{
+  await sdkServer.connect(serverTransport);await sdk.connect(clientTransport);
+  assert.equal((await sdk.listTools()).tools.length,definitions.length);
+  let response=await sdk.callTool({name:'scale_get_work_checklist',arguments:{id:String(order.id)}});assert.equal(response.isError,false);
+  sdkActor=viewer;response=await sdk.callTool({name:'scale_publish_work_order',arguments:mutation({},order.id)});assert.equal(response.isError,true);assert.equal(JSON.parse(response.content[0].text).status,403);
+  sdkActor=outsider;response=await sdk.callTool({name:'scale_get_work_checklist',arguments:{id:String(order.id)}});assert.equal(response.isError,true);assert.equal(JSON.parse(response.content[0].text).status,404);
+  sdkActor=owner;response=await sdk.callTool({name:'scale_update_work_checklist_item',arguments:{...mutation({expected_version:'2',completed:false},order.id),itemId:step.id,confirm:false}});assert.equal(response.isError,true);assert.equal(JSON.parse(response.content[0].text).status,400);
+ }finally{await sdk.close();await sdkServer.close();}
+ assert.equal((await call('archive_project',mutation({},project.id))).status,200);assert.equal((await call('get_work_checklist',{id:String(order.id)})).status,409,'archived parents cannot bypass checklist protections');assert.equal((await call('restore_project',mutation({},project.id))).status,200);
+ await q('update organization_members set active=false where user_id=$1 and organization_id=$2',[owner.id,org]);assert.equal((await call('verify_inventory',mutation({result:'confirmed'},item.id))).status,403,'handler rechecks live active membership');
+ const matrix=operationsRouteMatrix();assert.equal(matrix.filter(entry=>entry.tool).length,operationsDefinitions.length);assert(matrix.every(entry=>entry.tool||entry.reason));
+ console.log(`PASS MCP operations: ${definitions.length} typed descriptors, ${assertions} canonical real-handler calls, real SDK transport negative permission/tenant/confirmation; schema injection, revisions, pagination, approvals, contract metadata, inventory checkout/return, studio and recoverable archive. OAuth is tested separately by MCP core.`);
+ if(process.argv.includes('--write-matrix'))await writeFile(new URL('./mcp-operations-coverage.json',import.meta.url),JSON.stringify({issue:330,routes:matrix},null,2)+'\n');
+}finally{await fixture.close();}

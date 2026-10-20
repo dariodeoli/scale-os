@@ -5,15 +5,17 @@ import {ClientLogo} from './client-identity';
 import {ProjectCard} from './project-card';
 import {Currency} from "./currencies";
 import {usePathname,useRouter} from 'next/navigation';
-import {sectionLabel,sectionPath,parentSection,childSections,tabLabels,navGroups,moduleNavGroup} from './navigation';
+import {sectionLabel,sectionPath,parentSection,childSections,tabLabels,moduleNavGroup} from './navigation';
 import Link from 'next/link';
+import {workspaceNavGroups,workspaceNavigationPath} from './workspace-navigation';
+import {useTemporaryAiNavigation} from './use-temporary-ai-navigation';
 import {normalizeCommercialDashboard, type CommercialDashboard} from './control-center-data';
 import {WorkspaceSearch} from './workspace-search';
 import {WorkspaceBrand} from './workspace-brand';
 import {AccessLayout} from './access-layout';
 import {MobileNavigation} from './mobile-navigation';
 import {DesktopSidebar, RAIL_ITEM} from './desktop-sidebar';
-import {roleCan,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
+import {roleCan,effectiveCapability,BATCH_LIMITS,limitSelection,canSeeClientContact} from './capabilities';
 import {maskEmail} from './list-format';
 import './client-directory.css';
 import dynamic from 'next/dynamic';
@@ -164,7 +166,7 @@ import {Button as ScaleButton, IconButton as ScaleIconButton} from "./ui/button"
 // es el que marca al padre cuando el módulo activo vive adentro. Estudio vive
 // en Recursos (agenda de espacios/equipos). Las rutas y los apartados de cada
 // módulo no cambian.
-const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Clientes:Users,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2};
+const NAV_GROUP_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Clientes:Users,Flujo:Workflow,Recursos:Warehouse,Finanzas:CircleDollarSign,Configuración:Settings2,'Conexiones de IA':Workflow};
 const MODULE_ICONS:Record<string,typeof LayoutDashboard>={Resumen:LayoutDashboard,Pipeline:Target,Clientes:Users,Presupuestos:FileText,Proyectos:FolderKanban,Producción:Clapperboard,Inventario:Boxes,Estudio:CalendarDays,Finanzas:WalletCards,Informes:BarChart3,Equipo:BriefcaseBusiness,Configuración:Settings};
 function localMonth(){return currentAsuncionMonth();}
 export function identityScope(user:Pick<User,'id'|'organization_id'|'role'>|null){
@@ -256,7 +258,7 @@ export default function Home() {
   const [demoWelcome,setDemoWelcome]=useState(false);
   const previousBillingAccess=useRef<boolean|null>(null);
   const operationalAccess=signedIn&&user?.subscription?.hasAccess!==false;
-  const canSeeBilling=roleCan(user?.role,'billing.view');
+  const canSeeBilling=effectiveCapability(user?.role,'billing.view',user?.capabilities);
   const canManageClients=roleCan(user?.role,'clients.manage');
   // «Carga con IA» (Refs #118): el asistente se ofrece sólo a quien puede crear
   // al menos uno de los tipos de la fase; el diálogo muestra su estado real.
@@ -353,7 +355,8 @@ export default function Home() {
   },[signedIn,user?.id,user?.organization_id]);
   const activeParent=parentSection(active);
   const allowedChildren=(label:string)=>childSections(label).filter(child=>visibleModule(child,user?.role||'viewer',user?.capabilities));
-  const visibleNavGroups=navGroups.map(([group,modules])=>({group,modules:modules.filter(module=>allowedChildren(module).length>0)})).filter(group=>group.modules.length>0);
+  const showAiShortcut=useTemporaryAiNavigation();
+  const visibleNavGroups=workspaceNavGroups(user?.role||'viewer',user?.capabilities,showAiShortcut);
   // Acordeón del nav v3: por defecto el grupo del módulo activo y sólo uno
   // expandido a la vez; al navegar se reabre el grupo de la sección nueva.
   const [openNavGroup,setOpenNavGroup]=useState<string|null>(()=>moduleNavGroup(activeParent));
@@ -590,7 +593,7 @@ export default function Home() {
               : "No se pudo cargar la mora.",
           );
         });
-      if (active === "Mora" && ["owner", "admin", "finance"].includes(user?.role || "")) {
+      if (active === "Mora" && effectiveCapability(user?.role,'reports.view',user?.capabilities)) {
         setMoraReportsError(false);
         setMoraReports(null);
         request<ReportsData>(`/api/agency/reports?month=${localMonth()}&months=2`)
@@ -598,7 +601,7 @@ export default function Home() {
           .catch(() => setMoraReportsError(true));
       }
     }
-  }, [active, operationalAccess, user?.role, moraReload]);
+  }, [active, operationalAccess, user?.role, user?.capabilities, moraReload]);
   useEffect(() => {
     if (operationalAccess && active === "Clientes" && ["owner", "admin", "management", "sales", "finance"].includes(user?.role || "")) {
       setCommercialSummary(null);
@@ -977,7 +980,7 @@ export default function Home() {
               aria-current={containsActive?'page':undefined}
               title={groupTitle}
               aria-label={groupTitle}
-              href={sectionPath(target)}
+              href={workspaceNavigationPath(target,user?.role||'viewer',user?.capabilities)}
               onMouseEnter={()=>prefetchSection(allowedChildren(target)[0])}
               onFocus={()=>prefetchSection(allowedChildren(target)[0])}
             >
