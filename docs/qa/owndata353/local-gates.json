@@ -1,0 +1,28 @@
+{
+  "version": "PASS",
+  "observed_at_utc": "2026-10-21T08:11:50.754110+00:00",
+  "typescript": "PASS",
+  "frontend": {
+    "result": "PASS",
+    "entries": 295,
+    "fragments": 70
+  },
+  "build": {
+    "result": "PASS",
+    "build_id": "sUpCdFia2xFF8jdZPiHtB"
+  },
+  "backend_release": "PASS",
+  "footer": "PASS",
+  "log_sha256": {
+    "typescript": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "frontend": "bb7264957b2d4d1055e27e6b60836f93de4f8f2c9f10b1399133b5947bb0d2f1",
+    "build": "b1cc81e58bfff261f6a22ca927353b76965e604725a02c96ed1199396e70cce9",
+    "backend": "c0a1878ffe1f1ed71911cf3eec8f5db0bed6c623095de253510eb7aaa9c8e371",
+    "version": "1f46f9e3d79e6c13a62b3ba485a8b064eccf1382fdeb3f90a1ce793456c9048f",
+    "footer": "b868e6226e6f0248f5728bac313066c68615e4b889686b27997182832366cc99"
+  },
+  "production_ownData_lookup_verified": false,
+  "physical_mobile_verified": false,
+  "provider_sha": null,
+  "release_version": "1.0.206"
+}

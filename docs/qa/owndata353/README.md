@@ -9,3 +9,7 @@ Formulario: agente reportó 41 tests focales y TypeScript PASS. Root repitió br
 La razón social queda oficial; la presentación full de persona se usa sólo tras confirmación explícita del tipo y del resultado. No se infiere por coma/RUC ni se consulta al guardar. Estado fiscal ignorado y ausente de UI; tax_state vacío se conserva por contrato histórico. Errores HTTP401 del proveedor se informan con código seguro y provider_status:401 dentro de un HTTP503 de Scale, para distinguir credencial del servidor de autenticación del usuario. Not-found confirmado conserva `{record:null}` HTTP200 del contrato interno.
 
 Pendiente de acreditar en producción: versión web/API nueva y flujo autenticado desde formulario sin cookies OwnData. El entorno no tiene token Coolify, clave OwnData ni sesión autorizada de Scale. La última API pública observada responde 1.0.202; no se declara listo por /health.
+
+## Validación local final
+
+TypeScript,295 entradas/70 fragmentos de regresión, build (BUILD_ID en local-gates.json), suite backend completa, versión y footer: PASS. La primera regresión detectó hashes obsoletos del registro de auditoría UI; se verificó JSX exacto de los cinco widgets retenidos, sin nuevas excepciones ni cambios en el inventario, y luego se repitió la cadena completa en verde. No se repitió el bump: entrega1.0.206.
