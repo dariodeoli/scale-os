@@ -19,7 +19,7 @@ export const DEFAULT_OUTBOUND_HOSTS=Object.freeze([
  'appleid.apple.com',
  'login.microsoftonline.com','graph.microsoft.com',
  'api.groq.com','api.openai.com',
- 'ruc.sun.com.py',
+ 'ruc.sun.com.py','app.controlaria.online',
  '*.okta.com','*.oktapreview.com','*.auth0.com','*.onelogin.com','*.amazoncognito.com','*.b2clogin.com',
 ]);
 const SERVICE_URL_ENV=['RUC_LOOKUP_PROVIDER_URL','IA_BASE_URL','PAGAYA_SUBSCRIPTION_ORIGIN','WEEM_EMAIL_RELAY_URL'];

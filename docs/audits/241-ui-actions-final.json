@@ -151,7 +151,7 @@
     {
       "file": "app/client-editor.tsx",
       "changed": false,
-      "sha256": "6582b98a8546c72f2b17ff52280eae9467b53800c99faad4db883f1384bd9fdd"
+      "sha256": "c563ffdf207f11b9392996481af05c55a44c9074425560a0f8974b8791572f0b"
     },
     {
       "file": "app/client-error-reporter.tsx",
@@ -191,7 +191,7 @@
     {
       "file": "app/client-ruc.tsx",
       "changed": false,
-      "sha256": "c95713d24e976bc0214d66385af3495ccd983b0f20f816bb3f87e230cf0f0376"
+      "sha256": "366dfd80e54ddfd846a1cf21ad0a412590d51f0d474fcea72848212679dbde3d"
     },
     {
       "file": "app/cliente/entregas/[id]/page.tsx",
@@ -551,7 +551,7 @@
     {
       "file": "app/operations.tsx",
       "changed": false,
-      "sha256": "cd90c5605c7b515d72b40ea561d5ea0cfb66ef583e370a1fcf5042175fb5f12f"
+      "sha256": "590d7c781c18ad2957c8dee099cd086463501616f39c7b44c1b17901f5ce1533"
     },
     {
       "file": "app/password-field.tsx",
@@ -1156,7 +1156,7 @@
     {
       "file": "app/workspace-forms.tsx",
       "changed": false,
-      "sha256": "747682eb3acad88428ade3b94522f200cfe6927901e35e29e64d57047a64421e"
+      "sha256": "866619515df65b6b5f3bdb6fab7e5b97f95f343d472683387dcbd3e4feeb29de"
     },
     {
       "file": "app/workspace-frame.tsx",
@@ -1599,9 +1599,9 @@
     },
     {
       "file": "app/client-editor.tsx",
-      "line": 157,
+      "line": 155,
       "column": 22,
-      "offset": 11188,
+      "offset": 11064,
       "kind": "canonical-button",
       "owner": "ClientEditorDialog",
       "status": "canonical",
@@ -4752,7 +4752,7 @@
       "file": "app/operations.tsx",
       "line": 364,
       "column": 187,
-      "offset": 26213,
+      "offset": 26249,
       "kind": "canonical-button",
       "owner": "Editor",
       "status": "canonical",
@@ -4763,7 +4763,7 @@
       "file": "app/operations.tsx",
       "line": 377,
       "column": 9,
-      "offset": 27546,
+      "offset": 27582,
       "kind": "canonical-button",
       "owner": "Editor",
       "status": "canonical",
@@ -4774,7 +4774,7 @@
       "file": "app/operations.tsx",
       "line": 379,
       "column": 9,
-      "offset": 27802,
+      "offset": 27838,
       "kind": "canonical-button",
       "owner": "Editor",
       "status": "canonical",
@@ -4785,7 +4785,7 @@
       "file": "app/operations.tsx",
       "line": 381,
       "column": 48,
-      "offset": 28046,
+      "offset": 28082,
       "kind": "canonical-button",
       "owner": "Editor",
       "status": "canonical",
@@ -4796,7 +4796,7 @@
       "file": "app/operations.tsx",
       "line": 381,
       "column": 211,
-      "offset": 28209,
+      "offset": 28245,
       "kind": "canonical-button",
       "owner": "Editor",
       "status": "canonical",
@@ -4807,7 +4807,7 @@
       "file": "app/operations.tsx",
       "line": 381,
       "column": 396,
-      "offset": 28394,
+      "offset": 28430,
       "kind": "canonical-button",
       "owner": "Editor",
       "status": "canonical",
@@ -4818,7 +4818,7 @@
       "file": "app/operations.tsx",
       "line": 445,
       "column": 7,
-      "offset": 31339,
+      "offset": 31375,
       "kind": "canonical-button",
       "owner": "ProjectComments",
       "status": "canonical",
@@ -4829,7 +4829,7 @@
       "file": "app/operations.tsx",
       "line": 540,
       "column": 9,
-      "offset": 36209,
+      "offset": 36245,
       "kind": "native",
       "owner": "CompanySelector",
       "status": "structural",
@@ -4842,7 +4842,7 @@
       "file": "app/operations.tsx",
       "line": 554,
       "column": 15,
-      "offset": 36886,
+      "offset": 36922,
       "kind": "native",
       "owner": "CompanySelector",
       "status": "structural",
@@ -4855,7 +4855,7 @@
       "file": "app/operations.tsx",
       "line": 577,
       "column": 27,
-      "offset": 37803,
+      "offset": 37839,
       "kind": "canonical-button",
       "owner": "CompanySelector",
       "status": "canonical",
@@ -8698,9 +8698,9 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "line": 335,
+      "line": 336,
       "column": 76,
-      "offset": 23270,
+      "offset": 23652,
       "kind": "canonical-button",
       "owner": "AccountForm",
       "status": "canonical",
@@ -8709,9 +8709,9 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "line": 414,
+      "line": 415,
       "column": 13,
-      "offset": 26999,
+      "offset": 27381,
       "kind": "native",
       "owner": "InvoiceForm",
       "status": "structural",
@@ -8722,9 +8722,9 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "line": 433,
+      "line": 434,
       "column": 80,
-      "offset": 27780,
+      "offset": 28162,
       "kind": "canonical-button",
       "owner": "InvoiceForm",
       "status": "canonical",
@@ -8733,9 +8733,9 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "line": 548,
+      "line": 549,
       "column": 13,
-      "offset": 32528,
+      "offset": 32910,
       "kind": "native",
       "owner": "PaymentForm",
       "status": "structural",
@@ -8746,9 +8746,9 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "line": 586,
+      "line": 587,
       "column": 80,
-      "offset": 34574,
+      "offset": 34956,
       "kind": "canonical-button",
       "owner": "PaymentForm",
       "status": "canonical",

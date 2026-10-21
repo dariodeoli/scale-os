@@ -264,7 +264,7 @@ export function Editor({
   const revealSection=(name:string)=>{setSectionOpen(name,true);const index=sectionNames.indexOf(name);if(index>=0)setStep(index);};
   useEffect(()=>{if(saved&&!pending){setSaved(false);requestClose?.({afterSave:true});}},[saved,pending,requestClose]);
   async function runLookup(f:Field){
-    if(!f.lookup||pending)return;
+    if(!f.lookup||pending||lookupRequest.current?.key===f.key)return;
     const snapshot={...form.getValues()},value=(snapshot[f.key]||'').trim();
     lookupRequest.current?.controller.abort();lookupRequest.current=null;setLookupBusy('');
     const generation=++lookupGeneration.current,controller=new AbortController();

@@ -76,3 +76,48 @@ Si la rama tocó inventario, tesorería o concurrencia de saldos, sumar
 - `dariodeoli/scale-core-api` figura archivado en GitHub.
 - El rollout de la migración quedó registrado en las releases v1.0.106/v1.0.107; no hay
   pasos pendientes de Fase 2 ni de Fase 3.
+
+
+## OwnData RUC: configuración y aceptación (Refs #353)
+
+La consulta sale exclusivamente del **servicio API** (`backend/`), con una clave
+secreta Live, personal o empresarial, activa y con `ruc:read`. Configurar en
+**Production → Environment Variables → Runtime**, sin Buildtime:
+
+```dotenv
+OWNDATA_API_ORIGIN=https://app.controlaria.online
+OWNDATA_API_KEY=<clave secreta Live, cargada en el panel; nunca en Git>
+```
+
+La configuración histórica `RUC_LOOKUP_PROVIDER_KIND=owndata` y
+`RUC_LOOKUP_PROVIDER_URL=https://app.controlaria.online/api/v1/ruc` se conserva
+por compatibilidad. Si existe un `RUC_LOOKUP_PROVIDER_KIND=legacy`, corregirlo a
+`owndata`: no se admite mezclar ambos proveedores. No colocar la clave en el servicio web, `NEXT_PUBLIC_*`,
+argumentos Docker, URLs ni documentación. Los tokens administrativos de Coolify
+pertenecen al entorno del integrador, no a la aplicación Scale.
+
+Un arranque que falla en `rucLookupConfig` no es un fallo del parser de respuestas:
+revisar nombre exacto `OWNDATA_API_KEY`, alcance Production y disponibilidad
+Runtime; comprobar en el panel que sea secreta, sin saltos internos y no `pk_`.
+No desactivar el healthcheck ni publicar un proveedor sin límites para sortearlo.
+Esperar el resultado del despliegue existente antes de solicitar otro.
+
+La aceptación requiere además del smoke de versión una sesión de Scale con
+`clients.manage`, sin cookies de OwnData:
+
+1. Abrir el editor de cliente y conservar un nombre editado manualmente.
+2. Consultar un RUC/DV válido con “Extraer datos del RUC”. Comprobar carga y
+   resultado sin sobrescribir el nombre hasta confirmar.
+3. Para una persona confirmada, activar esa opción explícitamente y comprobar
+   la presentación devuelta por OwnData; para una empresa conservar la razón
+   social oficial. No inferir el tipo por RUC, coma o mayúsculas.
+4. Aplicar o descartar la sugerencia. Guardar no debe repetir la consulta.
+5. Revisar en Network sólo peticiones al proxy de Scale: ningún X-API-Key,
+   cookie de OwnData, estado fiscal ni diagnóstico del proveedor al navegador.
+6. Acreditar errores con fixtures locales (clave inválida/revocada/vencida,
+   plan/API deshabilitados, 404, 429 y 503), sin desactivar una clave real ni
+   agotar su cupo para QA. Con fallo externo el ingreso manual sigue disponible.
+
+Registrar la versión de web y API por separado, SHA servido sólo si se expone,
+y evidencia real del formulario. Un `/health` correcto no acredita este flujo ni
+la activación de la clave. Mantener el issue abierto si falta acceso autenticado.

@@ -1,0 +1,11 @@
+{
+  "backend/ruc-lookup.js": "1a81383d419400632aad4421d5c9930bec35df5fb9d66b6d755a48c4657edf47",
+  "backend/outbound-allowlist.js": "1ec7ed869d7bca5f7a6f554195b74a6bd20c9cd0ee2daadcaab87059fbfeef22",
+  "backend/test-ruc.mjs": "6bc440f69b0754a33d0b94cb92657b279547b1a8bfe533ebcdc16dc2034d6d6d",
+  "app/client-ruc.tsx": "366dfd80e54ddfd846a1cf21ad0a412590d51f0d474fcea72848212679dbde3d",
+  "app/client-editor.tsx": "c563ffdf207f11b9392996481af05c55a44c9074425560a0f8974b8791572f0b",
+  "app/client-editor-data.ts": "fb7649deed5d6055554bd4fe263f805c3cd20724d5615def00bab505ceddfa67",
+  "app/ruc-validation.ts": "8fa09354f4f46f9131b131de06fede79c5a3e8fbefdb8729eceb5c0928a8e0c2",
+  "app/operations.tsx": "590d7c781c18ad2957c8dee099cd086463501616f39c7b44c1b17901f5ce1533",
+  "app/workspace-forms.tsx": "866619515df65b6b5f3bdb6fab7e5b97f95f343d472683387dcbd3e4feeb29de"
+}

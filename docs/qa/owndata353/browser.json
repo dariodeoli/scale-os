@@ -1,0 +1,125 @@
+{
+  "scope": "Actual ClientEditor, local synthetic HTTP only, no provider key/auth/production validation",
+  "viewports": [
+    390,
+    1440
+  ],
+  "checks": [
+    "confirmation",
+    "official company text unchanged",
+    "manual names preserved",
+    "no fiscal UI",
+    "no duplicate lookup on save",
+    "stale review protection",
+    "discard",
+    "rate/error/not-found manual fallback",
+    "no automatic retry",
+    "no horizontal overflow",
+    "explicit person presentation",
+    "official legal name preserved with presentation",
+    "invalid DV before network",
+    "double click one request",
+    "stale person/company type protected"
+  ],
+  "requests": [
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/clients/4",
+      "method": "PATCH",
+      "body": {
+        "tax_id": "80168807-8",
+        "legal_name": "PEREZ, ANA"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/clients/4",
+      "method": "PATCH",
+      "body": {
+        "tax_id": "80168807-8",
+        "legal_name": "PEREZ, ANA"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8",
+        "subjectKind": "individual"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8",
+        "subjectKind": "individual"
+      }
+    },
+    {
+      "path": "/core-api/api/agency/ruc-lookup",
+      "method": "POST",
+      "body": {
+        "ruc": "80168807-8"
+      }
+    }
+  ],
+  "writes": [
+    {
+      "tax_id": "80168807-8",
+      "legal_name": "PEREZ, ANA"
+    },
+    {
+      "tax_id": "80168807-8",
+      "legal_name": "PEREZ, ANA"
+    }
+  ],
+  "pageErrors": []
+}
