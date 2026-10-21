@@ -43,16 +43,15 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
   const [identity,setIdentity]=useState({email:'',phone:'',tax_id:''});
   const matches=useClientMatches(identity,mode==='create'&&Boolean(onOpenExisting));
   const pendingRef=useRef<PendingRuc|null>(null);
-  // RUC aplicado en esta edición: al guardar se refresca la ficha tributaria (estado, fuente y fecha) en el API.
-  const rucAppliedRef=useRef(false);
   const planRequest=useRef<{signature:string;id:string}|null>(null);
   pendingRef.current=pending;
   useEffect(()=>()=>{pendingRef.current?.reject(new Error('Consulta cancelada.'));},[]);
   // La consulta devuelve un registro, no escribe: la promesa del campo sólo se
   // resuelve con «Aplicar»; «Descartar» la rechaza y la ficha queda como estaba.
-  const rucLookup={label:'Buscar',errorState:(cause:unknown)=>cause instanceof RucNotFoundError?'not-found' as const:'error' as const,onApplied:()=>{rucAppliedRef.current=true;},run:async(ruc:string,context?:{signal:AbortSignal;snapshot?:Record<string,string>;onReview?:()=>void})=>{
+  const rucLookup={label:'Extraer datos del RUC',errorState:(cause:unknown)=>cause instanceof RucNotFoundError?'not-found' as const:'error' as const,run:async(ruc:string,context?:{signal:AbortSignal;snapshot?:Record<string,string>;onReview?:()=>void})=>{
     const signal=context?.signal;
-    const found=await lookupRuc(ruc,signal);
+    const kind=context?.snapshot?.party_type==='person'?'individual':context?.snapshot?.party_type==='company'?'legal_entity':'unknown';
+    const found=await lookupRuc(ruc,signal,kind);
     if(signal?.aborted)throw new Error('Consulta cancelada.');
     context?.onReview?.();
     return new Promise<Record<string,string>>((resolve,reject)=>{
@@ -63,7 +62,7 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
         if(error)reject(error);else resolve(values||{});
       };
       const cancel=()=>finish(new Error('Consulta cancelada.'));
-      const next:PendingRuc={record:found,resolve:values=>finish(undefined,{...values,...(!context?.snapshot?.name?.trim()?{name:values.legal_name}:{})}),reject:error=>finish(error)};
+      const next:PendingRuc={record:found,resolve:values=>finish(undefined,{...values,party_type:context?.snapshot?.party_type||'',...(!context?.snapshot?.name?.trim()?{name:found.display_name??values.legal_name}:{})}),reject:error=>finish(error)};
       pendingRef.current=next;setPending(next);signal?.addEventListener('abort',cancel,{once:true});
     });
   }};
@@ -91,7 +90,6 @@ export function ClientEditor({mode,clientId,record=null,plan=null,planRequired=f
     }
     if(client)await api(`/api/agency/clients/${clientId}`,client,'PATCH');
     if(terms)await api(`/api/agency/clients/${clientId}/commercial-terms`,terms,'PATCH');
-    if(rucAppliedRef.current){rucAppliedRef.current=false;await api(`/api/agency/clients/${clientId}/ruc-refresh`,{apply:true}).catch(()=>undefined);}
     await onSaved?.();
   }
   return <>

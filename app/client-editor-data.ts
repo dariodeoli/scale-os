@@ -1,7 +1,8 @@
 // Contrato de datos del ClientEditor (#184): campos por sección, validadores y
 // payloads. Alta y edición comparten los mismos campos y las mismas reglas; el
 // API revalida siempre (backend/suite-validation.js). Funciones puras.
-import {MENSAJE_RUC,normalizeTaxId,taxIdValid} from 'owncoding-ui/core';
+import {normalizeTaxId} from 'owncoding-ui/core';
+import {rucLookupInput} from './ruc-validation';
 import type {Field} from './operations';
 import {PHONE_HELP} from './field-rules';
 import {clientLegalName} from './client-identity-data';
@@ -22,7 +23,7 @@ const isDate=(value:string)=>/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(
 const str=(record:ClientRecord|null|undefined,key:string)=>String(record?.[key]??'');
 
 export const nameError=(value:string)=>value.trim().length<2?'Escribí el nombre del cliente.':null;
-export const taxIdError=(value:string)=>!value.trim()||taxIdValid(normalizeTaxId(value)||'')?null:MENSAJE_RUC;
+export const taxIdError=(value:string)=>{if(!value.trim())return null;try{rucLookupInput(value);return null;}catch(error){return error instanceof Error?error.message:'Revisá el RUC.';}};
 const httpsError=(value:string)=>{if(!value.trim())return null;try{const url=new URL(value.trim());return url.protocol==='https:'&&!url.username&&!url.password?null:'Pegá un enlace HTTPS válido.';}catch{return 'Pegá un enlace HTTPS válido.';}};
 
 const PLAN_KEYS=['plan_plan_id','plan_amount','plan_currency','plan_cadence','plan_interval','plan_starts_on','plan_ends_on','plan_invoice_required','plan_effective_from','plan_reason'];
@@ -46,7 +47,7 @@ export type ClientFieldOptions={
 export function clientFields({mode,plan=null,planRequired=false,restricted=false,rucLookup,rucAfter}:ClientFieldOptions):Field[]{
   const S=CLIENT_SECTIONS;
   const fields:Field[]=[
-    {key:'tax_id',label:'RUC',optional:true,section:S.identity,span:4,maxLength:14,disabled:restricted,validate:taxIdError,help:restricted?'Dato fiscal protegido según tus permisos.':rucLookup?'Enter o Buscar consulta el RUC. Revisá y aplicá la razón social; también podés completar manualmente.':'Ingresá el RUC si lo conocés. Podés completar la razón social manualmente.',lookup:rucLookup,after:rucAfter},
+    {key:'tax_id',label:'RUC',optional:true,section:S.identity,span:4,maxLength:14,disabled:restricted,validate:taxIdError,help:restricted?'Dato fiscal protegido según tus permisos.':rucLookup?'Enter o Extraer datos del RUC consulta el documento. Revisá y aplicá la razón social; también podés completar manualmente.':'Ingresá el RUC si lo conocés. Podés completar la razón social manualmente.',lookup:rucLookup,after:rucAfter},
     {key:'legal_name',label:'Razón social / nombre legal',optional:true,section:S.identity,span:6,maxLength:160,disabled:restricted,help:restricted?'Dato legal protegido según tus permisos.':rucLookup?'Se completa al aplicar la consulta y sigue siendo editable. Si falta, los contratos usan el nombre del cliente.':'Escribí la razón social o el nombre legal. Si falta, los contratos usan el nombre del cliente.'},
     {key:'name',label:'Nombre del cliente',section:S.identity,span:6,maxLength:120,validate:nameError},
     ...(mode==='edit'?[{key:'lifecycle_status',label:'Estado del servicio',section:S.identity,choices:clientStatuses,help:'Pausar o cancelar el cliente pausa o cancela sus proyectos activos.'} as Field]:[]),
@@ -55,7 +56,7 @@ export function clientFields({mode,plan=null,planRequired=false,restricted=false
     {key:'notes',label:'Notas',type:'textarea',optional:true,wide:true,span:12,section:S.identity,maxLength:2000},
     {key:'email',label:'Correo',type:'email',optional:true,section:S.contact,disabled:restricted},
     {key:'phone',label:'Teléfono / WhatsApp',type:'phone',optional:true,section:S.contact,help:PHONE_HELP,disabled:restricted},
-    {key:'party_type',label:'Tipo de parte contratante',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'person',label:'Persona física'},{value:'company',label:'Empresa / persona jurídica'}],help:'Se declara manualmente; no se deduce del RUC.'},
+    {key:'party_type',label:'Tipo de cliente',optional:true,section:S.identity,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'person',label:'Persona física'},{value:'company',label:'Empresa / persona jurídica'}],help:'Se declara manualmente; no se deduce del RUC.'},
     {key:'document_type',label:'Tipo de documento',optional:true,section:S.legal,disabled:restricted,choices:[{value:'',label:'Sin definir'},{value:'ci',label:'Cédula de identidad'},{value:'ruc',label:'RUC'},{value:'passport',label:'Pasaporte'},{value:'other',label:'Otro'}]},
     {key:'document_number',label:'Número de documento',optional:true,section:S.legal,maxLength:80,disabled:restricted,valueFrom:values=>values.document_type==='ruc'&&!values.document_number?values.tax_id:undefined,help:'Al elegir RUC, se reutiliza el RUC de la ficha si el documento está vacío.'},
     {key:'address',label:'Domicilio contractual',optional:true,section:S.legal,maxLength:400,disabled:restricted},

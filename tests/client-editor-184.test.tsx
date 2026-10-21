@@ -99,7 +99,7 @@ async function mountWithRuc(lookupResponse:unknown={record:rucRecord}){
   await act(async()=>{renderer=create(<ClientEditor mode="create"/>);});
   await change(renderer,'name','Cliente');
   await change(renderer,'tax_id','80168807');
-  await act(async()=>{buttonWith(renderer,'Buscar')!.props.onClick();});
+  await act(async()=>{buttonWith(renderer,'Extraer datos del RUC')!.props.onClick();});
   await settle();
   return renderer;
 }
@@ -110,7 +110,7 @@ test('consulta de RUC: muestra la tarjeta y no aplica nada hasta «Aplicar»',as
   assert.deepEqual(lookup?.body,{ruc:'80168807'},'se consulta con el RUC tal cual, sin inventar el dígito verificador');
   const card=text(renderer.root);
   assert.match(card,/Juan Perez Gomez|Pérez|Perez/i,'nombre normalizado');
-  assert.match(card,/Estado tributario: ACTIVO/);
+  assert.doesNotMatch(card,/Estado tributario|ACTIVO/,'el estado fiscal del proveedor no se presenta');
   assert.match(card,/Fuente: ruc-provider/);
   assert.ok(buttonWith(renderer,'Aplicar')&&buttonWith(renderer,'Descartar'));
   // Sin confirmar, guardar no lleva la razón social del proveedor.
@@ -165,22 +165,23 @@ test('edición: el PATCH envía sólo los campos modificados (semántica legacy)
   act(()=>renderer.unmount());
 });
 
-test('edición: aplicar el RUC guarda también la ficha tributaria (ruc-refresh) después del PATCH',async()=>{
+test('edición: guardar datos confirmados no repite la consulta al proveedor',async()=>{
   calls.length=0;
   route=(url,method)=>method==='GET'&&url==='/api/agency/clients/4'?{record:{id:'4',name:'ACME',email:'x@acme.com',phone:'',tax_id:'',legal_name:'',notes:'',lifecycle_status:'active',updated_at:'t1',social_links:{}}}:url.endsWith('/ruc-lookup')?{record:rucRecord}:{};
   let renderer!:ReactTestRenderer;
   await act(async()=>{renderer=create(<ClientEditorDialog mode="edit" clientId="4" role="finance" close={()=>{}} refresh={async()=>{}}/>);});
   await settle();
   await change(renderer,'tax_id','80168807');
-  await act(async()=>{buttonWith(renderer,'Buscar')!.props.onClick();});
+  await act(async()=>{buttonWith(renderer,'Extraer datos del RUC')!.props.onClick();});
   await settle();
   await act(async()=>{buttonWith(renderer,'Aplicar')!.props.onClick();});
   await settle();
   await submit(renderer);
   const urls=calls.map(call=>`${call.method} ${call.url}`);
   const patch=urls.indexOf('PATCH /api/agency/clients/4'),refresh=urls.indexOf('POST /api/agency/clients/4/ruc-refresh');
-  assert.ok(patch>=0&&refresh>patch,'primero se guarda el RUC y después se refresca la ficha tributaria');
-  assert.deepEqual(calls[refresh].body,{apply:true});
+  assert.ok(patch>=0,'se guardan los campos confirmados');
+  assert.equal(refresh,-1,'guardar no dispara otra consulta externa automáticamente');
+  assert.equal(calls.filter(call=>call.url.endsWith('/ruc-lookup')).length,1);
   act(()=>renderer.unmount());
 });
 
@@ -462,10 +463,69 @@ test('RUC compartido distingue no encontrado y error; ambos preservan carga manu
 test('RUC conserva el texto pegado hasta confirmar; el transporte y Aplicar normalizan explícitamente',async()=>{
  const renderer=await mountWithRuc();buttonWith(renderer,'Descartar')!.props.onClick();await settle();
  await change(renderer,'tax_id','80.168.807-8');
- await act(async()=>{buttonWith(renderer,'Buscar')!.props.onClick();});await settle();
+ await act(async()=>{buttonWith(renderer,'Extraer datos del RUC')!.props.onClick();});await settle();
  assert.deepEqual(calls.filter(call=>call.url.endsWith('/ruc-lookup')).at(-1)?.body,{ruc:'80168807-8'});
  assert.equal(renderer.root.findAll(node=>node.props['data-ui-lookup-field']!==undefined&&node.type==='div')[0].props['data-lookup-state'],'found','en revisión no se presenta como consulta de red pendiente');
  await act(async()=>{buttonWith(renderer,'Aplicar')!.props.onClick();});await settle();await submit(renderer);
  assert.equal(calls.find(call=>call.method==='POST'&&call.url==='/api/agency/clients')?.body?.tax_id,'80168807-8');
  act(()=>renderer.unmount());
+});
+
+test('353 valida base de hasta nueve dígitos y el DV suministrado antes del transporte',async()=>{
+ const {lookupRuc,rucLookupInput}=require('../app/client-ruc') as typeof import('../app/client-ruc');
+ assert.equal(rucLookupInput('123.456.789'),'123456789');
+ assert.equal(rucLookupInput('80.168.807-8'),'80168807-8');
+ const before=calls.length;
+ for(const value of ['0','ABC','80168807-9','1234567890'])await assert.rejects(lookupRuc(value));
+ assert.equal(calls.length,before,'las entradas inválidas no consumen consultas');
+ assert.equal(clientFields({mode:'create'}).find(field=>field.key==='tax_id')!.validate!('123456789'),null);
+});
+
+test('353 persona confirmada muestra vista de nombre sin cambiar razón social oficial; sin tipo no se infiere',async()=>{
+ calls.length=0;
+ const official='PEREZ GOMEZ, JUAN';
+ route=(url)=>url.endsWith('/ruc-lookup')?{record:{...rucRecord,name:official,source:'owndata:dnit_official_snapshot',display_name:'Juan Perez Gomez'}}:{};
+ let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditor mode="create"/>);});
+ const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+ const kind=renderer.root.findAllByType(SelectCustom).find(node=>String(node.props.label).includes('Tipo de cliente'));
+ // Optional labels are React nodes; locate the declared person option if needed.
+ const select=kind??renderer.root.findAllByType(SelectCustom).find(node=>node.props.choices.some((choice:{value:string})=>choice.value==='person'))!;
+ await act(async()=>{select.props.onChange('person');});
+ await change(renderer,'tax_id','80168807');
+ await act(async()=>{buttonWith(renderer,'Extraer datos del RUC')!.props.onClick();});await settle();
+ assert.deepEqual(calls.find(call=>call.url.endsWith('/ruc-lookup'))?.body,{ruc:'80168807',subjectKind:'individual'});
+ assert.match(text(renderer.root),/Juan Perez Gomez/);assert.match(text(renderer.root),/Nombre oficial: PEREZ GOMEZ, JUAN/);
+ await act(async()=>{buttonWith(renderer,'Aplicar')!.props.onClick();});await settle();await submit(renderer);
+ const body=calls.find(call=>call.url==='/api/agency/clients')?.body;
+ assert.equal(body?.name,'Juan Perez Gomez');assert.equal(body?.legal_name,official);
+ act(()=>renderer.unmount());
+ const {lookupRuc}=require('../app/client-ruc') as typeof import('../app/client-ruc');
+ await lookupRuc('80168807');assert.deepEqual(calls.at(-1)?.body,{ruc:'80168807'},'la coma o el RUC nunca agregan un tipo');
+});
+
+test('353 dos clics consecutivos no duplican la consulta y cambiar tipo durante revisión conserva la ficha',async()=>{
+ calls.length=0;route=url=>url.endsWith('/ruc-lookup')?{record:{...rucRecord,source:'owndata:dnit_official_snapshot'}}:{};
+ let renderer!:ReactTestRenderer;
+ await act(async()=>{renderer=create(<ClientEditor mode="create"/>);});await change(renderer,'tax_id','80168807');
+ await act(async()=>{const button=buttonWith(renderer,'Extraer datos del RUC')!;button.props.onClick();button.props.onClick();});await settle();
+ assert.equal(calls.filter(call=>call.url.endsWith('/ruc-lookup')).length,1);
+ const {SelectCustom}=require('../app/profile-controls') as typeof import('../app/profile-controls');
+ const select=renderer.root.findAllByType(SelectCustom).find(node=>node.props.choices.some((choice:{value:string})=>choice.value==='person'))!;
+ await act(async()=>{select.props.onChange('person');buttonWith(renderer,'Aplicar')!.props.onClick();});await settle();
+ assert.equal(input(renderer,'legal_name').props.value||'','');assert.match(text(renderer.root),/conservaron tus cambios/);
+ act(()=>renderer.unmount());
+});
+
+test('353 errores de credencial y transporte conservan ingreso manual; 429 respeta Retry-After sin reintentos',async()=>{
+ const {lookupRuc,RucLookupError}=require('../app/client-ruc') as typeof import('../app/client-ruc');
+ route=()=>new Response(JSON.stringify({error:'OwnData no autorizó la clave del servidor.',code:'API_KEY_EXPIRED',provider_status:401}),{status:503});
+ await assert.rejects(lookupRuc('80168807'),error=>error instanceof RucLookupError&&error.status===503&&/clave del servidor/.test(error.message));
+ route=()=>{throw new TypeError('Failed to fetch');};
+ await assert.rejects(lookupRuc('80168807'),error=>error instanceof Error&&/Sin conexión/.test(error.message)&&!error.message.includes('Failed to fetch'));
+ route=()=>new Response(JSON.stringify({error:'Cuota agotada',retry_after:30}),{status:429,headers:{'Retry-After':'30'}});
+ const before=calls.length;
+ await assert.rejects(lookupRuc('80168807'),error=>error instanceof RucLookupError&&error.retryAfter===30);
+ await assert.rejects(lookupRuc('123456789'),error=>error instanceof RucLookupError&&error.status===429);
+ assert.equal(calls.length,before+1,'no se reconsulta al proveedor antes de Retry-After ni se reintenta automáticamente');
 });
