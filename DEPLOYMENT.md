@@ -91,7 +91,8 @@ OWNDATA_API_KEY=<clave secreta Live, cargada en el panel; nunca en Git>
 
 La configuración histórica `RUC_LOOKUP_PROVIDER_KIND=owndata` y
 `RUC_LOOKUP_PROVIDER_URL=https://app.controlaria.online/api/v1/ruc` se conserva
-por compatibilidad. No colocar la clave en el servicio web, `NEXT_PUBLIC_*`,
+por compatibilidad. Si existe un `RUC_LOOKUP_PROVIDER_KIND=legacy`, corregirlo a
+`owndata`: no se admite mezclar ambos proveedores. No colocar la clave en el servicio web, `NEXT_PUBLIC_*`,
 argumentos Docker, URLs ni documentación. Los tokens administrativos de Coolify
 pertenecen al entorno del integrador, no a la aplicación Scale.
 

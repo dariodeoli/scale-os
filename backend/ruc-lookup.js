@@ -26,6 +26,7 @@ export function rucDigits(value){
 }
 export function rucLookupConfig(env=process.env){
  const providerKind=(env.RUC_LOOKUP_PROVIDER_KIND||(env.OWNDATA_API_ORIGIN||env.OWNDATA_API_KEY?'owndata':'legacy')).trim();
+ if(providerKind==='legacy'&&(env.OWNDATA_API_ORIGIN||env.OWNDATA_API_KEY))throw Error('La configuración OwnData no puede combinarse con RUC_LOOKUP_PROVIDER_KIND=legacy');
  const origin=(env.OWNDATA_API_ORIGIN||OWNDATA_API_ORIGIN).trim().replace(/\/+$/,'');
  if(providerKind==='owndata'&&origin!==OWNDATA_API_ORIGIN)throw Error('OWNDATA_API_ORIGIN debe ser el origen HTTPS documentado de OwnData');
  if(!['legacy','owndata'].includes(providerKind))throw Error('RUC_LOOKUP_PROVIDER_KIND inválido');
@@ -69,7 +70,7 @@ function ownDataMetadata(meta){
  const source=meta?.provenance,quota=meta?.quota;
  let https=false;try{const url=new URL(source?.sourcePage);https=typeof source?.sourcePage==='string'&&url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443');}catch{}
  return meta?.environment==='live'&&source?.source==='dnit_official_snapshot'&&https&&validDay(source.publicationDate)&&
-  nonempty(source.importedAt)&&validDay(source.importedAt.slice(0,10))&&Number.isFinite(Date.parse(source.importedAt))&&typeof source.publishedText==='string'&&typeof source.snapshotHash==='string'&&/^[a-f0-9]{64}$/.test(source.snapshotHash)&&
+  typeof source.importedAt==='string'&&/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(source.importedAt)&&validDay(source.importedAt.slice(0,10))&&Number.isFinite(Date.parse(source.importedAt))&&typeof source.publishedText==='string'&&typeof source.snapshotHash==='string'&&/^[a-f0-9]{64}$/.test(source.snapshotHash)&&
   quota&&quota.limit>=1&&quota.resetAfter>=1&&['limit','used','remaining','resetAfter'].every(key=>Number.isSafeInteger(quota[key])&&quota[key]>=0)&&validDay(quota.day)&&
   typeof meta?.accounting?.alreadyConsulted==='boolean'&&typeof meta.accounting.charged==='boolean'&&
   (!Object.hasOwn(meta.accounting,'cacheEnabled')||typeof meta.accounting.cacheEnabled==='boolean');
