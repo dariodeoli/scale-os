@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-import {rucLookup,normalizeRuc,rucRecord,assertUniqueClientRuc,createRucProvider,rucLookupConfig,createOwnDataRucProvider,configuredRucProvider,validateOwnDataRuc,OWNDATA_RUC_URL} from './ruc-lookup.js';
+import {outboundAllowlist} from './outbound-allowlist.js';
+import {rucLookup,normalizeRuc,rucRecord,assertUniqueClientRuc,createRucProvider,rucLookupConfig,createOwnDataRucProvider,configuredRucProvider,validateOwnDataRuc,OWNDATA_RUC_URL,OWNDATA_API_ORIGIN} from './ruc-lookup.js';
 
 assert.equal(normalizeRuc('80.168.807 - 8'),'80168807-8');assert.equal(normalizeRuc('1234567'),'1234567');assert.throws(()=>normalizeRuc('https://evil.example'));
 const providerRecord={name:'Empresa de prueba',ruc:'80168807',dv:'8',fullRuc:'80168807-8',state:'ACTIVO'};
@@ -43,9 +44,9 @@ for(const env of [{RUC_LOOKUP_PROVIDER_KIND:'unknown'},{RUC_LOOKUP_PROVIDER_KIND
 const ownSettings=rucLookupConfig({RUC_LOOKUP_PROVIDER_KIND:'owndata',RUC_LOOKUP_PROVIDER_URL:OWNDATA_RUC_URL,OWNDATA_API_KEY:'synthetic-secret'});
 assert.equal(configuredRucProvider(ownSettings).name,'owndata-ruc-provider');assert.equal(configuredRucProvider(rucLookupConfig({})).name,'configured-ruc-provider');
 assert.equal(validateOwnDataRuc('80168807-8'),'80168807-8');assert.throws(()=>validateOwnDataRuc('80168807-0'));assert.throws(()=>validateOwnDataRuc('0123456'));assert.throws(()=>validateOwnDataRuc('1234567890'));
-const ownEnvelope={data:{ruc:'80168807',dv:'8',fullRuc:'80168807-8',nameOfficial:'EMPRESA OFICIAL',stateRaw:'ACTIVO'},meta:{environment:'live',provenance:{source:'dnit_official_snapshot',publicationDate:'2026-10-01',sourcePage:'https://www.dnit.gov.py/web/portal-institucional/listado-de-ruc-con-sus-equivalencias',publishedText:'',importedAt:'2026-10-01T12:00:00Z',snapshotHash:'a'.repeat(64)},quota:{limit:100,used:1,remaining:99,day:'2026-10-20',resetAfter:60}}};
-let ownCalls=0,ownStatus=200,ownResponse=ownEnvelope;
-const ownProvider=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',allowedHosts:['app.controlaria.online'],fetcher:async(url,init)=>{ownCalls++;assert.equal(url,OWNDATA_RUC_URL+'/80168807-8');assert.equal(init.headers['X-API-Key'],'synthetic-secret');assert.equal(init.redirect,'error');assert.equal(init.credentials,'omit');assert.equal(init.headers.Cookie,undefined);assert.equal(init.headers.Authorization,undefined);assert(!url.includes('synthetic-secret'));return new Response(JSON.stringify(ownResponse),{status:ownStatus});}});
+const ownEnvelope={data:{ruc:'80168807',dv:'8',fullRuc:'80168807-8',nameOfficial:'EMPRESA OFICIAL',stateRaw:'ACTIVO'},meta:{environment:'live',accounting:{alreadyConsulted:false,charged:true,cacheEnabled:true},provenance:{source:'dnit_official_snapshot',publicationDate:'2026-10-01',sourcePage:'https://www.dnit.gov.py/web/portal-institucional/listado-de-ruc-con-sus-equivalencias',publishedText:'',importedAt:'2026-10-01T12:00:00Z',snapshotHash:'a'.repeat(64)},quota:{limit:100,used:1,remaining:99,day:'2026-10-20',resetAfter:60}}};
+let ownCalls=0,ownStatus=200,ownResponse=ownEnvelope,ownQuery='',ownHeaders={};
+const ownProvider=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',allowedHosts:['app.controlaria.online'],fetcher:async(url,init)=>{ownCalls++;assert.equal(url,OWNDATA_RUC_URL+'/80168807-8'+ownQuery);assert.equal(init.headers['X-API-Key'],'synthetic-secret');assert.equal(init.redirect,'error');assert.equal(init.credentials,'omit');assert.equal(init.headers.Cookie,undefined);assert.equal(init.headers.Authorization,undefined);assert(!url.includes('synthetic-secret'));return new Response(JSON.stringify(ownResponse),{status:ownStatus,headers:ownHeaders});}});
 assert.equal((await ownProvider.lookup('80168807-8')).name,'EMPRESA OFICIAL');
 // OwnData contract 1.4.0 deliberately strips stateRaw from commercial/public data.
 const currentEnvelope={...ownEnvelope,data:{ruc:'80168807',dv:'8',fullRuc:'80168807-8',nameOfficial:'EMPRESA OFICIAL',equivalenceRaw:''}};
@@ -57,7 +58,7 @@ for(const fields of [{status:'ACTIVO'},{status:'INACTIVO'},{status:'SUSPENDIDO'}
  const publicRecord=rucRecord(record,'80168807-8');assert.equal(publicRecord.tax_state,'');
  for(const forbidden of ['status','stateRaw','synthetic-secret'])assert(!JSON.stringify(publicRecord).includes(forbidden));
 }
-for(const mutate of [e=>delete e.data.nameOfficial,e=>e.data.nameOfficial=' ',e=>e.data.ruc='bad',e=>e.data.dv='0',e=>e.data.fullRuc='80168807-0',e=>e.meta.environment='unknown',e=>delete e.meta.environment,e=>delete e.meta.quota,e=>e.meta.quota.used=-1,e=>e.meta.quota.limit=0,e=>e.meta.quota.resetAfter=0,e=>e.meta.quota.remaining=1.5,e=>e.meta.quota.day='2026-02-30',e=>e.meta.quota.resetAfter='60',e=>delete e.meta.provenance,e=>e.meta.provenance.source='unknown',e=>e.meta.provenance.sourcePage='http://www.dnit.gov.py/data',e=>e.meta.provenance.sourcePage=['https://www.dnit.gov.py/data'],e=>e.meta.provenance.sourcePage='https://user:pass@www.dnit.gov.py/data',e=>e.meta.provenance.snapshotHash='bad',e=>e.meta.provenance.publicationDate='2026-02-30',e=>delete e.meta.provenance.importedAt,e=>e.meta.provenance.publishedText=null,e=>e.data.equivalenceRaw=42,e=>e.data.sourcePartition=10]){
+for(const mutate of [e=>delete e.data.nameOfficial,e=>e.data.nameOfficial=' ',e=>e.data.ruc='bad',e=>e.data.dv='0',e=>e.data.fullRuc='80168807-0',e=>e.meta.environment='unknown',e=>e.meta.environment='test',e=>delete e.meta.accounting,e=>e.meta.accounting.charged='yes',e=>e.meta.accounting.cacheEnabled=1,e=>delete e.meta.environment,e=>delete e.meta.quota,e=>e.meta.quota.used=-1,e=>e.meta.quota.limit=0,e=>e.meta.quota.resetAfter=0,e=>e.meta.quota.remaining=1.5,e=>e.meta.quota.day='2026-02-30',e=>e.meta.quota.resetAfter='60',e=>delete e.meta.provenance,e=>e.meta.provenance.source='unknown',e=>e.meta.provenance.sourcePage='http://www.dnit.gov.py/data',e=>e.meta.provenance.sourcePage=['https://www.dnit.gov.py/data'],e=>e.meta.provenance.sourcePage='https://user:pass@www.dnit.gov.py/data',e=>e.meta.provenance.snapshotHash='bad',e=>e.meta.provenance.publicationDate='2026-02-30',e=>delete e.meta.provenance.importedAt,e=>e.meta.provenance.publishedText=null,e=>e.data.equivalenceRaw=42,e=>e.data.sourcePartition=10]){
  ownResponse=structuredClone(currentEnvelope);mutate(ownResponse);
  await assert.rejects(()=>ownProvider.lookup('80168807-8'),error=>error.status===503&&error.code==='OWNDATA_INVALID_RESPONSE');
 }
@@ -74,13 +75,13 @@ ownStatus=404;ownResponse={error:{code:'REGISTERED_RUC_NOT_FOUND'}};assert.equal
 ownStatus=200;ownResponse={...ownEnvelope,meta:{provenance:{source:'unknown',publicationDate:'2026-10-01'}}};await assert.rejects(()=>ownProvider.lookup('80168807-8'),e=>e.status===503);
 ownResponse={...ownEnvelope,data:{...ownEnvelope.data,fullRuc:'80168807-0',dv:'0'}};await assert.rejects(()=>ownProvider.lookup('80168807-8'),e=>e.status===503);
 ownResponse=ownEnvelope;await query("update scale_ruc_usage set used=0 where month=date_trunc('month',current_date)::date");
-async function ownCall(){let output;await rucLookup({req:{method:'POST',socket:{}},res:{},url:new URL('https://test/api/agency/ruc-lookup'),db,session:async()=>user,body:async()=>({ruc:'80168807-8'}),send:(_,status,data)=>output={status,...data},provider:ownProvider,config:{...ownSettings,monthlyLimit:100}});return output;}
+async function ownCall(options={}){let output;await rucLookup({req:{method:'POST',socket:{}},res:{},url:new URL('https://test/api/agency/ruc-lookup'),db,session:async()=>user,body:async()=>({ruc:'80168807-8',...options}),send:(_,status,data)=>output={status,...data},provider:ownProvider,config:{...ownSettings,monthlyLimit:100}});return output;}
 let ownFound=await ownCall();assert.equal(ownFound.status,200);assert.equal(ownFound.record.name,'EMPRESA OFICIAL');assert.equal(ownFound.record.source,'owndata:dnit_official_snapshot');assert.equal(ownFound.record.publication_date,'2026-10-01');assert.equal(ownFound.cached,false,'provider switch isolates legacy cache');
 assert.equal(ownFound.record.tax_state,'');for(const forbidden of ['stateRaw','ACTIVO','synthetic-secret'])assert(!JSON.stringify(ownFound).includes(forbidden));assert(!Object.hasOwn(ownFound.record,'status'));
-await query("update agency_ruc_lookup_cache set record=record||'{\"tax_state\":\"ACTIVO\",\"status\":\"ACTIVO\",\"stateRaw\":\"ACTIVO\",\"apiKey\":\"synthetic-secret\"}'::jsonb where lookup_key='owndata:80168807-8'");
+await query("update agency_ruc_lookup_cache set record=record||'{\"tax_state\":\"ACTIVO\",\"status\":\"ACTIVO\",\"stateRaw\":\"ACTIVO\",\"apiKey\":\"synthetic-secret\"}'::jsonb where lookup_key='owndata:v2:live:unknown:80168807-8'");
 beforeCalls=ownCalls;ownFound=await ownCall();assert.equal(ownFound.record.tax_state,'');for(const value of ['ACTIVO','stateRaw','synthetic-secret'])assert(!JSON.stringify(ownFound).includes(value));assert(!Object.hasOwn(ownFound.record,'status'));assert.equal(ownFound.cached,true);assert.equal(ownCalls,beforeCalls);
-await query("delete from agency_ruc_lookup_cache where lookup_key='owndata:80168807-8'");ownStatus=429;ownResponse={error:{code:'DAILY_QUOTA_REACHED'}};assert.equal((await ownCall()).status,429);assert.equal((await query("select count(*)::int n from agency_ruc_lookup_cache where lookup_key='owndata:80168807-8'")).rows[0].n,0,'429 never cached as miss');
-ownStatus=503;ownResponse={error:{code:'COMMERCIAL_API_DISABLED'}};assert.match((await ownCall()).error,/no está habilitada/);assert.equal((await query("select count(*)::int n from agency_ruc_lookup_cache where lookup_key='owndata:80168807-8'")).rows[0].n,0,'503 never cached as miss');
+await query("delete from agency_ruc_lookup_cache where lookup_key='owndata:v2:live:unknown:80168807-8'");ownStatus=429;ownResponse={error:{code:'DAILY_QUOTA_REACHED'}};assert.equal((await ownCall()).status,429);assert.equal((await query("select count(*)::int n from agency_ruc_lookup_cache where lookup_key='owndata:v2:live:unknown:80168807-8'")).rows[0].n,0,'429 never cached as miss');
+ownStatus=503;ownResponse={error:{code:'COMMERCIAL_API_DISABLED'}};assert.match((await ownCall()).error,/no está habilitada/);assert.equal((await query("select count(*)::int n from agency_ruc_lookup_cache where lookup_key='owndata:v2:live:unknown:80168807-8'")).rows[0].n,0,'503 never cached as miss');
 
 for(const code of ['COMMERCIAL_API_DISABLED','API_KEY_EXPIRED','API_KEY_REVOKED','API_KEY_INVALID']){
  ownStatus=code==='COMMERCIAL_API_DISABLED'?503:401;ownResponse={error:{code,message:'private upstream synthetic-secret'},diagnostics:'synthetic-secret'};
@@ -95,4 +96,61 @@ for(const response of [new Response(' '.repeat(65537)),new Response('{}',{header
  const bounded=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',allowedHosts:['app.controlaria.online'],fetcher:async()=>response});
  await assert.rejects(()=>bounded.lookup('80168807-8'),e=>e.status===503&&e.code==='OWNDATA_INVALID_RESPONSE');
 }
-await pg.close();console.log('PASS: legacy provider and OwnData opt-in, explicit config/auth, envelope/provenance validation, DV validation, no retries, error mapping, provider cache isolation, quota, and non-destructive client refresh');
+// Two-variable OwnData configuration accepts personal/business server keys, never a public key.
+const modernSettings=rucLookupConfig({OWNDATA_API_ORIGIN,OWNDATA_API_KEY:'synthetic-personal-secret'});
+assert.equal(modernSettings.providerKind,'owndata');assert.equal(modernSettings.providerUrl,OWNDATA_RUC_URL);
+assert.equal(rucLookupConfig({OWNDATA_API_KEY:'synthetic-business-secret'}).providerUrl,OWNDATA_RUC_URL);
+assert(outboundAllowlist({}).includes('app.controlaria.online'));
+for(const origin of ['http://app.controlaria.online','https://evil.example','https://app.controlaria.online/other','https://user:pass@app.controlaria.online','https://app.controlaria.online:444'])assert.throws(()=>rucLookupConfig({OWNDATA_API_ORIGIN:origin,OWNDATA_API_KEY:'synthetic-secret'}));
+for(const key of ['', 'pk_synthetic', 'secret\nsecond'])assert.throws(()=>rucLookupConfig({OWNDATA_API_ORIGIN,OWNDATA_API_KEY:key}));
+
+ownStatus=200;ownHeaders={};ownResponse=structuredClone(currentEnvelope);
+ownResponse.data.nameOfficial='PEREZ GOMEZ, ANA MARIA';ownResponse.namePresentation={values:{full:'ANA MARIA PEREZ GOMEZ'}};
+assert.equal((await ownProvider.lookup('80168807-8')).name,'PEREZ GOMEZ, ANA MARIA');
+assert.equal((await ownProvider.lookup('80168807-8')).display_name,undefined,'unknown never infers person from comma');
+assert.equal((await ownProvider.lookup('80168807-8',{subjectKind:'legal_entity'})).display_name,undefined,'company keeps official name');
+ownQuery='?nameMethods=full&subjectKind=individual';
+assert.equal((await ownProvider.lookup('80168807-8',{subjectKind:'individual'})).display_name,'ANA MARIA PEREZ GOMEZ');
+ownResponse.namePresentation.values.full=null;assert.equal((await ownProvider.lookup('80168807-8',{subjectKind:'individual'})).display_name,undefined,'null preserves original');
+delete ownResponse.namePresentation;ownResponse.data.namePresentation={values:{full:'INVENTED'}};
+assert.equal((await ownProvider.lookup('80168807-8',{subjectKind:'individual'})).display_name,undefined,'namePresentation must be root-level');
+ownResponse.namePresentation={values:{full:42}};await assert.rejects(()=>ownProvider.lookup('80168807-8',{subjectKind:'individual'}),e=>e.code==='OWNDATA_INVALID_RESPONSE');
+let beforeInvalidKind=ownCalls;await assert.rejects(()=>ownProvider.lookup('80168807-8',{subjectKind:'guessed-person'}),e=>e.status===400);assert.equal(ownCalls,beforeInvalidKind);
+
+// Kind-specific Live cache prevents stale or inferred names from being presented.
+await query("update scale_ruc_usage set used=0 where month=date_trunc('month',current_date)::date");
+await query("delete from agency_ruc_lookup_cache where lookup_key like 'owndata:%'");
+ownResponse=structuredClone(currentEnvelope);ownResponse.namePresentation={values:{full:'NOMBRE PRESENTADO'}};
+let confirmed=await ownCall({subjectKind:'individual'});assert.equal(confirmed.record.display_name,'NOMBRE PRESENTADO');assert.equal(confirmed.record.name,'EMPRESA OFICIAL');assert.equal(confirmed.cached,false);
+beforeCalls=ownCalls;confirmed=await ownCall({subjectKind:'individual'});assert.equal(confirmed.cached,true);assert.equal(ownCalls,beforeCalls);assert.equal(confirmed.record.display_name,'NOMBRE PRESENTADO');
+ownQuery='';let company=await ownCall({subjectKind:'legal_entity'});assert.equal(company.cached,false);assert.equal(company.record.display_name,undefined);assert.equal(ownCalls,beforeCalls+1);
+assert.equal((await ownCall({subjectKind:'guessed-person'})).status,400);
+
+for(const [status,code] of [[401,'API_KEY_INVALID'],[401,'API_KEY_REVOKED'],[401,'API_KEY_EXPIRED'],[403,'PLAN_REQUIRED'],[503,'COMMERCIAL_API_DISABLED']]){
+ ownStatus=status;ownResponse={error:{code,message:'private synthetic-secret'}};await query("delete from agency_ruc_lookup_cache where lookup_key like 'owndata:%'");
+ const safe=await ownCall();assert.equal(safe.code,code);assert.equal(safe.provider_status,status);assert.equal(safe.status,503,'provider authorization never invalidates Scale session');assert(!JSON.stringify(safe).includes('synthetic-secret'));
+}
+for(const [status,expected] of [[401,'OWNDATA_AUTHENTICATION_FAILED'],[403,'OWNDATA_PERMISSION_DENIED'],[503,'OWNDATA_UNAVAILABLE'],[429,'OWNDATA_RATE_LIMITED']]){
+ const broken=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',fetcher:async()=>new Response('private upstream synthetic-secret',{status,headers:{'Retry-After':'60'}})});
+ await assert.rejects(()=>broken.lookup('80168807-8'),e=>e.code===expected&&e.providerStatus===status&&!e.message.includes('synthetic-secret')&&(status!==429||e.retryAfter===60));
+}
+ownStatus=429;ownResponse={error:{code:'DAILY_QUOTA_REACHED'}};ownHeaders={'Retry-After':'120'};
+let limited=await ownCall();assert.equal(limited.status,429);assert.equal(limited.retry_after,120);assert.equal(limited.provider_status,429);
+for(const retry of ['-1','0','86401','synthetic-secret','1.5']){ownHeaders={'Retry-After':retry};limited=await ownCall();assert.equal(limited.retry_after,undefined);}
+ownHeaders={'Retry-After':new Date(Date.now()+60_000).toUTCString()};limited=await ownCall();assert(limited.retry_after>=58&&limited.retry_after<=60);
+// End-to-end route validation uses the provider's complete 1–9 digit base range.
+// These records are synthetic provider fixtures, not assertions that those RUCs are registered.
+await query("update scale_ruc_usage set used=0 where month=date_trunc('month',current_date)::date");
+for(const base of ['1','12','123456789']){
+ let sum=0,weight=2;for(const digit of [...base].reverse()){sum+=Number(digit)*weight;weight=weight===11?2:weight+1;}
+ const remainder=sum%11,dv=String(remainder>1?11-remainder:0),canonical=base+'-'+dv;
+ const envelope=structuredClone(currentEnvelope);Object.assign(envelope.data,{ruc:base,dv,fullRuc:canonical});
+ let shortCalls=0;
+ const shortProvider=createOwnDataRucProvider({baseUrl:OWNDATA_RUC_URL,apiKey:'synthetic-secret',fetcher:async(url)=>{shortCalls++;assert.equal(new URL(url).pathname, '/api/v1/ruc/'+(shortCalls===1?base:canonical));return new Response(JSON.stringify(envelope));}});
+ for(const input of [base,canonical]){
+  let shortResult;await rucLookup({req:{method:'POST',socket:{}},res:{},url:new URL('https://test/api/agency/ruc-lookup'),db,session:async()=>({...user,id:99}),body:async()=>({ruc:input}),send:(_,status,data)=>shortResult={status,...data},provider:shortProvider,config:ownSettings});
+  assert.equal(shortResult.status,200);assert.equal(shortResult.record.tax_id,canonical);assert.equal(shortResult.record.name,'EMPRESA OFICIAL');
+ }
+ assert.equal(shortCalls,2);
+}
+await pg.close();console.log('PASS: OwnData Live origin, root name presentation, explicit subject kind/cache, safe credentials/error mapping, Retry-After, legacy compatibility, DV/provenance/quota and non-destructive refresh');

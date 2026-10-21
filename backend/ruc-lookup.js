@@ -6,7 +6,8 @@ import {outboundAllowlist,safeFetch} from './outbound-allowlist.js';
 // Consultas por usuario cada 15 min, antes de mirar la caché (que revela si un RUC ya se consultó).
 export const RUC_LOOKUPS_PER_WINDOW=40;
 
-export const OWNDATA_RUC_URL='https://app.controlaria.online/api/v1/ruc';
+export const OWNDATA_API_ORIGIN='https://app.controlaria.online';
+export const OWNDATA_RUC_URL=OWNDATA_API_ORIGIN+'/api/v1/ruc';
 const OWNDATA_SOURCE='owndata:dnit_official_snapshot';
 const defaultProviderUrl='https://ruc.sun.com.py/api/ruc';
 const numberSetting=(value,fallback,min,max)=>{
@@ -16,7 +17,7 @@ const numberSetting=(value,fallback,min,max)=>{
 
 export function normalizeRuc(value){
  const clean=String(value??'').trim().replace(/[.\s]/g,'');
- if(!/^\d{3,12}(?:-\d)?$/.test(clean))fail('Ingresá un RUC numérico, con o sin guion y dígito verificador');
+ if(!/^\d{1,12}(?:-\d)?$/.test(clean))fail('Ingresá un RUC numérico, con o sin guion y dígito verificador');
  return clean;
 }
 export function rucDigits(value){
@@ -24,13 +25,15 @@ export function rucDigits(value){
  return raw?normalizeRuc(raw).replace('-',''):null;
 }
 export function rucLookupConfig(env=process.env){
- const providerKind=(env.RUC_LOOKUP_PROVIDER_KIND||'legacy').trim();
+ const providerKind=(env.RUC_LOOKUP_PROVIDER_KIND||(env.OWNDATA_API_ORIGIN||env.OWNDATA_API_KEY?'owndata':'legacy')).trim();
+ const origin=(env.OWNDATA_API_ORIGIN||OWNDATA_API_ORIGIN).trim().replace(/\/+$/,'');
+ if(providerKind==='owndata'&&origin!==OWNDATA_API_ORIGIN)throw Error('OWNDATA_API_ORIGIN debe ser el origen HTTPS documentado de OwnData');
  if(!['legacy','owndata'].includes(providerKind))throw Error('RUC_LOOKUP_PROVIDER_KIND inválido');
- const providerUrl=(env.RUC_LOOKUP_PROVIDER_URL||defaultProviderUrl).trim().replace(/\/+$/,'');
+ const providerUrl=(env.RUC_LOOKUP_PROVIDER_URL||(providerKind==='owndata'?origin+'/api/v1/ruc':defaultProviderUrl)).trim().replace(/\/+$/,'');
  try{const parsed=new URL(providerUrl);if(parsed.protocol!=='https:'||parsed.username||parsed.password)throw Error();}catch{throw Error('RUC_LOOKUP_PROVIDER_URL debe ser una URL HTTPS válida');}
- if(providerKind==='owndata'&&providerUrl!==OWNDATA_RUC_URL)throw Error('OwnData requiere RUC_LOOKUP_PROVIDER_URL explícita al endpoint documentado');
+ if(providerKind==='owndata'&&providerUrl!==OWNDATA_RUC_URL)throw Error('OwnData requiere el endpoint HTTPS documentado /api/v1/ruc');
  const ownDataApiKey=providerKind==='owndata'?(env.OWNDATA_API_KEY||'').trim():null;
- if(providerKind==='owndata'&&(!ownDataApiKey||/[\r\n]/.test(ownDataApiKey)||ownDataApiKey.startsWith('pk_')))throw Error('OwnData requiere OWNDATA_API_KEY secreta del servidor y autorización empresarial');
+ if(providerKind==='owndata'&&(!ownDataApiKey||/[\r\n]/.test(ownDataApiKey)||ownDataApiKey.startsWith('pk_')))throw Error('OwnData requiere OWNDATA_API_KEY secreta Live del servidor, personal o empresarial, con permiso ruc:read');
  return {
   providerKind,ownDataApiKey,providerUrl,
   timeoutMs:numberSetting(env.RUC_LOOKUP_TIMEOUT_MS,12000,1000,30000),
@@ -51,9 +54,12 @@ export function createRucProvider({baseUrl=defaultProviderUrl,fetcher=fetch,time
 }
 const ownDataFailure=(message,status=503,code='OWNDATA_INVALID_RESPONSE')=>Object.assign(Error(message),{status,code,rucProviderError:true});
 const ownDataErrors={
+ INVALID_NAME_OPTIONS:[400,'Las opciones de nombre de la consulta no son válidas.'],
+ ACCOUNT_PERIOD_CHANGED:[409,'El período de OwnData cambió. Volvé a consultar manualmente.'],
+ METHOD_NOT_ALLOWED:[503,'El servidor no pudo consultar OwnData con el método configurado.'],
  INVALID_RUC_FORMAT:[400,'El formato del RUC no es válido.'],INVALID_RUC_DV:[400,'El dígito verificador del RUC no coincide.'],
  ...Object.fromEntries(['API_KEY_REQUIRED','API_KEY_INVALID','API_KEY_REVOKED','API_KEY_EXPIRED','API_KEY_ENVIRONMENT_MISMATCH','ENVIRONMENT_MISMATCH','INSUFFICIENT_SCOPE','PLAN_REQUIRED','ORIGIN_NOT_ALLOWED','PUBLISHABLE_KEY_FORBIDDEN'].map(code=>[code,[503,'OwnData no autorizó la clave, el ambiente o el plan del servidor. Revisá su configuración o activación.']])),
- COMMERCIAL_API_DISABLED:[503,'La API empresarial de OwnData no está habilitada. Se requiere autorización del proveedor.'],
+ COMMERCIAL_API_DISABLED:[503,'La API comercial de OwnData no está habilitada. Revisá su activación con OwnData.'],
  ...Object.fromEntries(['COMMERCIAL_API_UNAVAILABLE','DNIT_DATA_UNAVAILABLE','FREE_API_DISABLED','PUBLISHABLE_KEY_UNAVAILABLE'].map(code=>[code,[503,'La API de OwnData no está disponible. Podés ingresar los datos manualmente.']])),
  DAILY_QUOTA_REACHED:[429,'OwnData agotó el cupo. Esperá el reinicio del proveedor o ingresá los datos manualmente.'],
 };
@@ -62,9 +68,11 @@ const validDay=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)
 function ownDataMetadata(meta){
  const source=meta?.provenance,quota=meta?.quota;
  let https=false;try{const url=new URL(source?.sourcePage);https=typeof source?.sourcePage==='string'&&url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443');}catch{}
- return ['test','live'].includes(meta?.environment)&&source?.source==='dnit_official_snapshot'&&https&&validDay(source.publicationDate)&&
-  nonempty(source.importedAt)&&validDay(source.importedAt.slice(0,10))&&Number.isFinite(Date.parse(source.importedAt))&&typeof source.publishedText==='string'&&typeof source.snapshotHash==='string'&&/^[a-f0-9]{64}$/i.test(source.snapshotHash)&&
-  quota&&quota.limit>=1&&quota.resetAfter>=1&&['limit','used','remaining','resetAfter'].every(key=>Number.isSafeInteger(quota[key])&&quota[key]>=0)&&validDay(quota.day);
+ return meta?.environment==='live'&&source?.source==='dnit_official_snapshot'&&https&&validDay(source.publicationDate)&&
+  nonempty(source.importedAt)&&validDay(source.importedAt.slice(0,10))&&Number.isFinite(Date.parse(source.importedAt))&&typeof source.publishedText==='string'&&typeof source.snapshotHash==='string'&&/^[a-f0-9]{64}$/.test(source.snapshotHash)&&
+  quota&&quota.limit>=1&&quota.resetAfter>=1&&['limit','used','remaining','resetAfter'].every(key=>Number.isSafeInteger(quota[key])&&quota[key]>=0)&&validDay(quota.day)&&
+  typeof meta?.accounting?.alreadyConsulted==='boolean'&&typeof meta.accounting.charged==='boolean'&&
+  (!Object.hasOwn(meta.accounting,'cacheEnabled')||typeof meta.accounting.cacheEnabled==='boolean');
 }
 // Bound the response too; never retain upstream diagnostics or include them in errors.
 async function ownDataEnvelope(response){
@@ -82,17 +90,32 @@ export function validateOwnDataRuc(value){
  if(digit!==undefined&&digit!==expected)throw ownDataFailure('El dígito verificador del RUC no coincide. Corregilo antes de consultar.',400,'INVALID_RUC_DV');
  return value;
 }
+function subjectKindOption(value){
+ const kind=value??'unknown';if(!['unknown','individual','legal_entity'].includes(kind))fail('Indicá si la ficha es de una persona o empresa.',400);return kind;
+}
+function retryAfterSeconds(response){
+ const value=response.headers.get('retry-after');if(!value)return null;
+ if(/^\d+$/.test(value.trim())){const seconds=Number(value);return Number.isSafeInteger(seconds)&&seconds>=1&&seconds<=86400?seconds:null;}
+ const until=Date.parse(value);if(!Number.isFinite(until))return null;const seconds=Math.ceil((until-Date.now())/1000);return seconds>=1&&seconds<=86400?seconds:null;
+}
 export function createOwnDataRucProvider({baseUrl,apiKey,fetcher=fetch,timeoutMs=12000,allowedHosts=outboundAllowlist()}={}){
  if(baseUrl!==OWNDATA_RUC_URL||typeof apiKey!=='string'||!apiKey.trim()||/[\r\n]/.test(apiKey)||apiKey.startsWith('pk_'))throw ownDataFailure('OwnData no está configurado con endpoint y clave secreta de servidor autorizados.',503,'OWNDATA_CONFIGURATION_ERROR');
- return {name:'owndata-ruc-provider',async lookup(input){
-  const ruc=validateOwnDataRuc(input);let response;
-  try{response=await safeFetch(`${baseUrl}/${encodeURIComponent(ruc)}`,{headers:{Accept:'application/json','X-API-Key':apiKey},credentials:'omit',signal:AbortSignal.timeout(timeoutMs)},{fetchImpl:fetcher,allowedHosts,label:'OwnData'});}catch{throw ownDataFailure('No se pudo conectar con OwnData. Podés ingresar los datos manualmente.',503,'OWNDATA_UNAVAILABLE');}
-  const envelope=await ownDataEnvelope(response),code=envelope?.error?.code;
+ return {name:'owndata-ruc-provider',async lookup(input,{subjectKind='unknown'}={}){
+  const ruc=validateOwnDataRuc(input),kind=subjectKindOption(subjectKind);let response;
+  const query=kind==='individual'?'?nameMethods=full&subjectKind=individual':'';
+  try{response=await safeFetch(`${baseUrl}/${encodeURIComponent(ruc)}${query}`,{headers:{Accept:'application/json','X-API-Key':apiKey},credentials:'omit',signal:AbortSignal.timeout(timeoutMs)},{fetchImpl:fetcher,allowedHosts,label:'OwnData'});}catch{throw ownDataFailure('No se pudo conectar con OwnData. Podés ingresar los datos manualmente.',503,'OWNDATA_UNAVAILABLE');}
+  // Non-JSON error bodies are never exposed. Real HTTP failures remain distinguishable.
+  let envelope;try{envelope=await ownDataEnvelope(response);}catch(error){if(response.ok)throw error;}
+  const code=envelope?.error?.code,retryAfter=response.status===429?retryAfterSeconds(response):null;
+  const providerError=(message,status,safeCode)=>Object.assign(ownDataFailure(message,status,safeCode),{providerStatus:response.status,...(retryAfter?{retryAfter}:{})});
   if(response.status===404&&code==='REGISTERED_RUC_NOT_FOUND')return null;
   if(typeof code==='string'&&Object.hasOwn(ownDataErrors,code)){
-   const [status,message]=ownDataErrors[code];throw ownDataFailure(message,status,code);
+   const [status,message]=ownDataErrors[code];throw providerError(message,status,code);
   }
-  if(response.status===429)throw ownDataFailure('OwnData limitó las consultas. Intentá más tarde.',429,'OWNDATA_RATE_LIMITED');
+  if(response.status===401)throw providerError('OwnData no autorizó la clave secreta del servidor. Revisá su vigencia y activación.',503,'OWNDATA_AUTHENTICATION_FAILED');
+  if(response.status===403)throw providerError('OwnData no autorizó el permiso o plan del servidor.',503,'OWNDATA_PERMISSION_DENIED');
+  if(response.status===429)throw providerError('OwnData limitó las consultas. Intentá más tarde.',429,'OWNDATA_RATE_LIMITED');
+  if(response.status===503)throw providerError('OwnData o su dataset no está disponible. Podés ingresar los datos manualmente.',503,'OWNDATA_UNAVAILABLE');
   if(!response.ok||envelope?.error)throw ownDataFailure('OwnData no está disponible. Podés ingresar los datos manualmente.');
   const data=envelope?.data,provenance=envelope?.meta?.provenance;
   const base=Number.isSafeInteger(data?.ruc)?String(data.ruc):data?.ruc;
@@ -103,7 +126,9 @@ export function createOwnDataRucProvider({baseUrl,apiKey,fetcher=fetch,timeoutMs
    (Object.hasOwn(data,'sourcePartition')&&(!Number.isSafeInteger(data.sourcePartition)||data.sourcePartition<0||data.sourcePartition>9))||!ownDataMetadata(envelope.meta))throw ownDataFailure('OwnData devolvió una ficha o procedencia inválida.');
   try{validateOwnDataRuc(data.fullRuc);}catch{throw ownDataFailure('OwnData devolvió un RUC o dígito verificador inválido.');}
   if(ruc.includes('-')?data.fullRuc!==ruc:base!==ruc)throw ownDataFailure('El RUC devuelto por OwnData no coincide con la consulta.');
-  return {name:data.nameOfficial,ruc:base,dv,fullRuc:data.fullRuc,publicationDateText:provenance.publicationDate};
+  const full=kind==='individual'?envelope?.namePresentation?.values?.full:null;
+  if(full!==undefined&&full!==null&&(typeof full!=='string'||!full.trim()||full.length>160))throw ownDataFailure('OwnData devolvió una presentación de nombre inválida.');
+  return {name:data.nameOfficial,...(typeof full==='string'?{display_name:full}:{}),ruc:base,dv,fullRuc:data.fullRuc,publicationDateText:provenance.publicationDate};
  }};
 }
 export function configuredRucProvider(settings,{fetcher=fetch}={}){
@@ -120,7 +145,7 @@ export function rucRecord(value,requested,{source='ruc-provider'}={}){
  if(!value||typeof value!=='object'||typeof value.name!=='string'||!value.name.trim())fail('El proveedor no devolvió una ficha válida',502);
  const full=normalizeRuc(value.fullRuc||`${value.ruc}-${value.dv}`);
  if(!full.includes('-')||(requested.includes('-')?full!==requested:full.split('-')[0]!==requested))fail('El RUC recibido no coincide con la consulta',502);
- return {name:text(value.name,160),tax_id:full,tax_state:text(value.state||'',60),source,publication_date:text(value.publicationDateText||'',30)};
+ return {name:text(value.name,160),...(source===OWNDATA_SOURCE&&typeof value.display_name==='string'?{display_name:text(value.display_name,160)}:{}),tax_id:full,tax_state:text(value.state||'',60),source,publication_date:text(value.publicationDateText||'',30)};
 }
 const parsedCache=value=>typeof value==='string'?JSON.parse(value):value;
 async function cachedRecord(c,ruc){
@@ -138,16 +163,16 @@ async function consumeQuota(c,limit){
  if(!usage.rows.length)fail('Se alcanzó el límite mensual de consultas. Podés agregar el cliente manualmente.',429);
  return Number(usage.rows[0].used);
 }
-async function lookupCachedOrProvider({db,ruc,provider,config,force=false}){
+async function lookupCachedOrProvider({db,ruc,provider,config,force=false,subjectKind='unknown'}){
  let c=await db.connect();
  try{
   // Separate provider cache namespaces: switching providers must not present legacy results as OwnData.
-  const cacheKey=provider.name==='owndata-ruc-provider'?'owndata:'+ruc:ruc;
+  const cacheKey=provider.name==='owndata-ruc-provider'?'owndata:v2:live:'+subjectKind+':'+ruc:ruc;
   if(provider.name==='owndata-ruc-provider')validateOwnDataRuc(ruc);
-  if(!force){const cached=await cachedRecord(c,cacheKey);if(cached)return {...cached,record:cached.record&&provider.name==='owndata-ruc-provider'?{name:cached.record.name,tax_id:cached.record.tax_id,tax_state:'',source:OWNDATA_SOURCE,publication_date:cached.record.publication_date}:cached.record,remaining:null};}
+  if(!force){const cached=await cachedRecord(c,cacheKey);if(cached)return {...cached,record:cached.record&&provider.name==='owndata-ruc-provider'?{name:cached.record.name,...(subjectKind==='individual'&&typeof cached.record.display_name==='string'?{display_name:text(cached.record.display_name,160)}:{}),tax_id:cached.record.tax_id,tax_state:'',source:OWNDATA_SOURCE,publication_date:cached.record.publication_date}:cached.record,remaining:null};}
   await c.query('begin');const used=await consumeQuota(c,config.monthlyLimit);await c.query('commit');
   let raw;
-  try{raw=await provider.lookup(ruc);}catch(error){if(error.rucProviderError)throw error;throw Object.assign(Error('La consulta externa no está disponible. Podés agregar el cliente manualmente.'),{status:503});}
+  try{raw=await provider.lookup(ruc,{subjectKind});}catch(error){if(error.rucProviderError)throw error;throw Object.assign(Error('La consulta externa no está disponible. Podés agregar el cliente manualmente.'),{status:503});}
   let record;
   try{record=raw?rucRecord(raw,ruc,{source:provider.name==='owndata-ruc-provider'?OWNDATA_SOURCE:'ruc-provider'}):null;}catch{throw Object.assign(Error('La consulta externa devolvió una respuesta inválida. Podés agregar el cliente manualmente.'),{status:503});}
   await writeCache(c,cacheKey,record,record?config.cacheTtlSeconds:config.noResultTtlSeconds);
@@ -175,6 +200,7 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
    const client=(await c.query('insert into agency_clients(organization_id,name,legal_name,tax_id) values($1,$2,$3,$4) returning *',[user.organization_id,name,legal,ruc])).rows[0];
    await c.query('commit');tx=false;send(res,201,{client});return true;
   }
+  const subjectKind=subjectKindOption(b.subjectKind);
   const settings=config||rucLookupConfig();
   const service=provider||configuredRucProvider(settings,{fetcher});
   if(refresh){
@@ -182,7 +208,7 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
    c.release();c=null;
    if(!client)fail('Cliente no encontrado',404);
    const ruc=normalizeRuc(client.tax_id);if(!ruc.includes('-'))fail('El cliente debe tener un RUC completo con dígito verificador para actualizarse');
-   const found=await lookupCachedOrProvider({db,ruc,provider:service,config:settings,force:true});
+   const found=await lookupCachedOrProvider({db,ruc,provider:service,config:settings,force:true,subjectKind});
    if(!found.record){send(res,200,{client,record:null,updated:false,remaining:found.remaining});return true;}
    if(b.apply!==true){send(res,200,{client,record:found.record,updated:false,remaining:found.remaining});return true;}
    c=await db.connect();await c.query('begin');tx=true;
@@ -192,7 +218,7 @@ export async function rucLookup({req,res,url,db,session,body,send,provider,confi
    await c.query('commit');tx=false;send(res,200,{client:updated,record:found.record,updated:true,remaining:found.remaining});return true;
   }
   const ruc=normalizeRuc(b.ruc);
-  const found=await lookupCachedOrProvider({db,ruc,provider:service,config:settings});
+  const found=await lookupCachedOrProvider({db,ruc,provider:service,config:settings,subjectKind});
   send(res,200,{record:found.record,cached:found.cached,remaining:found.remaining});return true;
- }catch(error){if(tx)await c.query('rollback');console.error(JSON.stringify({event:'ruc_lookup_error',status:error.status||503}));send(res,error.status||503,{error:error.status?error.message:'No se pudo consultar el RUC. Intentá más tarde o agregá el cliente manualmente.',...(error.rucProviderError?{code:error.code}:{})});return true;}finally{c?.release();}
+ }catch(error){if(tx)await c.query('rollback');console.error(JSON.stringify({event:'ruc_lookup_error',status:error.status||503}));if(error.rucProviderError&&error.status===429&&error.retryAfter)res.setHeader?.('Retry-After',String(error.retryAfter));send(res,error.status||503,{error:error.status?error.message:'No se pudo consultar el RUC. Intentá más tarde o agregá el cliente manualmente.',...(error.rucProviderError?{code:error.code,...(Number.isInteger(error.providerStatus)&&error.providerStatus>=400&&error.providerStatus<=599?{provider_status:error.providerStatus}:{}),...(error.status===429&&error.retryAfter?{retry_after:error.retryAfter}:{})}:{})});return true;}finally{c?.release();}
 }
