@@ -1,0 +1,26 @@
+[
+  {
+    "name": "anonymous_session",
+    "status": 401,
+    "passed": true,
+    "scope": "Public read-only probe"
+  },
+  {
+    "name": "auth_providers",
+    "status": 200,
+    "passed": true,
+    "scope": "Public read-only probe"
+  },
+  {
+    "name": "maintenance",
+    "status": 200,
+    "passed": true,
+    "scope": "Public read-only probe"
+  },
+  {
+    "name": "protected_ruc",
+    "status": 401,
+    "passed": true,
+    "scope": "Unauthenticated request denied; does not verify live provider lookup"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "observed_at_utc": "2026-10-21T08:31:00.157Z",
+  "expected_version": "1.0.206",
+  "merge_sha": "19747ae0c5e52f5276626c94fd1f6dc3709695a8",
+  "served_provider_sha": null,
+  "web": {
+    "http": 200,
+    "expected_version_visible": true
+  },
+  "registration": {
+    "http": 200,
+    "expected_version_visible": true
+  },
+  "api": {
+    "http": 200,
+    "version": "1.0.202",
+    "database": "ready"
+  },
+  "authenticated_ruc_lookup_verified": false,
+  "ownData_key_activation_verified": false,
+  "manual_deploy_triggered": false
+}
