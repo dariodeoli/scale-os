@@ -34,7 +34,11 @@ export function rucLookupConfig(env=process.env){
  try{const parsed=new URL(providerUrl);if(parsed.protocol!=='https:'||parsed.username||parsed.password)throw Error();}catch{throw Error('RUC_LOOKUP_PROVIDER_URL debe ser una URL HTTPS válida');}
  if(providerKind==='owndata'&&providerUrl!==OWNDATA_RUC_URL)throw Error('OwnData requiere el endpoint HTTPS documentado /api/v1/ruc');
  const ownDataApiKey=providerKind==='owndata'?(env.OWNDATA_API_KEY||'').trim():null;
- if(providerKind==='owndata'&&(!ownDataApiKey||/[\r\n]/.test(ownDataApiKey)||ownDataApiKey.startsWith('pk_')))throw Error('OwnData requiere OWNDATA_API_KEY secreta Live del servidor, personal o empresarial, con permiso ruc:read');
+ if(providerKind==='owndata'){
+  if(!ownDataApiKey)throw Error('OWNDATA_API_KEY ausente o vacía: configurá la clave secreta Live en Runtime del servicio API');
+  if(/[\r\n]/.test(ownDataApiKey))throw Error('OWNDATA_API_KEY contiene saltos de línea internos: corregí su formato en Runtime');
+  if(ownDataApiKey.startsWith('pk_'))throw Error('OWNDATA_API_KEY es pública: el backend requiere una clave secreta Live personal o empresarial con ruc:read');
+ }
  return {
   providerKind,ownDataApiKey,providerUrl,
   timeoutMs:numberSetting(env.RUC_LOOKUP_TIMEOUT_MS,12000,1000,30000),
