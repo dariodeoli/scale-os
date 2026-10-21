@@ -1,5 +1,5 @@
 {
-  "backend/ruc-lookup.js": "6bbc23e45352f930b868b50e347697033b4c6b176883ff3da0e43fa2bc3159d5",
+  "backend/ruc-lookup.js": "fbab652372e0fdebe5588024a79fcab3c9839bbc98909bcb04b085e199c55215",
   "backend/outbound-allowlist.js": "1ec7ed869d7bca5f7a6f554195b74a6bd20c9cd0ee2daadcaab87059fbfeef22",
   "backend/test-ruc.mjs": "6bc440f69b0754a33d0b94cb92657b279547b1a8bfe533ebcdc16dc2034d6d6d",
   "app/client-ruc.tsx": "366dfd80e54ddfd846a1cf21ad0a412590d51f0d474fcea72848212679dbde3d",
