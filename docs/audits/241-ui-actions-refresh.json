@@ -111,8 +111,8 @@
     {
       "file": "app/client-editor.tsx",
       "beforeHash": "1ceb2684fd509cdeb56f6803907f3a6157c61ab2394a4d9574e46465864fc197",
-      "afterHash": "6582b98a8546c72f2b17ff52280eae9467b53800c99faad4db883f1384bd9fdd",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
+      "afterHash": "c563ffdf207f11b9392996481af05c55a44c9074425560a0f8974b8791572f0b",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #305–312: positions/source hash reconciled; exact reviewed native widgets preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Refs #353: RUC explicit subject/confirmation and duplicate guard; retained native JSX unchanged, current source hash reconciled."
     },
     {
       "file": "app/company-legal-profile.tsx",
@@ -165,8 +165,8 @@
     {
       "file": "app/workspace-forms.tsx",
       "beforeHash": "84210c814d302f76f7532ab18901af221cc3737cc13a488ce04d4339f686eb88",
-      "afterHash": "747682eb3acad88428ade3b94522f200cfe6927901e35e29e64d57047a64421e",
-      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
+      "afterHash": "866619515df65b6b5f3bdb6fab7e5b97f95f343d472683387dcbd3e4feeb29de",
+      "rationale": "Cambio de producto194 revisado: se mantienen los55 widgets nativos exactos, todas las acciones se contabilizan y las nuevas usan el componente canónico. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Refs #353: RUC explicit subject/confirmation and duplicate guard; retained native JSX unchanged, current source hash reconciled."
     },
     {
       "file": "app/access-layout.tsx",
@@ -291,8 +291,8 @@
     {
       "file": "app/operations.tsx",
       "beforeHash": "339f8ae4162211619870e9cab30bc17bf35934b728bb806fd361337e66e73dcd",
-      "afterHash": "cd90c5605c7b515d72b40ea561d5ea0cfb66ef583e370a1fcf5042175fb5f12f",
-      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review."
+      "afterHash": "590d7c781c18ad2957c8dee099cd086463501616f39c7b44c1b17901f5ce1533",
+      "rationale": "Scale #305–312: portal immediate submission locks, recoverable logout errors and unchanged canonical controls reviewed; exact native widget JSX and canonical ownership preserved. Scale #330/#331/#335: current hierarchy/intake/financial action source reviewed; existing structural owners preserved with explicit permission widget review. Refs #353: RUC explicit subject/confirmation and duplicate guard; retained native JSX unchanged, current source hash reconciled."
     },
     {
       "file": "app/production-board.tsx",
@@ -405,8 +405,8 @@
     {
       "file": "app/client-ruc.tsx",
       "beforeHash": "49ed7ee980bbcdb6c7bf6dddd00e5aabdc5571e4db6a63991c3145079ab24873",
-      "afterHash": "c95713d24e976bc0214d66385af3495ccd983b0f20f816bb3f87e230cf0f0376",
-      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled."
+      "afterHash": "366dfd80e54ddfd846a1cf21ad0a412590d51f0d474fcea72848212679dbde3d",
+      "rationale": "Scale #330/#331/#335: hierarchy, intake and compact financial action callbacks reviewed; canonical ownership retained and exact source hashes reconciled. Refs #353: RUC explicit subject/confirmation and duplicate guard; retained native JSX unchanged, current source hash reconciled."
     },
     {
       "file": "app/finance-history.tsx",
@@ -1829,5 +1829,37 @@
     "reviewedStructuralRetirements": [],
     "unreviewed": 0,
     "reviewedChangedActions": []
+  },
+  "issue353": {
+    "baseline": "dc7cdb00ce7aded5d0313ee0135193e77306046c",
+    "sourceSnapshot": "04e648e3",
+    "rationale": "RUC lookup singleflight guard, explicit subject kind and confirmation labels: exact retained native JSX hashes verified; no new exception, no action count change.",
+    "changedFiles": [
+      {
+        "file": "app/client-editor.tsx",
+        "beforeHash": "6582b98a8546c72f2b17ff52280eae9467b53800c99faad4db883f1384bd9fdd",
+        "afterHash": "c563ffdf207f11b9392996481af05c55a44c9074425560a0f8974b8791572f0b"
+      },
+      {
+        "file": "app/client-ruc.tsx",
+        "beforeHash": "c95713d24e976bc0214d66385af3495ccd983b0f20f816bb3f87e230cf0f0376",
+        "afterHash": "366dfd80e54ddfd846a1cf21ad0a412590d51f0d474fcea72848212679dbde3d"
+      },
+      {
+        "file": "app/operations.tsx",
+        "beforeHash": "cd90c5605c7b515d72b40ea561d5ea0cfb66ef583e370a1fcf5042175fb5f12f",
+        "afterHash": "590d7c781c18ad2957c8dee099cd086463501616f39c7b44c1b17901f5ce1533"
+      },
+      {
+        "file": "app/workspace-forms.tsx",
+        "beforeHash": "747682eb3acad88428ade3b94522f200cfe6927901e35e29e64d57047a64421e",
+        "afterHash": "866619515df65b6b5f3bdb6fab7e5b97f95f343d472683387dcbd3e4feeb29de"
+      }
+    ],
+    "counts": {
+      "canonical": 634,
+      "structural": 53,
+      "renderer": 1
+    }
   }
 }

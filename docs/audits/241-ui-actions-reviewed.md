@@ -79,3 +79,7 @@ Audit reproducible sin escribir producto:
 `node build-tools/migrate-ui-actions.mjs --audit --manifest=docs/audits/241-ui-actions-reviewed.json --report=/tmp/actions-final-audit.json`
 
 No reaplicar el manifiesto histórico sobre la fuente final. Toda edición posterior de app cambia los hashes: revisar diff y nuevos sitios, refrescar manifiesto y reporte final y volver a ejecutar las guardas antes de integrar.
+
+## OwnData #353
+
+Se revisaron los cambios de RUC en ClientEditor, ClientRuc, WorkspaceForms y Editor. Los cinco widgets nativos de operations/workspace-forms conservan exactamente sus hashes JSX; cambian posiciones/source hashes. La auditoría mantiene 634 acciones canónicas,53 widgets estructurales y un renderer, cero UNREVIEWED y ninguna exención nueva. El historial original permanece intacto; issue353 documenta los hashes anteriores y actuales.

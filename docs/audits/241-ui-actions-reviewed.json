@@ -303,7 +303,7 @@
     },
     {
       "file": "app/operations.tsx",
-      "sourceHash": "cd90c5605c7b515d72b40ea561d5ea0cfb66ef583e370a1fcf5042175fb5f12f",
+      "sourceHash": "590d7c781c18ad2957c8dee099cd086463501616f39c7b44c1b17901f5ce1533",
       "sites": [
         {
           "line": 540,
@@ -691,7 +691,7 @@
     },
     {
       "file": "app/workspace-forms.tsx",
-      "sourceHash": "747682eb3acad88428ade3b94522f200cfe6927901e35e29e64d57047a64421e",
+      "sourceHash": "866619515df65b6b5f3bdb6fab7e5b97f95f343d472683387dcbd3e4feeb29de",
       "sites": [
         {
           "action": "retain",
@@ -709,7 +709,7 @@
           "canonical": "app/workspace-forms.tsx::InvoiceForm choice group",
           "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
           "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
-          "line": 414,
+          "line": 415,
           "column": 13,
           "siteHash": "0e1d4c81a4c749ac5a827ecf4de4eea27876e00f5bcfcb2e65b07af63f5694d2",
           "owner": "InvoiceForm",
@@ -720,7 +720,7 @@
           "canonical": "app/workspace-forms.tsx::PaymentForm choice group",
           "rationale": "Opciones de estado/tipo/moneda/cuenta del formulario RHF, no guardar/cancelar. onClick setValue conserva shouldDirty y shouldValidate; PendingFields mantiene bloqueo compartido. Retener geometría de choice y semántica del grupo.",
           "canonicalOwner": "DSN: presenter choice; formulario conserva esquema, valores, permisos y callbacks",
-          "line": 548,
+          "line": 549,
           "column": 13,
           "siteHash": "b372b3adc411d9906774894126d4706aeb04f17c053724d2b129a1dbe401888a",
           "owner": "PaymentForm",
