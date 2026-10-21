@@ -9,7 +9,7 @@ assert(String(manual.get('tax_id')?.help).includes('manualmente'));
 const lookup={label:'Buscar',run:async()=>({})};
 const internal=fields({mode:'create',rucLookup:lookup});
 assert.equal(internal.get('tax_id')?.lookup,lookup);
-assert(String(internal.get('tax_id')?.help).includes('Enter o Buscar'));
+assert(String(internal.get('tax_id')?.help).includes('Enter o Extraer datos del RUC'));
 const restricted=fields({mode:'edit',restricted:true,rucLookup:lookup});
 assert(String(restricted.get('tax_id')?.help).includes('protegido'));
 assert(String(restricted.get('legal_name')?.help).includes('protegido'));
